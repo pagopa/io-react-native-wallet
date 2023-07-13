@@ -1,3 +1,0 @@
-example: example/**/*
-docs: docs/**/*
-ci: .github/workflows/**/*
