@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "io-react-native-wallet-instance-attestation": ["./src/index"]
+      "io-react-native-wallet": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
