@@ -14,6 +14,19 @@ yarn example ios
 yarn example android
 ```
 
+## Modules
+
+### Wallet Instance Attestation
+
+
+#### Usage
+
+```ts
+import { WalletInstanceAttestation } from "io-react-native-wallet";
+
+WalletInstanceAttestation.decode("<token>");
+```
+
 
 
 ---
