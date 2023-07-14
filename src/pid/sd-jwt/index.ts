@@ -19,7 +19,7 @@ import { pidFromToken } from "./converters";
  */
 export function decode(token: string): PidWithToken {
   // token are expected in the form "sd-jwt~disclosure0~disclosure1~...~disclosureN"
-  const [rawSdJwt, ...rawDisclosures] = token.split("~");
+  const [rawSdJwt = "", ...rawDisclosures] = token.split("~");
 
   // get the sd-jwt as object
   // validate it's a valid SD-JWT for Verifiable Credentials
@@ -59,7 +59,7 @@ export function decode(token: string): PidWithToken {
  * @todo check disclosures in sd-jwt
  *
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
- * @param {VerifyOptions} options
+ * @param {VerifyOptions} _options
  *
  * @returns {VerifyResult} The validated PID object along with the parsed SD-JWT token and the parsed disclosures
  * @throws A decoding error if the token doesn't resolve in a valid SD-JWT
@@ -70,7 +70,7 @@ export function decode(token: string): PidWithToken {
  */
 export async function verify(
   token: string,
-  options: VerifyOptions // eslint-disable-line @typescript-eslint/no-unused-vars
+  _options: VerifyOptions // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Promise<VerifyResult> {
   // TODO: signature validation
 
