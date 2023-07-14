@@ -1,7 +1,7 @@
 {
-  "name": "io-react-native-wallet-instance-attestation",
+  "name": "io-react-native-wallet",
   "version": "0.1.0",
-  "description": "Provide data structures, helpers and API to IO Wallet to obtain and manage Wallet Instance Attestations",
+  "description": "Provide data structures, helpers and API for IO Wallet",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/index.d.ts",
@@ -41,13 +41,12 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/balanza/io-react-native-wallet-instance-attestation",
-  "author": "Emanuele De Cupis <ema.decu@gmail.com> (https://github.com/balanza)",
+  "repository": "https://github.com/balanza/io-react-native-wallet",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/balanza/io-react-native-wallet-instance-attestation/issues"
+    "url": "https://github.com/balanza/io-react-native-wallet/issues"
   },
-  "homepage": "https://github.com/balanza/io-react-native-wallet-instance-attestation#readme",
+  "homepage": "https://github.com/balanza/io-react-native-wallet#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

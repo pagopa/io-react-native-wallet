@@ -1,4 +1,4 @@
-# io-react-native-wallet-instance-attestation
+# io-react-native-wallet
 
 Provide data structures, helpers, and API to IO Wallet to obtain and manage Wallet Instance Attestations
 
