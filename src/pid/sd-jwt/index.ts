@@ -1,10 +1,7 @@
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
-
-import { decodeBase64 } from "@pagopa/io-react-native-jwt";
+import { decode as decodeJwt } from "../../sd-jwt";
+import { verify as verifyJwt } from "../../sd-jwt";
 import { PID } from "./types";
 import { pidFromToken } from "./converters";
-import { verifyDisclosure } from "../../sd-jwt/verifier";
 import { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
 
 /**
@@ -23,26 +20,7 @@ import { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
  *
  */
 export function decode(token: string): PidWithToken {
-  // token are expected in the form "sd-jwt~disclosure0~disclosure1~...~disclosureN"
-  const [rawSdJwt = "", ...rawDisclosures] = token.split("~");
-
-  // get the sd-jwt as object
-  // validate it's a valid SD-JWT for Verifiable Credentials
-  const decodedJwt = decodeJwt(rawSdJwt);
-  const sdJwt = SdJwt4VC.parse({
-    header: decodedJwt.protectedHeader,
-    payload: decodedJwt.payload,
-  });
-
-  // get disclosures as list of triples
-  // validate each triple
-  // throw a validation error if at least one fails to parse
-  const disclosures = rawDisclosures
-    .map(decodeBase64)
-    .map((e) => JSON.parse(e))
-    .map((e) => Disclosure.parse(e));
-
-  // compose and validate pid object from input data
+  let { sdJwt, disclosures } = decodeJwt(token);
   const pid = pidFromToken(sdJwt, disclosures);
 
   return { pid, sdJwt, disclosures };
@@ -70,37 +48,12 @@ export function decode(token: string): PidWithToken {
  *
  */
 export async function verify(token: string): Promise<VerifyResult> {
-  // get decoded data
-  const [rawSdJwt = ""] = token.split("~");
-
   const decoded = decode(token);
   const publicKey = decoded.sdJwt.payload.cnf.jwk;
-
-  //Check signature
-  await verifyJwt(rawSdJwt, publicKey);
-
-  //Check disclosures in sd-jwt
-  const claims = [
-    ...decoded.sdJwt.payload.verified_claims.verification._sd,
-    ...decoded.sdJwt.payload.verified_claims.claims._sd,
-  ];
-
-  await Promise.all(
-    decoded.disclosures.map(
-      async (disclosure) => await verifyDisclosure(disclosure, claims)
-    )
-  );
+  await verifyJwt(token, publicKey);
 
   return decoded;
 }
-
-/**
- * Options for {@link verify}
- */
-export type VerifyOptions = {
-  /** URI of the public endpoint of the issuer */
-  jwksUri: string;
-};
 
 type PidWithToken = {
   // The object with the parsed data for PID
