@@ -1,6 +1,7 @@
 import { encodeBase64, sha256ToBase64 } from "@pagopa/io-react-native-jwt";
+
+import { ValidationFailed } from "../utils/errors";
 import type { Disclosure, ObfuscatedDisclosures } from "./types";
-import { ValidationFailed } from "./../../utils/errors";
 
 export const verifyDisclosure = async (
   disclosure: Disclosure,

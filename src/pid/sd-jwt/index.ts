@@ -2,9 +2,10 @@ import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 
 import { decodeBase64 } from "@pagopa/io-react-native-jwt";
-import { PID, Disclosure, SdJwt4VC } from "./types";
+import { PID } from "./types";
 import { pidFromToken } from "./converters";
-import { verifyDisclosure } from "./verifier";
+import { verifyDisclosure } from "../../sd-jwt/verifier";
+import { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
 
 /**
  * Decode a given SD-JWT with Disclosures to get the parsed PID object they define.

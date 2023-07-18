@@ -1,4 +1,6 @@
-import { Disclosure, SdJwt4VC, PID } from "./types";
+import { getValueFromDisclosures } from "../../sd-jwt/converters";
+import type { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
+import { PID } from "./types";
 
 export function pidFromToken(sdJwt: SdJwt4VC, disclosures: Disclosure[]): PID {
   return PID.parse({
@@ -21,24 +23,4 @@ export function pidFromToken(sdJwt: SdJwt4VC, disclosures: Disclosure[]): PID {
       taxIdCode: getValueFromDisclosures(disclosures, "tax_id_number"),
     },
   });
-}
-
-function getValueFromDisclosures(disclosures: Disclosure[], claimName: string) {
-  const value = disclosures.find(([, name]) => name === claimName)?.[2];
-  // value didn't found, we return nothing
-  if (!value) {
-    return undefined;
-  }
-  // value is not a string, it's probably fine
-  if (typeof value !== "string") {
-    return value;
-  }
-  // value is a string, we try to parse it
-  // maybe it's a serialized object
-  try {
-    return JSON.parse(value);
-  } catch (error) {
-    // It's definitely a string
-    return value;
-  }
 }
