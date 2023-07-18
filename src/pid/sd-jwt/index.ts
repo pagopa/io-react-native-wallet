@@ -1,4 +1,7 @@
-import base64decode from "../lib/base64";
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
+
+import { decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { PID, Disclosure, SdJwt4VC } from "./types";
 import { pidFromToken } from "./converters";
 
@@ -23,21 +26,17 @@ export function decode(token: string): PidWithToken {
 
   // get the sd-jwt as object
   // validate it's a valid SD-JWT for Verifiable Credentials
-  const [header, payload] = rawSdJwt
-    .split(".")
-    .slice(0, 2)
-    .map(base64decode)
-    .map((e) => JSON.parse(e));
+  const decodedJwt = decodeJwt(rawSdJwt);
   const sdJwt = SdJwt4VC.parse({
-    header,
-    payload,
+    header: decodedJwt.protectedHeader,
+    payload: decodedJwt.payload,
   });
 
   // get disclosures as list of triples
   // validate each triple
   // throw a validation error if at least one fails to parse
   const disclosures = rawDisclosures
-    .map(base64decode)
+    .map(decodeBase64)
     .map((e) => JSON.parse(e))
     .map((e) => Disclosure.parse(e));
 
@@ -68,15 +67,13 @@ export function decode(token: string): PidWithToken {
  * @throws Invalid signature error if the token signature is not valid
  *
  */
-export async function verify(
-  token: string,
-  _options: VerifyOptions // eslint-disable-line @typescript-eslint/no-unused-vars
-): Promise<VerifyResult> {
-  // TODO: signature validation
-
+export async function verify(token: string): Promise<VerifyResult> {
   // get decoded data
-  // eslint-disable-next-line sonarjs/prefer-immediate-return
+  const [rawSdJwt = ""] = token.split("~");
+
   const decoded = decode(token);
+  const publicKey = decoded.sdJwt.payload.cnf.jwk;
+  await verifyJwt(rawSdJwt, publicKey);
 
   // TODO: check disclosures in sd-jwt
 
