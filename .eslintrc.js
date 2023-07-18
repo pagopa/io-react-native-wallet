@@ -1,18 +1,17 @@
 require("@rushstack/eslint-patch/modern-module-resolution");
 
 module.exports = {
-  env: {
-    es2021: true,
-    node: true,
-  },
-  ignorePatterns: [
-    "**/models/*.ts",
-    "*.yaml",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "**/*.test-d.ts",
-  ],
+  root: true,
+  extends: ["@react-native-community", "prettier"],
   rules: {
-    "max-classes-per-file": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        singleQuote: false,
+        tabWidth: 2,
+        trailingComma: "es5",
+        useTabs: false,
+      },
+    ],
   },
 };
