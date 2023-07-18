@@ -1694,10 +1694,10 @@
     eslint-plugin-sonarjs "^0.13.0"
     prettier "^2.6.2"
 
-"@pagopa/io-react-native-jwt@^0.3.0":
-  version "0.3.0"
-  resolved "https://npm.pkg.github.com/download/@pagopa/io-react-native-jwt/0.3.0/7c0fb4b43a8aa24985be97a1ce0083b1a6d8b6a8#7c0fb4b43a8aa24985be97a1ce0083b1a6d8b6a8"
-  integrity sha512-zzUNsTqvnP5tVtwfrnXILJ6FJwtnbkvUK0lwWg54uWjoSLs2IsX46/7vAxrzSOtKJ8GsNfsl16gfFDKi1QSWPw==
+"@pagopa/io-react-native-jwt@^0.4.0":
+  version "0.4.0"
+  resolved "https://npm.pkg.github.com/download/@pagopa/io-react-native-jwt/0.4.0/b7b58c8d2866dce11372e218b4b0f28d0830fea9#b7b58c8d2866dce11372e218b4b0f28d0830fea9"
+  integrity sha512-bWtVtD3XGijQ5A7069ecFpOZQgeIBUfk+gso2C4uDbL00emx4MyLbgsN2qdAzQ35i07WO0PB42zHRxcL1cBudg==
   dependencies:
     abab "^2.0.6"
 
