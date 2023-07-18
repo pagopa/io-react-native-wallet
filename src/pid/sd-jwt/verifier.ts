@@ -1,6 +1,6 @@
 import { encodeBase64, sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 import type { Disclosure, ObfuscatedDisclosures } from "./types";
-import { PIDValidationFailed } from "./../../utils/errors";
+import { ValidationFailed } from "./../../utils/errors";
 
 export const verifyDisclosure = async (
   disclosure: Disclosure,
@@ -10,7 +10,7 @@ export const verifyDisclosure = async (
   let encodedDisclosure = encodeBase64(disclosureString);
   let hash = await sha256ToBase64(encodedDisclosure);
   if (!claims.includes(hash)) {
-    throw new PIDValidationFailed(
+    throw new ValidationFailed(
       "Validation of disclosure failed",
       `${disclosure}`,
       "Disclosure hash not found in claims"

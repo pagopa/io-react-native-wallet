@@ -26,15 +26,15 @@ export class IoWalletError extends Error {
   }
 }
 /**
- * An error subclass thrown when PID validation fail
+ * An error subclass thrown when validation fail
  *
  */
-export class PIDValidationFailed extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_PID_VALIDATION_FAILED" {
-    return "ERR_IO_WALLET_PID_VALIDATION_FAILED";
+export class ValidationFailed extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_VALIDATION_FAILED" {
+    return "ERR_IO_WALLET_VALIDATION_FAILED";
   }
 
-  code = "ERR_IO_WALLET_PID_VALIDATION_FAILED";
+  code = "ERR_IO_WALLET_VALIDATION_FAILED";
 
   /** The Claim for which the validation failed. */
   claim: string;
