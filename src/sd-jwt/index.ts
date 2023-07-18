@@ -52,7 +52,7 @@ export function decode(token: string): JwtWithDisclosures {
  *
  *
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
- *
+ * @param publicKey The public key to validate the signature
  * @returns {JwtWithDisclosures} The validated PID object along with the parsed SD-JWT token and the parsed disclosures
  *
  */
