@@ -1,11 +1,11 @@
 # This workflow will perform the code review on each code change.
 # It uses "actions/cache" and turborepo in order to perform tasks only on changed files.
 
-name: 'Code Review'
+name: "Code Review"
 
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
   pull_request:
     types: [opened, synchronize]
   workflow_dispatch: {}
@@ -24,10 +24,12 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3.6.0
         with:
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 'Code review'
+      - name: "Code review"
         run: yarn run code-review
