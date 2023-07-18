@@ -4,6 +4,7 @@ import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 import { decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { PID, Disclosure, SdJwt4VC } from "./types";
 import { pidFromToken } from "./converters";
+import { verifyDisclosure } from "./verifier";
 
 /**
  * Decode a given SD-JWT with Disclosures to get the parsed PID object they define.
@@ -73,9 +74,21 @@ export async function verify(token: string): Promise<VerifyResult> {
 
   const decoded = decode(token);
   const publicKey = decoded.sdJwt.payload.cnf.jwk;
+
+  //Check signature
   await verifyJwt(rawSdJwt, publicKey);
 
-  // TODO: check disclosures in sd-jwt
+  //Check disclosures in sd-jwt
+  const claims = [
+    ...decoded.sdJwt.payload.verified_claims.verification._sd,
+    ...decoded.sdJwt.payload.verified_claims.claims._sd,
+  ];
+
+  await Promise.all(
+    decoded.disclosures.map(
+      async (disclosure) => await verifyDisclosure(disclosure, claims)
+    )
+  );
 
   return decoded;
 }

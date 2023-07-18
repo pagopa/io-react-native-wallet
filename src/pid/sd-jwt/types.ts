@@ -3,8 +3,8 @@ import { z } from "zod";
 const UnixTime = z.number().min(0).max(2147483647000);
 type UnixTime = z.infer<typeof UnixTime>;
 
-type ObfuscatedDisclosures = z.infer<typeof ObfuscatedDisclosures>;
-const ObfuscatedDisclosures = z.object({ _sd: z.array(z.string()) });
+export type ObfuscatedDisclosures = z.infer<typeof ObfuscatedDisclosures>;
+export const ObfuscatedDisclosures = z.object({ _sd: z.array(z.string()) });
 
 /**
  * A triple of values in the form of {salt, claim name, claim value} that represent a parsed disclosure.
