@@ -109,12 +109,12 @@ describe("PID", () => {
         ],
       },
       claims: {
-        uniqueId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        uniqueId: "idANPR",
         givenName: "Mario",
         familyName: "Rossi",
-        birthdate: "1980-01-10",
+        birthdate: "1980-10-01",
         placeOfBirth: { country: "IT", locality: "Rome" },
-        taxIdCode: "TINIT-XXXXXXXXXXXXXXXX",
+        taxIdCode: "TINIT-RSSMRA80A10H501A",
       },
     };
     const { success } = PID.safeParse(value);

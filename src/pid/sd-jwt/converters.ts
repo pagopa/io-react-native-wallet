@@ -18,7 +18,7 @@ export function pidFromToken(sdJwt: SdJwt4VC, disclosures: Disclosure[]): PID {
       familyName: getValueFromDisclosures(disclosures, "family_name"),
       birthdate: getValueFromDisclosures(disclosures, "birthdate"),
       placeOfBirth: getValueFromDisclosures(disclosures, "place_of_birth"),
-      taxIdCode: getValueFromDisclosures(disclosures, "tax_id_code"),
+      taxIdCode: getValueFromDisclosures(disclosures, "tax_id_number"),
     },
   });
 }
