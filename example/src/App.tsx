@@ -21,7 +21,7 @@ export default function App() {
     setResult("READY");
   }, []);
 
-  let decodePid = () => {
+  const decodePid = () => {
     try {
       const pidWithToken = PID.SdJwt.decode(pidToken);
       setResult(JSON.stringify(pidWithToken.pid.claims));
@@ -30,7 +30,7 @@ export default function App() {
     }
   };
 
-  let verifyPid = async () => {
+  const verifyPid = async () => {
     try {
       const pidWithToken = await PID.SdJwt.verify(pidToken);
       setResult(
