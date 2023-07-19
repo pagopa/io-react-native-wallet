@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "io-react-native-wallet": ["./src/index"]
+      "@pagopa/io-react-native-wallet": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
