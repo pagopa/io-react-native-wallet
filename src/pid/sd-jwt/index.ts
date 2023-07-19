@@ -20,7 +20,7 @@ import { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
  *
  */
 export function decode(token: string): PidWithToken {
-  let { sdJwt, disclosures } = decodeJwt(token);
+  let { sdJwt, disclosures } = decodeJwt(token, SdJwt4VC);
   const pid = pidFromToken(sdJwt, disclosures);
 
   return { pid, sdJwt, disclosures };
@@ -38,7 +38,6 @@ export function decode(token: string): PidWithToken {
  * @todo check disclosures in sd-jwt
  *
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
- * @param {VerifyOptions} _options
  *
  * @returns {VerifyResult} The validated PID object along with the parsed SD-JWT token and the parsed disclosures
  * @throws A decoding error if the token doesn't resolve in a valid SD-JWT
@@ -50,7 +49,7 @@ export function decode(token: string): PidWithToken {
 export async function verify(token: string): Promise<VerifyResult> {
   const decoded = decode(token);
   const publicKey = decoded.sdJwt.payload.cnf.jwk;
-  await verifyJwt(token, publicKey);
+  await verifyJwt(token, publicKey, SdJwt4VC);
 
   return decoded;
 }

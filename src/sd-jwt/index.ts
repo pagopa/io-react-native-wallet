@@ -1,8 +1,10 @@
+import { z } from "zod";
+
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 
 import { decodeBase64 } from "@pagopa/io-react-native-jwt";
-import { Disclosure, SdJwt4VC } from "./types";
+import { Disclosure } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "src/utils/jwk";
 
@@ -15,18 +17,22 @@ import type { JWK } from "src/utils/jwk";
  *
  * @function
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
+ * @param schema Schema to use to parse the SD-JWT
  *
  * @returns The parsed SD-JWT token and the parsed disclosures
  *
  */
-export function decode(token: string): JwtWithDisclosures {
+export const decode = <S extends z.AnyZodObject>(
+  token: string,
+  schema: S
+): { sdJwt: z.infer<S>; disclosures: Disclosure[] } => {
   // token are expected in the form "sd-jwt~disclosure0~disclosure1~...~disclosureN"
   const [rawSdJwt = "", ...rawDisclosures] = token.split("~");
 
   // get the sd-jwt as object
   // validate it's a valid SD-JWT for Verifiable Credentials
   const decodedJwt = decodeJwt(rawSdJwt);
-  const sdJwt = SdJwt4VC.parse({
+  const sdJwt = schema.parse({
     header: decodedJwt.protectedHeader,
     payload: decodedJwt.payload,
   });
@@ -40,7 +46,7 @@ export function decode(token: string): JwtWithDisclosures {
     .map((e) => Disclosure.parse(e));
 
   return { sdJwt, disclosures };
-}
+};
 
 /**
  * Verify a given SD-JWT with Disclosures
@@ -53,16 +59,19 @@ export function decode(token: string): JwtWithDisclosures {
  *
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
  * @param publicKey The public key to validate the signature
- * @returns {JwtWithDisclosures} The validated PID object along with the parsed SD-JWT token and the parsed disclosures
+ * @param schema Schema to use to parse the SD-JWT
+ *
+ * @returns The parsed SD-JWT token and the parsed disclosures
  *
  */
-export async function verify(
+export const verify = async <S extends z.AnyZodObject>(
   token: string,
-  publicKey: JWK
-): Promise<VerifyResult> {
+  publicKey: JWK,
+  schema: S
+): Promise<{ sdJwt: z.infer<S>; disclosures: Disclosure[] }> => {
   // get decoded data
   const [rawSdJwt = ""] = token.split("~");
-  const decoded = decode(token);
+  const decoded = decode(token, schema);
 
   //Check signature
   await verifyJwt(rawSdJwt, publicKey);
@@ -80,26 +89,4 @@ export async function verify(
   );
 
   return decoded;
-}
-
-/**
- * Options for {@link verify}
- */
-export type VerifyOptions = {
-  /** URI of the public endpoint of the issuer */
-  jwksUri: string;
 };
-
-type JwtWithDisclosures = {
-  // The object with the parsed SD-JWT token
-  sdJwt: SdJwt4VC;
-  // Parsed list of discloures.
-  disclosures: Disclosure[];
-};
-
-/**
- * Result object for {@link verify}
- */
-export type VerifyResult = JwtWithDisclosures;
-
-export { SdJwt4VC } from "./types";
