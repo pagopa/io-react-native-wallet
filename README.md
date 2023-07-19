@@ -7,11 +7,13 @@ Provide data structures, helpers, and API to IO Wallet to obtain and manage Wall
 To test on the example app:
 
 ```sh
+cd example
+
 # ios
-yarn example ios
+yarn ios
 
 # android
-yarn example android
+yarn android
 ```
 
 ## Modules
@@ -19,18 +21,16 @@ yarn example android
 ### PID
 
 #### Usage
-Module API support both [`SD-JWT`](https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html#id1) and [`MDOC-CBOR`](https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html#mdoc-cbor).
+Module API support [`SD-JWT`](https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html#id1) 
 
 ```ts
 import { PID } from "@pagopa/io-react-native-wallet";
 
+#Only for decode
 PID.SdJwt.decode("<token>");
 
-PID.MDocCbor.decode("<token>"); // to be implemented yet
+#Decode and verification
+PID.SdJwt.verify("<token>");
+
 ```
 
-
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
