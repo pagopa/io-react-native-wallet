@@ -1,4 +1,4 @@
-import { JWK } from "src/utils/jwk";
+import { JWK } from "../utils/jwk";
 import * as z from "zod";
 
 const UnixTime = z.number().min(0).max(2147483647000);
@@ -9,8 +9,8 @@ const Jwt = z.object({
     alg: z.string(),
     kid: z.string(),
     typ: z.string(),
-    x5c: z.array(z.string()),
-    trust_chain: z.array(z.string()),
+    x5c: z.array(z.string()).optional(),
+    trust_chain: z.array(z.string()).optional(),
   }),
   payload: z.object({
     iss: z.string(),
