@@ -1,6 +1,6 @@
-import base64decode from "../lib/base64";
 import { WalletInstanceAttestationJwt } from "./types";
-
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 /**
  * Decode a given JWT to get the parsed Wallet Instance Attestation object they define.
  * It ensures provided data is in a valid shape.
@@ -18,15 +18,11 @@ import { WalletInstanceAttestationJwt } from "./types";
  */
 export function decode(token: string): WalletInstanceAttestationJwt {
   // decode JWT parts
-  const [header, payload] = token
-    .split(".")
-    .slice(0, 2)
-    .map(base64decode)
-    .map((e) => JSON.parse(e));
+  const decodedJwt = decodeJwt(token);
   // parse JWT to ensure it has the shape of a WalletInstanceAttestationJwt
   return WalletInstanceAttestationJwt.parse({
-    header,
-    payload,
+    header: decodedJwt.protectedHeader,
+    payload: decodedJwt.payload,
   });
 }
 
@@ -39,7 +35,6 @@ export function decode(token: string): WalletInstanceAttestationJwt {
  * @todo implement signature validation
  *
  * @param token The encoded token that represents a valid jwt
- * @param {} options
  *
  * @returns {WalletInstanceAttestationJwt} The validated Wallet Instance Attestation object
  * @throws A decoding error if the token doesn't resolve in a valid JWT
@@ -48,16 +43,12 @@ export function decode(token: string): WalletInstanceAttestationJwt {
  *
  */
 export async function verify(
-  token: string,
-  _options: {} // eslint-disable-line @typescript-eslint/ban-types
+  token: string
 ): Promise<WalletInstanceAttestationJwt> {
-  // TODO: signature validation
-
-  // get decoded data
-  // eslint-disable-next-line sonarjs/prefer-immediate-return
   const decoded = decode(token);
+  const pubKey = decoded.payload.cnf.jwk;
 
-  // TODO: check disclosures in jwt
+  await verifyJwt(token, pubKey);
 
   return decoded;
 }
