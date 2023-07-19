@@ -1,16 +1,16 @@
 import { decode } from "..";
 
 const sdjwt =
-  "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJSUzUxMiIsImtpZCI6ImQxMjZhNmE4NTZmNzcyNDU2MDQ4NGZhOWRjNTlkMTk1IiwidHJ1c3RfY2hhaW4iOlsiTkVoUmRFUnBZbmxIWTNNNVdsZFdUV1oyYVVobSAuLi4iLCJleUpoYkdjaU9pSlNVekkxTmlJc0ltdHBaQ0k2IC4uLiIsIklrSllkbVp5Ykc1b1FVMTFTRkl3TjJGcVZXMUIgLi4uIl19.eyJpc3MiOiJodHRwczovL3BpZHByb3ZpZGVyLmV4YW1wbGUub3JnIiwic3ViIjoiTnpiTHNYaDh1RENjZDdub1dYRlpBZkhreFpzUkdDOVhzLi4uIiwianRpIjoidXJuOnV1aWQ6NmM1YzBhNDktYjU4OS00MzFkLWJhZTctMjE5MTIyYTllYzJjIiwiaWF0IjoxNTQxNDkzNzI0LCJleHAiOjE1NDE0OTM3MjQsInN0YXR1cyI6Imh0dHBzOi8vcGlkcHJvdmlkZXIuZXhhbXBsZS5vcmcvc3RhdHVzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJSU0EiLCJ1c2UiOiJzaWciLCJuIjoiMVRhLXNFIOKApiIsImUiOiJBUUFCIiwia2lkIjoiWWhORlMzWW5DOXRqaUNhaXZoV0xWVUozQXh3R0d6Xzk4dVJGYXFNRUVzIn19LCJ0eXBlIjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJfc2QiOlsiT0dtN3J5WGd0NVh6bGV2cC1IdS1VVGswYS1UeEFhUEFvYnF2MXBJV01mdyJdLCJ0cnVzdF9mcmFtZXdvcmsiOiJlaWRhcyIsImFzc3VyYW5jZV9sZXZlbCI6ImhpZ2gifSwiY2xhaW1zIjp7Il9zZCI6WyI4SmpvekJmb3ZNTnZRM0hmbG1QV3k0TzE5R3B4czYxRldIalplYlU1ODlFIiwiQm9NR2t0VzFyYmlrbnR3OEZ6eF9CZUw0WWJBbmRyNkFIc2RncGF0RkNpZyIsIkNGTEd6ZW50R05SRm5nbkxWVlFWY29BRmkwNXI2UkpVWC1yZGJMZEVmZXciLCJKVV9zVGFIQ25nUzMyWC0wYWpIcmQxLUhDTENrcFQ1WXFnY2ZRbWUxNjh3IiwiVlFJLVMxbVQxS3hmcTJvOEo5aW83eE1NWDJNSXhhRzlNOVBlSlZxck1jQSIsInpWZGdoY21DbE1WV2xVZ0dzR3BTa0NQa0VIWjR1OW9XajFTbElCbENjMW8iXX19LCJfc2RfYWxnIjoic2hhLTI1NiJ9.WzEiFaOjnobQisjTQ92JtKEXRN-2Sgvjklpu4IdC_cT2T6Tm8Z6sqbVy6n94AAEv-HFSv5JoSt6YjPDnGzOxN_W_131rILU8YaiNt8w31nRGIvHjJIC0w-hHIcG1LmvJshSMcT3RHeApRCmsO7xkHWmUsjt37dOzEagEti5i47hnZAbu7vWXsvUlBNNN8v7tJBLspO2Q0vnWhEDX1hQ7IH1b8oKh-_aQrhwVm9Bcs9CG8o6N9iqubCSpFI6Gty4ZZgHEb95knETVhw8IL10Z9P_Hr9twXZQaCCC8xrNh4afwR9TiDQzTr92m7luyvDfmzVgHCponI7VBhqmRqZVYQyDhq6EJbtRtIsYenla5NSKBjV8Etdlec94vJAHZNzue9aNUQeXae55V5m5O9wLoWhgV2vl4xV5C-N5s5Uzs08GAxo-CUaNOD3BQE9vfrT47IBCm4hUCnvDise_aWNCeKOQABV1J9_tV9lWZsECVuUuWWwELHCUXgdyiA3QtUtXz";
+  "eyJhbGciOiJFUzI1NiIsImtpZCI6IjV0NVlZcEJoTi1FZ0lFRUk1aVV6cjZyME1SMDJMblZRME9tZWttTktjalkiLCJ0cnVzdF9jaGFpbiI6W10sInR5cCI6InZjK3NkLWp3dCJ9.eyJzdWIiOiJMeExqRXJNUkd5cTRmb0ZCODh1TUxiVFQ2cS1rUHNITDhNTGktYloyUWRVIiwidmVyaWZpZWRfY2xhaW1zIjp7ImNsYWltcyI6eyJfc2QiOlsiSTllS2R6dk5oQWd1V3pGdFhPMmZiVUNaVWFoUDlwZkVaVXJaamhldGFEYyIsIm85OFVkeV90aVlvZzVJWFVibDVoMnJDSHhLYnljU1c0RDQ4Uno2V3JlejQiLCJaN3Fja1RnUjc0WjM2TFhtaDBXOFV0WkVka0Jta1pzUjVCTzRTenc3ZzY4IiwiMGswYTRoeXgyeWNHQVlITFFpMWJ4UU9MdnUzUUktdmNyYUZOLUFzX3VnMCIsIlZDV1NpY2w4cWcyUEcxN0VTSFN3NVBMdEFCdldYTy1oakR1TURuME5KTjQiLCI1QWJKOVlTRTR6TW9DTUZ6ZW4xMTV2QWtmSjJKc25qMVJ1WDVZb0ZkUzNJIl19LCJ2ZXJpZmljYXRpb24iOnsidHJ1c3RfZnJhbWV3b3JrIjoiZWlkYXMiLCJhc3N1cmFuY2VfbGV2ZWwiOiJoaWdoIiwiX3NkIjpbImZZZUVNcWE5WEFuQXQ0OFdmcVZlejQwSW1jVk1Jc1plYkp4a3F5TmlKcUEiXX19LCJfc2RfYWxnIjoic2hhLTI1NiIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MCIsImNuZiI6eyJqd2siOnsiY3J2IjoiUC0yNTYiLCJrdHkiOiJFQyIsIngiOiJxckpyajNBZl9CNTdzYk9JUnJjQk03YnI3d09jOHluajdsSEZQVGVmZlVrIiwieSI6IjFIMGNXRHlHZ3ZVOHcta1BLVV94eWNPQ1VOVDJvMGJ3c2xJUXRuUFU2aU0iLCJraWQiOiI1dDVZWXBCaE4tRWdJRUVJNWlVenI2cjBNUjAyTG5WUTBPbWVrbU5LY2pZIn19LCJ0eXBlIjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwianRpIjoidXJuOnV1aWQ6YTQ0MmEzNDAtYjM4ZS00OWMzLTlkNDktZjc1OWY0MDgzMWU2Iiwic3RhdHVzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3N0YXR1cyIsImlhdCI6MTY4OTY5MzU1OSwiZXhwIjoyMDA1MjY5NTU5fQ.tpgf0oo0-RJxkL98ipw5xX3ftEmZw-fQVA2c2aM1gZ_jfcDXE2_Xs2aMpT0hy7w4IhP5V0B0HmXtTVYXwVu8kQ";
 
 const disclosures = [
-  "WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImV2aWRlbmNlIiwgW3sidHlwZSI6ICJlbGVjdHJvbmljX3JlY29yZCIsICJyZWNvcmQiOiB7InR5cGUiOiAiZWlkYXMuaXQuY2llIiwgInNvdXJjZSI6IHsib3JnYW5pemF0aW9uX25hbWUiOiAiTWluaXN0ZXJvIGRlbGwnSW50ZXJubyIsICJvcmdhbml6YXRpb25faWQiOiAibV9pdCIsICJjb3VudHJ5X2NvZGUiOiAiSVQifX19XV0",
-  "WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgInVuaXF1ZV9pZCIsICJ4eHh4eHh4eC14eHh4LXh4eHgteHh4eC14eHh4eHh4eHh4eHgiXQ",
-  "WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgImdpdmVuX25hbWUiLCAiTWFyaW8iXQ",
-  "WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgImZhbWlseV9uYW1lIiwgIlJvc3NpIl0",
-  "WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImJpcnRoZGF0ZSIsICIxOTgwLTAxLTEwIl0",
-  "WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgInBsYWNlX29mX2JpcnRoIiwgeyJjb3VudHJ5IjogIklUIiwgImxvY2FsaXR5IjogIlJvbWUifV0",
-  "WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgInRheF9pZF9jb2RlIiwgIlRJTklULVhYWFhYWFhYWFhYWFhYWFgiXQ",
+  "WyJyYzQ0Z3ZRUy1TNDFFUDhSVU1pdFRRIiwiZXZpZGVuY2UiLFt7InR5cGUiOiJlbGVjdHJvbmljX3JlY29yZCIsInJlY29yZCI6eyJ0eXBlIjoiZWlkYXMuaXQuY2llIiwic291cmNlIjp7Im9yZ2FuaXphdGlvbl9uYW1lIjoiTWluaXN0ZXJvIGRlbGwnSW50ZXJubyIsIm9yZ2FuaXphdGlvbl9pZCI6Im1faXQiLCJjb3VudHJ5X2NvZGUiOiJJVCJ9fX1dXQ",
+  "WyI2dzFfc29SWEZnYUhLZnBZbjNjdmZRIiwiZ2l2ZW5fbmFtZSIsIk1hcmlvIl0",
+  "WyJoNlQ3MXIycVZmMjlsNXhCNnUzdWx3IiwiZmFtaWx5X25hbWUiLCJSb3NzaSJd",
+  "WyJvR29iQl9uZXRZMEduS3hUN3hsVTRBIiwidW5pcXVlX2lkIiwiaWRBTlBSIl0",
+  "WyJmdU5wOTdIZjN3VjZ5NDh5LVFaaElnIiwiYmlydGhkYXRlIiwiMTk4MC0xMC0wMSJd",
+  "WyJwLTlMenlXSFpCVkR2aFhEV2tOMnhBIiwicGxhY2Vfb2ZfYmlydGgiLHsiY291bnRyeSI6IklUIiwibG9jYWxpdHkiOiJSb21lIn1d",
+  "WyI5UnFLdWwzeHh6R2I4X1J1Zm5BSmZRIiwidGF4X2lkX251bWJlciIsIlRJTklULVJTU01SQTgwQTEwSDUwMUEiXQ",
 ];
 
 const token = [sdjwt, ...disclosures].join("~");
@@ -30,9 +30,9 @@ describe("decode", () => {
 
     // check pid in deep
     expect(result.pid).toEqual({
-      issuer: "https://pidprovider.example.org",
-      issuedAt: new Date(1541493724000),
-      expiration: new Date(1541493724000),
+      issuer: "http://localhost:8080",
+      issuedAt: new Date(1689693559000),
+      expiration: new Date(2005269559000),
       verification: {
         trustFramework: "eidas",
         assuranceLevel: "high",
@@ -51,12 +51,12 @@ describe("decode", () => {
         ],
       },
       claims: {
-        uniqueId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        uniqueId: "idANPR",
         givenName: "Mario",
         familyName: "Rossi",
-        birthdate: "1980-01-10",
+        birthdate: "1980-10-01",
         placeOfBirth: { country: "IT", locality: "Rome" },
-        taxIdCode: "TINIT-XXXXXXXXXXXXXXXX",
+        taxIdCode: "TINIT-RSSMRA80A10H501A",
       },
     });
   });
@@ -65,9 +65,9 @@ describe("decode", () => {
     const result = decode(token);
 
     expect(result.pid).toEqual({
-      issuer: "https://pidprovider.example.org",
-      issuedAt: new Date(1541493724000),
-      expiration: new Date(1541493724000),
+      issuer: "http://localhost:8080",
+      issuedAt: new Date(1689693559000),
+      expiration: new Date(2005269559000),
       verification: {
         trustFramework: "eidas",
         assuranceLevel: "high",
@@ -86,12 +86,12 @@ describe("decode", () => {
         ],
       },
       claims: {
-        uniqueId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        uniqueId: "idANPR",
         givenName: "Mario",
         familyName: "Rossi",
-        birthdate: "1980-01-10",
+        birthdate: "1980-10-01",
         placeOfBirth: { country: "IT", locality: "Rome" },
-        taxIdCode: "TINIT-XXXXXXXXXXXXXXXX",
+        taxIdCode: "TINIT-RSSMRA80A10H501A",
       },
     });
   });
