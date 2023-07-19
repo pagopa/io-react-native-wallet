@@ -1,3 +1,4 @@
+import { JWK } from "src/utils/jwk";
 import * as z from "zod";
 
 const UnixTime = z.number().min(0).max(2147483647000);
@@ -17,13 +18,7 @@ const Jwt = z.object({
     iat: UnixTime,
     exp: UnixTime,
     cnf: z.object({
-      jwk: z.object({
-        crv: z.string(),
-        kty: z.union([z.literal("RSA"), z.literal("EC")]),
-        x: z.string(),
-        y: z.string(),
-        kid: z.string(),
-      }),
+      jwk: JWK,
     }),
   }),
 });
