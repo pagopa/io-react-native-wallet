@@ -1736,6 +1736,11 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
+"@pagopa/io-react-native-crypto@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
+  integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
+
 "@pagopa/io-react-native-jwt@^0.4.0":
   version "0.4.0"
   resolved "https://npm.pkg.github.com/download/@pagopa/io-react-native-jwt/0.4.0/b7b58c8d2866dce11372e218b4b0f28d0830fea9#b7b58c8d2866dce11372e218b4b0f28d0830fea9"

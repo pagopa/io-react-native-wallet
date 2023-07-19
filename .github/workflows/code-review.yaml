@@ -23,14 +23,8 @@ jobs:
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3.6.0
-        with:
-          cache: "yarn"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@pagopa"
 
       - name: Install dependencies
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: yarn
 
       - name: "Code review"
