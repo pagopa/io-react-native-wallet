@@ -1,4 +1,4 @@
-# io-react-native-wallet
+# @pagopa/io-react-native-wallet
 
 Provide data structures, helpers, and API to IO Wallet to obtain and manage Wallet Instance Attestations
 
@@ -7,17 +7,18 @@ Provide data structures, helpers, and API to IO Wallet to obtain and manage Wall
 To test on the example app:
 
 ```sh
+cd example
+
 # ios
-yarn example ios
+yarn ios
 
 # android
-yarn example android
+yarn android
 ```
 
 ## Modules
 
 ### Wallet Instance Attestation
-
 
 #### Usage
 
@@ -27,8 +28,20 @@ import { WalletInstanceAttestation } from "io-react-native-wallet";
 WalletInstanceAttestation.decode("<token>");
 ```
 
+### PID
 
+#### Usage
 
----
+Module API support [`SD-JWT`](https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html#id1)
 
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+```ts
+import { PID } from "@pagopa/io-react-native-wallet";
+
+#Only for decode
+PID.SdJwt.decode("<token>");
+
+#Decode and verification
+PID.SdJwt.verify("<token>");
+
+```
+
