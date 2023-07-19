@@ -45,3 +45,30 @@ PID.SdJwt.verify("<token>");
 
 ```
 
+### Wallet Instance Attestation
+
+#### Usage
+
+```ts
+import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
+
+// Genrate keys
+const publicKey = await myCustomPublicKey("TEE_KEY_TAG");
+
+const walletInstanceAttestationRequest =
+await WalletInstanceAttestation.Issuing.getAttestationRequestToSign(
+    publicKey
+);
+
+//Sign with TEE
+const signature = await myCustomSignatureFunction(walletInstanceAttestationRequest, randomKeyTag);
+
+const walletInstanceAttestation =
+await WalletInstanceAttestation.Issuing.getAttestation(
+    walletInstanceAttestationRequest,
+    signature
+);
+
+console.error(walletInstanceAttestation);
+
+```
