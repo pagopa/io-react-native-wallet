@@ -73,6 +73,6 @@ await issuing.getAttestation(
     signature
 );
 
-console.error(walletInstanceAttestation);
+console.log(walletInstanceAttestation);
 
 ```
