@@ -31,7 +31,9 @@ PODS:
   - fmt (6.2.1)
   - glog (0.3.5)
   - JOSESwift (2.4.0)
-  - pagopa-io-react-native-jwt (0.3.0):
+  - pagopa-io-react-native-crypto (0.2.3):
+    - React-Core
+  - pagopa-io-react-native-jwt (0.4.0):
     - JOSESwift (~> 2.3)
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
@@ -354,6 +356,7 @@ DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -417,6 +420,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/React/FBReactNativeSpec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  pagopa-io-react-native-crypto:
+    :path: "../node_modules/@pagopa/io-react-native-crypto"
   pagopa-io-react-native-jwt:
     :path: "../node_modules/@pagopa/io-react-native-jwt"
   RCT-Folly:
@@ -492,7 +497,8 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   JOSESwift: 7ff178bb9173ff42c6e990929a9f2fa702a34f69
-  pagopa-io-react-native-jwt: de4569e112dc2041927d1e42265098628f143b8a
+  pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
+  pagopa-io-react-native-jwt: 0459d585117e081d941fcc47c9ba052a4ebe3ae2
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 8af6a32dfc2b65ec82193c2dee6e1011ff22ac2a
   RCTTypeSafety: bee9dd161c175896c680d47ef1d9eaacf2b587f4
