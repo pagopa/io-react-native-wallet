@@ -65,7 +65,10 @@ await issuing.getAttestationRequestToSign(
 );
 
 //Sign with TEE
-const signature = await yourCustomSignatureFunction(walletInstanceAttestationRequest, randomKeyTag);
+const signature = await yourCustomSignatureFunction(
+    walletInstanceAttestationRequest,
+    "TEE_KEY_TAG"
+    );
 
 const walletInstanceAttestation =
 await issuing.getAttestation(
