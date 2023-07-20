@@ -1,53 +1,38 @@
-# @pagopa/io-react-native-wallet
+# 🪪 @pagopa/io-react-native-wallet
 
-Provide data structures, helpers, and API to IO Wallet to obtain and manage Wallet Instance Attestations
+📲 Provide data structures, helpers, and API to Wallet Instance.
 
+Depends on [@pagopa/io-react-native-jwt](https://github.com/pagopa/io-react-native-jwt)
 
-## Example app
-To test on the example app:
+## Installation
 
 ```sh
-cd example
+# First install JWT dependency if you don't have it
+npm install @pagopa/io-react-native-jwt
 
-# ios
-yarn ios
-
-# android
-yarn android
+npm install @pagopa/io-react-native-wallet
 ```
 
-## Modules
-
-### Wallet Instance Attestation
-
-#### Usage
-
-```ts
-import { WalletInstanceAttestation } from "io-react-native-wallet";
-
-WalletInstanceAttestation.decode("<token>");
-```
+## Usage
 
 ### PID
 
-#### Usage
-
-Module API support [`SD-JWT`](https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html#id1)
+#### Encode and Decode
 
 ```ts
 import { PID } from "@pagopa/io-react-native-wallet";
 
-#Only for decode
+//Only for decode
 PID.SdJwt.decode("<token>");
 
-#Decode and verification
+//Decode and verification
 PID.SdJwt.verify("<token>");
 
 ```
 
 ### Wallet Instance Attestation
 
-#### Usage
+#### Issuing
 
 ```ts
 import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
@@ -77,5 +62,30 @@ await issuing.getAttestation(
 );
 
 console.log(walletInstanceAttestation);
+
+```
+
+#### Encode and Decode
+
+```ts
+import { WalletInstanceAttestation } from "io-react-native-wallet";
+
+WalletInstanceAttestation.decode("<token>");
+```
+
+## Example
+
+You can use the [sample app](example) to test and understand how to use the library.
+
+```sh
+cd example
+
+yarn install
+
+# To use iOS
+yarn ios
+
+# To use Android
+yarn android
 
 ```
