@@ -46,30 +46,31 @@ export default function App() {
 
   const getAttestation = async () => {
     try {
+      // generate Key for Wallet Instance Attestation
       const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
       const walletInstancePublicKey = await generate(walletInstanceKeyTag);
       const issuingAttestation = new WalletInstanceAttestation.Issuing(
         walletProviderBaseUrl
+      );
+      const walletInstanceKeyThumbprint = await thumbprint(
+        walletInstancePublicKey
       );
 
       const attestationRequest =
         await issuingAttestation.getAttestationRequestToSign(
           walletInstancePublicKey
         );
-
       const signature = await sign(attestationRequest, walletInstanceKeyTag);
+
+      // generate Wallet Instance Attestation
       const instanceAttestation = await issuingAttestation.getAttestation(
         attestationRequest,
         signature
       );
 
-      console.log(instanceAttestation);
       setResult(JSON.stringify(instanceAttestation));
 
-      // START PID
-      const walletInstanceKeyThumbprint = await thumbprint(
-        walletInstancePublicKey
-      );
+      // Start pid issuing flow
       const issuingPID = new PID.Issuing(
         pidProviderBaseUrl,
         walletProviderBaseUrl,
@@ -77,40 +78,55 @@ export default function App() {
         walletInstanceKeyThumbprint
       );
 
+      // Generate JwtForPar
       const unsignedJwtForPar = await issuingPID.getUnsignedJwtForPar(
         walletInstancePublicKey
       );
       const parSignature = await sign(unsignedJwtForPar, walletInstanceKeyTag);
+
+      // PAR request (6,7)
       await issuingPID.getPar(unsignedJwtForPar, parSignature);
 
-      //Key for dpop
+      //Generate keys for DPoP (12,13)
       const dPopKeyTag = Math.random().toString(36).substr(2, 5);
       const dPopKey = await generate(dPopKeyTag);
 
       const unsignedDPopForToken = await issuingPID.getUnsignedDPop(dPopKey);
       const dPopTokenSignature = await sign(unsignedDPopForToken, dPopKeyTag);
+
+      // Token request (14,15)
       const authToken = await issuingPID.getAuthToken(
         unsignedDPopForToken,
         dPopTokenSignature
       );
 
+      // Generate key for PID binding (16)
       const pidKeyTag = Math.random().toString(36).substr(2, 5);
       const pidKey = await generate(pidKeyTag);
 
-      const unsignedDPopForPid = await issuingPID.getUnsignedDPop(pidKey);
-      const dPopPidSignature = await sign(unsignedDPopForPid, pidKeyTag);
-
+      //Generate nonce proof (17)
       const unsignedProof = await issuingPID.getUnsignedProof(
         authToken.c_nonce
       );
       const proofSignature = await sign(unsignedProof, pidKeyTag);
 
+      // Generate DPoP for PID key (18)
+      const unsignedDPopForPid = await issuingPID.getUnsignedDPop(pidKey);
+      const dPopPidSignature = await sign(unsignedDPopForPid, pidKeyTag);
+
+      // Credential reuqest (19, 20)
       const credential = await issuingPID.getCredential(
         unsignedDPopForPid,
         dPopPidSignature,
         unsignedProof,
         proofSignature,
-        authToken.access_token
+        authToken.access_token,
+        {
+          birthDate: "01/01/1990",
+          fiscalCode: "AAABBB00A00A000A",
+          name: "NOME",
+          surname: "COGNOME",
+        }
       );
 
       console.log(credential);

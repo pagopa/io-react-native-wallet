@@ -195,6 +195,7 @@ export class Issuing {
     unsignedProof: string,
     signature: string,
     accessToken: string,
+    cieData: any,
     appFetch: GlobalFetch = { fetch }
   ): Promise<TokenResponse> {
     const signedDPopForPid = await SignJWT.appendSignature(
@@ -209,12 +210,7 @@ export class Issuing {
       format: "vc+sd-jwt",
       proof: JSON.stringify({
         jwt: signedProof,
-        cieData: {
-          birthDate: "",
-          fiscalCode: "",
-          name: "FRANCESCO",
-          surname: "GRAUSO",
-        },
+        cieData,
         proof_type: "jwt",
       }),
     };
