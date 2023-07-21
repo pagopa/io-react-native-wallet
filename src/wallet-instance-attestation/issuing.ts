@@ -67,7 +67,7 @@ export class Issuing {
     attestationRequest: string,
     signature: string,
     appFetch: GlobalFetch = { fetch }
-  ): Promise<String> {
+  ): Promise<string> {
     const signedAttestationRequest = await SignJWT.appendSignature(
       attestationRequest,
       signature
