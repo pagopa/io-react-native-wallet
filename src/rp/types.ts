@@ -1,4 +1,4 @@
-import { JWK } from "src/utils/jwk";
+import { JWK } from "../utils/jwk";
 import { UnixTime } from "../sd-jwt/types";
 import * as z from "zod";
 
