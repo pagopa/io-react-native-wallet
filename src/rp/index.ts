@@ -13,12 +13,12 @@ import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 export class RelyingPartySolution {
   relyingPartyBaseUrl: string;
   walletInstanceAttestation: string;
-  appFetch: GlobalFetch;
+  appFetch: GlobalFetch["fetch"];
 
   constructor(
     relyingPartyBaseUrl: string,
     walletInstanceAttestation: string,
-    appFetch: GlobalFetch = { fetch }
+    appFetch: GlobalFetch["fetch"] = fetch
   ) {
     this.relyingPartyBaseUrl = relyingPartyBaseUrl;
     this.walletInstanceAttestation = walletInstanceAttestation;
@@ -91,7 +91,7 @@ export class RelyingPartySolution {
     const decodedJwtDPop = await decodeJwt(signedWalletInstanceDPoP);
     const requestUri = decodedJwtDPop.payload.htu as string;
 
-    const response = await this.appFetch.fetch(requestUri, {
+    const response = await this.appFetch(requestUri, {
       method: "GET",
       headers: {
         Authorization: `DPoP ${this.walletInstanceAttestation}`,
@@ -123,7 +123,7 @@ export class RelyingPartySolution {
       this.relyingPartyBaseUrl
     ).href;
 
-    const response = await this.appFetch.fetch(wellKnownUrl, {
+    const response = await this.appFetch(wellKnownUrl, {
       method: "GET",
     });
 

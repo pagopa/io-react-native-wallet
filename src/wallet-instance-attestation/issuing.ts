@@ -8,10 +8,10 @@ import { WalletInstanceAttestationIssuingError } from "../utils/errors";
 
 export class Issuing {
   walletProviderBaseUrl: string;
-  appFetch: GlobalFetch;
+  appFetch: GlobalFetch["fetch"];
   constructor(
     walletProviderBaseUrl: string,
-    appFetch: GlobalFetch = { fetch }
+    appFetch: GlobalFetch["fetch"] = fetch
   ) {
     this.walletProviderBaseUrl = walletProviderBaseUrl;
     this.appFetch = appFetch;
@@ -89,7 +89,7 @@ export class Issuing {
         "urn:ietf:params:oauth:client-assertion-type:jwt-key-attestation",
       assertion: signedAttestationRequest,
     };
-    const response = await this.appFetch.fetch(tokenUrl, {
+    const response = await this.appFetch(tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
