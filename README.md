@@ -41,7 +41,7 @@ const issuing = new WalletInstanceAttestation.Issuing(
     yourWalletProviderUrl
     );
 
-// Genrate keys
+// Generate keys
 const publicKey = await yourCustomPublicKey("TEE_KEY_TAG");
 
 const walletInstanceAttestationRequest =

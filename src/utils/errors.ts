@@ -72,3 +72,27 @@ export class WalletInstanceAttestationIssuingError extends IoWalletError {
     this.reason = reason;
   }
 }
+
+/**
+ * An error subclass thrown when auth request decode fail
+ *
+ */
+export class AuthRequestDecodeError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_AUTHENTICATION_REQUEST_DECODE_FAILED" {
+    return "ERR_IO_WALLET_AUTHENTICATION_REQUEST_DECODE_FAILED";
+  }
+
+  code = "ERR_IO_WALLET_AUTHENTICATION_REQUEST_DECODE_FAILED";
+
+  /** The Claim for which the validation failed. */
+  claim: string;
+
+  /** Reason code for the validation failure. */
+  reason: string;
+
+  constructor(message: string, claim = "unspecified", reason = "unspecified") {
+    super(message);
+    this.claim = claim;
+    this.reason = reason;
+  }
+}
