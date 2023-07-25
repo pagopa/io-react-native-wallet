@@ -1,8 +1,7 @@
 import * as PID from "./pid";
+import * as RP from "./rp";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
+import { getUnsignedDPop } from "./utils/dpop";
+import { getSignedJwt } from "./utils/signature";
 
-export function multiply(a: number, b: number): Promise<number> {
-  return Promise.resolve(a * b);
-}
-
-export { PID, WalletInstanceAttestation };
+export { PID, RP, WalletInstanceAttestation, getUnsignedDPop, getSignedJwt };
