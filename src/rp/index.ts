@@ -35,9 +35,9 @@ export class RelyingPartySolution {
    */
   decodeAuthRequestQR(qrcode: string): string {
     try {
-      let decoded = decodeBase64(qrcode);
-      let decodedUrl = new URL(decoded);
-      let requestUri = decodedUrl.searchParams.get("request_uri");
+      const decoded = decodeBase64(qrcode);
+      const decodedUrl = new URL(decoded);
+      const requestUri = decodedUrl.searchParams.get("request_uri");
       if (requestUri) {
         return requestUri;
       } else {
@@ -107,9 +107,9 @@ export class RelyingPartySolution {
     });
 
     if (response.status === 200) {
-      let responseText = await response.text();
-      let responseJwt = await decodeJwt(responseText);
-      let requestObj = RequestObject.parse({
+      const responseText = await response.text();
+      const responseJwt = await decodeJwt(responseText);
+      const requestObj = RequestObject.parse({
         header: responseJwt.protectedHeader,
         payload: responseJwt.payload,
       });
@@ -125,7 +125,7 @@ export class RelyingPartySolution {
    * Obtain the relying party entity configuration.
    */
   async getEntityConfiguration(): Promise<RpEntityConfiguration> {
-    let wellKnownUrl = new URL(
+    const wellKnownUrl = new URL(
       "/.well-known/openid-federation",
       this.relyingPartyBaseUrl
     ).href;
@@ -135,8 +135,8 @@ export class RelyingPartySolution {
     });
 
     if (response.status === 200) {
-      let responseText = await response.text();
-      let responseJwt = await decodeJwt(responseText);
+      const responseText = await response.text();
+      const responseJwt = await decodeJwt(responseText);
       return RpEntityConfiguration.parse({
         header: responseJwt.protectedHeader,
         payload: responseJwt.payload,
