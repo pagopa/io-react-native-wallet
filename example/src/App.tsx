@@ -112,18 +112,8 @@ export default function App() {
       // PAR request
       await issuingPID.getPar(unsignedJwtForPar, parSignature);
 
-      //Generate fresh keys for DPoP
-      const dPopKeyTag = Math.random().toString(36).substr(2, 5);
-      const dPopKey = await generate(dPopKeyTag);
-
-      const unsignedDPopForToken = await issuingPID.getUnsignedDPoP(dPopKey);
-      const dPopTokenSignature = await sign(unsignedDPopForToken, dPopKeyTag);
-
       // Token request
-      const authToken = await issuingPID.getAuthToken(
-        unsignedDPopForToken,
-        dPopTokenSignature
-      );
+      const authToken = await issuingPID.getAuthToken();
 
       // Generate fresh key for PID binding
       const pidKeyTag = Math.random().toString(36).substr(2, 5);
@@ -154,7 +144,7 @@ export default function App() {
         }
       );
 
-      setResult(JSON.stringify(pid.credential));
+      setResult(JSON.stringify(pid));
     } catch (e) {
       console.error(e);
       showError(e);

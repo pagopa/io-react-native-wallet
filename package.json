@@ -66,13 +66,15 @@
     "react": "18.2.0",
     "react-native": "0.71.8",
     "react-native-builder-bob": "^0.20.0",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "@pagopa/io-react-native-crypto": "^0.2.3"
   },
   "resolutions": {
     "@types/react": "17.0.21"
   },
   "peerDependencies": {
     "@pagopa/io-react-native-jwt": "*",
+    "@pagopa/io-react-native-crypto": "*",
     "react": "*",
     "react-native": "*"
   },

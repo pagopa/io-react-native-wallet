@@ -8,6 +8,7 @@ import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
 import { getUnsignedDPop } from "../utils/dpop";
+import { sign, generate, deleteKey } from "@pagopa/io-react-native-crypto";
 
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
@@ -170,19 +171,20 @@ export class Issuing {
    * Make an auth token request to the PID issuer
    *
    * @function
-   * @param unsignedDPopForToken The unsigned JWT for DPoP
-   * @param signature The JWT for PAR signature
-   *
    * @returns a token response
    *
    */
-  async getAuthToken(
-    unsignedDPopForToken: string,
-    signature: string
-  ): Promise<TokenResponse> {
+  async getAuthToken(): Promise<TokenResponse> {
+    //Generate fresh keys for DPoP
+    const dPopKeyTag = `${uuid.v4()}`;
+    const dPopKey = await generate(dPopKeyTag);
+    const unsignedDPopForToken = await this.getUnsignedDPoP(dPopKey);
+    const dPopTokenSignature = await sign(unsignedDPopForToken, dPopKeyTag);
+    await deleteKey(dPopKeyTag);
+
     const signedDPop = await SignJWT.appendSignature(
       unsignedDPopForToken,
-      signature
+      dPopTokenSignature
     );
     const decodedJwtDPop = decodeJwt(signedDPop);
     const tokenUrl = decodedJwtDPop.payload.htu as string;
