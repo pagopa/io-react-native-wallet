@@ -34,12 +34,19 @@ export class RelyingPartySolution {
    *
    */
   decodeAuthRequestQR(qrcode: string): string {
-    let decoded = decodeBase64(qrcode);
-    let decodedUrl = new URL(decoded);
-    let requestUri = decodedUrl.searchParams.get("request_uri");
-    if (requestUri) {
-      return requestUri;
-    } else {
+    try {
+      let decoded = decodeBase64(qrcode);
+      let decodedUrl = new URL(decoded);
+      let requestUri = decodedUrl.searchParams.get("request_uri");
+      if (requestUri) {
+        return requestUri;
+      } else {
+        throw new AuthRequestDecodeError(
+          "Unable to obtain request_uri from QR code",
+          `${decodedUrl}`
+        );
+      }
+    } catch {
       throw new AuthRequestDecodeError(
         "Unable to decode QR code authentication request url",
         qrcode
