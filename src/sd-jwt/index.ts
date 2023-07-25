@@ -36,6 +36,7 @@ export const decode = <S extends z.AnyZodObject>(
     header: decodedJwt.protectedHeader,
     payload: decodedJwt.payload,
   });
+  console.log(rawDisclosures);
 
   // get disclosures as list of triples
   // validate each triple

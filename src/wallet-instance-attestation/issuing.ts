@@ -69,7 +69,7 @@ export class Issuing {
   async getAttestation(
     attestationRequest: string,
     signature: string
-  ): Promise<String> {
+  ): Promise<string> {
     const signedAttestationRequest = await SignJWT.appendSignature(
       attestationRequest,
       signature

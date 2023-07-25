@@ -52,10 +52,6 @@ export default function App() {
       const issuingAttestation = new WalletInstanceAttestation.Issuing(
         walletProviderBaseUrl
       );
-      const walletInstanceKeyThumbprint = await thumbprint(
-        walletInstancePublicKey
-      );
-
       const attestationRequest =
         await issuingAttestation.getAttestationRequestToSign(
           walletInstancePublicKey
@@ -69,79 +65,109 @@ export default function App() {
       );
 
       setResult(JSON.stringify(instanceAttestation));
+    } catch (e) {
+      console.error(e);
+      showError(e);
+    }
+  };
+
+  const getPid = async () => {
+    try {
+      // generate Key for Wallet Instance Attestation
+      const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
+      const walletInstancePublicKey = await generate(walletInstanceKeyTag);
+      const issuingAttestation = new WalletInstanceAttestation.Issuing(
+        walletProviderBaseUrl
+      );
+
+      const attestationRequest =
+        await issuingAttestation.getAttestationRequestToSign(
+          walletInstancePublicKey
+        );
+      const signature = await sign(attestationRequest, walletInstanceKeyTag);
+
+      // generate a fresh Wallet Instance Attestation
+      const instanceAttestation = await issuingAttestation.getAttestation(
+        attestationRequest,
+        signature
+      );
+
+      // clientId must be the Wallet Instance public key thumbprint
+      const clientId = await thumbprint(walletInstancePublicKey);
 
       // Start pid issuing flow
       const issuingPID = new PID.Issuing(
         pidProviderBaseUrl,
         walletProviderBaseUrl,
         instanceAttestation,
-        walletInstanceKeyThumbprint
+        clientId
       );
 
-      // Generate JwtForPar
+      // Generate jwt for PAR wallet instance attestation
       const unsignedJwtForPar = await issuingPID.getUnsignedJwtForPar(
         walletInstancePublicKey
       );
       const parSignature = await sign(unsignedJwtForPar, walletInstanceKeyTag);
 
-      // PAR request (6,7)
+      // PAR request
       await issuingPID.getPar(unsignedJwtForPar, parSignature);
 
-      //Generate keys for DPoP (12,13)
+      //Generate fresh keys for DPoP
       const dPopKeyTag = Math.random().toString(36).substr(2, 5);
       const dPopKey = await generate(dPopKeyTag);
 
-      const unsignedDPopForToken = await issuingPID.getUnsignedDPop(dPopKey);
+      const unsignedDPopForToken = await issuingPID.getUnsignedDPoP(dPopKey);
       const dPopTokenSignature = await sign(unsignedDPopForToken, dPopKeyTag);
 
-      // Token request (14,15)
+      // Token request
       const authToken = await issuingPID.getAuthToken(
         unsignedDPopForToken,
         dPopTokenSignature
       );
 
-      // Generate key for PID binding (16)
+      // Generate fresh key for PID binding
       const pidKeyTag = Math.random().toString(36).substr(2, 5);
       const pidKey = await generate(pidKeyTag);
 
-      //Generate nonce proof (17)
-      const unsignedProof = await issuingPID.getUnsignedProof(
+      //Generate nonce proof
+      const unsignedNonceProof = await issuingPID.getUnsignedNonceProof(
         authToken.c_nonce
       );
-      const proofSignature = await sign(unsignedProof, pidKeyTag);
+      const nonceProofSignature = await sign(unsignedNonceProof, pidKeyTag);
 
-      // Generate DPoP for PID key (18)
-      const unsignedDPopForPid = await issuingPID.getUnsignedDPop(pidKey);
+      // Generate DPoP for PID key
+      const unsignedDPopForPid = await issuingPID.getUnsignedDPoP(pidKey);
       const dPopPidSignature = await sign(unsignedDPopForPid, pidKeyTag);
 
-      // Credential reuqest (19, 20)
-      const credential = await issuingPID.getCredential(
+      // Credential reuqest
+      const pid = await issuingPID.getCredential(
         unsignedDPopForPid,
         dPopPidSignature,
-        unsignedProof,
-        proofSignature,
+        unsignedNonceProof,
+        nonceProofSignature,
         authToken.access_token,
         {
           birthDate: "01/01/1990",
           fiscalCode: "AAABBB00A00A000A",
-          name: "NOME",
-          surname: "COGNOME",
+          name: "NAME",
+          surname: "SURNAME",
         }
       );
 
-      console.log(credential);
-      setResult(JSON.stringify(credential));
+      setResult(JSON.stringify(pid.credential));
     } catch (e) {
       console.error(e);
       showError(e);
     }
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <View>
         <Button title="Decode PID" onPress={decodePid} />
         <Button title="Verify PID" onPress={verifyPid} />
         <Button title="Get WIA" onPress={getAttestation} />
+        <Button title="Get PID" onPress={getPid} />
       </View>
       <View>
         <Text style={styles.title}>{result}</Text>
