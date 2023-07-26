@@ -16,16 +16,15 @@ export default function App() {
     setResult("READY");
   }, []);
 
-
-  function run(runner: ScenarioRunner){
+  function run(runner: ScenarioRunner) {
     return async () => {
       const [error, result] = await runner();
-      if(error){
-        showError(error); 
+      if (error) {
+        showError(error);
       } else {
         setResult(result);
       }
-    }
+    };
   }
 
   return (
