@@ -21,5 +21,5 @@ export const DPoPPayload = z.object({
   jti: z.string(),
   htm: z.union([z.literal("POST"), z.literal("GET")]),
   htu: z.string(),
-  ath: z.string(),
+  ath: z.string().optional(),
 });

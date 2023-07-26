@@ -96,3 +96,27 @@ export class AuthRequestDecodeError extends IoWalletError {
     this.reason = reason;
   }
 }
+
+/**
+ * An error subclass thrown when validation fail
+ *
+ */
+export class PidIssuingError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_PID_ISSUING_FAILED" {
+    return "ERR_IO_WALLET_PID_ISSUING_FAILED";
+  }
+
+  code = "ERR_IO_WALLET_PID_ISSUING_FAILED";
+
+  /** The Claim for which the validation failed. */
+  claim: string;
+
+  /** Reason code for the validation failure. */
+  reason: string;
+
+  constructor(message: string, claim = "unspecified", reason = "unspecified") {
+    super(message);
+    this.claim = claim;
+    this.reason = reason;
+  }
+}

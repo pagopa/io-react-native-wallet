@@ -1628,6 +1628,11 @@
     eslint-plugin-sonarjs "^0.13.0"
     prettier "^2.6.2"
 
+"@pagopa/io-react-native-crypto@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
+  integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
+
 "@pagopa/io-react-native-jwt@^0.4.0":
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-0.4.1.tgz#02e277e8ea2c46257a9c8debafafef41713c04ce"
