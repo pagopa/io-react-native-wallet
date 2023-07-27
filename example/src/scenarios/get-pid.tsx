@@ -4,7 +4,7 @@ import { PID, WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
-const pidProviderBaseUrl = "https://api.wakala.it/it-pid-provider/";
+const pidProviderBaseUrl = "https://api.eudi-wallet-it-pid-provider.it";
 
 export default async () => {
   try {
@@ -78,8 +78,8 @@ export default async () => {
         surname: "SURNAME",
       }
     );
-
-    return result(pid);
+    const pidWithToken = PID.SdJwt.decode(pid.credential);
+    return result(pidWithToken.pid);
   } catch (e) {
     console.error(e);
     return error(e);
