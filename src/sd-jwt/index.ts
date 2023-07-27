@@ -26,7 +26,10 @@ export const decode = <S extends z.AnyZodObject>(
   token: string,
   schema: S
 ): { sdJwt: z.infer<S>; disclosures: Disclosure[] } => {
-  // token are expected in the form "sd-jwt~disclosure0~disclosure1~...~disclosureN"
+  // token are expected in the form "sd-jwt~disclosure0~disclosure1~...~disclosureN~"
+  if (token.slice(-1) === "~") {
+    token = token.slice(0, -1);
+  }
   const [rawSdJwt = "", ...rawDisclosures] = token.split("~");
 
   // get the sd-jwt as object
