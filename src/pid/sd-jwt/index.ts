@@ -54,7 +54,7 @@ export async function verify(token: string): Promise<VerifyResult> {
   return decoded;
 }
 
-type PidWithToken = {
+export type PidWithToken = {
   // The object with the parsed data for PID
   pid: PID;
   // The object with the parsed SD-JWT token that shipped the PID. It will be needed to present PID data.
