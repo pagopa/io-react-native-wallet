@@ -46,7 +46,6 @@ export default async () => {
     // Scan/Decode QR
     const { requestURI: authRequestUrl } =
       RelyingPartySolution.decodeAuthRequestQR(QR);
-    //const authRequestUrl = "https://verifier.example.org/request_uri";
 
     // instantiate
     const RP = new RelyingPartySolution(authRequestUrl, WIA.attestation);
