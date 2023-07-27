@@ -10,6 +10,10 @@ export default function App() {
       <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
       <TestScenario title="Get PID" scenario={scenarios.getPid} />
       <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
+      <TestScenario
+        title="Cross-device flow with RP"
+        scenario={scenarios.crossDeviceFlowRP}
+      />
     </SafeAreaView>
   );
 }
