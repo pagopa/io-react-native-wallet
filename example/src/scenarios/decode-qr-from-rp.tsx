@@ -1,4 +1,4 @@
-import { PID, RelyingPartySolution } from "@pagopa/io-react-native-wallet";
+import { RelyingPartySolution } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 
 // eudiw://authorize?client_id=https://verifier.example.org&request_uri=https://verifier.example.org/request_uri
