@@ -16,35 +16,48 @@ export default function App() {
     setResult("READY");
   }, []);
 
+  return (
+    <SafeAreaView style={styles.container}>
+      <TestScenario title="Decode PID" scenario={scenarios.decodePid} />
+      <TestScenario title="Verify PID" scenario={scenarios.verifyPid} />
+      <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
+      <TestScenario title="Get PID" scenario={scenarios.getPid} />
+    </SafeAreaView>
+  );
+}
+
+function TestScenario({
+  scenario,
+  title = scenario.name,
+}: {
+  scenario: ScenarioRunner;
+  title: string;
+}) {
+  const [result, setResult] = React.useState<string | undefined>();
+  React.useEffect(() => {
+    setResult("READY");
+  }, []);
+
   function run(runner: ScenarioRunner) {
     return async () => {
-      const [error, result] = await runner();
+      setResult("⏱️");
+      const [error, _result] = await runner();
       if (error) {
-        showError(error);
+        setResult(`❌ ${JSON.stringify(error)}`);
       } else {
-        setResult(result);
+        setResult("✅");
       }
     };
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View>
-        <Button title="Decode PID" onPress={run(scenarios.decodePid)} />
-        <Button title="Verify PID" onPress={run(scenarios.verifyPid)} />
-        <Button title="Get WIA" onPress={run(scenarios.getAttestation)} />
-        <Button title="Get PID" onPress={run(scenarios.getPid)} />
-      </View>
-      <View>
-        <Text style={styles.title}>{result}</Text>
-      </View>
-    </SafeAreaView>
+    <View>
+      <Button title={title} onPress={run(scenario)} />
+      <Text style={styles.title}>{result}</Text>
+    </View>
   );
 }
 
-const showError = (e: any) => {
-  Alert.alert("Error!", JSON.stringify(e), [{ text: "OK" }]);
-};
 const styles = StyleSheet.create({
   container: {
     flex: 1,
