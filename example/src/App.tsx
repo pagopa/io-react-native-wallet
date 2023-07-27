@@ -1,21 +1,8 @@
 import * as React from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  SafeAreaView,
-  Alert,
-} from "react-native";
+import { StyleSheet, View, Text, Button, SafeAreaView } from "react-native";
 import scenarios, { type ScenarioRunner } from "./scenarios";
 
 export default function App() {
-  const [result, setResult] = React.useState<string | undefined>();
-
-  React.useEffect(() => {
-    setResult("READY");
-  }, []);
-
   return (
     <SafeAreaView style={styles.container}>
       <TestScenario title="Decode PID" scenario={scenarios.decodePid} />
