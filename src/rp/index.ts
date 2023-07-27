@@ -5,7 +5,7 @@ import {
   sha256ToBase64,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
-import { RequestObject, RpEntityConfiguration } from "./types";
+import { QRCodePayload, RequestObject, RpEntityConfiguration } from "./types";
 
 import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
@@ -33,24 +33,25 @@ export class RelyingPartySolution {
    * @returns The authentication request url
    *
    */
-  decodeAuthRequestQR(qrcode: string): string {
-    try {
-      const decoded = decodeBase64(qrcode);
-      const decodedUrl = new URL(decoded);
-      const requestUri = decodedUrl.searchParams.get("request_uri");
-      if (requestUri) {
-        return requestUri;
-      } else {
-        throw new AuthRequestDecodeError(
-          "Unable to obtain request_uri from QR code",
-          `${decodedUrl}`
-        );
-      }
-    } catch {
-      throw new AuthRequestDecodeError(
-        "Unable to decode QR code authentication request url",
-        qrcode
-      );
+  static decodeAuthRequestQR(qrcode: string): QRCodePayload {
+    const decoded = decodeBase64(qrcode);
+    const decodedUrl = new URL(decoded);
+    const protocol = decodedUrl.protocol;
+    const resource = decodedUrl.hostname;
+    const requestURI = decodedUrl.searchParams.get("request_uri");
+    const clientId = decodedUrl.searchParams.get("client_id");
+
+    const result = QRCodePayload.safeParse({
+      protocol,
+      resource,
+      requestURI,
+      clientId,
+    });
+
+    if (result.success) {
+      return result.data;
+    } else {
+      throw new AuthRequestDecodeError(result.error.message, `${decodedUrl}`);
     }
   }
   /**
@@ -97,7 +98,6 @@ export class RelyingPartySolution {
   ): Promise<RequestObject> {
     const decodedJwtDPop = await decodeJwt(signedWalletInstanceDPoP);
     const requestUri = decodedJwtDPop.payload.htu as string;
-
     const response = await this.appFetch(requestUri, {
       method: "GET",
       headers: {

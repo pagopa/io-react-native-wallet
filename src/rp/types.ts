@@ -62,3 +62,11 @@ export const RpEntityConfiguration = z.object({
     authority_hints: z.array(z.string()),
   }),
 });
+
+export type QRCodePayload = z.infer<typeof QRCodePayload>;
+export const QRCodePayload = z.object({
+  protocol: z.literal("eudiw:"),
+  resource: z.string(), // TODO: refine to known paths using literals
+  clientId: z.string(),
+  requestURI: z.string(),
+});
