@@ -9,6 +9,7 @@ export default function App() {
       <TestScenario title="Verify PID" scenario={scenarios.verifyPid} />
       <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
       <TestScenario title="Get PID" scenario={scenarios.getPid} />
+      <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
     </SafeAreaView>
   );
 }
