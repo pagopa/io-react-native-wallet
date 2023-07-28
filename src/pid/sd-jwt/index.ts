@@ -1,5 +1,4 @@
-import { decode as decodeJwt } from "../../sd-jwt";
-import { verify as verifyJwt } from "../../sd-jwt";
+import { decode as decodeJwt, verify as verifyJwt } from "../../sd-jwt";
 import { PID } from "./types";
 import { pidFromToken } from "./converters";
 import { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
