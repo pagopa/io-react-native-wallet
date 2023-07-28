@@ -7,7 +7,7 @@ import { decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { Disclosure } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "src/utils/jwk";
-import { ClaimsNotFoundBetweenDislosures } from "src/utils/errors";
+import { ClaimsNotFoundBetweenDislosures } from "../utils/errors";
 
 const decodeDisclosure = (raw: string): Disclosure =>
   Disclosure.parse(JSON.parse(decodeBase64(raw)));
