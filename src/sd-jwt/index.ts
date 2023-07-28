@@ -7,6 +7,10 @@ import { decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { Disclosure } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "src/utils/jwk";
+import { ClaimsNotFoundBetweenDislosures } from "../utils/errors";
+
+const decodeDisclosure = (raw: string): Disclosure =>
+  Disclosure.parse(JSON.parse(decodeBase64(raw)));
 
 /**
  * Decode a given SD-JWT with Disclosures to get the parsed SD-JWT object they define.
@@ -43,12 +47,41 @@ export const decode = <S extends z.AnyZodObject>(
   // get disclosures as list of triples
   // validate each triple
   // throw a validation error if at least one fails to parse
-  const disclosures = rawDisclosures
-    .map(decodeBase64)
-    .map((e) => JSON.parse(e))
-    .map((e) => Disclosure.parse(e));
+  const disclosures = rawDisclosures.map(decodeDisclosure);
 
   return { sdJwt, disclosures };
+};
+
+/**
+ * Select disclosures from a given SD-JWT with Disclosures.
+ * Claims relate with disclosures by their name.
+ *
+ * @function
+ * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
+ * @param claims The list of claims to be disclosed
+ *
+ * @throws {ClaimsNotFoundBetweenDislosures} When one or more claims does not relate to any discloure.
+ * @returns The encoded token with only the requested disclosures
+ *
+ */
+export const disclose = (token: string, claims: string[]): string => {
+  const [rawSdJwt, ...rawDisclosures] = token.split("~");
+
+  // check every claim represents a known disclosure
+  const unknownClaims = claims.filter(
+    (claim) =>
+      !rawDisclosures.map(decodeDisclosure).find(([, name]) => name === claim)
+  );
+  if (unknownClaims.length) {
+    throw new ClaimsNotFoundBetweenDislosures(unknownClaims);
+  }
+
+  const filteredDisclosures = rawDisclosures.filter((d) => {
+    const [, name] = decodeDisclosure(d);
+    return claims.includes(name);
+  });
+
+  return [rawSdJwt, ...filteredDisclosures].join("~");
 };
 
 /**

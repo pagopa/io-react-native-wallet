@@ -120,3 +120,27 @@ export class PidIssuingError extends IoWalletError {
     this.reason = reason;
   }
 }
+
+/**
+ * When claims are requested but not found in the credential
+ *
+ */
+export class ClaimsNotFoundBetweenDislosures extends Error {
+  static get code(): "ERR_CLAIMS_NOT_FOUND" {
+    return "ERR_CLAIMS_NOT_FOUND";
+  }
+
+  code = "ERR_CLAIMS_NOT_FOUND";
+
+  /** The Claims not found */
+  claims: string[];
+
+  constructor(claims: string | string[]) {
+    const c = Array.isArray(claims) ? claims : [claims];
+    const message = `Some requested claims are not present in the disclosurable values, claims: ${c.join(
+      ", "
+    )}`;
+    super(message);
+    this.claims = c;
+  }
+}
