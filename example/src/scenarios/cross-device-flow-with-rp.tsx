@@ -70,10 +70,10 @@ export default async () => {
     ).then((t) => RP.getRequestObject(t));
 
     // Attest Relying Party trust
-    // TODO
+    // TODO [SIW-354]
 
     // Validate Request object signature
-    // TODO
+    // TODO [SIW-337]
 
     // select claims to be disclose from pid
     // these would be selected by users in the UI

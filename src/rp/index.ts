@@ -144,12 +144,12 @@ export class RelyingPartySolution {
    */
   prepareVpToken(
     requestObj: RequestObject,
-    [vc, claims]: Presentation // TODO: support multiple presentations
+    [vc, claims]: Presentation // TODO: [SIW-353] support multiple presentations
   ): string {
     // this throws if vc cannot satisfy all the requested claims
     const vp = disclose(vc, claims);
 
-    // TODO: check all requeste claims of the requestedObj are satisfied
+    // check all requeste claims of the requestedObj are satisfied
 
     const vp_token = new SignJWT({ vp })
       .setAudience(requestObj.payload.response_uri)
@@ -181,10 +181,10 @@ export class RelyingPartySolution {
   ): Promise<string> {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
-    // TODO: MUST be encrypted
+    // TODO: [SIW-351] MUST be encrypted
     const authzResponse = new SignJWT({
       state: requestObj.payload.state,
-      // TODO: MUST add presentation_submission
+      // TODO: [SIW-352] MUST add presentation_submission
       // presentation_submission:
       vp_token,
     }).toSign();
