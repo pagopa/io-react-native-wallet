@@ -149,7 +149,7 @@ export class RelyingPartySolution {
     // this throws if vc cannot satisfy all the requested claims
     const vp = disclose(vc, claims);
 
-    // check all requeste claims of the requestedObj are satisfied
+    // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
 
     const vp_token = new SignJWT({ vp })
       .setAudience(requestObj.payload.response_uri)
