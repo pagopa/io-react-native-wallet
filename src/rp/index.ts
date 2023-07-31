@@ -182,12 +182,12 @@ export class RelyingPartySolution {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
     // TODO: [SIW-351] MUST be encrypted
-    const authzResponse = new SignJWT({
+    const authzResponsePayload = {
       state: requestObj.payload.state,
       // TODO: [SIW-352] MUST add presentation_submission
       // presentation_submission:
       vp_token,
-    }).toSign();
+    };
     const formBody = new URLSearchParams({ response: authzResponse });
     const response = await this.appFetch(requestObj.payload.response_uri, {
       method: "POST",
