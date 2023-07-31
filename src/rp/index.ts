@@ -5,10 +5,16 @@ import {
   sha256ToBase64,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
-import { QRCodePayload, RequestObject, RpEntityConfiguration } from "./types";
+import {
+  QRCodePayload,
+  RequestObject,
+  RpEntityConfiguration,
+  type Presentation,
+} from "./types";
 
 import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
+import { disclose } from "../sd-jwt";
 
 export class RelyingPartySolution {
   relyingPartyBaseUrl: string;
@@ -118,6 +124,85 @@ export class RelyingPartySolution {
 
     throw new IoWalletError(
       `Unable to obtain Request Object. Response code: ${response.status}`
+    );
+  }
+
+  /**
+   * Prepare the Verified Presentation token for a received request object in the context of an authorization request flow.
+   * The presentation is prepared by disclosing data from provided credentials, according to requested claims
+   * Each Verified Credential come along with the claims the user accepts to disclose from it.
+   *
+   * The returned token is unsigned (sign should be apply by the caller).
+   *
+   * @todo accept more than a Verified Credential
+   *
+   * @param requestObj The incoming request object, which the requirements for the requested authorization
+   * @param presentation The Verified Credential containing user data along with the list of claims to be disclosed.
+   * @returns The unsigned Verified Presentation token
+   * @throws {ClaimsNotFoundBetweenDislosures} If the Verified Credential does not contain one or more requested claims.
+   *
+   */
+  prepareVpToken(
+    requestObj: RequestObject,
+    [vc, claims]: Presentation // TODO: [SIW-353] support multiple presentations
+  ): string {
+    // this throws if vc cannot satisfy all the requested claims
+    const vp = disclose(vc, claims);
+
+    // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
+
+    const vp_token = new SignJWT({ vp })
+      .setAudience(requestObj.payload.response_uri)
+      .setExpirationTime("1h")
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+      })
+      .toSign();
+
+    return vp_token;
+  }
+
+  /**
+   * Compose and send an Authorization Response in the context of an authorization request flow.
+   *
+   * @todo MUST encrypt response payload
+   * @todo MUST add presentation_submission
+   *
+   * @param requestObj The incoming request object, which the requirements for the requested authorization
+   * @param vp_token The signed Verified Presentation token with data to send.
+   * @returns The response from the RP
+   * @throws IoWalletError if the submission fails.
+   *
+   */
+  async sendAuthorizationResponse(
+    requestObj: RequestObject,
+    vp_token: string
+  ): Promise<string> {
+    // the request is an unsigned jws without iss, aud, exp
+    // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
+    // TODO: [SIW-351] MUST be encrypted
+    const authzResponsePayload = {
+      state: requestObj.payload.state,
+      // TODO: [SIW-352] MUST add presentation_submission
+      // presentation_submission:
+      vp_token,
+    };
+    const formBody = new URLSearchParams({ response: authzResponse });
+    const response = await this.appFetch(requestObj.payload.response_uri, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formBody.toString(),
+    });
+
+    if (response.status === 200) {
+      return response.text();
+    }
+
+    throw new IoWalletError(
+      `Unable to send Authorization Response. Response code: ${response.status}`
     );
   }
 

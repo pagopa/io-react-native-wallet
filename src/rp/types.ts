@@ -70,3 +70,11 @@ export const QRCodePayload = z.object({
   clientId: z.string(),
   requestURI: z.string(),
 });
+
+/**
+ * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
+ */
+export type Presentation = [
+  /* verified credential token */ string,
+  /* claims */ string[]
+];
