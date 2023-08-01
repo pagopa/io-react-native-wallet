@@ -144,3 +144,23 @@ export class ClaimsNotFoundBetweenDislosures extends Error {
     this.claims = c;
   }
 }
+
+/**
+ * When selecting a public key from an entity configuration, and no one meets the requirements for the scenario
+ *
+ */
+export class NoSuitableKeysFoundInEntityConfiguration extends Error {
+  static get code(): "ERR_NO_SUITABLE_KEYS_NOT_FOUND" {
+    return "ERR_NO_SUITABLE_KEYS_NOT_FOUND";
+  }
+
+  code = "ERR_NO_SUITABLE_KEYS_NOT_FOUND";
+
+  /**
+   * @param scenario describe the scenario in which the error arise
+   */
+  constructor(scenario: string) {
+    const message = `Entity configuration do not provide any suitable keys (${scenario}).`;
+    super(message);
+  }
+}

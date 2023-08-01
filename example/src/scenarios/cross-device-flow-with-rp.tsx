@@ -69,6 +69,9 @@ export default async () => {
       DPoPSignature
     ).then((t) => RP.getRequestObject(t));
 
+    // resolve RP's entity configuration
+    const entity = await RP.getEntityConfiguration();
+
     // Attest Relying Party trust
     // TODO [SIW-354]
 
@@ -93,7 +96,7 @@ export default async () => {
     const vpToken = await SignJWT.appendSignature(unsignedVpToken, signature);
 
     // Submit authorization response
-    const ok = await RP.sendAuthorizationResponse(requestObj, vpToken);
+    const ok = await RP.sendAuthorizationResponse(requestObj, vpToken, entity);
 
     return result(ok);
   } catch (e) {

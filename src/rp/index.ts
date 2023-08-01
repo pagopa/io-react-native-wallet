@@ -1,9 +1,14 @@
-import { AuthRequestDecodeError, IoWalletError } from "../utils/errors";
+import {
+  AuthRequestDecodeError,
+  IoWalletError,
+  NoSuitableKeysFoundInEntityConfiguration,
+} from "../utils/errors";
 import {
   decode as decodeJwt,
   decodeBase64,
   sha256ToBase64,
   SignJWT,
+  EncryptJwe,
 } from "@pagopa/io-react-native-jwt";
 import {
   QRCodePayload,
@@ -166,29 +171,38 @@ export class RelyingPartySolution {
   /**
    * Compose and send an Authorization Response in the context of an authorization request flow.
    *
-   * @todo MUST encrypt response payload
    * @todo MUST add presentation_submission
    *
    * @param requestObj The incoming request object, which the requirements for the requested authorization
    * @param vp_token The signed Verified Presentation token with data to send.
+   * @param entity The RP entity configuration
    * @returns The response from the RP
-   * @throws IoWalletError if the submission fails.
+   * @throws {IoWalletError} if the submission fails.
+   * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key
    *
    */
   async sendAuthorizationResponse(
     requestObj: RequestObject,
-    vp_token: string
+    vp_token: string,
+    entity: RpEntityConfiguration
   ): Promise<string> {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
-    // TODO: [SIW-351] MUST be encrypted
-    const authzResponsePayload = {
+    const jwk = this.choosePublicKeyToEncrypt(entity);
+    const enc = this.getEncryptionAlgByJwk(jwk);
+
+    const authzResponsePayload = JSON.stringify({
       state: requestObj.payload.state,
       // TODO: [SIW-352] MUST add presentation_submission
       // presentation_submission:
       vp_token,
-    };
-    const formBody = new URLSearchParams({ response: authzResponse });
+    });
+    const encrypted = await new EncryptJwe(authzResponsePayload, {
+      alg: jwk.alg,
+      enc,
+    }).encrypt(jwk);
+
+    const formBody = new URLSearchParams({ response: encrypted });
     const response = await this.appFetch(requestObj.payload.response_uri, {
       method: "POST",
       headers: {
@@ -204,6 +218,55 @@ export class RelyingPartySolution {
     throw new IoWalletError(
       `Unable to send Authorization Response. Response code: ${response.status}`
     );
+  }
+
+  /**
+   * Select a public key from those provided by the RP.
+   * Keys with algorithm "RSA-OAEP-256" or "RSA-OAEP" are expected, the firsts to be preferred.
+   *
+   * @param entity The RP entity configuration
+   * @returns A suitable public key with its compatible encryption algorithm
+   * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key suitable for encrypting
+   */
+  private choosePublicKeyToEncrypt(
+    entity: RpEntityConfiguration
+  ): (JWK & { alg: "RSA-OAEP-256" }) | (JWK & { alg: "RSA-OAEP" }) {
+    // Look for keys using "RSA-OAEP-256", and pick a random one
+    const [usingRsa256] = entity.payload.jwks.keys.filter(
+      <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP-256" } =>
+        typeof k.alg === "string" && k.alg === "RSA-OAEP-256"
+    );
+
+    if (usingRsa256) {
+      return usingRsa256;
+    }
+
+    // Look for keys using "RSA-OAEP", and pick a random one
+    const [usingRsa] = entity.payload.jwks.keys.filter(
+      <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP" } =>
+        typeof k.alg === "string" && k.alg === "RSA-OAEP"
+    );
+
+    if (usingRsa) {
+      return usingRsa;
+    }
+
+    // No suitable key has been found
+    throw new NoSuitableKeysFoundInEntityConfiguration(
+      "Encrypt with RP public key"
+    );
+  }
+
+  private getEncryptionAlgByJwk({
+    alg,
+  }: (JWK & { alg: "RSA-OAEP-256" }) | (JWK & { alg: "RSA-OAEP" })):
+    | "A128CBC-HS256"
+    | "A256CBC-HS512" {
+    if (alg === "RSA-OAEP-256") return "A256CBC-HS512";
+    if (alg === "RSA-OAEP") return "A128CBC-HS256";
+
+    const _: never = alg;
+    throw new Error(`Invalid jwk algorithm: ${_}`);
   }
 
   /**
