@@ -1,9 +1,14 @@
-import { AuthRequestDecodeError, IoWalletError } from "../utils/errors";
+import {
+  AuthRequestDecodeError,
+  IoWalletError,
+  NoSuitableKeysFoundInEntityConfiguration,
+} from "../utils/errors";
 import {
   decode as decodeJwt,
   decodeBase64,
   sha256ToBase64,
   SignJWT,
+  EncryptJwe,
 } from "@pagopa/io-react-native-jwt";
 import {
   QRCodePayload,
@@ -166,29 +171,37 @@ export class RelyingPartySolution {
   /**
    * Compose and send an Authorization Response in the context of an authorization request flow.
    *
-   * @todo MUST encrypt response payload
    * @todo MUST add presentation_submission
    *
    * @param requestObj The incoming request object, which the requirements for the requested authorization
    * @param vp_token The signed Verified Presentation token with data to send.
+   * @param entity The RP entity configuration
    * @returns The response from the RP
-   * @throws IoWalletError if the submission fails.
+   * @throws {IoWalletError} if the submission fails.
+   * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key
    *
    */
   async sendAuthorizationResponse(
     requestObj: RequestObject,
-    vp_token: string
+    vp_token: string,
+    entity: RpEntityConfiguration
   ): Promise<string> {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
-    // TODO: [SIW-351] MUST be encrypted
-    const authzResponsePayload = {
+    const jwk = this.choosePublicKeyToEncrypt(entity);
+
+    const authzResponsePayload = JSON.stringify({
       state: requestObj.payload.state,
       // TODO: [SIW-352] MUST add presentation_submission
       // presentation_submission:
       vp_token,
-    };
-    const formBody = new URLSearchParams({ response: authzResponse });
+    });
+    const encrypted = await new EncryptJwe(authzResponsePayload, {
+      alg: jwk.alg,
+      enc: "A256CBC-HS512",
+    }).encrypt(jwk);
+
+    const formBody = new URLSearchParams({ response: encrypted });
     const response = await this.appFetch(requestObj.payload.response_uri, {
       method: "POST",
       headers: {
@@ -204,6 +217,36 @@ export class RelyingPartySolution {
     throw new IoWalletError(
       `Unable to send Authorization Response. Response code: ${response.status}`
     );
+  }
+
+  /**
+   * Select a public key from those provided by the RP
+   *
+   * @param entity The RP entity configuration
+   * @returns a
+   * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key suitable for encrypting
+   */
+  private choosePublicKeyToEncrypt(
+    entity: RpEntityConfiguration
+  ): JWK & { alg: "RSA-OAEP-256" | "RSA-OAEP" } {
+    const supportedAlgos = ["RSA-OAEP-256", "RSA-OAEP"];
+    const [randomKey] = entity.payload.jwks.keys
+      // keys must have declared alg and must be a supperted algorithm
+      .filter(
+        <T>(
+          k: T & { alg?: string }
+        ): k is T & { alg: "RSA-OAEP-256" | "RSA-OAEP" } =>
+          typeof k.alg === "string" && supportedAlgos.includes(k.alg)
+      )
+      // shuffle elements to select a random key
+      .sort((_a, _b) => (Math.random() > 0.5 ? 1 : -1));
+    if (!randomKey) {
+      throw new NoSuitableKeysFoundInEntityConfiguration(
+        "Encrypt with RP public key"
+      );
+    }
+
+    return randomKey;
   }
 
   /**
