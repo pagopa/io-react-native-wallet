@@ -188,7 +188,7 @@ export class RelyingPartySolution {
   ): Promise<string> {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
-    const jwk = this.choosePublicKeyToEncrypt(entity);
+    const { jwk, enc } = this.choosePublicKeyToEncrypt(entity);
 
     const authzResponsePayload = JSON.stringify({
       state: requestObj.payload.state,
@@ -198,7 +198,7 @@ export class RelyingPartySolution {
     });
     const encrypted = await new EncryptJwe(authzResponsePayload, {
       alg: jwk.alg,
-      enc: "A256CBC-HS512",
+      enc: enc,
     }).encrypt(jwk);
 
     const formBody = new URLSearchParams({ response: encrypted });
@@ -220,33 +220,48 @@ export class RelyingPartySolution {
   }
 
   /**
-   * Select a public key from those provided by the RP
+   * Select a public key from those provided by the RP.
+   * Keys with algorithm "RSA-OAEP-256" or "RSA-OAEP" are expected, the firsts to be preferred.
    *
    * @param entity The RP entity configuration
-   * @returns a
+   * @returns A suitable public key with its compatible encryption algorithm
    * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key suitable for encrypting
    */
   private choosePublicKeyToEncrypt(
     entity: RpEntityConfiguration
-  ): JWK & { alg: "RSA-OAEP-256" | "RSA-OAEP" } {
-    const supportedAlgos = ["RSA-OAEP-256", "RSA-OAEP"];
-    const [randomKey] = entity.payload.jwks.keys
-      // keys must have declared alg and must be a supperted algorithm
+  ):
+    | { jwk: JWK & { alg: "RSA-OAEP-256" }; enc: "A256CBC-HS512" }
+    | { jwk: JWK & { alg: "RSA-OAEP" }; enc: "A128CBC-HS256" } {
+    const shuffle = () => (Math.random() > 0.5 ? 1 : -1);
+
+    // Look for keys using "RSA-OAEP-256", and pick a random one
+    const [usingRsa256] = entity.payload.jwks.keys
       .filter(
-        <T>(
-          k: T & { alg?: string }
-        ): k is T & { alg: "RSA-OAEP-256" | "RSA-OAEP" } =>
-          typeof k.alg === "string" && supportedAlgos.includes(k.alg)
+        <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP-256" } =>
+          typeof k.alg === "string" && k.alg === "RSA-OAEP-256"
       )
-      // shuffle elements to select a random key
-      .sort((_a, _b) => (Math.random() > 0.5 ? 1 : -1));
-    if (!randomKey) {
-      throw new NoSuitableKeysFoundInEntityConfiguration(
-        "Encrypt with RP public key"
-      );
+      .sort(shuffle);
+
+    if (usingRsa256) {
+      return { jwk: usingRsa256, enc: "A256CBC-HS512" };
     }
 
-    return randomKey;
+    // Look for keys using "RSA-OAEP", and pick a random one
+    const [usingRsa] = entity.payload.jwks.keys
+      .filter(
+        <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP" } =>
+          typeof k.alg === "string" && k.alg === "RSA-OAEP"
+      )
+      .sort(shuffle);
+
+    if (usingRsa) {
+      return { jwk: usingRsa, enc: "A128CBC-HS256" };
+    }
+
+    // No suitable key has been found
+    throw new NoSuitableKeysFoundInEntityConfiguration(
+      "Encrypt with RP public key"
+    );
   }
 
   /**
