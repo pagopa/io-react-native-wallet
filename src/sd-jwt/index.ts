@@ -4,13 +4,15 @@ import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 
 import { decodeBase64 } from "@pagopa/io-react-native-jwt";
-import { Disclosure } from "./types";
+import { Disclosure, type DisclosureWithEncoded } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "src/utils/jwk";
 import { ClaimsNotFoundBetweenDislosures } from "../utils/errors";
 
-const decodeDisclosure = (raw: string): Disclosure =>
-  Disclosure.parse(JSON.parse(decodeBase64(raw)));
+const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {
+  const decoded = Disclosure.parse(JSON.parse(decodeBase64(encoded)));
+  return { decoded, encoded };
+};
 
 /**
  * Decode a given SD-JWT with Disclosures to get the parsed SD-JWT object they define.
@@ -29,7 +31,10 @@ const decodeDisclosure = (raw: string): Disclosure =>
 export const decode = <S extends z.AnyZodObject>(
   token: string,
   schema: S
-): { sdJwt: z.infer<S>; disclosures: Disclosure[] } => {
+): {
+  sdJwt: z.infer<S>;
+  disclosures: DisclosureWithEncoded[];
+} => {
   // token are expected in the form "sd-jwt~disclosure0~disclosure1~...~disclosureN~"
   if (token.slice(-1) === "~") {
     token = token.slice(0, -1);
@@ -70,14 +75,18 @@ export const disclose = (token: string, claims: string[]): string => {
   // check every claim represents a known disclosure
   const unknownClaims = claims.filter(
     (claim) =>
-      !rawDisclosures.map(decodeDisclosure).find(([, name]) => name === claim)
+      !rawDisclosures
+        .map(decodeDisclosure)
+        .find(({ decoded: [, name] }) => name === claim)
   );
   if (unknownClaims.length) {
     throw new ClaimsNotFoundBetweenDislosures(unknownClaims);
   }
 
   const filteredDisclosures = rawDisclosures.filter((d) => {
-    const [, name] = decodeDisclosure(d);
+    const {
+      decoded: [, name],
+    } = decodeDisclosure(d);
     return claims.includes(name);
   });
 
@@ -124,5 +133,8 @@ export const verify = async <S extends z.AnyZodObject>(
     )
   );
 
-  return decoded;
+  return {
+    sdJwt: decoded.sdJwt,
+    disclosures: decoded.disclosures.map((d) => d.decoded),
+  };
 };

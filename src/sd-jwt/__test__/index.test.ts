@@ -92,8 +92,13 @@ describe("decode", () => {
     // @ts-ignore because z.any() != z.AnyObject()
     const result = decode(token, z.any());
 
-    expect(result.sdJwt).toEqual(sdJwt);
-    expect(result.disclosures).toEqual(disclosures);
+    expect(result).toEqual({
+      sdJwt,
+      disclosures: disclosures.map((decoded, i) => ({
+        decoded,
+        encoded: tokenizedDisclosures[i],
+      })),
+    });
   });
 });
 
