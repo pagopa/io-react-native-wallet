@@ -91,12 +91,18 @@ export default async () => {
     ];
 
     // verified presentation is signed using the same key of the wallet attestation
-    const unsignedVpToken = RP.prepareVpToken(requestObj, [pidToken, claims]);
+    const { vp_token: unsignedVpToken, presentation_submission } =
+      await RP.prepareVpToken(requestObj, [pidToken, claims]);
     const signature = await sign(unsignedVpToken, walletInstanceKeyTag);
     const vpToken = await SignJWT.appendSignature(unsignedVpToken, signature);
 
     // Submit authorization response
-    const ok = await RP.sendAuthorizationResponse(requestObj, vpToken, entity);
+    const ok = await RP.sendAuthorizationResponse(
+      requestObj,
+      vpToken,
+      presentation_submission,
+      entity
+    );
 
     return result(ok);
   } catch (e) {
