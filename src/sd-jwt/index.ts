@@ -81,34 +81,19 @@ export const disclose = async (
   const [rawSdJwt, ...rawDisclosures] = token.split("~");
   const { sdJwt, disclosures } = decode(token, SdJwt4VC);
 
-  // check every claim represents a known disclosure
-  const unknownClaims = claims.filter(
-    (claim) =>
-      !rawDisclosures
-        .map(decodeDisclosure)
-        .find(({ decoded: [, name] }) => name === claim)
-  );
-  if (unknownClaims.length) {
-    throw new ClaimsNotFoundBetweenDislosures(unknownClaims);
-  }
-
-  const filteredDisclosures = rawDisclosures.filter((d) => {
-    const {
-      decoded: [, name],
-    } = decodeDisclosure(d);
-    return claims.includes(name);
-  });
-
-  // compose the final disclosed token
-  const disclosedToken = [rawSdJwt, ...filteredDisclosures].join("~");
-
   // for each claim, return the path on which they are located in the SD-JWT token
   const paths = await Promise.all(
     claims.map(async (claim) => {
       const disclosure = disclosures.find(
         ({ decoded: [, name] }) => name === claim
       );
-      const hash = await sha256ToBase64(disclosure?.encoded || "");
+
+      // check every claim represents a known disclosure
+      if (!disclosure) {
+        throw new ClaimsNotFoundBetweenDislosures(claim);
+      }
+
+      const hash = await sha256ToBase64(disclosure.encoded);
 
       // _sd is defined in verified_claims.claims and verified_claims.verification
       // we must look into both
@@ -126,6 +111,16 @@ export const disclose = async (
       throw new ClaimsNotFoundInToken(claim);
     })
   );
+
+  const filteredDisclosures = rawDisclosures.filter((d) => {
+    const {
+      decoded: [, name],
+    } = decodeDisclosure(d);
+    return claims.includes(name);
+  });
+
+  // compose the final disclosed token
+  const disclosedToken = [rawSdJwt, ...filteredDisclosures].join("~");
 
   return { token: disclosedToken, paths };
 };
