@@ -20,6 +20,7 @@ import {
 import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
+import uuid from "react-native-uuid";
 
 export class RelyingPartySolution {
   relyingPartyBaseUrl: string;
@@ -171,7 +172,7 @@ export class RelyingPartySolution {
     const [definition_id, vc_scope] = requestObj.payload.scope;
     const presentation_submission = {
       definition_id,
-      id: "04a98be3-7fb0-4cf5-af9a-31579c8b0e7d",
+      id: uuid.v4(),
       descriptor_map: paths.map((p) => ({
         id: vc_scope,
         path: `$.vp_token.${p.path}`,
