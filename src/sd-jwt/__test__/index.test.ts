@@ -145,9 +145,9 @@ describe("disclose", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should fail on unknown claim", () => {
-    const fn = () => disclose(token, ["unknown"]);
+  it("should fail on unknown claim", async () => {
+    const fn = async () => disclose(token, ["unknown"]);
 
-    expect(fn).toThrow();
+    await expect(fn()).rejects.toEqual(expect.any(Error));
   });
 });
