@@ -168,9 +168,9 @@ export class RelyingPartySolution {
       })
       .toSign();
 
-    const [, vc_scope] = requestObj.payload.scope;
+    const [definition_id, vc_scope] = requestObj.payload.scope;
     const presentation_submission = {
-      definition_id: "32f54163-7166-48f1-93d8-ff217bdb0653",
+      definition_id,
       id: "04a98be3-7fb0-4cf5-af9a-31579c8b0e7d",
       descriptor_map: paths.map((p) => ({
         id: vc_scope,
