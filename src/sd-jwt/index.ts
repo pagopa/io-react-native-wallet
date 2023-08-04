@@ -2,15 +2,21 @@ import { z } from "zod";
 
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
+import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 
 import { decodeBase64 } from "@pagopa/io-react-native-jwt";
-import { Disclosure } from "./types";
+import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "src/utils/jwk";
-import { ClaimsNotFoundBetweenDislosures } from "../utils/errors";
+import {
+  ClaimsNotFoundBetweenDislosures,
+  ClaimsNotFoundInToken,
+} from "../utils/errors";
 
-const decodeDisclosure = (raw: string): Disclosure =>
-  Disclosure.parse(JSON.parse(decodeBase64(raw)));
+const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {
+  const decoded = Disclosure.parse(JSON.parse(decodeBase64(encoded)));
+  return { decoded, encoded };
+};
 
 /**
  * Decode a given SD-JWT with Disclosures to get the parsed SD-JWT object they define.
@@ -29,7 +35,10 @@ const decodeDisclosure = (raw: string): Disclosure =>
 export const decode = <S extends z.AnyZodObject>(
   token: string,
   schema: S
-): { sdJwt: z.infer<S>; disclosures: Disclosure[] } => {
+): {
+  sdJwt: z.infer<S>;
+  disclosures: DisclosureWithEncoded[];
+} => {
   // token are expected in the form "sd-jwt~disclosure0~disclosure1~...~disclosureN~"
   if (token.slice(-1) === "~") {
     token = token.slice(0, -1);
@@ -61,27 +70,59 @@ export const decode = <S extends z.AnyZodObject>(
  * @param claims The list of claims to be disclosed
  *
  * @throws {ClaimsNotFoundBetweenDislosures} When one or more claims does not relate to any discloure.
- * @returns The encoded token with only the requested disclosures
+ * @throws {ClaimsNotFoundInToken} When one or more claims are not contained in the SD-JWT token.
+ * @returns The encoded token with only the requested disclosures, along with the path each claim can be found on the SD-JWT token
  *
  */
-export const disclose = (token: string, claims: string[]): string => {
+export const disclose = async (
+  token: string,
+  claims: string[]
+): Promise<{ token: string; paths: { claim: string; path: string }[] }> => {
   const [rawSdJwt, ...rawDisclosures] = token.split("~");
+  const { sdJwt, disclosures } = decode(token, SdJwt4VC);
 
-  // check every claim represents a known disclosure
-  const unknownClaims = claims.filter(
-    (claim) =>
-      !rawDisclosures.map(decodeDisclosure).find(([, name]) => name === claim)
+  // for each claim, return the path on which they are located in the SD-JWT token
+  const paths = await Promise.all(
+    claims.map(async (claim) => {
+      const disclosure = disclosures.find(
+        ({ decoded: [, name] }) => name === claim
+      );
+
+      // check every claim represents a known disclosure
+      if (!disclosure) {
+        throw new ClaimsNotFoundBetweenDislosures(claim);
+      }
+
+      const hash = await sha256ToBase64(disclosure.encoded);
+
+      // _sd is defined in verified_claims.claims and verified_claims.verification
+      // we must look into both
+      if (sdJwt.payload.verified_claims.claims._sd.includes(hash)) {
+        const index = sdJwt.payload.verified_claims.claims._sd.indexOf(hash);
+        return { claim, path: `verified_claims.claims._sd[${index}]` };
+      } else if (
+        sdJwt.payload.verified_claims.verification._sd.includes(hash)
+      ) {
+        const index =
+          sdJwt.payload.verified_claims.verification._sd.indexOf(hash);
+        return { claim, path: `verified_claims.verification._sd[${index}]` };
+      }
+
+      throw new ClaimsNotFoundInToken(claim);
+    })
   );
-  if (unknownClaims.length) {
-    throw new ClaimsNotFoundBetweenDislosures(unknownClaims);
-  }
 
   const filteredDisclosures = rawDisclosures.filter((d) => {
-    const [, name] = decodeDisclosure(d);
+    const {
+      decoded: [, name],
+    } = decodeDisclosure(d);
     return claims.includes(name);
   });
 
-  return [rawSdJwt, ...filteredDisclosures].join("~");
+  // compose the final disclosed token
+  const disclosedToken = [rawSdJwt, ...filteredDisclosures].join("~");
+
+  return { token: disclosedToken, paths };
 };
 
 /**
@@ -124,5 +165,8 @@ export const verify = async <S extends z.AnyZodObject>(
     )
   );
 
-  return decoded;
+  return {
+    sdJwt: decoded.sdJwt,
+    disclosures: decoded.disclosures.map((d) => d.decoded),
+  };
 };

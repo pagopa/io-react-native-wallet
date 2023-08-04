@@ -168,12 +168,15 @@ export class RelyingPartySolution {
    * @throws {ClaimsNotFoundBetweenDislosures} If the Verified Credential does not contain one or more requested claims.
    *
    */
-  prepareVpToken(
+  async prepareVpToken(
     requestObj: RequestObject,
     [vc, claims]: Presentation // TODO: [SIW-353] support multiple presentations
-  ): string {
+  ): Promise<{
+    vp_token: string;
+    presentation_submission: Record<string, unknown>;
+  }> {
     // this throws if vc cannot satisfy all the requested claims
-    const vp = disclose(vc, claims);
+    const { token: vp, paths } = await disclose(vc, claims);
 
     // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
 
@@ -186,7 +189,18 @@ export class RelyingPartySolution {
       })
       .toSign();
 
-    return vp_token;
+    const [definition_id, vc_scope] = requestObj.payload.scope;
+    const presentation_submission = {
+      definition_id,
+      id: `${uuid.v4()}`,
+      descriptor_map: paths.map((p) => ({
+        id: vc_scope,
+        path: `$.vp_token.${p.path}`,
+        format: "vc+sd-jwt",
+      })),
+    };
+
+    return { vp_token, presentation_submission };
   }
 
   /**
@@ -196,6 +210,7 @@ export class RelyingPartySolution {
    *
    * @param requestObj The incoming request object, which the requirements for the requested authorization
    * @param vp_token The signed Verified Presentation token with data to send.
+   * @param presentation_submission
    * @param entity The RP entity configuration
    * @returns The response from the RP
    * @throws {IoWalletError} if the submission fails.
@@ -205,6 +220,7 @@ export class RelyingPartySolution {
   async sendAuthorizationResponse(
     requestObj: RequestObject,
     vp_token: string,
+    presentation_submission: Record<string, unknown>,
     entity: RpEntityConfiguration
   ): Promise<string> {
     // the request is an unsigned jws without iss, aud, exp
@@ -214,8 +230,7 @@ export class RelyingPartySolution {
 
     const authzResponsePayload = JSON.stringify({
       state: requestObj.payload.state,
-      // TODO: [SIW-352] MUST add presentation_submission
-      // presentation_submission:
+      presentation_submission,
       vp_token,
     });
     const encrypted = await new EncryptJwe(authzResponsePayload, {

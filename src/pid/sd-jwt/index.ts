@@ -19,7 +19,11 @@ import { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
  *
  */
 export function decode(token: string): PidWithToken {
-  let { sdJwt, disclosures } = decodeJwt(token, SdJwt4VC);
+  let { sdJwt, disclosures: disclosuresWithOriginal } = decodeJwt(
+    token,
+    SdJwt4VC
+  );
+  const disclosures = disclosuresWithOriginal.map((d) => d.decoded);
   const pid = pidFromToken(sdJwt, disclosures);
 
   return { pid, sdJwt, disclosures };

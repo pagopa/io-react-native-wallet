@@ -110,7 +110,19 @@ describe("disclose", () => {
       "evidence",
     ]);
 
-    // check shallow shape
-    expect(result).toEqual(token);
+    const expected = {
+      token,
+      paths: [
+        { claim: "unique_id", path: "verified_claims.claims._sd[2]" },
+        { claim: "given_name", path: "verified_claims.claims._sd[0]" },
+        { claim: "family_name", path: "verified_claims.claims._sd[1]" },
+        { claim: "birthdate", path: "verified_claims.claims._sd[3]" },
+        { claim: "place_of_birth", path: "verified_claims.claims._sd[4]" },
+        { claim: "tax_id_number", path: "verified_claims.claims._sd[5]" },
+        { claim: "evidence", path: "verified_claims.verification._sd[0]" },
+      ],
+    };
+
+    expect(result).toEqual(expected);
   });
 });

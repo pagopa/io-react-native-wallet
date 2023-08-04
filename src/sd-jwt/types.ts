@@ -20,6 +20,19 @@ export const Disclosure = z.tuple([
   /* claim value */ z.unknown(),
 ]);
 
+/**
+ * Encoding depends on the serialization algorithm used when generating the disclosure tokens.
+ * The SD-JWT reference itself take no decision about how to handle whitespaces in serialized objects.
+ * For such reason, we may find conveninent to have encoded and decode values stored explicitly in the same structure.
+ * Please note that `encoded` can always decode into `decode`, but `decode` may or may not be encoded with the same value of `encoded`
+ *
+ * @see https://www.ietf.org/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-disclosures-for-object-prop
+ */
+export type DisclosureWithEncoded = {
+  decoded: Disclosure;
+  encoded: string;
+};
+
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
