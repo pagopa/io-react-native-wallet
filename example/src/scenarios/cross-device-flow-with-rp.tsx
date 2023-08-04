@@ -63,20 +63,17 @@ export default async () => {
     // get signature for dpop
     const DPoPSignature = await sign(unsignedDPoP, WIA.keytag);
 
+    // resolve RP's entity configuration
+    const entity = await RP.getEntityConfiguration();
+
     // get request object
     const requestObj = await SignJWT.appendSignature(
       unsignedDPoP,
       DPoPSignature
-    ).then((t) => RP.getRequestObject(t));
-
-    // resolve RP's entity configuration
-    const entity = await RP.getEntityConfiguration();
+    ).then((t) => RP.getRequestObject(t, entity));
 
     // Attest Relying Party trust
     // TODO [SIW-354]
-
-    // Validate Request object signature
-    // TODO [SIW-337]
 
     // select claims to be disclose from pid
     // these would be selected by users in the UI
