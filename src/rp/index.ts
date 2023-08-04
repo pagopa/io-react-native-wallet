@@ -9,6 +9,7 @@ import {
   sha256ToBase64,
   SignJWT,
   EncryptJwe,
+  verify,
 } from "@pagopa/io-react-native-jwt";
 import {
   QRCodePayload,
@@ -97,15 +98,18 @@ export class RelyingPartySolution {
 
   /**
    * Obtain the Request Object for RP authentication
+   * @see https://italia.github.io/eudi-wallet-it-docs/versione-corrente/en/relying-party-solution.html
    *
-   * @function
+   * @async @function
    * @param signedWalletInstanceDPoP JWT of the Wallet Instance Attestation DPoP
    *
    * @returns The Request Object JWT
+   * @throws {NoSuitableKeysFoundInEntityConfiguration} When the Request Object is signed with a key not listed in RP's entity configuration
    *
    */
   async getRequestObject(
-    signedWalletInstanceDPoP: string
+    signedWalletInstanceDPoP: string,
+    entity: RpEntityConfiguration
   ): Promise<RequestObject> {
     const decodedJwtDPop = await decodeJwt(signedWalletInstanceDPoP);
     const requestUri = decodedJwtDPop.payload.htu as string;
@@ -119,11 +123,28 @@ export class RelyingPartySolution {
 
     if (response.status === 200) {
       const responseText = await response.text();
-      const responseJwt = await decodeJwt(responseText);
+      const responseJwt = decodeJwt(responseText);
+
+      // verify token signature according to RP's entity configuration
+      // to ensure the request object is authentic
+      {
+        const pubKey = entity.payload.jwks.keys.find(
+          ({ kid }) => kid === responseJwt.protectedHeader.kid
+        );
+        if (!pubKey) {
+          throw new NoSuitableKeysFoundInEntityConfiguration(
+            "Request Object signature verification"
+          );
+        }
+        await verify(responseText, pubKey);
+      }
+
+      // parse request object it has the expected shape by specification
       const requestObj = RequestObject.parse({
         header: responseJwt.protectedHeader,
         payload: responseJwt.payload,
       });
+
       return requestObj;
     }
 
