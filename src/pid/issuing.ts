@@ -1,14 +1,16 @@
 import {
   decode as decodeJwt,
+  verify as verifyJwt,
   sha256ToBase64,
 } from "@pagopa/io-react-native-jwt";
 
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
-import { PidIssuingError } from "../utils/errors";
+import { PidIssuingError, PidMetadataError } from "../utils/errors";
 import { getUnsignedDPop } from "../utils/dpop";
 import { sign, generate, deleteKey } from "@pagopa/io-react-native-crypto";
+import { PidIssuerMetadata } from "./metadata";
 
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
@@ -301,5 +303,40 @@ export class Issuing {
     }
 
     throw new PidIssuingError(`Unable to obtain credential!`);
+  }
+
+  /**
+   * Obtain the PID issuer metadata
+   *
+   * @function
+   * @returns PID issuer metadata
+   *
+   */
+  async getMetadata(): Promise<PidIssuerMetadata> {
+    const metadataUrl = new URL(
+      ".well-known/openid-federation",
+      this.pidProviderBaseUrl
+    ).href;
+
+    const response = await this.appFetch(metadataUrl);
+
+    if (response.status === 200) {
+      const jwtMetadata = await response.text();
+      const { payload } = decodeJwt(jwtMetadata);
+      const result = PidIssuerMetadata.safeParse(payload);
+      if (result.success) {
+        const parsedMetadata = result.data;
+        await verifyJwt(jwtMetadata, parsedMetadata.jwks.keys);
+        return parsedMetadata;
+      } else {
+        throw new PidMetadataError(result.error.message);
+      }
+    }
+
+    throw new PidMetadataError(
+      `Unable to obtain PID metadata. Response: ${await response.text()} with status: ${
+        response.status
+      }`
+    );
   }
 }

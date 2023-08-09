@@ -187,3 +187,17 @@ export class NoSuitableKeysFoundInEntityConfiguration extends Error {
     super(message);
   }
 }
+
+/**
+ * When selecting a public key from an entity configuration, and no one meets the requirements for the scenario
+ *
+ */
+export class PidMetadataError extends Error {
+  static get code(): "PID_METADATA_ERROR" {
+    return "PID_METADATA_ERROR";
+  }
+
+  constructor(message: string) {
+    super(message);
+  }
+}
