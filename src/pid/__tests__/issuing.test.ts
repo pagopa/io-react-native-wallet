@@ -1,6 +1,6 @@
 import { Issuing } from "../issuing";
 
-const mockDecodeJwt = (jwt: string) => {
+const mockJwkDecode = (jwt: string) => {
   const [encodedHeader, encodedPayload, _signature] = jwt.split(".");
   const payload = JSON.parse(atob(encodedPayload as string));
   const protectedHeader = JSON.parse(atob(encodedHeader as string));
@@ -12,8 +12,8 @@ jest.mock("react-native-uuid", () => ({
 }));
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
-  decode: jest.fn((jwt) => mockDecodeJwt(jwt)),
-  verify: jest.fn((jwt, _) => mockDecodeJwt(jwt)),
+  decode: jest.fn((jwt) => mockJwkDecode(jwt)),
+  verify: jest.fn((jwt, _) => mockJwkDecode(jwt)),
 }));
 
 const responseJwt =
