@@ -13,8 +13,10 @@ export const PidDisplayMetadata = z.object({
   text_color: z.string(),
 });
 
-export type PidIssuerMetadata = z.infer<typeof PidIssuerMetadata>;
-export const PidIssuerMetadata = z.object({
+export type PidIssuerEntityConfiguration = z.infer<
+  typeof PidIssuerEntityConfiguration
+>;
+export const PidIssuerEntityConfiguration = z.object({
   jwks: z.object({ keys: z.array(JWK) }),
   metadata: z.object({
     openid_credential_issuer: z.object({

@@ -10,7 +10,7 @@ import uuid from "react-native-uuid";
 import { PidIssuingError, PidMetadataError } from "../utils/errors";
 import { getUnsignedDPop } from "../utils/dpop";
 import { sign, generate, deleteKey } from "@pagopa/io-react-native-crypto";
-import { PidIssuerMetadata } from "./metadata";
+import { PidIssuerEntityConfiguration } from "./metadata";
 
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
@@ -312,7 +312,7 @@ export class Issuing {
    * @returns PID issuer metadata
    *
    */
-  async getEntityConfiguration(): Promise<PidIssuerMetadata> {
+  async getEntityConfiguration(): Promise<PidIssuerEntityConfiguration> {
     const metadataUrl = new URL(
       ".well-known/openid-federation",
       this.pidProviderBaseUrl
@@ -323,7 +323,7 @@ export class Issuing {
     if (response.status === 200) {
       const jwtMetadata = await response.text();
       const { payload } = decodeJwt(jwtMetadata);
-      const result = PidIssuerMetadata.safeParse(payload);
+      const result = PidIssuerEntityConfiguration.safeParse(payload);
       if (result.success) {
         const parsedMetadata = result.data;
         await verifyJwt(jwtMetadata, parsedMetadata.jwks.keys);
