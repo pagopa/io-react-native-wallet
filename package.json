@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-react-native-wallet",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Provide data structures, helpers and API for IO Wallet",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -75,7 +75,7 @@
   },
   "peerDependencies": {
     "@pagopa/io-react-native-crypto": "*",
-    "@pagopa/io-react-native-jwt": "^0.5.0",
+    "@pagopa/io-react-native-jwt": "*",
     "react": "*",
     "react-native": "*"
   },
