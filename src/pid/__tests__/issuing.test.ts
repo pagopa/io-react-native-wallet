@@ -97,6 +97,6 @@ const pidIssuing = new Issuing(
 
 describe("PID issuing metadata", () => {
   it("should decode metadata", async () => {
-    expect(await pidIssuing.getMetadata()).toEqual(decodedMetadata);
+    expect(await pidIssuing.getEntityConfiguration()).toEqual(decodedMetadata);
   });
 });

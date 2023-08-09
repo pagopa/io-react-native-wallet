@@ -312,7 +312,7 @@ export class Issuing {
    * @returns PID issuer metadata
    *
    */
-  async getMetadata(): Promise<PidIssuerMetadata> {
+  async getEntityConfiguration(): Promise<PidIssuerMetadata> {
     const metadataUrl = new URL(
       ".well-known/openid-federation",
       this.pidProviderBaseUrl
