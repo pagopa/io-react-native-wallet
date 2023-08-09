@@ -33,7 +33,7 @@ PODS:
   - JOSESwift (2.4.0)
   - pagopa-io-react-native-crypto (0.2.3):
     - React-Core
-  - pagopa-io-react-native-jwt (0.4.1):
+  - pagopa-io-react-native-jwt (0.5.0):
     - JOSESwift (~> 2.3)
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
@@ -498,7 +498,7 @@ SPEC CHECKSUMS:
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   JOSESwift: 7ff178bb9173ff42c6e990929a9f2fa702a34f69
   pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
-  pagopa-io-react-native-jwt: e90f1aac39c3decedf0f4b46fcc554551dc4a1d8
+  pagopa-io-react-native-jwt: 9259f417a86101afe7c550b9d31dce7e7f18c162
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 8af6a32dfc2b65ec82193c2dee6e1011ff22ac2a
   RCTTypeSafety: bee9dd161c175896c680d47ef1d9eaacf2b587f4
