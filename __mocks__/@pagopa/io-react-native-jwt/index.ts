@@ -2,7 +2,7 @@ import { sha256 as mockSha256 } from "js-sha256";
 import type { JWK } from "src/utils/jwk";
 
 export const sha256ToBase64 = async (toHash: string) =>
-  Promise.resolve(mockRemovePadding(mockHexToBase64(mockSha256(toHash))));
+  Promise.resolve(removePadding(mockHexToBase64(mockSha256(toHash))));
 
 function mockHexToBase64(hexstring: string) {
   const x = hexstring.match(/\w{2}/g) || [];
@@ -14,7 +14,7 @@ function mockHexToBase64(hexstring: string) {
   return btoa(g);
 }
 
-function mockRemovePadding(encoded: string) {
+function removePadding(encoded: string): string {
   // eslint-disable-next-line no-div-regex
   return encoded.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
@@ -28,4 +28,4 @@ export const decode = (jwt: string) => {
 export const verify = (jwt: string, _: JWK) => decode(jwt);
 
 export const decodeBase64 = (value: string) => atob(value);
-export const encodeBase64 = (value: string) => mockRemovePadding(btoa(value));
+export const encodeBase64 = (value: string) => removePadding(btoa(value));
