@@ -19,8 +19,8 @@ describe("decodeAuthRequestQR", () => {
   });
 });
 
-describe("Test123", () => {
-  it("abcd", async () => {
+describe("RpEntityConfiguration", () => {
+  it("should parse a valid confdsfashdhasd", async () => {
     const pp = {
       header: {
         alg: "RS256",
