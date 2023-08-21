@@ -1,7 +1,7 @@
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
-import { JWK } from "../utils/jwk";
+import { JWK, fixBase64EncodingOnKey } from "../utils/jwk";
 import { WalletInstanceAttestationRequestJwt } from "./types";
 import uuid from "react-native-uuid";
 import { WalletInstanceAttestationIssuingError } from "../utils/errors";
@@ -38,7 +38,7 @@ export class Issuing {
       jti: `${uuid.v4()}`,
       type: "WalletInstanceAttestationRequest",
       cnf: {
-        jwk: publicKey,
+        jwk: fixBase64EncodingOnKey(publicKey),
       },
     })
       .setProtectedHeader({
@@ -74,6 +74,7 @@ export class Issuing {
       attestationRequest,
       signature
     );
+
     const decodedRequest = decodeJwt(signedAttestationRequest);
     const parsedRequest = WalletInstanceAttestationRequestJwt.parse({
       payload: decodedRequest.payload,
