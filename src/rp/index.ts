@@ -109,16 +109,20 @@ export class RelyingPartySolution {
    */
   async getRequestObject(
     signedWalletInstanceDPoP: string,
+    requestUri: string,
     entity: RpEntityConfiguration
   ): Promise<RequestObject> {
-    const decodedJwtDPop = await decodeJwt(signedWalletInstanceDPoP);
-    const requestUri = decodedJwtDPop.payload.htu as string;
     const response = await this.appFetch(requestUri, {
       method: "GET",
       headers: {
         Authorization: `DPoP ${this.walletInstanceAttestation}`,
         DPoP: signedWalletInstanceDPoP,
       },
+    });
+
+    console.log({
+      Authorization: `DPoP ${this.walletInstanceAttestation}`,
+      DPoP: signedWalletInstanceDPoP,
     });
 
     if (response.status === 200) {
@@ -309,10 +313,11 @@ export class RelyingPartySolution {
    * Obtain the relying party entity configuration.
    */
   async getEntityConfiguration(): Promise<RpEntityConfiguration> {
-    const wellKnownUrl = new URL(
-      "/.well-known/openid-federation",
-      this.relyingPartyBaseUrl
-    ).href;
+    console.log(this.relyingPartyBaseUrl);
+    const wellKnownUrl =
+      this.relyingPartyBaseUrl + "/.well-known/openid-federation";
+
+    console.log(wellKnownUrl);
 
     const response = await this.appFetch(wellKnownUrl, {
       method: "GET",
