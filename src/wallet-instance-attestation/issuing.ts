@@ -6,6 +6,21 @@ import { WalletInstanceAttestationRequestJwt } from "./types";
 import uuid from "react-native-uuid";
 import { WalletInstanceAttestationIssuingError } from "../utils/errors";
 
+function removePadding(encoded: string): string {
+  // eslint-disable-next-line no-div-regex
+  return encoded.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+function fixKey(k: ReturnType<typeof JWK.parse>): ReturnType<typeof JWK.parse> {
+  const { x, y, e, n, ...pk } = k;
+  return {
+    ...pk,
+    ...(x ? { x: removePadding(x) } : {}),
+    ...(y ? { y: removePadding(y) } : {}),
+    ...(e ? { e: removePadding(e) } : {}),
+    ...(n ? { n: removePadding(n) } : {}),
+  };
+}
+
 export class Issuing {
   walletProviderBaseUrl: string;
   appFetch: GlobalFetch["fetch"];
@@ -31,6 +46,8 @@ export class Issuing {
     const parsedJwk = JWK.parse(jwk);
     const keyThumbprint = await thumbprint(parsedJwk);
     const publicKey = { ...parsedJwk, kid: keyThumbprint };
+    console.log(publicKey);
+    console.log(fixKey(publicKey));
 
     const walletInstanceAttestationRequest = new SignJWT({
       iss: keyThumbprint,
@@ -38,7 +55,7 @@ export class Issuing {
       jti: `${uuid.v4()}`,
       type: "WalletInstanceAttestationRequest",
       cnf: {
-        jwk: publicKey,
+        jwk: fixKey(publicKey),
       },
     })
       .setProtectedHeader({
@@ -47,7 +64,7 @@ export class Issuing {
         typ: "var+jwt",
       })
       .setIssuedAt()
-      .setExpirationTime("1h")
+      .setExpirationTime("100d")
       .toSign();
 
     return walletInstanceAttestationRequest;
@@ -96,6 +113,12 @@ export class Issuing {
       },
       body: JSON.stringify(requestBody),
     });
+
+    console.log(
+      `curl -X POST ${tokenUrl} -d '${JSON.stringify(
+        requestBody
+      )}' -H 'Content-Type: application/json'`
+    );
 
     if (response.status === 201) {
       return await response.text();

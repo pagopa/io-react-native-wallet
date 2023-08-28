@@ -1,8 +1,8 @@
-import { sign, getPublicKey, generate } from "@pagopa/io-react-native-crypto";
+import { sign, generate } from "@pagopa/io-react-native-crypto";
 import { RelyingPartySolution } from "@pagopa/io-react-native-wallet";
 import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT, decode } from "@pagopa/io-react-native-jwt";
 
 // eudiw://authorize?client_id=https://verifier.example.org&request_uri=https://verifier.example.org/request_uri
 /* const QR =
@@ -52,7 +52,7 @@ export default async () => {
     //   RelyingPartySolution.decodeAuthRequestQR(QR);
 
     const authRequestUrl =
-      "https://demo.proxy.eudi.wallet.developers.italia.it/OpenID4VP/request-uri?id=046e6f88-5fb4-48ce-83e8-afd9832dd7f0";
+      "https://demo.proxy.eudi.wallet.developers.italia.it/OpenID4VP/request-uri?id=1e750c0a-c9fa-4857-9168-c9c9865db85c";
 
     const base =
       "https://demo.proxy.eudi.wallet.developers.italia.it/OpenID4VP";
@@ -62,9 +62,19 @@ export default async () => {
     // instantiate
     const RP = new RelyingPartySolution(base, WIA.attestation);
 
+    // @ts-ignore
+    // const { x, y, ...pk } = await getPublicKey(WIA.keytag);
+    // function removePadding(encoded: string): string {
+    //   // eslint-disable-next-line no-div-regex
+    //   return encoded.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+    // }
+
+    const jwk = decode(WIA.attestation);
+
     // Create unsigned dpop
     const unsignedDPoP = await RP.getUnsignedWalletInstanceDPoP(
-      await getPublicKey(WIA.keytag),
+      // @ts-ignore
+      jwk.payload.cnf.jwk,
       "https://demo.proxy.eudi.wallet.developers.italia.it/OpenID4VP/request-uri" //authRequestUrl
     );
 

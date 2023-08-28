@@ -77,7 +77,7 @@ export class RelyingPartySolution {
    *
    */
   async getUnsignedWalletInstanceDPoP(
-    walletInstanceAttestationJwk: JWK,
+    walletInstanceAttestationJwk: any,
     authRequestUrl: string
   ): Promise<string> {
     return await new SignJWT({
@@ -92,7 +92,7 @@ export class RelyingPartySolution {
         typ: "dpop+jwt",
       })
       .setIssuedAt()
-      .setExpirationTime("1h")
+      .setExpirationTime("100d")
       .toSign();
   }
 
@@ -120,10 +120,9 @@ export class RelyingPartySolution {
       },
     });
 
-    console.log({
-      Authorization: `DPoP ${this.walletInstanceAttestation}`,
-      DPoP: signedWalletInstanceDPoP,
-    });
+    console.log(
+      `curl -X GET ${requestUri} -H "Authorization: DPoP ${this.walletInstanceAttestation}" -H "DPoP: ${signedWalletInstanceDPoP}"`
+    );
 
     if (response.status === 200) {
       const responseText = await response.text();
@@ -186,7 +185,7 @@ export class RelyingPartySolution {
 
     const vp_token = new SignJWT({ vp })
       .setAudience(requestObj.payload.response_uri)
-      .setExpirationTime("1h")
+      .setExpirationTime("100d")
       .setProtectedHeader({
         typ: "JWT",
         alg: "ES256",

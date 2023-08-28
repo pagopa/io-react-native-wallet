@@ -11,7 +11,7 @@ export const getUnsignedDPop = (jwk: JWK, payload: DPoPPayload): string => {
       jwk,
     })
     .setIssuedAt()
-    .setExpirationTime("1h")
+    .setExpirationTime("100d")
     .toSign();
   return dPop;
 };

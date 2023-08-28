@@ -94,7 +94,7 @@ export class Issuing {
         kid: publicKey.kid,
       })
       .setIssuedAt()
-      .setExpirationTime("1h")
+      .setExpirationTime("100d")
       .toSign();
 
     return unsignedJwtForPar;
@@ -240,7 +240,7 @@ export class Issuing {
       .setAudience(this.walletProviderBaseUrl)
       .setIssuer(this.clientId)
       .setIssuedAt()
-      .setExpirationTime("1h")
+      .setExpirationTime("100d")
       .toSign();
     return unsignedProof;
   }
