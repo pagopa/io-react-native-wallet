@@ -113,7 +113,7 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.example"
+    namespace "com.pagopa.ioreactnativewallet"
     defaultConfig {
         applicationId 'com.pagopa.ioreactnativewallet'
         minSdkVersion rootProject.ext.minSdkVersion
