@@ -1,4 +1,4 @@
-import { sign, generate } from "@pagopa/io-react-native-crypto";
+import { sign, generate, getPublicKey } from "@pagopa/io-react-native-crypto";
 import { RelyingPartySolution } from "@pagopa/io-react-native-wallet";
 import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
@@ -19,7 +19,9 @@ async function getAttestation(): Promise<{
 }> {
   const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
   // generate Key for Wallet Instance Attestation
-  const walletInstancePublicKey = await generate(walletInstanceKeyTag);
+  const walletInstancePublicKey = await getPublicKey(
+    walletInstanceKeyTag
+  ).catch((_) => generate(walletInstanceKeyTag));
   const issuingAttestation = new WalletInstanceAttestation.Issuing(
     walletProviderBaseUrl
   );
@@ -48,34 +50,19 @@ export default async () => {
     const WIA = await getAttestation();
 
     // Scan/Decode QR
-    const { requestURI: authRequestUrl } =
+    const { requestURI: authRequestUrl, clientId } =
       RelyingPartySolution.decodeAuthRequestQR(QR);
 
-    /*const authRequestUrl =
-      "https://demo.proxy.eudi.wallet.developers.italia.it/OpenID4VP/request-uri?id=1e750c0a-c9fa-4857-9168-c9c9865db85c";
-*/
-    const base =
-      "https://demo.proxy.eudi.wallet.developers.italia.it/OpenID4VP";
-
-    console.log(base);
-
     // instantiate
-    const RP = new RelyingPartySolution(base, WIA.attestation);
+    const RP = new RelyingPartySolution(clientId, WIA.attestation);
 
-    // @ts-ignore
-    // const { x, y, ...pk } = await getPublicKey(WIA.keytag);
-    // function removePadding(encoded: string): string {
-    //   // eslint-disable-next-line no-div-regex
-    //   return encoded.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-    // }
-
-    const jwk = decode(WIA.attestation);
+    const decodedWIA = decode(WIA.attestation);
 
     // Create unsigned dpop
     const unsignedDPoP = await RP.getUnsignedWalletInstanceDPoP(
       // @ts-ignore
-      jwk.payload.cnf.jwk,
-      "https://demo.proxy.eudi.wallet.developers.italia.it/OpenID4VP/request-uri" //authRequestUrl
+      decodedWIA.payload.cnf.jwk,
+      authRequestUrl
     );
 
     // get signature for dpop
