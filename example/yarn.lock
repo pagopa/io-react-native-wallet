@@ -1733,12 +1733,13 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
   integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
 
-"@pagopa/io-react-native-jwt@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-0.5.0.tgz#117ed05173537a4f3143c9c0745c06ba8934e1cd"
-  integrity sha512-WG8V+M66n2+x+GZPMfvZkbpGumaf6bbu/XTpOe/eR609kVol29kU5T7gPNiIuXdbt8gmfumvSzU2jdvh2L5AzQ==
+"@pagopa/io-react-native-jwt@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-0.6.2.tgz#e47b133670742793e1f92d75fb19ae3b8dc8b995"
+  integrity sha512-CC8Qt7AMcUUW/nw42uik3kXcmEvcXkZs4SxZqkkKe0EtELF3x1WdECQvXeOUR3nmr4pRzudvHzOMpSbEWhnGrA==
   dependencies:
     abab "^2.0.6"
+    zod "^3.21.4"
 
 "@react-native-community/cli-clean@^10.1.1":
   version "10.1.1"
@@ -10729,8 +10730,10 @@ watchpack@^1.6.1:
   resolved "https://registry.yarnpkg.com/watchpack/-/watchpack-1.7.5.tgz#1267e6c55e0b9b5be44c2023aed5437a2c26c453"
   integrity sha512-9P3MWk6SrKjHsGkLT2KHXdQ/9SNkyoJbabxnKOoJepsvJjJG8uYTR3yTPxPQvNDI3w4Nz1xnE0TLHK4RIVe/MQ==
   dependencies:
+    chokidar "^3.4.1"
     graceful-fs "^4.1.2"
     neo-async "^2.5.0"
+    watchpack-chokidar2 "^2.0.1"
   optionalDependencies:
     chokidar "^3.4.1"
     watchpack-chokidar2 "^2.0.1"
@@ -11150,3 +11153,8 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zod@^3.21.4:
+  version "3.22.2"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.2.tgz#3add8c682b7077c05ac6f979fea6998b573e157b"
+  integrity sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==
