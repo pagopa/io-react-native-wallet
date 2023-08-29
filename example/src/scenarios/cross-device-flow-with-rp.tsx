@@ -95,11 +95,9 @@ export default async () => {
     // verified presentation is signed using the same key of the wallet attestation
     const { vp_token: unsignedVpToken, presentation_submission } =
       await RP.prepareVpToken(requestObj, [pidToken, claims]);
-    console.log("vpToken");
-    console.log(unsignedVpToken);
     const signature = await sign(unsignedVpToken, walletInstanceKeyTag);
-    console.log(signature);
     const vpToken = await SignJWT.appendSignature(unsignedVpToken, signature);
+
     console.log(vpToken);
     // Submit authorization response
     const ok = await RP.sendAuthorizationResponse(

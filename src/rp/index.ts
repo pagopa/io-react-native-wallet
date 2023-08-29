@@ -181,12 +181,19 @@ export class RelyingPartySolution {
 
     // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
 
-    const vp_token = new SignJWT({ vp: vp })
+    const vp_token = new SignJWT({
+      vp: vp,
+      jti: `${uuid.v4()}`,
+      iss: "https://io-d-wallet-it.azurewebsites.net/instance/vbeXJksM45xphtANnCiG6mCyuU4jfGNzopGuKvogg9c",
+      nonce: `${uuid.v4()}`,
+    })
       .setAudience(requestObj.payload.response_uri)
-      .setExpirationTime("100d")
+      .setIssuedAt()
+      .setExpirationTime("1d")
       .setProtectedHeader({
         typ: "JWT",
         alg: "ES256",
+        kid: "",
       })
       .toSign();
 
@@ -227,7 +234,7 @@ export class RelyingPartySolution {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
     const jwk = this.choosePublicKeyToEncrypt(entity);
-    const enc = this.getEncryptionAlgByJwk(jwk);
+    //const enc = this.getEncryptionAlgByJwk(jwk);
 
     const authzResponsePayload = JSON.stringify({
       state: requestObj.payload.state,
@@ -236,8 +243,8 @@ export class RelyingPartySolution {
     });
 
     const encrypted = await new EncryptJwe(authzResponsePayload, {
-      alg: jwk.alg,
-      enc,
+      alg: "RSA-OAEP",
+      enc: "A128CBC-HS256",
     }).encrypt(jwk);
 
     const formBody = new URLSearchParams({ response: encrypted });
@@ -250,9 +257,9 @@ export class RelyingPartySolution {
     });
 
     if (response.status === 200) {
-      return response.text();
+      return await response.text();
     }
-
+    console.log(await response.text());
     throw new IoWalletError(
       `Unable to send Authorization Response. Response code: ${response.status}`
     );
@@ -266,27 +273,15 @@ export class RelyingPartySolution {
    * @returns A suitable public key with its compatible encryption algorithm
    * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key suitable for encrypting
    */
-  private choosePublicKeyToEncrypt(
-    entity: RpEntityConfiguration
-  ): (JWK & { alg: "RSA-OAEP-256" }) | (JWK & { alg: "RSA-OAEP" }) {
+  private choosePublicKeyToEncrypt(entity: RpEntityConfiguration): JWK {
     // Look for keys using "RSA-OAEP-256", and pick a random one
-    const [usingRsa256] = entity.payload.jwks.keys.filter(
-      <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP-256" } =>
-        typeof k.alg === "string" && k.alg === "RSA-OAEP-256"
-    );
+    const [usingRsa256] =
+      entity.payload.metadata.wallet_relying_party.jwks.filter(
+        (jwk) => jwk.use === "enc"
+      );
 
     if (usingRsa256) {
       return usingRsa256;
-    }
-
-    // Look for keys using "RSA-OAEP", and pick a random one
-    const [usingRsa] = entity.payload.jwks.keys.filter(
-      <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP" } =>
-        typeof k.alg === "string" && k.alg === "RSA-OAEP"
-    );
-
-    if (usingRsa) {
-      return usingRsa;
     }
 
     // No suitable key has been found
