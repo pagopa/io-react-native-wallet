@@ -5,7 +5,8 @@ import * as z from "zod";
 export type RequestObject = z.infer<typeof RequestObject>;
 export const RequestObject = z.object({
   header: z.object({
-    typ: z.literal("JWT"),
+    //TODO: Remove optional
+    typ: z.literal("JWT").optional(),
     alg: z.string(),
     kid: z.string(),
     trust_chain: z.array(z.string()),

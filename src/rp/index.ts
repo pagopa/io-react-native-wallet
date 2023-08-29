@@ -120,18 +120,16 @@ export class RelyingPartySolution {
       },
     });
 
-    console.log(
-      `curl -X GET ${requestUri} -H "Authorization: DPoP ${this.walletInstanceAttestation}" -H "DPoP: ${signedWalletInstanceDPoP}"`
-    );
-
     if (response.status === 200) {
-      const responseText = await response.text();
-      const responseJwt = decodeJwt(responseText);
+      const responseJson = await response.json();
+      const responseEncodedJwt = responseJson.response;
+
+      const responseJwt = decodeJwt(responseEncodedJwt);
 
       // verify token signature according to RP's entity configuration
       // to ensure the request object is authentic
       {
-        const pubKey = entity.payload.jwks.keys.find(
+        const pubKey = entity.payload.metadata.wallet_relying_party.jwks.find(
           ({ kid }) => kid === responseJwt.protectedHeader.kid
         );
         if (!pubKey) {
@@ -139,7 +137,7 @@ export class RelyingPartySolution {
             "Request Object signature verification"
           );
         }
-        await verify(responseText, pubKey);
+        await verify(responseEncodedJwt, pubKey);
       }
 
       // parse request object it has the expected shape by specification
@@ -183,7 +181,7 @@ export class RelyingPartySolution {
 
     // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
 
-    const vp_token = new SignJWT({ vp })
+    const vp_token = new SignJWT({ vp: vp })
       .setAudience(requestObj.payload.response_uri)
       .setExpirationTime("100d")
       .setProtectedHeader({
@@ -236,6 +234,7 @@ export class RelyingPartySolution {
       presentation_submission,
       vp_token,
     });
+
     const encrypted = await new EncryptJwe(authzResponsePayload, {
       alg: jwk.alg,
       enc,
@@ -312,11 +311,8 @@ export class RelyingPartySolution {
    * Obtain the relying party entity configuration.
    */
   async getEntityConfiguration(): Promise<RpEntityConfiguration> {
-    console.log(this.relyingPartyBaseUrl);
     const wellKnownUrl =
       this.relyingPartyBaseUrl + "/.well-known/openid-federation";
-
-    console.log(wellKnownUrl);
 
     const response = await this.appFetch(wellKnownUrl, {
       method: "GET",
