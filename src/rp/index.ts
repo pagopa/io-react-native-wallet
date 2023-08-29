@@ -185,7 +185,7 @@ export class RelyingPartySolution {
       vp: vp,
       jti: `${uuid.v4()}`,
       iss: "https://io-d-wallet-it.azurewebsites.net/instance/vbeXJksM45xphtANnCiG6mCyuU4jfGNzopGuKvogg9c",
-      nonce: `${uuid.v4()}`,
+      nonce: requestObj.payload.nonce,
     })
       .setAudience(requestObj.payload.response_uri)
       .setIssuedAt()
@@ -245,6 +245,7 @@ export class RelyingPartySolution {
     const encrypted = await new EncryptJwe(authzResponsePayload, {
       alg: "RSA-OAEP",
       enc: "A128CBC-HS256",
+      kid: jwk.kid,
     }).encrypt(jwk);
 
     const formBody = new URLSearchParams({ response: encrypted });
@@ -259,6 +260,8 @@ export class RelyingPartySolution {
     if (response.status === 200) {
       return await response.text();
     }
+    console.log("authzResponsePayload");
+    console.log(authzResponsePayload);
     console.log(await response.text());
     throw new IoWalletError(
       `Unable to send Authorization Response. Response code: ${response.status}`

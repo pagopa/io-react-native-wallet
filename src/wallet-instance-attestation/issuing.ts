@@ -46,8 +46,6 @@ export class Issuing {
     const parsedJwk = JWK.parse(jwk);
     const keyThumbprint = await thumbprint(parsedJwk);
     const publicKey = { ...parsedJwk, kid: keyThumbprint };
-    console.log(publicKey);
-    console.log(fixKey(publicKey));
 
     const walletInstanceAttestationRequest = new SignJWT({
       iss: keyThumbprint,
@@ -113,12 +111,6 @@ export class Issuing {
       },
       body: JSON.stringify(requestBody),
     });
-
-    console.log(
-      `curl -X POST ${tokenUrl} -d '${JSON.stringify(
-        requestBody
-      )}' -H 'Content-Type: application/json'`
-    );
 
     if (response.status === 201) {
       return await response.text();
