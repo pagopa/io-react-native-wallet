@@ -1733,10 +1733,10 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
   integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
 
-"@pagopa/io-react-native-jwt@^0.6.2":
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-0.6.2.tgz#e47b133670742793e1f92d75fb19ae3b8dc8b995"
-  integrity sha512-CC8Qt7AMcUUW/nw42uik3kXcmEvcXkZs4SxZqkkKe0EtELF3x1WdECQvXeOUR3nmr4pRzudvHzOMpSbEWhnGrA==
+"@pagopa/io-react-native-jwt@^0.6.3":
+  version "0.6.3"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-0.6.3.tgz#9d19ce65faa1a99bc2cad1b9471f77a6ade5bcf7"
+  integrity sha512-tLS060VH/X8757m9GByti8oR6nctQssbhWOMrqYTwWzVjNoOyKF8uHLnyaFlOVVp8K2WhEtCGMbH8w8sTmbfdQ==
   dependencies:
     abab "^2.0.6"
     zod "^3.21.4"

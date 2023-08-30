@@ -89,6 +89,7 @@ export class Issuing {
       attestationRequest,
       signature
     );
+
     const decodedRequest = decodeJwt(signedAttestationRequest);
     const parsedRequest = WalletInstanceAttestationRequestJwt.parse({
       payload: decodedRequest.payload,

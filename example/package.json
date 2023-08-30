@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@pagopa/io-react-native-crypto": "^0.2.3",
-    "@pagopa/io-react-native-jwt": "^0.6.2",
+    "@pagopa/io-react-native-jwt": "^0.6.3",
     "expo": "~48.0.18",
     "expo-splash-screen": "~0.18.2",
     "expo-status-bar": "~1.4.4",
