@@ -79,6 +79,7 @@ export default async () => {
       }
     );
     const pidWithToken = PID.SdJwt.decode(pid.credential);
+
     return result(pidWithToken.pid);
   } catch (e) {
     console.error(e);
