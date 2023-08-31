@@ -64,7 +64,7 @@ export const WalletInstanceAttestationJwt = z.object({
       tos_uri: z.string().url(),
       logo_uri: z.string().url(),
       asc: z.string(),
-      authorization_endpoint: z.string()/* .url() */,
+      authorization_endpoint: z.string() /* .url() */,
       response_types_supported: z.array(z.string()),
       vp_formats_supported: z.object({
         jwt_vp_json: z.object({
