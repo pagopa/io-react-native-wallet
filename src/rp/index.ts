@@ -301,10 +301,7 @@ export class RelyingPartySolution {
    * Obtain the relying party entity configuration.
    */
   async getEntityConfiguration(): Promise<RpEntityConfiguration> {
-    const wellKnownUrl = new URL(
-      "/.well-known/openid-federation",
-      this.relyingPartyBaseUrl
-    ).href;
+    const wellKnownUrl = this.relyingPartyBaseUrl + "/.well-known/openid-federation";
 
     const response = await this.appFetch(wellKnownUrl, {
       method: "GET",
