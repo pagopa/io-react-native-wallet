@@ -18,7 +18,11 @@ const Jwt = z.object({
     iat: UnixTime,
     exp: UnixTime,
     cnf: z.object({
-      jwk: JWK,
+      jwk: z.intersection(
+        JWK,
+        // this key requires a kis because it must be referenced for DPoP
+        z.object({ kid: z.string() })
+      ),
     }),
   }),
 });

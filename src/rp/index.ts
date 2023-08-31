@@ -166,6 +166,7 @@ export class RelyingPartySolution {
    * @param requestObj The incoming request object, which the requirements for the requested authorization
    * @param walletInstanceIdentifier The identifies of the wallt instance that is presenting
    * @param presentation The Verified Credential containing user data along with the list of claims to be disclosed.
+   * @param signKeyId The kid of the key that will be used to sign
    * @returns The unsigned Verified Presentation token
    * @throws {ClaimsNotFoundBetweenDislosures} If the Verified Credential does not contain one or more requested claims.
    *
@@ -173,7 +174,8 @@ export class RelyingPartySolution {
   async prepareVpToken(
     requestObj: RequestObject,
     walletInstanceIdentifier: string,
-    [vc, claims]: Presentation // TODO: [SIW-353] support multiple presentations
+    [vc, claims]: Presentation, // TODO: [SIW-353] support multiple presentations,
+    signKeyId: string
   ): Promise<{
     vp_token: string;
     presentation_submission: Record<string, unknown>;
@@ -195,7 +197,7 @@ export class RelyingPartySolution {
       .setProtectedHeader({
         typ: "JWT",
         alg: "ES256",
-        kid: "",
+        kid: signKeyId,
       })
       .toSign();
 
