@@ -1,3 +1,4 @@
+import { removePadding } from "@pagopa/io-react-native-jwt";
 import { z } from "zod";
 
 export type JWK = z.infer<typeof JWK>;
@@ -37,3 +38,23 @@ export const JWK = z.object({
   /** JWK "x5u" (X.509 URL) Parameter. */
   x5u: z.string().optional(),
 });
+
+/**
+ * Ensure key values are encoded using base64url and not just base64, as defined in https://datatracker.ietf.org/doc/html/rfc7517
+ *
+ * @see https://datatracker.ietf.org/doc/html/rfc7517
+ *
+ * @param key The key to fix
+ * @returns THe same input key with fixed values
+ */
+export function fixBase64EncodingOnKey(key: JWK): JWK {
+  const { x, y, e, n, ...pk } = key;
+
+  return {
+    ...pk,
+    ...(x ? { x: removePadding(x) } : {}),
+    ...(y ? { y: removePadding(y) } : {}),
+    ...(e ? { e: removePadding(e) } : {}),
+    ...(n ? { n: removePadding(n) } : {}),
+  };
+}

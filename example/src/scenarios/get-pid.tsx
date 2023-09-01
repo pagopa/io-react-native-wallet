@@ -78,8 +78,11 @@ export default async () => {
         surname: "SURNAME",
       }
     );
-    const pidWithToken = PID.SdJwt.decode(pid.credential);
-    return result(pidWithToken.pid);
+    
+    // throw if decode fails
+    PID.SdJwt.decode(pid.credential);
+
+    return result(pid.credential);
   } catch (e) {
     console.error(e);
     return error(e);

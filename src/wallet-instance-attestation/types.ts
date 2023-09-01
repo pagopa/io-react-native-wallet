@@ -18,7 +18,11 @@ const Jwt = z.object({
     iat: UnixTime,
     exp: UnixTime,
     cnf: z.object({
-      jwk: JWK,
+      jwk: z.intersection(
+        JWK,
+        // this key requires a kis because it must be referenced for DPoP
+        z.object({ kid: z.string() })
+      ),
     }),
   }),
 });
@@ -60,7 +64,7 @@ export const WalletInstanceAttestationJwt = z.object({
       tos_uri: z.string().url(),
       logo_uri: z.string().url(),
       asc: z.string(),
-      authorization_endpoint: z.string().url(),
+      authorization_endpoint: z.string(),
       response_types_supported: z.array(z.string()),
       vp_formats_supported: z.object({
         jwt_vp_json: z.object({

@@ -77,7 +77,7 @@ export class RelyingPartySolution {
    *
    */
   async getUnsignedWalletInstanceDPoP(
-    walletInstanceAttestationJwk: JWK,
+    walletInstanceAttestationJwk: any,
     authRequestUrl: string
   ): Promise<string> {
     return await new SignJWT({
@@ -109,10 +109,9 @@ export class RelyingPartySolution {
    */
   async getRequestObject(
     signedWalletInstanceDPoP: string,
+    requestUri: string,
     entity: RpEntityConfiguration
   ): Promise<RequestObject> {
-    const decodedJwtDPop = await decodeJwt(signedWalletInstanceDPoP);
-    const requestUri = decodedJwtDPop.payload.htu as string;
     const response = await this.appFetch(requestUri, {
       method: "GET",
       headers: {
@@ -122,13 +121,15 @@ export class RelyingPartySolution {
     });
 
     if (response.status === 200) {
-      const responseText = await response.text();
-      const responseJwt = decodeJwt(responseText);
+      const responseJson = await response.json();
+      const responseEncodedJwt = responseJson.response;
+
+      const responseJwt = decodeJwt(responseEncodedJwt);
 
       // verify token signature according to RP's entity configuration
       // to ensure the request object is authentic
       {
-        const pubKey = entity.payload.jwks.keys.find(
+        const pubKey = entity.payload.metadata.wallet_relying_party.jwks.find(
           ({ kid }) => kid === responseJwt.protectedHeader.kid
         );
         if (!pubKey) {
@@ -136,7 +137,7 @@ export class RelyingPartySolution {
             "Request Object signature verification"
           );
         }
-        await verify(responseText, pubKey);
+        await verify(responseEncodedJwt, pubKey);
       }
 
       // parse request object it has the expected shape by specification
@@ -163,14 +164,18 @@ export class RelyingPartySolution {
    * @todo accept more than a Verified Credential
    *
    * @param requestObj The incoming request object, which the requirements for the requested authorization
+   * @param walletInstanceIdentifier The identifies of the wallt instance that is presenting
    * @param presentation The Verified Credential containing user data along with the list of claims to be disclosed.
+   * @param signKeyId The kid of the key that will be used to sign
    * @returns The unsigned Verified Presentation token
    * @throws {ClaimsNotFoundBetweenDislosures} If the Verified Credential does not contain one or more requested claims.
    *
    */
   async prepareVpToken(
     requestObj: RequestObject,
-    [vc, claims]: Presentation // TODO: [SIW-353] support multiple presentations
+    walletInstanceIdentifier: string,
+    [vc, claims]: Presentation, // TODO: [SIW-353] support multiple presentations,
+    signKeyId: string
   ): Promise<{
     vp_token: string;
     presentation_submission: Record<string, unknown>;
@@ -180,18 +185,25 @@ export class RelyingPartySolution {
 
     // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
 
-    const vp_token = new SignJWT({ vp })
+    const vp_token = new SignJWT({
+      vp: vp,
+      jti: `${uuid.v4()}`,
+      iss: walletInstanceIdentifier,
+      nonce: requestObj.payload.nonce,
+    })
       .setAudience(requestObj.payload.response_uri)
+      .setIssuedAt()
       .setExpirationTime("1h")
       .setProtectedHeader({
         typ: "JWT",
         alg: "ES256",
+        kid: signKeyId,
       })
       .toSign();
 
-    const [definition_id, vc_scope] = requestObj.payload.scope;
+    const vc_scope = requestObj.payload.scope;
     const presentation_submission = {
-      definition_id,
+      definition_id: `${uuid.v4()}`,
       id: `${uuid.v4()}`,
       descriptor_map: paths.map((p) => ({
         id: vc_scope,
@@ -225,66 +237,58 @@ export class RelyingPartySolution {
   ): Promise<string> {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
-    const jwk = this.choosePublicKeyToEncrypt(entity);
-    const enc = this.getEncryptionAlgByJwk(jwk);
+    const jwk = this.chooseRSAPublicKeyToEncrypt(entity);
 
     const authzResponsePayload = JSON.stringify({
       state: requestObj.payload.state,
       presentation_submission,
+      nonce: requestObj.payload.nonce,
       vp_token,
     });
+
     const encrypted = await new EncryptJwe(authzResponsePayload, {
-      alg: jwk.alg,
-      enc,
+      alg: "RSA-OAEP-256",
+      enc: "A256CBC-HS512",
+      kid: jwk.kid,
     }).encrypt(jwk);
 
     const formBody = new URLSearchParams({ response: encrypted });
+    const body = formBody.toString();
+
     const response = await this.appFetch(requestObj.payload.response_uri, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: formBody.toString(),
+      body,
     });
 
     if (response.status === 200) {
-      return response.text();
+      return await response.text();
     }
 
     throw new IoWalletError(
-      `Unable to send Authorization Response. Response code: ${response.status}`
+      `Unable to send Authorization Response. Response: ${await response.text()} with code: ${
+        response.status
+      }`
     );
   }
 
   /**
-   * Select a public key from those provided by the RP.
-   * Keys with algorithm "RSA-OAEP-256" or "RSA-OAEP" are expected, the firsts to be preferred.
+   * Select a RSA public key from those provided by the RP to encrypt.
    *
    * @param entity The RP entity configuration
    * @returns A suitable public key with its compatible encryption algorithm
    * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key suitable for encrypting
    */
-  private choosePublicKeyToEncrypt(
-    entity: RpEntityConfiguration
-  ): (JWK & { alg: "RSA-OAEP-256" }) | (JWK & { alg: "RSA-OAEP" }) {
-    // Look for keys using "RSA-OAEP-256", and pick a random one
-    const [usingRsa256] = entity.payload.jwks.keys.filter(
-      <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP-256" } =>
-        typeof k.alg === "string" && k.alg === "RSA-OAEP-256"
-    );
+  private chooseRSAPublicKeyToEncrypt(entity: RpEntityConfiguration): JWK {
+    const [usingRsa256] =
+      entity.payload.metadata.wallet_relying_party.jwks.filter(
+        (jwk) => jwk.use === "enc" && jwk.kty === "RSA"
+      );
 
     if (usingRsa256) {
       return usingRsa256;
-    }
-
-    // Look for keys using "RSA-OAEP", and pick a random one
-    const [usingRsa] = entity.payload.jwks.keys.filter(
-      <T>(k: T & { alg?: string }): k is T & { alg: "RSA-OAEP" } =>
-        typeof k.alg === "string" && k.alg === "RSA-OAEP"
-    );
-
-    if (usingRsa) {
-      return usingRsa;
     }
 
     // No suitable key has been found
@@ -293,26 +297,12 @@ export class RelyingPartySolution {
     );
   }
 
-  private getEncryptionAlgByJwk({
-    alg,
-  }: (JWK & { alg: "RSA-OAEP-256" }) | (JWK & { alg: "RSA-OAEP" })):
-    | "A128CBC-HS256"
-    | "A256CBC-HS512" {
-    if (alg === "RSA-OAEP-256") return "A256CBC-HS512";
-    if (alg === "RSA-OAEP") return "A128CBC-HS256";
-
-    const _: never = alg;
-    throw new Error(`Invalid jwk algorithm: ${_}`);
-  }
-
   /**
    * Obtain the relying party entity configuration.
    */
   async getEntityConfiguration(): Promise<RpEntityConfiguration> {
-    const wellKnownUrl = new URL(
-      "/.well-known/openid-federation",
-      this.relyingPartyBaseUrl
-    ).href;
+    const wellKnownUrl =
+      this.relyingPartyBaseUrl + "/.well-known/openid-federation";
 
     const response = await this.appFetch(wellKnownUrl, {
       method: "GET",

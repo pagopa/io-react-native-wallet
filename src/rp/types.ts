@@ -5,7 +5,8 @@ import * as z from "zod";
 export type RequestObject = z.infer<typeof RequestObject>;
 export const RequestObject = z.object({
   header: z.object({
-    typ: z.literal("JWT"),
+    // FIXME: SIW-421 type field must be either required or omitted, optional isn't useful
+    typ: z.literal("JWT").optional(),
     alg: z.string(),
     kid: z.string(),
     trust_chain: z.array(z.string()),
@@ -46,18 +47,18 @@ export const RpEntityConfiguration = z.object({
         application_type: z.string(),
         client_id: z.string(),
         client_name: z.string(),
-        jwks: z.object({
-          keys: z.array(JWK),
-        }),
+        jwks: z.array(JWK),
         contacts: z.array(z.string()),
       }),
-      federation_entity: z.object({
+      // FIXME: SIW-422 require federation_metadata field
+      // Actual RP implementation does not comply with the spec
+      /* federation_entity: z.object({
         organization_name: z.string(),
         homepage_uri: z.string(),
         policy_uri: z.string(),
         logo_uri: z.string(),
         contacts: z.array(z.string()),
-      }),
+      }), */
     }),
     authority_hints: z.array(z.string()),
   }),
@@ -65,7 +66,7 @@ export const RpEntityConfiguration = z.object({
 
 export type QRCodePayload = z.infer<typeof QRCodePayload>;
 export const QRCodePayload = z.object({
-  protocol: z.literal("eudiw:"),
+  protocol: z.string(),
   resource: z.string(), // TODO: refine to known paths using literals
   clientId: z.string(),
   requestURI: z.string(),
