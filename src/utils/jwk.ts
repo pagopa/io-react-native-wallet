@@ -1,3 +1,4 @@
+import { removePadding } from "@pagopa/io-react-native-jwt";
 import { z } from "zod";
 
 export type JWK = z.infer<typeof JWK>;
@@ -48,9 +49,6 @@ export const JWK = z.object({
  */
 export function fixBase64EncodingOnKey(key: JWK): JWK {
   const { x, y, e, n, ...pk } = key;
-  const removePadding = (encoded: string) =>
-    // eslint-disable-next-line no-div-regex
-    encoded.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 
   return {
     ...pk,
