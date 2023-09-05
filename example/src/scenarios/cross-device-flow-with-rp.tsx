@@ -49,12 +49,13 @@ export default async () => {
 
     // obtain PID
     const [, pidToken] = await getPid();
-    if(!pidToken){
+    if (!pidToken) {
       return error("pidToken cannot be empty");
     }
 
     // Scan/Decode QR
-    const { requestURI: authRequestUrl, clientId } = RelyingPartySolution.decodeAuthRequestQR(QR);
+    const { requestURI: authRequestUrl, clientId } =
+      RelyingPartySolution.decodeAuthRequestQR(QR);
 
     // instantiate
     const RP = new RelyingPartySolution(clientId, WIA.attestation);
@@ -71,13 +72,13 @@ export default async () => {
 
     // resolve RP's entity configuration
     const entity = await RP.getEntityConfiguration();
-    
+
     // get request object
     const requestObj = await SignJWT.appendSignature(
       unsignedDPoP,
       DPoPSignature
     ).then((t) => RP.getRequestObject(t, authRequestUrl, entity));
-    
+
     // Attest Relying Party trust
     // TODO [SIW-354]
 
@@ -94,9 +95,15 @@ export default async () => {
     ];
 
     // verified presentation is signed using the same key of the wallet attestation
-    const walletInstanceId = "https://io-d-wallet-it.azurewebsites.net/instance/vbeXJksM45xphtANnCiG6mCyuU4jfGNzopGuKvogg9c";
+    const walletInstanceId =
+      "https://io-d-wallet-it.azurewebsites.net/instance/vbeXJksM45xphtANnCiG6mCyuU4jfGNzopGuKvogg9c";
     const { vp_token: unsignedVpToken, presentation_submission } =
-      await RP.prepareVpToken(requestObj, walletInstanceId, [pidToken, claims], decodedWIA.payload.cnf.jwk.kid);
+      await RP.prepareVpToken(
+        requestObj,
+        walletInstanceId,
+        [pidToken, claims],
+        decodedWIA.payload.cnf.jwk.kid
+      );
     const signature = await sign(unsignedVpToken, walletInstanceKeyTag);
     const vpToken = await SignJWT.appendSignature(unsignedVpToken, signature);
 
@@ -107,7 +114,6 @@ export default async () => {
       presentation_submission,
       entity
     );
-
     return result(ok);
   } catch (e) {
     console.error(e);
