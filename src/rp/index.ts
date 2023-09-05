@@ -264,7 +264,7 @@ export class RelyingPartySolution {
     });
 
     if (response.status === 200) {
-      return await response.text();
+      return await response.json();
     }
 
     throw new IoWalletError(
