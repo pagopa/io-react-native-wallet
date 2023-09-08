@@ -78,7 +78,7 @@ export default async () => {
         surname: "SURNAME",
       }
     );
-    
+
     // throw if decode fails
     PID.SdJwt.decode(pid.credential);
 
