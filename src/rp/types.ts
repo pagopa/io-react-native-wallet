@@ -1,6 +1,7 @@
 import { JWK } from "../utils/jwk";
 import { UnixTime } from "../sd-jwt/types";
 import * as z from "zod";
+import { EntityConfiguration } from "../trust/types";
 
 export type RequestObject = z.infer<typeof RequestObject>;
 export const RequestObject = z.object({
@@ -28,41 +29,21 @@ export const RequestObject = z.object({
 
 // TODO: This types is WIP in technical rules
 export type RpEntityConfiguration = z.infer<typeof RpEntityConfiguration>;
-export const RpEntityConfiguration = z.object({
-  header: z.object({
-    typ: z.literal("entity-statement+jwt"),
-    alg: z.string(),
-    kid: z.string(),
-  }),
-  payload: z.object({
-    exp: UnixTime,
-    iat: UnixTime,
-    iss: z.string(),
-    sub: z.string(),
-    jwks: z.object({
-      keys: z.array(JWK),
-    }),
-    metadata: z.object({
-      wallet_relying_party: z.object({
-        application_type: z.string(),
-        client_id: z.string(),
-        client_name: z.string(),
-        jwks: z.array(JWK),
-        contacts: z.array(z.string()),
+export const RpEntityConfiguration = EntityConfiguration.and(
+  z.object({
+    payload: z.object({
+      metadata: z.object({
+        wallet_relying_party: z.object({
+          application_type: z.string(),
+          client_id: z.string(),
+          client_name: z.string(),
+          jwks: z.array(JWK),
+          contacts: z.array(z.string()),
+        }),
       }),
-      // FIXME: SIW-422 require federation_metadata field
-      // Actual RP implementation does not comply with the spec
-      /* federation_entity: z.object({
-        organization_name: z.string(),
-        homepage_uri: z.string(),
-        policy_uri: z.string(),
-        logo_uri: z.string(),
-        contacts: z.array(z.string()),
-      }), */
     }),
-    authority_hints: z.array(z.string()),
-  }),
-});
+  })
+);
 
 export type QRCodePayload = z.infer<typeof QRCodePayload>;
 export const QRCodePayload = z.object({
