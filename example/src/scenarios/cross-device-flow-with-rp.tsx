@@ -104,11 +104,7 @@ export default async () => {
       "evidence",
     ];
 
-    const wiaPayload = SignJWT.decode(WIA.attestation).payload;
-    const walletInstanceId = new URL(
-      "instance/" + wiaPayload.sub,
-      wiaPayload.iss
-    ).href;
+    const walletInstanceId = `${decodedWIA.payload.iss}/instance/${decodedWIA.payload.sub}`;
 
     // verified presentation is signed using the same key of the wallet attestation
     const { vp_token: unsignedVpToken, presentation_submission } =
