@@ -104,9 +104,13 @@ export default async () => {
       "evidence",
     ];
 
+    const wiaPayload = SignJWT.decode(WIA.attestation).payload;
+    const walletInstanceId = new URL(
+      "instance/" + wiaPayload.sub,
+      wiaPayload.iss
+    ).href;
+
     // verified presentation is signed using the same key of the wallet attestation
-    const walletInstanceId =
-      "https://io-d-wallet-it.azurewebsites.net/instance/vbeXJksM45xphtANnCiG6mCyuU4jfGNzopGuKvogg9c";
     const { vp_token: unsignedVpToken, presentation_submission } =
       await RP.prepareVpToken(
         requestObj,
@@ -124,7 +128,6 @@ export default async () => {
       presentation_submission,
       entity
     );
-
     return result(ok);
   } catch (e) {
     console.error(e);
