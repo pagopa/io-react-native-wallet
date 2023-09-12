@@ -71,9 +71,10 @@ WalletInstanceAttestation.decode("<token>");
 ### NodeJS and Ruby
 
 To run the example project you need to install the correct version of NodeJS and Ruby.
-We recommend the use of a virtual environment of your choice. For ease of use, this guide adopts [nodenv](https://github.com/nodenv/nodenv) for NodeJS, [rbenv](https://github.com/rbenv/rbenv) for Ruby.
+We recommend the use of a virtual environment of your choice. For ease of use, this guide adopts [nodenv](https://github.com/nodenv/nodenv) or [nvm](https://github.com/nvm-sh/nvm) for NodeJS and [rbenv](https://github.com/rbenv/rbenv) for Ruby.
+[Yarn](https://yarnpkg.com/) is the package manager of choice.
 
-The node version used in this project is stored in [example/.node-version](example/.node-version),
+The node version used in this project is stored in [example/.node-version](example/.node-version) and [example/.nvmrc],
 while the version of Ruby is stored in [example/.ruby-version](.ruby-version).
 
 ### React Native
@@ -84,7 +85,7 @@ If you have a macOS system, you can follow both the tutorial for iOS and for And
 
 ### Build the app
 
-In order to build the app, we use [yarn](https://yarnpkg.com/) for managing javascript dependencies.
+In order to build the app,
 As stated [previously](#nodejs-and-ruby), we also use `nodenv` and `rbenv` for managing the environment:
 
 ```bash
@@ -92,16 +93,10 @@ As stated [previously](#nodejs-and-ruby), we also use `nodenv` and `rbenv` for m
 $ git clone https://github.com/pagopa/io-react-native-wallet
 
 # CD into the repository
-$ cd io-react-native-wallet/example
+$ cd io-react-native-wallet
 
-# Install NodeJS with nodenv, the returned version should match the one in the .node-version file
-$ nodenv install && nodenv version
-
-# Install Ruby with rbenv, the returned version should match the one in the .ruby-version file
-$ rbenv install && rbenv version
-
-# Install yarn and rehash to install shims
-$ npm install -g yarn && nodenv rehash
+# Install library dependencies
+$ yarn install
 
 # Install bundle
 $ gem install bundle
@@ -113,9 +108,6 @@ $ bundle install
 # Install example dependencies
 # Run this only during the first setup and when JS dependencies change
 $ yarn install
-
-# Install library dependencies
-$ cd .. && yarn install && cd io-react-native-wallet/example
 
 # Install podfiles when targeting iOS (ignore this step for Android)
 # Run this only during the first setup and when Pods dependencies change
