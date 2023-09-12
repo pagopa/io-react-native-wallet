@@ -68,10 +68,6 @@ WalletInstanceAttestation.decode("<token>");
 
 ## Example
 
-### Dependencies
-
-Dependencies of `io-react-native-wallet` from its `package.json` must be installed before continuing.
-
 ### NodeJS and Ruby
 
 To run the example project you need to install the correct version of NodeJS and Ruby.
@@ -114,9 +110,12 @@ $ gem install bundle
 # Run this only during the first setup and when Gems dependencies change
 $ bundle install
 
-# Install dependencies
+# Install example dependencies
 # Run this only during the first setup and when JS dependencies change
 $ yarn install
+
+# Install library dependencies
+$ cd .. && yarn install && cd io-react-native-wallet/example
 
 # Install podfiles when targeting iOS (ignore this step for Android)
 # Run this only during the first setup and when Pods dependencies change
