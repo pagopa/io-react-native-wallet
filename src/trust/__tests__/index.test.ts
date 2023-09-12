@@ -84,7 +84,15 @@ describe("verifyTrustChain", () => {
             },
           ],
         },
-        metadata: {},
+        metadata: {
+          federation_entity: {
+            organization_name: "another.trustanchor",
+            homepage_uri: "https://another.trustanchor.example",
+            policy_uri: "https://another.trustanchor.example",
+            logo_uri: "https://another.trustanchor.example",
+            contacts: ["https://another.trustanchor.example"],
+          },
+        },
         authority_hints: [],
         iat: Date.now(),
         exp: 1849623968, // 11/2/2028

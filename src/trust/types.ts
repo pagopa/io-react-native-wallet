@@ -37,17 +37,7 @@ export const EntityConfiguration = z.object({
     jwks: z.object({
       keys: z.array(JWK),
     }),
-    metadata: z.object({
-      // FIXME: SIW-422 require federation_metadata field
-      // Actual RP implementation does not comply with the spec
-      /* federation_entity: z.object({
-        organization_name: z.string(),
-        homepage_uri: z.string(),
-        policy_uri: z.string(),
-        logo_uri: z.string(),
-        contacts: z.array(z.string()),
-      }), */
-    }),
+    metadata: z.object({}),
     authority_hints: z.array(z.string()),
   }),
 });
@@ -55,4 +45,18 @@ export const EntityConfiguration = z.object({
 export type TrustAnchorEntityConfiguration = z.infer<
   typeof TrustAnchorEntityConfiguration
 >;
-export const TrustAnchorEntityConfiguration = EntityConfiguration;
+export const TrustAnchorEntityConfiguration = EntityConfiguration.and(
+  z.object({
+    payload: z.object({
+      metadata: z.object({
+        federation_entity: z.object({
+          organization_name: z.string(),
+          homepage_uri: z.string(),
+          policy_uri: z.string(),
+          logo_uri: z.string(),
+          contacts: z.array(z.string()),
+        }),
+      }),
+    }),
+  })
+);

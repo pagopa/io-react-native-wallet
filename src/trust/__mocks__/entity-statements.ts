@@ -35,7 +35,15 @@ export const trustAnchorEntityConfiguration = {
         },
       ],
     },
-    metadata: {},
+    metadata: {
+      federation_entity: {
+        organization_name: "trustanchor",
+        homepage_uri: "https://trustanchor.example",
+        policy_uri: "https://trustanchor.example",
+        logo_uri: "https://trustanchor.example",
+        contacts: ["https://trustanchor.example"],
+      },
+    },
     authority_hints: [],
   },
 };
