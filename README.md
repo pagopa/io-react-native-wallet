@@ -98,6 +98,9 @@ $ cd io-react-native-wallet
 # Install library dependencies
 $ yarn install
 
+# CD into the example folder
+$ cd example
+
 # Install bundle
 $ gem install bundle
 
