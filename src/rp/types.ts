@@ -27,7 +27,9 @@ export const RequestObject = z.object({
   }),
 });
 
-// TODO: This types is WIP in technical rules
+/**
+ * EntityConfiguration plus the metadata specific for a Relying Party entity.
+ */
 export type RpEntityConfiguration = z.infer<typeof RpEntityConfiguration>;
 export const RpEntityConfiguration = EntityConfiguration.and(
   z.object({
