@@ -8,6 +8,7 @@ import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import { getUnsignedDPop } from "./utils/dpop";
 import { RelyingPartySolution } from "./rp";
+import { verifyTrustChain, getEntityConfiguration } from "./trust";
 
 export {
   PID,
@@ -16,4 +17,6 @@ export {
   Errors,
   getUnsignedDPop,
   RelyingPartySolution,
+  verifyTrustChain,
+  getEntityConfiguration,
 };
