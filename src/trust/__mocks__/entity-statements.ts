@@ -123,7 +123,15 @@ export const leafEntityConfiguration = {
         },
       ],
     },
-    metadata: {},
+    metadata: {
+      federation_entity: {
+        organization_name: "leaf",
+        homepage_uri: "https://leaf.example",
+        policy_uri: "https://leaf.example",
+        logo_uri: "https://leaf.example",
+        contacts: ["https://leaf.example"],
+      },
+    },
     authority_hints: [],
     iat: timestamp(),
     exp: timestamp(60),
