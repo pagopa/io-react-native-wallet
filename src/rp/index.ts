@@ -21,6 +21,7 @@ import {
 import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
+import { getEntityConfiguration } from "../trust";
 
 export class RelyingPartySolution {
   relyingPartyBaseUrl: string;
@@ -301,24 +302,8 @@ export class RelyingPartySolution {
    * Obtain the relying party entity configuration.
    */
   async getEntityConfiguration(): Promise<RpEntityConfiguration> {
-    const wellKnownUrl =
-      this.relyingPartyBaseUrl + "/.well-known/openid-federation";
-
-    const response = await this.appFetch(wellKnownUrl, {
-      method: "GET",
-    });
-
-    if (response.status === 200) {
-      const responseText = await response.text();
-      const responseJwt = await decodeJwt(responseText);
-      return RpEntityConfiguration.parse({
-        header: responseJwt.protectedHeader,
-        payload: responseJwt.payload,
-      });
-    }
-
-    throw new IoWalletError(
-      `Unable to obtain RP Entity Configuration. Response code: ${response.status}`
-    );
+    return getEntityConfiguration(this.relyingPartyBaseUrl, {
+      appFetch: this.appFetch,
+    }).then(RpEntityConfiguration.parse);
   }
 }
