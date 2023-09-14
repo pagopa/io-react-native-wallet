@@ -1,3 +1,4 @@
+import { EntityConfiguration } from "../types";
 import { verifyTrustChain } from "..";
 import {
   intermediateEntityStatement,
@@ -105,5 +106,26 @@ describe("verifyTrustChain", () => {
         await signed(intermediateEntityStatement),
       ])
     ).rejects.toThrow();
+  });
+});
+
+describe("EntityConfiguration", () => {
+  it("should not strip unknwon metadata fields", () => {
+    const withAdditionalField = {
+      header: leafEntityConfiguration.header,
+      payload: {
+        ...leafEntityConfiguration.payload,
+        metadata: {
+          ...leafEntityConfiguration.payload.metadata,
+          additional_field: "foo",
+        },
+      },
+    };
+
+    const parsed = EntityConfiguration.parse(withAdditionalField);
+
+    expect(parsed.payload.metadata.additional_field).toEqual(
+      withAdditionalField.payload.metadata.additional_field
+    );
   });
 });
