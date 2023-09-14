@@ -1,14 +1,14 @@
 import { sign, generate, getPublicKey } from "@pagopa/io-react-native-crypto";
-import { RelyingPartySolution } from "@pagopa/io-react-native-wallet";
 import {
   WalletInstanceAttestation,
   getEntityConfiguration,
   verifyTrustChain,
+  RelyingPartySolution,
+  TrustAnchorEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 import getPid from "./get-pid";
-import { TrustAnchorEntityConfiguration } from "src/trust/types";
 
 const QR =
   "aHR0cHM6Ly9kZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0L09wZW5JRDRWUD9jbGllbnRfaWQ9aHR0cHMlM0ElMkYlMkZkZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0JTJGT3BlbklENFZQJnJlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGZGVtby5wcm94eS5ldWRpLndhbGxldC5kZXZlbG9wZXJzLml0YWxpYS5pdCUyRk9wZW5JRDRWUCUyRnJlcXVlc3QtdXJpJTNGaWQlM0RkZDA3NzBhMC05ZTM1LTQ3OTUtYjZlYi03MDlkZDg1ZDM1ODM=";
@@ -93,7 +93,8 @@ export default async () => {
     ).then((t) => RP.getRequestObject(t, authRequestUrl, entity));
 
     // Attest Relying Party trust
-    await verifyTrustChain(trustAnchorEntity, requestObj.header.trust_chain);
+    // FIXME: [SIW-489] Request Object is coming with an empty trust chain, comment for now
+    // await verifyTrustChain(trustAnchorEntity, requestObj.header.trust_chain);
 
     // select claims to be disclose from pid
     // these would be selected by users in the UI
