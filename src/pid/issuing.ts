@@ -2,6 +2,7 @@ import {
   decode as decodeJwt,
   verify as verifyJwt,
   sha256ToBase64,
+  type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
@@ -56,66 +57,47 @@ export class Issuing {
   }
 
   /**
-   * Return the unsigned jwt to call the PAR request.
+   * Make a PAR request to the PID issuer and return the response url
    *
    * @function
    * @param jwk The wallet instance attestation public JWK
+   * @param crypto The CryptoContext instance for the key pair to sign PAR
    *
-   * @returns Unsigned jwt
+   * @returns Unsigned PAR url
    *
    */
-  async getUnsignedJwtForPar(jwk: JWK): Promise<string> {
+  async getPar(jwk: JWK, crypto: CryptoContext): Promise<string> {
     const parsedJwk = JWK.parse(jwk);
     const keyThumbprint = await thumbprint(parsedJwk);
     const publicKey = { ...parsedJwk, kid: keyThumbprint };
     const codeChallenge = await sha256ToBase64(this.codeVerifier);
 
-    const unsignedJwtForPar = new SignJWT({
-      client_assertion_type:
-        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-      authorization_details: [
-        {
-          credentialDefinition: {
-            type: ["eu.eudiw.pid.it"],
+    const signedJwtForPar = await new SignJWT(crypto)
+      .setPayload({
+        client_assertion_type:
+          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        authorization_details: [
+          {
+            credentialDefinition: {
+              type: ["eu.eudiw.pid.it"],
+            },
+            format: "vc+sd-jwt",
+            type: "type",
           },
-          format: "vc+sd-jwt",
-          type: "type",
-        },
-      ],
-      response_type: "code",
-      code_challenge_method: "s256",
-      redirect_uri: this.walletProviderBaseUrl,
-      state: this.state,
-      client_id: this.clientId,
-      code_challenge: codeChallenge,
-    })
+        ],
+        response_type: "code",
+        code_challenge_method: "s256",
+        redirect_uri: this.walletProviderBaseUrl,
+        state: this.state,
+        client_id: this.clientId,
+        code_challenge: codeChallenge,
+      })
       .setProtectedHeader({
-        alg: "ES256",
         kid: publicKey.kid,
       })
       .setIssuedAt()
       .setExpirationTime("1h")
-      .toSign();
-
-    return unsignedJwtForPar;
-  }
-
-  /**
-   * Make a PAR request to the PID issuer and return the response url
-   *
-   * @function
-   * @param unsignedJwtForPar The unsigned JWT for PAR
-   * @param signature The JWT for PAR signature
-   *
-   * @returns Unsigned PAR url
-   *
-   */
-  async getPar(unsignedJwtForPar: string, signature: string): Promise<string> {
-    const codeChallenge = await sha256ToBase64(this.codeVerifier);
-    const signedJwtForPar = await SignJWT.appendSignature(
-      unsignedJwtForPar,
-      signature
-    );
+      .sign();
 
     const parUrl = new URL("/as/par", this.pidProviderBaseUrl).href;
 
