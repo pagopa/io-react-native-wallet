@@ -8,7 +8,13 @@ import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import { getUnsignedDPop } from "./utils/dpop";
 import { RelyingPartySolution } from "./rp";
+import { RpEntityConfiguration } from "./rp/types";
 import { verifyTrustChain, getEntityConfiguration } from "./trust";
+import {
+  EntityConfiguration,
+  EntityStatement,
+  TrustAnchorEntityConfiguration,
+} from "./trust/types";
 
 export {
   PID,
@@ -19,4 +25,8 @@ export {
   RelyingPartySolution,
   verifyTrustChain,
   getEntityConfiguration,
+  EntityConfiguration,
+  EntityStatement,
+  RpEntityConfiguration,
+  TrustAnchorEntityConfiguration,
 };

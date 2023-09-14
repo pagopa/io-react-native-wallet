@@ -35,13 +35,15 @@ export const RpEntityConfiguration = EntityConfiguration.and(
   z.object({
     payload: z.object({
       metadata: z.object({
-        wallet_relying_party: z.object({
-          application_type: z.string(),
-          client_id: z.string(),
-          client_name: z.string(),
-          jwks: z.array(JWK),
-          contacts: z.array(z.string()),
-        }),
+        wallet_relying_party: z
+          .object({
+            application_type: z.string().optional(),
+            client_id: z.string().optional(),
+            client_name: z.string().optional(),
+            jwks: z.array(JWK),
+            contacts: z.array(z.string()).optional(),
+          })
+          .passthrough(),
       }),
     }),
   })
