@@ -37,16 +37,24 @@ export const EntityConfiguration = z.object({
     jwks: z.object({
       keys: z.array(JWK),
     }),
-    metadata: z.object({
-      federation_entity: z.object({
-        organization_name: z.string(),
-        homepage_uri: z.string(),
-        policy_uri: z.string(),
-        logo_uri: z.string(),
-        contacts: z.array(z.string()),
-      }),
-    }),
-    authority_hints: z.array(z.string()),
+    metadata: z
+      .object({
+        federation_entity: z
+          .object({
+            federation_fetch_endpoint: z.string().optional(),
+            federation_list_endpoint: z.string().optional(),
+            federation_resolve_endpoint: z.string().optional(),
+            federation_trust_mark_status_endpoint: z.string().optional(),
+            federation_trust_mark_list_endpoint: z.string().optional(),
+            homepage_uri: z.string().optional(),
+            policy_uri: z.string().optional(),
+            logo_uri: z.string().optional(),
+            contacts: z.array(z.string()).optional(),
+          })
+          .passthrough(),
+      })
+      .passthrough(),
+    authority_hints: z.array(z.string()).optional(),
   }),
 });
 
