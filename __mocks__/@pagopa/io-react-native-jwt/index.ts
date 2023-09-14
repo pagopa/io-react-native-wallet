@@ -1,6 +1,8 @@
 import { sha256 as mockSha256 } from "js-sha256";
 import type { JWK } from "src/utils/jwk";
 
+export { SignJWT } from "@pagopa/io-react-native-jwt";
+
 export const sha256ToBase64 = async (toHash: string) =>
   Promise.resolve(removePadding(mockHexToBase64(mockSha256(toHash))));
 
@@ -25,7 +27,20 @@ export const decode = (jwt: string) => {
   const protectedHeader = JSON.parse(atob(encodedHeader as string));
   return { payload, protectedHeader };
 };
-export const verify = (jwt: string, _: JWK) => decode(jwt);
+export const verify = (jwt: string, _: JWK | JWK[]) => {
+  const decoded = decode(jwt);
+  // for the sake of a mocked unit test, we accept the signature if the jwt declares the same kid as the jwk
+  if (Array.isArray(_)) {
+    if (_.find((e) => e.kid === decoded.protectedHeader.kid)) {
+      return decoded;
+    }
+  } else if (_.kid && decoded.protectedHeader.kid === _.kid) {
+    return decoded;
+  }
+  throw new Error(
+    `Mock: invalid signature for kid: '${decoded.protectedHeader.kid}'`
+  );
+};
 
 export const decodeBase64 = (value: string) => atob(value);
 export const encodeBase64 = (value: string) => removePadding(btoa(value));

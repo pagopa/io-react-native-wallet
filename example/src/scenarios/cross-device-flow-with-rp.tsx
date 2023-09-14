@@ -1,14 +1,22 @@
 import { sign, generate, getPublicKey } from "@pagopa/io-react-native-crypto";
 import { RelyingPartySolution } from "@pagopa/io-react-native-wallet";
-import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
+import {
+  WalletInstanceAttestation,
+  getEntityConfiguration,
+  verifyTrustChain,
+} from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 import getPid from "./get-pid";
+import { TrustAnchorEntityConfiguration } from "src/trust/types";
 
 const QR =
   "aHR0cHM6Ly9kZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0L09wZW5JRDRWUD9jbGllbnRfaWQ9aHR0cHMlM0ElMkYlMkZkZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0JTJGT3BlbklENFZQJnJlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGZGVtby5wcm94eS5ldWRpLndhbGxldC5kZXZlbG9wZXJzLml0YWxpYS5pdCUyRk9wZW5JRDRWUCUyRnJlcXVlc3QtdXJpJTNGaWQlM0RkZDA3NzBhMC05ZTM1LTQ3OTUtYjZlYi03MDlkZDg1ZDM1ODM=";
 
 const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
+
+const trustAnchorBaseUrl =
+  "https://demo.federation.eudi.wallet.developers.italia.it/";
 
 async function getAttestation(): Promise<{
   attestation: string;
@@ -44,6 +52,11 @@ async function getAttestation(): Promise<{
 
 export default async () => {
   try {
+    // trust anchor entity could be already fetched at application start
+    const trustAnchorEntity = await getEntityConfiguration(
+      trustAnchorBaseUrl
+    ).then(TrustAnchorEntityConfiguration.parse);
+
     // obtain new attestation
     const WIA = await getAttestation();
 
@@ -80,7 +93,7 @@ export default async () => {
     ).then((t) => RP.getRequestObject(t, authRequestUrl, entity));
 
     // Attest Relying Party trust
-    // TODO [SIW-354]
+    await verifyTrustChain(trustAnchorEntity, requestObj.header.trust_chain);
 
     // select claims to be disclose from pid
     // these would be selected by users in the UI
@@ -94,11 +107,7 @@ export default async () => {
       "evidence",
     ];
 
-    const wiaPayload = SignJWT.decode(WIA.attestation).payload;
-    const walletInstanceId = new URL(
-      "instance/" + wiaPayload.sub,
-      wiaPayload.iss
-    ).href;
+    const walletInstanceId = `${decodedWIA.payload.iss}/instance/${decodedWIA.payload.sub}`;
 
     // verified presentation is signed using the same key of the wallet attestation
     const { vp_token: unsignedVpToken, presentation_submission } =

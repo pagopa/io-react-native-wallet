@@ -20,7 +20,7 @@ describe("decodeAuthRequestQR", () => {
 });
 
 describe("RpEntityConfiguration", () => {
-  it("should parse a valid confdsfashdhasd", async () => {
+  it("should parse a valid conf", async () => {
     const pp = {
       header: {
         alg: "RS256",
@@ -43,6 +43,13 @@ describe("RpEntityConfiguration", () => {
           ],
         },
         metadata: {
+          federation_entity: {
+            organization_name: "wallet-provider",
+            homepage_uri: "https://wallet-provider.example",
+            policy_uri: "https://wallet-provider.example",
+            logo_uri: "https://wallet-provider.example",
+            contacts: ["https://wallet-provider.example"],
+          },
           wallet_relying_party: {
             application_type: "web",
             authorization_encrypted_response_alg: [
