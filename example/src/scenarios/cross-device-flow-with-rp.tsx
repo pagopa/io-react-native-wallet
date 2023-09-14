@@ -1,22 +1,16 @@
 import { sign, generate, getPublicKey } from "@pagopa/io-react-native-crypto";
 import {
   WalletInstanceAttestation,
-  getEntityConfiguration,
-  verifyTrustChain,
   RelyingPartySolution,
-  TrustAnchorEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 import getPid from "./get-pid";
 
 const QR =
-  "aHR0cHM6Ly9kZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0L09wZW5JRDRWUD9jbGllbnRfaWQ9aHR0cHMlM0ElMkYlMkZkZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0JTJGT3BlbklENFZQJnJlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGZGVtby5wcm94eS5ldWRpLndhbGxldC5kZXZlbG9wZXJzLml0YWxpYS5pdCUyRk9wZW5JRDRWUCUyRnJlcXVlc3QtdXJpJTNGaWQlM0RkZDA3NzBhMC05ZTM1LTQ3OTUtYjZlYi03MDlkZDg1ZDM1ODM=";
+  "aHR0cHM6Ly9kZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0L09wZW5JRDRWUD9jbGllbnRfaWQ9aHR0cHMlM0ElMkYlMkZkZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0JTJGT3BlbklENFZQJnJlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGZGVtby5wcm94eS5ldWRpLndhbGxldC5kZXZlbG9wZXJzLml0YWxpYS5pdCUyRk9wZW5JRDRWUCUyRnJlcXVlc3QtdXJpJTNGaWQlM0Q1MzAyYWExNC1iMTZlLTRmNjItYTdkYS0wZmFiMDM0ZGE2ODI=";
 
 const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
-
-const trustAnchorBaseUrl =
-  "https://demo.federation.eudi.wallet.developers.italia.it/";
 
 async function getAttestation(): Promise<{
   attestation: string;
@@ -52,11 +46,6 @@ async function getAttestation(): Promise<{
 
 export default async () => {
   try {
-    // trust anchor entity could be already fetched at application start
-    const trustAnchorEntity = await getEntityConfiguration(
-      trustAnchorBaseUrl
-    ).then(TrustAnchorEntityConfiguration.parse);
-
     // obtain new attestation
     const WIA = await getAttestation();
 
