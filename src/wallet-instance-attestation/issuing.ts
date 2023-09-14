@@ -34,9 +34,9 @@ export class Issuing {
 
     const walletInstanceAttestationRequest = new SignJWT({
       iss: keyThumbprint,
-      sub: this.walletProviderBaseUrl,
+      aud: this.walletProviderBaseUrl,
       jti: `${uuid.v4()}`,
-      type: "WalletInstanceAttestationRequest",
+      nonce: `${uuid.v4()}`,
       cnf: {
         jwk: fixBase64EncodingOnKey(publicKey),
       },
@@ -44,7 +44,7 @@ export class Issuing {
       .setProtectedHeader({
         alg: "ES256",
         kid: publicKey.kid,
-        typ: "var+jwt",
+        typ: "wiar+jwt",
       })
       .setIssuedAt()
       .setExpirationTime("1h")
@@ -87,7 +87,7 @@ export class Issuing {
     const tokenUrl = new URL("token", this.walletProviderBaseUrl).href;
     const requestBody = {
       grant_type:
-        "urn:ietf:params:oauth:client-assertion-type:jwt-key-attestation",
+        "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation",
       assertion: signedAttestationRequest,
     };
     const response = await this.appFetch(tokenUrl, {

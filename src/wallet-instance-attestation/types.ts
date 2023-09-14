@@ -14,7 +14,6 @@ const Jwt = z.object({
   }),
   payload: z.object({
     iss: z.string(),
-    sub: z.string(),
     iat: UnixTime,
     exp: UnixTime,
     cnf: z.object({
@@ -34,14 +33,15 @@ export const WalletInstanceAttestationRequestJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("var+jwt"),
+      typ: z.literal("wiar+jwt"),
     })
   ),
   payload: z.intersection(
     Jwt.shape.payload,
     z.object({
+      aud: z.string(),
       jti: z.string(),
-      type: z.literal("WalletInstanceAttestationRequest"),
+      nonce: z.string(),
     })
   ),
 });
@@ -53,17 +53,14 @@ export const WalletInstanceAttestationJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("va+jwt"),
+      typ: z.literal("wallet-attestation+jwt"),
     })
   ),
   payload: z.intersection(
     Jwt.shape.payload,
     z.object({
-      type: z.literal("WalletInstanceAttestation"),
-      policy_uri: z.string().url(),
-      tos_uri: z.string().url(),
-      logo_uri: z.string().url(),
-      asc: z.string(),
+      sub: z.string(),
+      attested_security_context: z.string(),
       authorization_endpoint: z.string(),
       response_types_supported: z.array(z.string()),
       vp_formats_supported: z.object({
