@@ -7,7 +7,7 @@ import { createCryptoContextFor } from "../utils";
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 const pidProviderBaseUrl = "https://api.eudi-wallet-it-pid-provider.it";
 
-export default async () => {
+export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
   try {
     // generate Key for Wallet Instance Attestation
     const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
@@ -15,61 +15,28 @@ export default async () => {
       walletInstanceKeyTag
     ).then(toResultOrReject);
 
-    const attestationRequest =
-      await issuingAttestation.getAttestationRequestToSign(
-        walletInstancePublicKey
-      );
-    const signature = await sign(attestationRequest, walletInstanceKeyTag);
-
-    // generate a fresh Wallet Instance Attestation
-    const instanceAttestation = (await issuingAttestation.getAttestation(
-      attestationRequest,
-      signature
-    )) as string;
-
-    // clientId must be the Wallet Instance public key thumbprint
-    const clientId = await thumbprint(walletInstancePublicKey);
+    // Generate fresh key for PID binding
+    // ensure the key esists befor starting the issuing process
+    await generate(pidKeyTag);
 
     // Start pid issuing flow
     const issuingPID = new PID.Issuing(
       pidProviderBaseUrl,
       walletProviderBaseUrl,
       instanceAttestation,
-      clientId
+      createCryptoContextFor(pidKeyTag),
+      createCryptoContextFor(walletInstanceKeyTag)
     );
-
-    // Generate jwt for PAR wallet instance attestation
-    const unsignedJwtForPar = await issuingPID.getUnsignedJwtForPar(
-      walletInstancePublicKey
-    );
-    const parSignature = await sign(unsignedJwtForPar, walletInstanceKeyTag);
 
     // PAR request
-    await issuingPID.getPar(unsignedJwtForPar, parSignature);
+    await issuingPID.getPar();
 
-    // Token request
+    // Auth Token request
     const authToken = await issuingPID.getAuthToken();
 
-    // Generate fresh key for PID binding
-    const pidKeyTag = Math.random().toString(36).substr(2, 5);
-    const pidKey = await generate(pidKeyTag);
-
-    //Generate nonce proof
-    const unsignedNonceProof = await issuingPID.getUnsignedNonceProof(
-      authToken.c_nonce
-    );
-    const nonceProofSignature = await sign(unsignedNonceProof, pidKeyTag);
-
-    // Generate DPoP for PID key
-    const unsignedDPopForPid = await issuingPID.getUnsignedDPoP(pidKey);
-    const dPopPidSignature = await sign(unsignedDPopForPid, pidKeyTag);
-
-    // Credential reuqest
+    // Credential request
     const pid = await issuingPID.getCredential(
-      unsignedDPopForPid,
-      dPopPidSignature,
-      unsignedNonceProof,
-      nonceProofSignature,
+      authToken.c_nonce,
       authToken.access_token,
       {
         birthDate: "01/01/1990",
@@ -78,7 +45,7 @@ export default async () => {
         surname: "SURNAME",
       }
     );
-    
+
     // throw if decode fails
     PID.SdJwt.decode(pid.credential);
 

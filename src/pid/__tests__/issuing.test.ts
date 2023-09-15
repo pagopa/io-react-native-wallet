@@ -1,3 +1,4 @@
+import { createCryptoContextFor } from "../../utils/crypto";
 import { Issuing } from "../issuing";
 
 const responseJwt =
@@ -73,10 +74,11 @@ global.fetch = jest.fn(async () =>
 ) as jest.Mock;
 
 const pidIssuing = new Issuing(
-  "http://pid-provider.example.com",
-  "http://wallet-provider.example.com",
-  "ey......",
-  "id00"
+  "http://pid-provider.example.com", // pid base url
+  "http://wallet-provider.example.com", // wallet provider base url
+  "ey......", // signed wallet instance attestation token
+  createCryptoContextFor("PID-KEYS"),
+  createCryptoContextFor("WIA-KEYS")
 );
 
 describe("PID issuing metadata", () => {

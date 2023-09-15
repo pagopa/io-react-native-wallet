@@ -1,6 +1,7 @@
-import { generate, sign } from "@pagopa/io-react-native-crypto";
+import { generate } from "@pagopa/io-react-native-crypto";
 import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
+import { createCryptoContextFor } from "../utils";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 
@@ -9,21 +10,15 @@ export default async (
 ) => {
   try {
     // generate Key for Wallet Instance Attestation
-    const walletInstancePublicKey = await generate(walletInstanceKeyTag);
+    // ensure the key esists befor starting the issuing process
+    await generate(walletInstanceKeyTag);
     const issuingAttestation = new WalletInstanceAttestation.Issuing(
-      walletProviderBaseUrl
+      walletProviderBaseUrl,
+      createCryptoContextFor(walletInstanceKeyTag)
     );
-    const attestationRequest =
-      await issuingAttestation.getAttestationRequestToSign(
-        walletInstancePublicKey
-      );
-    const signature = await sign(attestationRequest, walletInstanceKeyTag);
 
     // generate Wallet Instance Attestation
-    const instanceAttestation = await issuingAttestation.getAttestation(
-      attestationRequest,
-      signature
-    );
+    const instanceAttestation = await issuingAttestation.getAttestation();
 
     return result(instanceAttestation);
   } catch (e) {
