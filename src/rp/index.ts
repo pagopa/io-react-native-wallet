@@ -10,6 +10,7 @@ import {
   SignJWT,
   EncryptJwe,
   verify,
+  type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import {
   QRCodePayload,
@@ -22,19 +23,23 @@ import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
 import { getEntityConfiguration } from "../trust";
+import { createDPopToken } from "src/utils/dpop";
 
 export class RelyingPartySolution {
   relyingPartyBaseUrl: string;
   walletInstanceAttestation: string;
+  wiaCryptoContext: CryptoContext;
   appFetch: GlobalFetch["fetch"];
 
   constructor(
     relyingPartyBaseUrl: string,
     walletInstanceAttestation: string,
+    wiaCryptoContext: CryptoContext,
     appFetch: GlobalFetch["fetch"] = fetch
   ) {
     this.relyingPartyBaseUrl = relyingPartyBaseUrl;
     this.walletInstanceAttestation = walletInstanceAttestation;
+    this.wiaCryptoContext = wiaCryptoContext;
     this.appFetch = appFetch;
   }
 
@@ -68,33 +73,24 @@ export class RelyingPartySolution {
     }
   }
   /**
-   * Obtain the unsigned wallet instance DPoP for authentication request
+   * Obtain the signed wallet instance DPoP for authentication request
    *
    * @function
-   * @param walletInstanceAttestationJwk JWT of the Wallet Instance Attestation
    * @param authRequestUrl authentication request url
    *
-   * @returns The unsigned wallet instance DPoP
+   * @returns The signed wallet instance DPoP
    *
    */
-  async getUnsignedWalletInstanceDPoP(
-    walletInstanceAttestationJwk: any,
-    authRequestUrl: string
-  ): Promise<string> {
-    return await new SignJWT({
-      jti: `${uuid.v4()}`,
-      htm: "GET",
-      htu: authRequestUrl,
-      ath: await sha256ToBase64(this.walletInstanceAttestation),
-    })
-      .setProtectedHeader({
-        alg: "ES256",
-        jwk: walletInstanceAttestationJwk,
-        typ: "dpop+jwt",
-      })
-      .setIssuedAt()
-      .setExpirationTime("1h")
-      .toSign();
+  private async getWalletInstanceDPoP(authRequestUrl: string): Promise<string> {
+    return createDPopToken(
+      {
+        jti: `${uuid.v4()}`,
+        htm: "GET",
+        htu: authRequestUrl,
+        ath: await sha256ToBase64(this.walletInstanceAttestation),
+      },
+      this.wiaCryptoContext
+    );
   }
 
   /**
@@ -102,17 +98,19 @@ export class RelyingPartySolution {
    * @see https://italia.github.io/eudi-wallet-it-docs/versione-corrente/en/relying-party-solution.html
    *
    * @async @function
-   * @param signedWalletInstanceDPoP JWT of the Wallet Instance Attestation DPoP
+   * @param requestUri presentation request url
    *
    * @returns The Request Object JWT
    * @throws {NoSuitableKeysFoundInEntityConfiguration} When the Request Object is signed with a key not listed in RP's entity configuration
    *
    */
   async getRequestObject(
-    signedWalletInstanceDPoP: string,
     requestUri: string,
     entity: RpEntityConfiguration
   ): Promise<RequestObject> {
+    const signedWalletInstanceDPoP = await this.getWalletInstanceDPoP(
+      requestUri
+    );
     const response = await this.appFetch(requestUri, {
       method: "GET",
       headers: {
