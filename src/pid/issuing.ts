@@ -3,14 +3,13 @@ import {
   verify as verifyJwt,
   sha256ToBase64,
   type CryptoContext,
+  SignJWT,
+  thumbprint,
 } from "@pagopa/io-react-native-jwt";
-
-import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError, PidMetadataError } from "../utils/errors";
-import { getUnsignedDPop } from "../utils/dpop";
-import { sign, generate, deleteKey } from "@pagopa/io-react-native-crypto";
+import { createDPopToken } from "../utils/dpop";
 import { PidIssuerEntityConfiguration } from "./metadata";
 
 // This is a temporary type that will be used for demo purposes only
@@ -37,6 +36,8 @@ export class Issuing {
   clientId: string;
   state: string;
   authorizationCode: string;
+  pidCryptoContext: CryptoContext;
+  tokenUrl: string;
   appFetch: GlobalFetch["fetch"];
 
   constructor(
@@ -44,6 +45,7 @@ export class Issuing {
     walletProviderBaseUrl: string,
     walletInstanceAttestation: string,
     clientId: string,
+    pidCryptoContext: CryptoContext,
     appFetch: GlobalFetch["fetch"] = fetch
   ) {
     this.pidProviderBaseUrl = pidProviderBaseUrl;
@@ -53,6 +55,8 @@ export class Issuing {
     this.authorizationCode = `${uuid.v4()}`;
     this.walletInstanceAttestation = walletInstanceAttestation;
     this.clientId = clientId;
+    this.pidCryptoContext = pidCryptoContext;
+    this.tokenUrl = new URL("/token", this.pidProviderBaseUrl).href;
     this.appFetch = appFetch;
   }
 
@@ -133,25 +137,6 @@ export class Issuing {
   }
 
   /**
-   * Return the unsigned jwt for a generic DPoP
-   *
-   * @function
-   * @param jwk the public key for which the DPoP is to be created
-   *
-   * @returns Unsigned JWT for DPoP
-   *
-   */
-  async getUnsignedDPoP(jwk: JWK): Promise<string> {
-    const tokenUrl = new URL("/token", this.pidProviderBaseUrl).href;
-    const dPop = getUnsignedDPop(jwk, {
-      htm: "POST",
-      htu: tokenUrl,
-      jti: `${uuid.v4()}`,
-    });
-    return dPop;
-  }
-
-  /**
    * Make an auth token request to the PID issuer
    *
    * @function
@@ -159,19 +144,12 @@ export class Issuing {
    *
    */
   async getAuthToken(): Promise<TokenResponse> {
-    //Generate fresh keys for DPoP
-    const dPopKeyTag = `${uuid.v4()}`;
-    const dPopKey = await generate(dPopKeyTag);
-    const unsignedDPopForToken = await this.getUnsignedDPoP(dPopKey);
-    const dPopTokenSignature = await sign(unsignedDPopForToken, dPopKeyTag);
-    await deleteKey(dPopKeyTag);
+    const signedDPop = await createDPopToken({
+      htm: "POST",
+      htu: this.tokenUrl,
+      jti: `${uuid.v4()}`,
+    });
 
-    const signedDPop = await SignJWT.appendSignature(
-      unsignedDPopForToken,
-      dPopTokenSignature
-    );
-    const decodedJwtDPop = decodeJwt(signedDPop);
-    const tokenUrl = decodedJwtDPop.payload.htu as string;
     const requestBody = {
       grant_type: "authorization code",
       client_id: this.clientId,
@@ -184,7 +162,7 @@ export class Issuing {
     };
     var formBody = new URLSearchParams(requestBody);
 
-    const response = await this.appFetch(tokenUrl, {
+    const response = await this.appFetch(this.tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -231,8 +209,6 @@ export class Issuing {
    * Make the credential issuing request to the PID issuer
    *
    * @function
-   * @param unsignedDPopForPid The unsigned JWT for PID DPoP
-   * @param dPopPidSignature The JWT for PID DPoP signature
    * @param unsignedNonceProof The unsigned JWT for nonce proof
    * @param nonceProofSignature The JWT for nonce proof signature
    * @param accessToken The access token obtained with getAuthToken
@@ -242,16 +218,18 @@ export class Issuing {
    *
    */
   async getCredential(
-    unsignedDPopForPid: string,
-    dPopPidSignature: string,
     unsignedNonceProof: string,
     nonceProofSignature: string,
     accessToken: string,
     cieData: CieData
   ): Promise<PidResponse> {
-    const signedDPopForPid = await SignJWT.appendSignature(
-      unsignedDPopForPid,
-      dPopPidSignature
+    const signedDPopForPid = await createDPopToken(
+      {
+        htm: "POST",
+        htu: this.tokenUrl,
+        jti: `${uuid.v4()}`,
+      },
+      this.pidCryptoContext
     );
     const signedNonceProof = await SignJWT.appendSignature(
       unsignedNonceProof,
