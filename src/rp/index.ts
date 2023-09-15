@@ -24,6 +24,7 @@ import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
 import { getEntityConfiguration } from "../trust";
 import { createDPopToken } from "src/utils/dpop";
+import { WalletInstanceAttestation } from "..";
 
 export class RelyingPartySolution {
   relyingPartyBaseUrl: string;
@@ -93,6 +94,18 @@ export class RelyingPartySolution {
     );
   }
 
+  private get walletInstanceAttestationSignKeyId() {
+    return WalletInstanceAttestation.decode(this.walletInstanceAttestation)
+      .payload.cnf.jwk.kid;
+  }
+
+  private get walletInstanceAttestationId() {
+    const {
+      payload: { sub, iss },
+    } = WalletInstanceAttestation.decode(this.walletInstanceAttestation);
+    return new URL(`instance/${sub}`, iss).href;
+  }
+
   /**
    * Obtain the Request Object for RP authentication
    * @see https://italia.github.io/eudi-wallet-it-docs/versione-corrente/en/relying-party-solution.html
@@ -158,23 +171,17 @@ export class RelyingPartySolution {
    * The presentation is prepared by disclosing data from provided credentials, according to requested claims
    * Each Verified Credential come along with the claims the user accepts to disclose from it.
    *
-   * The returned token is unsigned (sign should be apply by the caller).
-   *
    * @todo accept more than a Verified Credential
    *
    * @param requestObj The incoming request object, which the requirements for the requested authorization
-   * @param walletInstanceIdentifier The identifies of the wallt instance that is presenting
    * @param presentation The Verified Credential containing user data along with the list of claims to be disclosed.
-   * @param signKeyId The kid of the key that will be used to sign
-   * @returns The unsigned Verified Presentation token
+   * @returns The Verified Presentation token along with the presentation submission metadata
    * @throws {ClaimsNotFoundBetweenDislosures} If the Verified Credential does not contain one or more requested claims.
    *
    */
-  async prepareVpToken(
+  private async prepareVpToken(
     requestObj: RequestObject,
-    walletInstanceIdentifier: string,
-    [vc, claims]: Presentation, // TODO: [SIW-353] support multiple presentations,
-    signKeyId: string
+    [vc, claims]: Presentation // TODO: [SIW-353] support multiple presentations,
   ): Promise<{
     vp_token: string;
     presentation_submission: Record<string, unknown>;
@@ -184,21 +191,21 @@ export class RelyingPartySolution {
 
     // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
 
-    const vp_token = new SignJWT({
-      vp: vp,
-      jti: `${uuid.v4()}`,
-      iss: walletInstanceIdentifier,
-      nonce: requestObj.payload.nonce,
-    })
+    const vp_token = await new SignJWT(this.wiaCryptoContext)
+      .setProtectedHeader({
+        typ: "JWT",
+        kid: this.walletInstanceAttestationSignKeyId,
+      })
+      .setPayload({
+        vp: vp,
+        jti: `${uuid.v4()}`,
+        iss: this.walletInstanceAttestationId,
+        nonce: requestObj.payload.nonce,
+      })
       .setAudience(requestObj.payload.response_uri)
       .setIssuedAt()
       .setExpirationTime("1h")
-      .setProtectedHeader({
-        typ: "JWT",
-        alg: "ES256",
-        kid: signKeyId,
-      })
-      .toSign();
+      .sign();
 
     const vc_scope = requestObj.payload.scope;
     const presentation_submission = {
@@ -220,8 +227,7 @@ export class RelyingPartySolution {
    * @todo MUST add presentation_submission
    *
    * @param requestObj The incoming request object, which the requirements for the requested authorization
-   * @param vp_token The signed Verified Presentation token with data to send.
-   * @param presentation_submission
+   * @param presentation The Verified Credential containing user data along with the list of claims to be disclosed.
    * @param entity The RP entity configuration
    * @returns The response from the RP
    * @throws {IoWalletError} if the submission fails.
@@ -230,13 +236,17 @@ export class RelyingPartySolution {
    */
   async sendAuthorizationResponse(
     requestObj: RequestObject,
-    vp_token: string,
-    presentation_submission: Record<string, unknown>,
+    presentation: Presentation, // TODO: [SIW-353] support multiple presentations,
     entity: RpEntityConfiguration
   ): Promise<string> {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
     const jwk = this.chooseRSAPublicKeyToEncrypt(entity);
+
+    const { vp_token, presentation_submission } = await this.prepareVpToken(
+      requestObj,
+      presentation
+    );
 
     const authzResponsePayload = JSON.stringify({
       state: requestObj.payload.state,
