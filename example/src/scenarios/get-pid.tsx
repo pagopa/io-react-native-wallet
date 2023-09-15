@@ -1,7 +1,8 @@
-import { generate, sign } from "@pagopa/io-react-native-crypto";
-import { thumbprint } from "@pagopa/io-react-native-jwt";
-import { PID, WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
-import { error, result } from "./types";
+import { generate } from "@pagopa/io-react-native-crypto";
+import { PID } from "@pagopa/io-react-native-wallet";
+import { error, result, toResultOrReject } from "./types";
+import getWalletInstanceAttestation from "./get-attestation";
+import { createCryptoContextFor } from "../utils";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 const pidProviderBaseUrl = "https://api.eudi-wallet-it-pid-provider.it";
@@ -10,10 +11,9 @@ export default async () => {
   try {
     // generate Key for Wallet Instance Attestation
     const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
-    const walletInstancePublicKey = await generate(walletInstanceKeyTag);
-    const issuingAttestation = new WalletInstanceAttestation.Issuing(
-      walletProviderBaseUrl
-    );
+    const instanceAttestation = await getWalletInstanceAttestation(
+      walletInstanceKeyTag
+    ).then(toResultOrReject);
 
     const attestationRequest =
       await issuingAttestation.getAttestationRequestToSign(

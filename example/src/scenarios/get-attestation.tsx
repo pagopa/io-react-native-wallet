@@ -4,10 +4,11 @@ import { error, result } from "./types";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 
-export default async () => {
+export default async (
+  walletInstanceKeyTag = Math.random().toString(36).substr(2, 5)
+) => {
   try {
     // generate Key for Wallet Instance Attestation
-    const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
     const walletInstancePublicKey = await generate(walletInstanceKeyTag);
     const issuingAttestation = new WalletInstanceAttestation.Issuing(
       walletProviderBaseUrl

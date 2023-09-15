@@ -17,3 +17,12 @@ export const error = (e: unknown): ScenarioError => {
 export const result = (e: string | object): ScenarioResult => {
   return [null, typeof e === "string" ? e : JSON.stringify(e)];
 };
+
+export const toResultOrReject = async ([err, value]:
+  | ScenarioError
+  | ScenarioResult) =>
+  err
+    ? Promise.reject(err)
+    : !value
+    ? Promise.reject("empty attestation")
+    : value;
