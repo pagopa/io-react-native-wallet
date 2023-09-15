@@ -1,4 +1,7 @@
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import {
+  type CryptoContext,
+  decode as decodeJwt,
+} from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { JWK, fixBase64EncodingOnKey } from "../utils/jwk";
@@ -8,12 +11,15 @@ import { WalletInstanceAttestationIssuingError } from "../utils/errors";
 
 export class Issuing {
   walletProviderBaseUrl: string;
+  wiaCryptoContext: CryptoContext;
   appFetch: GlobalFetch["fetch"];
   constructor(
     walletProviderBaseUrl: string,
+    wiaCryptoContext: CryptoContext,
     appFetch: GlobalFetch["fetch"] = fetch
   ) {
     this.walletProviderBaseUrl = walletProviderBaseUrl;
+    this.wiaCryptoContext = wiaCryptoContext;
     this.appFetch = appFetch;
   }
 
@@ -22,35 +28,42 @@ export class Issuing {
    *
    * @async @function
    *
-   * @param jwk Public key of the wallet instance
-   *
    * @returns {string} Wallet Instance Attestation Request to sign
    *
    */
-  async getAttestationRequestToSign(jwk: JWK): Promise<string> {
+  private async getAttestationRequest(): Promise<string> {
+    const jwk = await this.wiaCryptoContext.getPublicKey();
     const parsedJwk = JWK.parse(jwk);
     const keyThumbprint = await thumbprint(parsedJwk);
     const publicKey = { ...parsedJwk, kid: keyThumbprint };
 
-    const walletInstanceAttestationRequest = new SignJWT({
-      iss: keyThumbprint,
-      aud: this.walletProviderBaseUrl,
-      jti: `${uuid.v4()}`,
-      nonce: `${uuid.v4()}`,
-      cnf: {
-        jwk: fixBase64EncodingOnKey(publicKey),
-      },
-    })
+    return new SignJWT(this.wiaCryptoContext)
+      .setPayload({
+        iss: keyThumbprint,
+        aud: this.walletProviderBaseUrl,
+        jti: `${uuid.v4()}`,
+        nonce: `${uuid.v4()}`,
+        cnf: {
+          jwk: fixBase64EncodingOnKey(publicKey),
+        },
+      })
       .setProtectedHeader({
-        alg: "ES256",
         kid: publicKey.kid,
         typ: "wiar+jwt",
       })
+      .setPayload({
+        iss: keyThumbprint,
+        sub: this.walletProviderBaseUrl,
+        jti: `${uuid.v4()}`,
+        type: "WalletInstanceAttestationRequest",
+        cnf: {
+          jwk: fixBase64EncodingOnKey(publicKey),
+        },
+      })
+
       .setIssuedAt()
       .setExpirationTime("1h")
-      .toSign();
-
-    return walletInstanceAttestationRequest;
+      .sign();
   }
 
   /**
@@ -59,21 +72,11 @@ export class Issuing {
    *
    * @async @function
    *
-   * @param attestationRequest Wallet Instance Attestaion Request
-   * obtained with {@link getAttestationRequestToSign}
-   * @param signature Signature of the Wallet Instance Attestaion Request
-   *
    * @returns {string} Wallet Instance Attestation
    *
    */
-  async getAttestation(
-    attestationRequest: string,
-    signature: string
-  ): Promise<string> {
-    const signedAttestationRequest = await SignJWT.appendSignature(
-      attestationRequest,
-      signature
-    );
+  async getAttestation(): Promise<string> {
+    const signedAttestationRequest = await this.getAttestationRequest();
 
     const decodedRequest = decodeJwt(signedAttestationRequest);
     const parsedRequest = WalletInstanceAttestationRequestJwt.parse({
