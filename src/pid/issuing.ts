@@ -33,7 +33,6 @@ export class Issuing {
   walletProviderBaseUrl: string;
   walletInstanceAttestation: string;
   codeVerifier: string;
-  clientId: string;
   state: string;
   authorizationCode: string;
   pidCryptoContext: CryptoContext;
@@ -45,7 +44,6 @@ export class Issuing {
     pidProviderBaseUrl: string,
     walletProviderBaseUrl: string,
     walletInstanceAttestation: string,
-    clientId: string,
     pidCryptoContext: CryptoContext,
     wiaCryptoContext: CryptoContext,
     appFetch: GlobalFetch["fetch"] = fetch
@@ -56,11 +54,14 @@ export class Issuing {
     this.codeVerifier = `${uuid.v4()}`;
     this.authorizationCode = `${uuid.v4()}`;
     this.walletInstanceAttestation = walletInstanceAttestation;
-    this.clientId = clientId;
     this.pidCryptoContext = pidCryptoContext;
     this.wiaCryptoContext = wiaCryptoContext;
     this.tokenUrl = new URL("/token", this.pidProviderBaseUrl).href;
     this.appFetch = appFetch;
+  }
+
+  private async getClientId() {
+    return this.wiaCryptoContext.getPublicKey().then(thumbprint);
   }
 
   /**
@@ -74,6 +75,8 @@ export class Issuing {
    *
    */
   async getPar(): Promise<string> {
+    const clientId = await this.getClientId();
+
     // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
     // The PAR request token is signed used the Wallet Instance Attestation key.
     // The signature can be verified by reading the public key from the key set shippet with the it will ship the Wallet Instance Attestation;
@@ -105,7 +108,7 @@ export class Issuing {
         code_challenge_method: "s256",
         redirect_uri: this.walletProviderBaseUrl,
         state: this.state,
-        client_id: this.clientId,
+        client_id: clientId,
         code_challenge: codeChallenge,
       })
       .setIssuedAt()
@@ -116,7 +119,7 @@ export class Issuing {
 
     const requestBody = {
       response_type: "code",
-      client_id: this.clientId,
+      client_id: clientId,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       client_assertion_type:
@@ -153,6 +156,8 @@ export class Issuing {
    *
    */
   async getAuthToken(): Promise<TokenResponse> {
+    const clientId = await this.getClientId();
+
     const signedDPop = await createDPopToken({
       htm: "POST",
       htu: this.tokenUrl,
@@ -161,7 +166,7 @@ export class Issuing {
 
     const requestBody = {
       grant_type: "authorization code",
-      client_id: this.clientId,
+      client_id: clientId,
       code: this.authorizationCode,
       code_verifier: this.codeVerifier,
       client_assertion_type:
@@ -199,6 +204,8 @@ export class Issuing {
    *
    */
   async createNonceProof(nonce: string): Promise<string> {
+    const clientId = await this.getClientId();
+
     return new SignJWT(this.pidCryptoContext)
       .setPayload({
         nonce,
@@ -207,7 +214,7 @@ export class Issuing {
         type: "openid4vci-proof+jwt",
       })
       .setAudience(this.walletProviderBaseUrl)
-      .setIssuer(this.clientId)
+      .setIssuer(clientId)
       .setIssuedAt()
       .setExpirationTime("1h")
       .sign();
