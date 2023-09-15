@@ -181,36 +181,34 @@ export class Issuing {
   }
 
   /**
-   * Return the unsigned jwt for nonce proof of possession
+   * Return the signed jwt for nonce proof of possession
    *
    * @function
    * @param nonce the nonce
    *
-   * @returns Unsigned JWT for nonce proof
+   * @returns signed JWT for nonce proof
    *
    */
-  async getUnsignedNonceProof(nonce: string): Promise<string> {
-    const unsignedProof = new SignJWT({
-      nonce,
-    })
+  async createNonceProof(nonce: string): Promise<string> {
+    return new SignJWT(this.pidCryptoContext)
+      .setPayload({
+        nonce,
+      })
       .setProtectedHeader({
-        alg: "ES256",
         type: "openid4vci-proof+jwt",
       })
       .setAudience(this.walletProviderBaseUrl)
       .setIssuer(this.clientId)
       .setIssuedAt()
       .setExpirationTime("1h")
-      .toSign();
-    return unsignedProof;
+      .sign();
   }
 
   /**
    * Make the credential issuing request to the PID issuer
    *
    * @function
-   * @param unsignedNonceProof The unsigned JWT for nonce proof
-   * @param nonceProofSignature The JWT for nonce proof signature
+   * @param authTokenNonce The nonce value received from the auth token
    * @param accessToken The access token obtained with getAuthToken
    * @param cieData Personal data read by the CIE
    *
@@ -218,8 +216,7 @@ export class Issuing {
    *
    */
   async getCredential(
-    unsignedNonceProof: string,
-    nonceProofSignature: string,
+    authTokenNonce: string,
     accessToken: string,
     cieData: CieData
   ): Promise<PidResponse> {
@@ -231,10 +228,8 @@ export class Issuing {
       },
       this.pidCryptoContext
     );
-    const signedNonceProof = await SignJWT.appendSignature(
-      unsignedNonceProof,
-      nonceProofSignature
-    );
+    const signedNonceProof = await this.createNonceProof(authTokenNonce);
+
     const credentialUrl = new URL("/credential", this.pidProviderBaseUrl).href;
 
     const requestBody = {
