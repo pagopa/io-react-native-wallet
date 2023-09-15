@@ -37,6 +37,7 @@ export class Issuing {
   state: string;
   authorizationCode: string;
   pidCryptoContext: CryptoContext;
+  wiaCryptoContext: CryptoContext;
   tokenUrl: string;
   appFetch: GlobalFetch["fetch"];
 
@@ -46,6 +47,7 @@ export class Issuing {
     walletInstanceAttestation: string,
     clientId: string,
     pidCryptoContext: CryptoContext,
+    wiaCryptoContext: CryptoContext,
     appFetch: GlobalFetch["fetch"] = fetch
   ) {
     this.pidProviderBaseUrl = pidProviderBaseUrl;
@@ -56,6 +58,7 @@ export class Issuing {
     this.walletInstanceAttestation = walletInstanceAttestation;
     this.clientId = clientId;
     this.pidCryptoContext = pidCryptoContext;
+    this.wiaCryptoContext = wiaCryptoContext;
     this.tokenUrl = new URL("/token", this.pidProviderBaseUrl).href;
     this.appFetch = appFetch;
   }
@@ -70,13 +73,22 @@ export class Issuing {
    * @returns Unsigned PAR url
    *
    */
-  async getPar(jwk: JWK, crypto: CryptoContext): Promise<string> {
-    const parsedJwk = JWK.parse(jwk);
-    const keyThumbprint = await thumbprint(parsedJwk);
-    const publicKey = { ...parsedJwk, kid: keyThumbprint };
+  async getPar(): Promise<string> {
+    // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
+    // The PAR request token is signed used the Wallet Instance Attestation key.
+    // The signature can be verified by reading the public key from the key set shippet with the it will ship the Wallet Instance Attestation;
+    //  key is matched by its kid, which is supposed to be the thumbprint of its public key.
+    const keyThumbprint = await this.wiaCryptoContext
+      .getPublicKey()
+      .then(JWK.parse)
+      .then(thumbprint);
+
     const codeChallenge = await sha256ToBase64(this.codeVerifier);
 
-    const signedJwtForPar = await new SignJWT(crypto)
+    const signedJwtForPar = await new SignJWT(this.wiaCryptoContext)
+      .setProtectedHeader({
+        kid: keyThumbprint,
+      })
       .setPayload({
         client_assertion_type:
           "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -95,9 +107,6 @@ export class Issuing {
         state: this.state,
         client_id: this.clientId,
         code_challenge: codeChallenge,
-      })
-      .setProtectedHeader({
-        kid: publicKey.kid,
       })
       .setIssuedAt()
       .setExpirationTime("1h")
