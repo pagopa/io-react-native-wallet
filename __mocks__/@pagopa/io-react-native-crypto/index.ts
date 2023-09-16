@@ -11,7 +11,12 @@ class MockCryptoError extends Error {
   name: string = "MockCryptoError";
 }
 
-const mockKey = {} as unknown as source.PublicKey;
+const mockKey: source.PublicKey = {
+  kty: "RSA",
+  alg: "RS256",
+  e: "AQAB",
+  n: "utqtxbs-jnK0cPsV7aRkkZKA9t4S-WSZa3nCZtYIKDpgLnR_qcpeF0diJZvKOqXmj2cXaKFUE-8uHKAHo7BL7T-Rj2x3vGESh7SG1pE0thDGlXj4yNsg0qNvCXtk703L2H3i1UXwx6nq1uFxD2EcOE4a6qDYBI16Zl71TUZktJwmOejoHl16CPWqDLGo9GUSk_MmHOV20m4wXWkB4qbvpWVY8H6b2a0rB1B1YPOs5ZLYarSYZgjDEg6DMtZ4NgiwZ-4N1aaLwyO-GLwt9Vf-NBKwoxeRyD3zWE2FXRFBbhKGksMrCGnFDsNl5JTlPjaM3kYyImE941ggcuc495m-Fw",
+};
 
 const deleteKey = jest.fn<
   ReturnType<typeof source.deleteKey>,
