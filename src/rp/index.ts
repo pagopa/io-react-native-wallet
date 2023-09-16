@@ -23,7 +23,7 @@ import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
 import { getEntityConfiguration } from "../trust";
-import { createDPopToken } from "src/utils/dpop";
+import { createDPopToken } from "../utils/dpop";
 import { WalletInstanceAttestation } from "..";
 
 export class RelyingPartySolution {
