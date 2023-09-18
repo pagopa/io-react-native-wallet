@@ -45,6 +45,10 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
       }
     );
 
+    // Obtain metadata
+    let metadata = await issuingPID.getEntityConfiguration();
+    console.log(metadata);
+
     // throw if decode fails
     PID.SdJwt.decode(pid.credential);
 

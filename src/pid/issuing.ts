@@ -285,7 +285,7 @@ export class Issuing {
    */
   async getEntityConfiguration(): Promise<PidIssuerEntityConfiguration> {
     const metadataUrl = new URL(
-      ".well-known/openid-federation",
+      "ci/.well-known/openid-federation",
       this.pidProviderBaseUrl
     ).href;
 
