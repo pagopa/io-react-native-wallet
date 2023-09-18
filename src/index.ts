@@ -14,6 +14,7 @@ import {
   EntityStatement,
   TrustAnchorEntityConfiguration,
 } from "./trust/types";
+import { createCryptoContextFor } from "./utils/crypto";
 
 export {
   PID,
@@ -27,4 +28,5 @@ export {
   EntityStatement,
   RpEntityConfiguration,
   TrustAnchorEntityConfiguration,
+  createCryptoContextFor,
 };

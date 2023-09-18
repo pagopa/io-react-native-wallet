@@ -1,8 +1,7 @@
 import { generate } from "@pagopa/io-react-native-crypto";
-import { PID } from "@pagopa/io-react-native-wallet";
+import { PID, createCryptoContextFor } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getWalletInstanceAttestation from "./get-attestation";
-import { createCryptoContextFor } from "../utils";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 const pidProviderBaseUrl = "https://api.eudi-wallet-it-pid-provider.it";

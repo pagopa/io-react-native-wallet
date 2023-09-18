@@ -1,7 +1,9 @@
 import { generate } from "@pagopa/io-react-native-crypto";
-import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
+import {
+  WalletInstanceAttestation,
+  createCryptoContextFor,
+} from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
-import { createCryptoContextFor } from "../utils";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 
