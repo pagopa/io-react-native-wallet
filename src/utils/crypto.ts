@@ -1,5 +1,6 @@
 import { getPublicKey, sign } from "@pagopa/io-react-native-crypto";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { fixBase64EncodingOnKey } from "./jwk";
 
 /**
  * Create a CryptoContext bound to a key pair.
@@ -16,7 +17,16 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
      * @returns The public key.
      */
     async getPublicKey() {
-      return getPublicKey(keytag);
+      return getPublicKey(keytag)
+        .then(fixBase64EncodingOnKey)
+        .then(async (jwk) => ({
+          ...jwk,
+          // Keys in the TEE are not stored with their KID, which is supposed to be assigned when they are included in JWK sets.
+          // (that is, KID is not a propoerty of the key itself, but it's property used to identify a key in a set).
+          // We assume the convention we use the thumbprint of the public key as KID, thus for easy development we decided to evaluate KID here
+          // However the values is an arbitrary string that might be anything
+          kid: await thumbprint(jwk),
+        }));
     },
     /**
      * Get a signature for a provided value.

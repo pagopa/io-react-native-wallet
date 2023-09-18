@@ -162,7 +162,8 @@ export class RelyingPartySolution {
     }
 
     throw new IoWalletError(
-      `Unable to obtain Request Object. Response code: ${response.status}`
+      `Unable to obtain Request Object. Response code: ${response.status}
+      ${await response.text()}`
     );
   }
 
