@@ -26,14 +26,14 @@ export const PidIssuerEntityConfiguration = z.object({
       pushed_authorization_request_endpoint: z.string(),
       dpop_signing_alg_values_supported: z.array(z.string()),
       credential_endpoint: z.string(),
-      credentials_supported: z.object({
-        "eu.eudiw.pid.it": z.object({
+      credentials_supported: z.array(
+        z.object({
           format: z.literal("vc+sd-jwt"),
           cryptographic_binding_methods_supported: z.array(z.string()),
           cryptographic_suites_supported: z.array(z.string()),
           display: z.array(PidDisplayMetadata),
-        }),
-      }),
+        })
+      ),
     }),
     federation_entity: z.object({
       organization_name: z.string(),
