@@ -79,6 +79,7 @@ export default async () => {
       }
     );
 
+    // Obtain metadata
     let metadata = await issuingPID.getEntityConfiguration();
     console.log(metadata);
 
