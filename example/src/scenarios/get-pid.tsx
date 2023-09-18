@@ -78,7 +78,11 @@ export default async () => {
         surname: "SURNAME",
       }
     );
-    
+
+    // Obtain metadata
+    let metadata = await issuingPID.getEntityConfiguration();
+    console.log(metadata);
+
     // throw if decode fails
     PID.SdJwt.decode(pid.credential);
 
