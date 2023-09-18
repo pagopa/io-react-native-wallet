@@ -14,13 +14,14 @@ export default async (
     // generate Key for Wallet Instance Attestation
     // ensure the key esists befor starting the issuing process
     await generate(walletInstanceKeyTag);
-    const issuingAttestation = new WalletInstanceAttestation.Issuing(
-      walletProviderBaseUrl,
-      createCryptoContextFor(walletInstanceKeyTag)
-    );
+
+    const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+    const issuingAttestation = WalletInstanceAttestation.getAttestation({
+      wiaCryptoContext,
+    });
 
     // generate Wallet Instance Attestation
-    const instanceAttestation = await issuingAttestation.getAttestation();
+    const instanceAttestation = await issuingAttestation(walletProviderBaseUrl);
 
     return result(instanceAttestation);
   } catch (e) {

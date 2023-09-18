@@ -9,74 +9,58 @@ import { WalletInstanceAttestationRequestJwt } from "./types";
 import uuid from "react-native-uuid";
 import { WalletInstanceAttestationIssuingError } from "../utils/errors";
 
-export class Issuing {
-  walletProviderBaseUrl: string;
-  wiaCryptoContext: CryptoContext;
-  appFetch: GlobalFetch["fetch"];
-  constructor(
-    walletProviderBaseUrl: string,
-    wiaCryptoContext: CryptoContext,
-    appFetch: GlobalFetch["fetch"] = fetch
-  ) {
-    this.walletProviderBaseUrl = walletProviderBaseUrl;
-    this.wiaCryptoContext = wiaCryptoContext;
-    this.appFetch = appFetch;
-  }
+async function getAttestationRequest(
+  wiaCryptoContext: CryptoContext,
+  walletProviderBaseUrl: string
+): Promise<string> {
+  const jwk = await wiaCryptoContext.getPublicKey();
+  const parsedJwk = JWK.parse(jwk);
+  const keyThumbprint = await thumbprint(parsedJwk);
+  const publicKey = { ...parsedJwk, kid: keyThumbprint };
 
-  /**
-   * Get the Wallet Instance Attestation Request to sign
-   *
-   * @async @function
-   *
-   * @returns {string} Wallet Instance Attestation Request to sign
-   *
-   */
-  private async getAttestationRequest(): Promise<string> {
-    const jwk = await this.wiaCryptoContext.getPublicKey();
-    const parsedJwk = JWK.parse(jwk);
-    const keyThumbprint = await thumbprint(parsedJwk);
-    const publicKey = { ...parsedJwk, kid: keyThumbprint };
+  return new SignJWT(wiaCryptoContext)
+    .setPayload({
+      iss: keyThumbprint,
+      aud: walletProviderBaseUrl,
+      jti: `${uuid.v4()}`,
+      nonce: `${uuid.v4()}`,
+      cnf: {
+        jwk: fixBase64EncodingOnKey(publicKey),
+      },
+    })
+    .setProtectedHeader({
+      kid: publicKey.kid,
+      typ: "wiar+jwt",
+    })
+    .setPayload({
+      iss: keyThumbprint,
+      sub: walletProviderBaseUrl,
+      jti: `${uuid.v4()}`,
+      type: "WalletInstanceAttestationRequest",
+      cnf: {
+        jwk: fixBase64EncodingOnKey(publicKey),
+      },
+    })
 
-    return new SignJWT(this.wiaCryptoContext)
-      .setPayload({
-        iss: keyThumbprint,
-        aud: this.walletProviderBaseUrl,
-        jti: `${uuid.v4()}`,
-        nonce: `${uuid.v4()}`,
-        cnf: {
-          jwk: fixBase64EncodingOnKey(publicKey),
-        },
-      })
-      .setProtectedHeader({
-        kid: publicKey.kid,
-        typ: "wiar+jwt",
-      })
-      .setPayload({
-        iss: keyThumbprint,
-        sub: this.walletProviderBaseUrl,
-        jti: `${uuid.v4()}`,
-        type: "WalletInstanceAttestationRequest",
-        cnf: {
-          jwk: fixBase64EncodingOnKey(publicKey),
-        },
-      })
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
+}
 
-      .setIssuedAt()
-      .setExpirationTime("1h")
-      .sign();
-  }
-
-  /**
-   * Get the Wallet Instance Attestation given a
-   * Wallet Instance Attestation Request and signature
-   *
-   * @async @function
-   *
-   * @returns {string} Wallet Instance Attestation
-   *
-   */
-  async getAttestation(): Promise<string> {
-    const signedAttestationRequest = await this.getAttestationRequest();
+export const getAttestation =
+  ({
+    wiaCryptoContext,
+    appFetch = fetch,
+  }: {
+    wiaCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }) =>
+  // CONFIG
+  async (walletProviderBaseUrl: string): Promise<string> => {
+    const signedAttestationRequest = await getAttestationRequest(
+      wiaCryptoContext,
+      walletProviderBaseUrl
+    );
 
     const decodedRequest = decodeJwt(signedAttestationRequest);
     const parsedRequest = WalletInstanceAttestationRequestJwt.parse({
@@ -87,13 +71,13 @@ export class Issuing {
 
     await verifyJwt(signedAttestationRequest, publicKey);
 
-    const tokenUrl = new URL("token", this.walletProviderBaseUrl).href;
+    const tokenUrl = new URL("token", walletProviderBaseUrl).href;
     const requestBody = {
       grant_type:
         "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation",
       assertion: signedAttestationRequest,
     };
-    const response = await this.appFetch(tokenUrl, {
+    const response = await appFetch(tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,5 +93,4 @@ export class Issuing {
       "Unable to obtain wallet instance attestation from wallet provider",
       `Response code: ${response.status}`
     );
-  }
-}
+  };
