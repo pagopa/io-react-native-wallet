@@ -26,20 +26,6 @@ import { getEntityConfiguration as getGenericEntityConfiguration } from "../trus
 import { createDPopToken } from "../utils/dpop";
 import { WalletInstanceAttestation } from "..";
 
-const getWalletInstanceAttestationSignKeyId = (
-  walletInstanceAttestation: string
-) => {
-  return WalletInstanceAttestation.decode(walletInstanceAttestation).payload.cnf
-    .jwk.kid;
-};
-
-const getWalletInstanceAttestationId = (walletInstanceAttestation: string) => {
-  const {
-    payload: { sub, iss },
-  } = WalletInstanceAttestation.decode(walletInstanceAttestation);
-  return new URL(`instance/${sub}`, iss).href;
-};
-
 /**
  * Select a RSA public key from those provided by the RP to encrypt.
  *
@@ -106,9 +92,8 @@ export const decodeAuthRequestQR = (qrcode: string): QRCodePayload => {
 
 export type RequestObjectConf = {
   requestObject: RequestObject;
-  walletInstanceAttestationSignKid: string;
-  walletInstanceAttestationId: string;
   rpEntityConfiguration: RpEntityConfiguration;
+  walletInstanceAttestation: string;
 };
 
 /**
@@ -175,13 +160,8 @@ export const getRequestObject =
 
       return {
         requestObject,
-        walletInstanceAttestationId: getWalletInstanceAttestationId(
-          walletInstanceAttestation
-        ),
-        walletInstanceAttestationSignKid: getWalletInstanceAttestationSignKeyId(
-          walletInstanceAttestation
-        ),
         rpEntityConfiguration,
+        walletInstanceAttestation,
       };
     }
 
@@ -199,13 +179,9 @@ export const getRequestObject =
  * @todo accept more than a Verified Credential
  */
 const prepareVpToken =
-  ({ wiaCryptoContext }: { wiaCryptoContext: CryptoContext }) =>
+  ({ pidCryptoContext }: { pidCryptoContext: CryptoContext }) =>
   async (
-    {
-      requestObject,
-      walletInstanceAttestationId,
-      walletInstanceAttestationSignKid,
-    }: RequestObjectConf,
+    { requestObject, walletInstanceAttestation }: RequestObjectConf,
     [vc, claims]: Presentation // TODO: [SIW-353] support multiple presentations,
   ): Promise<{
     vp_token: string;
@@ -214,17 +190,23 @@ const prepareVpToken =
     // this throws if vc cannot satisfy all the requested claims
     const { token: vp, paths } = await disclose(vc, claims);
 
-    // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
+    // obtain issuer from Wallet Instance
+    const {
+      payload: { iss },
+    } = WalletInstanceAttestation.decode(walletInstanceAttestation);
 
-    const vp_token = await new SignJWT(wiaCryptoContext)
+    const pidKid = await pidCryptoContext.getPublicKey().then((_) => _.kid);
+
+    // TODO: [SIW-359] check all requeste claims of the requestedObj are satisfied
+    const vp_token = await new SignJWT(pidCryptoContext)
       .setProtectedHeader({
         typ: "JWT",
-        kid: walletInstanceAttestationSignKid,
+        kid: pidKid,
       })
       .setPayload({
         vp: vp,
         jti: `${uuid.v4()}`,
-        iss: walletInstanceAttestationId,
+        iss,
         nonce: requestObject.payload.nonce,
       })
       .setAudience(requestObject.payload.response_uri)
@@ -254,18 +236,17 @@ const prepareVpToken =
  */
 export const sendAuthorizationResponse =
   ({
-    wiaCryptoContext,
+    pidCryptoContext,
     appFetch = fetch,
   }: {
-    wiaCryptoContext: CryptoContext;
+    pidCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }) =>
   async (
     {
       requestObject,
-      walletInstanceAttestationId,
-      walletInstanceAttestationSignKid,
       rpEntityConfiguration,
+      walletInstanceAttestation,
     }: RequestObjectConf,
     presentation: Presentation // TODO: [SIW-353] support multiple presentations,
   ): Promise<string> => {
@@ -274,13 +255,12 @@ export const sendAuthorizationResponse =
     const jwk = chooseRSAPublicKeyToEncrypt(rpEntityConfiguration);
 
     const { vp_token, presentation_submission } = await prepareVpToken({
-      wiaCryptoContext,
+      pidCryptoContext,
     })(
       {
         requestObject,
-        walletInstanceAttestationId,
-        walletInstanceAttestationSignKid,
         rpEntityConfiguration,
+        walletInstanceAttestation,
       },
       presentation
     );

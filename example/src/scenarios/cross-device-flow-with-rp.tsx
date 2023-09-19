@@ -19,7 +19,9 @@ export default async () => {
     const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
 
     // obtain PID
-    const pidToken = await getPid().then(toResultOrReject);
+    const pidKeyTag = Math.random().toString(36).substr(2, 5);
+    const pidToken = await getPid(pidKeyTag).then(toResultOrReject);
+    const pidCryptoContext = createCryptoContextFor(pidKeyTag);
 
     // Scan/Decode QR
     const { requestURI: authRequestUrl, clientId } =
@@ -53,7 +55,7 @@ export default async () => {
 
     // Submit authorization response
     const ok = await RelyingPartySolution.sendAuthorizationResponse({
-      wiaCryptoContext,
+      pidCryptoContext,
     })(requestObj, [pidToken, claims]);
 
     return result(ok);
