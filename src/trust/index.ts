@@ -31,10 +31,10 @@ export async function getEntityConfiguration(
   if (response.status === 200) {
     const responseText = await response.text();
     const responseJwt = decodeJwt(responseText);
-    return {
+    return EntityConfiguration.parse({
       header: responseJwt.protectedHeader,
       payload: responseJwt.payload,
-    } as EntityConfiguration; // TODO: avoid parse to generic type
+    });
   }
 
   throw new IoWalletError(

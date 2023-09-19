@@ -15,33 +15,33 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
   try {
     // generate Key for Wallet Instance Attestation
     const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
+    const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+
     const instanceAttestation = await getWalletInstanceAttestation(
       walletInstanceKeyTag
     ).then(toResultOrReject);
 
-    // Obtain metadata
-    const pidEC = await getEntityConfiguration(pidProviderBaseUrl).then((_) =>
-      PidIssuerEntityConfiguration.parse(_.payload)
-    );
-
-    // Generate fresh key for PID binding
-    // ensure the key esists befor starting the issuing process
-    await generate(pidKeyTag);
-
-    const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
-    const pidCryptoContext = createCryptoContextFor(pidKeyTag);
+    // Obtain PID metadata
+    const pidEntityConfiguration = await getEntityConfiguration(
+      pidProviderBaseUrl
+    ).then(PidIssuerEntityConfiguration.parse);
 
     // Auth Token request
     const authRequest = PID.Issuing.getAuthToken({ wiaCryptoContext });
     const authConf = await authRequest(
       instanceAttestation,
       walletProviderBaseUrl,
-      pidEC
+      pidEntityConfiguration
     );
+
+    // Generate fresh key for PID binding
+    // ensure the key esists befor starting the issuing process
+    await generate(pidKeyTag);
+    const pidCryptoContext = createCryptoContextFor(pidKeyTag);
 
     // Credential request
     const credentialRequest = PID.Issuing.getCredential({ pidCryptoContext });
-    const pid = await credentialRequest(authConf, pidEC, {
+    const pid = await credentialRequest(authConf, pidEntityConfiguration, {
       birthDate: "01/01/1990",
       fiscalCode: "AAABBB00A00A000A",
       name: "NAME",

@@ -9,7 +9,8 @@ import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
 import type { PidIssuerEntityConfiguration } from "./metadata";
-
+import { createCryptoContextFor } from "..";
+import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -98,7 +99,7 @@ const getPar =
       .sign();
 
     const parUrl =
-      pidProviderEntityConfiguration.metadata.openid_credential_issuer
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .pushed_authorization_request_endpoint;
 
     const requestBody = {
@@ -157,7 +158,7 @@ export const getAuthToken =
     const codeVerifier = `${uuid.v4()}`;
     const authorizationCode = `${uuid.v4()}`;
     const tokenUrl =
-      pidProviderEntityConfiguration.metadata.openid_credential_issuer
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .token_endpoint;
 
     await getPar({ wiaCryptoContext, appFetch })(
@@ -168,11 +169,21 @@ export const getAuthToken =
       walletInstanceAttestation
     );
 
-    const signedDPop = await createDPopToken({
-      htm: "POST",
-      htu: tokenUrl,
-      jti: `${uuid.v4()}`,
-    });
+    // Use an ephemeral key to be destroyed after use
+    const keytag = `ephemeral-${uuid.v4()}`;
+    await generate(keytag);
+    const ephemeralContext = createCryptoContextFor(keytag);
+
+    const signedDPop = await createDPopToken(
+      {
+        htm: "POST",
+        htu: tokenUrl,
+        jti: `${uuid.v4()}`,
+      },
+      ephemeralContext
+    );
+
+    await deleteKey(keytag);
 
     const requestBody = {
       grant_type: "authorization code",
@@ -268,21 +279,21 @@ export const getCredential =
     const signedDPopForPid = await createDPopToken(
       {
         htm: "POST",
-        htu: pidProviderEntityConfiguration.metadata.openid_credential_issuer
-          .token_endpoint,
+        htu: pidProviderEntityConfiguration.payload.metadata
+          .openid_credential_issuer.token_endpoint,
         jti: `${uuid.v4()}`,
       },
       pidCryptoContext
     );
     const signedNonceProof = await createNonceProof(
       nonce,
-      walletProviderBaseUrl,
       clientId,
+      walletProviderBaseUrl,
       pidCryptoContext
     );
 
     const credentialUrl =
-      pidProviderEntityConfiguration.metadata.openid_credential_issuer
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .credential_endpoint;
 
     const requestBody = {
@@ -305,6 +316,8 @@ export const getCredential =
       },
       body: formBody.toString(),
     });
+
+    console.log("--> credential request:", response.status);
 
     if (response.status === 200) {
       return await response.json();
