@@ -331,7 +331,7 @@ const validatePid = async (pidJwt: string, pidCryptoContext: CryptoContext) => {
     throw new PidIssuingError(
       `The obtained pid does not seem to be valid according to your configuration. Your PID public key is: ${JSON.stringify(
         pidKey
-      )} but PID holder binding is: ${JSON.stringify(holderBindedKey)}`
+      )} but PID holder binded key is: ${JSON.stringify(holderBindedKey)}`
     );
   }
 };
