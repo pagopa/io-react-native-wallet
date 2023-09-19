@@ -114,13 +114,6 @@ export type RequestObjectConf = {
 /**
  * Obtain the Request Object for RP authentication
  * @see https://italia.github.io/eudi-wallet-it-docs/versione-corrente/en/relying-party-solution.html
- *
- * @async @function
- * @param requestUri presentation request url
- *
- * @returns The Request Object JWT
- * @throws {NoSuitableKeysFoundInEntityConfiguration} When the Request Object is signed with a key not listed in RP's entity configuration
- *
  */
 export const getRequestObject =
   ({
@@ -204,12 +197,6 @@ export const getRequestObject =
  * Each Verified Credential come along with the claims the user accepts to disclose from it.
  *
  * @todo accept more than a Verified Credential
- *
- * @param requestObj The incoming request object, which the requirements for the requested authorization
- * @param presentation The Verified Credential containing user data along with the list of claims to be disclosed.
- * @returns The Verified Presentation token along with the presentation submission metadata
- * @throws {ClaimsNotFoundBetweenDislosures} If the Verified Credential does not contain one or more requested claims.
- *
  */
 const prepareVpToken =
   ({ wiaCryptoContext }: { wiaCryptoContext: CryptoContext }) =>
@@ -263,13 +250,6 @@ const prepareVpToken =
  * Compose and send an Authorization Response in the context of an authorization request flow.
  *
  * @todo MUST add presentation_submission
- *
- * @param requestObj The incoming request object, which the requirements for the requested authorization
- * @param presentation The Verified Credential containing user data along with the list of claims to be disclosed.
- * @param entity The RP entity configuration
- * @returns The response from the RP
- * @throws {IoWalletError} if the submission fails.
- * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key
  *
  */
 export const sendAuthorizationResponse =

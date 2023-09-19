@@ -53,13 +53,6 @@ export const getEntityConfiguration =
 
 /**
  * Make a PAR request to the PID issuer and return the response url
- *
- * @function
- * @param jwk The wallet instance attestation public JWK
- * @param crypto The CryptoContext instance for the key pair to sign PAR
- *
- * @returns Unsigned PAR url
- *
  */
 const getPar =
   ({
@@ -151,10 +144,6 @@ const getPar =
 
 /**
  * Make an auth token request to the PID issuer
- *
- * @function
- * @returns a token response
- *
  */
 export const getAuthToken =
   ({
@@ -241,12 +230,6 @@ export const getAuthToken =
 
 /**
  * Return the signed jwt for nonce proof of possession
- *
- * @function
- * @param nonce the nonce
- *
- * @returns signed JWT for nonce proof
- *
  */
 const createNonceProof = async (
   nonce: string,
@@ -270,14 +253,6 @@ const createNonceProof = async (
 
 /**
  * Make the credential issuing request to the PID issuer
- *
- * @function
- * @param authTokenNonce The nonce value received from the auth token
- * @param accessToken The access token obtained with getAuthToken
- * @param cieData Personal data read by the CIE
- *
- * @returns a credential
- *
  */
 export const getCredential =
   ({
