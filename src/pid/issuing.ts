@@ -14,6 +14,7 @@ import {
   getEntityConfiguration as getGenericEntityConfiguration,
 } from "..";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
+import { SdJwt } from ".";
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -308,10 +309,10 @@ export const getCredential =
       body: formBody.toString(),
     });
 
-    console.log("--> credential request:", response.status);
-
     if (response.status === 200) {
-      return await response.json();
+      const pidResponse = (await response.json()) as PidResponse;
+      await validatePid(pidResponse.credential, pidCryptoContext);
+      return pidResponse;
     }
 
     throw new PidIssuingError(
@@ -320,3 +321,17 @@ export const getCredential =
       } body=${await response.text()}`
     );
   };
+
+const validatePid = async (pidJwt: string, pidCryptoContext: CryptoContext) => {
+  const decoded = SdJwt.decode(pidJwt);
+  const pidKey = await pidCryptoContext.getPublicKey();
+  const holderBindedKey = decoded.sdJwt.payload.cnf.jwk;
+
+  if (thumbprint(pidKey) !== thumbprint(holderBindedKey)) {
+    throw new PidIssuingError(
+      `The obtained pid does not seem to be valid according to your configuration. Your PID public key is: ${JSON.stringify(
+        pidKey
+      )} but PID holder binding is: ${JSON.stringify(holderBindedKey)}`
+    );
+  }
+};

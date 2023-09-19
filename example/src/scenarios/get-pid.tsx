@@ -2,6 +2,7 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import { PID, createCryptoContextFor } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getWalletInstanceAttestation from "./get-attestation";
+import { thumbprint } from "@pagopa/io-react-native-jwt";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 const pidProviderBaseUrl = "https://api.eudi-wallet-it-pid-provider.it/ci";
@@ -44,7 +45,15 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
     });
 
     // throw if decode fails
-    PID.SdJwt.decode(pid.credential);
+    const pidJwt = PID.SdJwt.decode(pid.credential);
+    console.log(
+      "PID holder binding JWK: ",
+      await thumbprint(pidJwt.sdJwt.payload.cnf.jwk)
+    );
+    console.log(
+      "PID public key: ",
+      await thumbprint(await pidCryptoContext.getPublicKey())
+    );
 
     return result(pid.credential);
   } catch (e) {
