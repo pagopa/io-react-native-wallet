@@ -327,7 +327,7 @@ const validatePid = async (pidJwt: string, pidCryptoContext: CryptoContext) => {
   const pidKey = await pidCryptoContext.getPublicKey();
   const holderBindedKey = decoded.sdJwt.payload.cnf.jwk;
 
-  if (thumbprint(pidKey) !== thumbprint(holderBindedKey)) {
+  if ((await thumbprint(pidKey)) !== (await thumbprint(holderBindedKey))) {
     throw new PidIssuingError(
       `The obtained pid does not seem to be valid according to your configuration. Your PID public key is: ${JSON.stringify(
         pidKey
