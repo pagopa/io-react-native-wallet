@@ -23,7 +23,7 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
     );
 
     // Auth Token request
-    const authRequest = PID.Issuing.getAuthToken({ wiaCryptoContext });
+    const authRequest = PID.Issuing.authorizeIssuing({ wiaCryptoContext });
     const authConf = await authRequest(
       instanceAttestation,
       walletProviderBaseUrl,

@@ -144,9 +144,16 @@ const getPar =
   };
 
 /**
- * Make an auth token request to the PID issuer
+ * Start the issuing flow by generating an authorization request to the PID Provider. Obtain from the PID Provider an access token to be used to complete the issuing flow.
+ *
+ * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
+ * @param params.appFetch (optional) Http client
+ * @param walletInstanceAttestation Wallet Instance Attestation token.
+ * @param walletProviderBaseUrl Base url for the Wallet Provider
+ * @param pidProviderEntityConfiguration The Entity Configuration of the PID Provider, from which discover public endooints.
+ * @returns The access token along with the values that identify the issuing session.
  */
-export const getAuthToken =
+export const authorizeIssuing =
   ({
     wiaCryptoContext,
     appFetch = fetch,
@@ -253,7 +260,13 @@ const createNonceProof = async (
 };
 
 /**
- * Make the credential issuing request to the PID issuer
+ * Complete the issuing flow and get the PID credential.
+ *
+ * @param params.pidCryptoContext The key pair associated with the PID. Will be use to prove the ownership of the credential.
+ * @param params.appFetch (optional) Http client
+ * @param authConf The authorization configuration retrieved with the access token
+ * @param cieData Data red from the CIE login process
+ * @returns The PID credential token
  */
 export const getCredential =
   ({

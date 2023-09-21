@@ -47,6 +47,14 @@ async function getAttestationRequest(
     .sign();
 }
 
+/**
+ * Request a Wallet Instance Attestation (WIA) to the Wallet provider
+ *
+ * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
+ * @param params.appFetch (optional) Http client
+ * @param walletProviderBaseUrl Base url for the Wallet Provider
+ * @returns The retrieved Wallet Instance Attestation token
+ */
 export const getAttestation =
   ({
     wiaCryptoContext,
@@ -55,7 +63,6 @@ export const getAttestation =
     wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }) =>
-  // CONFIG
   async (walletProviderBaseUrl: string): Promise<string> => {
     const signedAttestationRequest = await getAttestationRequest(
       wiaCryptoContext,
