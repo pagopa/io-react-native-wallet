@@ -11,6 +11,7 @@ import { PidIssuingError, PidMetadataError } from "../utils/errors";
 import { getUnsignedDPop } from "../utils/dpop";
 import { sign, generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { PidIssuerEntityConfiguration } from "./metadata";
+import { fixBase64EncodingOnKey } from "./../utils/jwk";
 
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
@@ -161,7 +162,7 @@ export class Issuing {
    */
   async getUnsignedDPoP(jwk: JWK): Promise<string> {
     const tokenUrl = new URL("/token", this.pidProviderBaseUrl).href;
-    const dPop = getUnsignedDPop(jwk, {
+    const dPop = getUnsignedDPop(fixBase64EncodingOnKey(jwk), {
       htm: "POST",
       htu: tokenUrl,
       jti: `${uuid.v4()}`,
