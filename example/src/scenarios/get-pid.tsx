@@ -45,11 +45,7 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
     });
 
     // throw if decode fails
-    const pidJwt = PID.SdJwt.decode(pid.credential);
-    console.log(
-      "PID public key: ",
-      await thumbprint(await pidCryptoContext.getPublicKey())
-    );
+    PID.SdJwt.decode(pid.credential);
 
     return result(pid.credential);
   } catch (e) {
