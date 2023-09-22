@@ -1,6 +1,6 @@
 import * as source from "@pagopa/io-react-native-crypto";
 
-// simlates the keystore
+// mock keystore
 const keystore: Map<string, source.PublicKey> = new Map<
   string,
   source.PublicKey
