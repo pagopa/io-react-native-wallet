@@ -6,7 +6,7 @@ import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
  * Create a signed DPoP token
  *
  * @param payload The payload to be included in the token.
- * @param crypto The crypto context that handles the key bound to the DPoP. If not provided, a context will be created with an ephemeral key, which will be destroyed after use
+ * @param crypto The crypto context that handles the key bound to the DPoP. 
  *
  * @returns The signed crypto token.
  */
