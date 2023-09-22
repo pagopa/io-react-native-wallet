@@ -22,7 +22,7 @@ Refer to Example App for actual usages.
 
 User flows implementions make use of tokens signed using asymmetric key pairs. Such cryptographic keys are managed by the device according to its specifications. It's not the intention of this package to handle such cryptographic assets and their peculiarities; instead, an handy interface is used to provide the right abstraction to allow responsibilities segregation:
 
-- the application know who to generate/store/delete keys;
+- the application knows who to generate/store/delete keys;
 - the package knows when and where to use them.
 
 The interface is `CryptoContext` inherited from the `@pagopa/io-react-native-jwt` package.
@@ -40,7 +40,7 @@ Be sure the key for `my-tag` already exists.
 </details>
 
 <details>
-  <summary>HTTP Client</summary>
+  <summary>Making HTTP requests</summary>
 
 This package is compatibile with any http client which implements [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Functions that makes http requests allow for an optional `appFetch` parameter to provide a custom http client implementation. If not provided, the built-in implementation on the runtime is used.
 
