@@ -12,31 +12,29 @@ const QR =
 export default async () => {
   try {
     const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
-
     // obtain new attestation
-    const WIA = await getWalletInstanceAttestation(walletInstanceKeyTag).then(
-      toResultOrReject
-    );
+    const walletInstanceAttestation = await getWalletInstanceAttestation(
+      walletInstanceKeyTag
+    ).then(toResultOrReject);
+    const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
 
     // obtain PID
-    const pidToken = await getPid().then(toResultOrReject);
+    const pidKeyTag = Math.random().toString(36).substr(2, 5);
+    const pidToken = await getPid(pidKeyTag).then(toResultOrReject);
+    const pidCryptoContext = createCryptoContextFor(pidKeyTag);
 
     // Scan/Decode QR
     const { requestURI: authRequestUrl, clientId } =
       RelyingPartySolution.decodeAuthRequestQR(QR);
 
-    // instantiate
-    const RP = new RelyingPartySolution(
-      clientId,
-      WIA,
-      createCryptoContextFor(walletInstanceKeyTag)
-    );
-
     // resolve RP's entity configuration
-    const entity = await RP.getEntityConfiguration();
+    const entityConfiguration =
+      await RelyingPartySolution.getEntityConfiguration()(clientId);
 
     // get request object
-    const requestObj = await RP.getRequestObject(authRequestUrl, entity);
+    const requestObj = await RelyingPartySolution.getRequestObject({
+      wiaCryptoContext,
+    })(walletInstanceAttestation, authRequestUrl, entityConfiguration);
 
     // Attest Relying Party trust
     // FIXME: [SIW-489] Request Object is coming with an empty trust chain, comment for now
@@ -56,11 +54,9 @@ export default async () => {
     ];
 
     // Submit authorization response
-    const ok = await RP.sendAuthorizationResponse(
-      requestObj,
-      [pidToken, claims],
-      entity
-    );
+    const ok = await RelyingPartySolution.sendAuthorizationResponse({
+      pidCryptoContext,
+    })(requestObj, [pidToken, claims]);
 
     return result(ok);
   } catch (e) {

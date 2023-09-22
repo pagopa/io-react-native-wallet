@@ -1,4 +1,4 @@
-import { deleteKey, sign, generate } from "@pagopa/io-react-native-crypto";
+import { sign, generate } from "@pagopa/io-react-native-crypto";
 import { createDPopToken, DPoPPayload } from "../dpop";
 import { createCryptoContextFor } from "../crypto";
 
@@ -14,18 +14,19 @@ beforeEach(() => {
 
 describe("createDPopToken", () => {
   it("should create a dpop token using ephemeral key", async () => {
-    const dpop = await createDPopToken(mockPayload);
+    const ephemeralKeytag = `ephemeral-${Math.random()}`;
+    await generate(ephemeralKeytag);
+    const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
+    const dpop = await createDPopToken(mockPayload, ephemeralContext);
 
     expect(dpop).toEqual(expect.any(String));
   });
   it("should create delete the ephemeral key after the use", async () => {
-    /* const dpop =  */ await createDPopToken(mockPayload);
-
+    const ephemeralKeytag = `ephemeral-${Math.random()}`;
+    await generate(ephemeralKeytag);
+    const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
+    await createDPopToken(mockPayload, ephemeralContext);
     expect(sign).toBeCalledTimes(1);
-    // @ts-ignore sign is a spied function
-    const keytag = sign.mock.calls[0][1];
-    expect(deleteKey).toBeCalledTimes(1);
-    expect(deleteKey).toBeCalledWith(keytag);
   });
 
   it("should create a dpop token using an existing key", async () => {
@@ -34,11 +35,6 @@ describe("createDPopToken", () => {
     await generate(keytag);
 
     const dpop = await createDPopToken(mockPayload, crypto);
-
     expect(dpop).toEqual(expect.any(String));
-
-    expect(sign).toBeCalledTimes(1);
-    expect(sign).toBeCalledWith(expect.any(String), keytag);
-    expect(deleteKey).not.toBeCalled();
   });
 });

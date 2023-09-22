@@ -1,9 +1,6 @@
 import * as z from "zod";
 
-import uuid from "react-native-uuid";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
-import { createCryptoContextFor } from "./crypto";
-import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 
 /**
  * Create a signed DPoP token
@@ -15,32 +12,18 @@ import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
  */
 export const createDPopToken = async (
   payload: DPoPPayload,
-  crypto?: CryptoContext
+  crypto: CryptoContext
 ): Promise<string> => {
-  const execute = async (ctx: CryptoContext) => {
-    const jwk = await ctx.getPublicKey();
-    return new SignJWT(ctx)
-      .setPayload(payload)
-      .setProtectedHeader({
-        typ: "dpop+jwt",
-        jwk,
-      })
-      .setIssuedAt()
-      .setExpirationTime("1h")
-      .sign();
-  };
-
-  // Use the provided context if provided
-  if (crypto) {
-    return execute(crypto);
-  }
-
-  // No context has been provided, use an ephemeral key to be destroyed after use
-  const keytag = `ephemeral-${uuid.v4()}`;
-  await generate(keytag);
-  const token = await execute(createCryptoContextFor(keytag));
-  await deleteKey(keytag);
-  return token;
+  const jwk = await crypto.getPublicKey();
+  return new SignJWT(crypto)
+    .setPayload(payload)
+    .setProtectedHeader({
+      typ: "dpop+jwt",
+      jwk,
+    })
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
 };
 
 export type DPoPPayload = z.infer<typeof DPoPPayload>;

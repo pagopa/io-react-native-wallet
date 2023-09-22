@@ -1,3 +1,3 @@
 import * as SdJwt from "./sd-jwt";
-import { Issuing } from "./issuing";
+import * as Issuing from "./issuing";
 export { SdJwt, Issuing };
