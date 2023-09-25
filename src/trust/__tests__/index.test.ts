@@ -8,7 +8,14 @@ import {
   TrustAnchorEntityConfiguration,
   WalletProviderEntityConfiguration,
 } from "../types";
-import { getEntityConfiguration, verifyTrustChain } from "..";
+import {
+  getCredentialIssuerEntityConfiguration,
+  getEntityConfiguration,
+  getRelyingPartyEntityConfiguration,
+  getTrustAnchorEntityConfiguration,
+  getWalletProviderEntityConfiguration,
+  verifyTrustChain,
+} from "..";
 import {
   intermediateEntityStatement,
   leafEntityConfiguration,
@@ -150,9 +157,8 @@ const fetchAlways = <T>(status: number, value: T) =>
 
 describe("getEntityConfiguration", () => {
   it("should fetch a valid trust anchor entity configuration", async () => {
-    const result = await getEntityConfiguration(
+    const result = await getTrustAnchorEntityConfiguration(
       "https://example.com",
-      TrustAnchorEntityConfiguration,
       {
         appFetch: fetchAlways(200, mockEC.trustAnchorSignedEntityConfiguration),
       }
@@ -169,9 +175,8 @@ describe("getEntityConfiguration", () => {
   });
 
   it("should fetch a valid wallet provider entity configuration", async () => {
-    const result = await getEntityConfiguration(
+    const result = await getWalletProviderEntityConfiguration(
       "https://example.com",
-      WalletProviderEntityConfiguration,
       {
         appFetch: fetchAlways(
           200,
@@ -191,9 +196,8 @@ describe("getEntityConfiguration", () => {
   });
 
   it("should fetch a valid credential provider entity configuration", async () => {
-    const result = await getEntityConfiguration(
+    const result = await getCredentialIssuerEntityConfiguration(
       "https://example.com",
-      CredentialIssuerEntityConfiguration,
       {
         appFetch: fetchAlways(
           200,
@@ -215,9 +219,8 @@ describe("getEntityConfiguration", () => {
   });
 
   it("should fetch a valid relying party entity configuration", async () => {
-    const result = await getEntityConfiguration(
+    const result = await getRelyingPartyEntityConfiguration(
       "https://example.com",
-      RelyingPartyEntityConfiguration,
       {
         appFetch: fetchAlways(
           200,
@@ -238,18 +241,46 @@ describe("getEntityConfiguration", () => {
     expect(result).toBeDefined();
   });
 
-  it("should not accept a generic shape", async () => {
-    () =>
-      getEntityConfiguration(
+  it("should accept a generic entity configuration", async () => {
+    const result = await getEntityConfiguration("https://example.com", {
+      appFetch: fetchAlways(
+        200,
+        /* any EC will do */ mockEC.relyingPartySignedEntityConfiguration
+      ),
+    });
+
+    // @ts-expect-error because the type is not narrowed
+    testType<RelyingPartyEntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it.failing("when an invalid entity configuration is provided", async () => {
+    const result = await getEntityConfiguration("https://example.com", {
+      appFetch: fetchAlways(200, { invalid: true }),
+    });
+
+    // @ts-expect-error because the type is not narrowed
+    testType<RelyingPartyEntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it.failing(
+    "when an entity configuration whose type do not matches is provided",
+    async () => {
+      const result = await getWalletProviderEntityConfiguration(
         "https://example.com",
-        // @ts-expect-error
-        EntityConfiguration,
         {
           appFetch: fetchAlways(
             200,
-            mockEC.walletProviderSignedEntityConfiguration
+            // expecting to fetch a Wallet Provider EC, retrieving a Reying Party one
+            mockEC.relyingPartySignedEntityConfiguration
           ),
         }
       );
-  });
+
+      expect(result).toBeDefined();
+    }
+  );
 });

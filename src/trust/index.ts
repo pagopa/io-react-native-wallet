@@ -4,6 +4,7 @@ import {
   TrustAnchorEntityConfiguration,
   CredentialIssuerEntityConfiguration,
   RelyingPartyEntityConfiguration,
+  EntityConfiguration,
 } from "./types";
 import { IoWalletError } from "../utils/errors";
 import { verifyTrustChain } from "./chain";
@@ -11,7 +12,14 @@ import { verifyTrustChain } from "./chain";
 export { verifyTrustChain };
 
 /**
- * Fetch and parse teh entity configuration document for a given federation entity
+ * Fetch and parse the entity configuration document for a given federation entity.
+ * This is an inner method to serve public interfaces.
+ *
+ * To add another entity configuration type (example: Foo entity type):
+ *  - create its zod schema and type by inherit from the base type (example: FooEntityConfiguration = BaseEntityConfiguration.and(...))
+ *  - add such type to EntityConfiguration union
+ *  - add an overload to this function
+ *  - create a public function which use such type (example: getFooEntityConfiguration = (url, options) => Promise<FooEntityConfiguration>)
  *
  * @param entityBaseUrl The base url of the entity.
  * @param schema The expected schema of the entity configuration, according to the kind of entity we are fetching from.
@@ -20,41 +28,49 @@ export { verifyTrustChain };
  * @throws {IoWalletError} If the http request fails
  * @throws Parse error if the document is not in the expected shape.
  */
-export async function getEntityConfiguration(
+async function fetchAndParseEntityConfiguration(
   entityBaseUrl: string,
   schema: typeof WalletProviderEntityConfiguration,
   options?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ): Promise<WalletProviderEntityConfiguration>;
-export async function getEntityConfiguration(
+async function fetchAndParseEntityConfiguration(
   entityBaseUrl: string,
   schema: typeof RelyingPartyEntityConfiguration,
   options?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ): Promise<RelyingPartyEntityConfiguration>;
-export async function getEntityConfiguration(
+async function fetchAndParseEntityConfiguration(
   entityBaseUrl: string,
   schema: typeof TrustAnchorEntityConfiguration,
   options?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ): Promise<TrustAnchorEntityConfiguration>;
-export async function getEntityConfiguration(
+async function fetchAndParseEntityConfiguration(
   entityBaseUrl: string,
   schema: typeof CredentialIssuerEntityConfiguration,
   options?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ): Promise<CredentialIssuerEntityConfiguration>;
-export async function getEntityConfiguration(
+async function fetchAndParseEntityConfiguration(
+  entityBaseUrl: string,
+  schema: typeof EntityConfiguration,
+  options?: {
+    appFetch?: GlobalFetch["fetch"];
+  }
+): Promise<EntityConfiguration>;
+async function fetchAndParseEntityConfiguration(
   entityBaseUrl: string,
   schema: /* FIXME: why is it different from "typeof EntityConfiguration"? */
   | typeof CredentialIssuerEntityConfiguration
     | typeof WalletProviderEntityConfiguration
     | typeof RelyingPartyEntityConfiguration
-    | typeof TrustAnchorEntityConfiguration,
+    | typeof TrustAnchorEntityConfiguration
+    | typeof EntityConfiguration,
   {
     appFetch = fetch,
   }: {
@@ -80,3 +96,49 @@ export async function getEntityConfiguration(
     `Unable to obtain Entity Configuration at ${wellKnownUrl}. Response code: ${response.status}`
   );
 }
+
+export const getWalletProviderEntityConfiguration = (
+  entityBaseUrl: Parameters<typeof fetchAndParseEntityConfiguration>[0],
+  options?: Parameters<typeof fetchAndParseEntityConfiguration>[2]
+) =>
+  fetchAndParseEntityConfiguration(
+    entityBaseUrl,
+    WalletProviderEntityConfiguration,
+    options
+  );
+
+export const getCredentialIssuerEntityConfiguration = (
+  entityBaseUrl: Parameters<typeof fetchAndParseEntityConfiguration>[0],
+  options?: Parameters<typeof fetchAndParseEntityConfiguration>[2]
+) =>
+  fetchAndParseEntityConfiguration(
+    entityBaseUrl,
+    CredentialIssuerEntityConfiguration,
+    options
+  );
+
+export const getTrustAnchorEntityConfiguration = (
+  entityBaseUrl: Parameters<typeof fetchAndParseEntityConfiguration>[0],
+  options?: Parameters<typeof fetchAndParseEntityConfiguration>[2]
+) =>
+  fetchAndParseEntityConfiguration(
+    entityBaseUrl,
+    TrustAnchorEntityConfiguration,
+    options
+  );
+
+export const getRelyingPartyEntityConfiguration = (
+  entityBaseUrl: Parameters<typeof fetchAndParseEntityConfiguration>[0],
+  options?: Parameters<typeof fetchAndParseEntityConfiguration>[2]
+) =>
+  fetchAndParseEntityConfiguration(
+    entityBaseUrl,
+    RelyingPartyEntityConfiguration,
+    options
+  );
+
+export const getEntityConfiguration = (
+  entityBaseUrl: Parameters<typeof fetchAndParseEntityConfiguration>[0],
+  options?: Parameters<typeof fetchAndParseEntityConfiguration>[2]
+) =>
+  fetchAndParseEntityConfiguration(entityBaseUrl, EntityConfiguration, options);

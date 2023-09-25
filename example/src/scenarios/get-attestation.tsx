@@ -1,9 +1,8 @@
 import { generate } from "@pagopa/io-react-native-crypto";
 import {
   WalletInstanceAttestation,
-  WalletProviderEntityConfiguration,
   createCryptoContextFor,
-  getEntityConfiguration,
+  getWalletProviderEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 
@@ -14,9 +13,8 @@ export default async (
 ) => {
   try {
     // Obtain Wallet Provider metadata
-    const entityConfiguration = await getEntityConfiguration(
-      walletProviderBaseUrl,
-      WalletProviderEntityConfiguration
+    const entityConfiguration = await getWalletProviderEntityConfiguration(
+      walletProviderBaseUrl
     );
 
     // generate Key for Wallet Instance Attestation

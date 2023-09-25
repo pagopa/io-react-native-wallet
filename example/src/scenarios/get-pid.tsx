@@ -1,9 +1,8 @@
 import { generate } from "@pagopa/io-react-native-crypto";
 import {
-  CredentialIssuerEntityConfiguration,
   PID,
   createCryptoContextFor,
-  getEntityConfiguration,
+  getCredentialIssuerEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getWalletInstanceAttestation from "./get-attestation";
@@ -22,9 +21,8 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
     ).then(toResultOrReject);
 
     // Obtain PID metadata
-    const pidEntityConfiguration = await getEntityConfiguration(
-      pidProviderBaseUrl,
-      CredentialIssuerEntityConfiguration
+    const pidEntityConfiguration = await getCredentialIssuerEntityConfiguration(
+      pidProviderBaseUrl
     );
 
     // Auth Token request

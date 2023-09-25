@@ -7,7 +7,14 @@ import * as RP from "./rp";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as RelyingPartySolution from "./rp";
-import { verifyTrustChain, getEntityConfiguration } from "./trust";
+import {
+  verifyTrustChain,
+  getEntityConfiguration,
+  getCredentialIssuerEntityConfiguration,
+  getRelyingPartyEntityConfiguration,
+  getTrustAnchorEntityConfiguration,
+  getWalletProviderEntityConfiguration,
+} from "./trust";
 import {
   EntityConfiguration,
   EntityStatement,
@@ -26,6 +33,10 @@ export {
   RelyingPartySolution,
   verifyTrustChain,
   getEntityConfiguration,
+  getCredentialIssuerEntityConfiguration,
+  getRelyingPartyEntityConfiguration,
+  getTrustAnchorEntityConfiguration,
+  getWalletProviderEntityConfiguration,
   EntityConfiguration,
   EntityStatement,
   TrustAnchorEntityConfiguration,
