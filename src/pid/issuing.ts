@@ -8,8 +8,8 @@ import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
-import { PidIssuerEntityConfiguration } from "./metadata";
 import {
+  CredentialIssuerEntityConfiguration,
   createCryptoContextFor,
 } from "..";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
@@ -53,7 +53,7 @@ const getPar =
     clientId: string,
     codeVerifier: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
     walletInstanceAttestation: string
   ): Promise<string> => {
     // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
@@ -150,7 +150,7 @@ export const authorizeIssuing =
   async (
     walletInstanceAttestation: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<AuthorizationConf> => {
     // FIXME: do better
     const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
@@ -264,7 +264,7 @@ export const getCredential =
   }) =>
   async (
     { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
     cieData: CieData
   ): Promise<PidResponse> => {
     const signedDPopForPid = await createDPopToken(

@@ -7,15 +7,16 @@ import * as RP from "./rp";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as RelyingPartySolution from "./rp";
-import { RpEntityConfiguration } from "./rp/types";
 import { verifyTrustChain, getEntityConfiguration } from "./trust";
 import {
   EntityConfiguration,
   EntityStatement,
   TrustAnchorEntityConfiguration,
+  WalletProviderEntityConfiguration,
+  RelyingPartyEntityConfiguration,
+  CredentialIssuerEntityConfiguration,
 } from "./trust/types";
 import { createCryptoContextFor } from "./utils/crypto";
-import { PidIssuerEntityConfiguration } from "./pid/metadata";
 
 export {
   PID,
@@ -27,8 +28,9 @@ export {
   getEntityConfiguration,
   EntityConfiguration,
   EntityStatement,
-  RpEntityConfiguration,
-  PidIssuerEntityConfiguration,
   TrustAnchorEntityConfiguration,
   createCryptoContextFor,
+  WalletProviderEntityConfiguration,
+  RelyingPartyEntityConfiguration,
+  CredentialIssuerEntityConfiguration,
 };
