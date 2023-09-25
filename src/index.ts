@@ -15,14 +15,6 @@ import {
   getTrustAnchorEntityConfiguration,
   getWalletProviderEntityConfiguration,
 } from "./trust";
-import {
-  EntityConfiguration,
-  EntityStatement,
-  TrustAnchorEntityConfiguration,
-  WalletProviderEntityConfiguration,
-  RelyingPartyEntityConfiguration,
-  CredentialIssuerEntityConfiguration,
-} from "./trust/types";
 import { createCryptoContextFor } from "./utils/crypto";
 
 export {
@@ -37,11 +29,5 @@ export {
   getRelyingPartyEntityConfiguration,
   getTrustAnchorEntityConfiguration,
   getWalletProviderEntityConfiguration,
-  EntityConfiguration,
-  EntityStatement,
-  TrustAnchorEntityConfiguration,
   createCryptoContextFor,
-  WalletProviderEntityConfiguration,
-  RelyingPartyEntityConfiguration,
-  CredentialIssuerEntityConfiguration,
 };

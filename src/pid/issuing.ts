@@ -8,12 +8,10 @@ import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
-import {
-  CredentialIssuerEntityConfiguration,
-  createCryptoContextFor,
-} from "..";
+import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
+import { createCryptoContextFor } from "../utils/crypto";
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;

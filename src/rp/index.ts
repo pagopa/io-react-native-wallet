@@ -19,7 +19,7 @@ import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
 import { createDPopToken } from "../utils/dpop";
 import { RelyingPartyEntityConfiguration } from "../trust/types";
-import { WalletInstanceAttestation } from "..";
+import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 
 /**
  * Select a RSA public key from those provided by the RP to encrypt.

@@ -8,7 +8,7 @@ import { JWK, fixBase64EncodingOnKey } from "../utils/jwk";
 import { WalletInstanceAttestationRequestJwt } from "./types";
 import uuid from "react-native-uuid";
 import { WalletInstanceAttestationIssuingError } from "../utils/errors";
-import type { WalletProviderEntityConfiguration } from "..";
+import type { WalletProviderEntityConfiguration } from "../trust/types";
 
 async function getAttestationRequest(
   wiaCryptoContext: CryptoContext,
