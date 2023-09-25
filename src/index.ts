@@ -6,17 +6,29 @@ import * as PID from "./pid";
 import * as RP from "./rp";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
-import { getUnsignedDPop } from "./utils/dpop";
-import { RelyingPartySolution } from "./rp";
+import * as RelyingPartySolution from "./rp";
+import { RpEntityConfiguration } from "./rp/types";
 import { verifyTrustChain, getEntityConfiguration } from "./trust";
+import {
+  EntityConfiguration,
+  EntityStatement,
+  TrustAnchorEntityConfiguration,
+} from "./trust/types";
+import { createCryptoContextFor } from "./utils/crypto";
+import { PidIssuerEntityConfiguration } from "./pid/metadata";
 
 export {
   PID,
   RP,
   WalletInstanceAttestation,
   Errors,
-  getUnsignedDPop,
   RelyingPartySolution,
   verifyTrustChain,
   getEntityConfiguration,
+  EntityConfiguration,
+  EntityStatement,
+  RpEntityConfiguration,
+  PidIssuerEntityConfiguration,
+  TrustAnchorEntityConfiguration,
+  createCryptoContextFor,
 };

@@ -15,7 +15,66 @@ npm install @pagopa/io-react-native-wallet
 
 ## Usage
 
+Refer to Example App for actual usages.
+
+<details>
+  <summary>Handling cryptographic assets</summary>
+
+User flows implementions make use of tokens signed using asymmetric key pairs. Such cryptographic keys are managed by the device according to its specifications. It's not the intention of this package to handle such cryptographic assets and their peculiarities; instead, an handy interface is used to provide the right abstraction to allow responsibilities segregation:
+
+- the application knows who to generate/store/delete keys;
+- the package knows when and where to use them.
+
+The interface is `CryptoContext` inherited from the `@pagopa/io-react-native-jwt` package.
+
+This package provides an helper to build a `CryptoContext` object bound to a given key tag
+
+```ts
+import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+
+const ctx = createCryptoContextFor("my-tag");
+```
+
+Be sure the key for `my-tag` already exists.
+
+</details>
+
+<details>
+  <summary>Making HTTP requests</summary>
+
+This package is compatibile with any http client which implements [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Functions that makes http requests allow for an optional `appFetch` parameter to provide a custom http client implementation. If not provided, the built-in implementation on the runtime is used.
+
+</details>
+
 ### PID
+
+#### Issuing
+
+```ts
+import { PID, createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+
+// Obtain PID metadata
+const pidEntityConfiguration = await PID.Issuing.getEntityConfiguration()(
+  pidProviderBaseUrl
+);
+
+// Auth Token request
+const authRequest = PID.Issuing.authorizeIssuing({ wiaCryptoContext });
+const authConf = await authRequest(
+  instanceAttestation,
+  walletProviderBaseUrl,
+  pidEntityConfiguration
+);
+
+// Credential request
+const credentialRequest = PID.Issuing.getCredential({ pidCryptoContext });
+const pid = await credentialRequest(authConf, pidEntityConfiguration, {
+  birthDate: "01/01/1990",
+  fiscalCode: "AAABBB00A00A000A",
+  name: "NAME",
+  surname: "SURNAME",
+});
+```
 
 #### Encode and Decode
 
@@ -34,28 +93,20 @@ PID.SdJwt.verify("<token>");
 #### Issuing
 
 ```ts
-import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
+import {
+  WalletInstanceAttestation,
+  createCryptoContextFor,
+} from "@pagopa/io-react-native-wallet";
+// create crypto contet
+const wiaCryptoContext = createCryptoContextFor("wia-keytag");
 
-const issuing = new WalletInstanceAttestation.Issuing(yourWalletProviderUrl);
+// prepare the request
+const wiaRequest = WalletInstanceAttestation.getAttestation({
+  wiaCryptoContext,
+});
 
-// Generate keys
-const publicKey = await yourCustomPublicKey("TEE_KEY_TAG");
-
-const walletInstanceAttestationRequest =
-  await issuing.getAttestationRequestToSign(publicKey);
-
-//Sign with TEE
-const signature = await yourCustomSignatureFunction(
-  walletInstanceAttestationRequest,
-  "TEE_KEY_TAG"
-);
-
-const walletInstanceAttestation = await issuing.getAttestation(
-  walletInstanceAttestationRequest,
-  signature
-);
-
-console.log(walletInstanceAttestation);
+// request
+const instanceAttestation = await wiaRequest("https://wallet-provider.example");
 ```
 
 #### Encode and Decode
@@ -64,6 +115,31 @@ console.log(walletInstanceAttestation);
 import { WalletInstanceAttestation } from "io-react-native-wallet";
 
 WalletInstanceAttestation.decode("<token>");
+```
+
+### Relying Party
+
+#### Credential presentation
+
+```ts
+import { PID, createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+
+// get request object
+const getRequestObject = RelyingPartySolution.getRequestObject({
+  wiaCryptoContext,
+});
+const requestObj = await getRequestObject(
+  walletInstanceAttestation,
+  authRequestUrl,
+  entityConfiguration
+);
+
+// Submit authorization response
+const sendAuthorizationResponse =
+  RelyingPartySolution.sendAuthorizationResponse({
+    pidCryptoContext,
+  });
+const result = await sendAuthorizationResponse(requestObj, [pidToken, claims]);
 ```
 
 ## Example

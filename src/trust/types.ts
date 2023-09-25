@@ -22,32 +22,47 @@ export const EntityStatement = z.object({
   }),
 });
 
+export type EntityConfigurationHeader = z.infer<
+  typeof EntityConfigurationHeader
+>;
+export const EntityConfigurationHeader = z.object({
+  typ: z.literal("entity-statement+jwt"),
+  alg: z.string(),
+  kid: z.string(),
+});
+
 export type EntityConfiguration = z.infer<typeof EntityConfiguration>;
 export const EntityConfiguration = z.object({
-  header: z.object({
-    typ: z.literal("entity-statement+jwt"),
-    alg: z.string(),
-    kid: z.string(),
-  }),
-  payload: z.object({
-    exp: UnixTime,
-    iat: UnixTime,
-    iss: z.string(),
-    sub: z.string(),
-    jwks: z.object({
-      keys: z.array(JWK),
-    }),
-    metadata: z.object({
-      federation_entity: z.object({
-        organization_name: z.string(),
-        homepage_uri: z.string(),
-        policy_uri: z.string(),
-        logo_uri: z.string(),
-        contacts: z.array(z.string()),
+  header: EntityConfigurationHeader,
+  payload: z
+    .object({
+      exp: UnixTime,
+      iat: UnixTime,
+      iss: z.string(),
+      sub: z.string(),
+      jwks: z.object({
+        keys: z.array(JWK),
       }),
-    }),
-    authority_hints: z.array(z.string()),
-  }),
+      metadata: z
+        .object({
+          federation_entity: z
+            .object({
+              federation_fetch_endpoint: z.string().optional(),
+              federation_list_endpoint: z.string().optional(),
+              federation_resolve_endpoint: z.string().optional(),
+              federation_trust_mark_status_endpoint: z.string().optional(),
+              federation_trust_mark_list_endpoint: z.string().optional(),
+              homepage_uri: z.string().optional(),
+              policy_uri: z.string().optional(),
+              logo_uri: z.string().optional(),
+              contacts: z.array(z.string()).optional(),
+            })
+            .passthrough(),
+        })
+        .passthrough(),
+      authority_hints: z.array(z.string()).optional(),
+    })
+    .passthrough(),
 });
 
 export type TrustAnchorEntityConfiguration = z.infer<
