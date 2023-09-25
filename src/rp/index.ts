@@ -22,7 +22,6 @@ import {
 import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
-import { getEntityConfiguration as getGenericEntityConfiguration } from "../trust";
 import { createDPopToken } from "../utils/dpop";
 import { WalletInstanceAttestation } from "..";
 
@@ -48,17 +47,6 @@ const chooseRSAPublicKeyToEncrypt = (entity: RpEntityConfiguration): JWK => {
     "Encrypt with RP public key"
   );
 };
-
-/**
- * Obtain the relying party entity configuration.
- */
-export const getEntityConfiguration =
-  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] } = {}) =>
-  async (relyingPartyBaseUrl: string): Promise<RpEntityConfiguration> => {
-    return getGenericEntityConfiguration(relyingPartyBaseUrl, {
-      appFetch: appFetch,
-    }).then(RpEntityConfiguration.parse);
-  };
 
 /**
  * Decode a QR code content to an authentication request url.

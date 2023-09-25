@@ -11,7 +11,6 @@ import { createDPopToken } from "../utils/dpop";
 import { PidIssuerEntityConfiguration } from "./metadata";
 import {
   createCryptoContextFor,
-  getEntityConfiguration as getGenericEntityConfiguration,
 } from "..";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
@@ -38,19 +37,6 @@ export type PidResponse = {
   c_nonce_expires_in: number;
   format: string;
 };
-
-/**
- * Obtain the PID provider entity configuration.
- */
-export const getEntityConfiguration =
-  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] } = {}) =>
-  async (
-    relyingPartyBaseUrl: string
-  ): Promise<PidIssuerEntityConfiguration> => {
-    return getGenericEntityConfiguration(relyingPartyBaseUrl, {
-      appFetch: appFetch,
-    }).then(PidIssuerEntityConfiguration.parse);
-  };
 
 /**
  * Make a PAR request to the PID issuer and return the response url
