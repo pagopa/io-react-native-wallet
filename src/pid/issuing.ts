@@ -1,18 +1,20 @@
 import {
-  decode as decodeJwt,
-  verify as verifyJwt,
   sha256ToBase64,
+  type CryptoContext,
+  SignJWT,
+  thumbprint,
 } from "@pagopa/io-react-native-jwt";
-
-import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
-import { PidIssuingError, PidMetadataError } from "../utils/errors";
-import { getUnsignedDPop } from "../utils/dpop";
-import { sign, generate, deleteKey } from "@pagopa/io-react-native-crypto";
+import { PidIssuingError } from "../utils/errors";
+import { createDPopToken } from "../utils/dpop";
 import { PidIssuerEntityConfiguration } from "./metadata";
-import { fixBase64EncodingOnKey } from "./../utils/jwk";
-
+import {
+  createCryptoContextFor,
+  getEntityConfiguration as getGenericEntityConfiguration,
+} from "..";
+import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
+import { SdJwt } from ".";
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -21,7 +23,15 @@ export type CieData = {
   surname: string;
 };
 
-export type TokenResponse = { access_token: string; c_nonce: string };
+export type AuthorizationConf = {
+  accessToken: string;
+  nonce: string;
+  clientId: string;
+  authorizationCode: string;
+  codeVerifier: string;
+  walletProviderBaseUrl: string;
+};
+
 export type PidResponse = {
   credential: string;
   c_nonce: string;
@@ -29,111 +39,93 @@ export type PidResponse = {
   format: string;
 };
 
-export class Issuing {
-  pidProviderBaseUrl: string;
-  walletProviderBaseUrl: string;
-  walletInstanceAttestation: string;
-  codeVerifier: string;
-  clientId: string;
-  state: string;
-  authorizationCode: string;
-  appFetch: GlobalFetch["fetch"];
+/**
+ * Obtain the PID provider entity configuration.
+ */
+export const getEntityConfiguration =
+  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] } = {}) =>
+  async (
+    relyingPartyBaseUrl: string
+  ): Promise<PidIssuerEntityConfiguration> => {
+    return getGenericEntityConfiguration(relyingPartyBaseUrl, {
+      appFetch: appFetch,
+    }).then(PidIssuerEntityConfiguration.parse);
+  };
 
-  constructor(
-    pidProviderBaseUrl: string,
-    walletProviderBaseUrl: string,
-    walletInstanceAttestation: string,
+/**
+ * Make a PAR request to the PID issuer and return the response url
+ */
+const getPar =
+  ({
+    wiaCryptoContext,
+    appFetch = fetch,
+  }: {
+    wiaCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }) =>
+  async (
     clientId: string,
-    appFetch: GlobalFetch["fetch"] = fetch
-  ) {
-    this.pidProviderBaseUrl = pidProviderBaseUrl;
-    this.walletProviderBaseUrl = walletProviderBaseUrl;
-    this.state = `${uuid.v4()}`;
-    this.codeVerifier = `${uuid.v4()}`;
-    this.authorizationCode = `${uuid.v4()}`;
-    this.walletInstanceAttestation = walletInstanceAttestation;
-    this.clientId = clientId;
-    this.appFetch = appFetch;
-  }
+    codeVerifier: string,
+    walletProviderBaseUrl: string,
+    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
+    walletInstanceAttestation: string
+  ): Promise<string> => {
+    // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
+    // The PAR request token is signed used the Wallet Instance Attestation key.
+    // The signature can be verified by reading the public key from the key set shippet with the it will ship the Wallet Instance Attestation;
+    //  key is matched by its kid, which is supposed to be the thumbprint of its public key.
+    const keyThumbprint = await wiaCryptoContext
+      .getPublicKey()
+      .then(JWK.parse)
+      .then(thumbprint);
 
-  /**
-   * Return the unsigned jwt to call the PAR request.
-   *
-   * @function
-   * @param jwk The wallet instance attestation public JWK
-   *
-   * @returns Unsigned jwt
-   *
-   */
-  async getUnsignedJwtForPar(jwk: JWK): Promise<string> {
-    const parsedJwk = JWK.parse(jwk);
-    const keyThumbprint = await thumbprint(parsedJwk);
-    const publicKey = { ...parsedJwk, kid: keyThumbprint };
-    const codeChallenge = await sha256ToBase64(this.codeVerifier);
+    const codeChallenge = await sha256ToBase64(codeVerifier);
 
-    const unsignedJwtForPar = new SignJWT({
-      client_assertion_type:
-        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-      authorization_details: [
-        {
-          credentialDefinition: {
-            type: ["eu.eudiw.pid.it"],
-          },
-          format: "vc+sd-jwt",
-          type: "type",
-        },
-      ],
-      response_type: "code",
-      code_challenge_method: "s256",
-      redirect_uri: this.walletProviderBaseUrl,
-      state: this.state,
-      client_id: this.clientId,
-      code_challenge: codeChallenge,
-    })
+    const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
-        alg: "ES256",
-        kid: publicKey.kid,
+        kid: keyThumbprint,
+      })
+      .setPayload({
+        client_assertion_type:
+          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        authorization_details: [
+          {
+            credentialDefinition: {
+              type: ["eu.eudiw.pid.it"],
+            },
+            format: "vc+sd-jwt",
+            type: "type",
+          },
+        ],
+        response_type: "code",
+        code_challenge_method: "s256",
+        redirect_uri: walletProviderBaseUrl,
+        state: `${uuid.v4()}`,
+        client_id: clientId,
+        code_challenge: codeChallenge,
       })
       .setIssuedAt()
       .setExpirationTime("1h")
-      .toSign();
+      .sign();
 
-    return unsignedJwtForPar;
-  }
-
-  /**
-   * Make a PAR request to the PID issuer and return the response url
-   *
-   * @function
-   * @param unsignedJwtForPar The unsigned JWT for PAR
-   * @param signature The JWT for PAR signature
-   *
-   * @returns Unsigned PAR url
-   *
-   */
-  async getPar(unsignedJwtForPar: string, signature: string): Promise<string> {
-    const codeChallenge = await sha256ToBase64(this.codeVerifier);
-    const signedJwtForPar = await SignJWT.appendSignature(
-      unsignedJwtForPar,
-      signature
-    );
-
-    const parUrl = new URL("/as/par", this.pidProviderBaseUrl).href;
+    const parUrl =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .pushed_authorization_request_endpoint;
 
     const requestBody = {
       response_type: "code",
-      client_id: this.clientId,
+      client_id: clientId,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       client_assertion_type:
         "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-      client_assertion: this.walletInstanceAttestation,
+      client_assertion: walletInstanceAttestation,
       request: signedJwtForPar,
     };
 
     var formBody = new URLSearchParams(requestBody);
 
-    const response = await this.appFetch(parUrl, {
+    const response = await appFetch(parUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -149,61 +141,76 @@ export class Issuing {
     throw new PidIssuingError(
       `Unable to obtain PAR. Response code: ${await response.text()}`
     );
-  }
+  };
 
-  /**
-   * Return the unsigned jwt for a generic DPoP
-   *
-   * @function
-   * @param jwk the public key for which the DPoP is to be created
-   *
-   * @returns Unsigned JWT for DPoP
-   *
-   */
-  async getUnsignedDPoP(jwk: JWK): Promise<string> {
-    const tokenUrl = new URL("/token", this.pidProviderBaseUrl).href;
-    const dPop = getUnsignedDPop(fixBase64EncodingOnKey(jwk), {
-      htm: "POST",
-      htu: tokenUrl,
-      jti: `${uuid.v4()}`,
-    });
-    return dPop;
-  }
+/**
+ * Start the issuing flow by generating an authorization request to the PID Provider. Obtain from the PID Provider an access token to be used to complete the issuing flow.
+ *
+ * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
+ * @param params.appFetch (optional) Http client
+ * @param walletInstanceAttestation Wallet Instance Attestation token.
+ * @param walletProviderBaseUrl Base url for the Wallet Provider
+ * @param pidProviderEntityConfiguration The Entity Configuration of the PID Provider, from which discover public endooints.
+ * @returns The access token along with the values that identify the issuing session.
+ */
+export const authorizeIssuing =
+  ({
+    wiaCryptoContext,
+    appFetch = fetch,
+  }: {
+    wiaCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }) =>
+  async (
+    walletInstanceAttestation: string,
+    walletProviderBaseUrl: string,
+    pidProviderEntityConfiguration: PidIssuerEntityConfiguration
+  ): Promise<AuthorizationConf> => {
+    // FIXME: do better
+    const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
+    const codeVerifier = `${uuid.v4()}`;
+    const authorizationCode = `${uuid.v4()}`;
+    const tokenUrl =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .token_endpoint;
 
-  /**
-   * Make an auth token request to the PID issuer
-   *
-   * @function
-   * @returns a token response
-   *
-   */
-  async getAuthToken(): Promise<TokenResponse> {
-    //Generate fresh keys for DPoP
-    const dPopKeyTag = `${uuid.v4()}`;
-    const dPopKey = await generate(dPopKeyTag);
-    const unsignedDPopForToken = await this.getUnsignedDPoP(dPopKey);
-    const dPopTokenSignature = await sign(unsignedDPopForToken, dPopKeyTag);
-    await deleteKey(dPopKeyTag);
-
-    const signedDPop = await SignJWT.appendSignature(
-      unsignedDPopForToken,
-      dPopTokenSignature
+    await getPar({ wiaCryptoContext, appFetch })(
+      clientId,
+      codeVerifier,
+      walletProviderBaseUrl,
+      pidProviderEntityConfiguration,
+      walletInstanceAttestation
     );
-    const decodedJwtDPop = decodeJwt(signedDPop);
-    const tokenUrl = decodedJwtDPop.payload.htu as string;
+
+    // Use an ephemeral key to be destroyed after use
+    const keytag = `ephemeral-${uuid.v4()}`;
+    await generate(keytag);
+    const ephemeralContext = createCryptoContextFor(keytag);
+
+    const signedDPop = await createDPopToken(
+      {
+        htm: "POST",
+        htu: tokenUrl,
+        jti: `${uuid.v4()}`,
+      },
+      ephemeralContext
+    );
+
+    await deleteKey(keytag);
+
     const requestBody = {
       grant_type: "authorization code",
-      client_id: this.clientId,
-      code: this.authorizationCode,
-      code_verifier: this.codeVerifier,
+      client_id: clientId,
+      code: authorizationCode,
+      code_verifier: codeVerifier,
       client_assertion_type:
         "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-      client_assertion: this.walletInstanceAttestation,
-      redirect_uri: this.walletProviderBaseUrl,
+      client_assertion: walletInstanceAttestation,
+      redirect_uri: walletProviderBaseUrl,
     };
     var formBody = new URLSearchParams(requestBody);
 
-    const response = await this.appFetch(tokenUrl, {
+    const response = await appFetch(tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -213,70 +220,86 @@ export class Issuing {
     });
 
     if (response.status === 200) {
-      return await response.json();
+      const { c_nonce, access_token } = await response.json();
+      return {
+        accessToken: access_token,
+        nonce: c_nonce,
+        clientId,
+        codeVerifier,
+        authorizationCode,
+        walletProviderBaseUrl,
+      };
     }
 
     throw new PidIssuingError(
       `Unable to obtain token. Response code: ${await response.text()}`
     );
-  }
+  };
 
-  /**
-   * Return the unsigned jwt for nonce proof of possession
-   *
-   * @function
-   * @param nonce the nonce
-   *
-   * @returns Unsigned JWT for nonce proof
-   *
-   */
-  async getUnsignedNonceProof(nonce: string): Promise<string> {
-    const unsignedProof = new SignJWT({
+/**
+ * Return the signed jwt for nonce proof of possession
+ */
+const createNonceProof = async (
+  nonce: string,
+  issuer: string,
+  audience: string,
+  ctx: CryptoContext
+): Promise<string> => {
+  return new SignJWT(ctx)
+    .setPayload({
       nonce,
     })
-      .setProtectedHeader({
-        alg: "ES256",
-        type: "openid4vci-proof+jwt",
-      })
-      .setAudience(this.walletProviderBaseUrl)
-      .setIssuer(this.clientId)
-      .setIssuedAt()
-      .setExpirationTime("1h")
-      .toSign();
-    return unsignedProof;
-  }
+    .setProtectedHeader({
+      type: "openid4vci-proof+jwt",
+    })
+    .setAudience(audience)
+    .setIssuer(issuer)
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
+};
 
-  /**
-   * Make the credential issuing request to the PID issuer
-   *
-   * @function
-   * @param unsignedDPopForPid The unsigned JWT for PID DPoP
-   * @param dPopPidSignature The JWT for PID DPoP signature
-   * @param unsignedNonceProof The unsigned JWT for nonce proof
-   * @param nonceProofSignature The JWT for nonce proof signature
-   * @param accessToken The access token obtained with getAuthToken
-   * @param cieData Personal data read by the CIE
-   *
-   * @returns a credential
-   *
-   */
-  async getCredential(
-    unsignedDPopForPid: string,
-    dPopPidSignature: string,
-    unsignedNonceProof: string,
-    nonceProofSignature: string,
-    accessToken: string,
+/**
+ * Complete the issuing flow and get the PID credential.
+ *
+ * @param params.pidCryptoContext The key pair associated with the PID. Will be use to prove the ownership of the credential.
+ * @param params.appFetch (optional) Http client
+ * @param authConf The authorization configuration retrieved with the access token
+ * @param cieData Data red from the CIE login process
+ * @returns The PID credential token
+ */
+export const getCredential =
+  ({
+    pidCryptoContext,
+    appFetch = fetch,
+  }: {
+    pidCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }) =>
+  async (
+    { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
+    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
     cieData: CieData
-  ): Promise<PidResponse> {
-    const signedDPopForPid = await SignJWT.appendSignature(
-      unsignedDPopForPid,
-      dPopPidSignature
+  ): Promise<PidResponse> => {
+    const signedDPopForPid = await createDPopToken(
+      {
+        htm: "POST",
+        htu: pidProviderEntityConfiguration.payload.metadata
+          .openid_credential_issuer.token_endpoint,
+        jti: `${uuid.v4()}`,
+      },
+      pidCryptoContext
     );
-    const signedNonceProof = await SignJWT.appendSignature(
-      unsignedNonceProof,
-      nonceProofSignature
+    const signedNonceProof = await createNonceProof(
+      nonce,
+      clientId,
+      walletProviderBaseUrl,
+      pidCryptoContext
     );
-    const credentialUrl = new URL("/credential", this.pidProviderBaseUrl).href;
+
+    const credentialUrl =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .credential_endpoint;
 
     const requestBody = {
       credential_definition: JSON.stringify({ type: ["eu.eudiw.pid.it"] }),
@@ -289,7 +312,7 @@ export class Issuing {
     };
     const formBody = new URLSearchParams(requestBody);
 
-    const response = await this.appFetch(credentialUrl, {
+    const response = await appFetch(credentialUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -300,44 +323,28 @@ export class Issuing {
     });
 
     if (response.status === 200) {
-      return await response.json();
+      const pidResponse = (await response.json()) as PidResponse;
+      await validatePid(pidResponse.credential, pidCryptoContext);
+      return pidResponse;
     }
 
-    throw new PidIssuingError(`Unable to obtain credential!`);
-  }
-
-  /**
-   * Obtain the PID issuer metadata
-   *
-   * @function
-   * @returns PID issuer metadata
-   *
-   */
-  async getEntityConfiguration(): Promise<PidIssuerEntityConfiguration> {
-    const metadataUrl = new URL(
-      "ci/.well-known/openid-federation",
-      this.pidProviderBaseUrl
-    ).href;
-
-    const response = await this.appFetch(metadataUrl);
-
-    if (response.status === 200) {
-      const jwtMetadata = await response.text();
-      const { payload } = decodeJwt(jwtMetadata);
-      const result = PidIssuerEntityConfiguration.safeParse(payload);
-      if (result.success) {
-        const parsedMetadata = result.data;
-        await verifyJwt(jwtMetadata, parsedMetadata.jwks.keys);
-        return parsedMetadata;
-      } else {
-        throw new PidMetadataError(result.error.message);
-      }
-    }
-
-    throw new PidMetadataError(
-      `Unable to obtain PID metadata. Response: ${await response.text()} with status: ${
+    throw new PidIssuingError(
+      `Unable to obtain credential! url=${credentialUrl} status=${
         response.status
-      }`
+      } body=${await response.text()}`
+    );
+  };
+
+const validatePid = async (pidJwt: string, pidCryptoContext: CryptoContext) => {
+  const decoded = SdJwt.decode(pidJwt);
+  const pidKey = await pidCryptoContext.getPublicKey();
+  const holderBindedKey = decoded.sdJwt.payload.cnf.jwk;
+
+  if ((await thumbprint(pidKey)) !== (await thumbprint(holderBindedKey))) {
+    throw new PidIssuingError(
+      `The obtained pid does not seem to be valid according to your configuration. Your PID public key is: ${JSON.stringify(
+        pidKey
+      )} but PID holder binded key is: ${JSON.stringify(holderBindedKey)}`
     );
   }
-}
+};

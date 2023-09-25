@@ -7,7 +7,7 @@ import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 import { decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
 import { verifyDisclosure } from "./verifier";
-import type { JWK } from "src/utils/jwk";
+import type { JWK } from "../utils/jwk";
 import {
   ClaimsNotFoundBetweenDislosures,
   ClaimsNotFoundInToken,

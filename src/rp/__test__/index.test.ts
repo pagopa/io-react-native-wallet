@@ -1,4 +1,4 @@
-import { RelyingPartySolution } from "..";
+import * as RelyingPartySolution from "..";
 import { AuthRequestDecodeError } from "../../utils/errors";
 import { RpEntityConfiguration } from "../types";
 
