@@ -51,29 +51,38 @@ This package is compatibile with any http client which implements [Fetch API](ht
 #### Issuing
 
 ```ts
-import { PID, createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+import {
+  PID,
+  createCryptoContextFor,
+  getCredentialIssuerEntityConfiguration,
+} from "@pagopa/io-react-native-wallet";
 
 // Obtain PID metadata
-const pidEntityConfiguration = await PID.Issuing.getEntityConfiguration()(
-  pidProviderBaseUrl
+const pidEntityConfiguration = await getCredentialIssuerEntityConfiguration(
+  "https://pid-provider.example"
 );
 
 // Auth Token request
 const authRequest = PID.Issuing.authorizeIssuing({ wiaCryptoContext });
 const authConf = await authRequest(
-  instanceAttestation,
-  walletProviderBaseUrl,
+  /* signed instance attestation */ instanceAttestation,
+  /* the relative wallet provided */ walletProviderBaseUrl,
   pidEntityConfiguration
 );
 
 // Credential request
 const credentialRequest = PID.Issuing.getCredential({ pidCryptoContext });
-const pid = await credentialRequest(authConf, pidEntityConfiguration, {
-  birthDate: "01/01/1990",
-  fiscalCode: "AAABBB00A00A000A",
-  name: "NAME",
-  surname: "SURNAME",
-});
+const pid = await credentialRequest(
+  authConf,
+  pidEntityConfiguration,
+  /* Some personal data */
+  {
+    birthDate: "01/01/1990",
+    fiscalCode: "AAABBB00A00A000A",
+    name: "NAME",
+    surname: "SURNAME",
+  }
+);
 ```
 
 #### Encode and Decode
@@ -96,17 +105,23 @@ PID.SdJwt.verify("<token>");
 import {
   WalletInstanceAttestation,
   createCryptoContextFor,
+  getWalletProviderEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
-// create crypto contet
+// create crypto context for the key pair associated with the Wallet Instance Attestation
 const wiaCryptoContext = createCryptoContextFor("wia-keytag");
+
+// obtain Wallet Provider metadata
+const entityConfiguration = await getWalletProviderEntityConfiguration(
+  "https://wallet-provider.example"
+);
 
 // prepare the request
 const wiaRequest = WalletInstanceAttestation.getAttestation({
   wiaCryptoContext,
 });
 
-// request
-const instanceAttestation = await wiaRequest("https://wallet-provider.example");
+// request the signed Wallet Instance Attestation to the Wallet Provider
+const signedWIA = await wiaRequest(entityConfiguration);
 ```
 
 #### Encode and Decode
@@ -119,18 +134,32 @@ WalletInstanceAttestation.decode("<token>");
 
 ### Relying Party
 
-#### Credential presentation
+#### Credential presentation (PID)
 
 ```ts
-import { PID, createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+import {
+  RelyingPartySolution,
+  createCryptoContextFor,
+  getRelyingPartyEntityConfiguration,
+} from "@pagopa/io-react-native-wallet";
+
+// create crypto context for the key pair associated with the Wallet Instance Attestation
+const wiaCryptoContext = createCryptoContextFor("wia-keytag");
+// create crypto context for the key pair associated with PID stored in the device
+const pidCryptoContext = createCryptoContextFor("pid-keytag");
+
+// resolve RP's entity configuration
+const entityConfiguration = await getRelyingPartyEntityConfiguration(
+  "https://relying-party.example"
+);
 
 // get request object
 const getRequestObject = RelyingPartySolution.getRequestObject({
   wiaCryptoContext,
 });
 const requestObj = await getRequestObject(
-  walletInstanceAttestation,
-  authRequestUrl,
+  /* signed instance attestation */ walletInstanceAttestation,
+  /* url to request authorization to */ authorizationUrl,
   entityConfiguration
 );
 
@@ -139,7 +168,11 @@ const sendAuthorizationResponse =
   RelyingPartySolution.sendAuthorizationResponse({
     pidCryptoContext,
   });
-const result = await sendAuthorizationResponse(requestObj, [pidToken, claims]);
+
+const result = await sendAuthorizationResponse(requestObj, [
+  /* signed PID token */ pidToken,
+  /* array of claims to disclose from PID */ claims,
+]);
 ```
 
 ## Example
