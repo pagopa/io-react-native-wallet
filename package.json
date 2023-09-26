@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-react-native-wallet",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Provide data structures, helpers and API for IO Wallet",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
