@@ -37,6 +37,7 @@ export const PidIssuerEntityConfiguration = EntityConfiguration.and(
               display: z.array(PidDisplayMetadata),
             })
           ),
+          jwks: z.object({ keys: z.array(JWK) }),
         }),
         federation_entity: z.object({
           organization_name: z.string(),
