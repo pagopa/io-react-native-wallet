@@ -111,6 +111,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           dpop_signing_alg_values_supported: z.array(z.string()),
           credential_endpoint: z.string(),
           credentials_supported: z.array(SupportedCredentialMetadata),
+          jwks: z.object({ keys: z.array(JWK) }),
         }),
       }),
     }),
