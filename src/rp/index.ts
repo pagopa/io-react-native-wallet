@@ -12,19 +12,14 @@ import {
   verify,
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
-import {
-  QRCodePayload,
-  RequestObject,
-  RpEntityConfiguration,
-  type Presentation,
-} from "./types";
+import { QRCodePayload, RequestObject, type Presentation } from "./types";
 
 import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { disclose } from "../sd-jwt";
-import { getEntityConfiguration as getGenericEntityConfiguration } from "../trust";
 import { createDPopToken } from "../utils/dpop";
-import { WalletInstanceAttestation } from "..";
+import { RelyingPartyEntityConfiguration } from "../trust/types";
+import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 
 /**
  * Select a RSA public key from those provided by the RP to encrypt.
@@ -33,7 +28,9 @@ import { WalletInstanceAttestation } from "..";
  * @returns A suitable public key with its compatible encryption algorithm
  * @throws {NoSuitableKeysFoundInEntityConfiguration} If entity do not contain any public key suitable for encrypting
  */
-const chooseRSAPublicKeyToEncrypt = (entity: RpEntityConfiguration): JWK => {
+const chooseRSAPublicKeyToEncrypt = (
+  entity: RelyingPartyEntityConfiguration
+): JWK => {
   const [usingRsa256] =
     entity.payload.metadata.wallet_relying_party.jwks.filter(
       (jwk) => jwk.use === "enc" && jwk.kty === "RSA"
@@ -48,17 +45,6 @@ const chooseRSAPublicKeyToEncrypt = (entity: RpEntityConfiguration): JWK => {
     "Encrypt with RP public key"
   );
 };
-
-/**
- * Obtain the relying party entity configuration.
- */
-export const getEntityConfiguration =
-  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] } = {}) =>
-  async (relyingPartyBaseUrl: string): Promise<RpEntityConfiguration> => {
-    return getGenericEntityConfiguration(relyingPartyBaseUrl, {
-      appFetch: appFetch,
-    }).then(RpEntityConfiguration.parse);
-  };
 
 /**
  * Decode a QR code content to an authentication request url.
@@ -92,7 +78,7 @@ export const decodeAuthRequestQR = (qrcode: string): QRCodePayload => {
 
 export type RequestObjectConf = {
   requestObject: RequestObject;
-  rpEntityConfiguration: RpEntityConfiguration;
+  rpEntityConfiguration: RelyingPartyEntityConfiguration;
   walletInstanceAttestation: string;
 };
 
@@ -111,7 +97,7 @@ export const getRequestObject =
   async (
     walletInstanceAttestation: string,
     requestUri: string,
-    rpEntityConfiguration: RpEntityConfiguration
+    rpEntityConfiguration: RelyingPartyEntityConfiguration
   ): Promise<RequestObjectConf> => {
     const signedWalletInstanceDPoP = await createDPopToken(
       {

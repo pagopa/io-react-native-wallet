@@ -1,6 +1,6 @@
+import { RelyingPartyEntityConfiguration } from "../../trust/types";
 import * as RelyingPartySolution from "..";
 import { AuthRequestDecodeError } from "../../utils/errors";
-import { RpEntityConfiguration } from "../types";
 
 describe("decodeAuthRequestQR", () => {
   it("should return authentication request URL", async () => {
@@ -239,7 +239,7 @@ describe("RpEntityConfiguration", () => {
         ],
       },
     };
-    const result = RpEntityConfiguration.safeParse(pp);
+    const result = RelyingPartyEntityConfiguration.safeParse(pp);
     if (result.success === false) {
       throw result.error;
     }

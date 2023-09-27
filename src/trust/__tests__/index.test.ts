@@ -1,5 +1,21 @@
-import { EntityConfiguration } from "../types";
-import { verifyTrustChain } from "..";
+// helper to assert type
+const testType = <T>(_: T) => true;
+
+import {
+  CredentialIssuerEntityConfiguration,
+  EntityConfiguration,
+  RelyingPartyEntityConfiguration,
+  TrustAnchorEntityConfiguration,
+  WalletProviderEntityConfiguration,
+} from "../types";
+import {
+  getCredentialIssuerEntityConfiguration,
+  getEntityConfiguration,
+  getRelyingPartyEntityConfiguration,
+  getTrustAnchorEntityConfiguration,
+  getWalletProviderEntityConfiguration,
+  verifyTrustChain,
+} from "..";
 import {
   intermediateEntityStatement,
   leafEntityConfiguration,
@@ -7,6 +23,8 @@ import {
   signed,
   trustAnchorEntityConfiguration,
 } from "../__mocks__/entity-statements";
+
+import * as mockEC from "../__mocks__/entity-configurations";
 
 describe("verifyTrustChain", () => {
   it("should throw on empty trust chain", async () => {
@@ -128,4 +146,141 @@ describe("EntityConfiguration", () => {
       withAdditionalField.payload.metadata.additional_field
     );
   });
+});
+
+// helper to get a fetch instance that returns a static value
+const fetchAlways = <T>(status: number, value: T) =>
+  (async () => ({
+    status,
+    text: () => Promise.resolve(value),
+  })) as unknown as GlobalFetch["fetch"];
+
+describe("getEntityConfiguration", () => {
+  it("should fetch a valid trust anchor entity configuration", async () => {
+    const result = await getTrustAnchorEntityConfiguration(
+      "https://example.com",
+      {
+        appFetch: fetchAlways(200, mockEC.trustAnchorSignedEntityConfiguration),
+      }
+    );
+
+    // ok
+    testType<TrustAnchorEntityConfiguration>(result);
+    // @ts-expect-error because incompatible types
+    testType<WalletProviderEntityConfiguration>(result);
+    // TrustAnchorEntityConfiguration is also a EntityConfiguration
+    testType<EntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it("should fetch a valid wallet provider entity configuration", async () => {
+    const result = await getWalletProviderEntityConfiguration(
+      "https://example.com",
+      {
+        appFetch: fetchAlways(
+          200,
+          mockEC.walletProviderSignedEntityConfiguration
+        ),
+      }
+    );
+
+    // OK
+    testType<WalletProviderEntityConfiguration>(result);
+    // OK because the type TrustAnchorEntityConfiguration contains WalletProviderEntityConfiguration
+    testType<TrustAnchorEntityConfiguration>(result);
+    // OK: TrustAnchorEntityConfiguration is also a EntityConfiguration
+    testType<EntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it("should fetch a valid credential provider entity configuration", async () => {
+    const result = await getCredentialIssuerEntityConfiguration(
+      "https://example.com",
+      {
+        appFetch: fetchAlways(
+          200,
+          mockEC.credentialProviderSignedEntityConfiguration
+        ),
+      }
+    );
+
+    // OK
+    testType<CredentialIssuerEntityConfiguration>(result);
+    // OK because the type TrustAnchorEntityConfiguration contains WalletProviderEntityConfiguration
+    testType<TrustAnchorEntityConfiguration>(result);
+    // OK: TrustAnchorEntityConfiguration is also a EntityConfiguration
+    testType<EntityConfiguration>(result);
+    // @ts-expect-error because the type CredentialIssuerEntityConfiguration is not compatible with WalletProviderEntityConfiguration
+    testType<WalletProviderEntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it("should fetch a valid relying party entity configuration", async () => {
+    const result = await getRelyingPartyEntityConfiguration(
+      "https://example.com",
+      {
+        appFetch: fetchAlways(
+          200,
+          mockEC.relyingPartySignedEntityConfiguration
+        ),
+      }
+    );
+
+    // OK
+    testType<RelyingPartyEntityConfiguration>(result);
+    // OK because the type TrustAnchorEntityConfiguration contains WalletProviderEntityConfiguration
+    testType<TrustAnchorEntityConfiguration>(result);
+    // OK: TrustAnchorEntityConfiguration is also a EntityConfiguration
+    testType<EntityConfiguration>(result);
+    // @ts-expect-error because the type RelyingPartyEntityConfiguration is not compatible with WalletProviderEntityConfiguration
+    testType<WalletProviderEntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it("should accept a generic entity configuration", async () => {
+    const result = await getEntityConfiguration("https://example.com", {
+      appFetch: fetchAlways(
+        200,
+        /* any EC will do */ mockEC.relyingPartySignedEntityConfiguration
+      ),
+    });
+
+    // @ts-expect-error because the type is not narrowed
+    testType<RelyingPartyEntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it.failing("when an invalid entity configuration is provided", async () => {
+    const result = await getEntityConfiguration("https://example.com", {
+      appFetch: fetchAlways(200, { invalid: true }),
+    });
+
+    // @ts-expect-error because the type is not narrowed
+    testType<RelyingPartyEntityConfiguration>(result);
+
+    expect(result).toBeDefined();
+  });
+
+  it.failing(
+    "when an entity configuration whose type do not matches is provided",
+    async () => {
+      const result = await getWalletProviderEntityConfiguration(
+        "https://example.com",
+        {
+          appFetch: fetchAlways(
+            200,
+            // expecting to fetch a Wallet Provider EC, retrieving a Reying Party one
+            mockEC.relyingPartySignedEntityConfiguration
+          ),
+        }
+      );
+
+      expect(result).toBeDefined();
+    }
+  );
 });

@@ -8,13 +8,11 @@ import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
-import { PidIssuerEntityConfiguration } from "./metadata";
-import {
-  createCryptoContextFor,
-  getEntityConfiguration as getGenericEntityConfiguration,
-} from "..";
+import { CredentialIssuerEntityConfiguration } from "../trust/types";
+import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
+import { createCryptoContextFor } from "../utils/crypto";
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -39,18 +37,8 @@ export type PidResponse = {
   format: string;
 };
 
-/**
- * Obtain the PID provider entity configuration.
- */
-export const getEntityConfiguration =
-  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] } = {}) =>
-  async (
-    relyingPartyBaseUrl: string
-  ): Promise<PidIssuerEntityConfiguration> => {
-    return getGenericEntityConfiguration(relyingPartyBaseUrl, {
-      appFetch: appFetch,
-    }).then(PidIssuerEntityConfiguration.parse);
-  };
+const assertionType =
+  "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation";
 
 /**
  * Make a PAR request to the PID issuer and return the response url
@@ -67,7 +55,7 @@ const getPar =
     clientId: string,
     codeVerifier: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
     walletInstanceAttestation: string
   ): Promise<string> => {
     // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
@@ -79,6 +67,9 @@ const getPar =
       .then(JWK.parse)
       .then(thumbprint);
 
+    const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
+      .payload.cnf.jwk.kid;
+
     const codeChallenge = await sha256ToBase64(codeVerifier);
 
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
@@ -86,15 +77,17 @@ const getPar =
         kid: keyThumbprint,
       })
       .setPayload({
-        client_assertion_type:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        iss,
+        aud: pidProviderEntityConfiguration.payload.iss,
+        jti: `${uuid.v4()}`,
+        client_assertion_type: assertionType,
         authorization_details: [
           {
-            credentialDefinition: {
-              type: ["eu.eudiw.pid.it"],
+            credential_definition: {
+              type: "PersonIdentificationData",
             },
             format: "vc+sd-jwt",
-            type: "type",
+            type: "openid_credential",
           },
         ],
         response_type: "code",
@@ -117,8 +110,7 @@ const getPar =
       client_id: clientId,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
-      client_assertion_type:
-        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      client_assertion_type: assertionType,
       client_assertion: walletInstanceAttestation,
       request: signedJwtForPar,
     };
@@ -164,7 +156,7 @@ export const authorizeIssuing =
   async (
     walletInstanceAttestation: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<AuthorizationConf> => {
     // FIXME: do better
     const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
@@ -203,8 +195,7 @@ export const authorizeIssuing =
       client_id: clientId,
       code: authorizationCode,
       code_verifier: codeVerifier,
-      client_assertion_type:
-        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      client_assertion_type: assertionType,
       client_assertion: walletInstanceAttestation,
       redirect_uri: walletProviderBaseUrl,
     };
@@ -248,6 +239,7 @@ const createNonceProof = async (
   return new SignJWT(ctx)
     .setPayload({
       nonce,
+      jwk: await ctx.getPublicKey(),
     })
     .setProtectedHeader({
       type: "openid4vci-proof+jwt",
@@ -278,7 +270,7 @@ export const getCredential =
   }) =>
   async (
     { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
     cieData: CieData
   ): Promise<PidResponse> => {
     const signedDPopForPid = await createDPopToken(
@@ -302,7 +294,9 @@ export const getCredential =
         .credential_endpoint;
 
     const requestBody = {
-      credential_definition: JSON.stringify({ type: ["eu.eudiw.pid.it"] }),
+      credential_definition: JSON.stringify({
+        type: ["PersonIdentificationData"],
+      }),
       format: "vc+sd-jwt",
       proof: JSON.stringify({
         jwt: signedNonceProof,

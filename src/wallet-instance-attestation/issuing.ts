@@ -8,10 +8,11 @@ import { JWK, fixBase64EncodingOnKey } from "../utils/jwk";
 import { WalletInstanceAttestationRequestJwt } from "./types";
 import uuid from "react-native-uuid";
 import { WalletInstanceAttestationIssuingError } from "../utils/errors";
+import type { WalletProviderEntityConfiguration } from "../trust/types";
 
 async function getAttestationRequest(
   wiaCryptoContext: CryptoContext,
-  walletProviderBaseUrl: string
+  walletProviderEntityConfiguration: WalletProviderEntityConfiguration
 ): Promise<string> {
   const jwk = await wiaCryptoContext.getPublicKey();
   const parsedJwk = JWK.parse(jwk);
@@ -21,7 +22,7 @@ async function getAttestationRequest(
   return new SignJWT(wiaCryptoContext)
     .setPayload({
       iss: keyThumbprint,
-      aud: walletProviderBaseUrl,
+      aud: walletProviderEntityConfiguration.payload.iss,
       jti: `${uuid.v4()}`,
       nonce: `${uuid.v4()}`,
       cnf: {
@@ -32,16 +33,6 @@ async function getAttestationRequest(
       kid: publicKey.kid,
       typ: "wiar+jwt",
     })
-    .setPayload({
-      iss: keyThumbprint,
-      sub: walletProviderBaseUrl,
-      jti: `${uuid.v4()}`,
-      type: "WalletInstanceAttestationRequest",
-      cnf: {
-        jwk: fixBase64EncodingOnKey(publicKey),
-      },
-    })
-
     .setIssuedAt()
     .setExpirationTime("1h")
     .sign();
@@ -63,10 +54,12 @@ export const getAttestation =
     wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }) =>
-  async (walletProviderBaseUrl: string): Promise<string> => {
+  async (
+    walletProviderEntityConfiguration: WalletProviderEntityConfiguration
+  ): Promise<string> => {
     const signedAttestationRequest = await getAttestationRequest(
       wiaCryptoContext,
-      walletProviderBaseUrl
+      walletProviderEntityConfiguration
     );
 
     const decodedRequest = decodeJwt(signedAttestationRequest);
@@ -78,7 +71,9 @@ export const getAttestation =
 
     await verifyJwt(signedAttestationRequest, publicKey);
 
-    const tokenUrl = new URL("token", walletProviderBaseUrl).href;
+    const tokenUrl =
+      walletProviderEntityConfiguration.payload.metadata.wallet_provider
+        .token_endpoint;
     const requestBody = {
       grant_type:
         "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation",
