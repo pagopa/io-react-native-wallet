@@ -12,7 +12,11 @@ import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
+<<<<<<< Updated upstream
 import { createCryptoContextFor } from "../utils/crypto";
+=======
+
+>>>>>>> Stashed changes
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -136,6 +140,42 @@ const getPar =
   };
 
 /**
+ * Make an authorization request
+ */
+const getAuthenticationRequest =
+  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] }) =>
+  async (
+    clientId: string,
+    requestUri: string,
+    pidProviderEntityConfiguration: PidIssuerEntityConfiguration
+  ): Promise<string> => {
+    const authzRequestEndpoint =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .authorization_endpoint;
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      request_uri: requestUri,
+    });
+
+    const response = await appFetch(authzRequestEndpoint + "?" + params, {
+      method: "GET",
+    });
+
+    console.log(response.status);
+    if (response.status === 302) {
+      const redirect = await response.headers.get("Location");
+      if (redirect) {
+        return redirect;
+      }
+    }
+
+    throw new PidIssuingError(
+      `Unable to obtain Authorization Request. Response code: ${await response.text()}`
+    );
+  };
+
+/**
  * Start the issuing flow by generating an authorization request to the PID Provider. Obtain from the PID Provider an access token to be used to complete the issuing flow.
  *
  * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
@@ -166,14 +206,22 @@ export const authorizeIssuing =
       pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .token_endpoint;
 
-    await getPar({ wiaCryptoContext, appFetch })(
+    const requestUri = await getPar({ wiaCryptoContext, appFetch })(
       clientId,
       codeVerifier,
       walletProviderBaseUrl,
       pidProviderEntityConfiguration,
       walletInstanceAttestation
     );
+    /*
+    const authzRequest = await getAuthenticationRequest({ appFetch })(
+      clientId,
+      requestUri,
+      pidProviderEntityConfiguration
+    );
 
+    console.log("authzRequest", authzRequest);
+    */
     // Use an ephemeral key to be destroyed after use
     const keytag = `ephemeral-${uuid.v4()}`;
     await generate(keytag);
