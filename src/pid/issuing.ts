@@ -12,11 +12,7 @@ import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
-<<<<<<< Updated upstream
 import { createCryptoContextFor } from "../utils/crypto";
-=======
-
->>>>>>> Stashed changes
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -147,7 +143,7 @@ const getAuthenticationRequest =
   async (
     clientId: string,
     requestUri: string,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<string> => {
     const authzRequestEndpoint =
       pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
@@ -213,15 +209,16 @@ export const authorizeIssuing =
       pidProviderEntityConfiguration,
       walletInstanceAttestation
     );
+
     /*
-    const authzRequest = await getAuthenticationRequest({ appFetch })(
+    const authenticationRequest = await getAuthenticationRequest({})(
       clientId,
       requestUri,
       pidProviderEntityConfiguration
     );
-
-    console.log("authzRequest", authzRequest);
+    console.log(authenticationRequest);
     */
+
     // Use an ephemeral key to be destroyed after use
     const keytag = `ephemeral-${uuid.v4()}`;
     await generate(keytag);
