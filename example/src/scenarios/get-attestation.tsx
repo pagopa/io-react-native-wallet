@@ -2,6 +2,7 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import {
   WalletInstanceAttestation,
   createCryptoContextFor,
+  getWalletProviderEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 
@@ -11,6 +12,11 @@ export default async (
   walletInstanceKeyTag = Math.random().toString(36).substr(2, 5)
 ) => {
   try {
+    // Obtain Wallet Provider metadata
+    const entityConfiguration = await getWalletProviderEntityConfiguration(
+      walletProviderBaseUrl
+    );
+
     // generate Key for Wallet Instance Attestation
     // ensure the key esists befor starting the issuing process
     await generate(walletInstanceKeyTag);
@@ -21,7 +27,7 @@ export default async (
     });
 
     // generate Wallet Instance Attestation
-    const instanceAttestation = await issuingAttestation(walletProviderBaseUrl);
+    const instanceAttestation = await issuingAttestation(entityConfiguration);
 
     return result(instanceAttestation);
   } catch (e) {

@@ -8,14 +8,11 @@ import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
-import { PidIssuerEntityConfiguration } from "./metadata";
-import {
-  WalletInstanceAttestation,
-  createCryptoContextFor,
-  getEntityConfiguration as getGenericEntityConfiguration,
-} from "..";
+import { CredentialIssuerEntityConfiguration } from "../trust/types";
+import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
+import { createCryptoContextFor } from "../utils/crypto";
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -44,19 +41,6 @@ const assertionType =
   "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation";
 
 /**
- * Obtain the PID provider entity configuration.
- */
-export const getEntityConfiguration =
-  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] } = {}) =>
-  async (
-    relyingPartyBaseUrl: string
-  ): Promise<PidIssuerEntityConfiguration> => {
-    return getGenericEntityConfiguration(relyingPartyBaseUrl, {
-      appFetch: appFetch,
-    }).then(PidIssuerEntityConfiguration.parse);
-  };
-
-/**
  * Make a PAR request to the PID issuer and return the response url
  */
 const getPar =
@@ -71,7 +55,7 @@ const getPar =
     clientId: string,
     codeVerifier: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
     walletInstanceAttestation: string
   ): Promise<string> => {
     // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
@@ -172,7 +156,7 @@ export const authorizeIssuing =
   async (
     walletInstanceAttestation: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<AuthorizationConf> => {
     // FIXME: do better
     const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
@@ -286,7 +270,7 @@ export const getCredential =
   }) =>
   async (
     { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
-    pidProviderEntityConfiguration: PidIssuerEntityConfiguration,
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
     cieData: CieData
   ): Promise<PidResponse> => {
     const signedDPopForPid = await createDPopToken(

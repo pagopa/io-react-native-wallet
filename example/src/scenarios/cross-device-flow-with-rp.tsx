@@ -1,6 +1,7 @@
 import {
   RelyingPartySolution,
   createCryptoContextFor,
+  getRelyingPartyEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getPid from "./get-pid";
@@ -28,8 +29,9 @@ export default async () => {
       RelyingPartySolution.decodeAuthRequestQR(QR);
 
     // resolve RP's entity configuration
-    const entityConfiguration =
-      await RelyingPartySolution.getEntityConfiguration()(clientId);
+    const entityConfiguration = await getRelyingPartyEntityConfiguration(
+      clientId
+    );
 
     // get request object
     const requestObj = await RelyingPartySolution.getRequestObject({
