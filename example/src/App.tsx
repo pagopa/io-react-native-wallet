@@ -41,7 +41,7 @@ export default function App() {
       <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
       <TestScenario title="Get PID" scenario={scenarios.getPid} />
       <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
-      <TestCrossDeviceFlowScenarioWithDeepLink deeplink={deeplink} />
+      <TestSameDeviceFlowScenarioWithDeepLink deeplink={deeplink} />
     </SafeAreaView>
   );
 }
@@ -78,7 +78,7 @@ function TestScenario({
   );
 }
 
-function TestCrossDeviceFlowScenarioWithDeepLink({
+function TestSameDeviceFlowScenarioWithDeepLink({
   deeplink,
 }: {
   deeplink: string | undefined;
@@ -94,7 +94,7 @@ function TestCrossDeviceFlowScenarioWithDeepLink({
 
   async function run(qrCode: string) {
     setResult("⏱️... authenticating to RP via deep link");
-    const [error, _result] = await scenarios.crossDeviceFlowRP(qrCode);
+    const [error, _result] = await scenarios.authenticationToRP(qrCode);
     if (error) {
       setResult(`❌ ${JSON.stringify(error)}`);
     } else {
@@ -115,7 +115,7 @@ function TestCrossDeviceFlowScenarioWithDeepLink({
   return (
     <View>
       <Button
-        title={"Cross device flow with deep link handler"}
+        title={"Same device flow with deep link handler"}
         onPress={() => {
           openBrowser(
             "https://demo.rp.eudi.wallet.developers.italia.it/saml2/login/"
