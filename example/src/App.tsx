@@ -22,8 +22,9 @@ export default function App() {
         }
       })
       .catch((err) => console.error("An error occurred", err));
+
     let subcribtion = Linking.addEventListener("url", handleOpenURL);
-    subcribtion.subscriber;
+
     return () => {
       subcribtion.remove();
     };
