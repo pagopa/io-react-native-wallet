@@ -24,12 +24,13 @@ import { ValidationFailed } from "./errors";
 export const getJwtFromFormPost = async (
   formData: string
 ): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => {
-  const formPostRegex = /value\s*=\s*"((.|\n)*)"/gm;
+  const formPostRegex = /<input(.|\n)*value\s*=\s*"((.|\n)*)"(.|\n)*>/gm;
   const lineExpressionRegex = /\r\n|\n\r|\n|\r|\s+/g;
 
   const matches = formPostRegex.exec(formData);
-  if (matches && matches.length >= 1) {
-    const responseJwt = matches[1];
+  if (matches && matches.length >= 2) {
+    const responseJwt = matches[2];
+    console.log(matches);
     if (responseJwt) {
       const jwt = responseJwt.replace(lineExpressionRegex, "");
       const decodedJwt = await decodeJwt(jwt);
