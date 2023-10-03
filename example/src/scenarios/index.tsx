@@ -3,7 +3,7 @@ import getAttestation from "./get-attestation";
 import verifyPid from "./verify-pid";
 import decodePid from "./decode-pid";
 import decodeQR from "./decode-qr-from-rp";
-import crossDeviceFlowRP from "./cross-device-flow-with-rp";
+import authenticationToRP from "./cross-device-flow-with-rp";
 
 const scenarios = {
   getPid,
@@ -11,7 +11,7 @@ const scenarios = {
   verifyPid,
   decodePid,
   decodeQR,
-  crossDeviceFlowRP,
+  authenticationToRP,
 };
 
 export default scenarios;
