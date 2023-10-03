@@ -30,7 +30,13 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
     const authConf = await authRequest(
       instanceAttestation,
       walletProviderBaseUrl,
-      pidEntityConfiguration
+      pidEntityConfiguration,
+      {
+        birthDate: "01/01/1990",
+        fiscalCode: "AAABBB00A00A000A",
+        name: "NAME",
+        surname: "SURNAME",
+      }
     );
 
     // Generate fresh key for PID binding
@@ -40,12 +46,7 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
 
     // Credential request
     const credentialRequest = PID.Issuing.getCredential({ pidCryptoContext });
-    const pid = await credentialRequest(authConf, pidEntityConfiguration, {
-      birthDate: "01/01/1990",
-      fiscalCode: "AAABBB00A00A000A",
-      name: "NAME",
-      surname: "SURNAME",
-    });
+    const pid = await credentialRequest(authConf, pidEntityConfiguration);
 
     // throw if decode fails
     PID.SdJwt.decode(pid.credential);

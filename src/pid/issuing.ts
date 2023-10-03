@@ -4,6 +4,7 @@ import {
   SignJWT,
   thumbprint,
 } from "@pagopa/io-react-native-jwt";
+
 import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
@@ -13,6 +14,10 @@ import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
 import { createCryptoContextFor } from "../utils/crypto";
+
+import * as z from "zod";
+import { getJwtFromFormPost } from "../utils/decoder";
+
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -36,6 +41,15 @@ export type PidResponse = {
   c_nonce_expires_in: number;
   format: string;
 };
+
+type AuthenticationRequestResponse = z.infer<
+  typeof AuthenticationRequestResponse
+>;
+const AuthenticationRequestResponse = z.object({
+  code: z.string(),
+  state: z.string(), // TODO: refine to known paths using literals
+  iss: z.string(),
+});
 
 const assertionType =
   "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation";
@@ -143,8 +157,9 @@ const getAuthenticationRequest =
   async (
     clientId: string,
     requestUri: string,
-    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
-  ): Promise<string> => {
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
+    cieData: CieData
+  ): Promise<AuthenticationRequestResponse> => {
     const authzRequestEndpoint =
       pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .authorization_endpoint;
@@ -152,18 +167,21 @@ const getAuthenticationRequest =
     const params = new URLSearchParams({
       client_id: clientId,
       request_uri: requestUri,
+      name: cieData.name,
+      surname: cieData.surname,
+      birth_date: cieData.birthDate,
+      fiscal_code: cieData.fiscalCode,
     });
 
     const response = await appFetch(authzRequestEndpoint + "?" + params, {
       method: "GET",
     });
 
-    console.log(response.status);
-    if (response.status === 302) {
-      const redirect = await response.headers.get("Location");
-      if (redirect) {
-        return redirect;
-      }
+    if (response.status === 200) {
+      const formData = await response.text();
+      const { decodedJwt } = await getJwtFromFormPost(formData);
+      const parsed = AuthenticationRequestResponse.parse(decodedJwt.payload);
+      return parsed;
     }
 
     throw new PidIssuingError(
@@ -192,12 +210,13 @@ export const authorizeIssuing =
   async (
     walletInstanceAttestation: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
+    cieData: CieData
   ): Promise<AuthorizationConf> => {
     // FIXME: do better
     const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
     const codeVerifier = `${uuid.v4()}`;
-    const authorizationCode = `${uuid.v4()}`;
+
     const tokenUrl =
       pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .token_endpoint;
@@ -210,14 +229,14 @@ export const authorizeIssuing =
       walletInstanceAttestation
     );
 
-    /*
     const authenticationRequest = await getAuthenticationRequest({})(
       clientId,
       requestUri,
-      pidProviderEntityConfiguration
+      pidProviderEntityConfiguration,
+      cieData
     );
-    console.log(authenticationRequest);
-    */
+
+    const authorizationCode = authenticationRequest.code;
 
     // Use an ephemeral key to be destroyed after use
     const keytag = `ephemeral-${uuid.v4()}`;
@@ -315,8 +334,7 @@ export const getCredential =
   }) =>
   async (
     { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
-    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
-    cieData: CieData
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<PidResponse> => {
     const signedDPopForPid = await createDPopToken(
       {
@@ -345,7 +363,6 @@ export const getCredential =
       format: "vc+sd-jwt",
       proof: JSON.stringify({
         jwt: signedNonceProof,
-        cieData,
         proof_type: "jwt",
       }),
     };
