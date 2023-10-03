@@ -30,7 +30,7 @@ export const getJwtFromFormPost = async (
   const matches = formPostRegex.exec(formData);
   if (matches && matches.length >= 2) {
     const responseJwt = matches[2];
-    console.log(matches);
+
     if (responseJwt) {
       const jwt = responseJwt.replace(lineExpressionRegex, "");
       const decodedJwt = await decodeJwt(jwt);
