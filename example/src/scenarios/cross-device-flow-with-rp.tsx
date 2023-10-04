@@ -7,10 +7,9 @@ import { error, result, toResultOrReject } from "./types";
 import getPid from "./get-pid";
 import getWalletInstanceAttestation from "./get-attestation";
 
-const QR =
-  "aHR0cHM6Ly9kZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0L09wZW5JRDRWUD9jbGllbnRfaWQ9aHR0cHMlM0ElMkYlMkZkZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0JTJGT3BlbklENFZQJnJlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGZGVtby5wcm94eS5ldWRpLndhbGxldC5kZXZlbG9wZXJzLml0YWxpYS5pdCUyRk9wZW5JRDRWUCUyRnJlcXVlc3QtdXJpJTNGaWQlM0Q1MzAyYWExNC1iMTZlLTRmNjItYTdkYS0wZmFiMDM0ZGE2ODI=";
-
-export default async () => {
+export default async (
+  qr = "aHR0cHM6Ly9kZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0L09wZW5JRDRWUD9jbGllbnRfaWQ9aHR0cHMlM0ElMkYlMkZkZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0JTJGT3BlbklENFZQJnJlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGZGVtby5wcm94eS5ldWRpLndhbGxldC5kZXZlbG9wZXJzLml0YWxpYS5pdCUyRk9wZW5JRDRWUCUyRnJlcXVlc3QtdXJpJTNGaWQlM0RkMmMyYzRhYi1lM2I4LTRjNTAtYTRlYy1lNjY4ZTgxNzVlNWY="
+) => {
   try {
     const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
     // obtain new attestation
@@ -26,7 +25,7 @@ export default async () => {
 
     // Scan/Decode QR
     const { requestURI: authRequestUrl, clientId } =
-      RelyingPartySolution.decodeAuthRequestQR(QR);
+      RelyingPartySolution.decodeAuthRequestQR(qr);
 
     // resolve RP's entity configuration
     const entityConfiguration = await getRelyingPartyEntityConfiguration(

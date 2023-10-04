@@ -4,6 +4,7 @@ import {
   SignJWT,
   thumbprint,
 } from "@pagopa/io-react-native-jwt";
+
 import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
@@ -13,6 +14,10 @@ import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
 import { createCryptoContextFor } from "../utils/crypto";
+
+import * as z from "zod";
+import { getJwtFromFormPost } from "../utils/decoder";
+
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
   birthDate: string;
@@ -36,6 +41,15 @@ export type PidResponse = {
   c_nonce_expires_in: number;
   format: string;
 };
+
+type AuthenticationRequestResponse = z.infer<
+  typeof AuthenticationRequestResponse
+>;
+const AuthenticationRequestResponse = z.object({
+  code: z.string(),
+  state: z.string(), // TODO: refine to known paths using literals
+  iss: z.string(),
+});
 
 const assertionType =
   "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation";
@@ -136,13 +150,59 @@ const getPar =
   };
 
 /**
+ * Make an authorization request
+ */
+const getAuthenticationRequest =
+  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] }) =>
+  async (
+    clientId: string,
+    requestUri: string,
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
+    cieData: CieData
+  ): Promise<AuthenticationRequestResponse> => {
+    const authzRequestEndpoint =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .authorization_endpoint;
+
+    /* User's personal data is not supposed to transit in this flow,
+     * but to be provided to the PID issuer directly by its chosen authentication method (CIE).
+     * Being the project in an initial phase, and being we were still unable to fully comply with authentication,
+     * we temporarily provide data from the App's logged user.
+     * */
+    const params = new URLSearchParams({
+      client_id: clientId,
+      request_uri: requestUri,
+      name: cieData.name,
+      surname: cieData.surname,
+      birth_date: cieData.birthDate,
+      fiscal_code: cieData.fiscalCode,
+    });
+
+    const response = await appFetch(authzRequestEndpoint + "?" + params, {
+      method: "GET",
+    });
+
+    if (response.status === 200) {
+      const formData = await response.text();
+      const { decodedJwt } = await getJwtFromFormPost(formData);
+      const parsed = AuthenticationRequestResponse.parse(decodedJwt.payload);
+      return parsed;
+    }
+
+    throw new PidIssuingError(
+      `Unable to obtain Authorization Request. Response code: ${await response.text()}`
+    );
+  };
+
+/**
  * Start the issuing flow by generating an authorization request to the PID Provider. Obtain from the PID Provider an access token to be used to complete the issuing flow.
  *
  * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
  * @param params.appFetch (optional) Http client
  * @param walletInstanceAttestation Wallet Instance Attestation token.
- * @param walletProviderBaseUrl Base url for the Wallet Provider
+ * @param walletProviderBaseUrl Base url for the Wallet Provider.
  * @param pidProviderEntityConfiguration The Entity Configuration of the PID Provider, from which discover public endooints.
+ * @param cieData Data red from the CIE login process
  * @returns The access token along with the values that identify the issuing session.
  */
 export const authorizeIssuing =
@@ -156,23 +216,33 @@ export const authorizeIssuing =
   async (
     walletInstanceAttestation: string,
     walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
+    cieData: CieData
   ): Promise<AuthorizationConf> => {
     // FIXME: do better
     const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
     const codeVerifier = `${uuid.v4()}`;
-    const authorizationCode = `${uuid.v4()}`;
+
     const tokenUrl =
       pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .token_endpoint;
 
-    await getPar({ wiaCryptoContext, appFetch })(
+    const requestUri = await getPar({ wiaCryptoContext, appFetch })(
       clientId,
       codeVerifier,
       walletProviderBaseUrl,
       pidProviderEntityConfiguration,
       walletInstanceAttestation
     );
+
+    const authenticationRequest = await getAuthenticationRequest({})(
+      clientId,
+      requestUri,
+      pidProviderEntityConfiguration,
+      cieData
+    );
+
+    const authorizationCode = authenticationRequest.code;
 
     // Use an ephemeral key to be destroyed after use
     const keytag = `ephemeral-${uuid.v4()}`;
@@ -257,7 +327,6 @@ const createNonceProof = async (
  * @param params.pidCryptoContext The key pair associated with the PID. Will be use to prove the ownership of the credential.
  * @param params.appFetch (optional) Http client
  * @param authConf The authorization configuration retrieved with the access token
- * @param cieData Data red from the CIE login process
  * @returns The PID credential token
  */
 export const getCredential =
@@ -270,8 +339,7 @@ export const getCredential =
   }) =>
   async (
     { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
-    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
-    cieData: CieData
+    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<PidResponse> => {
     const signedDPopForPid = await createDPopToken(
       {
@@ -300,7 +368,6 @@ export const getCredential =
       format: "vc+sd-jwt",
       proof: JSON.stringify({
         jwt: signedNonceProof,
-        cieData,
         proof_type: "jwt",
       }),
     };
