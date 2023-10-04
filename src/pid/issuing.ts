@@ -164,6 +164,11 @@ const getAuthenticationRequest =
       pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .authorization_endpoint;
 
+    /* User's personal data is not supposed to transit in this flow,
+     * but to be provided to the PID issuer directly by its chosen authentication method (CIE).
+     * Being the project in an initial phase, and being we were still unable to fully comply with authentication,
+     * we temporarily provide data from the App's logged user.
+     * */
     const params = new URLSearchParams({
       client_id: clientId,
       request_uri: requestUri,
