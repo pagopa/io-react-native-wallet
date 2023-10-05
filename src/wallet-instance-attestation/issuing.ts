@@ -51,10 +51,17 @@ async function verifyWalletInstanceAttestation(
   wia: string,
   walletProviderEntityConfiguration: WalletProviderEntityConfiguration
 ): Promise<true> {
-  return verifyJwt(
-    wia,
-    walletProviderEntityConfiguration.payload.metadata.wallet_provider.jwks.keys
-  )
+  const {
+    payload: {
+      sub,
+      metadata: {
+        wallet_provider: {
+          jwks: { keys },
+        },
+      },
+    },
+  } = walletProviderEntityConfiguration;
+  return verifyJwt(wia, keys, { issuer: sub })
     .then((_) => true as const)
     .catch((ex) => {
       const reason = ex && ex instanceof Error ? ex.message : "unknown reason";
