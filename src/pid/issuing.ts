@@ -12,10 +12,7 @@ import { createDPopToken } from "../utils/dpop";
 import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { SdJwt } from ".";
-import {
-  createCryptoContextFor,
-  withEphemeralCryptoContext,
-} from "../utils/crypto";
+import { withEphemeralCryptoContext } from "../utils/crypto";
 
 import * as z from "zod";
 import { getJwtFromFormPost } from "../utils/decoder";
