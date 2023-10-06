@@ -39,6 +39,40 @@ async function getAttestationRequest(
 }
 
 /**
+ * Validate a Wallet Instance Attestation token.
+ * Either return true or throw an exception.
+ *
+ * @param wia Signed Wallet Instance Attestation token
+ * @param walletProviderEntityConfiguration Entity Configuration object for the issuing Wallet Provider
+ * @returns The token is valid
+ * @throws {WalletInstanceAttestationIssuingError} When the received token fails to validate. This can happen due to invalid signature, expired token or malformed JWT token.
+ */
+async function verifyWalletInstanceAttestation(
+  wia: string,
+  walletProviderEntityConfiguration: WalletProviderEntityConfiguration
+): Promise<true> {
+  const {
+    payload: {
+      sub,
+      metadata: {
+        wallet_provider: {
+          jwks: { keys },
+        },
+      },
+    },
+  } = walletProviderEntityConfiguration;
+  return verifyJwt(wia, keys, { issuer: sub })
+    .then((_) => true as const)
+    .catch((ex) => {
+      const reason = ex && ex instanceof Error ? ex.message : "unknown reason";
+      throw new WalletInstanceAttestationIssuingError(
+        "Unable to validate received wallet instance attestation",
+        reason
+      );
+    });
+}
+
+/**
  * Request a Wallet Instance Attestation (WIA) to the Wallet provider
  *
  * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
@@ -87,12 +121,19 @@ export const getAttestation =
       body: JSON.stringify(requestBody),
     });
 
-    if (response.status === 201) {
-      return await response.text();
+    if (response.status !== 201) {
+      throw new WalletInstanceAttestationIssuingError(
+        "Unable to obtain wallet instance attestation from wallet provider",
+        `Response code: ${response.status}`
+      );
     }
 
-    throw new WalletInstanceAttestationIssuingError(
-      "Unable to obtain wallet instance attestation from wallet provider",
-      `Response code: ${response.status}`
+    const wia = await response.text();
+
+    await verifyWalletInstanceAttestation(
+      wia,
+      walletProviderEntityConfiguration
     );
+
+    return wia;
   };
