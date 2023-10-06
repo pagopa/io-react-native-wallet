@@ -62,11 +62,10 @@ export const useEphemeralKey = async <R>(
   await generate(keytag);
   const ephemeralContext = createCryptoContextFor(keytag);
   try {
-    const result = await fn(ephemeralContext);
-    await deleteKey(keytag);
-    return result;
+    return fn(ephemeralContext);
   } catch (error) {
-    await deleteKey(keytag);
     throw error;
+  } finally {
+    await deleteKey(keytag);
   }
 };
