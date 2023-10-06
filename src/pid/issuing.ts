@@ -243,17 +243,15 @@ export const authorizeIssuing =
 
     const authorizationCode = authenticationRequest.code;
 
-    const signedDPop = await withEphemeralCryptoContext(
-      // the DPoP is bound to the http request
-      (ephemeralContext) =>
-        createDPopToken(
-          {
-            htm: "POST",
-            htu: tokenUrl,
-            jti: `${uuid.v4()}`,
-          },
-          ephemeralContext
-        )
+    const signedDPop = await withEphemeralCryptoContext((ctx) =>
+      createDPopToken(
+        {
+          htm: "POST",
+          htu: tokenUrl,
+          jti: `${uuid.v4()}`,
+        },
+        ctx
+      )
     );
 
     const requestBody = {
