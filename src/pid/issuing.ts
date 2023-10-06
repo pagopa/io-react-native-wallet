@@ -11,9 +11,11 @@ import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
 import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
-import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
-import { createCryptoContextFor } from "../utils/crypto";
+import {
+  createCryptoContextFor,
+  withEphemeralCryptoContext,
+} from "../utils/crypto";
 
 import * as z from "zod";
 import { getJwtFromFormPost } from "../utils/decoder";
@@ -244,21 +246,18 @@ export const authorizeIssuing =
 
     const authorizationCode = authenticationRequest.code;
 
-    // Use an ephemeral key to be destroyed after use
-    const keytag = `ephemeral-${uuid.v4()}`;
-    await generate(keytag);
-    const ephemeralContext = createCryptoContextFor(keytag);
-
-    const signedDPop = await createDPopToken(
-      {
-        htm: "POST",
-        htu: tokenUrl,
-        jti: `${uuid.v4()}`,
-      },
-      ephemeralContext
+    const signedDPop = await withEphemeralCryptoContext(
+      // the DPoP is bound to the http request
+      (ephemeralContext) =>
+        createDPopToken(
+          {
+            htm: "POST",
+            htu: tokenUrl,
+            jti: `${uuid.v4()}`,
+          },
+          ephemeralContext
+        )
     );
-
-    await deleteKey(keytag);
 
     const requestBody = {
       grant_type: "authorization code",
