@@ -45,7 +45,7 @@ async function getAttestationRequest(
  * @param wia Signed Wallet Instance Attestation token
  * @param walletProviderEntityConfiguration Entity Configuration object for the issuing Wallet Provider
  * @returns The token is valid
- * @throws {WalletInstanceAttestationIssuingError} When the received token fails to validate. This can happen due to invalid signature, espired token or malformed JWT token.
+ * @throws {WalletInstanceAttestationIssuingError} When the received token fails to validate. This can happen due to invalid signature, expired token or malformed JWT token.
  */
 async function verifyWalletInstanceAttestation(
   wia: string,
