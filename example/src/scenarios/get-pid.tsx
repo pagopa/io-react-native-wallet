@@ -3,12 +3,31 @@ import {
   PID,
   createCryptoContextFor,
   getCredentialIssuerEntityConfiguration,
+  getTrustAnchorEntityConfiguration,
+  verifyTrustChain,
+  renewTrustChain,
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getWalletInstanceAttestation from "./get-attestation";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 const pidProviderBaseUrl = "https://api.eudi-wallet-it-pid-provider.it/ci";
+const trustAnchorBaseUrl =
+  "https://demo.federation.eudi.wallet.developers.italia.it/";
+
+async function trust(trustChain: string[]): Promise<void> {
+  const trustAnchorEntity = await getTrustAnchorEntityConfiguration(
+    trustAnchorBaseUrl
+  );
+
+  // test verify trust chain
+  await verifyTrustChain(trustAnchorEntity, trustChain);
+
+  // test renew of the trust chain
+  // (just for test, needed only when input chain fails to validate)
+  const renewedChain = await renewTrustChain(trustChain);
+  await verifyTrustChain(trustAnchorEntity, renewedChain);
+}
 
 export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
   try {
@@ -49,7 +68,11 @@ export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
     const pid = await credentialRequest(authConf, pidEntityConfiguration);
 
     // throw if decode fails
-    PID.SdJwt.decode(pid.credential);
+    const decoded = PID.SdJwt.decode(pid.credential);
+
+    // evaluate the trust chain of the credential
+    const trustChain = decoded.sdJwt.header.trust_chain;
+    await trust(trustChain);
 
     return result(pid.credential);
   } catch (e) {
