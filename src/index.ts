@@ -10,6 +10,7 @@ import * as RelyingPartySolution from "./rp";
 import {
   renewTrustChain,
   verifyTrustChain,
+  getEntityStatement,
   getEntityConfiguration,
   getCredentialIssuerEntityConfiguration,
   getRelyingPartyEntityConfiguration,
@@ -32,6 +33,7 @@ export {
   RelyingPartySolution,
   renewTrustChain,
   verifyTrustChain,
+  getEntityStatement,
   getEntityConfiguration,
   getCredentialIssuerEntityConfiguration,
   getRelyingPartyEntityConfiguration,

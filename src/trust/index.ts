@@ -218,7 +218,7 @@ export async function getSignedEntityStatement(
 ) {
   const url = `${accreditationBodyBaseUrl}/fetch?${new URLSearchParams({
     sub: subordinatedEntityBaseUrl,
-  })}}`;
+  })}`;
 
   const response = await appFetch(url, {
     method: "GET",
