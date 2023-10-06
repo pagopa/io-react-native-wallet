@@ -12,7 +12,7 @@ import { createDPopToken } from "../utils/dpop";
 import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { SdJwt } from ".";
-import { withEphemeralCryptoContext } from "../utils/crypto";
+import { useEphemeralKey } from "../utils/crypto";
 
 import * as z from "zod";
 import { getJwtFromFormPost } from "../utils/decoder";
@@ -243,7 +243,7 @@ export const authorizeIssuing =
 
     const authorizationCode = authenticationRequest.code;
 
-    const signedDPop = await withEphemeralCryptoContext((ctx) =>
+    const signedDPop = await useEphemeralKey((ctx) =>
       createDPopToken(
         {
           htm: "POST",
