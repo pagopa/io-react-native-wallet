@@ -8,6 +8,7 @@ import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as RelyingPartySolution from "./rp";
 import {
+  renewTrustChain,
   verifyTrustChain,
   getEntityConfiguration,
   getCredentialIssuerEntityConfiguration,
@@ -29,6 +30,7 @@ export {
   WalletInstanceAttestation,
   Errors,
   RelyingPartySolution,
+  renewTrustChain,
   verifyTrustChain,
   getEntityConfiguration,
   getCredentialIssuerEntityConfiguration,

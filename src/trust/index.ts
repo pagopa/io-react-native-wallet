@@ -5,11 +5,42 @@ import {
   CredentialIssuerEntityConfiguration,
   RelyingPartyEntityConfiguration,
   EntityConfiguration,
+  EntityStatement,
 } from "./types";
 import { IoWalletError } from "../utils/errors";
-import { verifyTrustChain } from "./chain";
+import { verifyTrustChain, renewTrustChain } from "./chain";
 
-export { verifyTrustChain };
+export { verifyTrustChain, renewTrustChain };
+
+/**
+ * Fetch the signed entity configuration token for an entity
+ *
+ * @param entityBaseUrl The url of the entity to fetch
+ * @param param.appFetch (optional) fetch api implemention
+ * @returns The signed Entity Configuration token
+ */
+export async function getSignedEntityConfiguration(
+  entityBaseUrl: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+): Promise<string> {
+  const wellKnownUrl = `${entityBaseUrl}/.well-known/openid-federation`;
+
+  const response = await appFetch(wellKnownUrl, {
+    method: "GET",
+  });
+
+  if (response.status === 200) {
+    return response.text();
+  }
+
+  throw new IoWalletError(
+    `Unable to obtain Entity Configuration at ${wellKnownUrl}. Response code: ${response.status}`
+  );
+}
 
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
@@ -77,24 +108,14 @@ async function fetchAndParseEntityConfiguration(
     appFetch?: GlobalFetch["fetch"];
   } = {}
 ) {
-  const wellKnownUrl = `${entityBaseUrl}/.well-known/openid-federation`;
-
-  const response = await appFetch(wellKnownUrl, {
-    method: "GET",
+  const responseText = await getSignedEntityConfiguration(entityBaseUrl, {
+    appFetch,
   });
-
-  if (response.status === 200) {
-    const responseText = await response.text();
-    const responseJwt = decodeJwt(responseText);
-    return schema.parse({
-      header: responseJwt.protectedHeader,
-      payload: responseJwt.payload,
-    });
-  }
-
-  throw new IoWalletError(
-    `Unable to obtain Entity Configuration at ${wellKnownUrl}. Response code: ${response.status}`
-  );
+  const responseJwt = decodeJwt(responseText);
+  return schema.parse({
+    header: responseJwt.protectedHeader,
+    payload: responseJwt.payload,
+  });
 }
 
 export const getWalletProviderEntityConfiguration = (
@@ -142,3 +163,72 @@ export const getEntityConfiguration = (
   options?: Parameters<typeof fetchAndParseEntityConfiguration>[2]
 ) =>
   fetchAndParseEntityConfiguration(entityBaseUrl, EntityConfiguration, options);
+
+/**
+ * Fetch and parse the entity statement document for a given federation entity.
+ *
+ * @param accreditationBodyBaseUrl The base url of the accreditaion body which holds and signs the required entity statement
+ * @param subordinatedEntityBaseUrl The url that identifies the subordinate entity
+ * @param options.appFetch An optional instance of the http client to be used.
+ * @returns The parsed entity configuration object
+ * @throws {IoWalletError} If the http request fails
+ * @throws Parse error if the document is not in the expected shape.
+ */
+export async function getEntityStatement(
+  accreditationBodyBaseUrl: string,
+  subordinatedEntityBaseUrl: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+) {
+  const responseText = await getSignedEntityStatement(
+    accreditationBodyBaseUrl,
+    subordinatedEntityBaseUrl,
+    {
+      appFetch,
+    }
+  );
+
+  const responseJwt = decodeJwt(responseText);
+  return EntityStatement.parse({
+    header: responseJwt.protectedHeader,
+    payload: responseJwt.payload,
+  });
+}
+
+/**
+ * Fetch the entity statement document for a given federation entity.
+ *
+ * @param accreditationBodyBaseUrl The base url of the accreditaion body which holds and signs the required entity statement
+ * @param subordinatedEntityBaseUrl The url that identifies the subordinate entity
+ * @param options.appFetch An optional instance of the http client to be used.
+ * @returns The signed entity statement token
+ * @throws {IoWalletError} If the http request fails
+ */
+export async function getSignedEntityStatement(
+  accreditationBodyBaseUrl: string,
+  subordinatedEntityBaseUrl: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+) {
+  const url = `${accreditationBodyBaseUrl}/fetch?${new URLSearchParams({
+    sub: subordinatedEntityBaseUrl,
+  })}}`;
+
+  const response = await appFetch(url, {
+    method: "GET",
+  });
+
+  if (response.status === 200) {
+    return response.text();
+  }
+
+  throw new IoWalletError(
+    `Unable to obtain Entity Statement at ${url}. Response code: ${response.status}`
+  );
+}
