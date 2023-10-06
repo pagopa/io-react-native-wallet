@@ -341,25 +341,25 @@ export const getCredential =
     { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
     pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<PidResponse> => {
+    const credentialUrl =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .credential_endpoint;
+
     const signedDPopForPid = await createDPopToken(
       {
         htm: "POST",
-        htu: pidProviderEntityConfiguration.payload.metadata
-          .openid_credential_issuer.token_endpoint,
+        htu: credentialUrl,
         jti: `${uuid.v4()}`,
       },
       pidCryptoContext
     );
+
     const signedNonceProof = await createNonceProof(
       nonce,
       clientId,
       walletProviderBaseUrl,
       pidCryptoContext
     );
-
-    const credentialUrl =
-      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
-        .credential_endpoint;
 
     const requestBody = {
       credential_definition: JSON.stringify({
