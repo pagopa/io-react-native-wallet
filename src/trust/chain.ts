@@ -52,12 +52,12 @@ const LastElementShape = z.union([
 /**
  * Validates a provided trust chain against a known trust
  *
- * @param trustAnchorEntity
- * @param chain
+ * @param trustAnchorEntity The entity configuration of the known trust anchor
+ * @param chain The chain of statements to be validate
  * @returns The list of parsed token representing the chain
  * @throws {IoWalletError} If the chain is not valid
  */
-export async function verifyTrustChain(
+export async function validateTrustChain(
   trustAnchorEntity: TrustAnchorEntityConfiguration,
   chain: string[]
 ): Promise<ParsedToken[]> {
@@ -141,7 +141,11 @@ export function renewTrustChain(
               appFetch,
             })
           : // if the element fail to parse in both EntityStatement and EntityConfiguration, raise an error
-            Promise.reject(`Failed to parse element #${i} of the trust chain`)
+            Promise.reject(
+              new IoWalletError(
+                `Cannot renew trust chain because the element #${i} failed to be parsed.`
+              )
+            )
       )
   );
 }

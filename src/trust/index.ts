@@ -8,9 +8,38 @@ import {
   EntityStatement,
 } from "./types";
 import { IoWalletError } from "../utils/errors";
-import { verifyTrustChain, renewTrustChain } from "./chain";
+import { validateTrustChain, renewTrustChain } from "./chain";
 
-export { verifyTrustChain, renewTrustChain };
+/**
+ * Verify a given trust chain is actually valid.
+ * It can handle fast chain renewal, which means we try to fetch a fresh version of each statement.
+ *
+ * @param trustAnchorEntity The entity configuration of the known trust anchor
+ * @param chain The chain of statements to be validate
+ * @param options.renewOnFail Whether to renew the provided chain if the validation fails at first. Default: false
+ * @param options.appFetch Fetch api implementation. Default: the built-in implementation
+ * @returns The result of the chain validation
+ * @throws {IoWalletError} When either validation or renewal fail
+ */
+export async function verifyTrustChain(
+  trustAnchorEntity: TrustAnchorEntityConfiguration,
+  chain: string[],
+  {
+    appFetch = fetch,
+    renewOnFail = false,
+  }: { appFetch?: GlobalFetch["fetch"]; renewOnFail?: boolean } = {}
+): Promise<ReturnType<typeof validateTrustChain>> {
+  try {
+    return validateTrustChain(trustAnchorEntity, chain);
+  } catch (error) {
+    if (renewOnFail) {
+      const renewedChain = await renewTrustChain(chain, appFetch);
+      return validateTrustChain(trustAnchorEntity, renewedChain);
+    } else {
+      throw error;
+    }
+  }
+}
 
 /**
  * Fetch the signed entity configuration token for an entity

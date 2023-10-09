@@ -196,8 +196,8 @@ import {
 
 ```ts
 import {
-  renewTrustChain,
   verifyTrustChain,
+  getTrustAnchorEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 
 const trustChain = ["ejJ0eX...", "eyG5eX...", "erU9eX..."];
@@ -205,12 +205,11 @@ const trustChainEC = await getTrustAnchorEntityConfiguration(
   "https://trust-anchor.example"
 );
 
-// Validate a given trust chain offline
+// Validate a given trust chain offline (no renewal on failures)
 await verifyTrustChain(trustChainEC, trustChain);
 
-// Renew a given trust chain
-const renewedTrustChain = await renewTrustChain(trustChainEC, trustChain);
-await verifyTrustChain(trustChainEC, renewedTrustChain);
+// Validate a given trust chain online (try to renew on failures)
+await verifyTrustChain(trustChainEC, trustChain, { renewOnFail: true });
 ```
 
 ## Example

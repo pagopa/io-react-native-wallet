@@ -5,7 +5,6 @@ import {
   getCredentialIssuerEntityConfiguration,
   getTrustAnchorEntityConfiguration,
   verifyTrustChain,
-  renewTrustChain,
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getWalletInstanceAttestation from "./get-attestation";
@@ -21,12 +20,7 @@ async function trust(trustChain: string[]): Promise<void> {
   );
 
   // test verify trust chain
-  await verifyTrustChain(trustAnchorEntity, trustChain);
-
-  // test renew of the trust chain
-  // (just for test, needed only when input chain fails to validate)
-  const renewedChain = await renewTrustChain(trustChain);
-  await verifyTrustChain(trustAnchorEntity, renewedChain);
+  await verifyTrustChain(trustAnchorEntity, trustChain, { renewOnFail: true });
 }
 
 export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
