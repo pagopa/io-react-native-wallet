@@ -32,7 +32,7 @@ const chooseRSAPublicKeyToEncrypt = (
   entity: RelyingPartyEntityConfiguration
 ): JWK => {
   const [usingRsa256] =
-    entity.payload.metadata.wallet_relying_party.jwks.filter(
+    entity.payload.metadata.wallet_relying_party.jwks.keys.filter(
       (jwk) => jwk.use === "enc" && jwk.kty === "RSA"
     );
 
@@ -127,7 +127,7 @@ export const getRequestObject =
       // to ensure the request object is authentic
       {
         const pubKey =
-          rpEntityConfiguration.payload.metadata.wallet_relying_party.jwks.find(
+          rpEntityConfiguration.payload.metadata.wallet_relying_party.jwks.keys.find(
             ({ kid }) => kid === responseJwt.protectedHeader.kid
           );
         if (!pubKey) {
