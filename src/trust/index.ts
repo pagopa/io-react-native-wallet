@@ -16,7 +16,7 @@ import { validateTrustChain, renewTrustChain } from "./chain";
  *
  * @param trustAnchorEntity The entity configuration of the known trust anchor
  * @param chain The chain of statements to be validate
- * @param options.renewOnFail Whether to renew the provided chain if the validation fails at first. Default: false
+ * @param options.renewOnFail Whether to renew the provided chain if the validation fails at first. Default: true
  * @param options.appFetch Fetch api implementation. Default: the built-in implementation
  * @returns The result of the chain validation
  * @throws {IoWalletError} When either validation or renewal fail
@@ -26,7 +26,7 @@ export async function verifyTrustChain(
   chain: string[],
   {
     appFetch = fetch,
-    renewOnFail = false,
+    renewOnFail = true,
   }: { appFetch?: GlobalFetch["fetch"]; renewOnFail?: boolean } = {}
 ): Promise<ReturnType<typeof validateTrustChain>> {
   try {
