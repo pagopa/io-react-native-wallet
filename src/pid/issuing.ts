@@ -11,9 +11,8 @@ import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
 import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
-import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import { SdJwt } from ".";
-import { createCryptoContextFor } from "../utils/crypto";
+import { useEphemeralKey } from "../utils/crypto";
 
 import * as z from "zod";
 import { getJwtFromFormPost } from "../utils/decoder";
@@ -244,21 +243,16 @@ export const authorizeIssuing =
 
     const authorizationCode = authenticationRequest.code;
 
-    // Use an ephemeral key to be destroyed after use
-    const keytag = `ephemeral-${uuid.v4()}`;
-    await generate(keytag);
-    const ephemeralContext = createCryptoContextFor(keytag);
-
-    const signedDPop = await createDPopToken(
-      {
-        htm: "POST",
-        htu: tokenUrl,
-        jti: `${uuid.v4()}`,
-      },
-      ephemeralContext
+    const signedDPop = await useEphemeralKey((ctx) =>
+      createDPopToken(
+        {
+          htm: "POST",
+          htu: tokenUrl,
+          jti: `${uuid.v4()}`,
+        },
+        ctx
+      )
     );
-
-    await deleteKey(keytag);
 
     const requestBody = {
       grant_type: "authorization code",
@@ -341,25 +335,25 @@ export const getCredential =
     { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
     pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration
   ): Promise<PidResponse> => {
+    const credentialUrl =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .credential_endpoint;
+
     const signedDPopForPid = await createDPopToken(
       {
         htm: "POST",
-        htu: pidProviderEntityConfiguration.payload.metadata
-          .openid_credential_issuer.token_endpoint,
+        htu: credentialUrl,
         jti: `${uuid.v4()}`,
       },
       pidCryptoContext
     );
+
     const signedNonceProof = await createNonceProof(
       nonce,
       clientId,
       walletProviderBaseUrl,
       pidCryptoContext
     );
-
-    const credentialUrl =
-      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
-        .credential_endpoint;
 
     const requestBody = {
       credential_definition: JSON.stringify({
