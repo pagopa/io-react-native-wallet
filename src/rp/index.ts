@@ -12,7 +12,12 @@ import {
   verify,
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
-import { QRCodePayload, RequestObject, type Presentation } from "./types";
+import {
+  QRCodePayload,
+  RequestObject,
+  type Presentation,
+  AuthorizationResponse,
+} from "./types";
 
 import uuid from "react-native-uuid";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
@@ -235,7 +240,7 @@ export const sendAuthorizationResponse =
       walletInstanceAttestation,
     }: RequestObjectConf,
     presentation: Presentation // TODO: [SIW-353] support multiple presentations,
-  ): Promise<string> => {
+  ): Promise<AuthorizationResponse> => {
     // the request is an unsigned jws without iss, aud, exp
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
     const jwk = chooseRSAPublicKeyToEncrypt(rpEntityConfiguration);
@@ -276,7 +281,7 @@ export const sendAuthorizationResponse =
     });
 
     if (response.status === 200) {
-      return await response.json();
+      return AuthorizationResponse.parse(await response.json());
     }
 
     throw new IoWalletError(

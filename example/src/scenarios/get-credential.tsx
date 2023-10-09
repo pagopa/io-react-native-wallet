@@ -9,6 +9,7 @@ import {
 import { error, result, toResultOrReject } from "./types";
 import getWalletInstanceAttestation from "./get-attestation";
 import getPid from "./get-pid";
+import { generate } from "@pagopa/io-react-native-crypto";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 const credentialProviderBaseUrl = "https://api.eudi-wallet-it-issuer.it/rp";
@@ -33,6 +34,12 @@ export default async () => {
       credentialProviderBaseUrl
     );
 
+    // Generate fresh key for credential binding
+    // ensure the key esists befor starting the issuing process
+    const credentialKeyTag = Math.random().toString(36).substr(2, 5);
+    await generate(credentialKeyTag);
+    const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+
     const authorizationDetails: AuthorizationDetails = [
       {
         credential_definition: {
@@ -44,28 +51,24 @@ export default async () => {
     ];
 
     // Auth Token request
-    const authRequest = CredentialIssuer.Issuing.authorizeIssuing({
+    const authRpRequest = CredentialIssuer.Issuing.authorizeRpIssuing({
       wiaCryptoContext,
     });
-    const authenticationParams = await authRequest(
+    const authenticationRpParams = await authRpRequest(
       instanceAttestation,
       walletProviderBaseUrl,
       credentialIssuerEntityConfiguration,
       authorizationDetails
     );
 
-    console.log(" ** authenticationParams **", authenticationParams);
-
     //TODO: Remove RelyingPartyEntityConfiguration cast
     const requestObj = await RelyingPartySolution.getRequestObject({
       wiaCryptoContext,
     })(
       instanceAttestation,
-      authenticationParams.request_uri,
+      authenticationRpParams.request_uri,
       credentialIssuerEntityConfiguration as RelyingPartyEntityConfiguration
     );
-
-    console.log("** requestObj **", requestObj);
 
     const claims = [
       "unique_id",
@@ -78,11 +81,36 @@ export default async () => {
     ];
 
     // Submit authorization response
-    const ok = await RelyingPartySolution.sendAuthorizationResponse({
-      pidCryptoContext,
-    })(requestObj, [pidToken, claims]);
+    const authorizationResponseText =
+      await RelyingPartySolution.sendAuthorizationResponse({
+        pidCryptoContext,
+      })(requestObj, [pidToken, claims]);
+    let authorizationCode = authorizationResponseText.response_code;
 
-    return result(ok);
+    if (authorizationCode) {
+      const authRequest = CredentialIssuer.Issuing.authorizeCredentialIssuing(
+        {}
+      );
+      const authConf = await authRequest(
+        instanceAttestation,
+        walletProviderBaseUrl,
+        credentialIssuerEntityConfiguration,
+        authenticationRpParams,
+        authorizationCode
+      );
+
+      // Credential request
+      const credentialRequest = CredentialIssuer.Issuing.getCredential({
+        credentialCryptoContext,
+      });
+      const credential = await credentialRequest(
+        authConf,
+        credentialIssuerEntityConfiguration
+      );
+      console.log(credential);
+    }
+
+    return result("OK");
   } catch (e) {
     console.error(e);
     return error(e);

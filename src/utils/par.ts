@@ -111,3 +111,27 @@ export const makeParRequest =
       `Unable to obtain PAR. Response code: ${await response.text()}`
     );
   };
+
+/**
+ * Return the signed jwt for nonce proof of possession
+ */
+export const createNonceProof = async (
+  nonce: string,
+  issuer: string,
+  audience: string,
+  ctx: CryptoContext
+): Promise<string> => {
+  return new SignJWT(ctx)
+    .setPayload({
+      nonce,
+      jwk: await ctx.getPublicKey(),
+    })
+    .setProtectedHeader({
+      type: "openid4vci-proof+jwt",
+    })
+    .setAudience(audience)
+    .setIssuer(issuer)
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
+};

@@ -1,22 +1,20 @@
 import { type CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import { generate, deleteKey } from "@pagopa/io-react-native-crypto";
 import uuid from "react-native-uuid";
-import { PidIssuingError } from "../utils/errors";
+import { PidIssuingError, TokenError } from "../utils/errors";
 
 import * as z from "zod";
 
-import { makeParRequest, type AuthorizationDetails } from "../utils/par";
+import {
+  makeParRequest,
+  type AuthorizationDetails,
+  createNonceProof,
+} from "../utils/par";
 import { getJwtFromFormPost } from "../utils/decoder";
 import type { EntityConfiguration } from "../trust/types";
-
-export type AuthorizationConf = {
-  accessToken: string;
-  nonce: string;
-  clientId: string;
-  authorizationCode: string;
-  codeVerifier: string;
-  walletProviderBaseUrl: string;
-};
+import { createCryptoContextFor } from "..";
+import { createDPopToken } from "../utils/dpop";
+import type { AuthorizationConf } from "../pid/issuing";
 
 type RpAuthenticationRequestResponse = z.infer<
   typeof RpAuthenticationRequestResponse
@@ -67,17 +65,7 @@ const getRpAuthenticationRequest =
     );
   };
 
-/**
- * Start the issuing flow by generating an authorization request to the PID Provider. Obtain from the PID Provider an access token to be used to complete the issuing flow.
- *
- * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
- * @param params.appFetch (optional) Http client
- * @param walletInstanceAttestation Wallet Instance Attestation token.
- * @param walletProviderBaseUrl Base url for the Wallet Provider.
- * @param pidProviderEntityConfiguration The Entity Configuration of the PID Provider, from which discover public endooints.
- * @returns The access token along with the values that identify the issuing session.
- */
-export const authorizeIssuing =
+export const authorizeRpIssuing =
   ({
     wiaCryptoContext,
     appFetch = fetch,
@@ -97,9 +85,7 @@ export const authorizeIssuing =
     //TODO: Obtain from entity configuration
     const credentialProviderBaseUrl =
       credentialIssuerEntityConfiguration.payload.iss;
-    const tokenUrl = new URL("token", credentialProviderBaseUrl).href;
     const parUrl = new URL("/as/par", credentialProviderBaseUrl).href;
-    console.log(tokenUrl, parUrl);
 
     // Make a PAR request to the credential issuer and return the response url
     const getPar = makeParRequest({ wiaCryptoContext, appFetch });
@@ -114,9 +100,144 @@ export const authorizeIssuing =
     );
 
     //Start authentication vs RP. Return the client_id and request_uri for presentation
-    return await getRpAuthenticationRequest({ appFetch })(
+    const rpAuthenticationRequestResponse = await getRpAuthenticationRequest({
+      appFetch,
+    })(clientId, issuerRequestUri, credentialIssuerEntityConfiguration);
+
+    return rpAuthenticationRequestResponse;
+  };
+
+// This is authorization post RP authentication
+export const authorizeCredentialIssuing =
+  ({ appFetch = fetch }: { appFetch?: GlobalFetch["fetch"] }) =>
+  async (
+    walletInstanceAttestation: string,
+    walletProviderBaseUrl: string,
+    credentialIssuerEntityConfiguration: EntityConfiguration,
+    authenticationParams: RpAuthenticationRequestResponse,
+    authorizationCode: string
+  ): Promise<AuthorizationConf> => {
+    //TODO: Obtain from entity configuration
+    const credentialProviderBaseUrl =
+      credentialIssuerEntityConfiguration.payload.iss;
+    const tokenUrl = new URL("token", credentialProviderBaseUrl).href;
+
+    // Use an ephemeral key to be destroyed after use
+    const keytag = `ephemeral-${uuid.v4()}`;
+    await generate(keytag);
+    const ephemeralContext = createCryptoContextFor(keytag);
+
+    const signedDPop = await createDPopToken(
+      {
+        htm: "POST",
+        htu: tokenUrl,
+        jti: `${uuid.v4()}`,
+      },
+      ephemeralContext
+    );
+
+    await deleteKey(keytag);
+
+    const clientId = authenticationParams.client_id;
+    const codeVerifier = `${uuid.v4()}`;
+    const requestBody = {
+      grant_type: "authorization code",
+      client_id: clientId,
+      code: authorizationCode,
+      code_verifier: codeVerifier,
+      client_assertion_type: assertionType,
+      client_assertion: walletInstanceAttestation,
+      redirect_uri: walletProviderBaseUrl,
+    };
+    var formBody = new URLSearchParams(requestBody);
+
+    const response = await appFetch(tokenUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        DPoP: signedDPop,
+      },
+      body: formBody.toString(),
+    });
+
+    if (response.status === 200) {
+      const { c_nonce, access_token } = await response.json();
+      return {
+        accessToken: access_token,
+        nonce: c_nonce,
+        clientId,
+        codeVerifier,
+        authorizationCode,
+        walletProviderBaseUrl,
+      };
+    }
+    throw new TokenError(
+      `Unable to obtain token. Response code: ${await response.text()}`
+    );
+  };
+
+export const getCredential =
+  ({
+    credentialCryptoContext,
+    appFetch = fetch,
+  }: {
+    credentialCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }) =>
+  async (
+    { nonce, accessToken, clientId, walletProviderBaseUrl }: AuthorizationConf,
+    credentialIssuerEntityConfiguration: EntityConfiguration
+  ): Promise<any> => {
+    //TODO: Obtain from entity configuration
+    const credentialProviderBaseUrl =
+      credentialIssuerEntityConfiguration.payload.iss;
+    const tokenUrl = new URL("token", credentialProviderBaseUrl).href;
+    const credentialUrl = new URL("credential", credentialProviderBaseUrl).href;
+
+    const signedDPopForPid = await createDPopToken(
+      {
+        htm: "POST",
+        htu: tokenUrl,
+        jti: `${uuid.v4()}`,
+      },
+      credentialCryptoContext
+    );
+    const signedNonceProof = await createNonceProof(
+      nonce,
       clientId,
-      issuerRequestUri,
-      credentialIssuerEntityConfiguration
+      walletProviderBaseUrl,
+      credentialCryptoContext
+    );
+
+    const requestBody = {
+      credential_definition: JSON.stringify({
+        type: ["mDL"],
+      }),
+      format: "vc+sd-jwt",
+      proof: JSON.stringify({
+        jwt: signedNonceProof,
+        proof_type: "jwt",
+      }),
+    };
+    const formBody = new URLSearchParams(requestBody);
+
+    const response = await appFetch(credentialUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        DPoP: signedDPopForPid,
+        Authorization: accessToken,
+      },
+      body: formBody.toString(),
+    });
+
+    if (response.status === 200) {
+      return await response.json();
+    }
+
+    throw new Error(
+      `Unable to obtain credential! url=${credentialUrl} status=${
+        response.status
+      } body=${await response.text()}`
     );
   };

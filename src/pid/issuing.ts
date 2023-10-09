@@ -1,11 +1,7 @@
-import {
-  type CryptoContext,
-  SignJWT,
-  thumbprint,
-} from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, thumbprint } from "@pagopa/io-react-native-jwt";
 
 import uuid from "react-native-uuid";
-import { PidIssuingError } from "../utils/errors";
+import { PidIssuingError, TokenError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
 import { CredentialIssuerEntityConfiguration } from "../trust/types";
 import { SdJwt } from ".";
@@ -13,7 +9,11 @@ import { useEphemeralKey } from "../utils/crypto";
 
 import * as z from "zod";
 import { getJwtFromFormPost } from "../utils/decoder";
-import { makeParRequest, type AuthorizationDetails } from "../utils/par";
+import {
+  makeParRequest,
+  type AuthorizationDetails,
+  createNonceProof,
+} from "../utils/par";
 
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
@@ -207,34 +207,10 @@ export const authorizeIssuing =
       };
     }
 
-    throw new PidIssuingError(
+    throw new TokenError(
       `Unable to obtain token. Response code: ${await response.text()}`
     );
   };
-
-/**
- * Return the signed jwt for nonce proof of possession
- */
-const createNonceProof = async (
-  nonce: string,
-  issuer: string,
-  audience: string,
-  ctx: CryptoContext
-): Promise<string> => {
-  return new SignJWT(ctx)
-    .setPayload({
-      nonce,
-      jwk: await ctx.getPublicKey(),
-    })
-    .setProtectedHeader({
-      type: "openid4vci-proof+jwt",
-    })
-    .setAudience(audience)
-    .setIssuer(issuer)
-    .setIssuedAt()
-    .setExpirationTime("1h")
-    .sign();
-};
 
 /**
  * Complete the issuing flow and get the PID credential.

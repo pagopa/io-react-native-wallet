@@ -40,3 +40,9 @@ export type Presentation = [
   /* verified credential token */ string,
   /* claims */ string[]
 ];
+
+export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
+export const AuthorizationResponse = z.object({
+  status: z.string(),
+  response_code: z.string().optional(),
+});
