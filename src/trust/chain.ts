@@ -132,7 +132,7 @@ export function renewTrustChain(
             EntityConfiguration.safeParse(e),
           ] as const
       )
-      // fetch the element accorfing to its shape
+      // fetch the element according to its shape
       .map(([es, ec], i) =>
         ec.success
           ? getSignedEntityConfiguration(ec.data.payload.iss, { appFetch })
