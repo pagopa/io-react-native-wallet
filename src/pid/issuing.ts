@@ -1,21 +1,19 @@
 import {
-  sha256ToBase64,
   type CryptoContext,
   SignJWT,
   thumbprint,
 } from "@pagopa/io-react-native-jwt";
 
-import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
 import { PidIssuingError } from "../utils/errors";
 import { createDPopToken } from "../utils/dpop";
 import { CredentialIssuerEntityConfiguration } from "../trust/types";
-import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { SdJwt } from ".";
 import { useEphemeralKey } from "../utils/crypto";
 
 import * as z from "zod";
 import { getJwtFromFormPost } from "../utils/decoder";
+import { makeParRequest, type AuthorizationDetails } from "../utils/par";
 
 // This is a temporary type that will be used for demo purposes only
 export type CieData = {
@@ -52,101 +50,6 @@ const AuthenticationRequestResponse = z.object({
 
 const assertionType =
   "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation";
-
-/**
- * Make a PAR request to the PID issuer and return the response url
- */
-const getPar =
-  ({
-    wiaCryptoContext,
-    appFetch = fetch,
-  }: {
-    wiaCryptoContext: CryptoContext;
-    appFetch?: GlobalFetch["fetch"];
-  }) =>
-  async (
-    clientId: string,
-    codeVerifier: string,
-    walletProviderBaseUrl: string,
-    pidProviderEntityConfiguration: CredentialIssuerEntityConfiguration,
-    walletInstanceAttestation: string
-  ): Promise<string> => {
-    // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
-    // The PAR request token is signed used the Wallet Instance Attestation key.
-    // The signature can be verified by reading the public key from the key set shippet with the it will ship the Wallet Instance Attestation;
-    //  key is matched by its kid, which is supposed to be the thumbprint of its public key.
-    const keyThumbprint = await wiaCryptoContext
-      .getPublicKey()
-      .then(JWK.parse)
-      .then(thumbprint);
-
-    const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
-      .payload.cnf.jwk.kid;
-
-    const codeChallenge = await sha256ToBase64(codeVerifier);
-
-    const signedJwtForPar = await new SignJWT(wiaCryptoContext)
-      .setProtectedHeader({
-        kid: keyThumbprint,
-      })
-      .setPayload({
-        iss,
-        aud: pidProviderEntityConfiguration.payload.iss,
-        jti: `${uuid.v4()}`,
-        client_assertion_type: assertionType,
-        authorization_details: [
-          {
-            credential_definition: {
-              type: "PersonIdentificationData",
-            },
-            format: "vc+sd-jwt",
-            type: "openid_credential",
-          },
-        ],
-        response_type: "code",
-        code_challenge_method: "s256",
-        redirect_uri: walletProviderBaseUrl,
-        state: `${uuid.v4()}`,
-        client_id: clientId,
-        code_challenge: codeChallenge,
-      })
-      .setIssuedAt()
-      .setExpirationTime("1h")
-      .sign();
-
-    const parUrl =
-      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
-        .pushed_authorization_request_endpoint;
-
-    const requestBody = {
-      response_type: "code",
-      client_id: clientId,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-      client_assertion_type: assertionType,
-      client_assertion: walletInstanceAttestation,
-      request: signedJwtForPar,
-    };
-
-    var formBody = new URLSearchParams(requestBody);
-
-    const response = await appFetch(parUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formBody.toString(),
-    });
-
-    if (response.status === 201) {
-      const result = await response.json();
-      return result.request_uri;
-    }
-
-    throw new PidIssuingError(
-      `Unable to obtain PAR. Response code: ${await response.text()}`
-    );
-  };
 
 /**
  * Make an authorization request
@@ -226,15 +129,33 @@ export const authorizeIssuing =
       pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
         .token_endpoint;
 
-    const requestUri = await getPar({ wiaCryptoContext, appFetch })(
+    const parUrl =
+      pidProviderEntityConfiguration.payload.metadata.openid_credential_issuer
+        .pushed_authorization_request_endpoint;
+
+    const authorizationDetails: AuthorizationDetails = [
+      {
+        credential_definition: {
+          type: "PersonIdentificationData",
+        },
+        format: "vc+sd-jwt",
+        type: "openid_credential",
+      },
+    ];
+
+    // Make a PAR request to the PID issuer and return the response url
+    const getPar = makeParRequest({ wiaCryptoContext, appFetch });
+    const requestUri = await getPar(
       clientId,
       codeVerifier,
       walletProviderBaseUrl,
-      pidProviderEntityConfiguration,
-      walletInstanceAttestation
+      parUrl,
+      walletInstanceAttestation,
+      authorizationDetails,
+      assertionType
     );
 
-    const authenticationRequest = await getAuthenticationRequest({})(
+    const authenticationRequest = await getAuthenticationRequest({ appFetch })(
       clientId,
       requestUri,
       pidProviderEntityConfiguration,

@@ -4,6 +4,7 @@ import "react-native-url-polyfill/auto";
 
 import * as PID from "./pid";
 import * as RP from "./rp";
+import * as CredentialIssuer from "./credential-issuer";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as RelyingPartySolution from "./rp";
@@ -22,11 +23,13 @@ import {
   TrustAnchorEntityConfiguration,
   CredentialIssuerEntityConfiguration,
 } from "./trust/types";
+import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";
 
 export {
   PID,
   RP,
+  CredentialIssuer,
   WalletInstanceAttestation,
   Errors,
   RelyingPartySolution,
@@ -42,4 +45,6 @@ export {
   WalletProviderEntityConfiguration,
   TrustAnchorEntityConfiguration,
   CredentialIssuerEntityConfiguration,
+  AuthorizationDetail,
+  AuthorizationDetails,
 };

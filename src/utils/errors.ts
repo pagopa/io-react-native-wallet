@@ -201,3 +201,16 @@ export class PidMetadataError extends Error {
     super(message);
   }
 }
+
+/**
+ * When a PAR request fails to obtain
+ */
+export class ParError extends Error {
+  static get code(): "ERR_PAR" {
+    return "ERR_PAR";
+  }
+  code = "ERR_PAR";
+  constructor(message: string) {
+    super(message);
+  }
+}
