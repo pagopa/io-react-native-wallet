@@ -40,6 +40,7 @@ export default async () => {
     await generate(credentialKeyTag);
     const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
+    // TODO: Obtain this from entityConfiguration given credentialID
     const authorizationDetails: AuthorizationDetails = [
       {
         credential_definition: {
@@ -61,6 +62,7 @@ export default async () => {
       authorizationDetails
     );
 
+    // Auth flow vs RP
     //TODO: Remove RelyingPartyEntityConfiguration cast
     const requestObj = await RelyingPartySolution.getRequestObject({
       wiaCryptoContext,

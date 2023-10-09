@@ -209,6 +209,7 @@ export const getCredential =
       credentialCryptoContext
     );
 
+    //TODO: Remove and add as function param
     const requestBody = {
       credential_definition: JSON.stringify({
         type: ["mDL"],
