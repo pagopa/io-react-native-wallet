@@ -55,7 +55,7 @@ const asyncFinally =
   async (...args: A): Promise<R> => {
     try {
       return await fn(...args);
-      //     ^^^^^ return await is usallyo to be avoided,
+      //     ^^^^^ return await is usually to be avoided,
       //           in this case is needed for the finally{} statement to be executed correctly
     } catch (error) {
       throw error;
