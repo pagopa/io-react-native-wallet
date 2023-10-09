@@ -1,3 +1,19 @@
+// utility to format a set of attributes into an error message string
+const serializeAttrs = (
+  attrs: Record<string, string | string | undefined>
+): string =>
+  Object.entries(attrs)
+    .map(([k, v]) => [
+      k,
+      typeof v === "undefined"
+        ? "unspecified"
+        : Array.isArray(v)
+        ? `(${v.join(", ")})`
+        : v,
+    ])
+    .map((_) => _.join("="))
+    .join(" ");
+
 /**
  * A generic Error that all other io-wallet specific Error subclasses extend.
  *
@@ -42,8 +58,8 @@ export class ValidationFailed extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(message: string, claim: string, reason: string) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
@@ -66,8 +82,8 @@ export class WalletInstanceAttestationIssuingError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(message: string, claim: string, reason: string) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
@@ -90,8 +106,8 @@ export class AuthRequestDecodeError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(message: string, claim: string, reason: string) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
@@ -114,8 +130,8 @@ export class PidIssuingError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(message: string, claim: string, reason: string) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
