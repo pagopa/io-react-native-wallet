@@ -11,6 +11,7 @@ import { JWK } from "../utils/jwk";
 import { IoWalletError } from "../utils/errors";
 import * as z from "zod";
 import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
+import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
 
 type ParsedToken = {
   header: JWTDecodeResult["protectedHeader"];
@@ -51,12 +52,12 @@ const LastElementShape = z.union([
 /**
  * Validates a provided trust chain against a known trust
  *
- * @param trustAnchorEntity
- * @param chain
+ * @param trustAnchorEntity The entity configuration of the known trust anchor
+ * @param chain The chain of statements to be validate
  * @returns The list of parsed token representing the chain
  * @throws {IoWalletError} If the chain is not valid
  */
-export async function verifyTrustChain(
+export async function validateTrustChain(
   trustAnchorEntity: TrustAnchorEntityConfiguration,
   chain: string[]
 ): Promise<ParsedToken[]> {
@@ -105,5 +106,46 @@ export async function verifyTrustChain(
     chain
       .map((token, i) => [token, selectKid(i), selectKeys(i)] as const)
       .map((args) => verify(...args))
+  );
+}
+
+/**
+ * Given a trust chain, obtain a new trust chain by fetching each element's fresh version
+ *
+ * @param chain The original chain
+ * @param appFetch (optional) fetch api implementation
+ * @returns A list of signed token that reprensent the trust chain, in the same order of the provided chain
+ * @throws When an element of the chain fails to parse
+ */
+export function renewTrustChain(
+  chain: string[],
+  appFetch: GlobalFetch["fetch"] = fetch
+) {
+  return Promise.all(
+    chain
+      // Decode each item to determine its shape
+      .map(decode)
+      .map(
+        (e) =>
+          [
+            EntityStatement.safeParse(e),
+            EntityConfiguration.safeParse(e),
+          ] as const
+      )
+      // fetch the element according to its shape
+      .map(([es, ec], i) =>
+        ec.success
+          ? getSignedEntityConfiguration(ec.data.payload.iss, { appFetch })
+          : es.success
+          ? getSignedEntityStatement(es.data.payload.iss, es.data.payload.sub, {
+              appFetch,
+            })
+          : // if the element fail to parse in both EntityStatement and EntityConfiguration, raise an error
+            Promise.reject(
+              new IoWalletError(
+                `Cannot renew trust chain because the element #${i} failed to be parsed.`
+              )
+            )
+      )
   );
 }

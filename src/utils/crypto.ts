@@ -1,4 +1,10 @@
-import { getPublicKey, sign } from "@pagopa/io-react-native-crypto";
+import {
+  getPublicKey,
+  sign,
+  generate,
+  deleteKey,
+} from "@pagopa/io-react-native-crypto";
+import uuid from "react-native-uuid";
 import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey } from "./jwk";
 
@@ -38,4 +44,40 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
       return sign(value, keytag);
     },
   };
+};
+
+// Wraps finally for async expressions
+const asyncFinally =
+  <A extends Array<unknown>, R>(
+    fn: (...args: A) => Promise<R>,
+    onFinally: () => void | Promise<void>
+  ) =>
+  async (...args: A): Promise<R> => {
+    try {
+      return await fn(...args);
+      //     ^^^^^ return await is usually to be avoided,
+      //           in this case is needed for the finally{} statement to be executed correctly
+    } catch (error) {
+      throw error;
+    } finally {
+      await onFinally();
+    }
+  };
+
+/**
+ * Executes the input function injecting an ephemeral crypto context.
+ * An ephemeral crypto context is a context which is bound to a key
+ * that is just created and is deleted after use.
+ *
+ * @param fn The procedure to be executed
+ * @returns The returned value of the input procedure.
+ */
+export const useEphemeralKey = async <R>(
+  fn: (ephemeralContext: CryptoContext) => Promise<R>
+): Promise<R> => {
+  // Use an ephemeral key to be destroyed after use
+  const keytag = `ephemeral-${uuid.v4()}`;
+  await generate(keytag);
+  const ephemeralContext = createCryptoContextFor(keytag);
+  return asyncFinally(fn, () => deleteKey(keytag))(ephemeralContext);
 };

@@ -175,6 +175,43 @@ const result = await sendAuthorizationResponse(requestObj, [
 ]);
 ```
 
+### Trust Model
+
+#### Fetch federation entity statements
+
+```ts
+import {
+  // generic statement
+  getEntityStatement,
+  getEntityConfiguration,
+  // statement with shape parsing
+  getCredentialIssuerEntityConfiguration,
+  getRelyingPartyEntityConfiguration,
+  getTrustAnchorEntityConfiguration,
+  getWalletProviderEntityConfiguration,
+} from "@pagopa/io-react-native-wallet";
+```
+
+#### Validate trust
+
+```ts
+import {
+  verifyTrustChain,
+  getTrustAnchorEntityConfiguration,
+} from "@pagopa/io-react-native-wallet";
+
+const trustChain = ["ejJ0eX...", "eyG5eX...", "erU9eX..."];
+const trustChainEC = await getTrustAnchorEntityConfiguration(
+  "https://trust-anchor.example"
+);
+
+// Validate a given trust chain offline (no renewal on failures)
+await verifyTrustChain(trustChainEC, trustChain);
+
+// Validate a given trust chain online (try to renew on failures)
+await verifyTrustChain(trustChainEC, trustChain, { renewOnFail: true });
+```
+
 ## Example
 
 ### NodeJS and Ruby

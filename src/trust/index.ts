@@ -5,11 +5,71 @@ import {
   CredentialIssuerEntityConfiguration,
   RelyingPartyEntityConfiguration,
   EntityConfiguration,
+  EntityStatement,
 } from "./types";
 import { IoWalletError } from "../utils/errors";
-import { verifyTrustChain } from "./chain";
+import { validateTrustChain, renewTrustChain } from "./chain";
 
-export { verifyTrustChain };
+/**
+ * Verify a given trust chain is actually valid.
+ * It can handle fast chain renewal, which means we try to fetch a fresh version of each statement.
+ *
+ * @param trustAnchorEntity The entity configuration of the known trust anchor
+ * @param chain The chain of statements to be validate
+ * @param options.renewOnFail Whether to renew the provided chain if the validation fails at first. Default: true
+ * @param options.appFetch Fetch api implementation. Default: the built-in implementation
+ * @returns The result of the chain validation
+ * @throws {IoWalletError} When either validation or renewal fail
+ */
+export async function verifyTrustChain(
+  trustAnchorEntity: TrustAnchorEntityConfiguration,
+  chain: string[],
+  {
+    appFetch = fetch,
+    renewOnFail = true,
+  }: { appFetch?: GlobalFetch["fetch"]; renewOnFail?: boolean } = {}
+): Promise<ReturnType<typeof validateTrustChain>> {
+  try {
+    return validateTrustChain(trustAnchorEntity, chain);
+  } catch (error) {
+    if (renewOnFail) {
+      const renewedChain = await renewTrustChain(chain, appFetch);
+      return validateTrustChain(trustAnchorEntity, renewedChain);
+    } else {
+      throw error;
+    }
+  }
+}
+
+/**
+ * Fetch the signed entity configuration token for an entity
+ *
+ * @param entityBaseUrl The url of the entity to fetch
+ * @param param.appFetch (optional) fetch api implemention
+ * @returns The signed Entity Configuration token
+ */
+export async function getSignedEntityConfiguration(
+  entityBaseUrl: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+): Promise<string> {
+  const wellKnownUrl = `${entityBaseUrl}/.well-known/openid-federation`;
+
+  const response = await appFetch(wellKnownUrl, {
+    method: "GET",
+  });
+
+  if (response.status === 200) {
+    return response.text();
+  }
+
+  throw new IoWalletError(
+    `Unable to obtain Entity Configuration at ${wellKnownUrl}. Response code: ${response.status}`
+  );
+}
 
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
@@ -77,24 +137,14 @@ async function fetchAndParseEntityConfiguration(
     appFetch?: GlobalFetch["fetch"];
   } = {}
 ) {
-  const wellKnownUrl = `${entityBaseUrl}/.well-known/openid-federation`;
-
-  const response = await appFetch(wellKnownUrl, {
-    method: "GET",
+  const responseText = await getSignedEntityConfiguration(entityBaseUrl, {
+    appFetch,
   });
-
-  if (response.status === 200) {
-    const responseText = await response.text();
-    const responseJwt = decodeJwt(responseText);
-    return schema.parse({
-      header: responseJwt.protectedHeader,
-      payload: responseJwt.payload,
-    });
-  }
-
-  throw new IoWalletError(
-    `Unable to obtain Entity Configuration at ${wellKnownUrl}. Response code: ${response.status}`
-  );
+  const responseJwt = decodeJwt(responseText);
+  return schema.parse({
+    header: responseJwt.protectedHeader,
+    payload: responseJwt.payload,
+  });
 }
 
 export const getWalletProviderEntityConfiguration = (
@@ -142,3 +192,72 @@ export const getEntityConfiguration = (
   options?: Parameters<typeof fetchAndParseEntityConfiguration>[2]
 ) =>
   fetchAndParseEntityConfiguration(entityBaseUrl, EntityConfiguration, options);
+
+/**
+ * Fetch and parse the entity statement document for a given federation entity.
+ *
+ * @param accreditationBodyBaseUrl The base url of the accreditaion body which holds and signs the required entity statement
+ * @param subordinatedEntityBaseUrl The url that identifies the subordinate entity
+ * @param options.appFetch An optional instance of the http client to be used.
+ * @returns The parsed entity configuration object
+ * @throws {IoWalletError} If the http request fails
+ * @throws Parse error if the document is not in the expected shape.
+ */
+export async function getEntityStatement(
+  accreditationBodyBaseUrl: string,
+  subordinatedEntityBaseUrl: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+) {
+  const responseText = await getSignedEntityStatement(
+    accreditationBodyBaseUrl,
+    subordinatedEntityBaseUrl,
+    {
+      appFetch,
+    }
+  );
+
+  const responseJwt = decodeJwt(responseText);
+  return EntityStatement.parse({
+    header: responseJwt.protectedHeader,
+    payload: responseJwt.payload,
+  });
+}
+
+/**
+ * Fetch the entity statement document for a given federation entity.
+ *
+ * @param accreditationBodyBaseUrl The base url of the accreditaion body which holds and signs the required entity statement
+ * @param subordinatedEntityBaseUrl The url that identifies the subordinate entity
+ * @param options.appFetch An optional instance of the http client to be used.
+ * @returns The signed entity statement token
+ * @throws {IoWalletError} If the http request fails
+ */
+export async function getSignedEntityStatement(
+  accreditationBodyBaseUrl: string,
+  subordinatedEntityBaseUrl: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+) {
+  const url = `${accreditationBodyBaseUrl}/fetch?${new URLSearchParams({
+    sub: subordinatedEntityBaseUrl,
+  })}`;
+
+  const response = await appFetch(url, {
+    method: "GET",
+  });
+
+  if (response.status === 200) {
+    return response.text();
+  }
+
+  throw new IoWalletError(
+    `Unable to obtain Entity Statement at ${url}. Response code: ${response.status}`
+  );
+}
