@@ -46,24 +46,6 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
   };
 };
 
-// Wraps finally for async expressions
-const asyncFinally =
-  <A extends Array<unknown>, R>(
-    fn: (...args: A) => Promise<R>,
-    onFinally: () => void | Promise<void>
-  ) =>
-  async (...args: A): Promise<R> => {
-    try {
-      return await fn(...args);
-      //     ^^^^^ return await is usually to be avoided,
-      //           in this case is needed for the finally{} statement to be executed correctly
-    } catch (error) {
-      throw error;
-    } finally {
-      await onFinally();
-    }
-  };
-
 /**
  * Executes the input function injecting an ephemeral crypto context.
  * An ephemeral crypto context is a context which is bound to a key
@@ -79,5 +61,5 @@ export const useEphemeralKey = async <R>(
   const keytag = `ephemeral-${uuid.v4()}`;
   await generate(keytag);
   const ephemeralContext = createCryptoContextFor(keytag);
-  return asyncFinally(fn, () => deleteKey(keytag))(ephemeralContext);
+  return fn(ephemeralContext).finally(() => deleteKey(keytag));
 };
