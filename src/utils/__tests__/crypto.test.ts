@@ -29,7 +29,8 @@ describe("useEphemeralKey", () => {
   });
 
   it("should delete only after the procedure has ended", async () => {
-    let a: number, b: number;
+    let a: number = 0,
+      b: number = -1;
     const fn = () =>
       new Promise((ok) => setTimeout((_) => ok((a = Date.now())), 1000));
 
