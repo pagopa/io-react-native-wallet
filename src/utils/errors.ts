@@ -1,16 +1,7 @@
 // utility to format a set of attributes into an error message string
-const serializeAttrs = (
-  attrs: Record<string, string | string | undefined>
-): string =>
+const serializeAttrs = (attrs: Record<string, string | string>): string =>
   Object.entries(attrs)
-    .map(([k, v]) => [
-      k,
-      typeof v === "undefined"
-        ? "unspecified"
-        : Array.isArray(v)
-        ? `(${v.join(", ")})`
-        : v,
-    ])
+    .map(([k, v]) => [k, Array.isArray(v) ? `(${v.join(", ")})` : v])
     .map((_) => _.join("="))
     .join(" ");
 
@@ -58,7 +49,11 @@ export class ValidationFailed extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim: string, reason: string) {
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
     super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
@@ -82,7 +77,11 @@ export class WalletInstanceAttestationIssuingError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim: string, reason: string) {
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
     super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
@@ -106,7 +105,11 @@ export class AuthRequestDecodeError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim: string, reason: string) {
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
     super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
@@ -130,7 +133,11 @@ export class PidIssuingError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim: string, reason: string) {
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
     super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
