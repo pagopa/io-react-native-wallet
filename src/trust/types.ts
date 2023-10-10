@@ -158,7 +158,7 @@ export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
             application_type: z.string().optional(),
             client_id: z.string().optional(),
             client_name: z.string().optional(),
-            jwks: z.array(JWK),
+            jwks: z.object({ keys: z.array(JWK) }),
             contacts: z.array(z.string()).optional(),
           })
           .passthrough(),

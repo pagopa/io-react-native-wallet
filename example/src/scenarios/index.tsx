@@ -1,3 +1,4 @@
+import getEntityStatement from "./get-entity-statement";
 import getPid from "./get-pid";
 import getAttestation from "./get-attestation";
 import verifyPid from "./verify-pid";
@@ -12,6 +13,7 @@ const scenarios = {
   decodePid,
   decodeQR,
   authenticationToRP,
+  getEntityStatement,
 };
 
 export default scenarios;

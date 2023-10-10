@@ -9,6 +9,7 @@ import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as RelyingPartySolution from "./rp";
 import {
   verifyTrustChain,
+  getEntityStatement,
   getEntityConfiguration,
   getCredentialIssuerEntityConfiguration,
   getRelyingPartyEntityConfiguration,
@@ -30,6 +31,7 @@ export {
   Errors,
   RelyingPartySolution,
   verifyTrustChain,
+  getEntityStatement,
   getEntityConfiguration,
   getCredentialIssuerEntityConfiguration,
   getRelyingPartyEntityConfiguration,
