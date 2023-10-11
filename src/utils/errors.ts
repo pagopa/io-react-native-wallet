@@ -1,4 +1,13 @@
-// utility to format a set of attributes into an error message string
+/**
+ * utility to format a set of attributes into an error message string
+ *
+ * @example
+ * // returns "foo=value bar=(list, item)"
+ * serializeAttrs({ foo: "value", bar: ["list", "item"] })
+ *
+ * @param attrs A key value record set
+ * @returns a human-readable serialization of the set
+ */
 const serializeAttrs = (attrs: Record<string, string | string>): string =>
   Object.entries(attrs)
     .map(([k, v]) => [k, Array.isArray(v) ? `(${v.join(", ")})` : v])
