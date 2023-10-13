@@ -5,7 +5,7 @@ import verifyPid from "./verify-pid";
 import decodePid from "./decode-pid";
 import decodeQR from "./decode-qr-from-rp";
 import authenticationToRP from "./cross-device-flow-with-rp";
-import getCredential from "./get-credential";
+import getCredential from "./get-credential-2";
 
 const scenarios = {
   getPid,

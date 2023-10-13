@@ -5,6 +5,16 @@ import * as z from "zod";
 export const TrustMark = z.object({ id: z.string(), trust_mark: z.string() });
 export type TrustMark = z.infer<typeof TrustMark>;
 
+const RelyingPartyMetadata = z
+  .object({
+    application_type: z.string().optional(),
+    client_id: z.string().optional(),
+    client_name: z.string().optional(),
+    jwks: z.object({ keys: z.array(JWK) }),
+    contacts: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
 // Display metadata for a credential, used by the issuer to
 // instruct the Wallet Solution on how to render the credential correctly
 type CredentialDisplayMetadata = z.infer<typeof CredentialDisplayMetadata>;
@@ -19,13 +29,28 @@ const CredentialDisplayMetadata = z.object({
   text_color: z.string(),
 });
 
+type CredentialDefinitionMetadata = z.infer<
+  typeof CredentialDefinitionMetadata
+>;
+const CredentialDefinitionMetadata = z.object({
+  type: z.array(z.string()),
+  credentialSubject: z.record(
+    z.object({
+      mandatory: z.boolean(),
+      display: z.array(z.object({ name: z.string(), locale: z.string() })),
+    })
+  ),
+});
+
 // Metadata for a credentia which i supported by a Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
+  id: z.string(),
   format: z.literal("vc+sd-jwt"),
   cryptographic_binding_methods_supported: z.array(z.string()),
   cryptographic_suites_supported: z.array(z.string()),
   display: z.array(CredentialDisplayMetadata),
+  credential_definition: CredentialDefinitionMetadata,
 });
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
@@ -118,6 +143,30 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
   })
 );
 
+export type CredentialIssuerEntityConfiguration2 = z.infer<
+  typeof CredentialIssuerEntityConfiguration2
+>;
+export const CredentialIssuerEntityConfiguration2 = BaseEntityConfiguration.and(
+  z.object({
+    payload: z.object({
+      jwks: z.object({ keys: z.array(JWK) }),
+      metadata: z.object({
+        openid_credential_issuer: z.object({
+          credential_issuer: z.string(),
+          authorization_endpoint: z.string(),
+          token_endpoint: z.string(),
+          pushed_authorization_request_endpoint: z.string(),
+          dpop_signing_alg_values_supported: z.array(z.string()),
+          credential_endpoint: z.string(),
+          credentials_supported: z.array(SupportedCredentialMetadata),
+          jwks: z.object({ keys: z.array(JWK) }),
+        }),
+        wallet_relying_party: RelyingPartyMetadata,
+      }),
+    }),
+  })
+);
+
 // Entity configuration for a Wallet Provider
 export type WalletProviderEntityConfiguration = z.infer<
   typeof WalletProviderEntityConfiguration
@@ -153,15 +202,7 @@ export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
   z.object({
     payload: z.object({
       metadata: z.object({
-        wallet_relying_party: z
-          .object({
-            application_type: z.string().optional(),
-            client_id: z.string().optional(),
-            client_name: z.string().optional(),
-            jwks: z.object({ keys: z.array(JWK) }),
-            contacts: z.array(z.string()).optional(),
-          })
-          .passthrough(),
+        wallet_relying_party: RelyingPartyMetadata,
       }),
     }),
   })

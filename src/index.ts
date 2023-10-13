@@ -2,6 +2,7 @@
 // https://github.com/facebook/react-native/issues/24428
 import "react-native-url-polyfill/auto";
 
+import * as Credential from "./credential";
 import * as PID from "./pid";
 import * as RP from "./rp";
 import * as CredentialIssuer from "./credential-issuer";
@@ -29,6 +30,7 @@ import { createCryptoContextFor } from "./utils/crypto";
 export {
   PID,
   RP,
+  Credential,
   CredentialIssuer,
   WalletInstanceAttestation,
   Errors,
