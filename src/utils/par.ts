@@ -7,10 +7,10 @@ import {
 
 import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
-import { ParError } from "../utils/errors";
 
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
+import { hasStatus } from "./misc";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
@@ -94,22 +94,16 @@ export const makeParRequest =
 
     var formBody = new URLSearchParams(requestBody);
 
-    const response = await appFetch(parEndpoint, {
+    return await appFetch(parEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formBody.toString(),
-    });
-
-    if (response.status === 201) {
-      const result = await response.json();
-      return result.request_uri;
-    }
-
-    throw new ParError(
-      `Unable to obtain PAR. Response code: ${await response.text()}`
-    );
+    })
+      .then(hasStatus(201))
+      .then((res) => res.json())
+      .then((result) => result.request_uri);
   };
 
 /**

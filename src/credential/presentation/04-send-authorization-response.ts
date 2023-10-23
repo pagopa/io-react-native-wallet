@@ -2,11 +2,8 @@ import { EncryptJwe, SignJWT } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
-import {
-  IoWalletError,
-  NoSuitableKeysFoundInEntityConfiguration,
-} from "../../utils/errors";
-import type { Out } from "src/utils/misc";
+import { NoSuitableKeysFoundInEntityConfiguration } from "../../utils/errors";
+import { hasStatus, type Out } from "../../utils/misc";
 import type { GetRequestObject } from "./03-get-request-object";
 import { disclose } from "../../sd-jwt";
 import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
@@ -159,21 +156,14 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   const formBody = new URLSearchParams({ response: encrypted });
   const body = formBody.toString();
 
-  const response = await appFetch(requestObject.response_uri, {
+  return appFetch(requestObject.response_uri, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body,
-  });
-
-  if (response.status === 200) {
-    return AuthorizationResponse.parse(await response.json());
-  }
-
-  throw new IoWalletError(
-    `Unable to send Authorization Response. Response: ${await response.text()} with code: ${
-      response.status
-    }`
-  );
+  })
+    .then(hasStatus(200))
+    .then((res) => res.json())
+    .then(AuthorizationResponse.parse);
 };

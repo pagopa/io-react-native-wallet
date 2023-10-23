@@ -1,9 +1,8 @@
 import uuid from "react-native-uuid";
 import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
-import { TokenError } from "../../utils/errors";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
-import type { Out } from "../../utils/misc";
+import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
 import type { CompleteUserAuthorization } from "./04-complete-user-authorization";
@@ -75,24 +74,19 @@ export const authorizeAccess: AuthorizeAccess = async (
   };
   var formBody = new URLSearchParams(requestBody);
 
-  const response = await appFetch(tokenUrl, {
+  return appFetch(tokenUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       DPoP: signedDPop,
     },
     body: formBody.toString(),
-  });
-
-  if (response.status === 200) {
-    const { c_nonce, access_token } = await response.json();
-    return {
-      accessToken: access_token,
-      nonce: c_nonce,
+  })
+    .then(hasStatus(200))
+    .then((res) => res.json())
+    .then((body) => ({
+      accessToken: body.access_token,
+      nonce: body.c_nonce,
       clientId,
-    };
-  }
-  throw new TokenError(
-    `Unable to obtain token. Response code: ${await response.text()}`
-  );
+    }));
 };

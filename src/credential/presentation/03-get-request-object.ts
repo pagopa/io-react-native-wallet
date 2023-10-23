@@ -7,12 +7,9 @@ import {
 } from "@pagopa/io-react-native-jwt";
 
 import { createDPopToken } from "../../utils/dpop";
-import {
-  NoSuitableKeysFoundInEntityConfiguration,
-  IoWalletError,
-} from "../../utils/errors";
+import { NoSuitableKeysFoundInEntityConfiguration } from "../../utils/errors";
 import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
-import type { Out } from "src/utils/misc";
+import { hasStatus, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import { RequestObject } from "./types";
 
@@ -52,44 +49,37 @@ export const getRequestObject: GetRequestObject = async (
     wiaCryptoContext
   );
 
-  const response = await appFetch(requestUri, {
+  const responseEncodedJwt = await appFetch(requestUri, {
     method: "GET",
     headers: {
       Authorization: `DPoP ${walletInstanceAttestation}`,
       DPoP: signedWalletInstanceDPoP,
     },
-  });
+  })
+    .then(hasStatus(200))
+    .then((res) => res.json())
+    .then((responseJson) => responseJson.response);
 
-  if (response.status === 200) {
-    const responseJson = await response.json();
-    const responseEncodedJwt = responseJson.response;
+  const responseJwt = decodeJwt(responseEncodedJwt);
 
-    const responseJwt = decodeJwt(responseEncodedJwt);
-
-    // verify token signature according to RP's entity configuration
-    // to ensure the request object is authentic
-    {
-      const pubKey = rpConf.wallet_relying_party.jwks.keys.find(
-        ({ kid }) => kid === responseJwt.protectedHeader.kid
+  // verify token signature according to RP's entity configuration
+  // to ensure the request object is authentic
+  {
+    const pubKey = rpConf.wallet_relying_party.jwks.keys.find(
+      ({ kid }) => kid === responseJwt.protectedHeader.kid
+    );
+    if (!pubKey) {
+      throw new NoSuitableKeysFoundInEntityConfiguration(
+        "Request Object signature verification"
       );
-      if (!pubKey) {
-        throw new NoSuitableKeysFoundInEntityConfiguration(
-          "Request Object signature verification"
-        );
-      }
-      await verify(responseEncodedJwt, pubKey);
     }
-
-    // parse request object it has the expected shape by specification
-    const requestObject = RequestObject.parse(responseJwt.payload);
-
-    return {
-      requestObject,
-    };
+    await verify(responseEncodedJwt, pubKey);
   }
 
-  throw new IoWalletError(
-    `Unable to obtain Request Object. Response code: ${response.status}
-      ${await response.text()}`
-  );
+  // parse request object it has the expected shape by specification
+  const requestObject = RequestObject.parse(responseJwt.payload);
+
+  return {
+    requestObject,
+  };
 };

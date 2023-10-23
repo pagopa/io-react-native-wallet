@@ -7,8 +7,8 @@ import {
   EntityConfiguration,
   EntityStatement,
 } from "./types";
-import { IoWalletError } from "../utils/errors";
 import { validateTrustChain, renewTrustChain } from "./chain";
+import { hasStatus } from "../utils/misc";
 
 export type {
   WalletProviderEntityConfiguration,
@@ -67,17 +67,11 @@ export async function getSignedEntityConfiguration(
 ): Promise<string> {
   const wellKnownUrl = `${entityBaseUrl}/.well-known/openid-federation`;
 
-  const response = await appFetch(wellKnownUrl, {
+  return await appFetch(wellKnownUrl, {
     method: "GET",
-  });
-
-  if (response.status === 200) {
-    return response.text();
-  }
-
-  throw new IoWalletError(
-    `Unable to obtain Entity Configuration at ${wellKnownUrl}. Response code: ${response.status}`
-  );
+  })
+    .then(hasStatus(200))
+    .then((res) => res.text());
 }
 
 /**
@@ -259,15 +253,9 @@ export async function getSignedEntityStatement(
     sub: subordinatedEntityBaseUrl,
   })}`;
 
-  const response = await appFetch(url, {
+  return await appFetch(url, {
     method: "GET",
-  });
-
-  if (response.status === 200) {
-    return response.text();
-  }
-
-  throw new IoWalletError(
-    `Unable to obtain Entity Statement at ${url}. Response code: ${response.status}`
-  );
+  })
+    .then(hasStatus(200))
+    .then((res) => res.text());
 }
