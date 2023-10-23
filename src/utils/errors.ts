@@ -201,29 +201,3 @@ export class PidMetadataError extends Error {
     super(message);
   }
 }
-
-/**
- * When a PAR request fails to obtain
- */
-export class ParError extends Error {
-  static get code(): "ERR_PAR" {
-    return "ERR_PAR";
-  }
-  code = "ERR_PAR";
-  constructor(message: string) {
-    super(message);
-  }
-}
-
-/**
- * When a token request fails to obtain
- */
-export class TokenError extends Error {
-  static get code(): "ERR_TOKEN_ISSUING" {
-    return "ERR_TOKEN_ISSUING";
-  }
-  code = "ERR_TOKEN_ISSUING";
-  constructor(message: string) {
-    super(message);
-  }
-}
