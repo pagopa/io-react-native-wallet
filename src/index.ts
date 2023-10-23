@@ -4,49 +4,19 @@ import "react-native-url-polyfill/auto";
 
 import * as Credential from "./credential";
 import * as PID from "./pid";
-import * as RP from "./rp";
-import * as CredentialIssuer from "./credential-issuer";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
-import * as RelyingPartySolution from "./rp";
-import {
-  verifyTrustChain,
-  getEntityStatement,
-  getEntityConfiguration,
-  getCredentialIssuerEntityConfiguration,
-  getRelyingPartyEntityConfiguration,
-  getTrustAnchorEntityConfiguration,
-  getWalletProviderEntityConfiguration,
-} from "./trust";
-import {
-  RelyingPartyEntityConfiguration,
-  WalletProviderEntityConfiguration,
-  TrustAnchorEntityConfiguration,
-  CredentialIssuerEntityConfiguration,
-} from "./trust/types";
+import * as Trust from "./trust";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";
 
 export {
   PID,
-  RP,
   Credential,
-  CredentialIssuer,
   WalletInstanceAttestation,
   Errors,
-  RelyingPartySolution,
-  verifyTrustChain,
-  getEntityStatement,
-  getEntityConfiguration,
-  getCredentialIssuerEntityConfiguration,
-  getRelyingPartyEntityConfiguration,
-  getTrustAnchorEntityConfiguration,
-  getWalletProviderEntityConfiguration,
+  Trust,
   createCryptoContextFor,
-  RelyingPartyEntityConfiguration,
-  WalletProviderEntityConfiguration,
-  TrustAnchorEntityConfiguration,
-  CredentialIssuerEntityConfiguration,
   AuthorizationDetail,
   AuthorizationDetails,
 };

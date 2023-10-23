@@ -1,7 +1,6 @@
 import {
-  RelyingPartySolution,
+  Credential,
   createCryptoContextFor,
-  getRelyingPartyEntityConfiguration,
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getPid from "./get-pid";
@@ -25,17 +24,22 @@ export default async (
 
     // Scan/Decode QR
     const { requestURI: authRequestUrl, clientId } =
-      RelyingPartySolution.decodeAuthRequestQR(qr);
+      await Credential.Presentation.startFlowFromQR(qr);
 
     // resolve RP's entity configuration
-    const entityConfiguration = await getRelyingPartyEntityConfiguration(
+    const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(
       clientId
     );
 
     // get request object
-    const requestObj = await RelyingPartySolution.getRequestObject({
-      wiaCryptoContext,
-    })(walletInstanceAttestation, authRequestUrl, entityConfiguration);
+    const { requestObject } = await Credential.Presentation.getRequestObject(
+      authRequestUrl,
+      rpConf,
+      {
+        wiaCryptoContext,
+        walletInstanceAttestation,
+      }
+    );
 
     // Attest Relying Party trust
     // FIXME: [SIW-489] Request Object is coming with an empty trust chain, comment for now
@@ -55,11 +59,17 @@ export default async (
     ];
 
     // Submit authorization response
-    const ok = await RelyingPartySolution.sendAuthorizationResponse({
-      pidCryptoContext,
-    })(requestObj, [pidToken, claims]);
+    const { status, response_code } =
+      await Credential.Presentation.sendAuthorizationResponse(
+        requestObject,
+        rpConf,
+        [pidToken, claims, pidCryptoContext],
+        {
+          walletInstanceAttestation,
+        }
+      );
 
-    return result(ok);
+    return result(`status=${status} response_code=${response_code}`);
   } catch (e) {
     console.error(e);
     return error(e);

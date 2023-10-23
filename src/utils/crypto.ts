@@ -54,7 +54,7 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
  * @param fn The procedure to be executed
  * @returns The returned value of the input procedure.
  */
-export const useEphemeralKey = async <R>(
+export const withEphemeralKey = async <R>(
   fn: (ephemeralContext: CryptoContext) => Promise<R>
 ): Promise<R> => {
   // Use an ephemeral key to be destroyed after use

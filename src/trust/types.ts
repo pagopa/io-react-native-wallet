@@ -5,15 +5,14 @@ import * as z from "zod";
 export const TrustMark = z.object({ id: z.string(), trust_mark: z.string() });
 export type TrustMark = z.infer<typeof TrustMark>;
 
-const RelyingPartyMetadata = z
-  .object({
-    application_type: z.string().optional(),
-    client_id: z.string().optional(),
-    client_name: z.string().optional(),
-    jwks: z.object({ keys: z.array(JWK) }),
-    contacts: z.array(z.string()).optional(),
-  })
-  .passthrough();
+const RelyingPartyMetadata = z.object({
+  application_type: z.string().optional(),
+  client_id: z.string().optional(),
+  client_name: z.string().optional(),
+  jwks: z.object({ keys: z.array(JWK) }),
+  contacts: z.array(z.string()).optional(),
+});
+//.passthrough();
 
 // Display metadata for a credential, used by the issuer to
 // instruct the Wallet Solution on how to render the credential correctly
@@ -79,6 +78,20 @@ export const EntityConfigurationHeader = z.object({
   kid: z.string(),
 });
 
+const FederationEntityMetadata = z
+  .object({
+    federation_fetch_endpoint: z.string().optional(),
+    federation_list_endpoint: z.string().optional(),
+    federation_resolve_endpoint: z.string().optional(),
+    federation_trust_mark_status_endpoint: z.string().optional(),
+    federation_trust_mark_list_endpoint: z.string().optional(),
+    homepage_uri: z.string().optional(),
+    policy_uri: z.string().optional(),
+    logo_uri: z.string().optional(),
+    contacts: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
 // Structuire common to every Entity Configuration document
 const BaseEntityConfiguration = z.object({
   header: EntityConfigurationHeader,
@@ -93,19 +106,7 @@ const BaseEntityConfiguration = z.object({
       }),
       metadata: z
         .object({
-          federation_entity: z
-            .object({
-              federation_fetch_endpoint: z.string().optional(),
-              federation_list_endpoint: z.string().optional(),
-              federation_resolve_endpoint: z.string().optional(),
-              federation_trust_mark_status_endpoint: z.string().optional(),
-              federation_trust_mark_list_endpoint: z.string().optional(),
-              homepage_uri: z.string().optional(),
-              policy_uri: z.string().optional(),
-              logo_uri: z.string().optional(),
-              contacts: z.array(z.string()).optional(),
-            })
-            .passthrough(),
+          federation_entity: FederationEntityMetadata,
         })
         .passthrough(),
       authority_hints: z.array(z.string()).optional(),
@@ -138,29 +139,23 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           credentials_supported: z.array(SupportedCredentialMetadata),
           jwks: z.object({ keys: z.array(JWK) }),
         }),
+        wallet_relying_party: RelyingPartyMetadata.optional() /*
+        Should it be mandatory? Apart from PID issuer, a credential issuer 
+        must operate as relying party to accept user authorization through presentation
+        */,
       }),
     }),
   })
 );
 
-export type CredentialIssuerEntityConfiguration2 = z.infer<
-  typeof CredentialIssuerEntityConfiguration2
+// Entity configuration for a Relying Party
+export type RelyingPartyEntityConfiguration = z.infer<
+  typeof RelyingPartyEntityConfiguration
 >;
-export const CredentialIssuerEntityConfiguration2 = BaseEntityConfiguration.and(
+export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
   z.object({
     payload: z.object({
-      jwks: z.object({ keys: z.array(JWK) }),
       metadata: z.object({
-        openid_credential_issuer: z.object({
-          credential_issuer: z.string(),
-          authorization_endpoint: z.string(),
-          token_endpoint: z.string(),
-          pushed_authorization_request_endpoint: z.string(),
-          dpop_signing_alg_values_supported: z.array(z.string()),
-          credential_endpoint: z.string(),
-          credentials_supported: z.array(SupportedCredentialMetadata),
-          jwks: z.object({ keys: z.array(JWK) }),
-        }),
         wallet_relying_party: RelyingPartyMetadata,
       }),
     }),
@@ -189,20 +184,6 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
             jwks: z.object({ keys: z.array(JWK) }),
           })
           .passthrough(),
-      }),
-    }),
-  })
-);
-
-// Entity configuration for a Relying Party
-export type RelyingPartyEntityConfiguration = z.infer<
-  typeof RelyingPartyEntityConfiguration
->;
-export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
-  z.object({
-    payload: z.object({
-      metadata: z.object({
-        wallet_relying_party: RelyingPartyMetadata,
       }),
     }),
   })

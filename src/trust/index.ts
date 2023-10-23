@@ -10,6 +10,15 @@ import {
 import { IoWalletError } from "../utils/errors";
 import { validateTrustChain, renewTrustChain } from "./chain";
 
+export type {
+  WalletProviderEntityConfiguration,
+  TrustAnchorEntityConfiguration,
+  CredentialIssuerEntityConfiguration,
+  RelyingPartyEntityConfiguration,
+  EntityConfiguration,
+  EntityStatement,
+};
+
 /**
  * Verify a given trust chain is actually valid.
  * It can handle fast chain renewal, which means we try to fetch a fresh version of each statement.
@@ -140,6 +149,7 @@ async function fetchAndParseEntityConfiguration(
   const responseText = await getSignedEntityConfiguration(entityBaseUrl, {
     appFetch,
   });
+
   const responseJwt = decodeJwt(responseText);
   return schema.parse({
     header: responseJwt.protectedHeader,
