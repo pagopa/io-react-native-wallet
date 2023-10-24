@@ -116,7 +116,7 @@ export const obtainCredential: ObtainCredential = async (
     credential,
     issuerConf.openid_credential_issuer.jwks.keys
   ).catch((_) => {
-    // FIXME: signature verification failures is ignored
+    // FIXME: [SIW-629] signature verification failures is ignored
     // as issuer does not implement this feature correctly.
     // Just logging for now.
     console.error(_);
