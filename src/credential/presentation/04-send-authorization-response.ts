@@ -138,7 +138,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
 ): Promise<AuthorizationResponse> => {
   // the request is an unsigned jws without iss, aud, exp
   // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-respon
-  const jwk = chooseRSAPublicKeyToEncrypt(rpConf);
+  const rsaPublicJwk = chooseRSAPublicKeyToEncrypt(rpConf);
 
   const { vp_token, presentation_submission } = await prepareVpToken(
     requestObject,
