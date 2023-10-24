@@ -20,10 +20,6 @@ export default async (credentialKeyTag = rnd()) => {
     ).then(toResultOrReject);
 
     // obtain PID
-    /* const pidKeyTag = Math.random().toString(36).substr(2, 5);
-    const pidToken = await getPid(pidKeyTag).then(toResultOrReject);
-    const pidCryptoContext = createCryptoContextFor(pidKeyTag);
- */
     const { type: credentialType, url: credentialProviderBaseUrl } =
       /* startFLow()*/ {
         type: "PersonIdentificationData",
