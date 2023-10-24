@@ -13,7 +13,13 @@ import * as z from "zod";
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
   status: z.string(),
-  response_code: z.string().optional(),
+  response_code: z
+    .string() /**
+      FIXME: [SIW-627] we expect this value from every RP implementation
+      Actually some RP does not return the value
+      We make it optional to not break the flow.
+    */
+    .optional(),
 });
 
 /**
