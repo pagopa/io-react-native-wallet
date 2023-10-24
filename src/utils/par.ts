@@ -2,12 +2,8 @@ import {
   sha256ToBase64,
   type CryptoContext,
   SignJWT,
-  thumbprint,
 } from "@pagopa/io-react-native-jwt";
-
-import { JWK } from "../utils/jwk";
 import uuid from "react-native-uuid";
-
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { hasStatus } from "./misc";
@@ -44,14 +40,7 @@ export const makeParRequest =
     authorizationDetails: AuthorizationDetails,
     assertionType: string
   ): Promise<string> => {
-    // Calculate the thumbprint of the public key of the Wallet Instance Attestation.
-    // The PAR request token is signed used the Wallet Instance Attestation key.
-    // The signature can be verified by reading the public key from the key set shippet with the it will ship the Wallet Instance Attestation;
-    //  key is matched by its kid, which is supposed to be the thumbprint of its public key.
-    const keyThumbprint = await wiaCryptoContext
-      .getPublicKey()
-      .then(JWK.parse)
-      .then(thumbprint);
+    const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
     const parUrl = new URL(parEndpoint);
     const aud = `${parUrl.protocol}//${parUrl.hostname}`;
@@ -59,11 +48,19 @@ export const makeParRequest =
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
       .payload.cnf.jwk.kid;
 
+    /** A code challenge is provided so that the PAR is bound 
+        to the subsequent authorization code request
+        @see https://datatracker.ietf.org/doc/html/rfc9126#name-request */
+    const codeChallengeMethod = "s256";
     const codeChallenge = await sha256ToBase64(codeVerifier);
 
+    /** The PAR request token is signed used the Wallet Instance Attestation key.
+        The signature can be verified by reading the public key from the key set shippet
+        with the it will ship the Wallet Instance Attestation.
+        The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
-        kid: keyThumbprint,
+        kid: wiaPublicKey.kid,
       })
       .setPayload({
         iss,
@@ -72,17 +69,18 @@ export const makeParRequest =
         client_assertion_type: assertionType,
         authorization_details: authorizationDetails,
         response_type: "code",
-        code_challenge_method: "s256",
         redirect_uri: walletProviderBaseUrl,
         state: `${uuid.v4()}`,
         client_id: clientId,
+        code_challenge_method: codeChallengeMethod,
         code_challenge: codeChallenge,
       })
       .setIssuedAt()
       .setExpirationTime("1h")
       .sign();
 
-    const requestBody = {
+    /** The request body for the Pushed Authorization Request */
+    var formBody = new URLSearchParams({
       response_type: "code",
       client_id: clientId,
       code_challenge: codeChallenge,
@@ -90,9 +88,7 @@ export const makeParRequest =
       client_assertion_type: assertionType,
       client_assertion: walletInstanceAttestation,
       request: signedJwtForPar,
-    };
-
-    var formBody = new URLSearchParams(requestBody);
+    });
 
     return await appFetch(parEndpoint, {
       method: "POST",
@@ -105,27 +101,3 @@ export const makeParRequest =
       .then((res) => res.json())
       .then((result) => result.request_uri);
   };
-
-/**
- * Return the signed jwt for nonce proof of possession
- */
-export const createNonceProof = async (
-  nonce: string,
-  issuer: string,
-  audience: string,
-  ctx: CryptoContext
-): Promise<string> => {
-  return new SignJWT(ctx)
-    .setPayload({
-      nonce,
-      jwk: await ctx.getPublicKey(),
-    })
-    .setProtectedHeader({
-      type: "openid4vci-proof+jwt",
-    })
-    .setAudience(audience)
-    .setIssuer(issuer)
-    .setIssuedAt()
-    .setExpirationTime("1h")
-    .sign();
-};

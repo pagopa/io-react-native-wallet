@@ -1,9 +1,9 @@
 import * as z from "zod";
 import uuid from "react-native-uuid";
-import { type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { verify as verifySdJwt } from "../../sd-jwt";
 import { createDPopToken } from "../../utils/dpop";
-import { createNonceProof } from "../../utils/par";
+
 import type { StartFlow } from "./01-start-flow";
 import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
@@ -11,6 +11,30 @@ import type { AuthorizeAccess } from "./05-authorize-access";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { IoWalletError } from "../../utils/errors";
 import type { JWK } from "../../utils/jwk";
+
+/**
+ * Return the signed jwt for nonce proof of possession
+ */
+export const createNonceProof = async (
+  nonce: string,
+  issuer: string,
+  audience: string,
+  ctx: CryptoContext
+): Promise<string> => {
+  return new SignJWT(ctx)
+    .setPayload({
+      nonce,
+      jwk: await ctx.getPublicKey(),
+    })
+    .setProtectedHeader({
+      type: "openid4vci-proof+jwt",
+    })
+    .setAudience(audience)
+    .setIssuer(issuer)
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
+};
 
 /**
  * Given a credential, verify it's in the supported format
