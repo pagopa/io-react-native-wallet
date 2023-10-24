@@ -47,11 +47,11 @@ const chooseRSAPublicKeyToEncrypt = (
 };
 
 /**
- * Prepare the Verified Presentation token for a received request object in the context of an authorization request flow.
- * The presentation is prepared by disclosing data from provided credentials, according to requested claims
- * Each Verified Credential come along with the claims the user accepts to disclose from it.
+ * Generate a Verified Presentation token for a received request object within the context of an authorization request flow.
+ * The presentation is created by revealing data from the provided credentials based on the requested claims.
+ * Each Verified Credential is accompanied by the claims that the user consents to disclose from it.
  *
- * @todo accept more than a Verified Credential
+ * @todo: Allow for handling more than one Verified Credential.
  */
 const prepareVpToken = async (
   requestObject: Out<GetRequestObject>["requestObject"],
