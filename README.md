@@ -63,7 +63,7 @@ const pidEntityConfiguration = await getCredentialIssuerEntityConfiguration(
 );
 
 // Auth Token request
-const authRequest = PID.Issuing.authorizeIssuing({ wiaCryptoContext });
+const authRequest = PID.Issuance.authorizeIssuing({ wiaCryptoContext });
 const authConf = await authRequest(
   /* signed instance attestation */ instanceAttestation,
   /* the relative wallet provided */ walletProviderBaseUrl,
@@ -71,7 +71,7 @@ const authConf = await authRequest(
 );
 
 // Credential request
-const credentialRequest = PID.Issuing.getCredential({ pidCryptoContext });
+const credentialRequest = PID.Issuance.getCredential({ pidCryptoContext });
 const pid = await credentialRequest(
   authConf,
   pidEntityConfiguration,

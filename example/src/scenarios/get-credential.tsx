@@ -36,7 +36,7 @@ const completeUserAuthorizationWithPID =
     rpConf: Trust.RelyingPartyEntityConfiguration["payload"]["metadata"];
     wiaCryptoContext: CryptoContext;
     walletInstanceAttestation: string;
-  }): Credential.Issuing.CompleteUserAuthorization =>
+  }): Credential.Issuance.CompleteUserAuthorization =>
   async (requestUri, _clientId) => {
     // assume PID is already obtained by the wallet
     const pidKeyTag = Math.random().toString(36).substr(2, 5);
@@ -88,23 +88,18 @@ export default async () => {
       walletInstanceKeyTag
     ).then(toResultOrReject);
 
-    // obtain PID
-    /* const pidKeyTag = Math.random().toString(36).substr(2, 5);
-    const pidToken = await getPid(pidKeyTag).then(toResultOrReject);
-    const pidCryptoContext = createCryptoContextFor(pidKeyTag);
- */
     const { type: credentialType, url: credentialProviderBaseUrl } =
       /* startFLow()*/ {
         type: "EuropeanDisabilityCard",
         url: "https://api.eudi-wallet-it-issuer.it/rp",
       };
 
-    const { issuerConf } = await Credential.Issuing.evaluateIssuerTrust(
+    const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
       credentialProviderBaseUrl
     );
 
     const { clientId, requestUri } =
-      await Credential.Issuing.startUserAuthorization(
+      await Credential.Issuance.startUserAuthorization(
         issuerConf,
         credentialType,
         {
@@ -128,7 +123,7 @@ export default async () => {
       wiaCryptoContext,
     })(requestUri, clientId);
 
-    const { accessToken, nonce } = await Credential.Issuing.authorizeAccess(
+    const { accessToken, nonce } = await Credential.Issuance.authorizeAccess(
       issuerConf,
       code,
       clientId,
@@ -142,7 +137,7 @@ export default async () => {
     await generate(credentialKeyTag);
     const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-    const { credential } = await Credential.Issuing.obtainCredential(
+    const { credential } = await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
       nonce,

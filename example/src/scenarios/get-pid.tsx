@@ -30,12 +30,12 @@ export default async (credentialKeyTag = rnd()) => {
         url: "https://api.eudi-wallet-it-pid-provider.it/ci",
       };
 
-    const { issuerConf } = await Credential.Issuing.evaluateIssuerTrust(
+    const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
       credentialProviderBaseUrl
     );
 
     const { clientId, requestUri } =
-      await Credential.Issuing.startUserAuthorization(
+      await Credential.Issuance.startUserAuthorization(
         issuerConf,
         credentialType,
         {
@@ -54,12 +54,12 @@ export default async (credentialKeyTag = rnd()) => {
       );
 
     // This should be implemented with proper CIE authorization
-    const { code } = await Credential.Issuing.completeUserAuthorizationNoOp(
+    const { code } = await Credential.Issuance.completeUserAuthorizationNoOp(
       requestUri,
       clientId
     );
 
-    const { accessToken, nonce } = await Credential.Issuing.authorizeAccess(
+    const { accessToken, nonce } = await Credential.Issuance.authorizeAccess(
       issuerConf,
       code,
       clientId,
@@ -72,7 +72,7 @@ export default async (credentialKeyTag = rnd()) => {
     await generate(credentialKeyTag);
     const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-    const { credential } = await Credential.Issuing.obtainCredential(
+    const { credential } = await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
       nonce,
