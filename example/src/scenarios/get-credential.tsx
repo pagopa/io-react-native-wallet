@@ -39,7 +39,7 @@ const completeUserAuthorizationWithPID =
   }): Credential.Issuance.CompleteUserAuthorization =>
   async (requestUri, _clientId) => {
     // assume PID is already obtained by the wallet
-    const pidKeyTag = Math.random().toString(36).substr(2, 5);
+    const pidKeyTag = rnd();
     const pidToken = await getPid(pidKeyTag).then(toResultOrReject);
     const pidCryptoContext = createCryptoContextFor(pidKeyTag);
 
