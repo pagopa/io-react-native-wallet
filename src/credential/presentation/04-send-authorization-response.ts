@@ -156,8 +156,8 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   const encrypted = await new EncryptJwe(authzResponsePayload, {
     alg: "RSA-OAEP-256",
     enc: "A256CBC-HS512",
-    kid: jwk.kid,
-  }).encrypt(jwk);
+    kid: rsaPublicJwk.kid,
+  }).encrypt(rsaPublicJwk);
 
   const formBody = new URLSearchParams({ response: encrypted });
   const body = formBody.toString();
