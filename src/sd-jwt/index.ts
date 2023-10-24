@@ -135,7 +135,7 @@ export const disclose = async (
  *
  *
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
- * @param publicKey The public key to validate the signature
+ * @param publicKey The single public key or an array of public keys to validate the signature.
  * @param schema Schema to use to parse the SD-JWT
  *
  * @returns The parsed SD-JWT token and the parsed disclosures
@@ -143,7 +143,7 @@ export const disclose = async (
  */
 export const verify = async <S extends z.AnyZodObject>(
   token: string,
-  publicKey: JWK,
+  publicKey: JWK | JWK[],
   schema: S
 ): Promise<{ sdJwt: z.infer<S>; disclosures: Disclosure[] }> => {
   // get decoded data

@@ -1,10 +1,7 @@
 import * as z from "zod";
 import uuid from "react-native-uuid";
-import {
-  type CryptoContext,
-  verify as verifyJwt,
-  decode as decodeJwt,
-} from "@pagopa/io-react-native-jwt";
+import { type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { verify as verifySdJwt } from "../../sd-jwt";
 import { createDPopToken } from "../../utils/dpop";
 import { createNonceProof } from "../../utils/par";
 import type { StartFlow } from "./01-start-flow";
@@ -12,6 +9,45 @@ import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import { SdJwt4VC } from "../../sd-jwt/types";
+import { IoWalletError } from "../../utils/errors";
+import type { JWK } from "../../utils/jwk";
+
+/**
+ * Given a credential, verify it's in the supported format
+ * and the credential is correctly signed
+ * and it's bound to the given key
+ *
+ * @param rawCredential The received credential
+ * @param issuerKeys The set of public keys of the issuer,
+ * which will be used to verify the signature
+ * @param holderBindingContext The access to the holder's key
+ *
+ * @throws If the signature verification fails
+ * @throws If the credential is not in the SdJwt4VC format
+ * @throws If the holder binding is not properly configured
+ *
+ */
+async function verifyCredential(
+  rawCredential: string,
+  issuerKeys: JWK[],
+  holderBindingContext: CryptoContext
+): Promise<void> {
+  const [{ sdJwt }, holderBindingKey] =
+    // parallel for optimization
+    await Promise.all([
+      verifySdJwt(rawCredential, issuerKeys, SdJwt4VC),
+      holderBindingContext.getPublicKey(),
+    ]);
+
+  if (
+    !sdJwt.payload.cnf.jwk.kid ||
+    sdJwt.payload.cnf.jwk.kid !== holderBindingKey.kid
+  ) {
+    throw new IoWalletError(
+      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${sdJwt.payload.cnf.jwk.kid}`
+    );
+  }
+}
 
 const CredentialEndpointResponse = z.object({
   credential: z.string(),
@@ -69,6 +105,9 @@ export const obtainCredential: ObtainCredential = async (
 
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
 
+  /** DPoP token for demonstating the possession
+      of the key that will bind the holder User with the Credential
+      @see https://datatracker.ietf.org/doc/html/rfc9449 */
   const signedDPopForPid = await createDPopToken(
     {
       htm: "POST",
@@ -77,6 +116,10 @@ export const obtainCredential: ObtainCredential = async (
     },
     credentialCryptoContext
   );
+
+  /** JWT proof token to bind the request nonce
+      to the key that will bind the holder User with the Credential
+      @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types */
   const signedNonceProof = await createNonceProof(
     nonce,
     clientId,
@@ -84,7 +127,8 @@ export const obtainCredential: ObtainCredential = async (
     credentialCryptoContext
   );
 
-  const requestBody = {
+  /** The credential request body */
+  const formBody = new URLSearchParams({
     credential_definition: JSON.stringify({
       type: [credentialType],
     }),
@@ -93,9 +137,7 @@ export const obtainCredential: ObtainCredential = async (
       jwt: signedNonceProof,
       proof_type: "jwt",
     }),
-  };
-
-  const formBody = new URLSearchParams(requestBody);
+  });
 
   const { credential, format } = await appFetch(credentialUrl, {
     method: "POST",
@@ -110,32 +152,13 @@ export const obtainCredential: ObtainCredential = async (
     .then((res) => res.json())
     .then(CredentialEndpointResponse.parse);
 
-  // validate the received credential signature
-  // is correct and refers to the public keys of the issuer
-  const decodedCredential = await verifyJwt(
+  /** validate the received credential signature
+      is correct and refers to the public keys of the issuer */
+  await verifyCredential(
     credential,
-    issuerConf.openid_credential_issuer.jwks.keys
-  ).catch((_) => {
-    // FIXME: [SIW-629] signature verification failures is ignored
-    // as issuer does not implement this feature correctly.
-    // Just logging for now.
-    console.error(_);
-    return decodeJwt(credential);
-  });
-
-  // validate credential structure
-  const { payload } = SdJwt4VC.parse({
-    header: decodedCredential.protectedHeader,
-    payload: decodedCredential.payload,
-  });
-
-  // validate holder binding
-  const holderBindingKey = await credentialCryptoContext.getPublicKey();
-  if (!payload.cnf.jwk.kid || payload.cnf.jwk.kid !== holderBindingKey.kid) {
-    throw new Error(
-      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${payload.cnf.jwk.kid}`
-    );
-  }
+    issuerConf.openid_credential_issuer.jwks.keys,
+    credentialCryptoContext
+  );
 
   return { credential, format };
 };
