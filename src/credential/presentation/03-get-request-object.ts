@@ -76,7 +76,7 @@ export const getRequestObject: GetRequestObject = async (
     await verify(responseEncodedJwt, pubKey);
   }
 
-  // parse request object it has the expected shape by specification
+  // Ensure that the request object conforms to the expected specification.
   const requestObject = RequestObject.parse(responseJwt.payload);
 
   return {
