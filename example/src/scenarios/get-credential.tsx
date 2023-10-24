@@ -26,7 +26,7 @@ function assertField<
   return true;
 }
 
-// PID presentation flow as a USer Authorization method
+// PID presentation flow as a User Authorization method
 const completeUserAuthorizationWithPID =
   ({
     rpConf,
