@@ -15,14 +15,3 @@ export type CompleteUserAuthorization = (
   requestUri: Out<StartUserAuthorization>["requestUri"],
   clientId: Out<StartUserAuthorization>["clientId"]
 ) => Promise<{ code: string }>;
-
-/**
- * A dummy implementation of CompleteUserAuthorization that uses static values.
- * Used to replace unimplemented specifications by the Issuer
- */
-export const completeUserAuthorizationNoOp: CompleteUserAuthorization = async (
-  _,
-  __
-) => {
-  return { code: "static_code" };
-};

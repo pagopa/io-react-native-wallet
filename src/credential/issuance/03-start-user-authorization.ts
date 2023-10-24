@@ -86,7 +86,9 @@ export type StartUserAuthorization = (
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
  * @param context.walletProviderBaseUrl The base url of the Wallet Provider
- * @param context.additionalParams Hash set of parameters to be passed to the authorization endpoint (used as a temporary fix until we have a proper User identity in the PID token provider)
+ * @param context.additionalParams Hash set of parameters to be passed to the authorization endpoint
+ * (used as a temporary fix until we have a proper User identity in the PID token provider)
+ * TODO: [SIW-630]
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The request uri to continue the authorization to
  */

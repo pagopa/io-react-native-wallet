@@ -10,6 +10,17 @@ const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 
 const rnd = () => Math.random().toString(36).substr(2, 5);
 
+/**
+ * A dummy implementation of CompleteUserAuthorization that uses static values.
+ * Used to replace unimplemented specifications by the Issuer
+ * Waiting for the Issuer to implement CIE authorization
+ * TODO: [SIW-630]
+ */
+export const completeUserAuthorizationWithCIE: Credential.Issuance.CompleteUserAuthorization =
+  async (_, __) => {
+    return { code: "static_code" };
+  };
+
 export default async (credentialKeyTag = rnd()) => {
   try {
     // obtain wallet instance attestation
@@ -39,7 +50,7 @@ export default async (credentialKeyTag = rnd()) => {
           walletProviderBaseUrl,
           wiaCryptoContext,
           additionalParams:
-            // CIE data
+            // TODO: [SIW-630] do not pass CIE data
             {
               birth_date: "01/01/1990",
               fiscal_code: "AAABBB00A00A000A",
@@ -50,7 +61,7 @@ export default async (credentialKeyTag = rnd()) => {
       );
 
     // This should be implemented with proper CIE authorization
-    const { code } = await Credential.Issuance.completeUserAuthorizationNoOp(
+    const { code } = await completeUserAuthorizationWithCIE(
       requestUri,
       clientId
     );
