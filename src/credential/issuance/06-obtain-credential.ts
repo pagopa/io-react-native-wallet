@@ -52,15 +52,6 @@ async function verifyCredential(
 const CredentialEndpointResponse = z.object({
   credential: z.string(),
   format: z.literal("vc+sd-jwt"),
-  /* YAGNI
-  Ideally, we may request more than one credential after a single authorization phase
-  Each new call to the credential endpoint must carry a different nonce value,
-  otherwise it would be rejected.
-  So every response has a new nonce value to eventually be used in the next request.
-  It's not implementd so far
-  c_nonce: z.string(),
-  c_nonce_expires_in: z.number().positive(), 
-  */
 });
 
 export type ObtainCredential = (
