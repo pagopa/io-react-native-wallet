@@ -139,10 +139,10 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           credentials_supported: z.array(SupportedCredentialMetadata),
           jwks: z.object({ keys: z.array(JWK) }),
         }),
-        wallet_relying_party: RelyingPartyMetadata.optional() /*
-        Should it be mandatory? Apart from PID issuer, a credential issuer 
-        must operate as relying party to accept user authorization through presentation
-        */,
+        /** Credential Issuers act as Relying Party 
+            when they require the presentation of other credentials.
+            This does not apply for PID issuance, which requires CIE authz. */
+        wallet_relying_party: RelyingPartyMetadata.optional(),
       }),
     }),
   })
