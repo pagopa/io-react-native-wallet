@@ -23,7 +23,7 @@ export const AuthorizationResponse = z.object({
 });
 
 /**
- * Select a RSA public key from those provided by the RP to encrypt.
+ * Choose an RSA public key from those offered by the RP for encryption.
  *
  * @param entity The RP entity configuration
  * @returns A suitable public key with its compatible encryption algorithm
