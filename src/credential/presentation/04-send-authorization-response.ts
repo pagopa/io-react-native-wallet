@@ -113,13 +113,6 @@ export type SendAuthorizationResponse = (
 ) => Promise<AuthorizationResponse>;
 
 /**
- * Compose and send an Authorization Response in the context of an authorization request flow.
- *
- * @todo MUST add presentation_submission
- *
- */
-
-/**
  * Complete the presentation flow by sending the authorization response to the Relying Party
  *
  * @param requestObject The Request Object that describes the presentation
