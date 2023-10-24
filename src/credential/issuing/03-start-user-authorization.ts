@@ -35,6 +35,20 @@ const decodeAuthorizationResponse = async (
     decodedJwt: { payload },
   } = await getJwtFromFormPost(raw);
 
+  /**
+   * FIXME: [SIW-628] This step must not make any difference on the credential
+   * we are authorizing for, being a PID or any other (Q)EAA.
+   *
+   * Currently, PID issuer is implemented to skip the CompleteUserAuthorization step
+   * thus returning a stubbed (code, state) pair.
+   *
+   * This is a workaround to proceeed the flow anyway.
+   * If the response does not map what expected (CorrectShape),
+   * we try parse into (code, state) to check if we are in the PID scenario.
+   * In that case, a stub value is returned (will not be evaluated anyway).
+   *
+   * This workaround will be obsolete once the PID issuer fixes its implementation
+   */
   const CorrectShape = z.object({ request_uri: z.string() });
   const WrongShapeForPID = z.object({ code: z.string(), state: z.string() });
 
