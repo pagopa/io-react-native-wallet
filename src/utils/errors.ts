@@ -1,4 +1,20 @@
 /**
+ * utility to format a set of attributes into an error message string
+ *
+ * @example
+ * // returns "foo=value bar=(list, item)"
+ * serializeAttrs({ foo: "value", bar: ["list", "item"] })
+ *
+ * @param attrs A key value record set
+ * @returns a human-readable serialization of the set
+ */
+const serializeAttrs = (attrs: Record<string, string | string>): string =>
+  Object.entries(attrs)
+    .map(([k, v]) => [k, Array.isArray(v) ? `(${v.join(", ")})` : v])
+    .map((_) => _.join("="))
+    .join(" ");
+
+/**
  * A generic Error that all other io-wallet specific Error subclasses extend.
  *
  * @example Checking thrown error is a io-wallet one
@@ -42,8 +58,12 @@ export class ValidationFailed extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
@@ -66,8 +86,12 @@ export class WalletInstanceAttestationIssuingError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
@@ -90,8 +114,12 @@ export class AuthRequestDecodeError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
@@ -114,8 +142,12 @@ export class PidIssuingError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(message: string, claim = "unspecified", reason = "unspecified") {
-    super(message);
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;
   }
