@@ -1,4 +1,4 @@
-import { getEntityStatement } from "@pagopa/io-react-native-wallet";
+import { Trust } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 
 const subordinateUrl = "https://api.eudi-wallet-it-pid-provider.it/ci";
@@ -7,7 +7,7 @@ const accreditationBodyUrl =
 
 export default async () => {
   try {
-    const statement = await getEntityStatement(
+    const statement = await Trust.getEntityStatement(
       accreditationBodyUrl,
       subordinateUrl
     );
