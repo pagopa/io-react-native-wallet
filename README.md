@@ -46,43 +46,24 @@ This package is compatibile with any http client which implements [Fetch API](ht
 
 </details>
 
-### PID
+### Credential
 
-#### Issuing
+Credential Issuance and Presentation flows are defined in under `src/credential/issuance` and `src/credential/presentation`.
+Each flow exposes in the public API a function definition for each step. Some step also has an implementation; for those that have no implementation, the App is expected to fullfil.
+
+#### Issuance
 
 ```ts
-import {
-  PID,
-  createCryptoContextFor,
-  getCredentialIssuerEntityConfiguration,
-} from "@pagopa/io-react-native-wallet";
+import { Credential } from "@pagopa/io-react-native-wallet";
 
-// Obtain PID metadata
-const pidEntityConfiguration = await getCredentialIssuerEntityConfiguration(
-  "https://pid-provider.example"
-);
+// Retrieve Issuer configuration and evaluate trust
+const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(...);
 
-// Auth Token request
-const authRequest = PID.Issuing.authorizeIssuing({ wiaCryptoContext });
-const authConf = await authRequest(
-  /* signed instance attestation */ instanceAttestation,
-  /* the relative wallet provided */ walletProviderBaseUrl,
-  pidEntityConfiguration
-);
+// Obtain the directions to perform user authorization
+const { clientId, requestUri } = await Credential.Issuance.startUserAuthorization(...);
 
-// Credential request
-const credentialRequest = PID.Issuing.getCredential({ pidCryptoContext });
-const pid = await credentialRequest(
-  authConf,
-  pidEntityConfiguration,
-  /* Some personal data */
-  {
-    birthDate: "01/01/1990",
-    fiscalCode: "AAABBB00A00A000A",
-    name: "NAME",
-    surname: "SURNAME",
-  }
-);
+
+
 ```
 
 #### Encode and Decode

@@ -41,6 +41,7 @@ export default function App() {
       <TestScenario title="Verify PID" scenario={scenarios.verifyPid} />
       <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
       <TestScenario title="Get PID" scenario={scenarios.getPid} />
+      <TestScenario title="Get Credential" scenario={scenarios.getCredential} />
       <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
       <TestScenario
         title="Fetch Entity Statement"

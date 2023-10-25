@@ -1,4 +1,4 @@
-import { RelyingPartySolution } from "@pagopa/io-react-native-wallet";
+import { Credential } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 
 // eudiw://authorize?client_id=https://verifier.example.org&request_uri=https://verifier.example.org/request_uri
@@ -7,16 +7,12 @@ const QR =
 
 export default async () => {
   try {
-    const decoded = RelyingPartySolution.decodeAuthRequestQR(QR);
+    const decoded = await Credential.Presentation.startFlowFromQR(QR);
 
     if (decoded.requestURI !== "https://verifier.example.org/request_uri")
       throw new Error(`Wrong requestURI, found: ${decoded.requestURI}`);
     if (decoded.clientId !== "https://verifier.example.org")
       throw new Error(`Wrong clientId, found: ${decoded.clientId}`);
-    if (decoded.protocol !== "eudiw:")
-      throw new Error(`Wrong protocol, found: ${decoded.protocol}`);
-    if (decoded.resource !== "authorize")
-      throw new Error(`Wrong resource, found: ${decoded.resource}`);
 
     return result(decoded);
   } catch (e) {

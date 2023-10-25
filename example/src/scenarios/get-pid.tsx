@@ -1,74 +1,97 @@
-import { generate } from "@pagopa/io-react-native-crypto";
 import {
-  PID,
+  Credential,
   createCryptoContextFor,
-  getCredentialIssuerEntityConfiguration,
-  getTrustAnchorEntityConfiguration,
-  verifyTrustChain,
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
 import getWalletInstanceAttestation from "./get-attestation";
+import { generate } from "@pagopa/io-react-native-crypto";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
-const pidProviderBaseUrl = "https://api.eudi-wallet-it-pid-provider.it/ci";
-const trustAnchorBaseUrl =
-  "https://demo.federation.eudi.wallet.developers.italia.it/";
 
-async function trust(trustChain: string[]): Promise<void> {
-  const trustAnchorEntity = await getTrustAnchorEntityConfiguration(
-    trustAnchorBaseUrl
-  );
+const rnd = () => Math.random().toString(36).substr(2, 5);
 
-  // test verify trust chain
-  await verifyTrustChain(trustAnchorEntity, trustChain, { renewOnFail: true });
-}
+/**
+ * A dummy implementation of CompleteUserAuthorization that uses static values.
+ * Used to replace unimplemented specifications by the Issuer
+ * Waiting for the Issuer to implement CIE authorization
+ * TODO: [SIW-630]
+ */
+export const completeUserAuthorizationWithCIE: Credential.Issuance.CompleteUserAuthorization =
+  async (_, __) => {
+    return { code: "static_code" };
+  };
 
-export default async (pidKeyTag = Math.random().toString(36).substr(2, 5)) => {
+export default async (credentialKeyTag = rnd()) => {
   try {
-    // generate Key for Wallet Instance Attestation
-    const walletInstanceKeyTag = Math.random().toString(36).substr(2, 5);
+    // obtain wallet instance attestation
+    const walletInstanceKeyTag = rnd();
     const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
-
-    const instanceAttestation = await getWalletInstanceAttestation(
+    const walletInstanceAttestation = await getWalletInstanceAttestation(
       walletInstanceKeyTag
     ).then(toResultOrReject);
 
-    // Obtain PID metadata
-    const pidEntityConfiguration = await getCredentialIssuerEntityConfiguration(
-      pidProviderBaseUrl
+    // obtain PID
+    const { type: credentialType, url: credentialProviderBaseUrl } =
+      /* startFLow()*/ {
+        type: "PersonIdentificationData",
+        url: "https://api.eudi-wallet-it-pid-provider.it/ci",
+      };
+
+    const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
+      credentialProviderBaseUrl
     );
 
-    // Auth Token request
-    const authRequest = PID.Issuing.authorizeIssuing({ wiaCryptoContext });
-    const authConf = await authRequest(
-      instanceAttestation,
-      walletProviderBaseUrl,
-      pidEntityConfiguration,
+    const { clientId, requestUri } =
+      await Credential.Issuance.startUserAuthorization(
+        issuerConf,
+        credentialType,
+        {
+          walletInstanceAttestation,
+          walletProviderBaseUrl,
+          wiaCryptoContext,
+          additionalParams:
+            // TODO: [SIW-630] do not pass CIE data
+            {
+              birth_date: "01/01/1990",
+              fiscal_code: "AAABBB00A00A000A",
+              name: "NAME",
+              surname: "SURNAME",
+            },
+        }
+      );
+
+    // This should be implemented with proper CIE authorization
+    const { code } = await completeUserAuthorizationWithCIE(
+      requestUri,
+      clientId
+    );
+
+    const { accessToken, nonce } = await Credential.Issuance.authorizeAccess(
+      issuerConf,
+      code,
+      clientId,
       {
-        birthDate: "01/01/1990",
-        fiscalCode: "AAABBB00A00A000A",
-        name: "NAME",
-        surname: "SURNAME",
+        walletInstanceAttestation,
+        walletProviderBaseUrl,
       }
     );
 
-    // Generate fresh key for PID binding
-    // ensure the key esists befor starting the issuing process
-    await generate(pidKeyTag);
-    const pidCryptoContext = createCryptoContextFor(pidKeyTag);
+    await generate(credentialKeyTag);
+    const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-    // Credential request
-    const credentialRequest = PID.Issuing.getCredential({ pidCryptoContext });
-    const pid = await credentialRequest(authConf, pidEntityConfiguration);
+    const { credential } = await Credential.Issuance.obtainCredential(
+      issuerConf,
+      accessToken,
+      nonce,
+      clientId,
+      credentialType,
+      {
+        walletProviderBaseUrl,
+        credentialCryptoContext,
+      }
+    );
 
-    // throw if decode fails
-    const decoded = PID.SdJwt.decode(pid.credential);
-
-    // evaluate the trust chain of the credential
-    const trustChain = decoded.sdJwt.header.trust_chain;
-    await trust(trustChain);
-
-    return result(pid.credential);
+    return result(credential);
   } catch (e) {
     console.error(e);
     return error(e);

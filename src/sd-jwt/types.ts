@@ -51,7 +51,7 @@ export const SdJwt4VC = z.object({
     cnf: z.object({
       jwk: JWK,
     }),
-    type: z.literal("PersonIdentificationData"),
+    type: z.string(),
     verified_claims: z.object({
       verification: z.intersection(
         z.object({

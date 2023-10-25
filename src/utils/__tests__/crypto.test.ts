@@ -1,5 +1,5 @@
 import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
-import { useEphemeralKey } from "../crypto";
+import { withEphemeralKey } from "../crypto";
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -9,7 +9,7 @@ describe("useEphemeralKey", () => {
   it("should delete key on failure", async () => {
     const failingFn = () => Promise.reject("fail");
 
-    const p = useEphemeralKey(failingFn);
+    const p = withEphemeralKey(failingFn);
 
     await expect(p).rejects.toEqual("fail");
 
@@ -20,7 +20,7 @@ describe("useEphemeralKey", () => {
   it("should delete key on success", async () => {
     const fn = () => Promise.resolve("ok");
 
-    const result = await useEphemeralKey(fn);
+    const result = await withEphemeralKey(fn);
 
     expect(result).toBe("ok");
 
@@ -38,7 +38,7 @@ describe("useEphemeralKey", () => {
       (_) => new Promise((ok) => setTimeout(() => ok((b = Date.now())), 100))
     );
 
-    await useEphemeralKey(fn);
+    await withEphemeralKey(fn);
 
     expect(generate).toBeCalledTimes(1);
     expect(deleteKey).toBeCalledTimes(1);
