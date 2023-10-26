@@ -16,10 +16,10 @@ const QRCodePayload = z.object({
  * @param Optional parameters, depending on the starting touchoint
  * @returns The url for the Relying Party to connect with
  */
-export type StartFlow<T extends Array<unknown> = []> = (...args: T) => Promise<{
+export type StartFlow<T extends Array<unknown> = []> = (...args: T) => {
   requestURI: string;
   clientId: string;
-}>;
+};
 
 /**
  * Start a presentation flow by decoding an incoming QR-code
@@ -28,7 +28,7 @@ export type StartFlow<T extends Array<unknown> = []> = (...args: T) => Promise<{
  * @returns The url for the Relying Party to connect with
  * @throws If the provided qr code fails to be decoded
  */
-export const startFlowFromQR: StartFlow<[string]> = async (qrcode) => {
+export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
   const decoded = decodeBase64(qrcode);
   const decodedUrl = new URL(decoded);
   const protocol = decodedUrl.protocol;

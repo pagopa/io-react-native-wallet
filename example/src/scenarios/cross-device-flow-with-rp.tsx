@@ -24,7 +24,7 @@ export default async (
 
     // Scan/Decode QR
     const { requestURI: authRequestUrl, clientId } =
-      await Credential.Presentation.startFlowFromQR(qr);
+      Credential.Presentation.startFlowFromQR(qr);
 
     // resolve RP's entity configuration
     const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(

@@ -4,7 +4,7 @@
  *
  * @returns The type of the Credential to be issued and the url of the Issuer
  */
-export type StartFlow = () => Promise<{
+export type StartFlow = () => {
   issuerUrl: string;
   credentialType: string;
-}>;
+};
