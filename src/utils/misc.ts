@@ -20,4 +20,6 @@ export const hasStatus =
 // helpful to bind the input of a function to the output of another
 export type Out<FN> = FN extends (...args: any[]) => Promise<any>
   ? Awaited<ReturnType<FN>>
+  : FN extends (...args: any[]) => any
+  ? ReturnType<FN>
   : never;
