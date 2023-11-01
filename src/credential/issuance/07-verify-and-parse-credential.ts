@@ -203,7 +203,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
  * @param credential The encoded credential
  * @param format The format of the credentual
  * @param context.credentialCryptoContext The context to access the key the Credential will be bound to
- * @param context.ignoreMissingAttributes (optionale) Whether to fail if a defined attribute is note present in the credentual. Default: false
+ * @param context.ignoreMissingAttributes (optional) Whether to fail if a defined attribute is note present in the credentual. Default: false
  * @returns A parsed credential with attributes in plain value
  * @throws If the credential signature is not verified with the Issuer key set
  * @throws If the credential is not bound to the provided user key
