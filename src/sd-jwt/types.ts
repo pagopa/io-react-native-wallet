@@ -26,7 +26,7 @@ export const Disclosure = z.tuple([
  * For such reason, we may find conveninent to have encoded and decode values stored explicitly in the same structure.
  * Please note that `encoded` can always decode into `decode`, but `decode` may or may not be encoded with the same value of `encoded`
  *
- * @see https://www.ietf.org/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-disclosures-for-object-prop
+ * @see https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-disclosures-for-object-prop
  */
 export type DisclosureWithEncoded = {
   decoded: Disclosure;

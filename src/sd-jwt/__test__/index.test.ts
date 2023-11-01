@@ -4,7 +4,7 @@ import { decode, disclose } from "../index";
 import { encodeBase64, decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { SdJwt4VC } from "../types";
 
-// Examples from https://www.ietf.org/id/draft-terbu-sd-jwt-vc-02.html#name-example-4
+// Examples from https://www.ietf.org/archive/id/draft-terbu-sd-jwt-vc-02.html#name-example-4
 // but adapted to adhere to format declared in https://italia.github.io/eudi-wallet-it-docs/versione-corrente/en/pid-eaa-data-model.html#id2
 // In short, the token is a Frankenstein composed as follows:
 //  - the header is taken from the italian specification, with kid and alg valued according to the signing keys
