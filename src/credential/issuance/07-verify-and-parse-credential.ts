@@ -6,7 +6,16 @@ import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
 import type { JWK } from "../../utils/jwk";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { SupportedCredentialFormat } from "./const";
+
+export type VerifyAndParseCredential = (
+  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  credential: Out<ObtainCredential>["credential"],
+  format: Out<ObtainCredential>["format"],
+  context: {
+    credentialCryptoContext: CryptoContext;
+    ignoreMissingAttributes?: boolean;
+  }
+) => Promise<{ parsedCredential: ParsedCredential }>;
 
 // The credential as a collection of attributes in plain value
 type ParsedCredential = Record<
@@ -158,20 +167,11 @@ async function verifyCredentialSdJwt(
   return decodedCredential;
 }
 
-export type VerifyAndParseCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"],
-  context: {
-    credentialCryptoContext: CryptoContext;
-    ignoreMissingAttributes?: boolean;
-  }
-) => Promise<{ parsedCredential: ParsedCredential }>;
-
-type WithFormat<F extends SupportedCredentialFormat> = (
+// utility type that specialize VerifyAndParseCredential for given format
+type WithFormat<Format extends Parameters<VerifyAndParseCredential>[2]> = (
   _0: Parameters<VerifyAndParseCredential>[0],
   _1: Parameters<VerifyAndParseCredential>[1],
-  _2: F,
+  _2: Format,
   _3: Parameters<VerifyAndParseCredential>[3]
 ) => ReturnType<VerifyAndParseCredential>;
 
