@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { decode, disclose } from "../index";
 
 import { encodeBase64, decodeBase64 } from "@pagopa/io-react-native-jwt";
@@ -123,6 +124,36 @@ describe("decode", () => {
         encoded: tokenizedDisclosures[i],
       })),
     });
+  });
+
+  it("should decode with default decoder", () => {
+    const result = decode(token);
+    expect(result).toEqual({
+      sdJwt,
+      disclosures: disclosures.map((decoded, i) => ({
+        decoded,
+        encoded: tokenizedDisclosures[i],
+      })),
+    });
+  });
+
+  it("should accept only decoders that extend SdJwt4VC", () => {
+    const validDecoder = SdJwt4VC.and(
+      z.object({ payload: z.object({ customField: z.string() }) })
+    );
+    const invalidDecoder = z.object({
+      payload: z.object({ customField: z.string() }),
+    });
+
+    try {
+      // ts is fine
+      decode(token, validDecoder);
+      // @ts-expect-error break types
+      decode(token, invalidDecoder);
+    } catch (error) {
+      // ignore actual result, just focus on types
+      // spot the error during type checking phase
+    }
   });
 });
 
