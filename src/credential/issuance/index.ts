@@ -13,13 +13,18 @@ import {
   obtainCredential,
   type ObtainCredential,
 } from "./06-obtain-credential";
-import type { ConfirmCredential } from "./07-confirm-credential";
+import {
+  verifyAndParseCredential,
+  type VerifyAndParseCredential,
+} from "./07-verify-and-parse-credential";
+import type { ConfirmCredential } from "./08-confirm-credential";
 
 export {
   evaluateIssuerTrust,
   startUserAuthorization,
   authorizeAccess,
   obtainCredential,
+  verifyAndParseCredential,
 };
 export type {
   StartFlow,
@@ -28,5 +33,6 @@ export type {
   CompleteUserAuthorization,
   AuthorizeAccess,
   ObtainCredential,
+  VerifyAndParseCredential,
   ConfirmCredential,
 };
