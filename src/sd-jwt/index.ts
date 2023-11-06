@@ -27,14 +27,14 @@ const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {
  *
  * @function
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
- * @param schema Schema to use to parse the SD-JWT
+ * @param customSchema (optional) Schema to use to parse the SD-JWT. Default: SdJwt4VC
  *
  * @returns The parsed SD-JWT token and the parsed disclosures
  *
  */
-export const decode = <S extends z.AnyZodObject>(
+export const decode = <S extends z.ZodType<SdJwt4VC>>(
   token: string,
-  schema: S
+  customSchema?: S
 ): {
   sdJwt: z.infer<S>;
   disclosures: DisclosureWithEncoded[];
@@ -48,7 +48,11 @@ export const decode = <S extends z.AnyZodObject>(
   // get the sd-jwt as object
   // validate it's a valid SD-JWT for Verifiable Credentials
   const decodedJwt = decodeJwt(rawSdJwt);
-  const sdJwt = schema.parse({
+
+  // use a custom parsed if provided, otherwise use base SdJwt4VC
+  const parser = customSchema || SdJwt4VC;
+
+  const sdJwt = parser.parse({
     header: decodedJwt.protectedHeader,
     payload: decodedJwt.payload,
   });
@@ -136,19 +140,19 @@ export const disclose = async (
  *
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
  * @param publicKey The single public key or an array of public keys to validate the signature.
- * @param schema Schema to use to parse the SD-JWT
+ * @param customSchema Schema to use to parse the SD-JWT
  *
  * @returns The parsed SD-JWT token and the parsed disclosures
  *
  */
-export const verify = async <S extends z.AnyZodObject>(
+export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   token: string,
   publicKey: JWK | JWK[],
-  schema: S
+  customSchema?: S
 ): Promise<{ sdJwt: z.infer<S>; disclosures: Disclosure[] }> => {
   // get decoded data
   const [rawSdJwt = ""] = token.split("~");
-  const decoded = decode(token, schema);
+  const decoded = decode(token, customSchema);
 
   //Check signature
   await verifyJwt(rawSdJwt, publicKey);
@@ -170,3 +174,5 @@ export const verify = async <S extends z.AnyZodObject>(
     disclosures: decoded.disclosures.map((d) => d.decoded),
   };
 };
+
+export { SdJwt4VC };
