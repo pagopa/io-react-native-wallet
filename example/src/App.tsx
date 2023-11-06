@@ -37,6 +37,14 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TestScenario
+        title="Decode SD-JWT"
+        scenario={scenarios.decodeCredentialSdJwt}
+      />
+      <TestScenario
+        title="Verify SD-JWT"
+        scenario={scenarios.verifyCredentialSdJwt}
+      />
       <TestScenario title="Decode PID" scenario={scenarios.decodePid} />
       <TestScenario title="Verify PID" scenario={scenarios.verifyPid} />
       <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />

@@ -26,3 +26,23 @@ export const toResultOrReject = async ([err, value]:
     : !value
     ? Promise.reject("empty attestation")
     : value;
+
+export const assert = <T extends unknown>(
+  value: T,
+  comparison: (value: T) => boolean
+) => {
+  if (comparison(value)) {
+    return true;
+  }
+  throw new Error(`Cannot assert ${JSON.stringify(value)}`);
+};
+
+export const assertEquals = <T extends string | number | boolean | undefined>(
+  value: T,
+  comparisonValue: T
+) => {
+  if (value === comparisonValue) {
+    return true;
+  }
+  throw new Error(`Cannot assert ${value}, expecting ${comparisonValue}`);
+};
