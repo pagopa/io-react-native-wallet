@@ -137,7 +137,7 @@ export default async () => {
     await generate(credentialKeyTag);
     const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-    const { credential } = await Credential.Issuance.obtainCredential(
+    const { credential, format } = await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
       nonce,
@@ -149,9 +149,17 @@ export default async () => {
       }
     );
 
-    console.log(credential);
+    const { parsedCredential } =
+      await Credential.Issuance.verifyAndParseCredential(
+        issuerConf,
+        credential,
+        format,
+        { credentialCryptoContext, ignoreMissingAttributes: true }
+      );
 
-    return result(credential);
+    console.log(parsedCredential);
+
+    return result(parsedCredential);
   } catch (e) {
     console.error(e);
     return error(e);

@@ -1,16 +1,13 @@
 import * as z from "zod";
 import uuid from "react-native-uuid";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
-import { verify as verifySdJwt } from "../../sd-jwt";
 import { createDPopToken } from "../../utils/dpop";
 
 import type { StartFlow } from "./01-start-flow";
 import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { AuthorizeAccess } from "./05-authorize-access";
-import { SdJwt4VC } from "../../sd-jwt/types";
-import { IoWalletError } from "../../utils/errors";
-import type { JWK } from "../../utils/jwk";
+import { SupportedCredentialFormat } from "./const";
 
 /**
  * Return the signed jwt for nonce proof of possession
@@ -36,46 +33,9 @@ export const createNonceProof = async (
     .sign();
 };
 
-/**
- * Given a credential, verify it's in the supported format
- * and the credential is correctly signed
- * and it's bound to the given key
- *
- * @param rawCredential The received credential
- * @param issuerKeys The set of public keys of the issuer,
- * which will be used to verify the signature
- * @param holderBindingContext The access to the holder's key
- *
- * @throws If the signature verification fails
- * @throws If the credential is not in the SdJwt4VC format
- * @throws If the holder binding is not properly configured
- *
- */
-async function verifyCredential(
-  rawCredential: string,
-  issuerKeys: JWK[],
-  holderBindingContext: CryptoContext
-): Promise<void> {
-  const [{ sdJwt }, holderBindingKey] =
-    // parallel for optimization
-    await Promise.all([
-      verifySdJwt(rawCredential, issuerKeys, SdJwt4VC),
-      holderBindingContext.getPublicKey(),
-    ]);
-
-  if (
-    !sdJwt.payload.cnf.jwk.kid ||
-    sdJwt.payload.cnf.jwk.kid !== holderBindingKey.kid
-  ) {
-    throw new IoWalletError(
-      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${sdJwt.payload.cnf.jwk.kid}`
-    );
-  }
-}
-
 const CredentialEndpointResponse = z.object({
   credential: z.string(),
-  format: z.literal("vc+sd-jwt"),
+  format: SupportedCredentialFormat,
 });
 
 export type ObtainCredential = (
@@ -89,7 +49,7 @@ export type ObtainCredential = (
     walletProviderBaseUrl: string;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<{ credential: string; format: string }>;
+) => Promise<{ credential: string; format: SupportedCredentialFormat }>;
 
 /**
  * Fetch a credential from the issuer
@@ -166,14 +126,6 @@ export const obtainCredential: ObtainCredential = async (
     .then(hasStatus(200))
     .then((res) => res.json())
     .then(CredentialEndpointResponse.parse);
-
-  /** validate the received credential signature
-      is correct and refers to the public keys of the issuer */
-  await verifyCredential(
-    credential,
-    issuerConf.openid_credential_issuer.jwks.keys,
-    credentialCryptoContext
-  );
 
   return { credential, format };
 };
