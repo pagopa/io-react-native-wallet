@@ -78,6 +78,9 @@ export const EntityConfigurationHeader = z.object({
   kid: z.string(),
 });
 
+/**
+ * @see https://openid.net/specs/openid-connect-federation-1_0-29.html#name-federation-entity
+ */
 const FederationEntityMetadata = z
   .object({
     federation_fetch_endpoint: z.string().optional(),
@@ -85,6 +88,7 @@ const FederationEntityMetadata = z
     federation_resolve_endpoint: z.string().optional(),
     federation_trust_mark_status_endpoint: z.string().optional(),
     federation_trust_mark_list_endpoint: z.string().optional(),
+    organization_name: z.string().optional(),
     homepage_uri: z.string().optional(),
     policy_uri: z.string().optional(),
     logo_uri: z.string().optional(),
