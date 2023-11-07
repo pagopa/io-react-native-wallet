@@ -5,6 +5,7 @@ import {
   Button,
   SafeAreaView,
   Linking,
+  ScrollView,
 } from "react-native";
 import scenarios, { type ScenarioRunner } from "./scenarios";
 import React, { useEffect } from "react";
@@ -37,25 +38,30 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TestScenario
-        title="Decode SD-JWT"
-        scenario={scenarios.decodeCredentialSdJwt}
-      />
-      <TestScenario
-        title="Verify SD-JWT"
-        scenario={scenarios.verifyCredentialSdJwt}
-      />
-      <TestScenario title="Decode PID" scenario={scenarios.decodePid} />
-      <TestScenario title="Verify PID" scenario={scenarios.verifyPid} />
-      <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
-      <TestScenario title="Get PID" scenario={scenarios.getPid} />
-      <TestScenario title="Get Credential" scenario={scenarios.getCredential} />
-      <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
-      <TestScenario
-        title="Fetch Entity Statement"
-        scenario={scenarios.getEntityStatement}
-      />
-      <TestSameDeviceFlowScenarioWithDeepLink deeplink={deeplink} />
+      <ScrollView>
+        <TestScenario
+          title="Decode SD-JWT"
+          scenario={scenarios.decodeCredentialSdJwt}
+        />
+        <TestScenario
+          title="Verify SD-JWT"
+          scenario={scenarios.verifyCredentialSdJwt}
+        />
+        <TestScenario title="Decode PID" scenario={scenarios.decodePid} />
+        <TestScenario title="Verify PID" scenario={scenarios.verifyPid} />
+        <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
+        <TestScenario title="Get PID" scenario={scenarios.getPid} />
+        <TestScenario
+          title="Get Credential"
+          scenario={scenarios.getCredential}
+        />
+        <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
+        <TestScenario
+          title="Fetch Entity Statement"
+          scenario={scenarios.getEntityStatement}
+        />
+        <TestSameDeviceFlowScenarioWithDeepLink deeplink={deeplink} />
+      </ScrollView>
     </SafeAreaView>
   );
 }

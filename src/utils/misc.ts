@@ -7,10 +7,12 @@ import { IoWalletError } from "./errors";
  */
 export const hasStatus =
   (status: number) =>
-  (res: Response): Response => {
+  async (res: Response): Promise<Response> => {
     if (res.status !== status) {
       throw new IoWalletError(
-        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`
+        `Http request failed. Expected ${status}, got ${res.status}, url: ${
+          res.url
+        } with response: ${await res.text()}`
       );
     }
     return res;
