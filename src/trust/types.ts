@@ -45,7 +45,7 @@ const CredentialDefinitionMetadata = z.object({
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
   id: z.string(),
-  format: z.literal("vc+sd-jwt"),
+  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   cryptographic_binding_methods_supported: z.array(z.string()),
   cryptographic_suites_supported: z.array(z.string()),
   display: z.array(CredentialDisplayMetadata),
@@ -143,7 +143,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           credentials_supported: z.array(SupportedCredentialMetadata),
           jwks: z.object({ keys: z.array(JWK) }),
         }),
-        /** Credential Issuers act as Relying Party 
+        /** Credential Issuers act as Relying Party
             when they require the presentation of other credentials.
             This does not apply for PID issuance, which requires CIE authz. */
         wallet_relying_party: RelyingPartyMetadata.optional(),
