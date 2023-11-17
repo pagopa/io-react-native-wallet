@@ -13,7 +13,7 @@ export const AuthorizationDetail = z.object({
   credential_definition: z.object({
     type: z.string(),
   }),
-  format: z.literal("vc+sd-jwt"),
+  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   type: z.literal("openid_credential"),
 });
 
@@ -48,7 +48,7 @@ export const makeParRequest =
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
       .payload.cnf.jwk.kid;
 
-    /** A code challenge is provided so that the PAR is bound 
+    /** A code challenge is provided so that the PAR is bound
         to the subsequent authorization code request
         @see https://datatracker.ietf.org/doc/html/rfc9126#name-request */
     const codeChallengeMethod = "s256";
