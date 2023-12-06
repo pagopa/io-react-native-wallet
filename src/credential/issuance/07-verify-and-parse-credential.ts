@@ -196,6 +196,15 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   return { parsedCredential };
 };
 
+const verifyAndParseCredentialMdoc: WithFormat<"vc+mdoc-cbor"> = async (
+  _issuerConf,
+  _credential,
+  _,
+  _ctx
+) => {
+  throw new Error("verifyAndParseCredentialMdoc not implemented yet");
+};
+
 /**
  * Verify and parse an encoded credential
  *
@@ -217,6 +226,13 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
 ) => {
   if (format === "vc+sd-jwt") {
     return verifyAndParseCredentialSdJwt(
+      issuerConf,
+      credential,
+      format,
+      context
+    );
+  } else if (format === "vc+mdoc-cbor") {
+    return verifyAndParseCredentialMdoc(
       issuerConf,
       credential,
       format,

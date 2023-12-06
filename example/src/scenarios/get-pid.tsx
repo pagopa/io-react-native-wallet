@@ -85,6 +85,7 @@ export default async (credentialKeyTag = rnd()) => {
       nonce,
       clientId,
       credentialType,
+      "vc+sd-jwt",
       {
         walletProviderBaseUrl,
         credentialCryptoContext,

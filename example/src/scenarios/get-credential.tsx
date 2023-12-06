@@ -143,6 +143,7 @@ export default async () => {
       nonce,
       clientId,
       credentialType,
+      "vc+sd-jwt",
       {
         walletProviderBaseUrl,
         credentialCryptoContext,

@@ -5,4 +5,7 @@ export const ASSERTION_TYPE =
 export type SupportedCredentialFormat = z.infer<
   typeof SupportedCredentialFormat
 >;
-export const SupportedCredentialFormat = z.literal("vc+sd-jwt");
+export const SupportedCredentialFormat = z.union([
+  z.literal("vc+sd-jwt"),
+  z.literal("vc+mdoc-cbor"),
+]);
