@@ -150,8 +150,7 @@ export default async () => {
       }
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _mdocCredential = await Credential.Issuance.obtainCredential(
+    const mdocCredential = await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
       // use nonce from previous credential otherwise
@@ -165,6 +164,8 @@ export default async () => {
         credentialCryptoContext,
       }
     );
+
+    console.log(mdocCredential);
 
     const parsedCredentials = await Promise.all(
       [
