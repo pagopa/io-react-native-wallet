@@ -55,6 +55,10 @@ export default function App() {
           title="Get Credential"
           scenario={scenarios.getCredential}
         />
+        <TestScenario
+          title="Get Multiple Credential"
+          scenario={scenarios.getMultipleCredential}
+        />
         <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
         <TestScenario
           title="Fetch Entity Statement"

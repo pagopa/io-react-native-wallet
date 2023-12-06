@@ -36,6 +36,10 @@ export const createNonceProof = async (
 const CredentialEndpointResponse = z.object({
   credential: z.string(),
   format: SupportedCredentialFormat,
+  // nonce used to perform multiple credential requests
+  // re-using the same authorization profile
+  c_nonce: z.string(),
+  c_nonce_expires_in: z.number(),
 });
 
 export type ObtainCredential = (
@@ -50,7 +54,11 @@ export type ObtainCredential = (
     walletProviderBaseUrl: string;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<{ credential: string; format: SupportedCredentialFormat }>;
+) => Promise<{
+  credential: string;
+  format: SupportedCredentialFormat;
+  nonce: string;
+}>;
 
 // Checks whether in the Entity confoguration at least one credential
 // is defined for the given type and format
@@ -142,7 +150,7 @@ export const obtainCredential: ObtainCredential = async (
     }),
   });
 
-  const { credential, format } = await appFetch(credentialUrl, {
+  const { credential, format, c_nonce } = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -155,5 +163,5 @@ export const obtainCredential: ObtainCredential = async (
     .then((res) => res.json())
     .then(CredentialEndpointResponse.parse);
 
-  return { credential, format };
+  return { credential, format, nonce: c_nonce };
 };

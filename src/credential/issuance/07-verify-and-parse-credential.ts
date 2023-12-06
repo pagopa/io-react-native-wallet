@@ -202,6 +202,7 @@ const verifyAndParseCredentialMdoc: WithFormat<"vc+mdoc-cbor"> = async (
   _,
   _ctx
 ) => {
+  // TODO: [SIW-686] decode MDOC credentials
   throw new Error("verifyAndParseCredentialMdoc not implemented yet");
 };
 
