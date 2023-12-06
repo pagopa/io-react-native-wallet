@@ -140,7 +140,7 @@ export default async () => {
     const sdjwtCredential = await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
-      "nonce",
+      nonce,
       clientId,
       credentialType,
       "vc+sd-jwt",

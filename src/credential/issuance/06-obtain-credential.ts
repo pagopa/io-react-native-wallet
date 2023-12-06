@@ -66,18 +66,12 @@ const isCredentialAvailable = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"],
   credentialFormat: SupportedCredentialFormat
-): boolean => {
-  console.log(
-    issuerConf.openid_credential_issuer.credentials_supported,
-    credentialType,
-    credentialFormat
-  );
-  return issuerConf.openid_credential_issuer.credentials_supported.some(
+): boolean =>
+  issuerConf.openid_credential_issuer.credentials_supported.some(
     (c) =>
       c.format === credentialFormat &&
       c.credential_definition.type.includes(credentialType)
   );
-};
 
 /**
  * Fetch a credential from the issuer
