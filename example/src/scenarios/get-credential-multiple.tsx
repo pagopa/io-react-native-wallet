@@ -90,7 +90,7 @@ export default async () => {
 
     const { type: credentialType, url: credentialProviderBaseUrl } =
       /* startFLow()*/ {
-        type: "EuropeanDisabilityCard",
+        type: "mDL",
         url: "https://api.eudi-wallet-it-issuer.it/rp",
       };
 
@@ -137,7 +137,7 @@ export default async () => {
     await generate(credentialKeyTag);
     const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-    const { credential, format } = await Credential.Issuance.obtainCredential(
+    const sdjwtCredential = await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
       nonce,
@@ -150,14 +150,39 @@ export default async () => {
       }
     );
 
-    const { parsedCredential } =
-      await Credential.Issuance.verifyAndParseCredential(
-        issuerConf,
-        credential,
-        format,
-        { credentialCryptoContext, ignoreMissingAttributes: true }
-      );
+    const mdocCredential = await Credential.Issuance.obtainCredential(
+      issuerConf,
+      accessToken,
+      // use nonce from previous credential otherwise
+      // the issuer will reject the request to prevent replay attacks
+      sdjwtCredential.nonce,
+      clientId,
+      credentialType,
+      "vc+mdoc-cbor",
+      {
+        walletProviderBaseUrl,
+        credentialCryptoContext,
+      }
+    );
 
+    console.log(mdocCredential);
+
+    const parsedCredentials = await Promise.all(
+      [
+        sdjwtCredential,
+        // TODO: [SIW-686] decode MDOC credentials
+        /*  _mdocCredential */
+      ].map((c) =>
+        Credential.Issuance.verifyAndParseCredential(
+          issuerConf,
+          c.credential,
+          c.format,
+          { credentialCryptoContext, ignoreMissingAttributes: true }
+        )
+      )
+    );
+
+    const parsedCredential = parsedCredentials[0]?.parsedCredential || {};
     console.log(parsedCredential);
 
     return result(parsedCredential);

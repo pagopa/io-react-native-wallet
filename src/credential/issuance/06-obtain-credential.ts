@@ -36,6 +36,10 @@ export const createNonceProof = async (
 const CredentialEndpointResponse = z.object({
   credential: z.string(),
   format: SupportedCredentialFormat,
+  // nonce used to perform multiple credential requests
+  // re-using the same authorization profile
+  c_nonce: z.string(),
+  c_nonce_expires_in: z.number(),
 });
 
 export type ObtainCredential = (
@@ -44,12 +48,30 @@ export type ObtainCredential = (
   nonce: Out<AuthorizeAccess>["nonce"],
   clientId: Out<AuthorizeAccess>["clientId"],
   credentialType: Out<StartFlow>["credentialType"],
+  credentialFormat: SupportedCredentialFormat,
   context: {
     credentialCryptoContext: CryptoContext;
     walletProviderBaseUrl: string;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<{ credential: string; format: SupportedCredentialFormat }>;
+) => Promise<{
+  credential: string;
+  format: SupportedCredentialFormat;
+  nonce: string;
+}>;
+
+// Checks whether in the Entity confoguration at least one credential
+// is defined for the given type and format
+const isCredentialAvailable = (
+  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  credentialType: Out<StartFlow>["credentialType"],
+  credentialFormat: SupportedCredentialFormat
+): boolean =>
+  issuerConf.openid_credential_issuer.credentials_supported.some(
+    (c) =>
+      c.format === credentialFormat &&
+      c.credential_definition.type.includes(credentialType)
+  );
 
 /**
  * Fetch a credential from the issuer
@@ -59,6 +81,7 @@ export type ObtainCredential = (
  * @param nonce The nonce value to prevent reply attacks, obtained with the access authorization step
  * @param clientId Identifies the current client across all the requests of the issuing flow
  * @param credentialType The type of the credential to be requested
+ * @param credentialFormat The format of the requested credential. @see {SupportedCredentialFormat}
  * @param context.credentialCryptoContext The context to access the key the Credential will be bound to
  * @param context.walletProviderBaseUrl The base url of the Wallet Provider
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
@@ -70,6 +93,7 @@ export const obtainCredential: ObtainCredential = async (
   nonce,
   clientId,
   credentialType,
+  credentialFormat,
   context
 ) => {
   const {
@@ -77,6 +101,12 @@ export const obtainCredential: ObtainCredential = async (
     walletProviderBaseUrl,
     appFetch = fetch,
   } = context;
+
+  if (!isCredentialAvailable(issuerConf, credentialType, credentialFormat)) {
+    throw new Error(
+      `The Issuer provides no credential for type ${credentialType} and format ${credentialFormat}`
+    );
+  }
 
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
 
@@ -107,14 +137,14 @@ export const obtainCredential: ObtainCredential = async (
     credential_definition: JSON.stringify({
       type: [credentialType],
     }),
-    format: "vc+sd-jwt",
+    format: credentialFormat,
     proof: JSON.stringify({
       jwt: signedNonceProof,
       proof_type: "jwt",
     }),
   });
 
-  const { credential, format } = await appFetch(credentialUrl, {
+  const { credential, format, c_nonce } = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -127,5 +157,5 @@ export const obtainCredential: ObtainCredential = async (
     .then((res) => res.json())
     .then(CredentialEndpointResponse.parse);
 
-  return { credential, format };
+  return { credential, format, nonce: c_nonce };
 };
