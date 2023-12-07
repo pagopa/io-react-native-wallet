@@ -49,8 +49,10 @@ const parseCredentialSdJwt = (
 ): ParsedCredential => {
   // find the definition that matches the received credential's type
   // warning: if more then a defintion is found, the first is retrieved
-  const credentialSubject = credentials_supported.find((c) =>
-    c.credential_definition.type.includes(sdJwt.payload.type)
+  const credentialSubject = credentials_supported.find(
+    (c) =>
+      c.format === "vc+sd-jwt" &&
+      c.credential_definition.type.includes(sdJwt.payload.type)
   )?.credential_definition.credentialSubject;
 
   // the received credential matches no supported credential, throw an exception
