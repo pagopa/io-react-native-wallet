@@ -89,45 +89,49 @@ const parseCredentialSdJwt = (
 
   // attributes that are defined in the issuer configuration
   // and are present in the disclosure set
-  const definedValues = attrDefinitions
-    // retrieve the value from the disclosure set
-    .map(
-      ([attrKey, definition]) =>
-        [
-          attrKey,
-          {
-            ...definition,
-            value: disclosures.find(
-              (_) => _[1 /* name */] === attrKey
-            )?.[2 /* value */],
-          },
-        ] as const
-    )
-    // add a human readable attribute name, with i18n, in the form { locale: name }
-    // example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
-    .map(
-      ([attrKey, { display, ...definition }]) =>
-        [
-          attrKey,
-          {
-            ...definition,
-            name: display.reduce(
-              (names, { locale, name }) => ({ ...names, [locale]: name }),
-              {} as Record<string, string>
-            ),
-          },
-        ] as const
-    );
+  const definedValues = Object.fromEntries(
+    attrDefinitions
+      // retrieve the value from the disclosure set
+      .map(
+        ([attrKey, definition]) =>
+          [
+            attrKey,
+            {
+              ...definition,
+              value: disclosures.find(
+                (_) => _[1 /* name */] === attrKey
+              )?.[2 /* value */],
+            },
+          ] as const
+      )
+      // add a human readable attribute name, with i18n, in the form { locale: name }
+      // example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
+      .map(
+        ([attrKey, { display, ...definition }]) =>
+          [
+            attrKey,
+            {
+              ...definition,
+              name: display.reduce(
+                (names, { locale, name }) => ({ ...names, [locale]: name }),
+                {} as Record<string, string>
+              ),
+            },
+          ] as const
+      )
+  );
 
   // attributes that are in the disclosure set
   // but are not defined in the issuer configuration
-  const undefinedValues = disclosures
-    .filter((_) => !Object.keys(definedValues).includes(_[1]))
-    .map(([, key, value]) => [key, { value, mandatory: false, name: key }]);
+  const undefinedValues = Object.fromEntries(
+    disclosures
+      .filter((_) => !Object.keys(definedValues).includes(_[1]))
+      .map(([, key, value]) => [key, { value, mandatory: false, name: key }])
+  );
 
   return {
-    ...Object.fromEntries(definedValues),
-    ...Object.fromEntries(undefinedValues),
+    ...definedValues,
+    ...undefinedValues,
   };
 };
 
