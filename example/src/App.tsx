@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Button,
-  SafeAreaView,
   Linking,
   ScrollView,
 } from "react-native";
@@ -11,9 +10,10 @@ import scenarios, { type ScenarioRunner } from "./scenarios";
 import React, { useEffect } from "react";
 import "react-native-url-polyfill/auto";
 import { encodeBase64 } from "@pagopa/io-react-native-jwt";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, type RouteProp } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function App() {
   const [deeplink, setDeeplink] = React.useState<string | undefined>();
@@ -40,34 +40,43 @@ export default function App() {
     setDeeplink(evt.url);
   }
 
+  const bottomBar = (
+    route: RouteProp<RootStackParamList, keyof RootStackParamList>
+  ) => {
+    let icon;
+    if (route.name === "PoC") {
+      icon = "🧪";
+    } else if (route.name === "Production") {
+      icon = "🚀";
+    }
+    return <Text>{icon}</Text>;
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: () => {
-              let icon;
-              if (route.name === "PoC") {
-                icon = "🧪";
-              } else if (route.name === "Production") {
-                icon = "🚀";
-              }
-              return <Text>{icon}</Text>;
-            },
-            tabBarActiveTintColor: "blue",
-            tabBarInactiveTintColor: "gray",
-          })}
-        >
-          <Tab.Screen name="PoC" component={PoC} initialParams={{ deeplink }} />
-          <Tab.Screen
-            name="Production"
-            component={Production}
-            initialParams={{}}
-          />
-        </Tab.Navigator>
-      </NavigationContainer>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <NavigationContainer>
+          <Tab.Navigator
+            screenOptions={({ route }) => ({
+              tabBarIcon: () => bottomBar(route),
+              tabBarActiveTintColor: "blue",
+              tabBarInactiveTintColor: "gray",
+            })}
+          >
+            <Tab.Screen
+              name="PoC"
+              component={PoC}
+              initialParams={{ deeplink }}
+            />
+            <Tab.Screen
+              name="Production"
+              component={Production}
+              initialParams={{}}
+            />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
