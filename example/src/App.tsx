@@ -13,7 +13,7 @@ import { encodeBase64 } from "@pagopa/io-react-native-jwt";
 import { NavigationContainer, type RouteProp } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function App() {
   const [deeplink, setDeeplink] = React.useState<string | undefined>();
