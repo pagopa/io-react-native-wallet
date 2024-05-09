@@ -53,8 +53,7 @@ export default function App() {
   };
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+    <SafeAreaProvider style={styles.container}>
         <NavigationContainer>
           <Tab.Navigator
             screenOptions={({ route }) => ({
