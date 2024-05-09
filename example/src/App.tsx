@@ -54,27 +54,22 @@ export default function App() {
 
   return (
     <SafeAreaProvider style={styles.container}>
-        <NavigationContainer>
-          <Tab.Navigator
-            screenOptions={({ route }) => ({
-              tabBarIcon: () => bottomBar(route),
-              tabBarActiveTintColor: "blue",
-              tabBarInactiveTintColor: "gray",
-            })}
-          >
-            <Tab.Screen
-              name="PoC"
-              component={PoC}
-              initialParams={{ deeplink }}
-            />
-            <Tab.Screen
-              name="Production"
-              component={Production}
-              initialParams={{}}
-            />
-          </Tab.Navigator>
-        </NavigationContainer>
-      </SafeAreaView>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            tabBarIcon: () => bottomBar(route),
+            tabBarActiveTintColor: "blue",
+            tabBarInactiveTintColor: "gray",
+          })}
+        >
+          <Tab.Screen name="PoC" component={PoC} initialParams={{ deeplink }} />
+          <Tab.Screen
+            name="Production"
+            component={Production}
+            initialParams={{}}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
