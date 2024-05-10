@@ -1301,13 +1301,13 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
   integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
 
-"@pagopa/io-react-native-jwt@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-1.0.0.tgz#958ab1b717bebe0066b8b431dbc42912785ef825"
-  integrity sha512-3av1Ccokyln0e+tJOqKgXe+bFfBgIealAu9POsh+Cy+IWQpfy9LLjJ292dSzzmak8fd8MnufLQOHxM4oxd+c6A==
+"@pagopa/io-react-native-jwt@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-1.2.0.tgz#9b5b6980e04f85c4703a29818428f6cb5edc69f8"
+  integrity sha512-Az+zBHAM+6dx0xGmnaigQnU9910V6irQ+tzz5i9s6C6k86HaFmeAJFl+bHNE4oyUROA2wUTSrH1JGCFNf/Hw+w==
   dependencies:
     abab "^2.0.6"
-    zod "^3.21.4"
+    zod "^3.22.4"
 
 "@react-native-community/cli-clean@11.4.1":
   version "11.4.1"
@@ -5428,7 +5428,7 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
-zod@^3.21.4:
-  version "3.22.3"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.3.tgz#2fbc96118b174290d94e8896371c95629e87a060"
-  integrity sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==
+zod@^3.22.4:
+  version "3.23.8"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
+  integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
