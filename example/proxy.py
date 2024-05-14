@@ -13,8 +13,8 @@ app = Flask(__name__)
 API_HOST = "https://walletprovider.example.com"
 USER_ID = "User UUID here"
 
-@app.route('/', defaults={'path': ''}, methods=["GET", "POST"])  # ref. https://medium.com/@zwork101/making-a-flask-proxy-server-online-in-10-lines-of-code-44b8721bca6
-@app.route('/<path>', methods=["GET", "POST"])  # NOTE: better to specify which methods to be accepted. Otherwise, only GET will be accepted. Ref: https://flask.palletsprojects.com/en/3.0.x/quickstart/#http-methods
+@app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT"])
+@app.route('/<path>', methods=["GET", "POST", "PUT"])
 def redirect_to_API_HOST(path):  #NOTE var :path will be unused as all path we need will be read from :request ie from flask import request
     res = requests.request(  # ref. https://stackoverflow.com/a/36601467/248616
         method          = request.method,
