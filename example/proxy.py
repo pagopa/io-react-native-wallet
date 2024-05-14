@@ -10,8 +10,8 @@ import requests  # pip package requests
 
 app = Flask(__name__)
 
-API_HOST = "https://walletprovider.example.com"
-USER_ID = "User UUID here"
+API_HOST = "https://io-d-itn-wallet-func.azurewebsites.net"
+USER_ID = "92562d4c-c857-4afe-a4ce-ad2e0e119395"
 
 @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT"])
 @app.route('/<path>', methods=["GET", "POST", "PUT"])
@@ -32,10 +32,10 @@ def redirect_to_API_HOST(path):  #NOTE var :path will be unused as all path we n
         if k.lower() not in excluded_headers
     ]
 
-    headers['x-iowallet-user-id'] = USER_ID
+    headers.append(tuple(("x-iowallet-user-id", USER_ID)))
 
     response = Response(res.content, res.status_code, headers)
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=8000)

@@ -85,7 +85,10 @@ function Production({}: NativeStackScreenProps<
 >) {
   return (
     <ScrollView>
-      <Text>Coming soon!</Text>
+      <TestScenario
+        title="Create Wallet Instance"
+        scenario={scenarios.prod.createWalletInstance}
+      />
     </ScrollView>
   );
 }
@@ -97,25 +100,31 @@ function PoC({ route }: NativeStackScreenProps<RootStackParamList, "PoC">) {
     <ScrollView>
       <TestScenario
         title="Decode SD-JWT"
-        scenario={scenarios.decodeCredentialSdJwt}
+        scenario={scenarios.poc.decodeCredentialSdJwt}
       />
       <TestScenario
         title="Verify SD-JWT"
-        scenario={scenarios.verifyCredentialSdJwt}
+        scenario={scenarios.poc.verifyCredentialSdJwt}
       />
-      <TestScenario title="Decode PID" scenario={scenarios.decodePid} />
-      <TestScenario title="Verify PID" scenario={scenarios.verifyPid} />
-      <TestScenario title="Get WIA" scenario={scenarios.getAttestation} />
-      <TestScenario title="Get PID" scenario={scenarios.getPid} />
-      <TestScenario title="Get Credential" scenario={scenarios.getCredential} />
+      <TestScenario title="Decode PID" scenario={scenarios.poc.decodePid} />
+      <TestScenario title="Verify PID" scenario={scenarios.poc.verifyPid} />
+      <TestScenario title="Get WIA" scenario={scenarios.poc.getAttestation} />
+      <TestScenario title="Get PID" scenario={scenarios.poc.getPid} />
+      <TestScenario
+        title="Get Credential"
+        scenario={scenarios.poc.getCredential}
+      />
       <TestScenario
         title="Get Multiple Credential"
-        scenario={scenarios.getMultipleCredential}
+        scenario={scenarios.poc.getMultipleCredential}
       />
-      <TestScenario title="Decode QR from RP" scenario={scenarios.decodeQR} />
+      <TestScenario
+        title="Decode QR from RP"
+        scenario={scenarios.poc.decodeQR}
+      />
       <TestScenario
         title="Fetch Entity Statement"
-        scenario={scenarios.getEntityStatement}
+        scenario={scenarios.poc.getEntityStatement}
       />
       <TestSameDeviceFlowScenarioWithDeepLink deeplink={deeplink} />
     </ScrollView>
@@ -170,7 +179,7 @@ function TestSameDeviceFlowScenarioWithDeepLink({
 
   async function run(qrCode: string) {
     setResult("⏱️... authenticating to RP via deep link");
-    const [error, _result] = await scenarios.authenticationToRP(qrCode);
+    const [error, _result] = await scenarios.poc.authenticationToRP(qrCode);
     if (error) {
       setResult(`❌ ${JSON.stringify(error)}`);
     } else {

@@ -9,19 +9,25 @@ import decodeQR from "./decode-qr-from-rp";
 import authenticationToRP from "./cross-device-flow-with-rp";
 import getCredential from "./get-credential";
 import getMultipleCredential from "./get-credential-multiple";
+import createWalletInstance from "./create-wallet-instance";
 
 const scenarios = {
-  getPid,
-  getAttestation,
-  getCredential,
-  getMultipleCredential,
-  verifyPid,
-  decodePid,
-  decodeQR,
-  authenticationToRP,
-  getEntityStatement,
-  decodeCredentialSdJwt,
-  verifyCredentialSdJwt,
+  poc: {
+    getPid,
+    getAttestation,
+    getCredential,
+    getMultipleCredential,
+    verifyPid,
+    decodePid,
+    decodeQR,
+    authenticationToRP,
+    getEntityStatement,
+    decodeCredentialSdJwt,
+    verifyCredentialSdJwt,
+  },
+  prod: {
+    createWalletInstance,
+  },
 };
 
 export default scenarios;
