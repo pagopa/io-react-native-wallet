@@ -1,18 +1,18 @@
 
 '''
 This script creates a proxy by simulating what io-backend does for adding information relating to the authenticated user.
-    Use API_HOST to enter the destination URL on which the Wallet Provider is deployed.
-    Use USER_ID to identify the user who is carrying out operations on the Wallet Provider.
 '''
 from flask import Flask
 from flask import request, Response
-import requests  # pip package requests
+import requests
+from decouple import config
+
 
 app = Flask(__name__)
 
-API_HOST = ""
-USER_ID = ""
-APP_KEY = ""
+API_HOST = config('API_HOST')
+USER_ID = config('USER_ID')
+APP_KEY = config('APP_KEY')
 
 @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT"])
 @app.route('/<path>', methods=["GET", "POST", "PUT"])
