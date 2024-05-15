@@ -72,4 +72,4 @@ lib/
 # testing
 /coverage
 
-/example/dev-proxy/dist
+/example/dist
