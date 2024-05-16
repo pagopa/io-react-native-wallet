@@ -9,7 +9,7 @@ This script creates a proxy by simulating what io-backend does for adding inform
     ```sh
     pyenv install
     python3 -m venv .venv #Create virtual environment
-    source .venv/bin7activate #Activate environment
+    source .venv/bin/activate #Activate environment
     ```
 
 2. Install dependecies
