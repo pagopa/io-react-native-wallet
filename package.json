@@ -34,7 +34,8 @@
     "release": "release-it",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install",
-    "code-review": "yarn lint && yarn typecheck && yarn test"
+    "code-review": "yarn lint && yarn typecheck && yarn test",
+    "generate-wallet-provider-client": "cd openapi && typed-openapi wallet-provider.yaml -o ../src/clients/generated/wallet-provider.ts -r zod && cd ../"
   },
   "keywords": [
     "react-native",
@@ -68,6 +69,7 @@
     "react": "18.2.0",
     "react-native": "0.72.14",
     "react-native-builder-bob": "^0.20.0",
+    "typed-openapi": "^0.4.1",
     "typescript": "^5.0.2"
   },
   "resolutions": {

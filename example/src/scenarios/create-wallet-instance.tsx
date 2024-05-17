@@ -9,7 +9,7 @@ import {
   isAttestationServiceAvailable,
 } from "@pagopa/io-react-native-integrity";
 
-const walletProviderBaseUrl = "https://io-d-itn-wallet-func.azurewebsites.net";
+const walletProviderBaseUrl = "http://192.168.125.107:8000";
 
 export default async () => {
   try {
