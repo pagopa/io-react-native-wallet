@@ -29,6 +29,7 @@
     "@react-native/metro-config": "^0.72.12",
     "babel-plugin-module-resolver": "^5.0.0",
     "metro-react-native-babel-preset": "^0.76.9",
+    "react-native-dotenv": "^3.4.11",
     "react-native-url-polyfill": "^2.0.0"
   },
   "engines": {

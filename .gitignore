@@ -71,3 +71,6 @@ lib/
 
 # testing
 /coverage
+
+#Example env
+example/.env
