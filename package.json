@@ -34,8 +34,9 @@
     "release": "release-it",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install",
-    "code-review": "yarn lint && yarn typecheck && yarn test",
-    "generate-wallet-provider-client": "typed-openapi openapi/wallet-provider.yaml -o src/client/generated/wallet-provider.ts -r zod"
+    "code-review": "yarn generate && yarn lint && yarn typecheck && yarn test",
+    "generate-wallet-provider-client": "typed-openapi openapi/wallet-provider.yaml -o src/client/generated/wallet-provider.ts -r zod",
+    "generate": "yarn generate-wallet-provider-client"
   },
   "keywords": [
     "react-native",
