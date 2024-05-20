@@ -15,9 +15,10 @@ const validateResponse = async (response: Response) => {
     } catch {
       problemDetail = {
         title: "Invalid response from Wallet Provider",
-        detail: "Unable to parse response to ProblemDetail",
       };
     }
+
+    let statusResponse = `Response status code: ${response.status}`;
 
     throw new WalletProviderResponseError(
       problemDetail.title
@@ -25,6 +26,8 @@ const validateResponse = async (response: Response) => {
         : "Invalid response from Wallet Provider",
       problemDetail.type,
       problemDetail.detail
+        ? statusResponse
+        : `${statusResponse} with detail: ${problemDetail.detail}`
     );
   }
   return response;
