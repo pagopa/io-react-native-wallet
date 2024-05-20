@@ -1,4 +1,8 @@
-import { WalletProviderResponseError } from "../utils/errors";
+import {
+  IoWalletError,
+  WalletProviderResponseError,
+  errorToString,
+} from "../utils/errors";
 import {
   ProblemDetail,
   createApiClient as createWalletProviderApiClient,
@@ -9,10 +13,10 @@ export type WalletProviderClient = WalletProviderApiClient;
 
 const validateResponse = async (response: Response) => {
   if (!response.ok) {
-    var problemDetail: ProblemDetail = {};
+    let problemDetail: ProblemDetail = {};
     try {
       problemDetail = ProblemDetail.parse(await response.json());
-    } catch (_) {
+    } catch {
       problemDetail = {
         title: "Invalid response from Wallet Provider",
         detail: "Unable to parse response to ProblemDetail",
@@ -30,10 +34,10 @@ const validateResponse = async (response: Response) => {
   return response;
 };
 
-export function getWalletProviderClient(context: {
+export const getWalletProviderClient = (context: {
   walletProviderBaseUrl: string;
   appFetch?: GlobalFetch["fetch"];
-}) {
+}) => {
   const { walletProviderBaseUrl, appFetch = fetch } = context;
 
   return createWalletProviderApiClient(
@@ -49,7 +53,12 @@ export function getWalletProviderClient(context: {
             return res.json();
           }
           return res.text();
+        })
+        .catch((e) => {
+          throw new IoWalletError(
+            `An error occurred during fetch: ${errorToString(e)}`
+          );
         }),
     walletProviderBaseUrl
   );
-}
+};

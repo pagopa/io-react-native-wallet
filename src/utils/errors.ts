@@ -261,3 +261,11 @@ export class WalletProviderResponseError extends IoWalletError {
     this.reason = reason;
   }
 }
+
+export const errorToString = (error: any) => {
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return `${error}`;
+  }
+};
