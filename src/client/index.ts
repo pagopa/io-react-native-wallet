@@ -1,8 +1,4 @@
-import {
-  IoWalletError,
-  WalletProviderResponseError,
-  errorToString,
-} from "../utils/errors";
+import { WalletProviderResponseError } from "../utils/errors";
 import {
   ProblemDetail,
   createApiClient as createWalletProviderApiClient,
@@ -53,11 +49,6 @@ export const getWalletProviderClient = (context: {
             return res.json();
           }
           return res.text();
-        })
-        .catch((e) => {
-          throw new IoWalletError(
-            `An error occurred during fetch: ${errorToString(e)}`
-          );
         }),
     walletProviderBaseUrl
   );
