@@ -8,10 +8,9 @@ import {
   getAttestation,
   isAttestationServiceAvailable,
   isPlayServicesAvailable,
-  prepareIntegrityToken,
 } from "@pagopa/io-react-native-integrity";
 
-import { WALLET_PROVIDER_BASE_URL, GOOGLE_CLOUD_PROJECT_NUMBER } from "@env";
+import { WALLET_PROVIDER_BASE_URL } from "@env";
 import { generate, type CryptoError } from "@pagopa/io-react-native-crypto";
 import { Platform } from "react-native";
 
