@@ -1,2 +1,3 @@
 example/ios/**/* linguist-generated=true
 example/android/**/* linguist-generated=true
+src/client/generated/**/* linguist-generated=true

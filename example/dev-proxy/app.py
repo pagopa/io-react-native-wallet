@@ -43,4 +43,4 @@ def redirect_to_API_HOST(path):  #NOTE var :path will be unused as all path we n
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=8000)

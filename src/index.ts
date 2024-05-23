@@ -8,17 +8,22 @@ import * as SdJwt from "./sd-jwt";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as Trust from "./trust";
+import * as WalletInstance from "./wallet-instance";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";
+import type { IntegrityContext } from "./utils/integrity";
 
 export {
   SdJwt,
   PID,
   Credential,
   WalletInstanceAttestation,
+  WalletInstance,
   Errors,
   Trust,
   createCryptoContextFor,
   AuthorizationDetail,
   AuthorizationDetails,
 };
+
+export type { IntegrityContext };

@@ -233,3 +233,31 @@ export class PidMetadataError extends Error {
     super(message);
   }
 }
+
+/**
+ * An error subclass thrown when a Wallet Provider http request fail
+ *
+ */
+export class WalletProviderResponseError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_PROVIDER_RESPONSE_FAILED" {
+    return "ERR_IO_WALLET_PROVIDER_RESPONSE_FAILED";
+  }
+
+  code = "ERR_IO_WALLET_PROVIDER_RESPONSE_FAILED";
+
+  /** The Claim for which the validation failed. */
+  claim: string;
+
+  /** Reason code for the validation failure. */
+  reason: string;
+
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, claim, reason }));
+    this.claim = claim;
+    this.reason = reason;
+  }
+}
