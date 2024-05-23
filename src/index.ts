@@ -1,3 +1,4 @@
+import { fixBase64EncodingOnKey } from "./utils/jwk";
 // polyfill due to known bugs on URL implementation for react native
 // https://github.com/facebook/react-native/issues/24428
 import "react-native-url-polyfill/auto";
@@ -24,6 +25,7 @@ export {
   createCryptoContextFor,
   AuthorizationDetail,
   AuthorizationDetails,
+  fixBase64EncodingOnKey,
 };
 
 export type { IntegrityContext };

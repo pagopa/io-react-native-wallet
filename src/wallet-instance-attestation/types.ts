@@ -33,7 +33,7 @@ export const WalletInstanceAttestationRequestJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("wiar+jwt"),
+      typ: z.literal("war+jwt"),
     })
   ),
   payload: z.intersection(

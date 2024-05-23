@@ -27,6 +27,7 @@ const scenarios = {
   },
   prod: {
     createWalletInstance,
+    getAttestation,
   },
 };
 
