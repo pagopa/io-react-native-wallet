@@ -7,7 +7,7 @@ import decodeCredentialSdJwt from "./poc/decode-credential-sdjwt";
 import verifyCredentialSdJwt from "./poc/verify-credential-sdjwt";
 import decodeQR from "./poc/decode-qr-from-rp";
 import authenticationToRP from "./poc/cross-device-flow-with-rp";
-import getCredential from "./poc/get-credential";
+import getCredential from "./production/get-credential";
 import getMultipleCredential from "./poc/get-credential-multiple";
 import createWalletInstance from "./production/create-wallet-instance";
 import TestScenario from "./TestScenario";
@@ -28,6 +28,7 @@ const scenarios = {
   },
   prod: {
     createWalletInstance,
+    getAttestation,
   },
 };
 

@@ -1,5 +1,5 @@
-import { StyleSheet, View, Text, Button, ScrollView } from "react-native";
-import scenarios, { type ScenarioRunner } from "./scenarios";
+import { StyleSheet, ScrollView } from "react-native";
+import scenarios, { TestScenario } from "./scenarios";
 import React, { useEffect } from "react";
 import "react-native-url-polyfill/auto";
 import { SafeAreaView } from "react-native-safe-area-context";
