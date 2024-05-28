@@ -17,15 +17,16 @@ export default function App() {
           title="Prepare Integrity Context"
           scenario={scenarios.prod.prepareIntegrityContext(setIntegrityContext)}
         />
-
         <TestScenario
           title="Create Wallet Instance"
           scenario={scenarios.prod.createWalletInstance(integrityContext)}
+          disabled={!integrityContext}
         />
 
         <TestScenario
           title="Obtain Wallet Attestation"
           scenario={scenarios.prod.getAttestation(integrityContext)}
+          disabled={!integrityContext}
         />
       </ScrollView>
     </SafeAreaView>
