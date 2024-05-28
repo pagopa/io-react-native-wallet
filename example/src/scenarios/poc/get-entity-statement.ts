@@ -1,5 +1,5 @@
 import { Trust } from "@pagopa/io-react-native-wallet";
-import { error, result } from "./types";
+import { error, result } from "../types";
 
 const subordinateUrl = "https://api.eudi-wallet-it-pid-provider.it/ci";
 const accreditationBodyUrl =

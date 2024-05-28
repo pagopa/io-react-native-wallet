@@ -2,7 +2,7 @@ import {
   WalletInstance,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
-import { error, result } from "./types";
+import { error, result } from "../types";
 
 import { WALLET_PROVIDER_BASE_URL } from "@env";
 
