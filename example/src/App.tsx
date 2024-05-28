@@ -22,7 +22,6 @@ export default function App() {
           scenario={scenarios.prod.createWalletInstance(integrityContext)}
           disabled={!integrityContext}
         />
-
         <TestScenario
           title="Obtain Wallet Attestation"
           scenario={scenarios.prod.getAttestation(integrityContext)}
