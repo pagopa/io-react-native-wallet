@@ -1,5 +1,5 @@
 import { Credential } from "@pagopa/io-react-native-wallet";
-import { error, result } from "./types";
+import { error, result } from "../types";
 
 // eudiw://authorize?client_id=https://verifier.example.org&request_uri=https://verifier.example.org/request_uri
 const QR =
