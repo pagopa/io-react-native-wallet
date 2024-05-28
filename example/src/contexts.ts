@@ -11,6 +11,7 @@ import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
 import { sha256 } from "js-sha256";
 import { Platform } from "react-native";
 import { fixBase64EncodingOnKey } from "@pagopa/io-react-native-wallet";
+import uuid from "react-native-uuid";
 
 /**
  * Generates the hardware backed key for Android.
@@ -18,8 +19,7 @@ import { fixBase64EncodingOnKey } from "@pagopa/io-react-native-wallet";
  * @returns a promise that resolves with the key tag as string.
  */
 const generateKeyAndroid = async () => {
-  console.log("generated");
-  const keyTag = `STIAMOTESTANDO`;
+  const keyTag = uuid.v4().toString();
   generate(keyTag).catch((_) => undefined);
   return keyTag;
 };

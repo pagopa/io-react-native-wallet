@@ -18,7 +18,7 @@ export async function getAttestationRequest(
 
   const clientData = {
     challenge,
-    jwk,
+    // jwk
   };
 
   const hardwareKeyTag = integrityContext.getHardwareKeyTag();
