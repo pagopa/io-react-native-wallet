@@ -1,5 +1,5 @@
 import { GOOGLE_CLOUD_PROJECT_NUMBER } from "@env";
-import { generate, getPublicKey, sign } from "@pagopa/io-react-native-crypto";
+import { generate, sign } from "@pagopa/io-react-native-crypto";
 import {
   generateHardwareKey,
   getAttestation,
@@ -10,7 +10,6 @@ import {
 import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
 import { sha256 } from "js-sha256";
 import { Platform } from "react-native";
-import { fixBase64EncodingOnKey } from "@pagopa/io-react-native-wallet";
 import uuid from "react-native-uuid";
 
 /**
@@ -43,6 +42,7 @@ const getHardwareSignatureWithAuthData =
   (hardwareKeyTag: string) => async (clientData: string) =>
     await Platform.select({
       ios: () => {
+        // Needs local assertion decoding function from io-react-native-integrity
         //const res = generateHardwareSignatureWithAssertion(clientData, hardwareKeyTag)
         // return decodeAssertion(res)
         return Promise.resolve({ signature: "", authenticatorData: "" });
@@ -51,15 +51,8 @@ const getHardwareSignatureWithAuthData =
         // Maybe hash clientData before signing
         const signature = await sign(clientData, hardwareKeyTag);
         await prepareIntegrityToken(GOOGLE_CLOUD_PROJECT_NUMBER);
-
-        console.log("hardwareKeyTag", hardwareKeyTag);
-        console.log("clientData", clientData);
-
         const clientDataHash = sha256(clientData);
-        console.log("clientDataHash", clientDataHash);
-
         const authenticatorData = await requestIntegrityToken(clientDataHash);
-
         return Promise.resolve({ signature, authenticatorData });
       },
       default: () => Promise.reject(new Error("Unsupported platform")),
@@ -72,7 +65,6 @@ export const getIntegrityContext = (
   getAttestation: (nonce: string) => getAttestation(nonce, hardwareKeyTag),
   getHardwareSignatureWithAuthData:
     getHardwareSignatureWithAuthData(hardwareKeyTag),
-  getHardwarePublicKey: getHardwarePublicKey(hardwareKeyTag),
 });
 
 export const generateHarwareKeyTag = () =>
@@ -81,12 +73,3 @@ export const generateHarwareKeyTag = () =>
     android: () => generateKeyAndroid(),
     default: () => Promise.reject(new Error("Unsupported platform")),
   })();
-
-// it's not needed anymore
-const getHardwarePublicKey = (keyTag: string) =>
-  Platform.select({
-    ios: () => Promise.reject(new Error("Unsupported platform")),
-    android: () =>
-      getPublicKey(keyTag).then((key) => fixBase64EncodingOnKey(key)),
-    default: () => Promise.reject(new Error("Unsupported platform")),
-  });

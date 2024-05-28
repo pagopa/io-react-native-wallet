@@ -11,6 +11,7 @@ import getCredential from "./production/get-credential";
 import getMultipleCredential from "./poc/get-credential-multiple";
 import createWalletInstance from "./production/create-wallet-instance";
 import TestScenario from "./TestScenario";
+import prepareIntegrityContext from "./production/prepare-integrity-context";
 
 const scenarios = {
   poc: {
@@ -27,6 +28,7 @@ const scenarios = {
     verifyCredentialSdJwt,
   },
   prod: {
+    prepareIntegrityContext,
     createWalletInstance,
     getAttestation,
   },
