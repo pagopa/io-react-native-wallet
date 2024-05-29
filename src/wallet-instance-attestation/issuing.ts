@@ -109,8 +109,6 @@ export const getAttestation = async ({
   // 1. Get nonce from backend
   const challenge = await api.get("/nonce").then((response) => response.nonce);
 
-  console.log("challenge", challenge);
-
   const signedAttestationRequest = await getAttestationRequest(
     challenge,
     wiaCryptoContext,
