@@ -3,5 +3,10 @@ export interface IntegrityContext {
   getAttestation: (nonce: string) => Promise<string>;
   getHardwareSignatureWithAuthData: (
     clientData: string
-  ) => Promise<{ signature: string; authenticatorData: string }>;
+  ) => Promise<HardwareSignatureWithAuthData>;
 }
+
+export type HardwareSignatureWithAuthData = {
+  signature: string;
+  authenticatorData: string;
+};

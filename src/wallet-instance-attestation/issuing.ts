@@ -18,7 +18,8 @@ export async function getAttestationRequest(
 
   const clientData = {
     challenge,
-    // jwk
+    // We are not sending jwk here because the order of the keys in the object is not guaranteed to be the same after we stringify it.
+    // thus making the signature verification fail. We might want to consider sending the jwk in a different way like a thumbprint.
   };
 
   const hardwareKeyTag = integrityContext.getHardwareKeyTag();

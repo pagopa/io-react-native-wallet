@@ -1,5 +1,6 @@
+import { integrityUtils } from "./../../utils/integrity/index";
 import { type IntegrityContext } from "@pagopa/io-react-native-wallet";
-import { generateHarwareKeyTag, getIntegrityContext } from "../../contexts";
+
 import { error, result } from "../types";
 
 type IntegrityContextSetter = React.Dispatch<
@@ -8,10 +9,13 @@ type IntegrityContextSetter = React.Dispatch<
 
 export default (setIntegrityContext: IntegrityContextSetter) => async () => {
   try {
-    const hardwarekeyTag = await generateHarwareKeyTag();
-    const integrityContext = getIntegrityContext(hardwarekeyTag);
+    await integrityUtils.ensureIntegrityServicyIsReady();
+    const hardwarekeyTag =
+      await integrityUtils.generateIntegrityHarwareKeyTag();
+    const integrityContext = await integrityUtils.getIntegrityContext(
+      hardwarekeyTag
+    );
     setIntegrityContext(integrityContext);
-
     return result(integrityContext);
   } catch (e) {
     console.error(e);
