@@ -14,7 +14,7 @@ import type { HardwareSignatureWithAuthData } from "src/utils/integrity";
  * It differents from iOS because the key is generated via `io-react-native-crypto` instead of `io-react-native-integrity`.
  * @returns a promise that resolves with the key tag as string or rejects with an error.
  */
-const generateIntegrityKeyAndroid = async () => {
+const generateIntegrityHarwareKeyTag = async () => {
   const keyTag = uuid.v4().toString();
   generate(keyTag).catch((_) => undefined);
   return keyTag;
@@ -26,7 +26,7 @@ const generateIntegrityKeyAndroid = async () => {
  * @param clientData
  * @returns
  */
-const getHardwareSignatureWithAuthDataAndroid = async (
+const getHardwareSignatureWithAuthData = async (
   hardwareKeyTag: string,
   clientData: string
 ): Promise<HardwareSignatureWithAuthData> => {
@@ -41,7 +41,7 @@ const getHardwareSignatureWithAuthDataAndroid = async (
  * It checks if the play services are available via `io-react-native-integrity` and prepares the integrity token.
  * @returns a promise with resolves with a boolean value indicating wheter or not the integrity service is available.
  */
-const ensureIntegrityServiceAndroid = async () => {
+const ensureIntegrityServiceIsReady = async () => {
   const res = await isPlayServicesAvailable();
   if (!res) return Promise.reject(false);
   await prepareIntegrityToken(GOOGLE_CLOUD_PROJECT_NUMBER);
@@ -49,7 +49,7 @@ const ensureIntegrityServiceAndroid = async () => {
 };
 
 export {
-  generateIntegrityKeyAndroid,
-  getHardwareSignatureWithAuthDataAndroid,
-  ensureIntegrityServiceAndroid,
+  generateIntegrityHarwareKeyTag,
+  getHardwareSignatureWithAuthData,
+  ensureIntegrityServiceIsReady,
 };
