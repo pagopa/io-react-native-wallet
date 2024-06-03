@@ -2,7 +2,7 @@ import {
   Credential,
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
-import { error, result, toResultOrReject } from "./types";
+import { error, result, toResultOrReject } from "../types";
 import getPid from "./get-pid";
 import getWalletInstanceAttestation from "./get-attestation";
 

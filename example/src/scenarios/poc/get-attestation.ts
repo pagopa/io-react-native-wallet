@@ -4,7 +4,7 @@ import {
   createCryptoContextFor,
   Trust,
 } from "@pagopa/io-react-native-wallet";
-import { error, result } from "./types";
+import { error, result } from "../types";
 
 const walletProviderBaseUrl = "https://io-d-wallet-it.azurewebsites.net";
 
