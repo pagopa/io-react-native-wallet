@@ -33,6 +33,7 @@ const getHardwareSignatureWithAuthData = async (
   const signature = await sign(clientData, hardwareKeyTag);
   const clientDataHash = sha256(clientData);
   const authenticatorData = await requestIntegrityToken(clientDataHash);
+  console.log("authenticatorData", authenticatorData);
   return { signature, authenticatorData };
 };
 

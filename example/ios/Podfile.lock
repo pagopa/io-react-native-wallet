@@ -78,9 +78,10 @@ PODS:
   - OpenSSL-Universal (1.1.1100)
   - pagopa-io-react-native-crypto (0.2.3):
     - React-Core
-  - pagopa-io-react-native-integrity (0.1.0):
+  - pagopa-io-react-native-integrity (0.2.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+    - SwiftCBOR
   - pagopa-io-react-native-jwt (1.2.0):
     - JOSESwift (~> 2.3)
     - RCT-Folly (= 2021.07.22.00)
@@ -497,12 +498,8 @@ PODS:
     - React-jsi (= 0.72.14)
     - React-logger (= 0.72.14)
     - React-perflogger (= 0.72.14)
-  - RNCMaskedView (0.1.11):
-    - React
-  - RNScreens (3.30.1):
-    - RCT-Folly (= 2021.07.22.00)
-    - React-Core
   - SocketRocket (0.6.1)
+  - SwiftCBOR (0.4.7)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -574,8 +571,6 @@ DEPENDENCIES:
   - React-runtimescheduler (from `../node_modules/react-native/ReactCommon/react/renderer/runtimescheduler`)
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
-  - RNScreens (from `../node_modules/react-native-screens`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -594,6 +589,7 @@ SPEC REPOS:
     - libevent
     - OpenSSL-Universal
     - SocketRocket
+    - SwiftCBOR
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -681,10 +677,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/utils"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNCMaskedView:
-    :path: "../node_modules/@react-native-community/masked-view"
-  RNScreens:
-    :path: "../node_modules/react-native-screens"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -709,7 +701,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
-  pagopa-io-react-native-integrity: 124bcc6cac3b6eacc72e63a20cadbd4c2d983e0b
+  pagopa-io-react-native-integrity: 2b2727697da3fe66fe821d359c1ccc62acc8df85
   pagopa-io-react-native-jwt: 662d4e722715996758b079774abea1996b057467
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 264adaca1d8b1a9c078761891898d4142df05313
@@ -744,9 +736,8 @@ SPEC CHECKSUMS:
   React-runtimescheduler: f284b4fdad43fe811041129099f1339b54783135
   React-utils: 22a77b05da25ce49c744faa82e73856dcae1734e
   ReactCommon: ff94462e007c568d8cdebc32e3c97af86ec93bb5
-  RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
-  RNScreens: e5ee7223f7c8fa261f0c4594a0541c56ea99bbfc
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
+  SwiftCBOR: 465775bed0e8bac7bfb8160bcf7b95d7f75971e4
   Yoga: c32e0be1a17f8f1f0e633a3122f7666441f52c82
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
