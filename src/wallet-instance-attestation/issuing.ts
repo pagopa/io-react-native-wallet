@@ -48,40 +48,6 @@ export async function getAttestationRequest(
     .sign();
 }
 
-// /**
-//  * Validate a Wallet Instance Attestation token.
-//  * Either return true or throw an exception.
-//  *
-//  * @param wia Signed Wallet Instance Attestation token
-//  * @param walletProviderEntityConfiguration Entity Configuration object for the issuing Wallet Provider
-//  * @returns The token is valid
-//  * @throws {WalletInstanceAttestationIssuingError} When the received token fails to validate. This can happen due to invalid signature, expired token or malformed JWT token.
-//  */
-// async function verifyWalletInstanceAttestation(
-//   wia: string,
-//   walletProviderEntityConfiguration: WalletProviderEntityConfiguration
-// ): Promise<true> {
-//   const {
-//     payload: {
-//       sub,
-//       metadata: {
-//         wallet_provider: {
-//           jwks: { keys },
-//         },
-//       },
-//     },
-//   } = walletProviderEntityConfiguration;
-//   return verifyJwt(wia, keys, { issuer: sub })
-//     .then((_) => true as const)
-//     .catch((ex) => {
-//       const reason = ex && ex instanceof Error ? ex.message : "unknown reason";
-//       throw new WalletInstanceAttestationIssuingError(
-//         "Unable to validate received wallet instance attestation",
-//         reason
-//       );
-//     });
-// }
-
 /**
  * Request a Wallet Instance Attestation (WIA) to the Wallet provider
  *
@@ -135,8 +101,6 @@ export const getAttestation = async ({
       },
     })
     .then((result) => z.string().parse(result));
-
-  //await verifyWalletInstanceAttestation(wia, walletProviderEntityConfiguration);
 
   return wia;
 };
