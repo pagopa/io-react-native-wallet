@@ -5,7 +5,6 @@ import {
   decodeAssertion,
 } from "@pagopa/io-react-native-integrity";
 import type { HardwareSignatureWithAuthData } from "src/utils/integrity";
-var Buffer = require("buffer/").Buffer;
 
 /**
  * Generates the hardware backed key for iOS.
@@ -30,12 +29,7 @@ const getHardwareSignatureWithAuthData = async (
     hardwareKeyTag
   );
   const decodedAssertion = await decodeAssertion(assertion);
-  const buffer = Buffer.from(decodedAssertion, "base64").toString("utf-8");
-  const { signature, authenticatorData } = JSON.parse(buffer);
-  return Promise.resolve({
-    signature: Buffer.from(signature).toString("base64"),
-    authenticatorData: Buffer.from(authenticatorData).toString("base64"), // to base64url
-  });
+  return Promise.resolve(decodedAssertion);
 };
 
 export {
