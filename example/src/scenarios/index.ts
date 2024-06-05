@@ -1,8 +1,12 @@
-import createWalletInstance from "./production/create-wallet-instance";
-import TestScenario from "./TestScenario";
+import TestScenario from "./component/TestScenario";
+import createWalletInstance from "./create-wallet-instance";
+import getAttestation from "./get-attestation";
+import prepareIntegrityContext from "./prepare-integrity-context";
 
 const scenarios = {
+  prepareIntegrityContext,
   createWalletInstance,
+  getAttestation,
 };
 
 export default scenarios;

@@ -1301,10 +1301,10 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
   integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
 
-"@pagopa/io-react-native-integrity@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.1.0.tgz#da1fcca249aad0ccb8e7045d4453a4dffb179790"
-  integrity sha512-OxrOToTR6WaOogcYUHRCbFodhTiRJlEMygdRRfVItc7Hmd59oLOLGnuQZTAc7Oaw3h64j9scETZ5zgkbyitDLg==
+"@pagopa/io-react-native-integrity@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.3.0.tgz#ec0808f308f0dc7b163febdbfa528819b1730c2d"
+  integrity sha512-K9omm939IhhuKBopdtDsDLeh6k9XZPgf03WlHnuiFtxo2rdfAUlWj8Fq9njpyT0ovmwDfP12PtRYSDFzkYH5Lg==
 
 "@pagopa/io-react-native-jwt@^1.2.0":
   version "1.2.0"

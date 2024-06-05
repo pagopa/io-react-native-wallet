@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@pagopa/io-react-native-crypto": "^0.2.3",
-    "@pagopa/io-react-native-integrity": "^0.1.0",
+    "@pagopa/io-react-native-integrity": "^0.3.0",
     "@pagopa/io-react-native-jwt": "^1.2.0",
     "react": "18.2.0",
     "react-native": "0.72.14",
