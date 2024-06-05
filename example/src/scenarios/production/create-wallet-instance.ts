@@ -17,8 +17,6 @@ export default (integrityContext?: IntegrityContext) => async () => {
       integrityContext,
       walletProviderBaseUrl,
     });
-
-    console.log(createdWalletInstance);
     return result(createdWalletInstance);
   } catch (e) {
     console.error(e);
