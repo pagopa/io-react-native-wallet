@@ -10,7 +10,7 @@ export default function App() {
       <ScrollView>
         <TestScenario
           title="Create Wallet Instance"
-          scenario={scenarios.prod.createWalletInstance}
+          scenario={scenarios.createWalletInstance}
         />
       </ScrollView>
     </SafeAreaView>
