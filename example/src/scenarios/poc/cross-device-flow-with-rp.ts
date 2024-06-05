@@ -4,7 +4,7 @@ import {
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "../types";
 import getPid from "./get-pid";
-import getWalletInstanceAttestation from "../production/get-attestation";
+import getWalletInstanceAttestation from "./get-attestation";
 
 export default async (
   qr = "aHR0cHM6Ly9kZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0L09wZW5JRDRWUD9jbGllbnRfaWQ9aHR0cHMlM0ElMkYlMkZkZW1vLnByb3h5LmV1ZGkud2FsbGV0LmRldmVsb3BlcnMuaXRhbGlhLml0JTJGT3BlbklENFZQJnJlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGZGVtby5wcm94eS5ldWRpLndhbGxldC5kZXZlbG9wZXJzLml0YWxpYS5pdCUyRk9wZW5JRDRWUCUyRnJlcXVlc3QtdXJpJTNGaWQlM0RkMmMyYzRhYi1lM2I4LTRjNTAtYTRlYy1lNjY4ZTgxNzVlNWY="

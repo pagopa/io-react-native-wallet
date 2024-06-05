@@ -26,7 +26,7 @@ export default async (credentialKeyTag = rnd()) => {
     // obtain wallet instance attestation
     const walletInstanceKeyTag = rnd();
     const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
-    const walletInstanceAttestation = await getAttestation(
+    const walletInstanceAttestation = await getWalletInstanceAttestation(
       walletInstanceKeyTag
     ).then(toResultOrReject);
 
