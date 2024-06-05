@@ -5,6 +5,15 @@ import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
 import { z } from "zod";
 
+/**
+ * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
+ *
+ * @param challenge - The nonce received from the Wallet Provider which is part of the signed clientData
+ * @param wiaCryptoContext - The key pair associated with the WIA. Will be use to prove the ownership of the attestation
+ * @param integrityContext - The integrity context which exposes a set of functions to interact with the device integrity service
+ * @param walletProviderBaseUrl - Base url for the Wallet Provider
+ * @returns A JWT containing the attestation request
+ */
 export async function getAttestationRequest(
   challenge: string,
   wiaCryptoContext: CryptoContext,
@@ -75,6 +84,7 @@ export const getAttestation = async ({
   // 1. Get nonce from backend
   const challenge = await api.get("/nonce").then((response) => response.nonce);
 
+  // 2. Get a signed attestation request
   const signedAttestationRequest = await getAttestationRequest(
     challenge,
     wiaCryptoContext,
@@ -82,17 +92,7 @@ export const getAttestation = async ({
     walletProviderBaseUrl
   );
 
-  /*
-    const decodedRequest = decodeJwt(signedAttestationRequest);
-    const parsedRequest = WalletInstanceAttestationRequestJwt.parse({
-      payload: decodedRequest.payload,
-      header: decodedRequest.protectedHeader,
-    });
-    const publicKey = parsedRequest.payload.cnf.jwk;
-
-    await verifyJwt(signedAttestationRequest, publicKey);
-    */
-
+  // 3. Request WIA
   const wia = await api
     .post("/token", {
       body: {

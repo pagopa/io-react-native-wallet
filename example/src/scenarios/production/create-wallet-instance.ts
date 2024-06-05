@@ -8,6 +8,9 @@ import { WALLET_PROVIDER_BASE_URL } from "@env";
 
 const walletProviderBaseUrl = WALLET_PROVIDER_BASE_URL;
 
+/**
+ * Create a Wallet Instance by providing an integrity context.
+ */
 export default (integrityContext?: IntegrityContext) => async () => {
   try {
     if (!integrityContext)

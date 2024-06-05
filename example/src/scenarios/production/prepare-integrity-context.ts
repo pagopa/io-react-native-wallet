@@ -12,6 +12,12 @@ type IntegrityContextSetter = React.Dispatch<
   React.SetStateAction<IntegrityContext | undefined>
 >;
 
+/**
+ * Prepare the integrity context which has different implementations for Android and iOS.
+ * The functions called are platform specific and must be implemented in the platform specific code.
+ * Currently they are implemented in `utils/integrity/integrity.android.ts` and `utils/integrity/integrity.ios.ts`.
+ * @param setIntegrityContext - the callback function to set the integrity context.
+ */
 export default (setIntegrityContext: IntegrityContextSetter) => async () => {
   try {
     await ensureIntegrityServiceIsReady();
