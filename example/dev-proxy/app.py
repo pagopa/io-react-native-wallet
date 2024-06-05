@@ -25,7 +25,7 @@ def redirect_to_API_HOST(path):  #NOTE var :path will be unused as all path we n
 
     res = requests.request(  # ref. https://stackoverflow.com/a/36601467/248616
         method          = request.method,
-        url             = request.url.replace(request.host_url, f'{API_HOST}/'),
+        url             = request.url.replace(request.host_url, f'{API_HOST}/api/v1/'),
         headers         = request_headers,
         data            = request.get_data(),
         cookies         = request.cookies,
