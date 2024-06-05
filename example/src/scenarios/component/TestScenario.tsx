@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import type { ScenarioRunner } from "./types";
+import type { ScenarioRunner } from "../types";
 
 export default function TestScenario({
   scenario,

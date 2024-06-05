@@ -1,7 +1,7 @@
+import TestScenario from "./component/TestScenario";
 import createWalletInstance from "./create-wallet-instance";
-import TestScenario from "./TestScenario";
+import getAttestation from "./get-attestation";
 import prepareIntegrityContext from "./prepare-integrity-context";
-import getAttestation from "./production/get-attestation";
 
 const scenarios = {
   prepareIntegrityContext,

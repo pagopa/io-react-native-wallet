@@ -1,12 +1,12 @@
 import { type IntegrityContext } from "@pagopa/io-react-native-wallet";
 
-import { error, result } from "../types";
+import { error, result } from "./types";
 import { getAttestation } from "@pagopa/io-react-native-integrity";
 import {
   ensureIntegrityServiceIsReady,
   generateIntegrityHarwareKeyTag,
   getHardwareSignatureWithAuthData,
-} from "../../utils/integrity/integrity";
+} from "../utils/integrity/integrity";
 
 type IntegrityContextSetter = React.Dispatch<
   React.SetStateAction<IntegrityContext | undefined>
