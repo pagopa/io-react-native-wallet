@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView } from "react-native";
+import { ScrollView } from "react-native";
 import scenarios, { TestScenario } from "./scenarios";
 import React from "react";
 import "react-native-url-polyfill/auto";
