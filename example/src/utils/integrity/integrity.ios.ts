@@ -11,6 +11,7 @@ import { addPadding, removePadding } from "@pagopa/io-react-native-jwt";
 /**
  * Generates the hardware backed key for iOS.
  * On iOS the key is generated via `io-react-native-integrity` and it's then converted from a base64 string to a base64url string.
+ * A base64 string might not be safe to be stored in a database, so it's converted to a base64url string.
  * @returns a promise that resolves with the key tag as string or rejects with an error.
  */
 const generateIntegrityHarwareKeyTag = async () => {
@@ -41,14 +42,14 @@ const getHardwareSignatureWithAuthData = async (
 };
 
 /**
- * Get an hardware attestation on Android.
+ * Get an hardware attestation on iOS.
  * @param nonce - the nonce to use for the attestation.
- * @param hardwareKeyTag - the hardware key tag to use for the attestation.
+ * @param hardwareKeyTag - the hardware key tag to use for the attestation in base64 format.
  */
 const getAttestation = async (nonce: string, hardwareKeyTag: string) => {
   // The generateIntegrityHarwareKeyTag returns a base64url string, so we need to convert it to a base64 string before using it.
   const base64keyTag = addPadding(hardwareKeyTag);
-  await getAttestationIntegrity(nonce, base64keyTag);
+  return await getAttestationIntegrity(nonce, base64keyTag);
 };
 
 export {
