@@ -2,7 +2,7 @@
 '''
 This script creates a proxy by simulating what io-backend does for adding information relating to the authenticated user.
 '''
-from flask import Flask
+from flask import Flask, render_template, redirect
 from flask import request, Response
 import requests
 from decouple import config
@@ -41,6 +41,15 @@ def redirect_to_API_HOST(path):  #NOTE var :path will be unused as all path we n
 
     response = Response(res.content, res.status_code, headers)
     return response
+
+@app.route('/redirect_page', methods=["GET"])
+def render_redirect_page():
+    return render_template('redirect.html')
+
+@app.route('/redirect', methods=["GET"])
+def auth_redirect(): 
+    return redirect('iowallet://127.0.0.1:3000?code=200&state=ok&iss=123456789', code=302)
+    
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8000)

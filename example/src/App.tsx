@@ -28,6 +28,10 @@ export default function App() {
             scenario={scenarios.getAttestation(integrityContext)}
             disabled={!integrityContext}
           />
+          <TestScenario
+            title="Test Redirect"
+            scenario={scenarios.testRedirect()}
+          />
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>

@@ -261,3 +261,15 @@ export class WalletProviderResponseError extends IoWalletError {
     this.reason = reason;
   }
 }
+
+export class LoginResponseError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_LOGIN_RESPONSE_PARSING_FAILED" {
+    return "ERR_IO_WALLET_LOGIN_RESPONSE_PARSING_FAILED";
+  }
+
+  code = "ERR_IO_WALLET_LOGIN_RESPONSE_PARSING_FAILED";
+
+  constructor(message?: string) {
+    super(message);
+  }
+}
