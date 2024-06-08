@@ -3,15 +3,20 @@ import {
   generateHardwareSignatureWithAssertion,
   isAttestationServiceAvailable,
   decodeAssertion,
+  getAttestation as getAttestationIntegrity,
 } from "@pagopa/io-react-native-integrity";
 import type { HardwareSignatureWithAuthData } from "src/utils/integrity";
+import { addPadding, removePadding } from "@pagopa/io-react-native-jwt";
 
 /**
  * Generates the hardware backed key for iOS.
- * On iOS the key is generated via `io-react-native-integrity`.
+ * On iOS the key is generated via `io-react-native-integrity` and it's then converted from a base64 string to a base64url string.
  * @returns a promise that resolves with the key tag as string or rejects with an error.
  */
-const generateIntegrityHarwareKeyTag = async () => await generateHardwareKey();
+const generateIntegrityHarwareKeyTag = async () => {
+  const base64KeyTag = await generateHardwareKey();
+  return removePadding(base64KeyTag);
+};
 
 /**
  * Ensures that the integrity servicy is availabe on the device.
@@ -25,16 +30,30 @@ const getHardwareSignatureWithAuthData = async (
   hardwareKeyTag: string,
   clientData: string
 ): Promise<HardwareSignatureWithAuthData> => {
+  // The generateIntegrityHarwareKeyTag returns a base64url string, so we need to convert it to a base64 string before using it.
+  const base64keyTag = addPadding(hardwareKeyTag);
   const assertion = await generateHardwareSignatureWithAssertion(
     clientData,
-    hardwareKeyTag
+    base64keyTag
   );
   const decodedAssertion = await decodeAssertion(assertion);
   return decodedAssertion;
+};
+
+/**
+ * Get an hardware attestation on Android.
+ * @param nonce - the nonce to use for the attestation.
+ * @param hardwareKeyTag - the hardware key tag to use for the attestation.
+ */
+const getAttestation = async (nonce: string, hardwareKeyTag: string) => {
+  // The generateIntegrityHarwareKeyTag returns a base64url string, so we need to convert it to a base64 string before using it.
+  const base64keyTag = addPadding(hardwareKeyTag);
+  await getAttestationIntegrity(nonce, base64keyTag);
 };
 
 export {
   generateIntegrityHarwareKeyTag,
   ensureIntegrityServiceIsReady,
   getHardwareSignatureWithAuthData,
+  getAttestation,
 };
