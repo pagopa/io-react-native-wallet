@@ -16,6 +16,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - name: Install dependencies and build with builder bob
         run: yarn install --frozen-lockfile
+      - name: Generate client
+        run: yarn generate
       - name: Publish package on NPM 📦
         run: npm publish --access=public
         env:
