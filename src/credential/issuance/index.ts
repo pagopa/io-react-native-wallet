@@ -7,7 +7,10 @@ import {
   startUserAuthorization,
   type StartUserAuthorization,
 } from "./03-start-user-authorization";
-import { type CompleteUserAuthorization } from "./04-complete-user-authorization";
+import {
+  completeUserAuthorization,
+  type CompleteUserAuthorization,
+} from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
 import {
   obtainCredential,
@@ -22,6 +25,7 @@ import type { ConfirmCredential } from "./08-confirm-credential";
 export {
   evaluateIssuerTrust,
   startUserAuthorization,
+  completeUserAuthorization,
   authorizeAccess,
   obtainCredential,
   verifyAndParseCredential,

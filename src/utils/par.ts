@@ -60,22 +60,24 @@ export const makeParRequest =
         The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
+        // type, alg?
         kid: wiaPublicKey.kid,
       })
       .setPayload({
-        iss,
-        aud,
         jti: `${uuid.v4()}`,
-        client_assertion_type: assertionType,
-        authorization_details: authorizationDetails,
+        aud,
         response_type: "code",
-        redirect_uri: walletProviderBaseUrl,
-        state: `${uuid.v4()}`,
+        response_mode: "form_post.jwt",
         client_id: clientId,
-        code_challenge_method: codeChallengeMethod,
+        iss,
+        state: `${uuid.v4()}`,
         code_challenge: codeChallenge,
+        code_challenge_method: codeChallengeMethod,
+        authorization_details: authorizationDetails,
+        redirect_uri: walletProviderBaseUrl,
+        client_assertion_type: assertionType,
       })
-      .setIssuedAt()
+      .setIssuedAt() //iat is set to now
       .setExpirationTime("1h")
       .sign();
 
@@ -85,9 +87,9 @@ export const makeParRequest =
       client_id: clientId,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
+      request: signedJwtForPar,
       client_assertion_type: assertionType,
       client_assertion: walletInstanceAttestation,
-      request: signedJwtForPar,
     });
 
     return await appFetch(parEndpoint, {

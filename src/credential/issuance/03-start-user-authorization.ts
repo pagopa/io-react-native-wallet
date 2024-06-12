@@ -72,7 +72,7 @@ export type StartUserAuthorization = (
     wiaCryptoContext: CryptoContext;
     walletInstanceAttestation: string;
     walletProviderBaseUrl: string;
-    additionalParams?: Record<string, string>;
+    idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<{ requestUri: string; clientId: string }>;
@@ -101,7 +101,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
     wiaCryptoContext,
     walletInstanceAttestation,
     walletProviderBaseUrl,
-    additionalParams = {},
+    idphint,
     appFetch = fetch,
   } = ctx;
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
@@ -126,7 +126,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const params = new URLSearchParams({
     client_id: clientId,
     request_uri: issuerRequestUri,
-    ...additionalParams,
+    idphint,
   });
 
   const { request_uri } = await appFetch(`${authzRequestEndpoint}?${params}`)
