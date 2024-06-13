@@ -1,11 +1,11 @@
 import { type IntegrityContext } from "@pagopa/io-react-native-wallet";
 
 import { error, result } from "./types";
-import { getAttestation } from "@pagopa/io-react-native-integrity";
 import {
   ensureIntegrityServiceIsReady,
   generateIntegrityHarwareKeyTag,
   getHardwareSignatureWithAuthData,
+  getAttestation,
 } from "../utils/integrity/integrity";
 
 type IntegrityContextSetter = React.Dispatch<
@@ -43,7 +43,7 @@ const getIntegrityContext = async (
   return {
     getHardwareKeyTag: () => hardwareKeyTag,
     getAttestation: (nonce: string) => getAttestation(nonce, hardwareKeyTag),
-    getHardwareSignatureWithAuthData: (clientData) =>
+    getHardwareSignatureWithAuthData: (clientData: string) =>
       getHardwareSignatureWithAuthData(hardwareKeyTag, clientData),
   };
 };

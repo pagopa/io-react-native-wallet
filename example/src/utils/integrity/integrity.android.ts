@@ -4,6 +4,7 @@ import {
   isPlayServicesAvailable,
   prepareIntegrityToken,
   requestIntegrityToken,
+  getAttestation as getAttestationIntegrity,
 } from "@pagopa/io-react-native-integrity";
 import { sha256 } from "js-sha256";
 import uuid from "react-native-uuid";
@@ -50,8 +51,17 @@ const ensureIntegrityServiceIsReady = async () => {
   return true;
 };
 
+/**
+ * Get an hardware attestation on Android.
+ * @param nonce - the nonce to use for the attestation.
+ * @param hardwareKeyTag - the hardware key tag to use for the attestation.
+ */
+const getAttestation = async (nonce: string, hardwareKeyTag: string) =>
+  await getAttestationIntegrity(nonce, hardwareKeyTag);
+
 export {
   generateIntegrityHarwareKeyTag,
   getHardwareSignatureWithAuthData,
   ensureIntegrityServiceIsReady,
+  getAttestation,
 };
