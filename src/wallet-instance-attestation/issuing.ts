@@ -1,9 +1,13 @@
 import { type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
+import { z } from "zod";
 import { JWK, fixBase64EncodingOnKey } from "../utils/jwk";
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
-import { z } from "zod";
+import {
+  WalletProviderResponseError,
+  WalletInstanceAttestationIssuingError,
+} from "../utils/errors";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -100,7 +104,22 @@ export const getAttestation = async ({
         assertion: signedAttestationRequest,
       },
     })
-    .then((result) => z.string().parse(result));
+    .then((result) => z.string().parse(result))
+    .catch(handleAttestationCreationError);
 
   return wia;
+};
+
+const handleAttestationCreationError = (e: unknown) => {
+  if (!(e instanceof WalletProviderResponseError)) {
+    throw e;
+  }
+
+  // Differentiate errors specific to the attestation creation request
+  throw new WalletInstanceAttestationIssuingError(
+    "Unable to obtain wallet instance attestation from wallet provider",
+    e.claim,
+    e.reason,
+    e.statusCode
+  );
 };
