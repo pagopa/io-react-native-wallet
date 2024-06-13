@@ -86,14 +86,26 @@ export class WalletInstanceAttestationIssuingError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
+  /** HTTP status code */
+  statusCode: number;
+
   constructor(
     message: string,
     claim: string = "unspecified",
-    reason: string = "unspecified"
+    reason: string = "unspecified",
+    statusCode: number
   ) {
-    super(serializeAttrs({ message, claim, reason }));
+    super(
+      serializeAttrs({
+        message,
+        claim,
+        reason,
+        statusCode: statusCode.toString(),
+      })
+    );
     this.claim = claim;
     this.reason = reason;
+    this.statusCode = statusCode;
   }
 }
 
@@ -251,13 +263,25 @@ export class WalletProviderResponseError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
+  /** HTTP status code */
+  statusCode: number;
+
   constructor(
     message: string,
     claim: string = "unspecified",
-    reason: string = "unspecified"
+    reason: string = "unspecified",
+    statusCode: number
   ) {
-    super(serializeAttrs({ message, claim, reason }));
+    super(
+      serializeAttrs({
+        message,
+        claim,
+        reason,
+        statusCode: statusCode.toString(),
+      })
+    );
     this.claim = claim;
     this.reason = reason;
+    this.statusCode = statusCode;
   }
 }
