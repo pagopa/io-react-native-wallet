@@ -9,3 +9,5 @@ export const IdentificationResultShape = z.object({
   state: z.string(),
   iss: z.string(),
 });
+
+export type IdentificationResult = z.infer<typeof IdentificationResultShape>;

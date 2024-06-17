@@ -1,103 +1,62 @@
 import {
   Credential,
   createCryptoContextFor,
-  completeUserAuthorization,
   type IdentificationContext,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
 import { error, result, toResultOrReject } from "./types";
-import { generate } from "@pagopa/io-react-native-crypto";
 import getAttestation from "./get-attestation";
 import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
+import {
+  REDIRECT_URI,
+  WALLET_PID_PROVIDER_BASE_URL,
+  WALLET_PID_PROVIDER_REDIRECT_OVERRIDE_URL,
+} from "@env";
+import uuid from "react-native-uuid";
+import { generate } from "@pagopa/io-react-native-crypto";
 
-const walletProviderBaseUrl = "http://localhost:8050/"; // make it ENV
-
-const rnd = () => Math.random().toString(36).substr(2, 5);
-
-export default async (
-  integrityContext: IntegrityContext,
-  credentialKeyTag = rnd()
-) => {
+export default (integrityContext?: IntegrityContext) => async () => {
   try {
+    if (!integrityContext) {
+      return error("Integrity context not available");
+    }
     // obtain wallet instance attestation
-    const walletInstanceKeyTag = rnd();
+    const walletInstanceKeyTag = uuid.v4().toString();
+    await generate(walletInstanceKeyTag);
     const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
     const walletInstanceAttestation = await getAttestation(
       integrityContext
     )().then(toResultOrReject);
-
-    // obtain PID
-    const { type: credentialType, url: credentialProviderBaseUrl } =
-      /* startFLow()*/ {
-        type: "PersonIdentificationData",
-        url: "https://api.eudi-wallet-it-pid-provider.it/ci",
-      };
-
-    const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-      credentialProviderBaseUrl
-    );
-
-    const { clientId, requestUri } =
-      await Credential.Issuance.startUserAuthorization(
-        issuerConf,
-        credentialType,
-        {
-          walletInstanceAttestation,
-          walletProviderBaseUrl,
-          wiaCryptoContext,
-          idphint: "EXAMPLE", // change me
-        }
-      );
 
     // Create identification context
     const identificationContext: IdentificationContext = {
       identify: openAuthenticationSession,
     };
 
-    // This should be implemented with proper CIE authorization
-    const { code } = await Credential.Issuance.completeUserAuthorization(
-      identificationContext,
-      requestUri,
-      clientId
+    const startFlow: Credential.Issuance.StartFlow = () => ({
+      issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
+      credentialType: "PersonIdentificationData",
+    });
+    const { issuerUrl, credentialType } = startFlow();
+
+    const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
+      issuerUrl
     );
 
-    const { accessToken, nonce } = await Credential.Issuance.authorizeAccess(
+    const authRes = await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      code,
-      clientId,
+      credentialType,
       {
         walletInstanceAttestation,
-        walletProviderBaseUrl,
+        identificationContext,
+        redirectUri: REDIRECT_URI,
+        overrideRedirectUri: WALLET_PID_PROVIDER_REDIRECT_OVERRIDE_URL,
+        wiaCryptoContext,
+        idphint: "EXAMPLE",
       }
     );
 
-    await generate(credentialKeyTag);
-    const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
-
-    const { credential, format } = await Credential.Issuance.obtainCredential(
-      issuerConf,
-      accessToken,
-      nonce,
-      clientId,
-      credentialType,
-      "vc+sd-jwt",
-      {
-        walletProviderBaseUrl,
-        credentialCryptoContext,
-      }
-    );
-
-    const { parsedCredential } =
-      await Credential.Issuance.verifyAndParseCredential(
-        issuerConf,
-        credential,
-        format,
-        { credentialCryptoContext, ignoreMissingAttributes: true }
-      );
-
-    console.log(parsedCredential);
-
-    return result(credential);
+    return result(authRes);
   } catch (e) {
     console.error(e);
     return error(e);

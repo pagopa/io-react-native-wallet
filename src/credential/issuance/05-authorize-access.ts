@@ -5,11 +5,10 @@ import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
-import type { CompleteUserAuthorization } from "./04-complete-user-authorization";
 
 export type AuthorizeAccess = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  code: Out<CompleteUserAuthorization>["code"],
+  code: Out<StartUserAuthorization>["code"],
   clientId: Out<StartUserAuthorization>["clientId"],
   context: {
     walletInstanceAttestation: string;

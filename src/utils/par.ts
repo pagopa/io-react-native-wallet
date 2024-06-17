@@ -34,7 +34,8 @@ export const makeParRequest =
   async (
     clientId: string,
     codeVerifier: string,
-    walletProviderBaseUrl: string,
+    redirectUri: string,
+    responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
     authorizationDetails: AuthorizationDetails,
@@ -67,14 +68,14 @@ export const makeParRequest =
         jti: `${uuid.v4()}`,
         aud,
         response_type: "code",
-        response_mode: "form_post.jwt",
+        response_mode: responseMode,
         client_id: clientId,
         iss,
         state: `${uuid.v4()}`,
         code_challenge: codeChallenge,
         code_challenge_method: codeChallengeMethod,
         authorization_details: authorizationDetails,
-        redirect_uri: walletProviderBaseUrl,
+        redirect_uri: redirectUri,
         client_assertion_type: assertionType,
       })
       .setIssuedAt() //iat is set to now

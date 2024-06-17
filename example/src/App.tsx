@@ -28,6 +28,11 @@ export default function App() {
             scenario={scenarios.getAttestation(integrityContext)}
             disabled={!integrityContext}
           />
+          <TestScenario
+            title="Get PID (only auth)"
+            scenario={scenarios.getPid(integrityContext)}
+            disabled={!integrityContext}
+          />
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>

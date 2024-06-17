@@ -1,12 +1,17 @@
-import * as z from "zod";
 import uuid from "react-native-uuid";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { getJwtFromFormPost } from "../../utils/decoder";
-import { hasStatus, type Out } from "../../utils/misc";
+import { type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
+import type { IdentificationContext } from "@pagopa/io-react-native-wallet";
+import parseUrl from "parse-url";
+import { LoginResponseError } from "../../utils/errors";
+import {
+  type IdentificationResult,
+  IdentificationResultShape,
+} from "../../utils/identification";
 
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -28,54 +33,19 @@ const selectCredentialDefinition = (
   return result;
 };
 
-const decodeAuthorizationResponse = async (
-  raw: string
-): Promise<{ request_uri: string }> => {
-  const {
-    decodedJwt: { payload },
-  } = await getJwtFromFormPost(raw);
-
-  /**
-   * FIXME: [SIW-628] This step must not make any difference on the credential
-   * we are authorizing for, being a PID or any other (Q)EAA.
-   *
-   * Currently, PID issuer is implemented to skip the CompleteUserAuthorization step
-   * thus returning a stubbed (code, state) pair.
-   *
-   * This is a workaround to proceeed the flow anyway.
-   * If the response does not map what expected (CorrectShape),
-   * we try parse into (code, state) to check if we are in the PID scenario.
-   * In that case, a stub value is returned (will not be evaluated anyway).
-   *
-   * This workaround will be obsolete once the PID issuer fixes its implementation
-   */
-  const CorrectShape = z.object({ request_uri: z.string() });
-  const WrongShapeForPID = z.object({ code: z.string(), state: z.string() });
-
-  const [correct, wrong] = [
-    CorrectShape.safeParse(payload),
-    WrongShapeForPID.safeParse(payload),
-  ];
-
-  if (correct.success) {
-    return correct.data;
-  } else if (wrong.success) {
-    return { request_uri: "https://fake-request-uri" };
-  }
-  throw correct.error;
-};
-
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"],
   context: {
     wiaCryptoContext: CryptoContext;
+    identificationContext: IdentificationContext;
     walletInstanceAttestation: string;
-    walletProviderBaseUrl: string;
+    redirectUri: string;
+    overrideRedirectUri?: string;
     idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<{ requestUri: string; clientId: string }>;
+) => Promise<IdentificationResult & { clientId: string }>;
 
 /**
  * Start the User authorization phase.
@@ -85,7 +55,6 @@ export type StartUserAuthorization = (
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
- * @param context.walletProviderBaseUrl The base url of the Wallet Provider
  * @param context.additionalParams Hash set of parameters to be passed to the authorization endpoint
  * (used as a temporary fix until we have a proper User identity in the PID token provider)
  * TODO: [SIW-630]
@@ -99,8 +68,10 @@ export const startUserAuthorization: StartUserAuthorization = async (
 ) => {
   const {
     wiaCryptoContext,
+    identificationContext,
     walletInstanceAttestation,
-    walletProviderBaseUrl,
+    redirectUri,
+    overrideRedirectUri,
     idphint,
     appFetch = fetch,
   } = ctx;
@@ -109,16 +80,21 @@ export const startUserAuthorization: StartUserAuthorization = async (
   // Make a PAR request to the credential issuer and return the response url
   const parUrl =
     issuerConf.openid_credential_issuer.pushed_authorization_request_endpoint;
+  // the responseMode this is specified in the entity configuration https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
+  const responseMode = "query";
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(
     clientId,
     codeVerifier,
-    walletProviderBaseUrl,
+    redirectUri,
+    responseMode,
     parUrl,
     walletInstanceAttestation,
     [selectCredentialDefinition(issuerConf, credentialType)],
     ASSERTION_TYPE
   );
+
+  // do the get request in the webview
 
   // Initialize authorization by requesting the authz request uri
   const authzRequestEndpoint =
@@ -129,10 +105,16 @@ export const startUserAuthorization: StartUserAuthorization = async (
     idphint,
   });
 
-  const { request_uri } = await appFetch(`${authzRequestEndpoint}?${params}`)
-    .then(hasStatus(200))
-    .then((res) => res.text())
-    .then(decodeAuthorizationResponse);
+  const data = await identificationContext.identify(
+    overrideRedirectUri ?? `${authzRequestEndpoint}?${params}`,
+    "iowallet"
+  );
 
-  return { requestUri: request_uri, clientId };
+  const urlParse = parseUrl(data);
+  const result = IdentificationResultShape.safeParse(urlParse.query);
+  if (result.success) {
+    return { ...result.data, clientId };
+  } else {
+    throw new LoginResponseError(result.error.message);
+  }
 };

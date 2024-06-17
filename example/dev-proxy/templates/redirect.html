@@ -1,14 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Redirect Page</title>
+    <meta charset="UTF-8" />
+    <title>ITW - Simulate Redirect</title>
     <script>
       function redirectToPage() {
-        window.location = `http://127.0.0.1:8000/redirect`;
+        const redirectUrl = "http://192.168.1.54:8000"; // needs to be changed to your local IP
+        window.location = `${redirectUrl}/redirect`;
       }
     </script>
   </head>
-  <body>
-    <button onclick="redirectToPage()">Redirect</button>
+
+  <body onload="onLoad()">
+    <div
+      align="center"
+      style="width: 100%; height: 100%; margin: auto; margin-top: 20%"
+    >
+      <h1 style="font-size: 62px">ITW - Simulate Redirect</h1>
+      <div style="width: 100%; margin-top: 20px">
+        <div id="select_container"></div>
+        <div style="margin-top: 60px">
+          <div
+            onclick="redirectToPage()"
+            style="
+              padding: 16px;
+              width: 350px;
+              font-size: 30px;
+              color: white;
+              background-color: #e67f00;
+              text-decoration: none;
+            "
+          >
+            SIMULATE REDIRECT
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

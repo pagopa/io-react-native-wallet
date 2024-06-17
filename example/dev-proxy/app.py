@@ -13,6 +13,7 @@ app = Flask(__name__)
 API_HOST = config('API_HOST')
 USER_ID = config('USER_ID')
 APP_KEY = config('APP_KEY')
+REDIRECT_URI = config('REDIRECT_URI')
 
 @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT"])
 @app.route('/<path>', methods=["GET", "POST", "PUT"])
@@ -48,7 +49,7 @@ def render_redirect_page():
 
 @app.route('/redirect', methods=["GET"])
 def auth_redirect(): 
-    return redirect('iowallet://127.0.0.1:3000?code=200&state=ok&iss=123456789', code=302)
+    return redirect(f'{REDIRECT_URI}://www.google.it?code=200&state=ok&iss=123456789', code=302)
     
 
 if __name__ == '__main__':
