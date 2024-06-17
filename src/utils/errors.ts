@@ -262,12 +262,15 @@ export class WalletProviderResponseError extends IoWalletError {
   }
 }
 
-export class LoginResponseError extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_LOGIN_RESPONSE_PARSING_FAILED" {
-    return "ERR_IO_WALLET_LOGIN_RESPONSE_PARSING_FAILED";
+/**
+ * An error subclass thrown when an error occurs while parsing the identification response
+ */
+export class IdentificationResponseParsingError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED" {
+    return "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED";
   }
 
-  code = "ERR_IO_WALLET_LOGIN_RESPONSE_PARSING_FAILED";
+  code = "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED";
 
   constructor(message?: string) {
     super(message);

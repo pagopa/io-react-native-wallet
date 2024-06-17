@@ -43,10 +43,12 @@ def redirect_to_API_HOST(path):  #NOTE var :path will be unused as all path we n
     response = Response(res.content, res.status_code, headers)
     return response
 
+# Route to render the redirect page and simulate the redirect after the authentication. It renders the redirect.html page which contains a button that calls the /redirect route
 @app.route('/redirect_page', methods=["GET"])
 def render_redirect_page():
     return render_template('redirect.html')
 
+# Route to simulate the redirect after the authentication. It's called by the redirect.html page of the /redirect_page route
 @app.route('/redirect', methods=["GET"])
 def auth_redirect(): 
     return redirect(f'{REDIRECT_URI}://www.google.it?code=200&state=ok&iss=123456789', code=302)

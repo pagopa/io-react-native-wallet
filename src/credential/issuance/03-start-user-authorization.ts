@@ -7,7 +7,7 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
 import type { IdentificationContext } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
-import { LoginResponseError } from "../../utils/errors";
+import { IdentificationResponseParsingError } from "../../utils/errors";
 import {
   type IdentificationResult,
   IdentificationResultShape,
@@ -41,7 +41,7 @@ export type StartUserAuthorization = (
     identificationContext: IdentificationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
-    overrideRedirectUri?: string;
+    overrideRedirectUri?: string; // temporary parameter to override the redirect uri until we have an actual implementation
     idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
@@ -54,11 +54,13 @@ export type StartUserAuthorization = (
  * @param issuerConf The Issuer configuration
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
+ * @param context.identificationContext The context to identify the user which will be used to start the authorization
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
  * @param context.additionalParams Hash set of parameters to be passed to the authorization endpoint
  * (used as a temporary fix until we have a proper User identity in the PID token provider)
  * TODO: [SIW-630]
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @throws {IdentificationResponseParsingError} When the response from the identification response is not parsable
  * @returns The request uri to continue the authorization to
  */
 export const startUserAuthorization: StartUserAuthorization = async (
@@ -115,6 +117,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
   if (result.success) {
     return { ...result.data, clientId };
   } else {
-    throw new LoginResponseError(result.error.message);
+    throw new IdentificationResponseParsingError(result.error.message);
   }
 };

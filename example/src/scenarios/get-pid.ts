@@ -20,7 +20,7 @@ export default (integrityContext?: IntegrityContext) => async () => {
     if (!integrityContext) {
       return error("Integrity context not available");
     }
-    // obtain wallet instance attestation
+    // Obtain a wallet attestation. A wallet instance must be created before this step.
     const walletInstanceKeyTag = uuid.v4().toString();
     await generate(walletInstanceKeyTag);
     const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
@@ -33,16 +33,20 @@ export default (integrityContext?: IntegrityContext) => async () => {
       identify: openAuthenticationSession,
     };
 
+    // Start the issuance flow
     const startFlow: Credential.Issuance.StartFlow = () => ({
       issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
       credentialType: "PersonIdentificationData",
     });
+
     const { issuerUrl, credentialType } = startFlow();
 
+    // Evaluate issuer trust
     const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
       issuerUrl
     );
 
+    // Start user authorization
     const authRes = await Credential.Issuance.startUserAuthorization(
       issuerConf,
       credentialType,
@@ -50,7 +54,7 @@ export default (integrityContext?: IntegrityContext) => async () => {
         walletInstanceAttestation,
         identificationContext,
         redirectUri: REDIRECT_URI,
-        overrideRedirectUri: WALLET_PID_PROVIDER_REDIRECT_OVERRIDE_URL,
+        overrideRedirectUri: WALLET_PID_PROVIDER_REDIRECT_OVERRIDE_URL, // currently we are overriding the redirect URI until we have an actual implementation
         wiaCryptoContext,
         idphint: "EXAMPLE",
       }
