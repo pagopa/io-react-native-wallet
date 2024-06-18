@@ -70,46 +70,6 @@ export class ValidationFailed extends IoWalletError {
 }
 
 /**
- * An error subclass thrown when validation fail
- *
- */
-export class WalletInstanceAttestationIssuingError extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_INSTANCE_ATTESTATION_ISSUING_FAILED" {
-    return "ERR_IO_WALLET_INSTANCE_ATTESTATION_ISSUING_FAILED";
-  }
-
-  code = "ERR_IO_WALLET_INSTANCE_ATTESTATION_ISSUING_FAILED";
-
-  /** The Claim for which the validation failed. */
-  claim: string;
-
-  /** Reason code for the validation failure. */
-  reason: string;
-
-  /** HTTP status code */
-  statusCode: number;
-
-  constructor(
-    message: string,
-    claim: string = "unspecified",
-    reason: string = "unspecified",
-    statusCode: number
-  ) {
-    super(
-      serializeAttrs({
-        message,
-        claim,
-        reason,
-        statusCode: statusCode.toString(),
-      })
-    );
-    this.claim = claim;
-    this.reason = reason;
-    this.statusCode = statusCode;
-  }
-}
-
-/**
  * An error subclass thrown when auth request decode fail
  *
  */
@@ -283,5 +243,39 @@ export class WalletProviderResponseError extends IoWalletError {
     this.claim = claim;
     this.reason = reason;
     this.statusCode = statusCode;
+  }
+}
+
+export class WalletInstanceRevokedError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_INSTANCE_REVOKED" {
+    return "ERR_IO_WALLET_INSTANCE_REVOKED";
+  }
+
+  code = "ERR_IO_WALLET_INSTANCE_REVOKED";
+
+  claim: string;
+  reason: string;
+
+  constructor(message: string, claim: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, claim, reason }));
+    this.reason = reason;
+    this.claim = claim;
+  }
+}
+
+export class WalletInstanceNotFoundError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_INSTANCE_NOT_FOUND" {
+    return "ERR_IO_WALLET_INSTANCE_NOT_FOUND";
+  }
+
+  code = "ERR_IO_WALLET_INSTANCE_NOT_FOUND";
+
+  claim: string;
+  reason: string;
+
+  constructor(message: string, claim: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, claim, reason }));
+    this.reason = reason;
+    this.claim = claim;
   }
 }

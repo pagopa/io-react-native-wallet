@@ -6,7 +6,8 @@ import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
 import {
   WalletProviderResponseError,
-  WalletInstanceAttestationIssuingError,
+  WalletInstanceRevokedError,
+  WalletInstanceNotFoundError,
 } from "../utils/errors";
 
 /**
@@ -68,6 +69,8 @@ export async function getAttestationRequest(
  * @param params.appFetch (optional) Http client
  * @param walletProviderBaseUrl Base url for the Wallet Provider
  * @returns The retrieved Wallet Instance Attestation token
+ * @throws {WalletInstanceRevokedError} The Wallet Instance was revoked
+ * @throws {WalletInstanceNotFoundError} The Wallet Instance does not exist
  */
 export const getAttestation = async ({
   wiaCryptoContext,
@@ -115,11 +118,21 @@ const handleAttestationCreationError = (e: unknown) => {
     throw e;
   }
 
-  // Differentiate errors specific to the attestation creation request
-  throw new WalletInstanceAttestationIssuingError(
-    "Unable to obtain wallet instance attestation from wallet provider",
-    e.claim,
-    e.reason,
-    e.statusCode
-  );
+  if (e.statusCode === 403) {
+    throw new WalletInstanceRevokedError(
+      "Unable to get an attestation for a revoked Wallet Instance",
+      e.claim,
+      e.reason
+    );
+  }
+
+  if (e.statusCode === 404) {
+    throw new WalletInstanceNotFoundError(
+      "Unable to get an attestation for a Wallet Instance that does not exist",
+      e.claim,
+      e.reason
+    );
+  }
+
+  throw e;
 };
