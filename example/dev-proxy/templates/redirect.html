@@ -5,8 +5,7 @@
     <title>ITW - Simulate Redirect</title>
     <script>
       function redirectToPage() {
-        const redirectUrl = "http://192.168.1.54:8000"; // needs to be changed to your local IP
-        window.location = `${redirectUrl}/redirect`;
+         window.location = "{{ url_for('auth_redirect', _external = True) }}";
       }
     </script>
   </head>
