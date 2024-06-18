@@ -17,9 +17,10 @@ const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): AuthorizationDetail => {
-  const { credentials_supported } = issuerConf.openid_credential_issuer;
+  const { credential_configurations_supported } =
+    issuerConf.openid_credential_issuer;
 
-  const [result] = credentials_supported
+  const [result] = Object.values(credential_configurations_supported)
     .filter((e) => e.credential_definition.type.includes(credentialType))
     .map((e) => ({
       credential_definition: { type: credentialType },
@@ -81,8 +82,11 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const codeVerifier = `${uuid.v4()}`;
   // Make a PAR request to the credential issuer and return the response url
   const parUrl =
-    issuerConf.openid_credential_issuer.pushed_authorization_request_endpoint;
-  // the responseMode this is specified in the entity configuration https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
+    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+  /* 
+  the responseMode this is specified in the entity configuration and should be query for PID and form_post.jwt for other credentials
+  https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
+  */
   const responseMode = "query";
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(
@@ -100,7 +104,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
 
   // Initialize authorization by requesting the authz request uri
   const authzRequestEndpoint =
-    issuerConf.openid_credential_issuer.authorization_endpoint;
+    issuerConf.oauth_authorization_server.authorization_endpoint;
   const params = new URLSearchParams({
     client_id: clientId,
     request_uri: issuerRequestUri,
