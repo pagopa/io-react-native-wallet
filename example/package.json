@@ -23,7 +23,6 @@
     "@babel/runtime": "^7.20.0",
     "@react-native/eslint-config": "^0.72.2",
     "@react-native/metro-config": "^0.72.12",
-    "@types/url-parse": "^1.4.11",
     "babel-plugin-module-resolver": "^5.0.0",
     "metro-react-native-babel-preset": "^0.76.9",
     "react-native-dotenv": "^3.4.11",
