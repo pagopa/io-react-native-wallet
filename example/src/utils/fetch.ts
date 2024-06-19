@@ -1,6 +1,8 @@
 import { ISSUER_AUTH_TOKEN, ISSUER_BASE_URL } from "@env";
 
-type AuthHeaders = Record<string, string>;
+interface AuthHeaders {
+  Authorization?: string;
+}
 
 function addAuthHeaders(options: RequestInit, authHeaders: AuthHeaders) {
   return {
