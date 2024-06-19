@@ -1,8 +1,5 @@
 import { ISSUER_AUTH_TOKEN, ISSUER_BASE_URL } from "@env";
 
-const issuerBaseUrl = new URL(ISSUER_BASE_URL);
-const issuerAuthToken = ISSUER_AUTH_TOKEN;
-
 function addAuthHeaders(
   options: RequestInit,
   authHeaders: Record<string, string>
@@ -22,9 +19,9 @@ export default function appFetch(request: RequestInfo, options: RequestInit) {
   let authHeaders: Record<string, string> = {};
 
   // Add the authentication header only if I am contacting the issuer URL
-  if (requestUrl.origin === issuerBaseUrl.origin) {
+  if (requestUrl.origin === new URL(ISSUER_BASE_URL).origin) {
     authHeaders = {
-      Authorization: `${issuerAuthToken}`,
+      Authorization: `${ISSUER_AUTH_TOKEN}`,
     };
   }
 
