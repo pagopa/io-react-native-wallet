@@ -263,9 +263,9 @@ export class WalletProviderResponseError extends IoWalletError {
 }
 
 /**
- * An error subclass thrown when an error occurs while parsing the identification response
+ * An error subclass thrown when an error occurs while the identification process
  */
-export class IdentificationResponseParsingError extends IoWalletError {
+export class IdentificationError extends IoWalletError {
   static get code(): "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED" {
     return "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED";
   }

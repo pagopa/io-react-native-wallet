@@ -7,7 +7,7 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
 import type { IdentificationContext } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
-import { IdentificationResponseParsingError } from "../../utils/errors";
+import { IdentificationError } from "../../utils/errors";
 import {
   type IdentificationResult,
   IdentificationResultShape,
@@ -61,7 +61,7 @@ export type StartUserAuthorization = (
  * (used as a temporary fix until we have a proper User identity in the PID token provider)
  * TODO: [SIW-630]
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {IdentificationResponseParsingError} When the response from the identification response is not parsable
+ * @throws {IdentificationError} When the response from the identification response is not parsable
  * @returns The request uri to continue the authorization to
  */
 export const startUserAuthorization: StartUserAuthorization = async (
@@ -111,16 +111,20 @@ export const startUserAuthorization: StartUserAuthorization = async (
     idphint,
   });
 
-  const data = await identificationContext.identify(
-    overrideRedirectUri ?? `${authzRequestEndpoint}?${params}`,
-    "iowallet"
-  );
+  const data = await identificationContext
+    .identify(
+      overrideRedirectUri ?? `${authzRequestEndpoint}?${params}`,
+      "iowallet"
+    )
+    .catch((e) => {
+      throw new IdentificationError(e.message);
+    });
 
   const urlParse = parseUrl(data);
   const result = IdentificationResultShape.safeParse(urlParse.query);
   if (result.success) {
     return { ...result.data, clientId };
   } else {
-    throw new IdentificationResponseParsingError(result.error.message);
+    throw new IdentificationError(result.error.message);
   }
 };
