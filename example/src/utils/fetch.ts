@@ -16,9 +16,10 @@ function addAuthHeaders(
 export default function appFetch(request: RequestInfo, options: RequestInit) {
   const requestUrl =
     typeof request === "string" ? new URL(request) : new URL(request.url);
-  const authHeaders = requestUrl.origin === issuerBaseUrl.origin 
-    ? { Authorization: `Bearer ${issuerAuthToken}` } 
-    : {};
+  const authHeaders: Record<string, string> =
+    requestUrl.origin === new URL(ISSUER_BASE_URL).origin
+      ? { Authorization: `${ISSUER_AUTH_TOKEN}` }
+      : {};
 
   return fetch(request, addAuthHeaders(options, authHeaders));
 }
