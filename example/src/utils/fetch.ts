@@ -1,9 +1,8 @@
 import { ISSUER_AUTH_TOKEN, ISSUER_BASE_URL } from "@env";
 
-function addAuthHeaders(
-  options: RequestInit,
-  authHeaders: Record<string, string>
-) {
+type AuthHeaders = Record<string, string>;
+
+function addAuthHeaders(options: RequestInit, authHeaders: AuthHeaders) {
   return {
     ...options,
     headers: {
@@ -16,7 +15,7 @@ function addAuthHeaders(
 export default function appFetch(request: RequestInfo, options: RequestInit) {
   const requestUrl =
     typeof request === "string" ? new URL(request) : new URL(request.url);
-  const authHeaders: Record<string, string> =
+  const authHeaders: AuthHeaders =
     requestUrl.origin === new URL(ISSUER_BASE_URL).origin
       ? { Authorization: `${ISSUER_AUTH_TOKEN}` }
       : {};
