@@ -15,11 +15,8 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 
-export default (integrityContext?: IntegrityContext) => async () => {
+export default (integrityContext: IntegrityContext) => async () => {
   try {
-    if (!integrityContext) {
-      return error("Integrity context not available");
-    }
     // Obtain a wallet attestation. A wallet instance must be created before this step.
     const walletInstanceKeyTag = uuid.v4().toString();
     await generate(walletInstanceKeyTag);

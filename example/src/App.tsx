@@ -18,21 +18,25 @@ export default function App() {
             title="Prepare Integrity Context"
             scenario={scenarios.prepareIntegrityContext(setIntegrityContext)}
           />
-          <TestScenario
-            title="Create Wallet Instance"
-            scenario={scenarios.createWalletInstance(integrityContext)}
-            disabled={!integrityContext}
-          />
-          <TestScenario
-            title="Obtain Wallet Attestation"
-            scenario={scenarios.getAttestation(integrityContext)}
-            disabled={!integrityContext}
-          />
-          <TestScenario
-            title="Get PID (only auth)"
-            scenario={scenarios.getPid(integrityContext)}
-            disabled={!integrityContext}
-          />
+          {integrityContext && (
+            <>
+              <TestScenario
+                title="Create Wallet Instance"
+                scenario={scenarios.createWalletInstance(integrityContext)}
+                disabled={!integrityContext}
+              />
+              <TestScenario
+                title="Obtain Wallet Attestation"
+                scenario={scenarios.getAttestation(integrityContext)}
+                disabled={!integrityContext}
+              />
+              <TestScenario
+                title="Get PID (only auth)"
+                scenario={scenarios.getPid(integrityContext)}
+                disabled={!integrityContext}
+              />
+            </>
+          )}
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>
