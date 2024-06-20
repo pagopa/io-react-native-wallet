@@ -52,7 +52,7 @@ const CredentialDefinitionMetadata = z.object({
     z.object({
       value_type: z.string(),
       display: z.array(z.object({ name: z.string(), locale: z.string() })),
-      mandatory: z.enum(["true", "false"]),
+      mandatory: z.string(),
     })
   ),
 });
