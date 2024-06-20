@@ -8,6 +8,7 @@ import {
   WalletProviderResponseError,
   WalletInstanceRevokedError,
   WalletInstanceNotFoundError,
+  WalletInstanceAttestationIssuingError,
 } from "../utils/errors";
 
 /**
@@ -134,5 +135,9 @@ const handleAttestationCreationError = (e: unknown) => {
     );
   }
 
-  throw e;
+  throw new WalletInstanceAttestationIssuingError(
+    `Unable to obtain wallet instance attestation [response code: ${e.statusCode}]`,
+    e.claim,
+    e.reason
+  );
 };
