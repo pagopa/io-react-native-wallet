@@ -251,13 +251,59 @@ export class WalletProviderResponseError extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
+  /** HTTP status code */
+  statusCode: number;
+
   constructor(
     message: string,
     claim: string = "unspecified",
-    reason: string = "unspecified"
+    reason: string = "unspecified",
+    statusCode: number
   ) {
-    super(serializeAttrs({ message, claim, reason }));
+    super(
+      serializeAttrs({
+        message,
+        claim,
+        reason,
+        statusCode: statusCode.toString(),
+      })
+    );
     this.claim = claim;
     this.reason = reason;
+    this.statusCode = statusCode;
+  }
+}
+
+export class WalletInstanceRevokedError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_INSTANCE_REVOKED" {
+    return "ERR_IO_WALLET_INSTANCE_REVOKED";
+  }
+
+  code = "ERR_IO_WALLET_INSTANCE_REVOKED";
+
+  claim: string;
+  reason: string;
+
+  constructor(message: string, claim: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, claim, reason }));
+    this.reason = reason;
+    this.claim = claim;
+  }
+}
+
+export class WalletInstanceNotFoundError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_INSTANCE_NOT_FOUND" {
+    return "ERR_IO_WALLET_INSTANCE_NOT_FOUND";
+  }
+
+  code = "ERR_IO_WALLET_INSTANCE_NOT_FOUND";
+
+  claim: string;
+  reason: string;
+
+  constructor(message: string, claim: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, claim, reason }));
+    this.reason = reason;
+    this.claim = claim;
   }
 }
