@@ -136,7 +136,7 @@ const handleAttestationCreationError = (e: unknown) => {
   }
 
   throw new WalletInstanceAttestationIssuingError(
-    `Unable to obtain wallet instance attestation [response code: ${e.statusCode}]`,
+    `Unable to obtain wallet instance attestation [response status code: ${e.statusCode}]`,
     e.claim,
     e.reason
   );
