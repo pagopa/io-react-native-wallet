@@ -15,9 +15,8 @@ USER_ID = config('USER_ID')
 APP_KEY = config('APP_KEY')
 
 @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT"])
-@app.route('/<path>', methods=["GET", "POST", "PUT"])
+@app.route('/api/v1/wallet/<path>', methods=["GET", "POST", "PUT"])
 def redirect_to_API_HOST(path):  #NOTE var :path will be unused as all path we need will be read from :request ie from flask import request
-
     # exclude 'host' header
     request_headers = {k:v for k,v in request.headers if k.lower() != 'host'}
     request_headers["x-iowallet-user-id"] = USER_ID
