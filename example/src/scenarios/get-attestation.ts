@@ -2,6 +2,7 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import {
   WalletInstanceAttestation,
   createCryptoContextFor,
+  Errors,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
@@ -29,6 +30,12 @@ export default (integrityContext: IntegrityContext) =>
 
       return result(issuingAttestation);
     } catch (e) {
+      if (e instanceof Errors.WalletInstanceRevokedError) {
+        console.error("Wallet Instance revoked");
+      }
+      if (e instanceof Errors.WalletInstanceNotFoundError) {
+        console.error("Wallet Instance not found");
+      }
       console.error(e);
       return error(e);
     }

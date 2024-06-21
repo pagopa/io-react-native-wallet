@@ -18,16 +18,11 @@ const validateResponse = async (response: Response) => {
       };
     }
 
-    let statusResponse = `Response status code: ${response.status}`;
-
     throw new WalletProviderResponseError(
-      problemDetail.title
-        ? problemDetail.title
-        : "Invalid response from Wallet Provider",
+      problemDetail.title ?? "Invalid response from Wallet Provider",
       problemDetail.type,
-      problemDetail.detail
-        ? statusResponse
-        : `${statusResponse} with detail: ${problemDetail.detail}`
+      problemDetail.detail,
+      response.status
     );
   }
   return response;

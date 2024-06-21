@@ -1,9 +1,15 @@
 import { type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
+import { z } from "zod";
 import { JWK, fixBase64EncodingOnKey } from "../utils/jwk";
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
-import { z } from "zod";
+import {
+  WalletProviderResponseError,
+  WalletInstanceRevokedError,
+  WalletInstanceNotFoundError,
+  WalletInstanceAttestationIssuingError,
+} from "../utils/errors";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -64,6 +70,8 @@ export async function getAttestationRequest(
  * @param params.appFetch (optional) Http client
  * @param walletProviderBaseUrl Base url for the Wallet Provider
  * @returns The retrieved Wallet Instance Attestation token
+ * @throws {WalletInstanceRevokedError} The Wallet Instance was revoked
+ * @throws {WalletInstanceNotFoundError} The Wallet Instance does not exist
  */
 export const getAttestation = async ({
   wiaCryptoContext,
@@ -100,7 +108,36 @@ export const getAttestation = async ({
         assertion: signedAttestationRequest,
       },
     })
-    .then((result) => z.string().parse(result));
+    .then((result) => z.string().parse(result))
+    .catch(handleAttestationCreationError);
 
   return wia;
+};
+
+const handleAttestationCreationError = (e: unknown) => {
+  if (!(e instanceof WalletProviderResponseError)) {
+    throw e;
+  }
+
+  if (e.statusCode === 403) {
+    throw new WalletInstanceRevokedError(
+      "Unable to get an attestation for a revoked Wallet Instance",
+      e.claim,
+      e.reason
+    );
+  }
+
+  if (e.statusCode === 404) {
+    throw new WalletInstanceNotFoundError(
+      "Unable to get an attestation for a Wallet Instance that does not exist",
+      e.claim,
+      e.reason
+    );
+  }
+
+  throw new WalletInstanceAttestationIssuingError(
+    `Unable to obtain wallet instance attestation [response status code: ${e.statusCode}]`,
+    e.claim,
+    e.reason
+  );
 };
