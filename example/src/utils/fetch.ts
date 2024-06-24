@@ -4,7 +4,7 @@ import {
 } from "@env";
 
 interface AuthHeaders {
-  Authorization?: string;
+  AuthorizationIPZS?: string;
 }
 
 function addAuthHeaders(options: RequestInit, authHeaders: AuthHeaders) {
@@ -22,7 +22,7 @@ export default function appFetch(request: RequestInfo, options: RequestInit) {
     typeof request === "string" ? new URL(request) : new URL(request.url);
   const authHeaders: AuthHeaders =
     requestUrl.origin === new URL(WALLET_PID_PROVIDER_BASE_URL).origin
-      ? { Authorization: `${WALLET_PID_PROVIDER_AUTH_TOKEN}` }
+      ? { AuthorizationIPZS: `${WALLET_PID_PROVIDER_AUTH_TOKEN}` }
       : {};
 
   return fetch(request, addAuthHeaders(options, authHeaders));
