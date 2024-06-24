@@ -101,7 +101,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
 
   //TODO: FIX override
   // do the get request in the webview
-  console.log("issuerRequestUri");
   const overrideRedirectUri = "https://needtobereplaced.com";
 
   // Initialize authorization by requesting the authz request uri
