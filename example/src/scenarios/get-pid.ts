@@ -7,13 +7,10 @@ import {
 import { error, result, toResultOrReject } from "./types";
 import getAttestation from "./get-attestation";
 import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
-import {
-  REDIRECT_URI,
-  WALLET_PID_PROVIDER_BASE_URL,
-  WALLET_PID_PROVIDER_REDIRECT_OVERRIDE_URL,
-} from "@env";
+import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
+import appFetch from "../utils/fetch";
 
 export default (integrityContext: IntegrityContext) => async () => {
   try {
@@ -40,7 +37,8 @@ export default (integrityContext: IntegrityContext) => async () => {
 
     // Evaluate issuer trust
     const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-      issuerUrl
+      issuerUrl,
+      { appFetch }
     );
 
     // Start user authorization
@@ -51,9 +49,9 @@ export default (integrityContext: IntegrityContext) => async () => {
         walletInstanceAttestation,
         identificationContext,
         redirectUri: REDIRECT_URI,
-        overrideRedirectUri: WALLET_PID_PROVIDER_REDIRECT_OVERRIDE_URL, // currently we are overriding the redirect URI until we have an actual implementation
         wiaCryptoContext,
         idphint: "EXAMPLE",
+        appFetch,
       }
     );
 

@@ -43,19 +43,13 @@ const CredentialIssuerDisplayMetadata = z.object({
   }),
 });
 
-type CredentialDefinitionMetadata = z.infer<
-  typeof CredentialDefinitionMetadata
->;
-const CredentialDefinitionMetadata = z.object({
-  type: z.array(z.string()),
-  credentialSubject: z.record(
-    z.object({
-      value_type: z.string(),
-      display: z.array(z.object({ name: z.string(), locale: z.string() })),
-      mandatory: z.string(),
-    })
-  ),
-});
+type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
+const ClaimsMetadata = z.record(
+  z.object({
+    value_type: z.string(),
+    display: z.array(z.object({ name: z.string(), locale: z.string() })),
+  })
+);
 
 // Metadata for a credentia which i supported by a Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
@@ -63,8 +57,7 @@ const SupportedCredentialMetadata = z.object({
   format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
-  credential_definition: CredentialDefinitionMetadata,
-  cryptographic_suites_supported: z.array(z.string()),
+  claims: ClaimsMetadata,
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
 });
@@ -218,9 +211,7 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
         wallet_provider: z
           .object({
             token_endpoint: z.string(),
-            attested_security_context_values_supported: z
-              .array(z.string())
-              .optional(),
+            aal_values_supported: z.array(z.string()).optional(),
             grant_types_supported: z.array(z.string()),
             token_endpoint_auth_methods_supported: z.array(z.string()),
             token_endpoint_auth_signing_alg_values_supported: z.array(

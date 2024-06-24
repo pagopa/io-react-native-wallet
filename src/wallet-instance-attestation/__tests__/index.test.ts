@@ -28,8 +28,7 @@ describe("decode", () => {
     expect(result.payload).toEqual({
       iss: "https://wallet-provider.example.org",
       sub: "vbeXJksM45xphtANnCiG6mCyuU4jfGNzopGuKvogg9c",
-      attested_security_context:
-        "https://wallet-provider.example.org/LoA/basic",
+      aal: "https://wallet-provider.example.org/LoA/basic",
       cnf: {
         jwk: {
           crv: "P-256",
@@ -42,11 +41,11 @@ describe("decode", () => {
       authorization_endpoint: "eudiw:",
       response_types_supported: ["vp_token"],
       vp_formats_supported: {
-        jwt_vp_json: {
-          alg_values_supported: ["ES256"],
+        "vc+sd-jwt": {
+          "sd-jwt_alg_values": ["ES256"],
         },
-        jwt_vc_json: {
-          alg_values_supported: ["ES256"],
+        "vp+sd-jwt": {
+          "sd-jwt_alg_values": ["ES256"],
         },
       },
       request_object_signing_alg_values_supported: ["ES256"],

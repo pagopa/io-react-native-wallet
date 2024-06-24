@@ -60,16 +60,20 @@ export const WalletInstanceAttestationJwt = z.object({
     Jwt.shape.payload,
     z.object({
       sub: z.string(),
-      attested_security_context: z.string(),
+      aal: z.string(),
       authorization_endpoint: z.string(),
       response_types_supported: z.array(z.string()),
       vp_formats_supported: z.object({
-        jwt_vp_json: z.object({
-          alg_values_supported: z.array(z.string()),
-        }),
-        jwt_vc_json: z.object({
-          alg_values_supported: z.array(z.string()),
-        }),
+        "vc+sd-jwt": z
+          .object({
+            "sd-jwt_alg_values": z.array(z.string()),
+          })
+          .optional(),
+        "vp+sd-jwt": z
+          .object({
+            "sd-jwt_alg_values": z.array(z.string()),
+          })
+          .optional(),
       }),
       request_object_signing_alg_values_supported: z.array(z.string()),
       presentation_definition_uri_supported: z.boolean(),
