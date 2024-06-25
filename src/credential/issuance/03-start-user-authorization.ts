@@ -12,6 +12,7 @@ import {
   type IdentificationResult,
   IdentificationResultShape,
 } from "../../utils/identification";
+import { REDIRECT_URI } from "@env";
 
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -99,11 +100,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     [selectCredentialDefinition(issuerConf, credentialType)],
     ASSERTION_TYPE
   );
-
-  //TODO: FIX override
-  // do the get request in the webview
-  const overrideRedirectUri = "https://needtobereplaced.com";
-
   // Initialize authorization by requesting the authz request uri
   const authzRequestEndpoint =
     issuerConf.oauth_authorization_server.authorization_endpoint;
@@ -114,10 +110,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   });
 
   const data = await identificationContext
-    .identify(
-      overrideRedirectUri ?? `${authzRequestEndpoint}?${params}`,
-      "iowallet://"
-    )
+    .identify(`${authzRequestEndpoint}?${params}`, REDIRECT_URI)
     .catch((e) => {
       throw new IdentificationError(e.message);
     });
