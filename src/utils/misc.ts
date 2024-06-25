@@ -25,3 +25,8 @@ export type Out<FN> = FN extends (...args: any[]) => Promise<any>
   : FN extends (...args: any[]) => any
   ? ReturnType<FN>
   : never;
+
+export const generateRandomAlphaNumericString = (size: number) =>
+  Array.from(Array(size), () =>
+    Math.floor(Math.random() * 36).toString(36)
+  ).join("");
