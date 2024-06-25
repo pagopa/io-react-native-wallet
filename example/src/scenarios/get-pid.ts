@@ -59,7 +59,7 @@ export default (integrityContext: IntegrityContext) => async () => {
         identificationContext,
         redirectUri: REDIRECT_URI,
         wiaCryptoContext,
-        idphint: "EXAMPLE",
+        idphint: "https://demo.spid.gov.it",
         appFetch,
       }
     );
