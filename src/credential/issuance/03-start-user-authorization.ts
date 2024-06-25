@@ -1,6 +1,7 @@
+import uuid from "react-native-uuid";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
+import { type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
@@ -78,7 +79,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   } = ctx;
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-  const codeVerifier = `${generateRandomAlphaNumericString(32)}`;
+  const codeVerifier = `${uuid.v4()}`;
   // Make a PAR request to the credential issuer and return the response url
   const parUrl =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;

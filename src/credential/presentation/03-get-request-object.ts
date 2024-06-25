@@ -1,3 +1,4 @@
+import uuid from "react-native-uuid";
 import {
   decode as decodeJwt,
   sha256ToBase64,
@@ -8,11 +9,7 @@ import {
 import { createDPopToken } from "../../utils/dpop";
 import { NoSuitableKeysFoundInEntityConfiguration } from "../../utils/errors";
 import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
-import {
-  generateRandomAlphaNumericString,
-  hasStatus,
-  type Out,
-} from "../../utils/misc";
+import { hasStatus, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import { RequestObject } from "./types";
 
@@ -44,7 +41,7 @@ export const getRequestObject: GetRequestObject = async (
 ) => {
   const signedWalletInstanceDPoP = await createDPopToken(
     {
-      jti: `${generateRandomAlphaNumericString(32)}`,
+      jti: `${uuid.v4()}`,
       htm: "GET",
       htu: requestUri,
       ath: await sha256ToBase64(walletInstanceAttestation),
