@@ -12,19 +12,20 @@ import {
   type IdentificationResult,
   IdentificationResultShape,
 } from "../../utils/identification";
+import { REDIRECT_URI } from "@env";
 
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): AuthorizationDetail => {
-  const { credential_configurations_supported } =
-    issuerConf.openid_credential_issuer;
+  const credential_configurations_supported =
+    issuerConf.openid_credential_issuer.credential_configurations_supported;
 
-  const [result] = Object.values(credential_configurations_supported)
-    .filter((e) => e.credential_definition.type.includes(credentialType))
+  const [result] = Object.keys(credential_configurations_supported)
+    .filter((e) => e.includes(credentialType))
     .map((e) => ({
-      credential_definition: { type: credentialType },
-      format: e.format,
+      credential_configuration_id: credentialType,
+      format: credential_configurations_supported[e]!.format,
       type: "openid_credential" as const,
     }));
 
@@ -74,16 +75,16 @@ export const startUserAuthorization: StartUserAuthorization = async (
     identificationContext,
     walletInstanceAttestation,
     redirectUri,
-    overrideRedirectUri,
     idphint,
     appFetch = fetch,
   } = ctx;
+
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = `${uuid.v4()}`;
   // Make a PAR request to the credential issuer and return the response url
   const parUrl =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
-  /* 
+  /*
   the responseMode this is specified in the entity configuration and should be query for PID and form_post.jwt for other credentials
   https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
   */
@@ -99,9 +100,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     [selectCredentialDefinition(issuerConf, credentialType)],
     ASSERTION_TYPE
   );
-
-  // do the get request in the webview
-
   // Initialize authorization by requesting the authz request uri
   const authzRequestEndpoint =
     issuerConf.oauth_authorization_server.authorization_endpoint;
@@ -112,10 +110,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   });
 
   const data = await identificationContext
-    .identify(
-      overrideRedirectUri ?? `${authzRequestEndpoint}?${params}`,
-      "iowallet"
-    )
+    .identify(`${authzRequestEndpoint}?${params}`, REDIRECT_URI)
     .catch((e) => {
       throw new IdentificationError(e.message);
     });
