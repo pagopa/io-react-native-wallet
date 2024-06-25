@@ -1,13 +1,18 @@
 import {
   Credential,
+  WalletInstanceAttestation,
   createCryptoContextFor,
   type IdentificationContext,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
-import { error, result, toResultOrReject } from "./types";
-import getAttestation from "./get-attestation";
+import { error, result } from "./types";
+
 import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
-import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
+import {
+  REDIRECT_URI,
+  WALLET_PID_PROVIDER_BASE_URL,
+  WALLET_PROVIDER_BASE_URL,
+} from "@env";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
@@ -18,9 +23,13 @@ export default (integrityContext: IntegrityContext) => async () => {
     const walletInstanceKeyTag = uuid.v4().toString();
     await generate(walletInstanceKeyTag);
     const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
-    const walletInstanceAttestation = await getAttestation(
-      integrityContext
-    )().then(toResultOrReject);
+
+    const walletInstanceAttestation =
+      await WalletInstanceAttestation.getAttestation({
+        wiaCryptoContext,
+        integrityContext,
+        walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      });
 
     // Create identification context
     const identificationContext: IdentificationContext = {

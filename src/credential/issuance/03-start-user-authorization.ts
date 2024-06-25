@@ -77,6 +77,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
     idphint,
     appFetch = fetch,
   } = ctx;
+
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = `${uuid.v4()}`;
   // Make a PAR request to the credential issuer and return the response url
