@@ -3,10 +3,9 @@ import {
   type CryptoContext,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
-import uuid from "react-native-uuid";
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
-import { hasStatus } from "./misc";
+import { generateRandomAlphaNumericString, hasStatus } from "./misc";
 import { createPopToken } from "./pop";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
@@ -50,7 +49,7 @@ export const makeParRequest =
 
     const signedWiaPoP = await createPopToken(
       {
-        jti: `${uuid.v4()}`,
+        jti: `${generateRandomAlphaNumericString(32)}`,
         aud,
         iss,
       },
@@ -73,13 +72,13 @@ export const makeParRequest =
         kid: wiaPublicKey.kid,
       })
       .setPayload({
-        jti: `${uuid.v4()}`,
+        jti: `${generateRandomAlphaNumericString(32)}`,
         aud,
         response_type: "code",
         response_mode: responseMode,
         client_id: clientId,
         iss,
-        state: `${uuid.v4()}`,
+        state: `${generateRandomAlphaNumericString(32)}`,
         code_challenge: codeChallenge,
         code_challenge_method: codeChallengeMethod,
         authorization_details: authorizationDetails,

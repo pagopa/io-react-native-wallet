@@ -1,9 +1,12 @@
 import { EncryptJwe, SignJWT } from "@pagopa/io-react-native-jwt";
-import uuid from "react-native-uuid";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "../../utils/errors";
-import { hasStatus, type Out } from "../../utils/misc";
+import {
+  generateRandomAlphaNumericString,
+  hasStatus,
+  type Out,
+} from "../../utils/misc";
 import type { GetRequestObject } from "./03-get-request-object";
 import { disclose } from "../../sd-jwt";
 import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
@@ -79,7 +82,7 @@ const prepareVpToken = async (
     })
     .setPayload({
       vp: vp,
-      jti: `${uuid.v4()}`,
+      jti: `${generateRandomAlphaNumericString(32)}`,
       iss,
       nonce: requestObject.nonce,
     })
@@ -90,8 +93,8 @@ const prepareVpToken = async (
 
   const vc_scope = requestObject.scope;
   const presentation_submission = {
-    definition_id: `${uuid.v4()}`,
-    id: `${uuid.v4()}`,
+    definition_id: `${generateRandomAlphaNumericString(32)}`,
+    id: `${generateRandomAlphaNumericString(32)}`,
     descriptor_map: paths.map((p) => ({
       id: vc_scope,
       path: `$.vp_token.${p.path}`,
