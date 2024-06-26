@@ -12,7 +12,6 @@ import {
   type IdentificationResult,
   IdentificationResultShape,
 } from "../../utils/identification";
-import { REDIRECT_URI } from "@env";
 
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -109,8 +108,10 @@ export const startUserAuthorization: StartUserAuthorization = async (
     idphint,
   });
 
+  const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
+
   const data = await identificationContext
-    .identify(`${authzRequestEndpoint}?${params}`, REDIRECT_URI)
+    .identify(`${authzRequestEndpoint}?${params}`, redirectSchema)
     .catch((e) => {
       throw new IdentificationError(e.message);
     });

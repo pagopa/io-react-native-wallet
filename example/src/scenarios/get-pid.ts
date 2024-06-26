@@ -57,7 +57,7 @@ export default (integrityContext: IntegrityContext) => async () => {
       {
         walletInstanceAttestation,
         identificationContext,
-        redirectUri: REDIRECT_URI,
+        redirectUri: `${REDIRECT_URI}`,
         wiaCryptoContext,
         idphint: "https://demo.spid.gov.it",
         appFetch,
