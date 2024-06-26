@@ -1,17 +1,20 @@
 import uuid from "react-native-uuid";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { type Out } from "../../utils/misc";
+import { hasStatus, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
-import type { IdentificationContext } from "@pagopa/io-react-native-wallet";
+import {
+  WalletInstanceAttestation,
+  type IdentificationContext,
+} from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
 import { IdentificationError } from "../../utils/errors";
-import {
-  type IdentificationResult,
-  IdentificationResultShape,
-} from "../../utils/identification";
+import { IdentificationResultShape } from "../../utils/identification";
+import { withEphemeralKey } from "../../utils/crypto";
+import { createDPopToken } from "../../utils/dpop";
+import { createPopToken } from "../../utils/pop";
 
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -46,7 +49,7 @@ export type StartUserAuthorization = (
     idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<IdentificationResult & { clientId: string }>;
+) => Promise<any>;
 
 /**
  * Start the User authorization phase.
@@ -80,9 +83,26 @@ export const startUserAuthorization: StartUserAuthorization = async (
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = `${uuid.v4()}`;
+
   // Make a PAR request to the credential issuer and return the response url
-  const parUrl =
+  const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+
+  const parUrl = new URL(parEndpoint);
+  const aud = `${parUrl.protocol}//${parUrl.hostname}`;
+
+  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
+    .payload.cnf.jwk.kid;
+
+  const signedWiaPoP = await createPopToken(
+    {
+      jti: `${uuid.v4()}`,
+      aud,
+      iss,
+    },
+    wiaCryptoContext
+  );
+
   /*
   the responseMode this is specified in the entity configuration and should be query for PID and form_post.jwt for other credentials
   https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
@@ -94,8 +114,9 @@ export const startUserAuthorization: StartUserAuthorization = async (
     codeVerifier,
     redirectUri,
     responseMode,
-    parUrl,
+    parEndpoint,
     walletInstanceAttestation,
+    signedWiaPoP,
     [selectCredentialDefinition(issuerConf, credentialType)],
     ASSERTION_TYPE
   );
@@ -116,11 +137,60 @@ export const startUserAuthorization: StartUserAuthorization = async (
       throw new IdentificationError(e.message);
     });
 
+  console.log("identification result", data);
+
   const urlParse = parseUrl(data);
+
+  console.log("urlparse result", urlParse);
   const result = IdentificationResultShape.safeParse(urlParse.query);
-  if (result.success) {
-    return { ...result.data, clientId };
-  } else {
+  console.log(result);
+
+  if (!result.success) {
     throw new IdentificationError(result.error.message);
   }
+
+  const { code } = result.data;
+
+  // old auth access
+  const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
+
+  // Use an ephemeral key to be destroyed after use
+  const signedDPop = await withEphemeralKey((ephemeralContext) =>
+    createDPopToken(
+      {
+        htm: "POST",
+        htu: tokenUrl,
+        jti: `${uuid.v4()}`,
+      },
+      ephemeralContext
+    )
+  );
+
+  const requestBody = {
+    grant_type: "authorization code",
+    client_id: clientId,
+    code,
+    redirect_uri: redirectUri,
+    code_verifier: codeVerifier,
+    client_assertion_type: ASSERTION_TYPE,
+    client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
+  };
+
+  var formBody = new URLSearchParams(requestBody);
+
+  return appFetch(tokenUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      DPoP: signedDPop,
+    },
+    body: formBody.toString(),
+  })
+    .then(hasStatus(200))
+    .then((res) => res.json())
+    .then((body) => ({
+      accessToken: body.access_token,
+      nonce: body.c_nonce,
+      clientId,
+    }));
 };

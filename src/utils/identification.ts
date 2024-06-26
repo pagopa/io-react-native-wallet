@@ -15,7 +15,7 @@ export interface IdentificationContext {
 export const IdentificationResultShape = z.object({
   code: z.string(),
   state: z.string(),
-  iss: z.string(),
+  iss: z.string().optional(),
 });
 
 /**
