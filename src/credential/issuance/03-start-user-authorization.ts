@@ -167,7 +167,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   );
 
   const requestBody = {
-    grant_type: "authorization code",
+    grant_type: "authorization_code",
     client_id: clientId,
     code,
     redirect_uri: redirectUri,
