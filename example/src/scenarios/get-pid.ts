@@ -15,7 +15,6 @@ import {
 } from "@env";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
-import appFetch from "../utils/fetch";
 
 export default (integrityContext: IntegrityContext) => async () => {
   try {
@@ -46,8 +45,7 @@ export default (integrityContext: IntegrityContext) => async () => {
 
     // Evaluate issuer trust
     const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-      issuerUrl,
-      { appFetch }
+      issuerUrl
     );
 
     // Start user authorization
@@ -60,7 +58,6 @@ export default (integrityContext: IntegrityContext) => async () => {
         redirectUri: `${REDIRECT_URI}`,
         wiaCryptoContext,
         idphint: "https://demo.spid.gov.it",
-        appFetch,
       }
     );
 
