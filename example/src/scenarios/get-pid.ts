@@ -60,7 +60,7 @@ export default (integrityContext: IntegrityContext) => async () => {
         idphint: "https://demo.spid.gov.it",
       }
     );
-
+    console.log(authRes);
     return result(authRes);
   } catch (e) {
     console.error(e);

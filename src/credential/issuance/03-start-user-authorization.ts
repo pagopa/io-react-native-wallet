@@ -14,11 +14,13 @@ import {
   type IdentificationContext,
 } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
-import { IdentificationError } from "../../utils/errors";
+import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import { IdentificationResultShape } from "../../utils/identification";
-import { withEphemeralKey } from "../../utils/crypto";
+import { createCryptoContextFor } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
+import { TokenResponse } from "./types";
+import { generate } from "@pagopa/io-react-native-crypto";
 
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -148,16 +150,18 @@ export const startUserAuthorization: StartUserAuthorization = async (
   // old auth access
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
 
+  const dpopKeyTag = uuid.v4().toString();
+  await generate(dpopKeyTag);
+  const ephimeralAuthContext = createCryptoContextFor(dpopKeyTag); // delete me after use
+
   // Use an ephemeral key to be destroyed after use
-  const signedDPop = await withEphemeralKey((ephemeralContext) =>
-    createDPopToken(
-      {
-        htm: "POST",
-        htu: tokenUrl,
-        jti: `${uuid.v4()}`,
-      },
-      ephemeralContext
-    )
+  const signedDPop = await createDPopToken(
+    {
+      htm: "POST",
+      htu: tokenUrl,
+      jti: `${uuid.v4()}`,
+    },
+    ephimeralAuthContext
   );
 
   const signedWiaPoP = await createPopToken(
@@ -180,7 +184,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
 
   var formBody = new URLSearchParams(requestBody);
 
-  return appFetch(tokenUrl, {
+  const tokenRes = await appFetch(tokenUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -190,9 +194,11 @@ export const startUserAuthorization: StartUserAuthorization = async (
   })
     .then(hasStatus(200))
     .then((res) => res.json())
-    .then((body) => ({
-      accessToken: body.access_token,
-      nonce: body.c_nonce,
-      clientId,
-    }));
+    .then((body) => TokenResponse.safeParse(body));
+
+  if (!tokenRes.success) {
+    throw new ValidationFailed(tokenRes.error.message);
+  }
+
+  return tokenRes.data;
 };
