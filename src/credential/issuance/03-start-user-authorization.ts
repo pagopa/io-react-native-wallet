@@ -98,15 +98,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
-  const signedWiaPoP = await createPopToken(
-    {
-      jti: `${uuid.v4()}`,
-      aud,
-      iss,
-    },
-    wiaCryptoContext
-  );
-
   /*
   the responseMode this is specified in the entity configuration and should be query for PID and form_post.jwt for other credentials
   https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
@@ -120,7 +111,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     responseMode,
     parEndpoint,
     walletInstanceAttestation,
-    signedWiaPoP,
     [selectCredentialDefinition(issuerConf, credentialType)],
     ASSERTION_TYPE
   );
@@ -170,6 +160,14 @@ export const startUserAuthorization: StartUserAuthorization = async (
     )
   );
 
+  const signedWiaPoP = await createPopToken(
+    {
+      jti: `${uuid.v4()}`,
+      aud,
+      iss,
+    },
+    wiaCryptoContext
+  );
   const requestBody = {
     grant_type: "authorization_code",
     client_id: clientId,

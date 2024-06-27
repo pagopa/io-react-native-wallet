@@ -7,6 +7,7 @@ import uuid from "react-native-uuid";
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generateRandomAlphaNumericString, hasStatus } from "./misc";
+import { createPopToken } from "./pop";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
@@ -36,7 +37,6 @@ export const makeParRequest =
     responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
-    signedWiaPoP: string,
     authorizationDetails: AuthorizationDetails,
     assertionType: string
   ): Promise<string> => {
@@ -47,6 +47,15 @@ export const makeParRequest =
 
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
       .payload.cnf.jwk.kid;
+
+    const signedWiaPoP = await createPopToken(
+      {
+        jti: `${uuid.v4()}`,
+        aud,
+        iss,
+      },
+      wiaCryptoContext
+    );
 
     /** A code challenge is provided so that the PAR is bound
         to the subsequent authorization code request
