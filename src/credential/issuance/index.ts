@@ -4,9 +4,9 @@ import {
   type EvaluateIssuerTrust,
 } from "./02-evaluate-issuer-trust";
 import {
-  startUserAuthorization,
-  type StartUserAuthorization,
-} from "./03-start-user-authorization";
+  startCredentialIssuance,
+  type StartCredentialIssuance,
+} from "./03-start-credential-issuance";
 
-export { evaluateIssuerTrust, startUserAuthorization };
-export type { StartFlow, EvaluateIssuerTrust, StartUserAuthorization };
+export { evaluateIssuerTrust, startCredentialIssuance };
+export type { StartFlow, EvaluateIssuerTrust, StartCredentialIssuance };

@@ -43,7 +43,7 @@ const selectCredentialDefinition = (
   return result;
 };
 
-export type StartUserAuthorization = (
+export type StartCredentialIssuance = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"],
   context: {
@@ -65,17 +65,17 @@ export type StartUserAuthorization = (
  * @param issuerConf The Issuer configuration
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
+ * @param context.credentialCryptoContext The context to access the key to associat with credential
  * @param context.identificationContext The context to identify the user which will be used to start the authorization
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
- * @param context.additionalParams Hash set of parameters to be passed to the authorization endpoint
- * (used as a temporary fix until we have a proper User identity in the PID token provider)
- * TODO: [SIW-630]
+ * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
+ * @param context.idphint Unique identifier of the SPID IDP
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {IdentificationError} When the response from the identification response is not parsable
- * @returns The request uri to continue the authorization to
+ * @returns The credential obtained
  */
 
-export const startUserAuthorization: StartUserAuthorization = async (
+export const startCredentialIssuance: StartCredentialIssuance = async (
   issuerConf,
   credentialType,
   ctx

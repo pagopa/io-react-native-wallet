@@ -54,7 +54,7 @@ export default (integrityContext: IntegrityContext) => async () => {
     );
 
     // Start user authorization
-    const authRes = await Credential.Issuance.startUserAuthorization(
+    const authRes = await Credential.Issuance.startCredentialIssuance(
       issuerConf,
       credentialType,
       {
