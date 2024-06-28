@@ -29,16 +29,18 @@ export const PID = z.object({
   issuer: z.string(),
   issuedAt: z.date(),
   expiration: z.date(),
-  verification: Verification,
+  verification: Verification.optional(),
   claims: z.object({
     uniqueId: z.string(),
     givenName: z.string(),
     familyName: z.string(),
     birthdate: z.string(),
-    placeOfBirth: z.object({
-      country: z.string(),
-      locality: z.string(),
-    }),
+    placeOfBirth: z
+      .object({
+        country: z.string(),
+        locality: z.string(),
+      })
+      .optional(),
     taxIdCode: z.string(),
   }),
 });

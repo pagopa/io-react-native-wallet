@@ -7,23 +7,6 @@ describe("PID", () => {
       issuer: "https://pidprovider.example.org",
       issuedAt: new Date(1541493724000),
       expiration: new Date(1541493724000),
-      verification: {
-        trustFramework: "eidas",
-        assuranceLevel: "high",
-        evidence: [
-          {
-            type: "electronic_record",
-            record: {
-              type: "eidas.it.cie",
-              source: {
-                organization_name: "Ministero dell'Interno",
-                organization_id: "m_it",
-                country_code: "IT",
-              },
-            },
-          },
-        ],
-      },
       claims: {
         uniqueId: "idANPR",
         givenName: "Mario",
