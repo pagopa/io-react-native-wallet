@@ -1,6 +1,6 @@
 import uuid from "react-native-uuid";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import {
   generateRandomAlphaNumericString,
   hasStatus,
@@ -48,6 +48,7 @@ export type StartUserAuthorization = (
   credentialType: Out<StartFlow>["credentialType"],
   context: {
     wiaCryptoContext: CryptoContext;
+    credentialCryptoContext: CryptoContext;
     identificationContext: IdentificationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
@@ -73,6 +74,7 @@ export type StartUserAuthorization = (
  * @throws {IdentificationError} When the response from the identification response is not parsable
  * @returns The request uri to continue the authorization to
  */
+
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,
   credentialType,
@@ -80,6 +82,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
 ) => {
   const {
     wiaCryptoContext,
+    credentialCryptoContext,
     identificationContext,
     walletInstanceAttestation,
     redirectUri,
@@ -100,6 +103,10 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
+  const credentialDefinition = selectCredentialDefinition(
+    issuerConf,
+    credentialType
+  );
   /*
   the responseMode this is specified in the entity configuration and should be query for PID and form_post.jwt for other credentials
   https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
@@ -113,7 +120,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
     responseMode,
     parEndpoint,
     walletInstanceAttestation,
-    [selectCredentialDefinition(issuerConf, credentialType)],
+    [credentialDefinition],
     ASSERTION_TYPE
   );
   // Initialize authorization by requesting the authz request uri
@@ -155,7 +162,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const ephimeralAuthContext = createCryptoContextFor(dpopKeyTag); // delete me after use
 
   // Use an ephemeral key to be destroyed after use
-  const signedDPop = await createDPopToken(
+  const tokenRequestSignedDPop = await createDPopToken(
     {
       htm: "POST",
       htu: tokenUrl,
@@ -182,15 +189,15 @@ export const startUserAuthorization: StartUserAuthorization = async (
     client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
   };
 
-  var formBody = new URLSearchParams(requestBody);
+  var authorizationRequestFormBody = new URLSearchParams(requestBody);
 
   const tokenRes = await appFetch(tokenUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      DPoP: signedDPop,
+      DPoP: tokenRequestSignedDPop,
     },
-    body: formBody.toString(),
+    body: authorizationRequestFormBody.toString(),
   })
     .then(hasStatus(200))
     .then((res) => res.json())
@@ -200,5 +207,67 @@ export const startUserAuthorization: StartUserAuthorization = async (
     throw new ValidationFailed(tokenRes.error.message);
   }
 
-  return tokenRes.data;
+  const accessTokenResponse = tokenRes.data;
+
+  const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+
+  /** JWT proof token to bind the request nonce
+      to the key that will bind the holder User with the Credential
+      @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types */
+  const signedNonceProof = await createNonceProof(
+    accessTokenResponse.c_nonce,
+    clientId,
+    credentialUrl,
+    credentialCryptoContext
+  );
+
+  //TODO: Add validation of accessTokenResponse.authorization_details if contain credentialDefinition
+
+  /** The credential request body */
+  const credentialRequestFormBody = {
+    credential_definition: {
+      type: [credentialDefinition.credential_configuration_id],
+    },
+    format: credentialDefinition.format,
+    proof: {
+      jwt: signedNonceProof,
+      proof_type: "jwt",
+    },
+  };
+
+  const credentialResponse = await appFetch(credentialUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      DPoP: tokenRequestSignedDPop,
+      Authorization: `${accessTokenResponse.token_type} ${accessTokenResponse.access_token}`,
+    },
+    body: JSON.stringify(credentialRequestFormBody),
+  })
+    .then(hasStatus(200))
+    .then((res) => res.json());
+
+  return credentialResponse;
+};
+
+export const createNonceProof = async (
+  nonce: string,
+  issuer: string,
+  audience: string,
+  ctx: CryptoContext
+): Promise<string> => {
+  const jwk = await ctx.getPublicKey();
+  return new SignJWT(ctx)
+    .setPayload({
+      nonce,
+    })
+    .setProtectedHeader({
+      typ: "openid4vci-proof+jwt",
+      jwk,
+    })
+    .setAudience(audience)
+    .setIssuer(issuer)
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
 };

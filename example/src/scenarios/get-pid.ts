@@ -35,6 +35,11 @@ export default (integrityContext: IntegrityContext) => async () => {
       identify: openAuthenticationSession,
     };
 
+    // Create credential crypto context
+    const credentialKeyTag = uuid.v4().toString();
+    await generate(credentialKeyTag);
+    const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+
     // Start the issuance flow
     const startFlow: Credential.Issuance.StartFlow = () => ({
       issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
@@ -54,6 +59,7 @@ export default (integrityContext: IntegrityContext) => async () => {
       credentialType,
       {
         walletInstanceAttestation,
+        credentialCryptoContext,
         identificationContext,
         redirectUri: `${REDIRECT_URI}`,
         wiaCryptoContext,
