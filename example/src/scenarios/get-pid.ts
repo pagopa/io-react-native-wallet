@@ -54,20 +54,29 @@ export default (integrityContext: IntegrityContext) => async () => {
     );
 
     // Start user authorization
-    const authRes = await Credential.Issuance.startCredentialIssuance(
-      issuerConf,
-      credentialType,
-      {
-        walletInstanceAttestation,
-        credentialCryptoContext,
-        identificationContext,
-        redirectUri: `${REDIRECT_URI}`,
-        wiaCryptoContext,
-        idphint: "https://demo.spid.gov.it",
-      }
-    );
-    console.log(authRes);
-    return result(authRes);
+    const { credential, format } =
+      await Credential.Issuance.startCredentialIssuance(
+        issuerConf,
+        credentialType,
+        {
+          walletInstanceAttestation,
+          credentialCryptoContext,
+          identificationContext,
+          redirectUri: `${REDIRECT_URI}`,
+          wiaCryptoContext,
+          idphint: "https://demo.spid.gov.it",
+        }
+      );
+
+    const { parsedCredential } =
+      await Credential.Issuance.verifyAndParseCredential(
+        issuerConf,
+        credential,
+        format,
+        { credentialCryptoContext, ignoreMissingAttributes: true }
+      );
+
+    return result(parsedCredential);
   } catch (e) {
     console.error(e);
     return error(e);

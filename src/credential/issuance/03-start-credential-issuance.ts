@@ -19,7 +19,7 @@ import { IdentificationResultShape } from "../../utils/identification";
 import { createCryptoContextFor } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
-import { TokenResponse } from "./types";
+import { CredentialResponse, TokenResponse } from "./types";
 import { generate } from "@pagopa/io-react-native-crypto";
 
 const selectCredentialDefinition = (
@@ -56,7 +56,7 @@ export type StartCredentialIssuance = (
     idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<any>;
+) => Promise<CredentialResponse>;
 
 /**
  * Start the User authorization phase.
@@ -92,7 +92,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64); // WARNING: This is not a secure way to generate a code verifier CHANGE ME
-  console.log(codeVerifier.length);
+
   // Make a PAR request to the credential issuer and return the response url
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
@@ -140,14 +140,8 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
       throw new IdentificationError(e.message);
     });
 
-  console.log("identification result", data);
-
   const urlParse = parseUrl(data);
-
-  console.log("urlparse result", urlParse);
   const result = IdentificationResultShape.safeParse(urlParse.query);
-  console.log(result);
-
   if (!result.success) {
     throw new IdentificationError(result.error.message);
   }
@@ -221,7 +215,21 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     credentialCryptoContext
   );
 
-  //TODO: Add validation of accessTokenResponse.authorization_details if contain credentialDefinition
+  // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
+  const constainsCredentialDefinition =
+    accessTokenResponse.authorization_details.some(
+      (c) =>
+        c.credential_configuration_id ===
+          credentialDefinition.credential_configuration_id &&
+        c.format === credentialDefinition.format &&
+        c.type === credentialDefinition.type
+    );
+
+  if (!constainsCredentialDefinition) {
+    throw new ValidationFailed(
+      "The access token response does not contain the requested credential"
+    );
+  }
 
   /** The credential request body */
   const credentialRequestFormBody = {
@@ -245,9 +253,14 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     body: JSON.stringify(credentialRequestFormBody),
   })
     .then(hasStatus(200))
-    .then((res) => res.json());
+    .then((res) => res.json())
+    .then((body) => CredentialResponse.safeParse(body));
 
-  return credentialResponse;
+  if (!credentialResponse.success) {
+    throw new ValidationFailed(credentialResponse.error.message);
+  }
+
+  return credentialResponse.data;
 };
 
 export const createNonceProof = async (
