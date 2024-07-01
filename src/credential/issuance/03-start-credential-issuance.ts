@@ -255,30 +255,6 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     .then(hasStatus(200))
     .then((res) => res.json())
     .then((body) => CredentialResponse.safeParse(body));
-
-  // if (!credentialResponse.success) {
-  //   throw new ValidationFailed(credentialResponse.error.message);
-  // }
-
-  // const { credential } = credentialResponse.data;
-
-  // const crendentialJwk = decode(credentialResponse.data.credential);
-
-  // const issuerKeyJwk = issuerConf.openid_credential_issuer.jwks.keys.find(
-  //   (k) => k.kid === crendentialJwk.protectedHeader.kid
-  // );
-
-  // if (!issuerKeyJwk) {
-  //   throw new ValidationFailed("The issuer key is not found");
-  // }
-
-  // const verifyCredentialRes = await verify(credential, issuerKeyJwk);
-
-  // if (!verifyCredentialRes) {
-  //   throw new ValidationFailed("The credential validation failed");
-  // }
-
-  // return credentialResponse;
 };
 
 export const createNonceProof = async (
