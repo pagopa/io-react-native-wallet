@@ -16,11 +16,10 @@ import {
 import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import { IdentificationResultShape } from "../../utils/identification";
-import { createCryptoContextFor, withEphemeralKey } from "../../utils/crypto";
+import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
 import { CredentialResponse, TokenResponse } from "./types";
-import { generate } from "@pagopa/io-react-native-crypto";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
