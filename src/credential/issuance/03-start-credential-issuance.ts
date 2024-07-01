@@ -52,7 +52,6 @@ export type StartCredentialIssuance = (
     identificationContext: IdentificationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
-    overrideRedirectUri?: string; // temporary parameter to override the redirect uri until we have an actual implementation
     idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
@@ -91,7 +90,9 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   } = ctx;
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-  const codeVerifier = generateRandomAlphaNumericString(64); // WARNING: This is not a secure way to generate a code verifier CHANGE ME
+
+  // WARNING: This is not a secure way to generate a code verifier as Math.random() is not cryptographically secure
+  const codeVerifier = generateRandomAlphaNumericString(64);
 
   // Make a PAR request to the credential issuer and return the response url
   const parEndpoint =
