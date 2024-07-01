@@ -243,7 +243,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     },
   };
 
-  return await appFetch(credentialUrl, {
+  const credentialRes = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -255,6 +255,12 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     .then(hasStatus(200))
     .then((res) => res.json())
     .then((body) => CredentialResponse.safeParse(body));
+
+  if (!credentialRes.success) {
+    throw new ValidationFailed(credentialRes.error.message);
+  }
+
+  return credentialRes.data;
 };
 
 export const createNonceProof = async (
