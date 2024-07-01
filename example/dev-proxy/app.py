@@ -13,7 +13,6 @@ app = Flask(__name__)
 API_HOST = config('API_HOST')
 USER_ID = config('USER_ID')
 APP_KEY = config('APP_KEY')
-REDIRECT_URI = config('REDIRECT_URI')
 
 @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT"])
 @app.route('/api/v1/wallet/<path>', methods=["GET", "POST", "PUT"])
