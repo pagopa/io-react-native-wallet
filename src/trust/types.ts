@@ -171,7 +171,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           request_parameter_supported: z.boolean().optional(), // TODO [SIW-1268]: should not be optional
           request_uri_parameter_supported: z.boolean().optional(), // TODO [SIW-1268]: should not be optional
           response_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
-          response_modes_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
+          response_modes_supported: z.array(z.string()),
           subject_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
           token_endpoint_auth_methods_supported: z.array(z.string()),
           token_endpoint_auth_signing_alg_values_supported: z.array(z.string()),

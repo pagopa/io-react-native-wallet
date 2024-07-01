@@ -50,6 +50,29 @@ const selectCredentialDefinition = (
   return result;
 };
 
+/**
+ * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
+ * @param issuerConf The issuer configuration
+ * @param credentialType The type of the credential to be requested
+ * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
+ */
+const selectResponseMode = (
+  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  credentialType: Out<StartFlow>["credentialType"]
+): string => {
+  const responseModeSupported =
+    issuerConf.oauth_authorization_server.response_modes_supported;
+
+  const responseMode =
+    credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
+
+  if (!responseModeSupported.includes(responseMode)) {
+    throw new Error(`No response mode support the type '${credentialType}'`);
+  }
+
+  return responseMode;
+};
+
 export type StartCredentialIssuance = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"],
@@ -122,12 +145,8 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     issuerConf,
     credentialType
   );
+  const responseMode = selectResponseMode(issuerConf, credentialType);
 
-  /*
-  the responseMode this is specified in the entity configuration and should be query for PID and form_post.jwt for other credentials
-  https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
-  */
-  const responseMode = "query";
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(
     clientId,
