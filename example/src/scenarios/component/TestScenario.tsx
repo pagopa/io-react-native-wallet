@@ -21,9 +21,11 @@ export default function TestScenario({
       setResult("⏱️");
       const [error, _result] = await runner();
       if (error) {
+        console.error(error);
         setResult(`❌ ${JSON.stringify(error)}`);
       } else {
-        setResult("✅");
+        console.log(_result);
+        setResult(`✅`);
       }
     };
   }

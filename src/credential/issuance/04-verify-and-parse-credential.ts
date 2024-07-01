@@ -66,9 +66,9 @@ const parseCredentialSdJwt = (
   if (attrsNotInDisclosures.length > 0) {
     const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
     const received = disclosures.map((_) => _[1 /* name */]).join(", ");
-    // throw new IoWalletError(
-    //   `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
-    // );
+    throw new IoWalletError(
+      `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+    );
   }
 
   // attributes that are defined in the issuer configuration
@@ -146,13 +146,13 @@ async function verifyCredentialSdJwt(
       holderBindingContext.getPublicKey(),
     ]);
 
-  // const { cnf } = decodedCredential.sdJwt.payload;
+  const { cnf } = decodedCredential.sdJwt.payload;
 
-  // if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
-  //   throw new IoWalletError(
-  //     `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
-  //   );
-  // }
+  if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
+    throw new IoWalletError(
+      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
+    );
+  }
 
   return decodedCredential;
 }
@@ -211,6 +211,6 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
       context
     );
   }
-  const _: never = format;
-  throw new IoWalletError(`Unsupported credential format: ${_}`);
+
+  throw new IoWalletError(`Unsupported credential format: ${format}`);
 };
