@@ -22,6 +22,13 @@ import { createPopToken } from "../../utils/pop";
 import { CredentialResponse, TokenResponse } from "./types";
 import { generate } from "@pagopa/io-react-native-crypto";
 
+/**
+ * Ensures that the credential type requested is supported by the issuer and contained in the
+ * issuer configuration.
+ * @param issuerConf The issuer configuration
+ * @param credentialType The type of the credential to be requested
+ * @returns The credential definition to be used in the request which includes the format and the type and its type
+ */
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
@@ -59,9 +66,7 @@ export type StartCredentialIssuance = (
 ) => Promise<CredentialResponse>;
 
 /**
- * Start the User authorization phase.
- * Perform the Pushed Authorization Request as defined in OAuth 2.0 protocol.
- *
+ * Starts the credential issuance flow to obtain a credential from the issuer.
  * @param issuerConf The Issuer configuration
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
@@ -90,23 +95,34 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     appFetch = fetch,
   } = ctx;
 
+  /**
+   * Creates and sends a PAR request to the /as/par endpoint of the authroization server.
+   * This starts the authentication flow to obtain an access token.
+   * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer.
+   * This is an HTTP POST request containing the Wallet Instance identifier (client id), the code challenge and challenge method as specified by PKCE according to RFC 9126
+   * along with the WTE and its proof of possession (WTE-PoP).
+   * Additionally, it includes a request object, which is a signed JWT encapsulating the type of digital credential requested (authorization_details),
+   * the application session identifier on the Wallet Instance side (state),
+   * the method (query or form_post.jwt) by which the Authorization Server
+   * should transmit the Authorization Response containing the authorization code issued upon the end user's authentication (response_mode)
+   * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirect_uri of the Wallet Instance where the Authorization Response
+   * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
+   */
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-  const codeVerifier = generateRandomAlphaNumericString(64); // WARNING: This is not a secure way to generate a code verifier CHANGE ME
 
-  // Make a PAR request to the credential issuer and return the response url
+  // WARNING: This is not a secure way to generate a code verifier CHANGE ME
+  const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
-
   const parUrl = new URL(parEndpoint);
   const aud = `${parUrl.protocol}//${parUrl.hostname}`;
-
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
-
   const credentialDefinition = selectCredentialDefinition(
     issuerConf,
     credentialType
   );
+
   /*
   the responseMode this is specified in the entity configuration and should be query for PID and form_post.jwt for other credentials
   https://github.com/italia/eudi-wallet-it-docs/pull/314/files#diff-94e69d33268a4f2df6ac286d8ab2f24606e869d55c6d8ed1bc35884c14e12abaL178
@@ -123,7 +139,12 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     [credentialDefinition],
     ASSERTION_TYPE
   );
-  // Initialize authorization by requesting the authz request uri
+
+  /**
+   * Opens the in-app browser to start the authentication by performing a GET request to the /authorize endpoint of the authorization server.
+   * The request includes the client_id, the request_uri, and the idphint which is the unique identifier of the IDP selected by the user.
+   * The response is a redirect to the /login SP SAML or RP OIDC which handles the authentication.
+   */
   const authzRequestEndpoint =
     issuerConf.oauth_authorization_server.authorization_endpoint;
   const params = new URLSearchParams({
@@ -131,31 +152,40 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     request_uri: issuerRequestUri,
     idphint,
   });
-
   const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
 
-  const data = await identificationContext
+  /**
+   * The identification context catches the 302 redirect from the authorization server which contains the authorization response.
+   * The response contains an authorization_code, state and iss in the query string which is then validated.
+   */
+  const identificationRedirectUrl = await identificationContext
     .identify(`${authzRequestEndpoint}?${params}`, redirectSchema)
     .catch((e) => {
       throw new IdentificationError(e.message);
     });
 
-  const urlParse = parseUrl(data);
-  const result = IdentificationResultShape.safeParse(urlParse.query);
-  if (!result.success) {
-    throw new IdentificationError(result.error.message);
+  const urlParse = parseUrl(identificationRedirectUrl);
+  const authRes = IdentificationResultShape.safeParse(urlParse.query);
+  if (!authRes.success) {
+    throw new IdentificationError(authRes.error.message);
   }
 
-  const { code } = result.data;
-
-  // old auth access
-  const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
-
+  /**
+   * Generates DPoP keys.
+   */
   const dpopKeyTag = uuid.v4().toString();
   await generate(dpopKeyTag);
   const ephimeralAuthContext = createCryptoContextFor(dpopKeyTag); // delete me after use
 
-  // Use an ephemeral key to be destroyed after use
+  /**
+   * Creates and sends the DPoP Proof JWT to be presented with the authorization code to the /token endpoint of the authorization server
+   * for requesting the issuance of an access token bound to the public key of the Wallet Instance contained within the DPoP.
+   * This enables the Wallet Instance to request a digital credential.
+   * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
+   */
+  const { code } = authRes.data;
+  const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
+
   const tokenRequestSignedDPop = await createDPopToken(
     {
       htm: "POST",
@@ -173,6 +203,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     },
     wiaCryptoContext
   );
+
   const requestBody = {
     grant_type: "authorization_code",
     client_id: clientId,
@@ -183,8 +214,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
   };
 
-  var authorizationRequestFormBody = new URLSearchParams(requestBody);
-
+  const authorizationRequestFormBody = new URLSearchParams(requestBody);
   const tokenRes = await appFetch(tokenUrl, {
     method: "POST",
     headers: {
@@ -201,13 +231,17 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     throw new ValidationFailed(tokenRes.error.message);
   }
 
+  /**
+   * Validates the token response and extracts the access token, c_nonce and c_nonce_expires_in.
+   */
   const accessTokenResponse = tokenRes.data;
-
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
 
-  /** JWT proof token to bind the request nonce
-      to the key that will bind the holder User with the Credential
-      @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types */
+  /**
+   * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
+   * This is presented along with the access token to the Credential Endpoint as proof of possession of the private key used to sign the Access Token.
+   * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
+   */
   const signedNonceProof = await createNonceProof(
     accessTokenResponse.c_nonce,
     clientId,
