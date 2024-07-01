@@ -16,7 +16,7 @@ import {
 import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import { IdentificationResultShape } from "../../utils/identification";
-import { createCryptoContextFor } from "../../utils/crypto";
+import { createCryptoContextFor, withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
 import { CredentialResponse, TokenResponse } from "./types";
@@ -190,28 +190,26 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   }
 
   /**
-   * Generates DPoP keys.
-   */
-  const dpopKeyTag = uuid.v4().toString();
-  await generate(dpopKeyTag);
-  const ephimeralAuthContext = createCryptoContextFor(dpopKeyTag); // delete me after use
-
-  /**
    * Creates and sends the DPoP Proof JWT to be presented with the authorization code to the /token endpoint of the authorization server
    * for requesting the issuance of an access token bound to the public key of the Wallet Instance contained within the DPoP.
    * This enables the Wallet Instance to request a digital credential.
    * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
    */
+
   const { code } = authRes.data;
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
-
-  const tokenRequestSignedDPop = await createDPopToken(
-    {
-      htm: "POST",
-      htu: tokenUrl,
-      jti: `${uuid.v4()}`,
-    },
-    ephimeralAuthContext
+  // Use an ephemeral key to be destroyed after use
+  const tokenRequestSignedDPop = await withEphemeralKey(
+    async (ephimeralContext) => {
+      return await createDPopToken(
+        {
+          htm: "POST",
+          htu: tokenUrl,
+          jti: `${uuid.v4()}`,
+        },
+        ephimeralContext
+      );
+    }
   );
 
   const signedWiaPoP = await createPopToken(
