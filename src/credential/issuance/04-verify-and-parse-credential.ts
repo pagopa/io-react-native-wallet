@@ -13,7 +13,6 @@ export type VerifyAndParseCredential = (
   format: Out<StartCredentialIssuance>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
-    ignoreMissingAttributes?: boolean;
   }
 ) => Promise<{ parsedCredential: ParsedCredential }>;
 
@@ -170,7 +169,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
-  { credentialCryptoContext, ignoreMissingAttributes }
+  { credentialCryptoContext }
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
@@ -180,8 +179,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 
   const parsedCredential = parseCredentialSdJwt(
     issuerConf.openid_credential_issuer.credential_configurations_supported,
-    decoded,
-    ignoreMissingAttributes
+    decoded
   );
 
   return { parsedCredential };
@@ -194,7 +192,6 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
  * @param credential The encoded credential
  * @param format The format of the credentual
  * @param context.credentialCryptoContext The context to access the key the Credential will be bound to
- * @param context.ignoreMissingAttributes (optional) Whether to fail if a defined attribute is note present in the credentual. Default: false
  * @returns A parsed credential with attributes in plain value
  * @throws If the credential signature is not verified with the Issuer key set
  * @throws If the credential is not bound to the provided user key
