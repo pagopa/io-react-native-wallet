@@ -52,6 +52,7 @@ export type StartCredentialIssuance = (
     identificationContext: IdentificationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
+    overrideRedirectUri?: string; // temporary parameter to override the redirect uri until we have an actual implementation
     idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
@@ -90,9 +91,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   } = ctx;
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-
-  // WARNING: This is not a secure way to generate a code verifier as Math.random() is not cryptographically secure
-  const codeVerifier = generateRandomAlphaNumericString(64);
+  const codeVerifier = generateRandomAlphaNumericString(64); // WARNING: This is not a secure way to generate a code verifier CHANGE ME
 
   // Make a PAR request to the credential issuer and return the response url
   const parEndpoint =
@@ -244,7 +243,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     },
   };
 
-  const credentialResponse = await appFetch(credentialUrl, {
+  return await appFetch(credentialUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -257,11 +256,29 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     .then((res) => res.json())
     .then((body) => CredentialResponse.safeParse(body));
 
-  if (!credentialResponse.success) {
-    throw new ValidationFailed(credentialResponse.error.message);
-  }
+  // if (!credentialResponse.success) {
+  //   throw new ValidationFailed(credentialResponse.error.message);
+  // }
 
-  return credentialResponse.data;
+  // const { credential } = credentialResponse.data;
+
+  // const crendentialJwk = decode(credentialResponse.data.credential);
+
+  // const issuerKeyJwk = issuerConf.openid_credential_issuer.jwks.keys.find(
+  //   (k) => k.kid === crendentialJwk.protectedHeader.kid
+  // );
+
+  // if (!issuerKeyJwk) {
+  //   throw new ValidationFailed("The issuer key is not found");
+  // }
+
+  // const verifyCredentialRes = await verify(credential, issuerKeyJwk);
+
+  // if (!verifyCredentialRes) {
+  //   throw new ValidationFailed("The credential validation failed");
+  // }
+
+  // return credentialResponse;
 };
 
 export const createNonceProof = async (

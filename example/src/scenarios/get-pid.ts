@@ -73,7 +73,7 @@ export default (integrityContext: IntegrityContext) => async () => {
         issuerConf,
         credential,
         format,
-        { credentialCryptoContext}
+        { credentialCryptoContext }
       );
 
     return result(parsedCredential);

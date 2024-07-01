@@ -31,7 +31,7 @@ export default function App() {
                 disabled={!integrityContext}
               />
               <TestScenario
-                title="Get PID (only auth)"
+                title="Get PID (SPID DEMO)"
                 scenario={scenarios.getPid(integrityContext)}
                 disabled={!integrityContext}
               />
