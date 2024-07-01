@@ -2,7 +2,7 @@
 '''
 This script creates a proxy by simulating what io-backend does for adding information relating to the authenticated user.
 '''
-from flask import Flask, render_template, redirect
+from flask import Flask
 from flask import request, Response
 import requests
 from decouple import config
