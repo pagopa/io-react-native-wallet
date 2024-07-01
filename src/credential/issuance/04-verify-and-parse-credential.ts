@@ -43,12 +43,8 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
-  { sdJwt, disclosures }: DecodedSdJwtCredential,
-  ignoreMissingAttributes: boolean = false
+  { sdJwt, disclosures }: DecodedSdJwtCredential
 ): ParsedCredential => {
-  console.log(credentials_supported);
-  console.log(sdJwt);
-
   const credentialSubject = credentials_supported[sdJwt.payload.vct];
 
   if (!credentialSubject) {
@@ -63,8 +59,6 @@ const parseCredentialSdJwt = (
 
   // transfrom a record { key: value } in an iterable of pairs [key, value]
   const attrDefinitions = Object.entries(credentialSubject.claims);
-
-  console.log(JSON.stringify(credentialSubject));
 
   // the key of the attribute defintion must match the disclosure's name
   const attrsNotInDisclosures = attrDefinitions.filter(
@@ -111,8 +105,6 @@ const parseCredentialSdJwt = (
           ] as const
       )
   );
-
-  console.log(JSON.stringify(definedValues));
 
   // attributes that are in the disclosure set
   // but are not defined in the issuer configuration
