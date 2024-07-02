@@ -131,8 +131,6 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
    * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
    */
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-
-  // WARNING: This is not a secure way to generate a code verifier CHANGE ME
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
