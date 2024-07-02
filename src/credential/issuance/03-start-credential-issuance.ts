@@ -81,7 +81,6 @@ export type StartCredentialIssuance = (
     identificationContext: IdentificationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
-    overrideRedirectUri?: string; // temporary parameter to override the redirect uri until we have an actual implementation
     idphint: string;
     appFetch?: GlobalFetch["fetch"];
   }
