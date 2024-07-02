@@ -15,11 +15,14 @@ import {
 } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
-import { IdentificationResultShape } from "../../utils/identification";
+import {
+  IdentificationResultShape,
+  type IdentificationResult,
+} from "../../utils/identification";
 import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
-import { CredentialResponse, TokenResponse } from "./types";
+import { CredentialResponse, TokenResponse, type ResponseMode } from "./types";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
@@ -58,7 +61,7 @@ const selectCredentialDefinition = (
 const selectResponseMode = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
-): string => {
+): ResponseMode => {
   const responseModeSupported =
     issuerConf.oauth_authorization_server.response_modes_supported;
 
@@ -78,7 +81,7 @@ export type StartCredentialIssuance = (
   context: {
     wiaCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
-    identificationContext: IdentificationContext;
+    identificationContext?: IdentificationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
     idphint: string;
@@ -92,7 +95,7 @@ export type StartCredentialIssuance = (
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.credentialCryptoContext The context to access the key to associat with credential
- * @param context.identificationContext The context to identify the user which will be used to start the authorization
+ * @param context.identificationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema.
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
  * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
  * @param context.idphint Unique identifier of the SPID IDP
@@ -170,20 +173,15 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
 
   /**
-   * The identification context catches the 302 redirect from the authorization server which contains the authorization response.
-   * The response contains an authorization_code, state and iss in the query string which is then validated.
+   * Starts the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
    */
-  const identificationRedirectUrl = await identificationContext
-    .identify(`${authzRequestEndpoint}?${params}`, redirectSchema)
-    .catch((e) => {
-      throw new IdentificationError(e.message);
-    });
-
-  const urlParse = parseUrl(identificationRedirectUrl);
-  const authRes = IdentificationResultShape.safeParse(urlParse.query);
-  if (!authRes.success) {
-    throw new IdentificationError(authRes.error.message);
-  }
+  const authorizeFlowResult = await authorizeUserFlow(
+    responseMode,
+    authzRequestEndpoint,
+    params,
+    redirectSchema,
+    identificationContext
+  );
 
   /**
    * Creates and sends the DPoP Proof JWT to be presented with the authorization code to the /token endpoint of the authorization server
@@ -192,7 +190,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
    * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
    */
 
-  const { code } = authRes.data;
+  const { code } = authorizeFlowResult;
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
   // Use an ephemeral key to be destroyed after use
   const tokenRequestSignedDPop = await withEphemeralKey(
@@ -308,6 +306,72 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   }
 
   return credentialRes.data;
+};
+
+/**
+ * This step is used to start the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
+ * Based on the response mode, the flow is handled differently. For the query mode, the identification context is used to identify the user.
+ * The form_post.jwt mode is not currently supported.
+ * @param responseMode The response mode to be used in the request, can be either "query" or "form_post.jwt"
+ * @param authzRequestEndpoint The authorization endpoint of the authorization server
+ * @param params The query parameters to be used in the request
+ * @param redirectSchema The schema to be used in the redirect, can
+ * @param identificationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema
+ * @returns The identification result containing the authorization code, state and issuer
+ */
+const authorizeUserFlow = async (
+  responseMode: string,
+  authzRequestEndpoint: string,
+  params: URLSearchParams,
+  redirectSchema: string,
+  identificationContext?: IdentificationContext
+): Promise<IdentificationResult> => {
+  if (responseMode === "query") {
+    if (!identificationContext)
+      throw new IdentificationError(
+        "IdentificationContext is required when requesting a PersonalIdentificationData credential"
+      );
+
+    return await authorizeUserWithQueryMode(
+      authzRequestEndpoint,
+      params,
+      redirectSchema,
+      identificationContext
+    );
+  } else {
+    throw new IdentificationError(
+      "Responde mode not supported for this type of credential"
+    );
+  }
+};
+
+/**
+ * Authorizes the user using the query mode and the identification context.
+ * The identification context catches the 302 redirect from the authorization server which contains the authorization response.
+ * @param authzRequestEndpoint The authorization endpoint of the authorization server
+ * @param params The query parameters to be used in the request
+ * @param redirectSchema The schema to be used in the redirect
+ * @param identificationContext The context to identify the user which will be used to start the authorization
+ * @returns The identification result containing the authorization code, state and issuer
+ */
+const authorizeUserWithQueryMode = async (
+  authzRequestEndpoint: string,
+  params: URLSearchParams,
+  redirectSchema: string,
+  identificationContext: IdentificationContext
+): Promise<IdentificationResult> => {
+  const identificationRedirectUrl = await identificationContext
+    .identify(`${authzRequestEndpoint}?${params}`, redirectSchema)
+    .catch((e) => {
+      throw new IdentificationError(e.message);
+    });
+
+  const urlParse = parseUrl(identificationRedirectUrl);
+  const authRes = IdentificationResultShape.safeParse(urlParse.query);
+  if (!authRes.success) {
+    throw new IdentificationError(authRes.error.message);
+  }
+  return authRes.data;
 };
 
 export const createNonceProof = async (

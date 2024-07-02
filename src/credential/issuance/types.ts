@@ -21,3 +21,5 @@ export const CredentialResponse = z.object({
   credential: z.string(),
   format: SupportedCredentialFormat,
 });
+
+export type ResponseMode = "query" | "form_post.jwt";
