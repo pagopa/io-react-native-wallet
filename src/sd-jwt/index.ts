@@ -101,15 +101,9 @@ export const disclose = async (
 
       // _sd is defined in verified_claims.claims and verified_claims.verification
       // we must look into both
-      if (sdJwt.payload.verified_claims.claims._sd.includes(hash)) {
-        const index = sdJwt.payload.verified_claims.claims._sd.indexOf(hash);
+      if (sdJwt.payload._sd.includes(hash)) {
+        const index = sdJwt.payload._sd.indexOf(hash);
         return { claim, path: `verified_claims.claims._sd[${index}]` };
-      } else if (
-        sdJwt.payload.verified_claims.verification._sd.includes(hash)
-      ) {
-        const index =
-          sdJwt.payload.verified_claims.verification._sd.indexOf(hash);
-        return { claim, path: `verified_claims.verification._sd[${index}]` };
       }
 
       throw new ClaimsNotFoundInToken(claim);
@@ -158,10 +152,7 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   await verifyJwt(rawSdJwt, publicKey);
 
   //Check disclosures in sd-jwt
-  const claims = [
-    ...decoded.sdJwt.payload.verified_claims.verification._sd,
-    ...decoded.sdJwt.payload.verified_claims.claims._sd,
-  ];
+  const claims = [...decoded.sdJwt.payload._sd];
 
   await Promise.all(
     decoded.disclosures.map(

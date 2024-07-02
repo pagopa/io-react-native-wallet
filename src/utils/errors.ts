@@ -307,3 +307,18 @@ export class WalletInstanceNotFoundError extends IoWalletError {
     this.claim = claim;
   }
 }
+
+/**
+ * An error subclass thrown when an error occurs while the identification process
+ */
+export class IdentificationError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED" {
+    return "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED";
+  }
+
+  code = "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED";
+
+  constructor(message?: string) {
+    super(message);
+  }
+}

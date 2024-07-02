@@ -1,6 +1,6 @@
+import { type StartCredentialIssuance } from "./03-start-credential-issuance";
 import type { Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import type { ObtainCredential } from "./06-obtain-credential";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
@@ -9,11 +9,10 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"],
+  credential: Out<StartCredentialIssuance>["credential"],
+  format: Out<StartCredentialIssuance>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
-    ignoreMissingAttributes?: boolean;
   }
 ) => Promise<{ parsedCredential: ParsedCredential }>;
 
@@ -28,9 +27,8 @@ type ParsedCredential = Record<
           string /* locale */,
           string /* value */
         >
-      | /* if no i18n is provided */ string;
-    /** If in defined as mandatory by the Issuer */
-    mandatory: boolean;
+      | /* if no i18n is provided */ string
+      | undefined; // Add undefined as a possible value for the name property
     /** The actual value of the attribute */
     value: unknown;
   }
@@ -43,48 +41,34 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 
 const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
-  credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credentials_supported"],
-  { sdJwt, disclosures }: DecodedSdJwtCredential,
-  ignoreMissingAttributes: boolean = false
+  credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
+  { sdJwt, disclosures }: DecodedSdJwtCredential
 ): ParsedCredential => {
-  // find the definition that matches the received credential's type
-  // warning: if more then a defintion is found, the first is retrieved
-  const credentialSubject = credentials_supported.find(
-    (c) =>
-      c.format === "vc+sd-jwt" &&
-      c.credential_definition.type.includes(sdJwt.payload.type)
-  )?.credential_definition.credentialSubject;
+  const credentialSubject = credentials_supported[sdJwt.payload.vct];
 
-  // the received credential matches no supported credential, throw an exception
   if (!credentialSubject) {
-    const expected = credentials_supported
-      .flatMap((_) => _.credential_definition.type)
-      .join(", ");
+    throw new IoWalletError("Credential type not supported by the issuer");
+  }
+
+  if (credentialSubject.format !== sdJwt.header.typ) {
     throw new IoWalletError(
-      `Received credential is of an unknwown type. Expected one of [${expected}], received '${sdJwt.payload.type}', `
+      `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}', `
     );
   }
 
   // transfrom a record { key: value } in an iterable of pairs [key, value]
-  const attrDefinitions = Object.entries(credentialSubject);
+  const attrDefinitions = Object.entries(credentialSubject.claims);
 
-  // every mandatory attribute must be present in the credential's disclosures
   // the key of the attribute defintion must match the disclosure's name
   const attrsNotInDisclosures = attrDefinitions.filter(
-    ([attrKey, { mandatory }]) =>
-      mandatory && !disclosures.some(([, name]) => name === attrKey)
+    ([attrKey]) => !disclosures.some(([, name]) => name === attrKey)
   );
   if (attrsNotInDisclosures.length > 0) {
     const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
     const received = disclosures.map((_) => _[1 /* name */]).join(", ");
-    // the rationale of this condition is that we may want to be permissive
-    // on incomplete credentials in the test phase of the project.
-    // we might want to be strict once in production, hence remove this condition
-    if (!ignoreMissingAttributes) {
-      throw new IoWalletError(
-        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
-      );
-    }
+    throw new IoWalletError(
+      `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+    );
   }
 
   // attributes that are defined in the issuer configuration
@@ -126,7 +110,7 @@ const parseCredentialSdJwt = (
   const undefinedValues = Object.fromEntries(
     disclosures
       .filter((_) => !Object.keys(definedValues).includes(_[1]))
-      .map(([, key, value]) => [key, { value, mandatory: false, name: key }])
+      .map(([, key, value]) => [key, { value, name: key }])
   );
 
   return {
@@ -185,7 +169,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
-  { credentialCryptoContext, ignoreMissingAttributes }
+  { credentialCryptoContext }
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
@@ -194,22 +178,11 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   );
 
   const parsedCredential = parseCredentialSdJwt(
-    issuerConf.openid_credential_issuer.credentials_supported,
-    decoded,
-    ignoreMissingAttributes
+    issuerConf.openid_credential_issuer.credential_configurations_supported,
+    decoded
   );
 
   return { parsedCredential };
-};
-
-const verifyAndParseCredentialMdoc: WithFormat<"vc+mdoc-cbor"> = async (
-  _issuerConf,
-  _credential,
-  _,
-  _ctx
-) => {
-  // TODO: [SIW-686] decode MDOC credentials
-  throw new Error("verifyAndParseCredentialMdoc not implemented yet");
 };
 
 /**
@@ -219,7 +192,6 @@ const verifyAndParseCredentialMdoc: WithFormat<"vc+mdoc-cbor"> = async (
  * @param credential The encoded credential
  * @param format The format of the credentual
  * @param context.credentialCryptoContext The context to access the key the Credential will be bound to
- * @param context.ignoreMissingAttributes (optional) Whether to fail if a defined attribute is note present in the credentual. Default: false
  * @returns A parsed credential with attributes in plain value
  * @throws If the credential signature is not verified with the Issuer key set
  * @throws If the credential is not bound to the provided user key
@@ -238,15 +210,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
       format,
       context
     );
-  } else if (format === "vc+mdoc-cbor") {
-    return verifyAndParseCredentialMdoc(
-      issuerConf,
-      credential,
-      format,
-      context
-    );
   }
 
-  const _: never = format;
-  throw new IoWalletError(`Unsupported credential format: ${_}`);
+  throw new IoWalletError(`Unsupported credential format: ${format}`);
 };

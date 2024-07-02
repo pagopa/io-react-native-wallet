@@ -108,6 +108,7 @@
     ]
   },
   "dependencies": {
+    "parse-url": "^9.2.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-uuid": "^2.0.1",
     "zod": "^3.21.4"

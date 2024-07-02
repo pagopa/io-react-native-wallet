@@ -20,36 +20,46 @@ type CredentialDisplayMetadata = z.infer<typeof CredentialDisplayMetadata>;
 const CredentialDisplayMetadata = z.object({
   name: z.string(),
   locale: z.string(),
+  logo: z
+    .object({
+      url: z.string(),
+      alt_text: z.string(),
+    })
+    .optional(), // TODO [SIW-1268]: should not be optional
+  background_color: z.string().optional(), // TODO [SIW-1268]: should not be optional
+  text_color: z.string().optional(), // TODO [SIW-1268]: should not be optional
+});
+
+// Metadata for displaying issuer information
+type CredentialIssuerDisplayMetadata = z.infer<
+  typeof CredentialIssuerDisplayMetadata
+>;
+const CredentialIssuerDisplayMetadata = z.object({
+  name: z.string(),
+  locale: z.string(),
   logo: z.object({
     url: z.string(),
     alt_text: z.string(),
   }),
-  background_color: z.string(),
-  text_color: z.string(),
 });
 
-type CredentialDefinitionMetadata = z.infer<
-  typeof CredentialDefinitionMetadata
->;
-const CredentialDefinitionMetadata = z.object({
-  type: z.array(z.string()),
-  credentialSubject: z.record(
-    z.object({
-      mandatory: z.boolean(),
-      display: z.array(z.object({ name: z.string(), locale: z.string() })),
-    })
-  ),
-});
+type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
+const ClaimsMetadata = z.record(
+  z.object({
+    value_type: z.string(),
+    display: z.array(z.object({ name: z.string(), locale: z.string() })),
+  })
+);
 
 // Metadata for a credentia which i supported by a Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
-  id: z.string(),
   format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
-  cryptographic_binding_methods_supported: z.array(z.string()),
-  cryptographic_suites_supported: z.array(z.string()),
+  scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
-  credential_definition: CredentialDefinitionMetadata,
+  claims: ClaimsMetadata,
+  cryptographic_binding_methods_supported: z.array(z.string()),
+  credential_signing_alg_values_supported: z.array(z.string()),
 });
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
@@ -101,19 +111,19 @@ const BaseEntityConfiguration = z.object({
   header: EntityConfigurationHeader,
   payload: z
     .object({
-      exp: UnixTime,
-      iat: UnixTime,
       iss: z.string(),
       sub: z.string(),
-      jwks: z.object({
-        keys: z.array(JWK),
-      }),
+      iat: UnixTime,
+      exp: UnixTime,
+      authority_hints: z.array(z.string()).optional(),
       metadata: z
         .object({
           federation_entity: FederationEntityMetadata,
         })
         .passthrough(),
-      authority_hints: z.array(z.string()).optional(),
+      jwks: z.object({
+        keys: z.array(JWK),
+      }),
     })
     .passthrough(),
 });
@@ -135,18 +145,42 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
       metadata: z.object({
         openid_credential_issuer: z.object({
           credential_issuer: z.string(),
-          authorization_endpoint: z.string(),
-          token_endpoint: z.string(),
-          pushed_authorization_request_endpoint: z.string(),
-          dpop_signing_alg_values_supported: z.array(z.string()),
           credential_endpoint: z.string(),
-          credentials_supported: z.array(SupportedCredentialMetadata),
+          revocation_endpoint: z.string(),
+          status_attestation_endpoint: z.string(),
+          display: z.array(CredentialIssuerDisplayMetadata),
+          credential_configurations_supported: z.record(
+            SupportedCredentialMetadata
+          ),
           jwks: z.object({ keys: z.array(JWK) }),
+        }),
+        oauth_authorization_server: z.object({
+          authorization_endpoint: z.string(),
+          pushed_authorization_request_endpoint: z.string(),
+          dpop_signing_alg_values_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
+          token_endpoint: z.string(),
+          introspection_endpoint: z.string().optional(), // TODO [SIW-1268]: should not be optional
+          client_registration_types_supported: z.array(z.string()),
+          code_challenge_methods_supported: z.array(z.string()),
+          authorization_details_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional,
+          acr_values_supported: z.array(z.string()),
+          grant_types_supported: z.array(z.string()),
+          issuer: z.string(),
+          jwks: z.object({ keys: z.array(JWK) }),
+          scopes_supported: z.array(z.string()),
+          request_parameter_supported: z.boolean().optional(), // TODO [SIW-1268]: should not be optional
+          request_uri_parameter_supported: z.boolean().optional(), // TODO [SIW-1268]: should not be optional
+          response_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
+          response_modes_supported: z.array(z.string()),
+          subject_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
+          token_endpoint_auth_methods_supported: z.array(z.string()),
+          token_endpoint_auth_signing_alg_values_supported: z.array(z.string()),
+          request_object_signing_alg_values_supported: z.array(z.string()),
         }),
         /** Credential Issuers act as Relying Party
             when they require the presentation of other credentials.
             This does not apply for PID issuance, which requires CIE authz. */
-        wallet_relying_party: RelyingPartyMetadata.optional(),
+        openid_relying_party: RelyingPartyMetadata.optional(),
       }),
     }),
   })
@@ -177,9 +211,7 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
         wallet_provider: z
           .object({
             token_endpoint: z.string(),
-            attested_security_context_values_supported: z
-              .array(z.string())
-              .optional(),
+            aal_values_supported: z.array(z.string()).optional(),
             grant_types_supported: z.array(z.string()),
             token_endpoint_auth_methods_supported: z.array(z.string()),
             token_endpoint_auth_signing_alg_values_supported: z.array(
