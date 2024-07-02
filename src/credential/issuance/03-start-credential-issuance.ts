@@ -331,6 +331,6 @@ export const createNonceProof = async (
     .setAudience(audience)
     .setIssuer(issuer)
     .setIssuedAt()
-    .setExpirationTime("1h")
+    .setExpirationTime("5min")
     .sign();
 };

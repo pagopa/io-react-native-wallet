@@ -88,7 +88,7 @@ export const makeParRequest =
         client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
       })
       .setIssuedAt() //iat is set to now
-      .setExpirationTime("1h")
+      .setExpirationTime("5min")
       .sign();
 
     /** The request body for the Pushed Authorization Request */
