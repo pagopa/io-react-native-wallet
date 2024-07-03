@@ -14,7 +14,7 @@ import {
   type AuthorizationContext,
 } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
-import { IdentificationError, ValidationFailed } from "../../utils/errors";
+import { AuthorizationError, ValidationFailed } from "../../utils/errors";
 import {
   AuthorizationResultShape,
   type AuthorizationResult,
@@ -100,7 +100,7 @@ export type StartCredentialIssuance = (
  * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
  * @param context.idphint Unique identifier of the SPID IDP
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {IdentificationError} When the response from the identification response is not parsable
+ * @throws {AuthorizationError} When the response from the identification response is not parsable
  * @returns The credential obtained
  */
 
@@ -317,6 +317,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
  * @param params The query parameters to be used in the request
  * @param redirectSchema The schema to be used in the redirect, can
  * @param authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema
+ * @throws {AuthorizationError} When an error occurs during the authorization process
  * @returns The identification result containing the authorization code, state and issuer
  */
 const authorizeUserFlow = async (
@@ -328,7 +329,7 @@ const authorizeUserFlow = async (
 ): Promise<AuthorizationResult> => {
   if (responseMode === "query") {
     if (!authorizationContext)
-      throw new IdentificationError(
+      throw new AuthorizationError(
         "authorizationContext is required when requesting a PersonalIdentificationData credential"
       );
 
@@ -339,7 +340,7 @@ const authorizeUserFlow = async (
       authorizationContext
     );
   } else {
-    throw new IdentificationError(
+    throw new AuthorizationError(
       "Responde mode not supported for this type of credential"
     );
   }
@@ -352,6 +353,8 @@ const authorizeUserFlow = async (
  * @param params The query parameters to be used in the request
  * @param redirectSchema The schema to be used in the redirect
  * @param authorizationContext The context to identify the user which will be used to start the authorization
+ * @throws {AuthorizationIdpError} When an error occurs during the identification process with the IDP
+ * @throws {AuthorizationError} When an error occurs during the authorization process
  * @returns The identification result containing the authorization code, state and issuer
  */
 const authorizeUserWithQueryMode = async (
@@ -363,13 +366,13 @@ const authorizeUserWithQueryMode = async (
   const identificationRedirectUrl = await authorizationContext
     .authorize(`${authzRequestEndpoint}?${params}`, redirectSchema)
     .catch((e) => {
-      throw new IdentificationError(e.message);
+      throw new AuthorizationError(e.message);
     });
 
   const urlParse = parseUrl(identificationRedirectUrl);
   const authRes = AuthorizationResultShape.safeParse(urlParse.query);
   if (!authRes.success) {
-    throw new IdentificationError(authRes.error.message);
+    throw new AuthorizationError(authRes.error.message);
   }
   return authRes.data;
 };
