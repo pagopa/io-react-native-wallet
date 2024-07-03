@@ -97,7 +97,7 @@ export type StartCredentialIssuance = (
  * @param context.credentialCryptoContext The context to access the key to associat with credential
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
  * @param context.authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema. If not specified, the default browser is used.
- * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
+ * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase. If you don't use authorizationContext remember to register this URL as customUrl or deepLink. See https://reactnative.dev/docs/linking
  * @param context.idphint Unique identifier of the SPID IDP
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {IdentificationError} When the response from the identification response is not parsable
