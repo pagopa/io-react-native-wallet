@@ -26,6 +26,11 @@ export type Out<FN> = FN extends (...args: any[]) => Promise<any>
   ? ReturnType<FN>
   : never;
 
+/**
+ * TODO [SIW-1310]: replace this function with a cryptographically secure one.
+ * @param size - The size of the string to generate
+ * @returns A random alphanumeric string of the given size
+ */
 export const generateRandomAlphaNumericString = (size: number) =>
   Array.from(Array(size), () =>
     Math.floor(Math.random() * 36).toString(36)
