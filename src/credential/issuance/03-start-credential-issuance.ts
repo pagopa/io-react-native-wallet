@@ -172,7 +172,11 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
       /**
        * Starts the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
        */
-      return await authorizeUserWithQueryMode(authzRequestEndpoint, params);
+      return await authorizeUserWithQueryMode(
+        authzRequestEndpoint,
+        params,
+        redirectUri
+      );
     } else {
       throw new IdentificationError(
         "Response mode not supported for this type of credential"
@@ -314,13 +318,16 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
  */
 const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
-  params: URLSearchParams
+  params: URLSearchParams,
+  redirectUri: string
 ): Promise<AuthorizationResult> => {
   var authRedirectUrl: string | undefined;
 
   // handler for redirectUri
   Linking.addEventListener("url", ({ url }) => {
-    authRedirectUrl = url;
+    if (url.includes(redirectUri)) {
+      authRedirectUrl = url;
+    }
   });
 
   Linking.openURL(`${authzRequestEndpoint}?${params}`);
@@ -332,7 +339,7 @@ const authorizeUserWithQueryMode = async (
   await until(() => authRedirectUrl !== undefined, 120);
 
   if (authRedirectUrl === undefined) {
-    throw new Error("Invalid authentication redirect url");
+    throw new IdentificationError("Invalid authentication redirect url");
   }
 
   const urlParse = parseUrl(authRedirectUrl);
