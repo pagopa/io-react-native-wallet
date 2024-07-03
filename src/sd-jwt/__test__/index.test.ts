@@ -13,99 +13,70 @@ import { SdJwt4VC } from "../types";
 //    - "address" is used as verification._sd
 //    - all others disclosures are in claims._sd
 const token =
-  "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6ImIxODZlYTBjMTkyNTc5MzA5N2JmMDFiOGEyODlhNDVmIiwidHJ1c3RfY2hhaW4iOlsiTkVoUmRFUnBZbmxIWTNNNVdsZFdUV1oyYVVobSAuLi4iLCJleUpoYkdjaU9pSlNVekkxTmlJc0ltdHBaQ0k2IC4uLiIsIklrSllkbVp5Ykc1b1FVMTFTRkl3TjJGcVZXMUIgLi4uIl19.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2lzc3VlciIsInN1YiI6Ik56YkxzWGg4dURDY2Q3bm9XWEZaQWZIa3hac1JHQzlYcy4uLiIsImp0aSI6InVybjp1dWlkOjZjNWMwYTQ5LWI1ODktNDMxZC1iYWU3LTIxOTEyMmE5ZWMyYyIsImlhdCI6MTU0MTQ5MzcyNCwiZXhwIjoxNTQxNDkzNzI0LCJzdGF0dXMiOiJodHRwczovL2V4YW1wbGUuY29tL3N0YXR1cyIsImNuZiI6eyJqd2siOnsia3R5IjoiUlNBIiwidXNlIjoic2lnIiwibiI6IjFUYS1zRSIsImUiOiJBUUFCIiwia2lkIjoiWWhORlMzWW5DOXRqaUNhaXZoV0xWVUozQXh3R0d6Xzk4dVJGYXFNRUVzIn19LCJ0eXBlIjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJfc2QiOlsiSnpZakg0c3ZsaUgwUjNQeUVNZmVadTZKdDY5dTVxZWhabzdGN0VQWWxTRSJdLCJ0cnVzdF9mcmFtZXdvcmsiOiJlaWRhcyIsImFzc3VyYW5jZV9sZXZlbCI6ImhpZ2gifSwiY2xhaW1zIjp7Il9zZCI6WyIwOXZLckpNT2x5VFdNMHNqcHVfcGRPQlZCUTJNMXkzS2hwSDUxNW5Ya3BZIiwiMnJzakdiYUMwa3k4bVQwcEpyUGlvV1RxMF9kYXcxc1g3NnBvVWxnQ3diSSIsIkVrTzhkaFcwZEhFSmJ2VUhsRV9WQ2V1Qzl1UkVMT2llTFpoaDdYYlVUdEEiLCJJbER6SUtlaVpkRHdwcXBLNlpmYnlwaEZ2ejVGZ25XYS1zTjZ3cVFYQ2l3IiwiUG9yRmJwS3VWdTZ4eW1KYWd2a0ZzRlhBYlJvYzJKR2xBVUEyQkE0bzdjSSIsIlRHZjRvTGJnd2Q1SlFhSHlLVlFaVTlVZEdFMHc1cnREc3JaemZVYW9tTG8iLCJqZHJURThZY2JZNEVpZnVnaWhpQWVfQlBla3hKUVpJQ2VpVVF3WTlRcXhJIiwianN1OXlWdWx3UVFsaEZsTV8zSmx6TWFTRnpnbGhRRzBEcGZheVF3TFVLNCJdfX0sIl9zZF9hbGciOiJzaGEtMjU2In0.8wwSHCd47wCgzRYXvvPTTRXGS-hk9V8jRzy7WSjRBTZxSHxJkGOSWwBVAA-kpJ-IvQS7699aLWxIMqAvr34sOA~WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0";
+  "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2QiOlsiNmxmdUEyY2xrLXJpaGJGZkhCdDBOd0wwaFJQRXJ3cDZ2NFBTQVZLc24zSSIsIkFza2xIRzhlR0VXTkNXLXNQTEkzZnVLWkRsUVpjenlPTXprUE5KZG9DbnciLCJJVU01bVZzbzFOVjVqcUh4OE4wUWJXb09aNWlVQzN4eDM3RThrMHVDR2gwIiwiUkMyMGVEbmFpZHI1N2dZd0hLRDc4bUxTWEFqUkIzemZZNUM4QkZXX1RyWSIsIlNPb1dFU1RyYjJScHRNMTZTcnVoWFRaaFlxS0lpclI0Z3JYQlMzVTdQUkUiLCJUWEdla0g4cVl0QjNLLVBmVHZOSlFVOURFMk1JNGhHc05XY2REcHQyZm04Il0sInN1YiI6ImU3YzJlOTRjLWY3NDEtNGZmZS1hNjY4LTQ2ZWI3NDIxODNjYSIsIl9zZF9hbGciOiJzaGEtMjU2IiwidmN0IjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwiaXNzIjoiaHR0cHM6Ly9wcmUuZWlkLndhbGxldC5pcHpzLml0IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2Iiwia2lkIjoiekV2X3FHU0w1cjBfRjY3ajJkd0VnVUptQmdiTU5TRUo1S19pSDFQWWM3QSIsIngiOiIwUGo3dl9hZk5wOUVUSngxMUpiWWdrSTd5UXBkMHJ0aVl1bzVmZXVBTjJvIiwieSI6IlhCNjJVbTAydkhxZWRrT3pTZko1aGR0alB6LXptVjlqbVdoNHNLZ2REOW8ifX0sImV4cCI6MTc1MTEwNzI1NSwic3RhdHVzIjp7InN0YXR1c19hdHRlc3RhdGlvbiI6eyJjcmVkZW50aWFsX2hhc2hfYWxnIjoic2hhLTI1NiJ9fX0.1D871Dsx3hyv1-dRclyyW_kI5NOJlz33QZenJotGdNBbXe6-q-MaJ0HfibjAaGWBa98KvQADqiqkd3tHufpR_w~WyJybVRCMjBWc3JyY2p0NHdEMURTNUpBIiwiYmlydGhkYXRlIiwiMTk4NS0xMi0xMCJd~WyJTaU5EX2VycjVPQU9ObGJwUHE5NC1nIiwidW5pcXVlX2lkIiwiVElOSVQtTFZMREFBODVUNTBHNzAyQiJd~WyJEUS16QVVfekYtQnUyakxJYWJBTENBIiwidGF4X2lkX2NvZGUiLCJUSU5JVC1MVkxEQUE4NVQ1MEc3MDJCIl0~WyJ6X0Y2Q2hJTDRMTlQxUTRrcms1cC1BIiwiZ2l2ZW5fbmFtZSIsIkFkYSJd~WyI5M1YyS1lvMW1hNlNPVmRmTzd3VGRRIiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd~WyJ5ejdQOW5haFlGLXYtU2pXc0g0VC13IiwiaWF0IiwxNzE5NTcxMjU0XQ";
 
 const unsigned =
-  "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6ImIxODZlYTBjMTkyNTc5MzA5N2JmMDFiOGEyODlhNDVmIiwidHJ1c3RfY2hhaW4iOlsiTkVoUmRFUnBZbmxIWTNNNVdsZFdUV1oyYVVobSAuLi4iLCJleUpoYkdjaU9pSlNVekkxTmlJc0ltdHBaQ0k2IC4uLiIsIklrSllkbVp5Ykc1b1FVMTFTRkl3TjJGcVZXMUIgLi4uIl19.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2lzc3VlciIsInN1YiI6Ik56YkxzWGg4dURDY2Q3bm9XWEZaQWZIa3hac1JHQzlYcy4uLiIsImp0aSI6InVybjp1dWlkOjZjNWMwYTQ5LWI1ODktNDMxZC1iYWU3LTIxOTEyMmE5ZWMyYyIsImlhdCI6MTU0MTQ5MzcyNCwiZXhwIjoxNTQxNDkzNzI0LCJzdGF0dXMiOiJodHRwczovL2V4YW1wbGUuY29tL3N0YXR1cyIsImNuZiI6eyJqd2siOnsia3R5IjoiUlNBIiwidXNlIjoic2lnIiwibiI6IjFUYS1zRSIsImUiOiJBUUFCIiwia2lkIjoiWWhORlMzWW5DOXRqaUNhaXZoV0xWVUozQXh3R0d6Xzk4dVJGYXFNRUVzIn19LCJ0eXBlIjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJfc2QiOlsiSnpZakg0c3ZsaUgwUjNQeUVNZmVadTZKdDY5dTVxZWhabzdGN0VQWWxTRSJdLCJ0cnVzdF9mcmFtZXdvcmsiOiJlaWRhcyIsImFzc3VyYW5jZV9sZXZlbCI6ImhpZ2gifSwiY2xhaW1zIjp7Il9zZCI6WyIwOXZLckpNT2x5VFdNMHNqcHVfcGRPQlZCUTJNMXkzS2hwSDUxNW5Ya3BZIiwiMnJzakdiYUMwa3k4bVQwcEpyUGlvV1RxMF9kYXcxc1g3NnBvVWxnQ3diSSIsIkVrTzhkaFcwZEhFSmJ2VUhsRV9WQ2V1Qzl1UkVMT2llTFpoaDdYYlVUdEEiLCJJbER6SUtlaVpkRHdwcXBLNlpmYnlwaEZ2ejVGZ25XYS1zTjZ3cVFYQ2l3IiwiUG9yRmJwS3VWdTZ4eW1KYWd2a0ZzRlhBYlJvYzJKR2xBVUEyQkE0bzdjSSIsIlRHZjRvTGJnd2Q1SlFhSHlLVlFaVTlVZEdFMHc1cnREc3JaemZVYW9tTG8iLCJqZHJURThZY2JZNEVpZnVnaWhpQWVfQlBla3hKUVpJQ2VpVVF3WTlRcXhJIiwianN1OXlWdWx3UVFsaEZsTV8zSmx6TWFTRnpnbGhRRzBEcGZheVF3TFVLNCJdfX0sIl9zZF9hbGciOiJzaGEtMjU2In0";
+  "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2QiOlsiNmxmdUEyY2xrLXJpaGJGZkhCdDBOd0wwaFJQRXJ3cDZ2NFBTQVZLc24zSSIsIkFza2xIRzhlR0VXTkNXLXNQTEkzZnVLWkRsUVpjenlPTXprUE5KZG9DbnciLCJJVU01bVZzbzFOVjVqcUh4OE4wUWJXb09aNWlVQzN4eDM3RThrMHVDR2gwIiwiUkMyMGVEbmFpZHI1N2dZd0hLRDc4bUxTWEFqUkIzemZZNUM4QkZXX1RyWSIsIlNPb1dFU1RyYjJScHRNMTZTcnVoWFRaaFlxS0lpclI0Z3JYQlMzVTdQUkUiLCJUWEdla0g4cVl0QjNLLVBmVHZOSlFVOURFMk1JNGhHc05XY2REcHQyZm04Il0sInN1YiI6ImU3YzJlOTRjLWY3NDEtNGZmZS1hNjY4LTQ2ZWI3NDIxODNjYSIsIl9zZF9hbGciOiJzaGEtMjU2IiwidmN0IjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwiaXNzIjoiaHR0cHM6Ly9wcmUuZWlkLndhbGxldC5pcHpzLml0IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2Iiwia2lkIjoiekV2X3FHU0w1cjBfRjY3ajJkd0VnVUptQmdiTU5TRUo1S19pSDFQWWM3QSIsIngiOiIwUGo3dl9hZk5wOUVUSngxMUpiWWdrSTd5UXBkMHJ0aVl1bzVmZXVBTjJvIiwieSI6IlhCNjJVbTAydkhxZWRrT3pTZko1aGR0alB6LXptVjlqbVdoNHNLZ2REOW8ifX0sImV4cCI6MTc1MTEwNzI1NSwic3RhdHVzIjp7InN0YXR1c19hdHRlc3RhdGlvbiI6eyJjcmVkZW50aWFsX2hhc2hfYWxnIjoic2hhLTI1NiJ9fX0";
 
 const signature =
-  "8wwSHCd47wCgzRYXvvPTTRXGS-hk9V8jRzy7WSjRBTZxSHxJkGOSWwBVAA-kpJ-IvQS7699aLWxIMqAvr34sOA";
+  "1D871Dsx3hyv1-dRclyyW_kI5NOJlz33QZenJotGdNBbXe6-q-MaJ0HfibjAaGWBa98KvQADqiqkd3tHufpR_w";
 
 const signed = `${unsigned}.${signature}`;
 
 const tokenizedDisclosures = [
-  "WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImdpdmVuX25hbWUiLCAiSm9obiJd",
-  "WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgImZhbWlseV9uYW1lIiwgIkRvZSJd",
-  "WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ",
-  "WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ",
-  "WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0",
-  "WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgImlzX292ZXJfMTgiLCB0cnVlXQ",
-  "WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImlzX292ZXJfMjEiLCB0cnVlXQ",
-  "WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImlzX292ZXJfNjUiLCB0cnVlXQ",
-  "WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0",
+  "WyJybVRCMjBWc3JyY2p0NHdEMURTNUpBIiwiYmlydGhkYXRlIiwiMTk4NS0xMi0xMCJd",
+  "WyJTaU5EX2VycjVPQU9ObGJwUHE5NC1nIiwidW5pcXVlX2lkIiwiVElOSVQtTFZMREFBODVUNTBHNzAyQiJd",
+  "WyJEUS16QVVfekYtQnUyakxJYWJBTENBIiwidGF4X2lkX2NvZGUiLCJUSU5JVC1MVkxEQUE4NVQ1MEc3MDJCIl0",
+  "WyJ6X0Y2Q2hJTDRMTlQxUTRrcms1cC1BIiwiZ2l2ZW5fbmFtZSIsIkFkYSJd",
+  "WyI5M1YyS1lvMW1hNlNPVmRmTzd3VGRRIiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd",
+  "WyJ5ejdQOW5haFlGLXYtU2pXc0g0VC13IiwiaWF0IiwxNzE5NTcxMjU0XQ",
 ];
 
 const sdJwt = {
   header: {
+    kid: "-F_6Uga8n3VegjY2U7YUHK1zLoaD-NPTc63RMISnLaw",
     typ: "vc+sd-jwt",
     alg: "ES256",
-    kid: "b186ea0c1925793097bf01b8a289a45f",
-    trust_chain: [
-      "NEhRdERpYnlHY3M5WldWTWZ2aUhm ...",
-      "eyJhbGciOiJSUzI1NiIsImtpZCI6 ...",
-      "IkJYdmZybG5oQU11SFIwN2FqVW1B ...",
-    ],
   },
   payload: {
-    iss: "https://example.com/issuer",
-    sub: "NzbLsXh8uDCcd7noWXFZAfHkxZsRGC9Xs...",
-    jti: "urn:uuid:6c5c0a49-b589-431d-bae7-219122a9ec2c",
-    iat: 1541493724,
-    exp: 1541493724,
-    status: "https://example.com/status",
+    _sd: [
+      "6lfuA2clk-rihbFfHBt0NwL0hRPErwp6v4PSAVKsn3I",
+      "AsklHG8eGEWNCW-sPLI3fuKZDlQZczyOMzkPNJdoCnw",
+      "IUM5mVso1NV5jqHx8N0QbWoOZ5iUC3xx37E8k0uCGh0",
+      "RC20eDnaidr57gYwHKD78mLSXAjRB3zfY5C8BFW_TrY",
+      "SOoWESTrb2RptM16SruhXTZhYqKIirR4grXBS3U7PRE",
+      "TXGekH8qYtB3K-PfTvNJQU9DE2MI4hGsNWcdDpt2fm8",
+    ],
+    sub: "e7c2e94c-f741-4ffe-a668-46eb742183ca",
+    _sd_alg: "sha-256",
+    vct: "PersonIdentificationData",
+    iss: "https://pre.eid.wallet.ipzs.it",
     cnf: {
       jwk: {
-        kty: "RSA",
-        use: "sig",
-        n: "1Ta-sE",
-        e: "AQAB",
-        kid: "YhNFS3YnC9tjiCaivhWLVUJ3AxwGGz_98uRFaqMEEs",
+        kty: "EC",
+        crv: "P-256",
+        kid: "zEv_qGSL5r0_F67j2dwEgUJmBgbMNSEJ5K_iH1PYc7A",
+        x: "0Pj7v_afNp9ETJx11JbYgkI7yQpd0rtiYuo5feuAN2o",
+        y: "XB62Um02vHqedkOzSfJ5hdtjPz-zmV9jmWh4sKgdD9o",
       },
     },
-    type: "PersonIdentificationData",
-    verified_claims: {
-      verification: {
-        _sd: ["JzYjH4svliH0R3PyEMfeZu6Jt69u5qehZo7F7EPYlSE"],
-        trust_framework: "eidas",
-        assurance_level: "high",
-      },
-      claims: {
-        _sd: [
-          "09vKrJMOlyTWM0sjpu_pdOBVBQ2M1y3KhpH515nXkpY",
-          "2rsjGbaC0ky8mT0pJrPioWTq0_daw1sX76poUlgCwbI",
-          "EkO8dhW0dHEJbvUHlE_VCeuC9uRELOieLZhh7XbUTtA",
-          "IlDzIKeiZdDwpqpK6ZfbyphFvz5FgnWa-sN6wqQXCiw",
-          "PorFbpKuVu6xymJagvkFsFXAbRoc2JGlAUA2BA4o7cI",
-          "TGf4oLbgwd5JQaHyKVQZU9UdGE0w5rtDsrZzfUaomLo",
-          "jdrTE8YcbY4EifugihiAe_BPekxJQZICeiUQwY9QqxI",
-          "jsu9yVulwQQlhFlM_3JlzMaSFzglhQG0DpfayQwLUK4",
-        ],
+    exp: 1751107255,
+    status: {
+      status_attestation: {
+        credential_hash_alg: "sha-256",
       },
     },
-    _sd_alg: "sha-256",
   },
 };
 
 // In the very same order than tokenizedDisclosures
 const disclosures = [
-  ["2GLC42sKQveCfGfryNRN9w", "given_name", "John"],
-  ["eluV5Og3gSNII8EYnsxA_A", "family_name", "Doe"],
-  ["6Ij7tM-a5iVPGboS5tmvVA", "email", "johndoe@example.com"],
-  ["eI8ZWm9QnKPpNPeNenHdhQ", "phone_number", "+1-202-555-0101"],
-  ["AJx-095VPrpTtN4QMOqROA", "birthdate", "1940-01-01"],
-  ["Pc33JM2LchcU_lHggv_ufQ", "is_over_18", true],
-  ["G02NSrQfjFXQ7Io09syajA", "is_over_21", true],
-  ["lklxF5jMYlGTPUovMNIvCA", "is_over_65", true],
-  [
-    "Qg_O64zqAxe412a108iroA",
-    "address",
-    {
-      street_address: "123 Main St",
-      locality: "Anytown",
-      region: "Anystate",
-      country: "US",
-    },
-  ],
+  ["rmTB20Vsrrcjt4wD1DS5JA", "birthdate", "1985-12-10"],
+  ["SiND_err5OAONlbpPq94-g", "unique_id", "TINIT-LVLDAA85T50G702B"],
+  ["DQ-zAU_zF-Bu2jLIabALCA", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
+  ["z_F6ChIL4LNT1Q4krk5p-A", "given_name", "Ada"],
+  ["93V2KYo1ma6SOVdfO7wTdQ", "family_name", "Lovelace"],
+  ["yz7P9nahYF-v-SjWsH4T-w", "iat", 1719571254],
 ];
 it("Ensures example data correctness", () => {
   expect(
@@ -161,8 +132,8 @@ describe("disclose", () => {
   it("should encode a valid sdjwt (one claim)", async () => {
     const result = await disclose(token, ["given_name"]);
     const expected = {
-      token: `${signed}~WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImdpdmVuX25hbWUiLCAiSm9obiJd`,
-      paths: [{ claim: "given_name", path: "verified_claims.claims._sd[7]" }],
+      token: `${signed}~WyJ6X0Y2Q2hJTDRMTlQxUTRrcms1cC1BIiwiZ2l2ZW5fbmFtZSIsIkFkYSJd`,
+      paths: [{ claim: "given_name", path: "verified_claims.claims._sd[5]" }],
     };
 
     expect(result).toEqual(expected);
@@ -176,17 +147,17 @@ describe("disclose", () => {
   });
 
   it("should encode a valid sdjwt (multiple claims)", async () => {
-    const result = await disclose(token, ["given_name", "email"]);
+    const result = await disclose(token, ["iat", "family_name"]);
     const expected = {
-      token: `${signed}~WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ`,
+      token: `${signed}~WyI5M1YyS1lvMW1hNlNPVmRmTzd3VGRRIiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd~WyJ5ejdQOW5haFlGLXYtU2pXc0g0VC13IiwiaWF0IiwxNzE5NTcxMjU0XQ`,
       paths: [
         {
-          claim: "given_name",
-          path: "verified_claims.claims._sd[7]",
+          claim: "iat",
+          path: "verified_claims.claims._sd[3]",
         },
         {
-          claim: "email",
-          path: "verified_claims.verification._sd[0]",
+          claim: "family_name",
+          path: "verified_claims.claims._sd[4]",
         },
       ],
     };

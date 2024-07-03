@@ -86,6 +86,8 @@ PODS:
     - JOSESwift (~> 2.3)
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+  - pagopa-io-react-native-login-utils (1.0.1):
+    - React-Core
   - RCT-Folly (2021.07.22.00):
     - boost
     - DoubleConversion
@@ -536,6 +538,7 @@ DEPENDENCIES:
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-integrity (from `../node_modules/@pagopa/io-react-native-integrity`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
+  - "pagopa-io-react-native-login-utils (from `../node_modules/@pagopa/io-react-native-login-utils`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -611,6 +614,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@pagopa/io-react-native-integrity"
   pagopa-io-react-native-jwt:
     :path: "../node_modules/@pagopa/io-react-native-jwt"
+  pagopa-io-react-native-login-utils:
+    :path: "../node_modules/@pagopa/io-react-native-login-utils"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -703,6 +708,7 @@ SPEC CHECKSUMS:
   pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
   pagopa-io-react-native-integrity: ca77804cefb1cd75d04053652472bcb938ce4b18
   pagopa-io-react-native-jwt: 662d4e722715996758b079774abea1996b057467
+  pagopa-io-react-native-login-utils: 9fb43fd59dcc864a24343209e74bd7429659456a
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 264adaca1d8b1a9c078761891898d4142df05313
   RCTTypeSafety: 279a89da7058a69899778a127be73fab38b84499

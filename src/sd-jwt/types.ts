@@ -39,29 +39,24 @@ export const SdJwt4VC = z.object({
     typ: z.literal("vc+sd-jwt"),
     alg: z.string(),
     kid: z.string().optional(),
-    trust_chain: z.array(z.string()),
   }),
-  payload: z.object({
-    iss: z.string(),
-    sub: z.string(),
-    jti: z.string(),
-    iat: UnixTime,
-    exp: UnixTime,
-    status: z.string(),
-    cnf: z.object({
-      jwk: JWK,
-    }),
-    type: z.string(),
-    verified_claims: z.object({
-      verification: z.intersection(
-        z.object({
-          trust_framework: z.literal("eidas"),
-          assurance_level: z.string(),
+  payload: z.intersection(
+    z.object({
+      iss: z.string(),
+      sub: z.string(),
+      iat: UnixTime.optional(),
+      exp: UnixTime,
+      _sd_alg: z.literal("sha-256"),
+      status: z.object({
+        status_attestation: z.object({
+          credential_hash_alg: z.literal("sha-256"),
         }),
-        ObfuscatedDisclosures
-      ),
-      claims: ObfuscatedDisclosures,
+      }),
+      cnf: z.object({
+        jwk: JWK,
+      }),
+      vct: z.string(),
     }),
-    _sd_alg: z.literal("sha-256"),
-  }),
+    ObfuscatedDisclosures
+  ),
 });

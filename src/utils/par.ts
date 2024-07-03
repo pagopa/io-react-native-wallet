@@ -6,13 +6,12 @@ import {
 import uuid from "react-native-uuid";
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
-import { hasStatus } from "./misc";
+import { generateRandomAlphaNumericString, hasStatus } from "./misc";
+import { createPopToken } from "./pop";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
-  credential_definition: z.object({
-    type: z.string(),
-  }),
+  credential_configuration_id: z.string(),
   format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   type: z.literal("openid_credential"),
 });
@@ -34,7 +33,8 @@ export const makeParRequest =
   async (
     clientId: string,
     codeVerifier: string,
-    walletProviderBaseUrl: string,
+    redirectUri: string,
+    responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
     authorizationDetails: AuthorizationDetails,
@@ -48,10 +48,19 @@ export const makeParRequest =
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
       .payload.cnf.jwk.kid;
 
+    const signedWiaPoP = await createPopToken(
+      {
+        jti: `${uuid.v4()}`,
+        aud,
+        iss,
+      },
+      wiaCryptoContext
+    );
+
     /** A code challenge is provided so that the PAR is bound
         to the subsequent authorization code request
         @see https://datatracker.ietf.org/doc/html/rfc9126#name-request */
-    const codeChallengeMethod = "s256";
+    const codeChallengeMethod = "S256";
     const codeChallenge = await sha256ToBase64(codeVerifier);
 
     /** The PAR request token is signed used the Wallet Instance Attestation key.
@@ -60,23 +69,26 @@ export const makeParRequest =
         The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
+        typ: "jwk",
         kid: wiaPublicKey.kid,
       })
       .setPayload({
-        iss,
-        aud,
         jti: `${uuid.v4()}`,
-        client_assertion_type: assertionType,
-        authorization_details: authorizationDetails,
+        aud,
         response_type: "code",
-        redirect_uri: walletProviderBaseUrl,
-        state: `${uuid.v4()}`,
+        response_mode: responseMode,
         client_id: clientId,
-        code_challenge_method: codeChallengeMethod,
+        iss,
+        state: generateRandomAlphaNumericString(32),
         code_challenge: codeChallenge,
+        code_challenge_method: codeChallengeMethod,
+        authorization_details: authorizationDetails,
+        redirect_uri: redirectUri,
+        client_assertion_type: assertionType,
+        client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
       })
-      .setIssuedAt()
-      .setExpirationTime("1h")
+      .setIssuedAt() //iat is set to now
+      .setExpirationTime("5min")
       .sign();
 
     /** The request body for the Pushed Authorization Request */
@@ -85,9 +97,9 @@ export const makeParRequest =
       client_id: clientId,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
-      client_assertion_type: assertionType,
-      client_assertion: walletInstanceAttestation,
       request: signedJwtForPar,
+      client_assertion_type: assertionType,
+      client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
     });
 
     return await appFetch(parEndpoint, {
