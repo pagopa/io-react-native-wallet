@@ -310,7 +310,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
 
 /**
  * This step is used to start the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
- * Based on the response mode, the flow is handled differently. For the query mode, the identification context is used to identify the user.
+ * Based on the response mode, the flow is handled differently. For the query mode, the authorization context is used to identify the user.
  * The form_post.jwt mode is not currently supported.
  * @param responseMode The response mode to be used in the request, can be either "query" or "form_post.jwt"
  * @param authzRequestEndpoint The authorization endpoint of the authorization server
@@ -347,8 +347,8 @@ const authorizeUserFlow = async (
 };
 
 /**
- * Authorizes the user using the query mode and the identification context.
- * The identification context catches the 302 redirect from the authorization server which contains the authorization response.
+ * Authorizes the user using the query mode and the authorization context.
+ * The authorization context catches the 302 redirect from the authorization server which contains the authorization response.
  * @param authzRequestEndpoint The authorization endpoint of the authorization server
  * @param params The query parameters to be used in the request
  * @param redirectSchema The schema to be used in the redirect
@@ -363,13 +363,13 @@ const authorizeUserWithQueryMode = async (
   redirectSchema: string,
   authorizationContext: AuthorizationContext
 ): Promise<AuthorizationResult> => {
-  const identificationRedirectUrl = await authorizationContext
+  const authRedirectUrl = await authorizationContext
     .authorize(`${authzRequestEndpoint}?${params}`, redirectSchema)
     .catch((e) => {
       throw new AuthorizationError(e.message);
     });
 
-  const urlParse = parseUrl(identificationRedirectUrl);
+  const urlParse = parseUrl(authRedirectUrl);
   const authRes = AuthorizationResultShape.safeParse(urlParse.query);
   if (!authRes.success) {
     throw new AuthorizationError(authRes.error.message);
