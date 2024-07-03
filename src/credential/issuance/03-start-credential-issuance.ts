@@ -4,15 +4,13 @@ import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import {
   generateRandomAlphaNumericString,
   hasStatus,
+  until,
   type Out,
 } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
-import {
-  WalletInstanceAttestation,
-  type IdentificationContext,
-} from "@pagopa/io-react-native-wallet";
+import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import { IdentificationResultShape } from "../../utils/identification";
@@ -20,6 +18,7 @@ import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
 import { CredentialResponse, TokenResponse } from "./types";
+import { Linking } from "react-native";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
@@ -78,7 +77,6 @@ export type StartCredentialIssuance = (
   context: {
     wiaCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
-    identificationContext: IdentificationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
     idphint: string;
@@ -92,7 +90,6 @@ export type StartCredentialIssuance = (
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.credentialCryptoContext The context to access the key to associat with credential
- * @param context.identificationContext The context to identify the user which will be used to start the authorization
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
  * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
  * @param context.idphint Unique identifier of the SPID IDP
@@ -109,7 +106,6 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   const {
     wiaCryptoContext,
     credentialCryptoContext,
-    identificationContext,
     walletInstanceAttestation,
     redirectUri,
     idphint,
@@ -169,17 +165,25 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     request_uri: issuerRequestUri,
     idphint,
   });
-  const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
 
-  /**
-   * The identification context catches the 302 redirect from the authorization server which contains the authorization response.
-   * The response contains an authorization_code, state and iss in the query string which is then validated.
+  var identificationRedirectUrl: string | undefined;
+
+  // handler for redirectUri
+  Linking.addEventListener("url", ({ url }) => {
+    identificationRedirectUrl = url;
+  });
+
+  Linking.openURL(`${authzRequestEndpoint}?${params}`);
+
+  /*
+   * Waits for 120 seconds for the identificationRedirectUrl variable to be set
+   * by the custom url handler. If the timeout is exceeded, throw an exception
    */
-  const identificationRedirectUrl = await identificationContext
-    .identify(`${authzRequestEndpoint}?${params}`, redirectSchema)
-    .catch((e) => {
-      throw new IdentificationError(e.message);
-    });
+  await until(() => identificationRedirectUrl !== undefined, 120);
+
+  if (identificationRedirectUrl === undefined) {
+    throw new Error("Invalid identificationRedirectUrl");
+  }
 
   const urlParse = parseUrl(identificationRedirectUrl);
   const authRes = IdentificationResultShape.safeParse(urlParse.query);

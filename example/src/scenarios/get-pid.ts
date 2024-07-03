@@ -2,12 +2,10 @@ import {
   Credential,
   WalletInstanceAttestation,
   createCryptoContextFor,
-  type IdentificationContext,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 
-import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
 import {
   REDIRECT_URI,
   WALLET_PID_PROVIDER_BASE_URL,
@@ -39,11 +37,6 @@ export default (
           walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
         });
 
-      // Create identification context
-      const identificationContext: IdentificationContext = {
-        identify: openAuthenticationSession,
-      };
-
       // Create credential crypto context
       const credentialKeyTag = uuid.v4().toString();
       await generate(credentialKeyTag);
@@ -70,7 +63,6 @@ export default (
           {
             walletInstanceAttestation,
             credentialCryptoContext,
-            identificationContext,
             redirectUri: `${REDIRECT_URI}`,
             wiaCryptoContext,
             idphint,
