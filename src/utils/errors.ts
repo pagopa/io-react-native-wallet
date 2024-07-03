@@ -335,10 +335,12 @@ export class AuthorizationIdpError extends IoWalletError {
   code = "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED";
 
   error: string;
-  errorDescription: string;
+  errorDescription?: string;
 
-  constructor(error: string, errorDescription: string) {
-    super(serializeAttrs({ error, errorDescription }));
+  constructor(error: string, errorDescription?: string) {
+    super(
+      serializeAttrs(errorDescription ? { error, errorDescription } : { error })
+    );
     this.error = error;
     this.errorDescription = errorDescription;
   }

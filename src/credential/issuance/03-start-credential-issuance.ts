@@ -9,20 +9,24 @@ import {
 import type { StartFlow } from "./01-start-flow";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
-import {
-  WalletInstanceAttestation,
-  type AuthorizationContext,
-} from "@pagopa/io-react-native-wallet";
+
 import parseUrl from "parse-url";
-import { AuthorizationError, ValidationFailed } from "../../utils/errors";
 import {
+  AuthorizationError,
+  AuthorizationIdpError,
+  ValidationFailed,
+} from "../../utils/errors";
+import {
+  AuthorizationErrorShape,
   AuthorizationResultShape,
+  type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
 import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
 import { CredentialResponse, TokenResponse, type ResponseMode } from "./types";
+import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
@@ -330,7 +334,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
  * @param authorizationContext The context to identify the user which will be used to start the authorization
  * @returns The authrozation result containing the authorization code, state and issuer
  */
-const authorizeUserWithQueryMode = async (
+export const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
   params: URLSearchParams,
   redirectSchema: string,
@@ -345,7 +349,12 @@ const authorizeUserWithQueryMode = async (
   const urlParse = parseUrl(authRedirectUrl);
   const authRes = AuthorizationResultShape.safeParse(urlParse.query);
   if (!authRes.success) {
-    throw new AuthorizationError(authRes.error.message);
+    const authErr = AuthorizationErrorShape.safeParse(urlParse.query);
+    if (!authErr.success) throw new AuthorizationError(authRes.error.message); // an error occured while parsing the result and the error
+    throw new AuthorizationIdpError(
+      authErr.data.error,
+      authErr.data.error_description
+    );
   }
   return authRes.data;
 };
