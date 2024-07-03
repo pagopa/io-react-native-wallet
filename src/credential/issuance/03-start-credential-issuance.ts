@@ -18,7 +18,7 @@ import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import {
   AuthorizationResultShape,
   type AuthorizationResult,
-} from "../../utils/identification";
+} from "../../utils/auth";
 import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
