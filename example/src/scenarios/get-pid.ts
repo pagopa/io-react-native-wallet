@@ -2,7 +2,7 @@ import {
   Credential,
   WalletInstanceAttestation,
   createCryptoContextFor,
-  type IdentificationContext,
+  type AuthorizationContext,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
@@ -40,8 +40,8 @@ export default (
         });
 
       // Create identification context
-      const identificationContext: IdentificationContext = {
-        identify: openAuthenticationSession,
+      const authorizationContext: AuthorizationContext = {
+        authorize: openAuthenticationSession,
       };
 
       // Create credential crypto context
@@ -70,7 +70,7 @@ export default (
           {
             walletInstanceAttestation,
             credentialCryptoContext,
-            identificationContext,
+            authorizationContext,
             redirectUri: `${REDIRECT_URI}`,
             wiaCryptoContext,
             idphint,

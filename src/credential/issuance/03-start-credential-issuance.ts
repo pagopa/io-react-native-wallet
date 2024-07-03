@@ -11,13 +11,13 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
 import {
   WalletInstanceAttestation,
-  type IdentificationContext,
+  type AuthorizationContext,
 } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import {
-  IdentificationResultShape,
-  type IdentificationResult,
+  AuthorizationResultShape,
+  type AuthorizationResult,
 } from "../../utils/identification";
 import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
@@ -81,7 +81,7 @@ export type StartCredentialIssuance = (
   context: {
     wiaCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
-    identificationContext?: IdentificationContext;
+    authorizationContext?: AuthorizationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
     idphint: string;
@@ -95,7 +95,7 @@ export type StartCredentialIssuance = (
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.credentialCryptoContext The context to access the key to associat with credential
- * @param context.identificationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema.
+ * @param context.authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema.
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
  * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
  * @param context.idphint Unique identifier of the SPID IDP
@@ -112,7 +112,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   const {
     wiaCryptoContext,
     credentialCryptoContext,
-    identificationContext,
+    authorizationContext,
     walletInstanceAttestation,
     redirectUri,
     idphint,
@@ -180,7 +180,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     authzRequestEndpoint,
     params,
     redirectSchema,
-    identificationContext
+    authorizationContext
   );
 
   /**
@@ -316,7 +316,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
  * @param authzRequestEndpoint The authorization endpoint of the authorization server
  * @param params The query parameters to be used in the request
  * @param redirectSchema The schema to be used in the redirect, can
- * @param identificationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema
+ * @param authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema
  * @returns The identification result containing the authorization code, state and issuer
  */
 const authorizeUserFlow = async (
@@ -324,19 +324,19 @@ const authorizeUserFlow = async (
   authzRequestEndpoint: string,
   params: URLSearchParams,
   redirectSchema: string,
-  identificationContext?: IdentificationContext
-): Promise<IdentificationResult> => {
+  authorizationContext?: AuthorizationContext
+): Promise<AuthorizationResult> => {
   if (responseMode === "query") {
-    if (!identificationContext)
+    if (!authorizationContext)
       throw new IdentificationError(
-        "IdentificationContext is required when requesting a PersonalIdentificationData credential"
+        "authorizationContext is required when requesting a PersonalIdentificationData credential"
       );
 
     return await authorizeUserWithQueryMode(
       authzRequestEndpoint,
       params,
       redirectSchema,
-      identificationContext
+      authorizationContext
     );
   } else {
     throw new IdentificationError(
@@ -351,23 +351,23 @@ const authorizeUserFlow = async (
  * @param authzRequestEndpoint The authorization endpoint of the authorization server
  * @param params The query parameters to be used in the request
  * @param redirectSchema The schema to be used in the redirect
- * @param identificationContext The context to identify the user which will be used to start the authorization
+ * @param authorizationContext The context to identify the user which will be used to start the authorization
  * @returns The identification result containing the authorization code, state and issuer
  */
 const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
   params: URLSearchParams,
   redirectSchema: string,
-  identificationContext: IdentificationContext
-): Promise<IdentificationResult> => {
-  const identificationRedirectUrl = await identificationContext
-    .identify(`${authzRequestEndpoint}?${params}`, redirectSchema)
+  authorizationContext: AuthorizationContext
+): Promise<AuthorizationResult> => {
+  const identificationRedirectUrl = await authorizationContext
+    .authorize(`${authzRequestEndpoint}?${params}`, redirectSchema)
     .catch((e) => {
       throw new IdentificationError(e.message);
     });
 
   const urlParse = parseUrl(identificationRedirectUrl);
-  const authRes = IdentificationResultShape.safeParse(urlParse.query);
+  const authRes = AuthorizationResultShape.safeParse(urlParse.query);
   if (!authRes.success) {
     throw new IdentificationError(authRes.error.message);
   }
