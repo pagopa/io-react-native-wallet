@@ -159,29 +159,42 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   );
 
   /**
-   * Opens the in-app browser to start the authentication by performing a GET request to the /authorize endpoint of the authorization server.
-   * The request includes the client_id, the request_uri, and the idphint which is the unique identifier of the IDP selected by the user.
-   * The response is a redirect to the /login SP SAML or RP OIDC which handles the authentication.
+   * Starts the authorization flow which dependes on the response mode and the request credential.
+   * If the response mode is "query" the authorization flow is handled differently via the authorization context which opens an in-app browser capable of catching the redirectSchema.
+   * The form_post.jwt mode is not currently supported.
    */
-  const authzRequestEndpoint =
-    issuerConf.oauth_authorization_server.authorization_endpoint;
-  const params = new URLSearchParams({
-    client_id: clientId,
-    request_uri: issuerRequestUri,
-    idphint,
-  });
-  const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
+  const authorizeFlowResult = await (async () => {
+    const authzRequestEndpoint =
+      issuerConf.oauth_authorization_server.authorization_endpoint;
+    if (responseMode === "query") {
+      if (!authorizationContext) {
+        throw new AuthorizationError(
+          "authorizationContext is required when requesting a PersonalIdentificationData credential"
+        );
+      }
 
-  /**
-   * Starts the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
-   */
-  const authorizeFlowResult = await authorizeUserFlow(
-    responseMode,
-    authzRequestEndpoint,
-    params,
-    redirectSchema,
-    authorizationContext
-  );
+      const params = new URLSearchParams({
+        client_id: clientId,
+        request_uri: issuerRequestUri,
+        idphint,
+      });
+      const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
+
+      /**
+       * Starts the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
+       */
+      return await authorizeUserWithQueryMode(
+        authzRequestEndpoint,
+        params,
+        redirectSchema,
+        authorizationContext
+      );
+    } else {
+      throw new AuthorizationError(
+        "Response mode not supported for this type of credential"
+      );
+    }
+  })();
 
   /**
    * Creates and sends the DPoP Proof JWT to be presented with the authorization code to the /token endpoint of the authorization server
@@ -309,53 +322,13 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
 };
 
 /**
- * This step is used to start the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
- * Based on the response mode, the flow is handled differently. For the query mode, the authorization context is used to identify the user.
- * The form_post.jwt mode is not currently supported.
- * @param responseMode The response mode to be used in the request, can be either "query" or "form_post.jwt"
- * @param authzRequestEndpoint The authorization endpoint of the authorization server
- * @param params The query parameters to be used in the request
- * @param redirectSchema The schema to be used in the redirect, can
- * @param authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema
- * @throws {AuthorizationError} When an error occurs during the authorization process
- * @returns The authorization result containing the authorization code, state and issuer
- */
-const authorizeUserFlow = async (
-  responseMode: string,
-  authzRequestEndpoint: string,
-  params: URLSearchParams,
-  redirectSchema: string,
-  authorizationContext?: AuthorizationContext
-): Promise<AuthorizationResult> => {
-  if (responseMode === "query") {
-    if (!authorizationContext)
-      throw new AuthorizationError(
-        "authorizationContext is required when requesting a PersonalIdentificationData credential"
-      );
-
-    return await authorizeUserWithQueryMode(
-      authzRequestEndpoint,
-      params,
-      redirectSchema,
-      authorizationContext
-    );
-  } else {
-    throw new AuthorizationError(
-      "Responde mode not supported for this type of credential"
-    );
-  }
-};
-
-/**
  * Authorizes the user using the query mode and the authorization context.
  * The authorization context catches the 302 redirect from the authorization server which contains the authorization response.
  * @param authzRequestEndpoint The authorization endpoint of the authorization server
  * @param params The query parameters to be used in the request
  * @param redirectSchema The schema to be used in the redirect
  * @param authorizationContext The context to identify the user which will be used to start the authorization
- * @throws {AuthorizationIdpError} When an error occurs during the authorization process with the IDP
- * @throws {AuthorizationError} When an error occurs during the authorization process
- * @returns The authorization result containing the authorization code, state and issuer
+ * @returns The authrozation result containing the authorization code, state and issuer
  */
 const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
