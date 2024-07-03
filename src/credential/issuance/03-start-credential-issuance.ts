@@ -100,7 +100,7 @@ export type StartCredentialIssuance = (
  * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
  * @param context.idphint Unique identifier of the SPID IDP
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {AuthorizationError} When the response from the identification response is not parsable
+ * @throws {AuthorizationError} When the response from the authorization response is not parsable
  * @returns The credential obtained
  */
 
@@ -318,7 +318,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
  * @param redirectSchema The schema to be used in the redirect, can
  * @param authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema
  * @throws {AuthorizationError} When an error occurs during the authorization process
- * @returns The identification result containing the authorization code, state and issuer
+ * @returns The authorization result containing the authorization code, state and issuer
  */
 const authorizeUserFlow = async (
   responseMode: string,
@@ -353,9 +353,9 @@ const authorizeUserFlow = async (
  * @param params The query parameters to be used in the request
  * @param redirectSchema The schema to be used in the redirect
  * @param authorizationContext The context to identify the user which will be used to start the authorization
- * @throws {AuthorizationIdpError} When an error occurs during the identification process with the IDP
+ * @throws {AuthorizationIdpError} When an error occurs during the authorization process with the IDP
  * @throws {AuthorizationError} When an error occurs during the authorization process
- * @returns The identification result containing the authorization code, state and issuer
+ * @returns The authorization result containing the authorization code, state and issuer
  */
 const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
