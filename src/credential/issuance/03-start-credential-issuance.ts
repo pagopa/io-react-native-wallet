@@ -15,6 +15,7 @@ import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import {
   AuthorizationResultShape,
+  type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
 import { withEphemeralKey } from "../../utils/crypto";
@@ -80,6 +81,7 @@ export type StartCredentialIssuance = (
   context: {
     wiaCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
+    authorizationContext?: AuthorizationContext;
     walletInstanceAttestation: string;
     redirectUri: string;
     idphint: string;
@@ -94,6 +96,7 @@ export type StartCredentialIssuance = (
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.credentialCryptoContext The context to access the key to associat with credential
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
+ * @param context.authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema. If not specified, the default browser is used.
  * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
  * @param context.idphint Unique identifier of the SPID IDP
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
@@ -110,6 +113,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     wiaCryptoContext,
     credentialCryptoContext,
     walletInstanceAttestation,
+    authorizationContext,
     redirectUri,
     idphint,
     appFetch = fetch,
@@ -175,7 +179,8 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
       return await authorizeUserWithQueryMode(
         authzRequestEndpoint,
         params,
-        redirectUri
+        redirectUri,
+        authorizationContext
       );
     } else {
       throw new IdentificationError(
@@ -311,35 +316,47 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
 
 /**
  * Authorizes the user using the query mode and the authorization context.
- * The authorization context catches the 302 redirect from the authorization server which contains the authorization response.
  * @param authzRequestEndpoint The authorization endpoint of the authorization server
  * @param params The query parameters to be used in the request
+ * @param redirectUri The URL to which the redirect is made is usually a custom URL or deeplink
+ * @param authorizationContext The AuthorizationContext to manage the internal webview. If not specified, the default browser is used
  * @returns The authrozation result containing the authorization code, state and issuer
  */
 const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
   params: URLSearchParams,
-  redirectUri: string
+  redirectUri: string,
+  authorizationContext?: AuthorizationContext
 ): Promise<AuthorizationResult> => {
+  const authUrl = `${authzRequestEndpoint}?${params}`;
   var authRedirectUrl: string | undefined;
 
-  // handler for redirectUri
-  Linking.addEventListener("url", ({ url }) => {
-    if (url.includes(redirectUri)) {
-      authRedirectUrl = url;
+  if (authorizationContext) {
+    const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
+    authRedirectUrl = await authorizationContext
+      .authorize(authUrl, redirectSchema)
+      .catch((e) => {
+        throw new IdentificationError(e.message);
+      });
+  } else {
+    // handler for redirectUri
+    Linking.addEventListener("url", ({ url }) => {
+      if (url.includes(redirectUri)) {
+        authRedirectUrl = url;
+      }
+    });
+
+    Linking.openURL(authUrl);
+
+    /*
+     * Waits for 120 seconds for the identificationRedirectUrl variable to be set
+     * by the custom url handler. If the timeout is exceeded, throw an exception
+     */
+    await until(() => authRedirectUrl !== undefined, 120);
+
+    if (authRedirectUrl === undefined) {
+      throw new IdentificationError("Invalid authentication redirect url");
     }
-  });
-
-  Linking.openURL(`${authzRequestEndpoint}?${params}`);
-
-  /*
-   * Waits for 120 seconds for the identificationRedirectUrl variable to be set
-   * by the custom url handler. If the timeout is exceeded, throw an exception
-   */
-  await until(() => authRedirectUrl !== undefined, 120);
-
-  if (authRedirectUrl === undefined) {
-    throw new IdentificationError("Invalid authentication redirect url");
   }
 
   const urlParse = parseUrl(authRedirectUrl);
