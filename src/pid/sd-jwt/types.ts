@@ -34,7 +34,7 @@ export const PID = z.object({
     uniqueId: z.string(),
     givenName: z.string(),
     familyName: z.string(),
-    birthdate: z.string(),
+    birthDate: z.string(),
     placeOfBirth: z
       .object({
         country: z.string(),

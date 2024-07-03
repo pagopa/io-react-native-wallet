@@ -3,7 +3,7 @@ import { Disclosure } from "../types";
 
 const disclosures: Disclosure[] = [
   ["6w1_soRXFgaHKfpYn3cvfQ", "given_name", "Mario"],
-  ["fuNp97Hf3wV6y48y-QZhIg", "birthdate", "1980-10-01"],
+  ["fuNp97Hf3wV6y48y-QZhIg", "birth_date", "1980-10-01"],
   [
     "p-9LzyWHZBVDvhXDWkN2xA",
     "place_of_birth",
