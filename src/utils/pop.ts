@@ -22,7 +22,7 @@ export const createPopToken = async (
       kid,
     })
     .setIssuedAt()
-    .setExpirationTime("1h")
+    .setExpirationTime("5min")
     .sign();
 };
 

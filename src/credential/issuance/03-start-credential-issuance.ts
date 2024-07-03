@@ -13,11 +13,14 @@ import { ASSERTION_TYPE } from "./const";
 import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
-import { IdentificationResultShape } from "../../utils/identification";
+import {
+  AuthorizationResultShape,
+  type AuthorizationResult,
+} from "../../utils/auth";
 import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
-import { CredentialResponse, TokenResponse } from "./types";
+import { CredentialResponse, TokenResponse, type ResponseMode } from "./types";
 import { Linking } from "react-native";
 
 /**
@@ -57,7 +60,7 @@ const selectCredentialDefinition = (
 const selectResponseMode = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
-): string => {
+): ResponseMode => {
   const responseModeSupported =
     issuerConf.oauth_authorization_server.response_modes_supported;
 
@@ -126,8 +129,6 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
    * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
    */
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-
-  // WARNING: This is not a secure way to generate a code verifier CHANGE ME
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
@@ -154,42 +155,30 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   );
 
   /**
-   * Opens the in-app browser to start the authentication by performing a GET request to the /authorize endpoint of the authorization server.
-   * The request includes the client_id, the request_uri, and the idphint which is the unique identifier of the IDP selected by the user.
-   * The response is a redirect to the /login SP SAML or RP OIDC which handles the authentication.
+   * Starts the authorization flow which dependes on the response mode and the request credential.
+   * If the response mode is "query" the authorization flow is handled differently via the authorization context which opens an in-app browser capable of catching the redirectSchema.
+   * The form_post.jwt mode is not currently supported.
    */
-  const authzRequestEndpoint =
-    issuerConf.oauth_authorization_server.authorization_endpoint;
-  const params = new URLSearchParams({
-    client_id: clientId,
-    request_uri: issuerRequestUri,
-    idphint,
-  });
+  const authorizeFlowResult = await (async () => {
+    const authzRequestEndpoint =
+      issuerConf.oauth_authorization_server.authorization_endpoint;
+    if (responseMode === "query") {
+      const params = new URLSearchParams({
+        client_id: clientId,
+        request_uri: issuerRequestUri,
+        idphint,
+      });
 
-  var identificationRedirectUrl: string | undefined;
-
-  // handler for redirectUri
-  Linking.addEventListener("url", ({ url }) => {
-    identificationRedirectUrl = url;
-  });
-
-  Linking.openURL(`${authzRequestEndpoint}?${params}`);
-
-  /*
-   * Waits for 120 seconds for the identificationRedirectUrl variable to be set
-   * by the custom url handler. If the timeout is exceeded, throw an exception
-   */
-  await until(() => identificationRedirectUrl !== undefined, 120);
-
-  if (identificationRedirectUrl === undefined) {
-    throw new Error("Invalid identificationRedirectUrl");
-  }
-
-  const urlParse = parseUrl(identificationRedirectUrl);
-  const authRes = IdentificationResultShape.safeParse(urlParse.query);
-  if (!authRes.success) {
-    throw new IdentificationError(authRes.error.message);
-  }
+      /**
+       * Starts the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
+       */
+      return await authorizeUserWithQueryMode(authzRequestEndpoint, params);
+    } else {
+      throw new IdentificationError(
+        "Response mode not supported for this type of credential"
+      );
+    }
+  })();
 
   /**
    * Creates and sends the DPoP Proof JWT to be presented with the authorization code to the /token endpoint of the authorization server
@@ -198,7 +187,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
    * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
    */
 
-  const { code } = authRes.data;
+  const { code } = authorizeFlowResult;
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
   // Use an ephemeral key to be destroyed after use
   const tokenRequestSignedDPop = await withEphemeralKey(
@@ -316,6 +305,44 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   return credentialRes.data;
 };
 
+/**
+ * Authorizes the user using the query mode and the authorization context.
+ * The authorization context catches the 302 redirect from the authorization server which contains the authorization response.
+ * @param authzRequestEndpoint The authorization endpoint of the authorization server
+ * @param params The query parameters to be used in the request
+ * @returns The authrozation result containing the authorization code, state and issuer
+ */
+const authorizeUserWithQueryMode = async (
+  authzRequestEndpoint: string,
+  params: URLSearchParams
+): Promise<AuthorizationResult> => {
+  var authRedirectUrl: string | undefined;
+
+  // handler for redirectUri
+  Linking.addEventListener("url", ({ url }) => {
+    authRedirectUrl = url;
+  });
+
+  Linking.openURL(`${authzRequestEndpoint}?${params}`);
+
+  /*
+   * Waits for 120 seconds for the identificationRedirectUrl variable to be set
+   * by the custom url handler. If the timeout is exceeded, throw an exception
+   */
+  await until(() => authRedirectUrl !== undefined, 120);
+
+  if (authRedirectUrl === undefined) {
+    throw new Error("Invalid authentication redirect url");
+  }
+
+  const urlParse = parseUrl(authRedirectUrl);
+  const authRes = AuthorizationResultShape.safeParse(urlParse.query);
+  if (!authRes.success) {
+    throw new IdentificationError(authRes.error.message);
+  }
+  return authRes.data;
+};
+
 export const createNonceProof = async (
   nonce: string,
   issuer: string,
@@ -334,6 +361,6 @@ export const createNonceProof = async (
     .setAudience(audience)
     .setIssuer(issuer)
     .setIssuedAt()
-    .setExpirationTime("1h")
+    .setExpirationTime("5min")
     .sign();
 };
