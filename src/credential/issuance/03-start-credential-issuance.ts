@@ -346,13 +346,18 @@ const authorizeUserWithQueryMode = async (
       }
     });
 
-    await Linking.openURL(authUrl);
+    const openAuthUrlInBrowser = Linking.openURL(authUrl);
 
     /*
      * Waits for 120 seconds for the identificationRedirectUrl variable to be set
      * by the custom url handler. If the timeout is exceeded, throw an exception
      */
-    await until(() => authRedirectUrl !== undefined, 120);
+    const unitAuthRedirectIsNotUndefined = until(
+      () => authRedirectUrl !== undefined,
+      120
+    );
+
+    await Promise.all([openAuthUrlInBrowser, unitAuthRedirectIsNotUndefined]);
 
     if (authRedirectUrl === undefined) {
       throw new IdentificationError("Invalid authentication redirect url");
