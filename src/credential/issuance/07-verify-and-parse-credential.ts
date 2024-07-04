@@ -6,10 +6,11 @@ import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
 import type { JWK } from "../../utils/jwk";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { ObtainCredential } from "./06-obtain-credential";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credential: Out<StartCredentialIssuance>["credential"],
+  credential: Out<ObtainCredential>["credential"],
   format: Out<StartCredentialIssuance>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
