@@ -346,7 +346,7 @@ const authorizeUserWithQueryMode = async (
       }
     });
 
-    Linking.openURL(authUrl);
+    await Linking.openURL(authUrl);
 
     /*
      * Waits for 120 seconds for the identificationRedirectUrl variable to be set
