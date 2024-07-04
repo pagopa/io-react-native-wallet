@@ -351,7 +351,7 @@ export const authorizeUserWithQueryMode = async (
   if (!authRes.success) {
     const authErr = AuthorizationErrorShape.safeParse(urlParse.query);
     if (!authErr.success) {
-        throw new AuthorizationError(authRes.error.message); // an error occured while parsing the result and the error
+      throw new AuthorizationError(authRes.error.message); // an error occured while parsing the result and the error
     }
     throw new AuthorizationIdpError(
       authErr.data.error,
