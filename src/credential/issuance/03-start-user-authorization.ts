@@ -29,8 +29,12 @@ export type StartUserAuthorization = (
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
  * issuer configuration.
- * @param issuerConf The issuer configuration
- * @param credentialType The type of the credential to be requested
+ * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param credentialType The type of the credential to be requested returned by {@link startFlow}
+ * @param context.wiaCryptoContext The Wallet Instance's crypto context
+ * @param context.walletInstanceAttestation The Wallet Instance's attestation
+ * @param context.redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
+ * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The credential definition to be used in the request which includes the format and the type and its type
  */
 const selectCredentialDefinition = (
@@ -77,6 +81,24 @@ const selectResponseMode = (
   return responseMode;
 };
 
+/**
+ * WARNING: This function must be called after {@link evaluateIssuerTrust} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
+ * Creates and sends a PAR request to the /as/par endpoint of the authroization server.
+ * This starts the authentication flow to obtain an access token.
+ * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer.
+ * This is an HTTP POST request containing the Wallet Instance identifier (client id), the code challenge and challenge method as specified by PKCE according to RFC 9126
+ * along with the WTE and its proof of possession (WTE-PoP).
+ * Additionally, it includes a request object, which is a signed JWT encapsulating the type of digital credential requested (authorization_details),
+ * the application session identifier on the Wallet Instance side (state),
+ * the method (query or form_post.jwt) by which the Authorization Server
+ * should transmit the Authorization Response containing the authorization code issued upon the end user's authentication (response_mode)
+ * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirect_uri of the Wallet Instance where the Authorization Response
+ * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
+ * @param issuerConf The issuer configuration
+ * @param credentialType The type of the credential to be requested returned by {@link selectCredentialDefinition}
+ * @param ctx The context object containing the Wallet Instance's cryptographic context, the Wallet Instance's attestation, the redirect URI and the fetch implementation
+ * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier and the credential definition
+ */
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,
   credentialType,
@@ -89,19 +111,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     appFetch = fetch,
   } = ctx;
 
-  /**
-   * Creates and sends a PAR request to the /as/par endpoint of the authroization server.
-   * This starts the authentication flow to obtain an access token.
-   * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer.
-   * This is an HTTP POST request containing the Wallet Instance identifier (client id), the code challenge and challenge method as specified by PKCE according to RFC 9126
-   * along with the WTE and its proof of possession (WTE-PoP).
-   * Additionally, it includes a request object, which is a signed JWT encapsulating the type of digital credential requested (authorization_details),
-   * the application session identifier on the Wallet Instance side (state),
-   * the method (query or form_post.jwt) by which the Authorization Server
-   * should transmit the Authorization Response containing the authorization code issued upon the end user's authentication (response_mode)
-   * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirect_uri of the Wallet Instance where the Authorization Response
-   * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
-   */
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =

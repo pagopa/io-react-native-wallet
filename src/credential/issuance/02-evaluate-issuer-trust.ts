@@ -13,10 +13,11 @@ export type EvaluateIssuerTrust = (
 }>;
 
 /**
+ * WARNING: This function must be called after {@link startFlow}. The next function to be called is {@link startUserAuthorization}.
  * The Issuer trust evaluation phase.
  * Fetch the Issuer's configuration and verify trust.
  *
- * @param issuerUrl The base url of the Issuer
+ * @param issuerUrl The base url of the Issuer returned by {@link startFlow}
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The Issuer's configuration
  */

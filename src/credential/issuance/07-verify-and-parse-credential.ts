@@ -186,16 +186,15 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 };
 
 /**
- * Verify and parse an encoded credential
- *
- * @param issuerConf The Issuer configuration
- * @param credential The encoded credential
- * @param format The format of the credentual
- * @param context.credentialCryptoContext The context to access the key the Credential will be bound to
+ * Verify and parse an encoded credential.
+ * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param credential The encoded credential returned by {@link obtainCredential}
+ * @param format The format of the credentual returned by {@link obtainCredential}
+ * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
  * @returns A parsed credential with attributes in plain value
- * @throws If the credential signature is not verified with the Issuer key set
- * @throws If the credential is not bound to the provided user key
- * @throws If the credential data fail to parse
+ * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
+ * @throws {IoWalletError} If the credential is not bound to the provided user key
+ * @throws {IoWalletError} If the credential data fail to parse
  */
 export const verifyAndParseCredential: VerifyAndParseCredential = async (
   issuerConf,

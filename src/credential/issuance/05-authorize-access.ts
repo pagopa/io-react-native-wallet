@@ -30,6 +30,16 @@ export type AuthorizeAccess = (
  * for requesting the issuance of an access token bound to the public key of the Wallet Instance contained within the DPoP.
  * This enables the Wallet Instance to request a digital credential.
  * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
+ * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param code The authorization code returned by {@link completeUserAuthorizationWithQueryMode} or {@link completeUserAuthorizationWithFormPost}
+ * @param redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
+ * @param clientId The client id returned by {@link startUserAuthorization}
+ * @param codeVerifier The code verifier returned by {@link startUserAuthorization}
+ * @param context.walletInstanceAttestation The Wallet Instance's attestation
+ * @param context.wiaCryptoContext The Wallet Instance's crypto context
+ * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @throws {ValidationFailed} if an error occurs while parsing the token response
+ * @return The token response containing the access token along with the token request signed with DPoP which has to be used in the {@link obtainCredential} step.
  */
 export const authorizeAccess: AuthorizeAccess = async (
   issuerConf,

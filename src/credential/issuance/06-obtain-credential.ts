@@ -40,6 +40,21 @@ export const createNonceProof = async (
     .sign();
 };
 
+/**
+ * Obtains the credential from the issuer.
+ * The key pair of the credentialCryptoContext is used for Openid4vci proof JWT to be presented with the Access Token and the DPoP Proof JWT at the Credential Endpoint
+ * of the Credential Issuer to request the issuance of a credential linked to the public key contained in the JWT proof.
+ * The Openid4vci proof JWT incapsulates the nonce extracted from the token response from the {@link authorizeAccess} step.
+ * The credential request is sent to the Credential Endpoint of the Credential Issuer via HTTP POST with the type of the credential, its format, the access token and the JWT proof.
+ * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param accessToken The access token response returned by {@link authorizeAccess}
+ * @param clientId The client id returned by {@link startUserAuthorization}
+ * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link startUserAuthorization}
+ * @param tokenRequestSignedDPop The DPoP signed token request returned by {@link authorizeAccess}
+ * @param context.credentialCryptoContext The crypto context used to obtain the credential
+ * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @returns The credential response containing the credential
+ */
 export const obtainCredential: ObtainCredential = async (
   issuerConf,
   accessToken,
