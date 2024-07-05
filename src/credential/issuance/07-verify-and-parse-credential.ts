@@ -1,4 +1,3 @@
-import { type StartCredentialIssuance } from "./03-start-credential-issuance";
 import type { Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
@@ -11,7 +10,7 @@ import type { ObtainCredential } from "./06-obtain-credential";
 export type VerifyAndParseCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
-  format: Out<StartCredentialIssuance>["format"],
+  format: Out<ObtainCredential>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
   }
