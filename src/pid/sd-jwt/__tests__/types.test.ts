@@ -11,7 +11,7 @@ describe("PID", () => {
         uniqueId: "idANPR",
         givenName: "Mario",
         familyName: "Rossi",
-        birthdate: "1980-10-01",
+        birthDate: "1980-10-01",
         placeOfBirth: { country: "IT", locality: "Rome" },
         taxIdCode: "TINIT-RSSMRA80A10H501A",
       },
