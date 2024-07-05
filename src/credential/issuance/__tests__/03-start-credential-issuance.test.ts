@@ -1,19 +1,22 @@
 import type { AuthorizationContext } from "src/utils/auth";
-import { authorizeUserWithQueryMode } from "../03-start-credential-issuance";
 import {
   AuthorizationError,
   AuthorizationIdpError,
 } from "../../../utils/errors";
+import { completeUserAuthorizationWithQueryMode } from "../04-complete-user-authorization";
+import { CredentialIssuerEntityConfiguration } from "../../../trust/types";
 
 describe("authorizeUserWithQueryMode", () => {
   // Mocks required for the authorization process
-  const authzRequestEndpoint = "https://example.com/authz";
-  const params = new URLSearchParams({
-    response_type: "code",
-    client_id: "123456789",
-    redirect_uri: "https://example.com/callback",
-  });
-  const redirectSchema = "test";
+  const issuerRequestUri = "https://example.com/authz";
+  const redirectUri = "test://cb";
+  const idpHint = "idp";
+  const clientId = "clientId";
+  const issuerConf = {
+    oauth_authorization_server: {
+      authorization_endpoint: "https://example.com/auth",
+    }, // This is the only field required for the test
+  } as CredentialIssuerEntityConfiguration["payload"]["metadata"];
 
   it("should return the authorization result when the authorization server responds with a valid response", async () => {
     const authRes = {
@@ -30,12 +33,13 @@ describe("authorizeUserWithQueryMode", () => {
         ),
     };
 
-    // Call the function
-    const result = await authorizeUserWithQueryMode(
-      authzRequestEndpoint,
-      params,
-      redirectSchema,
-      authContext
+    const result = await completeUserAuthorizationWithQueryMode(
+      issuerRequestUri,
+      clientId,
+      issuerConf,
+      authContext,
+      idpHint,
+      redirectUri
     );
 
     expect(result).toMatchObject(authRes);
@@ -54,11 +58,13 @@ describe("authorizeUserWithQueryMode", () => {
     };
 
     await expect(() =>
-      authorizeUserWithQueryMode(
-        authzRequestEndpoint,
-        params,
-        redirectSchema,
-        authContext
+      completeUserAuthorizationWithQueryMode(
+        issuerRequestUri,
+        clientId,
+        issuerConf,
+        authContext,
+        idpHint,
+        redirectUri
       )
     ).rejects.toThrowError(AuthorizationIdpError);
   });
@@ -75,11 +81,13 @@ describe("authorizeUserWithQueryMode", () => {
     };
 
     await expect(() =>
-      authorizeUserWithQueryMode(
-        authzRequestEndpoint,
-        params,
-        redirectSchema,
-        authContext
+      completeUserAuthorizationWithQueryMode(
+        issuerRequestUri,
+        clientId,
+        issuerConf,
+        authContext,
+        idpHint,
+        redirectUri
       )
     ).rejects.toThrowError(AuthorizationError);
   });
