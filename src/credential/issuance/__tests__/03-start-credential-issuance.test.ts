@@ -30,7 +30,6 @@ describe("authorizeUserWithQueryMode", () => {
         ),
     };
 
-    // Call the function
     const result = await authorizeUserWithQueryMode(
       authzRequestEndpoint,
       params,
