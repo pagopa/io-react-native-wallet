@@ -82,9 +82,9 @@ export default (
           issuerRequestUri,
           clientId,
           issuerConf,
-          authorizationContext,
           idphint,
-          REDIRECT_URI
+          REDIRECT_URI,
+          authorizationContext
         );
 
       const { accessToken, tokenRequestSignedDPop } =

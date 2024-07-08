@@ -37,9 +37,9 @@ describe("authorizeUserWithQueryMode", () => {
       issuerRequestUri,
       clientId,
       issuerConf,
-      authContext,
       idpHint,
-      redirectUri
+      redirectUri,
+      authContext
     );
 
     expect(result).toMatchObject(authRes);
@@ -62,9 +62,9 @@ describe("authorizeUserWithQueryMode", () => {
         issuerRequestUri,
         clientId,
         issuerConf,
-        authContext,
         idpHint,
-        redirectUri
+        redirectUri,
+        authContext
       )
     ).rejects.toThrowError(AuthorizationIdpError);
   });
@@ -85,9 +85,9 @@ describe("authorizeUserWithQueryMode", () => {
         issuerRequestUri,
         clientId,
         issuerConf,
-        authContext,
         idpHint,
-        redirectUri
+        redirectUri,
+        authContext
       )
     ).rejects.toThrowError(AuthorizationError);
   });
