@@ -37,10 +37,12 @@ type CredentialIssuerDisplayMetadata = z.infer<
 const CredentialIssuerDisplayMetadata = z.object({
   name: z.string(),
   locale: z.string(),
-  logo: z.object({
-    url: z.string(),
-    alt_text: z.string(),
-  }),
+  logo: z
+    .object({
+      url: z.string(),
+      alt_text: z.string(),
+    })
+    .optional(), // TODO [SIW-1268]: should not be optional
 });
 
 type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
@@ -57,7 +59,7 @@ const SupportedCredentialMetadata = z.object({
   format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
-  claims: ClaimsMetadata,
+  claims: ClaimsMetadata.optional(), // NOT OPTIONAL CHANGE ME
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
 });

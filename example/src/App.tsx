@@ -41,6 +41,11 @@ export default function App() {
                 scenario={scenarios.getPid(integrityContext, IdpHint.CIE)}
                 disabled={!integrityContext}
               />
+              <TestScenario
+                title="Get credential (mDL)"
+                scenario={scenarios.getCredential(integrityContext)}
+                disabled={!integrityContext}
+              />
             </>
           )}
         </ScrollView>
