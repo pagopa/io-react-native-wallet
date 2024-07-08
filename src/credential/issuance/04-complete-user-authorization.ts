@@ -113,6 +113,6 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
   };
 
 // TODO: SIW-1120 implement generic credential issuance flow
-export const compeUserAuthorizationWithFormPostJwtMode = () => {
+export const completeUserAuthorizationWithFormPostJwtMode = () => {
   throw new Error("Not implemented");
 };
