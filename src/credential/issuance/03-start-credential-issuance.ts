@@ -4,25 +4,25 @@ import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import {
   generateRandomAlphaNumericString,
   hasStatus,
+  until,
   type Out,
 } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
-import {
-  WalletInstanceAttestation,
-  type AuthorizationContext,
-} from "@pagopa/io-react-native-wallet";
+import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
 import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import {
   AuthorizationResultShape,
+  type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
 import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
 import { CredentialResponse, TokenResponse, type ResponseMode } from "./types";
+import { Linking } from "react-native";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
@@ -95,9 +95,9 @@ export type StartCredentialIssuance = (
  * @param credentialType The type of the credential to be requested
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.credentialCryptoContext The context to access the key to associat with credential
- * @param context.authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema.
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
- * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase
+ * @param context.authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema. If not specified, the default browser is used.
+ * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase. If you don't use authorizationContext remember to register this URL as customUrl or deepLink. See https://reactnative.dev/docs/linking
  * @param context.idphint Unique identifier of the SPID IDP
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {IdentificationError} When the response from the identification response is not parsable
@@ -112,8 +112,8 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
   const {
     wiaCryptoContext,
     credentialCryptoContext,
-    authorizationContext,
     walletInstanceAttestation,
+    authorizationContext,
     redirectUri,
     idphint,
     appFetch = fetch,
@@ -167,18 +167,11 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
     const authzRequestEndpoint =
       issuerConf.oauth_authorization_server.authorization_endpoint;
     if (responseMode === "query") {
-      if (!authorizationContext) {
-        throw new IdentificationError(
-          "authorizationContext is required when requesting a PersonalIdentificationData credential"
-        );
-      }
-
       const params = new URLSearchParams({
         client_id: clientId,
         request_uri: issuerRequestUri,
         idphint,
       });
-      const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
 
       /**
        * Starts the authorization flow to obtain an authorization code by performing a GET request to the /authorize endpoint of the authorization server.
@@ -186,7 +179,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
       return await authorizeUserWithQueryMode(
         authzRequestEndpoint,
         params,
-        redirectSchema,
+        redirectUri,
         authorizationContext
       );
     } else {
@@ -323,24 +316,53 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
 
 /**
  * Authorizes the user using the query mode and the authorization context.
- * The authorization context catches the 302 redirect from the authorization server which contains the authorization response.
  * @param authzRequestEndpoint The authorization endpoint of the authorization server
  * @param params The query parameters to be used in the request
- * @param redirectSchema The schema to be used in the redirect
- * @param authorizationContext The context to identify the user which will be used to start the authorization
+ * @param redirectUri The URL to which the redirect is made is usually a custom URL or deeplink
+ * @param authorizationContext The AuthorizationContext to manage the internal webview. If not specified, the default browser is used
  * @returns The authrozation result containing the authorization code, state and issuer
  */
 const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
   params: URLSearchParams,
-  redirectSchema: string,
-  authorizationContext: AuthorizationContext
+  redirectUri: string,
+  authorizationContext?: AuthorizationContext
 ): Promise<AuthorizationResult> => {
-  const authRedirectUrl = await authorizationContext
-    .authorize(`${authzRequestEndpoint}?${params}`, redirectSchema)
-    .catch((e) => {
-      throw new IdentificationError(e.message);
+  const authUrl = `${authzRequestEndpoint}?${params}`;
+  var authRedirectUrl: string | undefined;
+
+  if (authorizationContext) {
+    const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
+    authRedirectUrl = await authorizationContext
+      .authorize(authUrl, redirectSchema)
+      .catch((e) => {
+        throw new IdentificationError(e.message);
+      });
+  } else {
+    // handler for redirectUri
+    Linking.addEventListener("url", ({ url }) => {
+      if (url.includes(redirectUri)) {
+        authRedirectUrl = url;
+      }
     });
+
+    const openAuthUrlInBrowser = Linking.openURL(authUrl);
+
+    /*
+     * Waits for 120 seconds for the identificationRedirectUrl variable to be set
+     * by the custom url handler. If the timeout is exceeded, throw an exception
+     */
+    const unitAuthRedirectIsNotUndefined = until(
+      () => authRedirectUrl !== undefined,
+      120
+    );
+
+    await Promise.all([openAuthUrlInBrowser, unitAuthRedirectIsNotUndefined]);
+
+    if (authRedirectUrl === undefined) {
+      throw new IdentificationError("Invalid authentication redirect url");
+    }
+  }
 
   const urlParse = parseUrl(authRedirectUrl);
   const authRes = AuthorizationResultShape.safeParse(urlParse.query);
