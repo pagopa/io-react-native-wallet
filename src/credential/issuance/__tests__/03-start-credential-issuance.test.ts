@@ -13,7 +13,7 @@ describe("authorizeUserWithQueryMode", () => {
     client_id: "123456789",
     redirect_uri: "https://example.com/callback",
   });
-  const redirectSchema = "test";
+  const redirectUri = "test://wb";
 
   it("should return the authorization result when the authorization server responds with a valid response", async () => {
     const authRes = {
@@ -33,7 +33,7 @@ describe("authorizeUserWithQueryMode", () => {
     const result = await authorizeUserWithQueryMode(
       authzRequestEndpoint,
       params,
-      redirectSchema,
+      redirectUri,
       authContext
     );
 
@@ -56,7 +56,7 @@ describe("authorizeUserWithQueryMode", () => {
       authorizeUserWithQueryMode(
         authzRequestEndpoint,
         params,
-        redirectSchema,
+        redirectUri,
         authContext
       )
     ).rejects.toThrowError(AuthorizationIdpError);
@@ -77,7 +77,7 @@ describe("authorizeUserWithQueryMode", () => {
       authorizeUserWithQueryMode(
         authzRequestEndpoint,
         params,
-        redirectSchema,
+        redirectUri,
         authContext
       )
     ).rejects.toThrowError(AuthorizationError);
