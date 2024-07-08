@@ -2,12 +2,11 @@ import {
   Credential,
   WalletInstanceAttestation,
   createCryptoContextFor,
-  type AuthorizationContext,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
-
 import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
+
 import {
   REDIRECT_URI,
   WALLET_PID_PROVIDER_BASE_URL,
@@ -15,6 +14,7 @@ import {
 } from "@env";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
+import { Alert } from "react-native";
 
 export enum IdpHint {
   CIE = "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
@@ -39,10 +39,13 @@ export default (
           walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
         });
 
-      // Create identification context
-      const authorizationContext: AuthorizationContext = {
-        authorize: openAuthenticationSession,
-      };
+      // Create identification context only for SPID
+      const authorizationContext =
+        idphint === IdpHint.SPID
+          ? {
+              authorize: openAuthenticationSession,
+            }
+          : undefined;
 
       // Create credential crypto context
       const credentialKeyTag = uuid.v4().toString();
@@ -84,6 +87,10 @@ export default (
           format,
           { credentialCryptoContext }
         );
+
+      Alert.alert(`PID obtained!`, `${JSON.stringify(parsedCredential)}`, [
+        { text: "OK" },
+      ]);
 
       return result(parsedCredential);
     } catch (e) {
