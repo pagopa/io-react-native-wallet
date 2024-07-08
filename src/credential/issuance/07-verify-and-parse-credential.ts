@@ -1,4 +1,3 @@
-import { type StartCredentialIssuance } from "./03-start-credential-issuance";
 import type { Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
@@ -6,11 +5,12 @@ import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
 import type { JWK } from "../../utils/jwk";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { ObtainCredential } from "./06-obtain-credential";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credential: Out<StartCredentialIssuance>["credential"],
-  format: Out<StartCredentialIssuance>["format"],
+  credential: Out<ObtainCredential>["credential"],
+  format: Out<ObtainCredential>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
   }
@@ -186,16 +186,15 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 };
 
 /**
- * Verify and parse an encoded credential
- *
- * @param issuerConf The Issuer configuration
- * @param credential The encoded credential
- * @param format The format of the credentual
- * @param context.credentialCryptoContext The context to access the key the Credential will be bound to
+ * Verify and parse an encoded credential.
+ * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param credential The encoded credential returned by {@link obtainCredential}
+ * @param format The format of the credentual returned by {@link obtainCredential}
+ * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
  * @returns A parsed credential with attributes in plain value
- * @throws If the credential signature is not verified with the Issuer key set
- * @throws If the credential is not bound to the provided user key
- * @throws If the credential data fail to parse
+ * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
+ * @throws {IoWalletError} If the credential is not bound to the provided user key
+ * @throws {IoWalletError} If the credential data fail to parse
  */
 export const verifyAndParseCredential: VerifyAndParseCredential = async (
   issuerConf,

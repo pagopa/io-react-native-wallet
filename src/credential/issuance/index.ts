@@ -1,17 +1,40 @@
-import { verifyAndParseCredential } from "./04-verify-and-parse-credential";
 import { type StartFlow } from "./01-start-flow";
 import {
   evaluateIssuerTrust,
   type EvaluateIssuerTrust,
 } from "./02-evaluate-issuer-trust";
 import {
-  startCredentialIssuance,
-  type StartCredentialIssuance,
-} from "./03-start-credential-issuance";
+  startUserAuthorization,
+  type StartUserAuthorization,
+} from "./03-start-user-authorization";
+import {
+  completeUserAuthorizationWithQueryMode,
+  type CompleteUserAuthorizationWithQueryMode,
+} from "./04-complete-user-authorization";
+import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
+import {
+  obtainCredential,
+  type ObtainCredential,
+} from "./06-obtain-credential";
+import {
+  verifyAndParseCredential,
+  type VerifyAndParseCredential,
+} from "./07-verify-and-parse-credential";
 
 export {
   evaluateIssuerTrust,
-  startCredentialIssuance,
+  startUserAuthorization,
+  completeUserAuthorizationWithQueryMode,
+  authorizeAccess,
+  obtainCredential,
   verifyAndParseCredential,
 };
-export type { StartFlow, EvaluateIssuerTrust, StartCredentialIssuance };
+export type {
+  StartFlow,
+  EvaluateIssuerTrust,
+  StartUserAuthorization,
+  CompleteUserAuthorizationWithQueryMode,
+  AuthorizeAccess,
+  ObtainCredential,
+  VerifyAndParseCredential,
+};

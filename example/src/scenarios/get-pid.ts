@@ -66,19 +66,50 @@ export default (
       );
 
       // Start user authorization
-      const { credential, format } =
-        await Credential.Issuance.startCredentialIssuance(
+      const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
+        await Credential.Issuance.startUserAuthorization(
           issuerConf,
           credentialType,
           {
             walletInstanceAttestation,
-            credentialCryptoContext,
-            authorizationContext,
             redirectUri: `${REDIRECT_URI}`,
             wiaCryptoContext,
-            idphint,
           }
         );
+
+      const { code } =
+        await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+          issuerRequestUri,
+          clientId,
+          issuerConf,
+          idphint,
+          REDIRECT_URI,
+          authorizationContext
+        );
+
+      const { accessToken, tokenRequestSignedDPop } =
+        await Credential.Issuance.authorizeAccess(
+          issuerConf,
+          code,
+          clientId,
+          REDIRECT_URI,
+          codeVerifier,
+          {
+            walletInstanceAttestation,
+            wiaCryptoContext,
+          }
+        );
+
+      const { credential, format } = await Credential.Issuance.obtainCredential(
+        issuerConf,
+        accessToken,
+        clientId,
+        credentialDefinition,
+        tokenRequestSignedDPop,
+        {
+          credentialCryptoContext,
+        }
+      );
 
       const { parsedCredential } =
         await Credential.Issuance.verifyAndParseCredential(
