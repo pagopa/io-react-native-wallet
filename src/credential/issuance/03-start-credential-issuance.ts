@@ -10,10 +10,14 @@ import {
 import type { StartFlow } from "./01-start-flow";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { ASSERTION_TYPE } from "./const";
-import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
-import { IdentificationError, ValidationFailed } from "../../utils/errors";
 import {
+  AuthorizationError,
+  AuthorizationIdpError,
+  ValidationFailed,
+} from "../../utils/errors";
+import {
+  AuthorizationErrorShape,
   AuthorizationResultShape,
   type AuthorizationContext,
   type AuthorizationResult,
@@ -22,6 +26,7 @@ import { withEphemeralKey } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import { createPopToken } from "../../utils/pop";
 import { CredentialResponse, TokenResponse, type ResponseMode } from "./types";
+import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import { Linking } from "react-native";
 
 /**
@@ -100,7 +105,7 @@ export type StartCredentialIssuance = (
  * @param context.redirectUri The internal URL to which to redirect has passed the in-app browser login phase. If you don't use authorizationContext remember to register this URL as customUrl or deepLink. See https://reactnative.dev/docs/linking
  * @param context.idphint Unique identifier of the SPID IDP
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {IdentificationError} When the response from the identification response is not parsable
+ * @throws {AuthorizationError} When the response from the authorization response is not parsable
  * @returns The credential obtained
  */
 
@@ -183,7 +188,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
         authorizationContext
       );
     } else {
-      throw new IdentificationError(
+      throw new AuthorizationError(
         "Response mode not supported for this type of credential"
       );
     }
@@ -322,7 +327,7 @@ export const startCredentialIssuance: StartCredentialIssuance = async (
  * @param authorizationContext The AuthorizationContext to manage the internal webview. If not specified, the default browser is used
  * @returns The authrozation result containing the authorization code, state and issuer
  */
-const authorizeUserWithQueryMode = async (
+export const authorizeUserWithQueryMode = async (
   authzRequestEndpoint: string,
   params: URLSearchParams,
   redirectUri: string,
@@ -336,7 +341,7 @@ const authorizeUserWithQueryMode = async (
     authRedirectUrl = await authorizationContext
       .authorize(authUrl, redirectSchema)
       .catch((e) => {
-        throw new IdentificationError(e.message);
+        throw new AuthorizationError(e.message);
       });
   } else {
     // handler for redirectUri
@@ -360,14 +365,21 @@ const authorizeUserWithQueryMode = async (
     await Promise.all([openAuthUrlInBrowser, unitAuthRedirectIsNotUndefined]);
 
     if (authRedirectUrl === undefined) {
-      throw new IdentificationError("Invalid authentication redirect url");
+      throw new AuthorizationError("Invalid authentication redirect url");
     }
   }
 
   const urlParse = parseUrl(authRedirectUrl);
   const authRes = AuthorizationResultShape.safeParse(urlParse.query);
   if (!authRes.success) {
-    throw new IdentificationError(authRes.error.message);
+    const authErr = AuthorizationErrorShape.safeParse(urlParse.query);
+    if (!authErr.success) {
+      throw new AuthorizationError(authRes.error.message); // an error occured while parsing the result and the error
+    }
+    throw new AuthorizationIdpError(
+      authErr.data.error,
+      authErr.data.error_description
+    );
   }
   return authRes.data;
 };

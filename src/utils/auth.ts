@@ -19,6 +19,19 @@ export const AuthorizationResultShape = z.object({
 });
 
 /**
+ * The error of the identification process.
+ * It follows the OAuth/OIDC error response format.
+ * @see https://openid.net/specs/openid-connect-core-1_0.html#AuthError
+ * @see https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1
+ */
+export const AuthorizationErrorShape = z.object({
+  error: z.string(), // not enforcing the error code format
+  error_description: z.string().optional(),
+  error_uri: z.string().optional(),
+  state: z.string().optional(),
+});
+
+/**
  * Type of the identification result.
  */
 export type AuthorizationResult = z.infer<typeof AuthorizationResultShape>;
