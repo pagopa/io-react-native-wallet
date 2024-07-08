@@ -49,7 +49,7 @@ export const generateRandomAlphaNumericString = (size: number) =>
  */
 export const until = (
   conditionFunction: () => boolean,
-  timeout?: number
+  timeoutSeconds?: number
 ): Promise<void> =>
   new Promise<void>((resolve, reject) => {
     const start = Date.now();
@@ -57,8 +57,8 @@ export const until = (
       if (conditionFunction()) {
         resolve();
       } else if (
-        timeout !== undefined &&
-        Date.now() - start >= timeout * 1000
+        timeoutSeconds !== undefined &&
+        Date.now() - start >= timeoutSeconds * 1000
       ) {
         reject(new Error("Timeout exceeded"));
       } else {
