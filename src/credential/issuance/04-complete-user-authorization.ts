@@ -96,21 +96,24 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         throw new AuthorizationError("Invalid authentication redirect url");
       }
     }
-
-    const urlParse = parseUrl(authRedirectUrl);
-    const authRes = AuthorizationResultShape.safeParse(urlParse.query);
-    if (!authRes.success) {
-      const authErr = AuthorizationErrorShape.safeParse(urlParse.query);
-      if (!authErr.success) {
-        throw new AuthorizationError(authRes.error.message); // an error occured while parsing the result and the error
-      }
-      throw new AuthorizationIdpError(
-        authErr.data.error,
-        authErr.data.error_description
-      );
-    }
-    return authRes.data;
+    return parseAuthRedirectUrl(authRedirectUrl);
   };
+
+export const parseAuthRedirectUrl = (authRedirectUrl: string) => {
+  const urlParse = parseUrl(authRedirectUrl);
+  const authRes = AuthorizationResultShape.safeParse(urlParse.query);
+  if (!authRes.success) {
+    const authErr = AuthorizationErrorShape.safeParse(urlParse.query);
+    if (!authErr.success) {
+      throw new AuthorizationError(authRes.error.message); // an error occured while parsing the result and the error
+    }
+    throw new AuthorizationIdpError(
+      authErr.data.error,
+      authErr.data.error_description
+    );
+  }
+  return authRes.data;
+};
 
 // TODO: SIW-1120 implement generic credential issuance flow
 export const completeUserAuthorizationWithFormPostJwtMode = () => {
