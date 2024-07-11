@@ -10,6 +10,7 @@ export default function App() {
   const [integrityContext, setIntegrityContext] = React.useState<
     IntegrityContext | undefined
   >();
+  const [pid, setPid] = React.useState<string | undefined>();
 
   return (
     <SafeAreaProvider>
@@ -19,35 +20,42 @@ export default function App() {
             title="Prepare Integrity Context"
             scenario={scenarios.prepareIntegrityContext(setIntegrityContext)}
           />
-          {integrityContext && (
-            <>
-              <TestScenario
-                title="Create Wallet Instance"
-                scenario={scenarios.createWalletInstance(integrityContext)}
-                disabled={!integrityContext}
-              />
-              <TestScenario
-                title="Obtain Wallet Attestation"
-                scenario={scenarios.getAttestation(integrityContext)}
-                disabled={!integrityContext}
-              />
-              <TestScenario
-                title="Get PID (SPID DEMO)"
-                scenario={scenarios.getPid(integrityContext, IdpHint.SPID)}
-                disabled={!integrityContext}
-              />
-              <TestScenario
-                title="Get PID (CIE DEMO)"
-                scenario={scenarios.getPid(integrityContext, IdpHint.CIE)}
-                disabled={!integrityContext}
-              />
-              <TestScenario
-                title="Get credential (mDL)"
-                scenario={scenarios.getCredential(integrityContext)}
-                disabled={!integrityContext}
-              />
-            </>
-          )}
+
+          <>
+            <TestScenario
+              title="Create Wallet Instance"
+              scenario={scenarios.createWalletInstance(integrityContext!)}
+              disabled={!integrityContext}
+            />
+            <TestScenario
+              title="Obtain Wallet Attestation"
+              scenario={scenarios.getAttestation(integrityContext!)}
+              disabled={!integrityContext}
+            />
+            <TestScenario
+              title="Get PID (SPID DEMO)"
+              scenario={scenarios.getPid(
+                integrityContext!,
+                IdpHint.SPID,
+                setPid
+              )}
+              disabled={!integrityContext}
+            />
+            <TestScenario
+              title="Get PID (CIE DEMO)"
+              scenario={scenarios.getPid(
+                integrityContext!,
+                IdpHint.CIE,
+                setPid
+              )}
+              disabled={!integrityContext}
+            />
+            <TestScenario
+              title="Get credential (mDL)"
+              scenario={scenarios.getCredential(integrityContext!, pid!)}
+              disabled={!integrityContext || !pid}
+            />
+          </>
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>

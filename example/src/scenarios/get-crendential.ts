@@ -5,113 +5,124 @@ import {
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
-import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
-
 import {
   REDIRECT_URI,
   WALLET_EAA_PROVIDER_BASE_URL,
-  WALLET_PID_PROVIDER_BASE_URL,
   WALLET_PROVIDER_BASE_URL,
 } from "@env";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
+import { getRequestedCredentialToBePresented } from "src/credential/issuance/04-complete-user-authorization";
 
-export default (integrityContext: IntegrityContext) => async () => {
-  try {
-    // Obtain a wallet attestation. A wallet instance must be created before this step.
-    const walletInstanceKeyTag = uuid.v4().toString();
-    await generate(walletInstanceKeyTag);
-    const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+export default (integrityContext: IntegrityContext, pid: string) =>
+  async () => {
+    try {
+      const pidKeyTag = "PID_KEYTAG";
+      const pidCryptoContext = createCryptoContextFor(pidKeyTag);
 
-    const walletInstanceAttestation =
-      await WalletInstanceAttestation.getAttestation({
-        wiaCryptoContext,
-        integrityContext,
-        walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      // Obtain a wallet attestation. A wallet instance must be created before this step.
+      const walletInstanceKeyTag = uuid.v4().toString();
+      await generate(walletInstanceKeyTag);
+      const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+
+      const walletInstanceAttestation =
+        await WalletInstanceAttestation.getAttestation({
+          wiaCryptoContext,
+          integrityContext,
+          walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+        });
+
+      // Create credential crypto context
+      const credentialKeyTag = uuid.v4().toString();
+      await generate(credentialKeyTag);
+      const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+
+      // Start the issuance flow
+      const startFlow: Credential.Issuance.StartFlow = () => ({
+        issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+        credentialType: "MDL",
       });
 
-    // Create credential crypto context
-    const credentialKeyTag = uuid.v4().toString();
-    await generate(credentialKeyTag);
-    const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+      const { issuerUrl, credentialType } = startFlow();
 
-    // Start the issuance flow
-    const startFlow: Credential.Issuance.StartFlow = () => ({
-      issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-      credentialType: "MDL",
-    });
+      // Evaluate issuer trust
+      const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
+        issuerUrl
+      );
 
-    const { issuerUrl, credentialType } = startFlow();
+      console.log(JSON.stringify(issuerConf));
 
-    // Evaluate issuer trust
-    const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-      issuerUrl
-    );
+      // Start user authorization
+      const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
+        await Credential.Issuance.startUserAuthorization(
+          issuerConf,
+          credentialType,
+          {
+            walletInstanceAttestation,
+            redirectUri: `${REDIRECT_URI}`,
+            wiaCryptoContext,
+          }
+        );
 
-    console.log(issuerConf);
+      const requestObject =
+        await Credential.Issuance.getRequestedCredentialToBePresented(
+          issuerRequestUri,
+          clientId,
+          issuerConf
+        );
 
-    // Start user authorization
-    const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-      await Credential.Issuance.startUserAuthorization(
+      // The app here should ask the user to confirm the required data contained in the requestObject
+
+      const { code } =
+        await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
+          requestObject,
+          { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
+        );
+
+      const { accessToken, tokenRequestSignedDPop } =
+        await Credential.Issuance.authorizeAccess(
+          issuerConf,
+          code,
+          clientId,
+          REDIRECT_URI,
+          codeVerifier,
+          {
+            walletInstanceAttestation,
+            wiaCryptoContext,
+          }
+        );
+
+      const { credential, format } = await Credential.Issuance.obtainCredential(
         issuerConf,
-        credentialType,
+        accessToken,
+        clientId,
+        credentialDefinition,
+        tokenRequestSignedDPop,
         {
-          walletInstanceAttestation,
-          redirectUri: `${REDIRECT_URI}`,
-          wiaCryptoContext,
+          credentialCryptoContext,
         }
       );
 
-    // const { code } =
-    //   await Credential.Issuance.completeUserAuthorizationWithQueryMode(
-    //     issuerRequestUri,
-    //     clientId,
-    //     issuerConf,
-    //     idphint,
-    //     REDIRECT_URI,
-    //     authorizationContext
-    //   );
+      console.log(credential);
 
-    // const { accessToken, tokenRequestSignedDPop } =
-    //   await Credential.Issuance.authorizeAccess(
-    //     issuerConf,
-    //     code,
-    //     clientId,
-    //     REDIRECT_URI,
-    //     codeVerifier,
-    //     {
-    //       walletInstanceAttestation,
-    //       wiaCryptoContext,
-    //     }
-    //   );
+      const { parsedCredential } =
+        await Credential.Issuance.verifyAndParseCredential(
+          issuerConf,
+          credential,
+          format,
+          { credentialCryptoContext, ignoreMissingAttributes: true } //must be set to false in production
+        );
 
-    // const { credential, format } = await Credential.Issuance.obtainCredential(
-    //   issuerConf,
-    //   accessToken,
-    //   clientId,
-    //   credentialDefinition,
-    //   tokenRequestSignedDPop,
-    //   {
-    //     credentialCryptoContext,
-    //   }
-    // );
+      Alert.alert(`MDL obtained!`, `${JSON.stringify(parsedCredential)}`, [
+        { text: "OK" },
+      ]);
 
-    // const { parsedCredential } =
-    //   await Credential.Issuance.verifyAndParseCredential(
-    //     issuerConf,
-    //     credential,
-    //     format,
-    //     { credentialCryptoContext }
-    //   );
+      console.log(parsedCredential);
 
-    // Alert.alert(`PID obtained!`, `${JSON.stringify(parsedCredential)}`, [
-    //   { text: "OK" },
-    // ]);
-
-    // return result(parsedCredential);
-  } catch (e) {
-    console.error(e);
-    return error(e);
-  }
-};
+      return result(credential);
+    } catch (e) {
+      console.error(e);
+      return error(e);
+    }
+  };

@@ -22,4 +22,11 @@ export const CredentialResponse = z.object({
   format: SupportedCredentialFormat,
 });
 
+/**
+ * Shape from parsing a response given by a request uri during the EAA credential issuance flow with response mode "form_post.jwt".
+ */
+export const ResponseUriResultShape = z.object({
+  redirect_uri: z.string(),
+});
+
 export type ResponseMode = "query" | "form_post.jwt";

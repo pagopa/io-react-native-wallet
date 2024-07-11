@@ -13,6 +13,7 @@ export type VerifyAndParseCredential = (
   format: Out<ObtainCredential>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
+    ignoreMissingAttributes?: boolean;
   }
 ) => Promise<{ parsedCredential: ParsedCredential }>;
 
@@ -42,8 +43,11 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
-  { sdJwt, disclosures }: DecodedSdJwtCredential
+  { sdJwt, disclosures }: DecodedSdJwtCredential,
+  ignoreMissingAttributes: boolean = false
 ): ParsedCredential => {
+  console.log("******* credentials_supported *******");
+  console.log(JSON.stringify(credentials_supported));
   const credentialSubject = credentials_supported[sdJwt.payload.vct];
 
   if (!credentialSubject) {
@@ -66,9 +70,11 @@ const parseCredentialSdJwt = (
   if (attrsNotInDisclosures.length > 0) {
     const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
     const received = disclosures.map((_) => _[1 /* name */]).join(", ");
-    throw new IoWalletError(
-      `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
-    );
+    const errorMessage = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
+    console.log(errorMessage);
+    if (!ignoreMissingAttributes) {
+      throw new IoWalletError(errorMessage);
+    }
   }
 
   // attributes that are defined in the issuer configuration
@@ -169,7 +175,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
-  { credentialCryptoContext }
+  { credentialCryptoContext, ignoreMissingAttributes }
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
@@ -179,7 +185,8 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 
   const parsedCredential = parseCredentialSdJwt(
     issuerConf.openid_credential_issuer.credential_configurations_supported,
-    decoded
+    decoded,
+    ignoreMissingAttributes
   );
 
   return { parsedCredential };

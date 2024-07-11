@@ -13,7 +13,7 @@ import {
   WALLET_PROVIDER_BASE_URL,
 } from "@env";
 import uuid from "react-native-uuid";
-import { generate } from "@pagopa/io-react-native-crypto";
+import { generate, getPublicKey } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 
 export enum IdpHint {
@@ -21,9 +21,12 @@ export enum IdpHint {
   SPID = "https://demo.spid.gov.it",
 }
 
+type PidSetter = React.Dispatch<React.SetStateAction<string | undefined>>;
+
 export default (
     integrityContext: IntegrityContext,
-    idphint: IdpHint = IdpHint.SPID
+    idphint: IdpHint = IdpHint.SPID,
+    setPid: PidSetter
   ) =>
   async () => {
     try {
@@ -48,8 +51,12 @@ export default (
           : undefined;
 
       // Create credential crypto context
-      const credentialKeyTag = uuid.v4().toString();
-      await generate(credentialKeyTag);
+      const credentialKeyTag = "PID_KEYTAG";
+      /* Since we are always using the same key, we can generate it only if it does not exist
+      this might be implemented differently by storing the keytag value instead of using a constant */
+      await generate(credentialKeyTag).catch((_) =>
+        getPublicKey(credentialKeyTag)
+      );
       const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
       // Start the issuance flow
@@ -124,6 +131,8 @@ export default (
       Alert.alert(`PID obtained!`, `${JSON.stringify(parsedCredential)}`, [
         { text: "OK" },
       ]);
+
+      setPid(credential);
 
       return result(parsedCredential);
     } catch (e) {
