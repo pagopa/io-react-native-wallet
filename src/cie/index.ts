@@ -1,3 +1,4 @@
-import { CieWebViewComponent } from "./component";
+import { WebViewComponent } from "./component";
+import { CieError, CieErrorType } from "./error";
 
-export { CieWebViewComponent };
+export { WebViewComponent, CieError, CieErrorType };

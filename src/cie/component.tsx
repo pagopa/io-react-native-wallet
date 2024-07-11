@@ -1,4 +1,3 @@
-import cieManager, { type Event as CEvent } from "@pagopa/react-native-cie";
 import React, { createRef } from "react";
 import { Platform } from "react-native";
 import { WebView } from "react-native-webview";
@@ -8,9 +7,10 @@ import type {
   WebViewNavigationEvent,
   WebViewMessageEvent,
   WebViewNavigation,
+  WebViewHttpErrorEvent,
 } from "react-native-webview/lib/WebViewTypes";
-import { parseAuthRedirectUrl } from "../credential/issuance/04-complete-user-authorization";
-const BASE_UAT_URL = "https://collaudo.idserver.servizicie.interno.gov.it/idp/";
+import { startCieAndroid, startCieiOS, type ContinueWithUrl } from "./manager";
+import { CieError, CieErrorType } from "./error";
 
 /* To obtain the authentication URL on CIE L3 it is necessary to take the
  * link contained in the "Enter with CIE card reading" button.
@@ -36,8 +36,9 @@ const injectedJavaScript = `
     })();
     true;
   `;
-export type OnSuccess = (code: string) => void;
-export type OnError = (e: Error) => void;
+export type OnSuccess = (url: string) => void;
+export type OnError = (e: CieError) => void;
+export type OnUserInteraction = () => void;
 
 type CIEParams = {
   authUrl: string;
@@ -46,6 +47,7 @@ type CIEParams = {
   pin: string;
   useUat: boolean;
   redirectUrl: string;
+  onUserInteraction: OnUserInteraction;
 };
 
 /*
@@ -61,16 +63,41 @@ const defaultUserAgent = Platform.select({
 
 const webView = createRef<WebView>();
 
-export const CieWebViewComponent = (params: CIEParams) => {
+/**
+ * WebViewComponent
+ *
+ * Component that manages authentication via CIE L3 (NFC+PIN) based on WebView (react-native-webview).
+ * In particular, once rendered, it makes a series of calls to the authUrl in the WebView,
+ * extrapolates the authentication URL necessary for CieManager to sign via certificate
+ * and calls the CIE SDK which is responsible for starting card reading via NFC.
+ * At the end of the reading, a redirect is made in the WebView towards the page that asks
+ * the user for consent to send the data to the Service Provider. This moment can be captured
+ * via the onUserInteraction parameter. When the user allows or denies their consent,
+ * a redirect is made to the URL set by the Service Provider.
+ * This url can be configured using the redirectUrl parameter which allows you to close the WebView.
+ * The event can then be captured via the onSuccess parameter.
+ *
+ * @param {CIEParams} params - Parameters required by the component.
+ * @param {string} params.authUrl -The authentication URL of the Service Provider to which to authenticate.
+ * @param {boolean} params.useUat - If set to true it uses the CIE testing environment.
+ * @param {string} params.pin - CIE pin for use with NFC reading.
+ * @param {Function} params.onError - Callback function in case of error. The function is passed the Error parameter.
+ * @param {Function} params.onSuccess - Callback at the end of authentication to which the redirect URL including parameters is passed.
+ * @param {string} params.redirectUrl - Redirect URL set by the Service Provider. It is used to stop the flow and return to the calling function via onSuccess.
+ * @param {Function} params.onUserInteraction - Callback function that is called when the user needs to interact with the WebView.
+ * @returns {JSX.Element} - The configured component with WebView.
+ */
+export const WebViewComponent = (params: CIEParams) => {
   const [webViewUrl, setWebViewUrl] = React.useState(params.authUrl);
+  const [isCardReadingFinished, setCardReadingFinished] = React.useState(false);
 
   /*
    * Once the reading of the card with NFC is finished, it is necessary
    * to change the URL of the WebView by redirecting to the URL returned by
    * CieManager to allow the user to continue with the consent authorization
    * */
-
   const continueWithUrl: ContinueWithUrl = (callbackUrl: string) => {
+    setCardReadingFinished(true);
     setWebViewUrl(callbackUrl);
   };
 
@@ -90,13 +117,82 @@ export const CieWebViewComponent = (params: CIEParams) => {
     );
   };
 
+  //This function is called when authentication with CIE ends and the SP URL containing code and state is returned
+  const handleShouldStartLoading =
+    (onSuccess: OnSuccess, redirectUrl: string) =>
+    (event: WebViewNavigation): boolean => {
+      if (isCardReadingFinished && event.url.includes(redirectUrl)) {
+        onSuccess(event.url);
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+  const handleOnLoadEnd =
+    (onError: OnError, onUserInteraction: OnUserInteraction) =>
+    (e: WebViewNavigationEvent | WebViewErrorEvent) => {
+      const eventTitle = e.nativeEvent.title.toLowerCase();
+      if (
+        eventTitle === "pagina web non disponibile" ||
+        // On Android, if we attempt to access the idp URL twice,
+        // we are presented with an error page titled "ERROR".
+        eventTitle === "errore"
+      ) {
+        handleOnError(onError)(new Error(eventTitle));
+      }
+
+      if (isCardReadingFinished) {
+        onUserInteraction();
+      }
+    };
+
+  const handleOnError =
+    (onError: OnError) =>
+    (e: WebViewErrorEvent | WebViewHttpErrorEvent | Error): void => {
+      const error = e as Error;
+      const webViewError = e as WebViewErrorEvent;
+      const webViewHttpError = e as WebViewHttpErrorEvent;
+      if (webViewHttpError.nativeEvent.statusCode) {
+        const { description, statusCode } = webViewHttpError.nativeEvent;
+        onError(
+          new CieError({
+            message: `WebView http error: ${description} with status code: ${statusCode}`,
+            type: CieErrorType.WEB_VIEW_ERROR,
+          })
+        );
+      } else if (webViewError.nativeEvent) {
+        const { code, description } = webViewError.nativeEvent;
+        onError(
+          new CieError({
+            message: `WebView error: ${description} with code: ${code}`,
+            type: CieErrorType.WEB_VIEW_ERROR,
+          })
+        );
+      } else if (error.message !== undefined) {
+        onError(
+          new CieError({
+            message: `${error.message}`,
+            type: CieErrorType.WEB_VIEW_ERROR,
+          })
+        );
+      } else {
+        onError(
+          new CieError({
+            message: "An error occurred in the WebView",
+            type: CieErrorType.WEB_VIEW_ERROR,
+          })
+        );
+      }
+    };
+
   return (
     <WebView
       ref={webView}
       userAgent={defaultUserAgent}
       javaScriptEnabled={true}
       source={{ uri: webViewUrl }}
-      onLoadEnd={handleOnLoadEnd(params.onError)}
+      onLoadEnd={handleOnLoadEnd(params.onError, params.onUserInteraction)}
       onError={handleOnError(params.onError)}
       onHttpError={handleOnError(params.onError)}
       injectedJavaScript={injectedJavaScript}
@@ -108,105 +204,3 @@ export const CieWebViewComponent = (params: CIEParams) => {
     />
   );
 };
-
-//This function is called when authentication with CIE ends and the SP URL containing code and state is returned
-const handleShouldStartLoading =
-  (onSuccess: OnSuccess, redirectUrl: string) =>
-  (event: WebViewNavigation): boolean => {
-    if (event.url.includes(redirectUrl)) {
-      const { code } = parseAuthRedirectUrl(event.url);
-      onSuccess(code);
-      return false;
-    } else {
-      return true;
-    }
-  };
-
-const handleOnLoadEnd =
-  (onError: OnError) => (e: WebViewNavigationEvent | WebViewErrorEvent) => {
-    const eventTitle = e.nativeEvent.title.toLowerCase();
-    if (
-      eventTitle === "pagina web non disponibile" ||
-      // On Android, if we attempt to access the idp URL twice,
-      // we are presented with an error page titled "ERROR".
-      eventTitle === "errore"
-    ) {
-      handleOnError(onError)(new Error(eventTitle));
-    }
-  };
-
-const handleOnError =
-  (onError: OnError) =>
-  (e: any): void => {
-    onError(e);
-  };
-
-const startCieAndroid = (
-  useCieUat: boolean,
-  ciePin: string,
-  onError: OnError,
-  cieAuthorizationUri: string,
-  continueWithUrl: ContinueWithUrl
-) => {
-  try {
-    cieManager
-      .start()
-      .then(async () => {
-        cieManager.onEvent(handleCieEvent);
-        cieManager.onError(onError);
-        cieManager.onSuccess(handleCieSuccess(continueWithUrl));
-        await cieManager.setPin(ciePin);
-        cieManager.setAuthenticationUrl(cieAuthorizationUri);
-        cieManager.setCustomIdpUrl(useCieUat ? getCieUatEndpoint() : null);
-        await cieManager.startListeningNFC();
-      })
-      .catch(onError);
-  } catch {
-    onError(new Error("Unable to start CIE NFC manager on iOS"));
-  }
-};
-
-type ContinueWithUrl = (callbackUrl: string) => void;
-
-const startCieiOS = async (
-  useCieUat: boolean,
-  ciePin: string,
-  onError: OnError,
-  cieAuthorizationUri: string,
-  continueWithUrl: ContinueWithUrl
-) => {
-  try {
-    cieManager.removeAllListeners();
-    cieManager.onEvent(handleCieEvent);
-    cieManager.onError(onError);
-    cieManager.onSuccess(handleCieSuccess(continueWithUrl));
-    cieManager.enableLog(true);
-    cieManager.setCustomIdpUrl(useCieUat ? getCieUatEndpoint() : null);
-    await cieManager.setPin(ciePin);
-    cieManager.setAuthenticationUrl(cieAuthorizationUri);
-    cieManager
-      .start()
-      .then(async () => {
-        await cieManager.startListeningNFC();
-      })
-      .catch(onError);
-  } catch {
-    onError(new Error("Unable to start CIE NFC manager on Android"));
-  }
-};
-
-const handleCieEvent = (event: CEvent) => {
-  console.log(`handleCieEvent: ${JSON.stringify(event)}`);
-};
-
-const handleCieSuccess =
-  (continueWithUrl: ContinueWithUrl) => (url: string) => {
-    continueWithUrl(decodeURIComponent(url));
-  };
-
-const getCieUatEndpoint = () =>
-  Platform.select({
-    ios: `${BASE_UAT_URL}Authn/SSL/Login2`,
-    android: BASE_UAT_URL,
-    default: null,
-  });

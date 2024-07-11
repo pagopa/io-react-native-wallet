@@ -1,5 +1,5 @@
 import {
-  CieWebViewComponent,
+  Cie,
   Credential,
   WalletInstanceAttestation,
   createCryptoContextFor,
@@ -7,7 +7,16 @@ import {
 } from "@pagopa/io-react-native-wallet";
 
 import React from "react";
-import { Alert, Button, StyleSheet, Text, View } from "react-native";
+import {
+  View,
+  Button,
+  StyleSheet,
+  Modal,
+  Text,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+
 import { IdpHint } from "../get-pid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import uuid from "react-native-uuid";
@@ -40,15 +49,27 @@ export default function TestCieL3Scenario({
 }) {
   const [result, setResult] = React.useState<string | undefined>();
   const [flowParams, setFlowParams] = React.useState<FlowParams>();
+  const [isModalVisible, setModalVisible] = React.useState(false);
+  const [isHidden, setHidden] = React.useState(true);
 
-  const handleOnSuccess = (code: string) => {
-    continueFlow(code).catch((error) =>
-      setResult(`❌ ${JSON.stringify(error)}`)
-    );
+  const handleOnSuccess = (url: string) => {
+    try {
+      const { code } = Credential.Issuance.parseAuthRedirectUrl(url);
+      continueFlow(code);
+    } catch (error) {
+      setResult(`❌ ${error}`);
+    } finally {
+      setModalVisible(false);
+    }
   };
 
-  const handleOnError = (error: Error) => {
-    setResult(`❌ ${JSON.stringify(error)}`);
+  const handleOnError = (error: Cie.CieError) => {
+    setModalVisible(false);
+    setResult(`❌ ${error}`);
+  };
+
+  const handleOnUserInteraction = () => {
+    setHidden(false);
   };
 
   const prepareFlowParams = async () => {
@@ -115,12 +136,16 @@ export default function TestCieL3Scenario({
 
   const run = async () => {
     try {
+      //Initialize params
+      setFlowParams(undefined);
+      //Hide the webView for the first part of login then open modal
+      setHidden(true);
+      setModalVisible(true);
       setResult("⏱️");
       const params = await prepareFlowParams();
       setFlowParams(params);
     } catch (error) {
-      console.error(error);
-      setResult(`❌ ${JSON.stringify(error)}`);
+      setResult(`❌ ${error}`);
     }
   };
 
@@ -179,28 +204,82 @@ export default function TestCieL3Scenario({
     }
   };
 
+  const toggleModal = () => {
+    if (isModalVisible) {
+      setResult(`❌ Modal closed`);
+    }
+    setModalVisible(!isModalVisible);
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+    webviewContainer: {
+      width: isHidden ? "0%" : "90%",
+      height: isHidden ? "0%" : "80%",
+      backgroundColor: "white",
+      borderRadius: 10,
+      overflow: "hidden",
+    },
+    closeButton: {
+      padding: 10,
+      backgroundColor: "#2196F3",
+    },
+    closeButtonText: {
+      color: "white",
+      textAlign: "center",
+    },
+    webview: {
+      flex: 1,
+    },
+    title: {
+      textAlign: "center",
+      marginVertical: 8,
+    },
+  });
+
   return (
-    <View style={{ height: 300 }}>
+    <View>
       <Button title={title} onPress={run} disabled={disabled} />
       <Text style={styles.title}>{result}</Text>
 
       {flowParams && (
-        <CieWebViewComponent
-          useUat={true}
-          authUrl={flowParams.cieAuthUrl}
-          onSuccess={handleOnSuccess}
-          onError={handleOnError}
-          pin={ciePin}
-          redirectUrl={CIE_L3_REDIRECT_URI}
-        />
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={toggleModal}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.webviewContainer}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={toggleModal}
+              >
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+              <Cie.WebViewComponent
+                useUat={true}
+                authUrl={flowParams.cieAuthUrl}
+                onSuccess={handleOnSuccess}
+                onUserInteraction={handleOnUserInteraction}
+                onError={handleOnError}
+                pin={ciePin}
+                redirectUrl={CIE_L3_REDIRECT_URI}
+              />
+            </View>
+          </View>
+        </Modal>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    textAlign: "center",
-    marginVertical: 8,
-  },
-});

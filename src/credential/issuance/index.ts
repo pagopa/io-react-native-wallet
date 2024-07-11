@@ -9,6 +9,7 @@ import {
 } from "./03-start-user-authorization";
 import {
   completeUserAuthorizationWithQueryMode,
+  parseAuthRedirectUrl,
   type CompleteUserAuthorizationWithQueryMode,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
@@ -28,6 +29,7 @@ export {
   authorizeAccess,
   obtainCredential,
   verifyAndParseCredential,
+  parseAuthRedirectUrl,
 };
 export type {
   StartFlow,

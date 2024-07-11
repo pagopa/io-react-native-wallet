@@ -11,7 +11,7 @@ import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as Trust from "./trust";
 import * as WalletInstance from "./wallet-instance";
-import { CieWebViewComponent } from "./cie";
+import * as Cie from "./cie";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
@@ -28,7 +28,7 @@ export {
   AuthorizationDetail,
   AuthorizationDetails,
   fixBase64EncodingOnKey,
-  CieWebViewComponent,
+  Cie,
 };
 
 export type { IntegrityContext, AuthorizationContext };
