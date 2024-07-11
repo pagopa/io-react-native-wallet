@@ -142,6 +142,10 @@ export const WebViewComponent = (params: CIEParams) => {
         handleOnError(onError)(new Error(eventTitle));
       }
 
+      /* At the end of loading the page, if the card has already been read
+       * then the WebView has loaded the page to ask the user for consent,
+       * so I call the callback for user interaction
+       * */
       if (isCardReadingFinished) {
         onUserInteraction();
       }
