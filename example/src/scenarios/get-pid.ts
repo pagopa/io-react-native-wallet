@@ -13,15 +13,22 @@ import {
   WALLET_PROVIDER_BASE_URL,
 } from "@env";
 import uuid from "react-native-uuid";
-import { generate, getPublicKey } from "@pagopa/io-react-native-crypto";
+import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
+import type { PidContext } from "../App";
 
+/**
+ * Example of IdpHint values which currently support DEMO environments
+ */
 export enum IdpHint {
   CIE = "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
   SPID = "https://demo.spid.gov.it",
 }
 
-type PidSetter = React.Dispatch<React.SetStateAction<string | undefined>>;
+/**
+ * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
+ */
+type PidSetter = React.Dispatch<React.SetStateAction<PidContext | undefined>>;
 
 export default (
     integrityContext: IntegrityContext,
@@ -50,13 +57,12 @@ export default (
             }
           : undefined;
 
-      // Create credential crypto context
-      const credentialKeyTag = "PID_KEYTAG";
-      /* Since we are always using the same key, we can generate it only if it does not exist
-      this might be implemented differently by storing the keytag value instead of using a constant */
-      await generate(credentialKeyTag).catch((_) =>
-        getPublicKey(credentialKeyTag)
-      );
+      /*
+       * Create credential crypto context for the PID
+       * WARNING: The eID keytag must be persisted and later used when requesting a credential which requires a eID presentation
+       */
+      const credentialKeyTag = uuid.v4().toString();
+      await generate(credentialKeyTag);
       const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
       // Start the issuance flow
@@ -72,8 +78,6 @@ export default (
         issuerUrl
       );
 
-      console.log(JSON.stringify(issuerConf));
-
       // Start user authorization
       const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
         await Credential.Issuance.startUserAuthorization(
@@ -86,6 +90,7 @@ export default (
           }
         );
 
+      // Complete the authroization process with query mode with the authorizationContext which opens the browser
       const { code } =
         await Credential.Issuance.completeUserAuthorizationWithQueryMode(
           issuerRequestUri,
@@ -109,6 +114,7 @@ export default (
           }
         );
 
+      // Obtain che eID credential
       const { credential, format } = await Credential.Issuance.obtainCredential(
         issuerConf,
         accessToken,
@@ -120,6 +126,7 @@ export default (
         }
       );
 
+      // Parse and verify the eID credential
       const { parsedCredential } =
         await Credential.Issuance.verifyAndParseCredential(
           issuerConf,
@@ -132,7 +139,8 @@ export default (
         { text: "OK" },
       ]);
 
-      setPid(credential);
+      // Setting the PID context in the app state in order to use it later to obtain a credential
+      setPid({ pid: credential, pidCryptoContext: credentialCryptoContext });
 
       return result(parsedCredential);
     } catch (e) {

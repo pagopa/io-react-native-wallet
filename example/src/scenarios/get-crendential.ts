@@ -13,13 +13,12 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
-import { getRequestedCredentialToBePresented } from "src/credential/issuance/04-complete-user-authorization";
+import type { PidContext } from "../App";
 
-export default (integrityContext: IntegrityContext, pid: string) =>
+export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
   async () => {
     try {
-      const pidKeyTag = "PID_KEYTAG";
-      const pidCryptoContext = createCryptoContextFor(pidKeyTag);
+      const { pid, pidCryptoContext } = pidContext;
 
       // Obtain a wallet attestation. A wallet instance must be created before this step.
       const walletInstanceKeyTag = uuid.v4().toString();
@@ -74,6 +73,7 @@ export default (integrityContext: IntegrityContext, pid: string) =>
 
       // The app here should ask the user to confirm the required data contained in the requestObject
 
+      // Complete the user authorization via form_post.jwt mode
       const { code } =
         await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
           requestObject,
@@ -93,6 +93,7 @@ export default (integrityContext: IntegrityContext, pid: string) =>
           }
         );
 
+      // Obtain the credential
       const { credential, format } = await Credential.Issuance.obtainCredential(
         issuerConf,
         accessToken,
@@ -104,14 +105,13 @@ export default (integrityContext: IntegrityContext, pid: string) =>
         }
       );
 
-      console.log(credential);
-
+      // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
       const { parsedCredential } =
         await Credential.Issuance.verifyAndParseCredential(
           issuerConf,
           credential,
           format,
-          { credentialCryptoContext, ignoreMissingAttributes: true } //must be set to false in production
+          { credentialCryptoContext, ignoreMissingAttributes: true }
         );
 
       Alert.alert(`MDL obtained!`, `${JSON.stringify(parsedCredential)}`, [

@@ -20,6 +20,11 @@ export default (integrityContext: IntegrityContext) =>
       await generate(walletInstanceKeyTag);
 
       const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+
+      /**
+       * Obtains a new Wallet Instance Attestation.
+       * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
+       */
       const issuingAttestation = await WalletInstanceAttestation.getAttestation(
         {
           wiaCryptoContext,

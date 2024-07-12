@@ -144,8 +144,6 @@ async function fetchAndParseEntityConfiguration(
     appFetch,
   });
 
-  console.log(responseText);
-
   const responseJwt = decodeJwt(responseText);
   return schema.parse({
     header: responseJwt.protectedHeader,

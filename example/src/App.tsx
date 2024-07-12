@@ -5,12 +5,19 @@ import "react-native-url-polyfill/auto";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
 import { IdpHint } from "./scenarios/get-pid";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
+/**
+ * PidContext is a tuple containing the PID and its crypto context.
+ * It is used to obtain a credential and must be set after obtaining a PID.
+ */
+export type PidContext = { pid: string; pidCryptoContext: CryptoContext };
 
 export default function App() {
   const [integrityContext, setIntegrityContext] = React.useState<
     IntegrityContext | undefined
   >();
-  const [pid, setPid] = React.useState<string | undefined>();
+  const [pidContext, setPidContext] = React.useState<PidContext>();
 
   return (
     <SafeAreaProvider>
@@ -37,7 +44,7 @@ export default function App() {
               scenario={scenarios.getPid(
                 integrityContext!,
                 IdpHint.SPID,
-                setPid
+                setPidContext
               )}
               disabled={!integrityContext}
             />
@@ -46,14 +53,14 @@ export default function App() {
               scenario={scenarios.getPid(
                 integrityContext!,
                 IdpHint.CIE,
-                setPid
+                setPidContext
               )}
               disabled={!integrityContext}
             />
             <TestScenario
               title="Get credential (mDL)"
-              scenario={scenarios.getCredential(integrityContext!, pid!)}
-              disabled={!integrityContext || !pid}
+              scenario={scenarios.getCredential(integrityContext!, pidContext!)}
+              disabled={!integrityContext || !pidContext}
             />
           </>
         </ScrollView>

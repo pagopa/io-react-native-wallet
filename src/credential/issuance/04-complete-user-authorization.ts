@@ -4,7 +4,7 @@ import {
   type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
-import { until, type Out } from "../../utils/misc";
+import { hasStatus, until, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import {
@@ -17,9 +17,7 @@ import { Linking } from "react-native";
 import {
   decode,
   encodeBase64,
-  EncryptJwe,
   SignJWT,
-  verify,
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { RequestObject } from "../presentation/types";
@@ -195,7 +193,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       appFetch = fetch,
     } = ctx;
 
-    const wia_wp_token = await new SignJWT(wiaCryptoContext)
+    const wiaWpToken = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
         alg: "ES256",
         typ: "JWT",
@@ -210,7 +208,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       .setAudience(requestObject.response_uri)
       .sign();
 
-    const pid_wp_token = await new SignJWT(pidCryptoContext)
+    const pidWpToken = await new SignJWT(pidCryptoContext)
       .setProtectedHeader({
         alg: "ES256",
         typ: "JWT",
@@ -225,7 +223,10 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       .setAudience(requestObject.response_uri)
       .sign();
 
-    const presentation_submission = {
+    /* The path parameter refers to the vp_token variable of the authzResponsePayload and must point to the plain credential which
+     * is cointaned in the `vp` property of the signed jwt token payload
+     */
+    const presentationSubmission = {
       definition_id: `${uuid.v4()}`,
       id: `${uuid.v4()}`,
       descriptor_map: [
@@ -245,10 +246,19 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     const authzResponsePayload = encodeBase64(
       JSON.stringify({
         state: requestObject.state,
-        presentation_submission,
-        vp_token: [pid_wp_token, wia_wp_token],
+        presentation_submission: presentationSubmission,
+        vp_token: [pidWpToken, wiaWpToken],
       })
     );
+
+    // Note: according to the spec, the response should be encrypted with the public key of the RP however this is not implemented yet
+    // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-response
+    // const rsaPublicJwk = chooseRSAPublicKeyToEncrypt(rpConf);
+    // const encrypted = await new EncryptJwe(authzResponsePayload, {
+    //   alg: "RSA-OAEP-256",
+    //   enc: "A256CBC-HS512",
+    //   kid: rsaPublicJwk.kid,
+    // }).encrypt(rsaPublicJwk);
 
     const body = new URLSearchParams({
       response: authzResponsePayload,
@@ -278,6 +288,13 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       .then((cbRes) => parseAuthroizationResponse(cbRes.decodedJwt.payload));
   };
 
+/**
+ * Parse the authorization response and return the result which contains code, state and iss.
+ * @throws {AuthorizationError} if an error occurs during the parsing process
+ * @throws {AuthorizationIdpError} if an error occurs during the parsing process and the error is related to the IDP
+ * @param authRes the authorization response to be parsed
+ * @returns the authorization result which contains code, state and iss
+ */
 const parseAuthroizationResponse = (authRes: unknown): AuthorizationResult => {
   const authResParsed = AuthorizationResultShape.safeParse(authRes);
   if (!authResParsed.success) {
@@ -290,6 +307,5 @@ const parseAuthroizationResponse = (authRes: unknown): AuthorizationResult => {
       authErr.data.error_description
     );
   }
-  console.log(authResParsed.data);
   return authResParsed.data;
 };

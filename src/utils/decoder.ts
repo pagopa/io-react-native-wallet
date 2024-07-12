@@ -24,6 +24,7 @@ import { ValidationFailed } from "./errors";
 export const getJwtFromFormPost = async (
   formData: string
 ): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => {
+  console.log(formData);
   const formPostRegex = /<input[^>]*name="response"[^>]*value="([^"]*)"/i;
   const lineExpressionRegex = /\r\n|\n\r|\n|\r|\s+/g;
 
