@@ -11,7 +11,7 @@ export enum CieErrorType {
 
 interface BaseCieError {
   message: string;
-  type: CieErrorType;
+  type?: CieErrorType;
 }
 
 interface PinErrorOptions extends BaseCieError {
@@ -20,7 +20,7 @@ interface PinErrorOptions extends BaseCieError {
 }
 
 interface NonPinErrorOptions extends BaseCieError {
-  type: Exclude<CieErrorType, CieErrorType.PIN_ERROR>;
+  type?: Exclude<CieErrorType, CieErrorType.PIN_ERROR>;
   attemptsLeft?: number;
 }
 
@@ -31,7 +31,12 @@ export class CieError extends Error {
   public attemptsLeft?: number;
   constructor(options: ErrorOptions) {
     super(options.message);
-    this.type = options.type;
+
+    if (options.type) {
+      this.type = options.type;
+    } else {
+      this.type = CieErrorType.GENERIC;
+    }
 
     if (this.type === CieErrorType.PIN_ERROR) {
       this.attemptsLeft = options.attemptsLeft;
@@ -43,6 +48,11 @@ export class CieError extends Error {
   }
 
   toString(): string {
-    return `${this.name} [${CieErrorType[this.type]}]: ${this.message}`;
+    return JSON.stringify({
+      name: this.name,
+      type: CieErrorType[this.type],
+      message: this.message,
+      attemptsLeft: this.attemptsLeft,
+    });
   }
 }

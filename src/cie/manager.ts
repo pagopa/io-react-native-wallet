@@ -4,6 +4,7 @@ import type { OnError } from "./component";
 import { CieError, CieErrorType } from "./error";
 
 const BASE_UAT_URL = "https://collaudo.idserver.servizicie.interno.gov.it/idp/";
+
 export type ContinueWithUrl = (callbackUrl: string) => void;
 
 export const startCieAndroid = (
@@ -14,20 +15,22 @@ export const startCieAndroid = (
   continueWithUrl: ContinueWithUrl
 ) => {
   try {
+    cieManager.removeAllListeners();
     cieManager
       .start()
       .then(async () => {
         cieManager.onEvent(handleCieEvent(onError));
-        cieManager.onError((e: Error) =>
-          onError(
-            new CieError({ message: e.message, type: CieErrorType.GENERIC })
-          )
-        );
+        cieManager.onError((e: Error) => {
+          console.error(e);
+          return onError(new CieError({ message: e.message }));
+        });
         cieManager.onSuccess(handleCieSuccess(continueWithUrl));
         await cieManager.setPin(ciePin);
         cieManager.setAuthenticationUrl(cieAuthorizationUri);
+        cieManager.enableLog(useCieUat);
         cieManager.setCustomIdpUrl(useCieUat ? getCieUatEndpoint() : null);
         await cieManager.startListeningNFC();
+        console.log("waiting_card");
       })
       .catch(onError);
   } catch {
@@ -51,10 +54,10 @@ export const startCieiOS = async (
     cieManager.removeAllListeners();
     cieManager.onEvent(handleCieEvent(onError));
     cieManager.onError((e: Error) =>
-      onError(new CieError({ message: e.message, type: CieErrorType.GENERIC }))
+      onError(new CieError({ message: e.message }))
     );
     cieManager.onSuccess(handleCieSuccess(continueWithUrl));
-    cieManager.enableLog(true);
+    cieManager.enableLog(useCieUat);
     cieManager.setCustomIdpUrl(useCieUat ? getCieUatEndpoint() : null);
     await cieManager.setPin(ciePin);
     cieManager.setAuthenticationUrl(cieAuthorizationUri);
