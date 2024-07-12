@@ -3,8 +3,8 @@ import {
   AuthorizationResultShape,
   type AuthorizationContext,
   type AuthorizationResult,
-} from "../../../src/utils/auth";
-import { hasStatus, until, type Out } from "../../utils/misc";
+} from "../../utils/auth";
+import { until, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import {

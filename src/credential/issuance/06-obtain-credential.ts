@@ -1,9 +1,9 @@
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { hasStatus, type Out } from "../../../src/utils/misc";
+import { hasStatus, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
-import { ValidationFailed } from "../../../src/utils/errors";
+import { ValidationFailed } from "../../utils/errors";
 import { CredentialResponse } from "./types";
 
 export type ObtainCredential = (
