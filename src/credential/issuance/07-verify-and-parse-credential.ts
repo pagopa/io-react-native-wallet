@@ -46,8 +46,6 @@ const parseCredentialSdJwt = (
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false
 ): ParsedCredential => {
-  console.log("******* credentials_supported *******");
-  console.log(JSON.stringify(credentials_supported));
   const credentialSubject = credentials_supported[sdJwt.payload.vct];
 
   if (!credentialSubject) {
