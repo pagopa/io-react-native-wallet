@@ -36,7 +36,7 @@ export default (integrityContext: IntegrityContext) =>
       if (e instanceof Errors.WalletInstanceNotFoundError) {
         console.error("Wallet Instance not found");
       }
-      console.error(JSON.stringify(e));
+      console.error(e);
       return error(e);
     }
   };
