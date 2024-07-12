@@ -38,7 +38,12 @@ const injectedJavaScript = `
   `;
 export type OnSuccess = (url: string) => void;
 export type OnError = (e: CieError) => void;
-export type OnUserInteraction = () => void;
+export type OnCieEvent = (e: CieEvent) => void;
+export enum CieEvent {
+  "reading" = "reading",
+  "completed" = "completed",
+  "waiting_card" = "waiting_card",
+}
 
 type CIEParams = {
   authUrl: string;
@@ -47,7 +52,7 @@ type CIEParams = {
   pin: string;
   useUat: boolean;
   redirectUrl: string;
-  onUserInteraction: OnUserInteraction;
+  onEvent: OnCieEvent;
 };
 
 /*
@@ -112,6 +117,7 @@ export const WebViewComponent = (params: CIEParams) => {
       params.useUat,
       params.pin,
       params.onError,
+      params.onEvent,
       cieAuthorizationUri,
       continueWithUrl
     );
@@ -130,7 +136,7 @@ export const WebViewComponent = (params: CIEParams) => {
     };
 
   const handleOnLoadEnd =
-    (onError: OnError, onUserInteraction: OnUserInteraction) =>
+    (onError: OnError, onCieEvent: OnCieEvent) =>
     (e: WebViewNavigationEvent | WebViewErrorEvent) => {
       const eventTitle = e.nativeEvent.title.toLowerCase();
       if (
@@ -144,10 +150,10 @@ export const WebViewComponent = (params: CIEParams) => {
 
       /* At the end of loading the page, if the card has already been read
        * then the WebView has loaded the page to ask the user for consent,
-       * so I call the callback for user interaction
+       * so send the completed event
        * */
       if (isCardReadingFinished) {
-        onUserInteraction();
+        onCieEvent(CieEvent.completed);
       }
     };
 
@@ -196,7 +202,7 @@ export const WebViewComponent = (params: CIEParams) => {
       userAgent={defaultUserAgent}
       javaScriptEnabled={true}
       source={{ uri: webViewUrl }}
-      onLoadEnd={handleOnLoadEnd(params.onError, params.onUserInteraction)}
+      onLoadEnd={handleOnLoadEnd(params.onError, params.onEvent)}
       onError={handleOnError(params.onError)}
       onHttpError={handleOnError(params.onError)}
       injectedJavaScript={injectedJavaScript}

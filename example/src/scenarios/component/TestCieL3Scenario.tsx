@@ -48,6 +48,7 @@ export default function TestCieL3Scenario({
   disabled?: boolean;
 }) {
   const [result, setResult] = React.useState<string | undefined>();
+  const [modalText, setModalText] = React.useState<string | undefined>();
   const [flowParams, setFlowParams] = React.useState<FlowParams>();
   const [isModalVisible, setModalVisible] = React.useState(false);
   const [isHidden, setHidden] = React.useState(true);
@@ -68,8 +69,24 @@ export default function TestCieL3Scenario({
     setResult(`❌ ${error}`);
   };
 
-  const handleOnUserInteraction = () => {
-    setHidden(false);
+  const handleOnEvent = (event: Cie.CieEvent) => {
+    switch (event) {
+      case Cie.CieEvent.waiting_card: {
+        setModalText(
+          "Waiting for CIE card. Bring it closer to the NFC reader."
+        );
+        break;
+      }
+      case Cie.CieEvent.completed: {
+        setModalText("Continue to the webview");
+        setHidden(false);
+        break;
+      }
+      case Cie.CieEvent.reading: {
+        setModalText("I'm reading the CIE. Do not remove it from the device");
+        break;
+      }
+    }
   };
 
   const prepareFlowParams = async () => {
@@ -205,6 +222,7 @@ export default function TestCieL3Scenario({
   };
 
   const toggleModal = () => {
+    setModalText("");
     if (isModalVisible) {
       setResult(`❌ Modal closed`);
     }
@@ -222,6 +240,10 @@ export default function TestCieL3Scenario({
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+    modalText: {
+      backgroundColor: "red",
+      color: "white",
     },
     webviewContainer: {
       width: isHidden ? "0%" : "90%",
@@ -260,6 +282,7 @@ export default function TestCieL3Scenario({
           onRequestClose={toggleModal}
         >
           <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>{modalText}</Text>
             <View style={styles.webviewContainer}>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -271,7 +294,7 @@ export default function TestCieL3Scenario({
                 useUat={true}
                 authUrl={flowParams.cieAuthUrl}
                 onSuccess={handleOnSuccess}
-                onUserInteraction={handleOnUserInteraction}
+                onEvent={handleOnEvent}
                 onError={handleOnError}
                 pin={ciePin}
                 redirectUrl={CIE_L3_REDIRECT_URI}
