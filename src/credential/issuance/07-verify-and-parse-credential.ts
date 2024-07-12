@@ -70,10 +70,10 @@ const parseCredentialSdJwt = (
   if (attrsNotInDisclosures.length > 0) {
     const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
     const received = disclosures.map((_) => _[1 /* name */]).join(", ");
-    const errorMessage = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
-    console.log(errorMessage);
     if (!ignoreMissingAttributes) {
-      throw new IoWalletError(errorMessage);
+      throw new IoWalletError(
+        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+      );
     }
   }
 
