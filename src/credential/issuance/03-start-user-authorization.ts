@@ -1,13 +1,9 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { ResponseMode } from "./types";
-import {
-  generateRandomAlphaNumericString,
-  type Out,
-} from "../../../src/utils/misc";
-
+import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
-import { AuthorizationDetail, makeParRequest } from "../../../src/utils/par";
+import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 import { ASSERTION_TYPE } from "./const";
 
 export type StartUserAuthorization = (

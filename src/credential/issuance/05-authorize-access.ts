@@ -1,15 +1,15 @@
-import { hasStatus, type Out } from "../../../src/utils/misc";
+import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
-import { withEphemeralKey } from "../../../src/utils/crypto";
-import { createDPopToken } from "../../../src/utils/dpop";
+import { withEphemeralKey } from "../../utils/crypto";
+import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
-import { createPopToken } from "../../../src/utils/pop";
+import { createPopToken } from "../../utils/pop";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
-import { ValidationFailed } from "../../../src/utils/errors";
+import { ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
 
 export type AuthorizeAccess = (
