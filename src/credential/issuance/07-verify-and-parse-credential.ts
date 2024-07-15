@@ -59,6 +59,9 @@ const parseCredentialSdJwt = (
   }
 
   // transfrom a record { key: value } in an iterable of pairs [key, value]
+  if (!credentialSubject.claims) {
+    throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
+  }
   const attrDefinitions = Object.entries(credentialSubject.claims);
 
   // the key of the attribute defintion must match the disclosure's name

@@ -59,7 +59,7 @@ const SupportedCredentialMetadata = z.object({
   format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
-  claims: ClaimsMetadata.optional(), // NOT OPTIONAL CHANGE ME
+  claims: ClaimsMetadata.optional(), // TODO [SIW-1268]: should not be optional
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
 });
