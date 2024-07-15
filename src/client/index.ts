@@ -39,11 +39,14 @@ export const getWalletProviderClient = (context: {
       appFetch(url, {
         method,
         body: params ? JSON.stringify(params.body) : undefined,
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
         .then(validateResponse)
         .then((res) => {
           const contentType = res.headers.get("content-type");
-          if (contentType === "application/json") {
+          if (contentType?.includes("application/json")) {
             return res.json();
           }
           return res.text();
