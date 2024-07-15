@@ -13,7 +13,7 @@ import { startCieAndroid, startCieiOS, type ContinueWithUrl } from "./manager";
 import { CieError, CieErrorType } from "./error";
 
 /* To obtain the authentication URL on CIE L3 it is necessary to take the
- * link contained in the "Enter with CIE card reading" button.
+ * link contained in the "Entra con lettura carta CIE" button.
  * This link can then be used on CieManager.
  * This javascript code takes the link in question and sends it to the react native function via postMessage
  */
