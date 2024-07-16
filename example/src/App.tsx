@@ -3,8 +3,10 @@ import scenarios, { TestScenario } from "./scenarios";
 import React from "react";
 import "react-native-url-polyfill/auto";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
+import { type IntegrityContext } from "@pagopa/io-react-native-wallet";
 import { IdpHint } from "./scenarios/get-pid";
+import { CIE_PIN } from "@env";
+import TestCieL3Scenario from "./scenarios/component/TestCieL3Scenario";
 
 export default function App() {
   const [integrityContext, setIntegrityContext] = React.useState<
@@ -32,13 +34,19 @@ export default function App() {
                 disabled={!integrityContext}
               />
               <TestScenario
-                title="Get PID (SPID DEMO)"
+                title="Get PID (SPID)"
                 scenario={scenarios.getPid(integrityContext, IdpHint.SPID)}
                 disabled={!integrityContext}
               />
               <TestScenario
-                title="Get PID (CIE DEMO)"
+                title="Get PID (CIE)"
                 scenario={scenarios.getPid(integrityContext, IdpHint.CIE)}
+                disabled={!integrityContext}
+              />
+              <TestCieL3Scenario
+                title="Get PID (CIE+PIN)"
+                integrityContext={integrityContext}
+                ciePin={CIE_PIN}
                 disabled={!integrityContext}
               />
             </>
