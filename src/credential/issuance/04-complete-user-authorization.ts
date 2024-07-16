@@ -295,7 +295,9 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
  * @param authRes the authorization response to be parsed
  * @returns the authorization result which contains code, state and iss
  */
-const parseAuthroizationResponse = (authRes: unknown): AuthorizationResult => {
+export const parseAuthroizationResponse = (
+  authRes: unknown
+): AuthorizationResult => {
   const authResParsed = AuthorizationResultShape.safeParse(authRes);
   if (!authResParsed.success) {
     const authErr = AuthorizationErrorShape.safeParse(authRes);
