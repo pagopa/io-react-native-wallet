@@ -50,8 +50,6 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
         issuerUrl
       );
 
-      console.log(JSON.stringify(issuerConf));
-
       // Start user authorization
       const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
         await Credential.Issuance.startUserAuthorization(
