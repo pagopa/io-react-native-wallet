@@ -10,6 +10,7 @@ import {
 import {
   completeUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
+  parseAuthroizationResponse,
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
   type GetRequestedCredentialToBePresented,
@@ -34,6 +35,7 @@ export {
   authorizeAccess,
   obtainCredential,
   verifyAndParseCredential,
+  parseAuthroizationResponse,
 };
 export type {
   StartFlow,

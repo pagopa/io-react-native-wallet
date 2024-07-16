@@ -3,9 +3,11 @@ import scenarios, { TestScenario } from "./scenarios";
 import React from "react";
 import "react-native-url-polyfill/auto";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
+import { type IntegrityContext } from "@pagopa/io-react-native-wallet";
 import { IdpHint } from "./scenarios/get-pid";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import TestCieL3Scenario from "./scenarios/component/TestCieL3Scenario";
+import { CIE_PIN } from "@env";
 
 /**
  * PidContext is a tuple containing the PID and its crypto context.
@@ -55,6 +57,12 @@ export default function App() {
                 IdpHint.CIE,
                 setPidContext
               )}
+              disabled={!integrityContext}
+            />
+            <TestCieL3Scenario
+              title="Get PID (CIE+PIN)"
+              integrityContext={integrityContext!}
+              ciePin={CIE_PIN}
               disabled={!integrityContext}
             />
             <TestScenario
