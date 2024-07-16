@@ -13,6 +13,11 @@ const walletProviderBaseUrl = WALLET_PROVIDER_BASE_URL;
  */
 export default (integrityContext: IntegrityContext) => async () => {
   try {
+    /**
+     * Create a Wallet Instance by providing an integrity context.
+     * WARNING: The integrity keytag must be persisted and used when creating the Wallet Instance Attestation.
+     * This example app uses a non persisted keytag for demonstration purposes only.
+     */
     const createdWalletInstance = await WalletInstance.createWalletInstance({
       integrityContext,
       walletProviderBaseUrl,

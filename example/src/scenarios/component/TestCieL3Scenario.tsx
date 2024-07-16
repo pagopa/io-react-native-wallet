@@ -22,6 +22,7 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import parseUrl from "parse-url";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
 const CIE_L3_REDIRECT_URI = "https://cie.callback";
@@ -55,7 +56,8 @@ export default function TestCieL3Scenario({
 
   const handleOnSuccess = (url: string) => {
     try {
-      const { code } = Credential.Issuance.parseAuthRedirectUrl(url);
+      const query = parseUrl(url).query;
+      const { code } = Credential.Issuance.parseAuthroizationResponse(query);
       continueFlow(code);
     } catch (error) {
       setResult(`❌ ${error}`);

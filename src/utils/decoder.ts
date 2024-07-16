@@ -6,34 +6,43 @@ import { ValidationFailed } from "./errors";
  * Decode a form_post.jwt and return the final JWT.
  * The formData here is in form_post.jwt format as defined in
  * JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)
- * HTTP/1.1 200 OK
- *   Content-Type: text/html;charset=UTF-8
- *   Cache-Control: no-cache, no-store
- *   Pragma: no-cache
- *
- *   <html>
- *   <head><title>Submit This Form</title></head>
- *   <body onload="javascript:document.forms[0].submit()">
- *     <form method="post" action="https://client.example.com/cb">
- *       <input type="hidden" name="response"
- *       value="eyJhbGciOiJSUz....."/>
- *       </form>
- *    </body>
- *   </html>
+ <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8" />
+        </head>
+        <body onload="document.forms[0].submit()">
+        <noscript>
+            <p>
+                <strong>Note:</strong> Since your browser does not support JavaScript, you must press the Continue button once to proceed.
+            </p>
+        </noscript>
+            <form action="iowalletexample//cb" method="post">       
+                <div>
+                    <input type="hidden" name="response" value="somevalue" />
+                </div>
+                <noscript>
+                    <div>
+                        <input type="submit" value="Continue" />
+                    </div>
+                </noscript>
+            </form>
+        </body>
+    </html>
  */
 export const getJwtFromFormPost = async (
   formData: string
 ): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => {
-  const formPostRegex = /<input(.|\n)*value\s*=\s*"((.|\n)*)"(.|\n)*>/gm;
+  const formPostRegex = /<input[^>]*name="response"[^>]*value="([^"]*)"/i;
   const lineExpressionRegex = /\r\n|\n\r|\n|\r|\s+/g;
 
-  const matches = formPostRegex.exec(formData);
-  if (matches && matches.length >= 2) {
-    const responseJwt = matches[2];
+  const match = formPostRegex.exec(formData);
+  if (match && match[1]) {
+    const responseJwt = match[1];
 
     if (responseJwt) {
       const jwt = responseJwt.replace(lineExpressionRegex, "");
-      const decodedJwt = await decodeJwt(jwt);
+      const decodedJwt = decodeJwt(jwt);
       return { jwt, decodedJwt };
     }
   }

@@ -5,11 +5,9 @@ import {
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
-import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
-
 import {
   REDIRECT_URI,
-  WALLET_PID_PROVIDER_BASE_URL,
+  WALLET_EAA_PROVIDER_BASE_URL,
   WALLET_PROVIDER_BASE_URL,
 } from "@env";
 import uuid from "react-native-uuid";
@@ -17,26 +15,11 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 import type { PidContext } from "../App";
 
-/**
- * Example of IdpHint values which currently support DEMO environments
- */
-export enum IdpHint {
-  CIE = "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
-  SPID = "https://demo.spid.gov.it",
-}
-
-/**
- * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
- */
-type PidSetter = React.Dispatch<React.SetStateAction<PidContext | undefined>>;
-
-export default (
-    integrityContext: IntegrityContext,
-    idphint: IdpHint = IdpHint.SPID,
-    setPid: PidSetter
-  ) =>
+export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
   async () => {
     try {
+      const { pid, pidCryptoContext } = pidContext;
+
       // Obtain a wallet attestation. A wallet instance must be created before this step.
       const walletInstanceKeyTag = uuid.v4().toString();
       await generate(walletInstanceKeyTag);
@@ -49,26 +32,15 @@ export default (
           walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
         });
 
-      // Create identification context only for SPID
-      const authorizationContext =
-        idphint === IdpHint.SPID
-          ? {
-              authorize: openAuthenticationSession,
-            }
-          : undefined;
-
-      /*
-       * Create credential crypto context for the PID
-       * WARNING: The eID keytag must be persisted and later used when requesting a credential which requires a eID presentation
-       */
+      // Create credential crypto context
       const credentialKeyTag = uuid.v4().toString();
       await generate(credentialKeyTag);
       const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
       // Start the issuance flow
       const startFlow: Credential.Issuance.StartFlow = () => ({
-        issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-        credentialType: "PersonIdentificationData",
+        issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+        credentialType: "MDL",
       });
 
       const { issuerUrl, credentialType } = startFlow();
@@ -90,15 +62,20 @@ export default (
           }
         );
 
-      // Complete the authroization process with query mode with the authorizationContext which opens the browser
-      const { code } =
-        await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+      const requestObject =
+        await Credential.Issuance.getRequestedCredentialToBePresented(
           issuerRequestUri,
           clientId,
-          issuerConf,
-          idphint,
-          REDIRECT_URI,
-          authorizationContext
+          issuerConf
+        );
+
+      // The app here should ask the user to confirm the required data contained in the requestObject
+
+      // Complete the user authorization via form_post.jwt mode
+      const { code } =
+        await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
+          requestObject,
+          { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
         );
 
       const { accessToken, tokenRequestSignedDPop } =
@@ -114,7 +91,7 @@ export default (
           }
         );
 
-      // Obtain che eID credential
+      // Obtain the credential
       const { credential, format } = await Credential.Issuance.obtainCredential(
         issuerConf,
         accessToken,
@@ -126,23 +103,22 @@ export default (
         }
       );
 
-      // Parse and verify the eID credential
+      // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
       const { parsedCredential } =
         await Credential.Issuance.verifyAndParseCredential(
           issuerConf,
           credential,
           format,
-          { credentialCryptoContext }
+          { credentialCryptoContext, ignoreMissingAttributes: true }
         );
 
-      Alert.alert(`PID obtained!`, `${JSON.stringify(parsedCredential)}`, [
+      Alert.alert(`MDL obtained!`, `${JSON.stringify(parsedCredential)}`, [
         { text: "OK" },
       ]);
 
-      // Setting the PID context in the app state in order to use it later to obtain a credential
-      setPid({ pid: credential, pidCryptoContext: credentialCryptoContext });
+      console.log(parsedCredential);
 
-      return result(parsedCredential);
+      return result(credential);
     } catch (e) {
       console.error(e);
       return error(e);
