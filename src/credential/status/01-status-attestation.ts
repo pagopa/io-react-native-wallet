@@ -57,6 +57,9 @@ export const statusAttestation: StatusAttestation = async (
 
   return await appFetch(statusAttUrl, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body,
   })
     .then(hasStatus(200))
