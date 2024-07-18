@@ -17,7 +17,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-import { IdpHint } from "../get-pid";
+import { type PidSetter } from "../get-pid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
@@ -35,18 +35,25 @@ type FlowParams = {
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
   credentialDefinition: Parameters<Credential.Issuance.ObtainCredential>[3];
+  setPid: PidSetter;
 };
 
 export default function TestCieL3Scenario({
   integrityContext,
   title,
   ciePin,
+  idpHint,
+  isCieUat,
   disabled = false,
+  setPid,
 }: {
   integrityContext: IntegrityContext;
   title: string;
   ciePin: string;
+  idpHint: string;
+  isCieUat: boolean;
   disabled?: boolean;
+  setPid: PidSetter;
 }) {
   const [result, setResult] = React.useState<string | undefined>();
   const [modalText, setModalText] = React.useState<string | undefined>();
@@ -135,7 +142,7 @@ export default function TestCieL3Scenario({
     const params = new URLSearchParams({
       client_id: clientId,
       request_uri: issuerRequestUri,
-      idphint: IdpHint.CIE,
+      idphint: idpHint,
     });
 
     return {
@@ -161,7 +168,10 @@ export default function TestCieL3Scenario({
       setHidden(true);
       setModalVisible(true);
       setResult("⏱️");
-      const params = await prepareFlowParams();
+      const params = {
+        ...(await prepareFlowParams()),
+        setPid,
+      };
       setFlowParams(params);
     } catch (error) {
       setResult(`❌ ${error}`);
@@ -215,6 +225,8 @@ export default function TestCieL3Scenario({
           format,
           { credentialCryptoContext }
         );
+
+      setPid({ pid: credential, pidCryptoContext: credentialCryptoContext });
 
       setResult(`✅`);
       Alert.alert(`PID obtained!`, `${JSON.stringify(parsedCredential)}`, [
@@ -293,7 +305,7 @@ export default function TestCieL3Scenario({
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
               <Cie.WebViewComponent
-                useUat={true}
+                useUat={isCieUat}
                 authUrl={flowParams.cieAuthUrl}
                 onSuccess={handleOnSuccess}
                 onEvent={handleOnEvent}
