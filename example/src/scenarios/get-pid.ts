@@ -18,21 +18,15 @@ import { Alert } from "react-native";
 import type { PidContext } from "../App";
 
 /**
- * Example of IdpHint values which currently support DEMO environments
- */
-export enum IdpHint {
-  CIE = "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO",
-  SPID = "https://demo.spid.gov.it",
-}
-
-/**
  * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
  */
-type PidSetter = React.Dispatch<React.SetStateAction<PidContext | undefined>>;
+export type PidSetter = React.Dispatch<
+  React.SetStateAction<PidContext | undefined>
+>;
 
 export default (
     integrityContext: IntegrityContext,
-    idphint: IdpHint = IdpHint.SPID,
+    idphint: string,
     setPid: PidSetter
   ) =>
   async () => {
@@ -50,13 +44,11 @@ export default (
         });
 
       // Create identification context only for SPID
-      const authorizationContext =
-        idphint === IdpHint.SPID
-          ? {
-              authorize: openAuthenticationSession,
-            }
-          : undefined;
-
+      const authorizationContext = idphint.includes("servizicie")
+        ? undefined
+        : {
+            authorize: openAuthenticationSession,
+          };
       /*
        * Create credential crypto context for the PID
        * WARNING: The eID keytag must be persisted and later used when requesting a credential which requires a eID presentation

@@ -34,10 +34,10 @@ export const startCieAndroid = (
         onEvent(CieEvent.waiting_card);
       })
       .catch(onError);
-  } catch {
+  } catch (e) {
     onError(
       new CieError({
-        message: "Unable to start CIE NFC manager on iOS",
+        message: `Unable to start CIE NFC manager on Android: ${e}`,
         type: CieErrorType.NFC_ERROR,
       })
     );
@@ -70,10 +70,10 @@ export const startCieiOS = async (
         onEvent(CieEvent.waiting_card);
       })
       .catch(onError);
-  } catch {
+  } catch (e) {
     onError(
       new CieError({
-        message: "Unable to start CIE NFC manager on Android",
+        message: `Unable to start CIE NFC manager on iOS: ${e}`,
         type: CieErrorType.NFC_ERROR,
       })
     );

@@ -4,10 +4,9 @@ import React from "react";
 import "react-native-url-polyfill/auto";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { type IntegrityContext } from "@pagopa/io-react-native-wallet";
-import { IdpHint } from "./scenarios/get-pid";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import TestCieL3Scenario from "./scenarios/component/TestCieL3Scenario";
-import { CIE_PIN } from "@env";
+import { CIE_PIN, CIE_UAT, SPID_IDPHINT } from "@env";
 
 /**
  * PidContext is a tuple containing the PID and its crypto context.
@@ -15,12 +14,19 @@ import { CIE_PIN } from "@env";
  */
 export type PidContext = { pid: string; pidCryptoContext: CryptoContext };
 
+const CIE_PROD_IDPHINT =
+  "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
+
+const CIE_UAT_IDPHINT =
+  "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
+
+export const isCieUat = CIE_UAT === "true" || CIE_UAT === "1";
+
 export default function App() {
   const [integrityContext, setIntegrityContext] = React.useState<
     IntegrityContext | undefined
   >();
   const [pidContext, setPidContext] = React.useState<PidContext>();
-
   return (
     <SafeAreaProvider>
       <SafeAreaView>
@@ -45,7 +51,7 @@ export default function App() {
               title="Get PID (SPID DEMO)"
               scenario={scenarios.getPid(
                 integrityContext!,
-                IdpHint.SPID,
+                SPID_IDPHINT,
                 setPidContext
               )}
               disabled={!integrityContext}
@@ -54,7 +60,7 @@ export default function App() {
               title="Get PID (CIE DEMO)"
               scenario={scenarios.getPid(
                 integrityContext!,
-                IdpHint.CIE,
+                isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT,
                 setPidContext
               )}
               disabled={!integrityContext}
@@ -63,7 +69,10 @@ export default function App() {
               title="Get PID (CIE+PIN)"
               integrityContext={integrityContext!}
               ciePin={CIE_PIN}
+              isCieUat={isCieUat}
+              idpHint={isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT}
               disabled={!integrityContext}
+              setPid={setPidContext}
             />
             <TestScenario
               title="Get credential (mDL)"

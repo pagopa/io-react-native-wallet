@@ -5,4 +5,6 @@ declare module "@env" {
   export const REDIRECT_URI: string;
   export const GOOGLE_CLOUD_PROJECT_NUMBER: string;
   export const CIE_PIN: string;
+  export const CIE_UAT: string;
+  export const SPID_IDPHINT: string;
 }
