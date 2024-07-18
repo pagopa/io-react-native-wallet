@@ -23,7 +23,7 @@ import {
 import { RequestObject } from "../presentation/types";
 import uuid from "react-native-uuid";
 import { ResponseUriResultShape } from "./types";
-import { getJwtFromFormPost } from "../../../src/utils/decoder";
+import { getJwtFromFormPost } from "../../utils/decoder";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
