@@ -7,6 +7,7 @@ import {
 } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 import { WALLET_PROVIDER_BASE_URL } from "@env";
+import appFetch from "../utils/fetch";
 
 /**
  * Obtain a Wallet Instance Attestation by providing an integrity context which must be the same
@@ -30,6 +31,7 @@ export default (integrityContext: IntegrityContext) =>
           wiaCryptoContext,
           integrityContext,
           walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+          appFetch,
         }
       );
 

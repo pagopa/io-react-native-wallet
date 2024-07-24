@@ -16,6 +16,7 @@ import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 import type { PidContext } from "../App";
+import appFetch from "../utils/fetch";
 
 /**
  * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
@@ -41,6 +42,7 @@ export default (
           wiaCryptoContext,
           integrityContext,
           walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+          appFetch,
         });
 
       // Create identification context only for SPID
@@ -79,6 +81,7 @@ export default (
             walletInstanceAttestation,
             redirectUri: `${REDIRECT_URI}`,
             wiaCryptoContext,
+            appFetch,
           }
         );
 
@@ -103,6 +106,7 @@ export default (
           {
             walletInstanceAttestation,
             wiaCryptoContext,
+            appFetch,
           }
         );
 
@@ -115,6 +119,7 @@ export default (
         tokenRequestSignedDPop,
         {
           credentialCryptoContext,
+          appFetch,
         }
       );
 
