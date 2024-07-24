@@ -9,7 +9,7 @@ import {
   WalletInstanceNotFoundError,
   WalletInstanceAttestationIssuingError,
 } from "../utils/errors";
-import { WalletInstanceAttestationResponse } from "./types";
+import { TokenResponse } from "./types";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -108,7 +108,7 @@ export const getAttestation = async ({
         assertion: signedAttestationRequest,
       },
     })
-    .then((result) => WalletInstanceAttestationResponse.parse(result))
+    .then((result) => TokenResponse.parse(result))
     .catch(handleAttestationCreationError);
 
   return tokenResponse.wallet_attestation;
