@@ -2,6 +2,8 @@ import * as z from "zod";
 export const ASSERTION_TYPE =
   "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation";
 
+export const DPOP_KET_TAG = `dpop`;
+
 export type SupportedCredentialFormat = z.infer<
   typeof SupportedCredentialFormat
 >;

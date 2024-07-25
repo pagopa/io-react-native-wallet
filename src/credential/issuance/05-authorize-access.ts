@@ -7,7 +7,7 @@ import uuid from "react-native-uuid";
 import { createPopToken } from "../../utils/pop";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { ASSERTION_TYPE } from "./const";
+import { ASSERTION_TYPE, DPOP_KET_TAG } from "./const";
 import { TokenResponse } from "./types";
 import { ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
@@ -64,9 +64,7 @@ export const authorizeAccess: AuthorizeAccess = async (
     .payload.cnf.jwk.kid;
 
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
-  // Use an ephemeral key to be destroyed after use
 
-  const DPOP_KET_TAG = "dpopd";
   try {
     await generate(DPOP_KET_TAG);
   } catch {

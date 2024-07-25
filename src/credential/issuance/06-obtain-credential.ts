@@ -12,6 +12,8 @@ import { CredentialResponse } from "./types";
 
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
+import { deleteKey } from "@pagopa/io-react-native-crypto";
+import { DPOP_KET_TAG } from "./const";
 
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -67,7 +69,7 @@ export const obtainCredential: ObtainCredential = async (
   accessToken,
   clientId,
   credentialDefinition,
-  ephemeralContext,
+  dPoPContext,
   context
 ) => {
   const { credentialCryptoContext, appFetch = fetch } = context;
@@ -120,9 +122,10 @@ export const obtainCredential: ObtainCredential = async (
       jti: `${uuid.v4()}`,
       ath: await sha256ToBase64(accessToken.access_token),
     },
-    ephemeralContext
+    dPoPContext
   );
 
+  deleteKey(DPOP_KET_TAG);
   const credentialRes = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
