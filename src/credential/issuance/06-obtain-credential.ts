@@ -1,4 +1,8 @@
-import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import {
+  sha256ToBase64,
+  SignJWT,
+  type CryptoContext,
+} from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { hasStatus, type Out } from "../../utils/misc";
@@ -6,12 +10,15 @@ import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { ValidationFailed } from "../../utils/errors";
 import { CredentialResponse } from "./types";
 
+import { createDPopToken } from "../../utils/dpop";
+import uuid from "react-native-uuid";
+
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
   credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
-  tokenRequestSignedDPop: Out<AuthorizeAccess>["tokenRequestSignedDPop"],
+  dPoPContext: CryptoContext,
   context: {
     credentialCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
@@ -60,7 +67,7 @@ export const obtainCredential: ObtainCredential = async (
   accessToken,
   clientId,
   credentialDefinition,
-  tokenRequestSignedDPop,
+  ephemeralContext,
   context
 ) => {
   const { credentialCryptoContext, appFetch = fetch } = context;
@@ -105,6 +112,16 @@ export const obtainCredential: ObtainCredential = async (
       proof_type: "jwt",
     },
   };
+
+  const tokenRequestSignedDPop = await await createDPopToken(
+    {
+      htm: "POST",
+      htu: credentialUrl,
+      jti: `${uuid.v4()}`,
+      ath: await sha256ToBase64(accessToken.access_token),
+    },
+    ephemeralContext
+  );
 
   const credentialRes = await appFetch(credentialUrl, {
     method: "POST",

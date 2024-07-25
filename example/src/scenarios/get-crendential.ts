@@ -82,7 +82,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
           { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
         );
 
-      const { accessToken, tokenRequestSignedDPop } =
+      const { accessToken, dPoPContext } =
         await Credential.Issuance.authorizeAccess(
           issuerConf,
           code,
@@ -102,7 +102,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
         accessToken,
         clientId,
         credentialDefinition,
-        tokenRequestSignedDPop,
+        dPoPContext,
         {
           credentialCryptoContext,
           appFetch,

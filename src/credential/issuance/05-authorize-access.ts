@@ -1,7 +1,7 @@
 import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
-import { withEphemeralKey } from "../../utils/crypto";
+import { createCryptoContextFor } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 import { createPopToken } from "../../utils/pop";
@@ -11,6 +11,7 @@ import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
 import { ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
+import { generate } from "@pagopa/io-react-native-crypto";
 
 export type AuthorizeAccess = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -23,7 +24,7 @@ export type AuthorizeAccess = (
     appFetch?: GlobalFetch["fetch"];
     wiaCryptoContext: CryptoContext;
   }
-) => Promise<{ accessToken: TokenResponse; tokenRequestSignedDPop: string }>;
+) => Promise<{ accessToken: TokenResponse; dPoPContext: CryptoContext }>;
 
 /**
  * Creates and sends the DPoP Proof JWT to be presented with the authorization code to the /token endpoint of the authorization server
@@ -64,17 +65,23 @@ export const authorizeAccess: AuthorizeAccess = async (
 
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
   // Use an ephemeral key to be destroyed after use
-  const tokenRequestSignedDPop = await withEphemeralKey(
-    async (ephimeralContext) => {
-      return await createDPopToken(
-        {
-          htm: "POST",
-          htu: tokenUrl,
-          jti: `${uuid.v4()}`,
-        },
-        ephimeralContext
-      );
-    }
+
+  const DPOP_KET_TAG = "dpopd";
+  try {
+    await generate(DPOP_KET_TAG);
+  } catch {
+    console.log("DPoP key already exist");
+  }
+
+  const dPoPContext = createCryptoContextFor(DPOP_KET_TAG);
+
+  const tokenRequestSignedDPop = await createDPopToken(
+    {
+      htm: "POST",
+      htu: tokenUrl,
+      jti: `${uuid.v4()}`,
+    },
+    dPoPContext
   );
 
   const signedWiaPoP = await createPopToken(
@@ -113,5 +120,5 @@ export const authorizeAccess: AuthorizeAccess = async (
     throw new ValidationFailed(tokenRes.error.message);
   }
 
-  return { accessToken: tokenRes.data, tokenRequestSignedDPop };
+  return { accessToken: tokenRes.data, dPoPContext };
 };

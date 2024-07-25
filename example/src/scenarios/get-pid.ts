@@ -96,7 +96,7 @@ export default (
           authorizationContext
         );
 
-      const { accessToken, tokenRequestSignedDPop } =
+      const { accessToken, dPoPContext } =
         await Credential.Issuance.authorizeAccess(
           issuerConf,
           code,
@@ -116,7 +116,7 @@ export default (
         accessToken,
         clientId,
         credentialDefinition,
-        tokenRequestSignedDPop,
+        dPoPContext,
         {
           credentialCryptoContext,
           appFetch,
