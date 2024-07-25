@@ -125,7 +125,7 @@ export const obtainCredential: ObtainCredential = async (
     dPoPContext
   );
 
-  deleteKey(DPOP_KET_TAG);
+  await deleteKey(DPOP_KET_TAG);
   const credentialRes = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
