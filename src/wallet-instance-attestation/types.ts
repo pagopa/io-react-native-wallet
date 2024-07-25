@@ -80,3 +80,8 @@ export const WalletInstanceAttestationJwt = z.object({
     })
   ),
 });
+
+export type TokenResponse = z.infer<typeof TokenResponse>;
+export const TokenResponse = z.object({
+  wallet_attestation: z.string(),
+});
