@@ -16,7 +16,11 @@ import { Alert } from "react-native";
 import type { PidContext } from "../App";
 import appFetch from "../utils/fetch";
 
-export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
+export default (
+    integrityContext: IntegrityContext,
+    pidContext: PidContext,
+    type: string
+  ) =>
   async () => {
     try {
       const { pid, pidCryptoContext } = pidContext;
@@ -42,7 +46,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
       // Start the issuance flow
       const startFlow: Credential.Issuance.StartFlow = () => ({
         issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-        credentialType: "MDL",
+        credentialType: type,
       });
 
       const { issuerUrl, credentialType } = startFlow();
