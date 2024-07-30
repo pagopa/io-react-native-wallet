@@ -75,6 +75,11 @@ export default function App() {
               setPid={setPidContext}
             />
             <TestScenario
+              title="Get PID Status Attestation"
+              scenario={scenarios.getPidStatusAttestation(pidContext!)}
+              disabled={!integrityContext || !pidContext}
+            />
+            <TestScenario
               title="Get credential (mDL)"
               scenario={scenarios.getCredential(integrityContext!, pidContext!)}
               disabled={!integrityContext || !pidContext}
