@@ -14,6 +14,7 @@ export type VerifyAndParseCredential = (
   context: {
     credentialCryptoContext: CryptoContext;
     ignoreMissingAttributes?: boolean;
+    includeUndefinedAttributes?: boolean;
   }
 ) => Promise<{ parsedCredential: ParsedCredential }>;
 
@@ -44,7 +45,8 @@ const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
   { sdJwt, disclosures }: DecodedSdJwtCredential,
-  ignoreMissingAttributes: boolean = false
+  ignoreMissingAttributes: boolean = false,
+  includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
   const credentialSubject = credentials_supported[sdJwt.payload.vct];
 
@@ -112,18 +114,21 @@ const parseCredentialSdJwt = (
       )
   );
 
-  // attributes that are in the disclosure set
-  // but are not defined in the issuer configuration
-  const undefinedValues = Object.fromEntries(
-    disclosures
-      .filter((_) => !Object.keys(definedValues).includes(_[1]))
-      .map(([, key, value]) => [key, { value, name: key }])
-  );
+  if (includeUndefinedAttributes) {
+    // attributes that are in the disclosure set
+    // but are not defined in the issuer configuration
+    const undefinedValues = Object.fromEntries(
+      disclosures
+        .filter((_) => !Object.keys(definedValues).includes(_[1]))
+        .map(([, key, value]) => [key, { value, name: key }])
+    );
+    return {
+      ...definedValues,
+      ...undefinedValues,
+    };
+  }
 
-  return {
-    ...definedValues,
-    ...undefinedValues,
-  };
+  return definedValues;
 };
 
 /**

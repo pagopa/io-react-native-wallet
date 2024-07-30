@@ -194,7 +194,7 @@ export default function TestCieL3Scenario({
       await generate(credentialKeyTag);
       const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-      const { accessToken, tokenRequestSignedDPop } =
+      const { accessToken, dPoPContext } =
         await Credential.Issuance.authorizeAccess(
           issuerConf,
           code,
@@ -212,7 +212,7 @@ export default function TestCieL3Scenario({
         accessToken,
         clientId,
         credentialDefinition,
-        tokenRequestSignedDPop,
+        dPoPContext,
         {
           credentialCryptoContext,
         }

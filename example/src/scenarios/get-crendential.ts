@@ -14,6 +14,7 @@ import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 import type { PidContext } from "../App";
+import appFetch from "../utils/fetch";
 
 export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
   async () => {
@@ -30,6 +31,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
           wiaCryptoContext,
           integrityContext,
           walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+          appFetch,
         });
 
       // Create credential crypto context
@@ -59,6 +61,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
             walletInstanceAttestation,
             redirectUri: `${REDIRECT_URI}`,
             wiaCryptoContext,
+            appFetch,
           }
         );
 
@@ -66,7 +69,8 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
         await Credential.Issuance.getRequestedCredentialToBePresented(
           issuerRequestUri,
           clientId,
-          issuerConf
+          issuerConf,
+          appFetch
         );
 
       // The app here should ask the user to confirm the required data contained in the requestObject
@@ -78,7 +82,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
           { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
         );
 
-      const { accessToken, tokenRequestSignedDPop } =
+      const { accessToken, dPoPContext } =
         await Credential.Issuance.authorizeAccess(
           issuerConf,
           code,
@@ -88,6 +92,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
           {
             walletInstanceAttestation,
             wiaCryptoContext,
+            appFetch,
           }
         );
 
@@ -97,9 +102,10 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
         accessToken,
         clientId,
         credentialDefinition,
-        tokenRequestSignedDPop,
+        dPoPContext,
         {
           credentialCryptoContext,
+          appFetch,
         }
       );
 
