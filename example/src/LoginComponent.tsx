@@ -45,11 +45,9 @@ export default function LoginComponent() {
           }}
           style={styles.webview}
           onNavigationStateChange={(el) => {
-            console.log(el.url);
             if (el.url.includes("profile.html")) {
               const urlParams = new URL(el.url);
               const token = urlParams.searchParams.get("token");
-              console.log(el.url, token);
               token && dispatch(sessionSet(token));
             }
           }}
