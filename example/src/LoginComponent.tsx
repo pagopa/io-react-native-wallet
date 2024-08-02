@@ -26,7 +26,9 @@ const IdpButton = ({
 
 const getLoginUri = (idp: string) => {
   let url = new URL(WALLET_PROVIDER_BASE_URL);
-  url.pathname = `/login?entityID=${idp}&authLevel=SpidL2`;
+  url.pathname = `/login`;
+  url.searchParams.append("entityID", idp);
+  url.searchParams.append("authLevel", "SpidL2");
   return url.href;
 };
 
