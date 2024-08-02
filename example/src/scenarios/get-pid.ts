@@ -15,7 +15,7 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
-import type { PidContext } from "../App";
+import type { PidContext } from "../MainComponent";
 import appFetch from "../utils/fetch";
 
 /**
