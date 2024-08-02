@@ -1,4 +1,9 @@
-import { WALLET_PROVIDER_BASE_URL } from "@env";
+import {
+  IPZS_AUTH_TOKEN,
+  WALLET_EAA_PROVIDER_BASE_URL,
+  WALLET_PID_PROVIDER_BASE_URL,
+  WALLET_PROVIDER_BASE_URL,
+} from "@env";
 import { store } from "../store/store";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
 
@@ -27,6 +32,16 @@ export default function appFetch(request: RequestInfo, options: RequestInit) {
       case new URL(WALLET_PROVIDER_BASE_URL).origin: {
         return {
           Authorization: `Bearer ${authToken}`,
+        };
+      }
+      case new URL(WALLET_PID_PROVIDER_BASE_URL).origin: {
+        return {
+          AuthorizationIPZS: `${IPZS_AUTH_TOKEN}`,
+        };
+      }
+      case new URL(WALLET_EAA_PROVIDER_BASE_URL).origin: {
+        return {
+          AuthorizationIPZS: `${IPZS_AUTH_TOKEN}`,
         };
       }
       default: {

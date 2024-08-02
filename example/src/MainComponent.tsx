@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import scenarios, { TestScenario } from "./scenarios";
-import { SPID_IDPHINT, CIE_PIN, CIE_UAT } from "@env";
+import { SPID_IDPHINT, CIE_UAT } from "@env";
 
 import LoginComponent from "./LoginComponent";
 import TestCieL3Scenario from "./scenarios/component/TestCieL3Scenario";
@@ -82,7 +82,6 @@ const MainComponent = () => {
             <TestCieL3Scenario
               title="Get PID (CIE+PIN)"
               integrityContext={integrityContext!}
-              ciePin={CIE_PIN}
               isCieUat={isCieUat}
               idpHint={isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT}
               disabled={!integrityContext}

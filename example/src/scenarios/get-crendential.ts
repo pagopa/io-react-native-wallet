@@ -79,7 +79,13 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
       const { code } =
         await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
           requestObject,
-          { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
+          {
+            wiaCryptoContext,
+            pidCryptoContext,
+            pid,
+            walletInstanceAttestation,
+            appFetch,
+          }
         );
 
       const { accessToken, dPoPContext } =

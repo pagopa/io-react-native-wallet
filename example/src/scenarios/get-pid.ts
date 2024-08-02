@@ -63,6 +63,7 @@ export default (
       const startFlow: Credential.Issuance.StartFlow = () => ({
         issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
         credentialType: "PersonIdentificationData",
+        appFetch,
       });
 
       const { issuerUrl, credentialType } = startFlow();
