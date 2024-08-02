@@ -1,4 +1,4 @@
-import { IoWalletError } from "./errors";
+import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
 import { sha256 } from "js-sha256";
 
 /**
@@ -10,10 +10,11 @@ export const hasStatus =
   (status: number) =>
   async (res: Response): Promise<Response> => {
     if (res.status !== status) {
-      throw new IoWalletError(
+      throw new UnexpectedStatusCodeError(
         `Http request failed. Expected ${status}, got ${res.status}, url: ${
           res.url
-        } with response: ${await res.text()}`
+        } with response: ${await res.text()}`,
+        res.status
       );
     }
     return res;

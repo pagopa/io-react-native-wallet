@@ -6,3 +6,7 @@ import * as z from "zod";
 export const StatusAttestationResponse = z.object({
   status_attestation: z.string(),
 });
+
+export type StatusAttestationResponse = z.infer<
+  typeof StatusAttestationResponse
+>;

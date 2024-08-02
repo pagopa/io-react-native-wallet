@@ -43,6 +43,30 @@ export class IoWalletError extends Error {
     Error.captureStackTrace?.(this, this.constructor);
   }
 }
+
+/**
+ * An error subclass thrown when a Wallet Provider http request has a status code different from the one expected.
+ */
+export class UnexpectedStatusCodeError extends IoWalletError {
+  static get code(): "ERR_UNEXPECTED_STATUS_CODE" {
+    return "ERR_UNEXPECTED_STATUS_CODE";
+  }
+
+  code = "ERR_UNEXPECTED_STATUS_CODE";
+
+  /** HTTP status code */
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(
+      serializeAttrs({
+        message,
+        statusCode: statusCode.toString(),
+      })
+    );
+    this.statusCode = statusCode;
+  }
+}
 /**
  * An error subclass thrown when validation fail
  *

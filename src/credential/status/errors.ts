@@ -7,13 +7,11 @@ export class StatusAttestationInvalid extends IoWalletError {
 
   code = "ERR_STATUS_ATTESTATION_INVALID";
 
-  claim: string;
   reason: string;
 
-  constructor(message: string, claim: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, claim, reason }));
+  constructor(message: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, reason }));
     this.reason = reason;
-    this.claim = claim;
   }
 }
 
@@ -24,12 +22,10 @@ export class StatusAttestationError extends IoWalletError {
 
   code = "ERR_STATUS_ATTESTATION_ERROR";
 
-  claim: string;
   reason: string;
 
-  constructor(message: string, claim: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, claim, reason }));
+  constructor(message: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, reason }));
     this.reason = reason;
-    this.claim = claim;
   }
 }

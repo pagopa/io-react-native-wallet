@@ -7,7 +7,7 @@ import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import { StatusAttestationResponse } from "./types";
-import { IoWalletError, WalletProviderResponseError } from "../../utils/errors";
+import { UnexpectedStatusCodeError } from "../../utils/errors";
 import { StatusAttestationError, StatusAttestationInvalid } from "./errors";
 
 export type StatusAttestation = (
@@ -15,7 +15,7 @@ export type StatusAttestation = (
   credential: Out<ObtainCredential>["credential"],
   credentialCryptoContext: CryptoContext,
   appFetch?: GlobalFetch["fetch"]
-) => Promise<string>;
+) => Promise<StatusAttestationResponse>;
 
 /**
  * WARNING: This function must be called after {@link startFlow}. The next function to be called is {@link startUserAuthorization}.
@@ -65,26 +65,24 @@ export const statusAttestation: StatusAttestation = async (
   })
     .then(hasStatus(201))
     .then((raw) => raw.json())
-    .then(StatusAttestationResponse.parse)
+    .then((json) => StatusAttestationResponse.parse(json))
     .catch(handleStatusAttestationError);
 };
 
 const handleStatusAttestationError = (e: unknown) => {
-  if (!(e instanceof IoWalletError)) {
+  if (!(e instanceof UnexpectedStatusCodeError)) {
     throw e;
   }
 
-  if (e.code === 404) {
+  if (e.statusCode === 404) {
     throw new StatusAttestationInvalid(
       "Invalid status found for the given credential",
-      e.claim,
-      e.reason
+      e.message
     );
   }
 
   throw new StatusAttestationError(
     `Unable to obtain the status attestation for the given credential [response status code: ${e.statusCode}]`,
-    e.claim,
-    e.reason
+    e.message
   );
 };
