@@ -3,7 +3,8 @@ import { sha256 } from "js-sha256";
 
 /**
  * Check if a response is in the expected status, other
- * @param status The expected status
+ * @param status - The expected status
+ * @throws {@link UnexpectedStatusCodeError} if the status is different from the one expected
  * @returns The given response object
  */
 export const hasStatus =
