@@ -22,7 +22,12 @@ import appFetch from "../utils/fetch";
 export type CredentialSetter = React.Dispatch<
   React.SetStateAction<CredentialContext | undefined>
 >;
-
+/**
+ * Example scenario that shows how to get a credential. In order to get a credential a PID is required.
+ * @param integrityContext - The integrity context which exposes a set of functions to interact with the device integrity service
+ * @param pidContext - The PID and its crypto context. Set by the get PID scenario.
+ * @param setCredential - Callback used to set the credential and its crypto context in the app state which is later used to check its status.
+ */
 export default (
     integrityContext: IntegrityContext,
     pidContext: PidContext,

@@ -18,13 +18,15 @@ export type StatusAttestation = (
 ) => Promise<StatusAttestationResponse>;
 
 /**
- * WARNING: This function must be called after {@link startFlow}. The next function to be called is {@link startUserAuthorization}.
- * The Issuer trust evaluation phase.
- * Fetch the Issuer's configuration and verify trust.
- *
- * @param issuerUrl The base url of the Issuer returned by {@link startFlow}
+ * WARNING: This function must be called after {@link startFlow}.
+ * Verify the status of the credential attestation.
+ * @param issuerConf - The issuer's configuration
+ * @param credential - The credential to be verified
+ * @param credentialCryptoContext - The credential's crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @returns The Issuer's configuration
+ * @throws {@link StatusAttestationInvalid} if the status attestation is invalid and thus the credential is not valid
+ * @throws {@link StatusAttestationError} if an error occurs during the status attestation
+ * @returns The credential status attestation
  */
 export const statusAttestation: StatusAttestation = async (
   issuerConf,
@@ -69,6 +71,13 @@ export const statusAttestation: StatusAttestation = async (
     .catch(handleStatusAttestationError);
 };
 
+/**
+ * Handle the status attestation error by mapping it to a custom exception.
+ * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
+ * @param e - The error to be handled
+ * @throws {@link StatusAttestationError} if the status code is different from 404
+ * @throws {@link StatusAttestationInvalid} if the status code is 404 (meaning the credential is invalid)
+ */
 const handleStatusAttestationError = (e: unknown) => {
   if (!(e instanceof UnexpectedStatusCodeError)) {
     throw e;

@@ -10,13 +10,13 @@ import { CIE_PIN, CIE_UAT, SPID_IDPHINT } from "@env";
 
 /**
  * PidContext is a tuple containing the PID and its crypto context.
- * It is used to obtain a credential and must be set after obtaining a PID.
+ * It is used to obtain a credential and must be set after obtaining a PID to obtain another credential.
  */
 export type PidContext = { pid: string; pidCryptoContext: CryptoContext };
 
 /**
  * CredentialContext is a tuple containing the credential and its crypto context.
- * It is used to obtain a credential and must be set after obtaining a PID.
+ * It is used to obtain a credential and must be set after obtaining a credential to check its status.
  */
 export type CredentialContext = {
   credential: string;
