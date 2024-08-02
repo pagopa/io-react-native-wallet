@@ -1,16 +1,15 @@
 import { Credential } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
-import { WALLET_PID_PROVIDER_BASE_URL } from "@env";
-import type { PidContext } from "../App";
-import { Status } from "src/credential";
+import { WALLET_EAA_PROVIDER_BASE_URL } from "@env";
+import type { CredentialContext } from "../App";
 
-export default (pidContext: PidContext) => async () => {
+export default (credentialContext: CredentialContext) => async () => {
   try {
-    const { pid, pidCryptoContext } = pidContext;
+    const { credential, credentialCryptoContext } = credentialContext;
 
     // Start the issuance flow
     const startFlow: Credential.Status.StartFlow = () => ({
-      issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
+      issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
     });
 
     const { issuerUrl } = startFlow();
@@ -20,10 +19,10 @@ export default (pidContext: PidContext) => async () => {
       issuerUrl
     );
 
-    const res = await Status.statusAttestation(
+    const res = await Credential.Status.statusAttestation(
       issuerConf,
-      pid,
-      pidCryptoContext
+      credential,
+      credentialCryptoContext
     );
     return result(res);
   } catch (e) {

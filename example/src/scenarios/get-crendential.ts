@@ -13,10 +13,21 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
-import type { PidContext } from "../App";
+import type { CredentialContext, PidContext } from "../App";
 import appFetch from "../utils/fetch";
 
-export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
+/**
+ * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
+ */
+export type CredentialSetter = React.Dispatch<
+  React.SetStateAction<CredentialContext | undefined>
+>;
+
+export default (
+    integrityContext: IntegrityContext,
+    pidContext: PidContext,
+    setCredential: CredentialSetter
+  ) =>
   async () => {
     try {
       const { pid, pidCryptoContext } = pidContext;
@@ -123,6 +134,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
       ]);
 
       console.log(parsedCredential);
+      setCredential({ credential, credentialCryptoContext });
 
       return result(credential);
     } catch (e) {

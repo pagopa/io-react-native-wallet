@@ -8,7 +8,9 @@
  * @param attrs A key value record set
  * @returns a human-readable serialization of the set
  */
-const serializeAttrs = (attrs: Record<string, string | string>): string =>
+export const serializeAttrs = (
+  attrs: Record<string, string | string>
+): string =>
   Object.entries(attrs)
     .map(([k, v]) => [k, Array.isArray(v) ? `(${v.join(", ")})` : v])
     .map((_) => _.join("="))

@@ -14,6 +14,15 @@ import { CIE_PIN, CIE_UAT, SPID_IDPHINT } from "@env";
  */
 export type PidContext = { pid: string; pidCryptoContext: CryptoContext };
 
+/**
+ * CredentialContext is a tuple containing the credential and its crypto context.
+ * It is used to obtain a credential and must be set after obtaining a PID.
+ */
+export type CredentialContext = {
+  credential: string;
+  credentialCryptoContext: CryptoContext;
+};
+
 const CIE_PROD_IDPHINT =
   "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
 
@@ -27,6 +36,10 @@ export default function App() {
     IntegrityContext | undefined
   >();
   const [pidContext, setPidContext] = React.useState<PidContext>();
+  const [mdlContext, setMdlContext] = React.useState<
+    CredentialContext | undefined
+  >();
+
   return (
     <SafeAreaProvider>
       <SafeAreaView>
@@ -75,14 +88,18 @@ export default function App() {
               setPid={setPidContext}
             />
             <TestScenario
-              title="Get PID Status Attestation"
-              scenario={scenarios.getPidStatusAttestation(pidContext!)}
+              title="Get credential (mDL)"
+              scenario={scenarios.getCredential(
+                integrityContext!,
+                pidContext!,
+                setMdlContext
+              )}
               disabled={!integrityContext || !pidContext}
             />
             <TestScenario
-              title="Get credential (mDL)"
-              scenario={scenarios.getCredential(integrityContext!, pidContext!)}
-              disabled={!integrityContext || !pidContext}
+              title="Get credential (mDL) Status Attestation"
+              scenario={scenarios.getCredentialStatusAttestation(mdlContext!)}
+              disabled={!integrityContext || !pidContext || !mdlContext}
             />
           </>
         </ScrollView>
