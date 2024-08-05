@@ -6,11 +6,11 @@ import {
 
 export const regenerateCryptoKey = async (keyTag: string) => {
   // Delete the key if it exists, otherwise ignore the error
-  await deleteIfExists(keyTag);
+  await deleteKeyIfExists(keyTag);
   await generate(keyTag);
 };
 
-export const deleteIfExists = async (keyTag: string) => {
+export const deleteKeyIfExists = async (keyTag: string) => {
   await deleteKey(keyTag).catch((e) => {
     const { message } = e as CryptoError;
     if (message !== "PUBLIC_KEY_NOT_FOUND") throw e;

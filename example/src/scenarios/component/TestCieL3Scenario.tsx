@@ -22,7 +22,10 @@ import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
-import { deleteIfExists, regenerateCryptoKey } from "example/src/utils/crypto";
+import {
+  deleteKeyIfExists,
+  regenerateCryptoKey,
+} from "example/src/utils/crypto";
 import { DPOP_KEYTAG, WIA_KEYTAG } from "example/src/utils/consts";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
@@ -176,8 +179,8 @@ export default function TestCieL3Scenario({
     } catch (error) {
       setResult(`❌ ${error}`);
     } finally {
-      deleteIfExists(WIA_KEYTAG);
-      deleteIfExists(DPOP_KEYTAG);
+      deleteKeyIfExists(WIA_KEYTAG);
+      deleteKeyIfExists(DPOP_KEYTAG);
     }
   };
 

@@ -17,7 +17,7 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 import type { PidContext } from "../App";
 import appFetch from "../utils/fetch";
-import { deleteIfExists, regenerateCryptoKey } from "../utils/crypto";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../utils/crypto";
 import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
 
 /**
@@ -148,7 +148,7 @@ export default (
       console.error(e);
       return error(e);
     } finally {
-      deleteIfExists(WIA_KEYTAG);
-      deleteIfExists(DPOP_KEYTAG);
+      deleteKeyIfExists(WIA_KEYTAG);
+      deleteKeyIfExists(DPOP_KEYTAG);
     }
   };
