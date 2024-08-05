@@ -101,7 +101,7 @@ export default function TestCieL3Scenario({
 
   const prepareFlowParams = async () => {
     // Obtain a wallet attestation. A wallet instance must be created before this step.
-    await generate(WIA_KEYTAG);
+    await regenerateCryptoKey(WIA_KEYTAG);
     const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
     const walletInstanceAttestation =
