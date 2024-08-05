@@ -17,6 +17,8 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 import type { PidContext } from "../App";
 import appFetch from "../utils/fetch";
+import { regenerateCryptoKey } from "../utils/crypto";
+import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
 
 /**
  * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
@@ -32,10 +34,8 @@ export default (
   ) =>
   async () => {
     try {
-      // Obtain a wallet attestation. A wallet instance must be created before this step.
-      const walletInstanceKeyTag = uuid.v4().toString();
-      await generate(walletInstanceKeyTag);
-      const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+      await regenerateCryptoKey(WIA_KEYTAG);
+      const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
       const walletInstanceAttestation =
         await WalletInstanceAttestation.getAttestation({
@@ -96,19 +96,23 @@ export default (
           authorizationContext
         );
 
-      const { accessToken, dPoPContext } =
-        await Credential.Issuance.authorizeAccess(
-          issuerConf,
-          code,
-          clientId,
-          REDIRECT_URI,
-          codeVerifier,
-          {
-            walletInstanceAttestation,
-            wiaCryptoContext,
-            appFetch,
-          }
-        );
+      // Create DPoP context which will be used for the whole issuance flow
+      await regenerateCryptoKey(DPOP_KEYTAG);
+      const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+
+      const { accessToken } = await Credential.Issuance.authorizeAccess(
+        issuerConf,
+        code,
+        clientId,
+        REDIRECT_URI,
+        codeVerifier,
+        {
+          walletInstanceAttestation,
+          wiaCryptoContext,
+          dPopCryptoContext,
+          appFetch,
+        }
+      );
 
       // Obtain che eID credential
       const { credential, format } = await Credential.Issuance.obtainCredential(
@@ -116,9 +120,9 @@ export default (
         accessToken,
         clientId,
         credentialDefinition,
-        dPoPContext,
         {
           credentialCryptoContext,
+          dPopCryptoContext,
           appFetch,
         }
       );
