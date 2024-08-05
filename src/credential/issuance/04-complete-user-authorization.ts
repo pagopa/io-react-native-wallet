@@ -100,7 +100,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         });
     } else {
       // handler for redirectUri
-      Linking.addEventListener("url", ({ url }) => {
+      const sub = Linking.addEventListener("url", ({ url }) => {
         if (url.includes(redirectUri)) {
           authRedirectUrl = url;
         }
@@ -118,6 +118,8 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
       );
 
       await Promise.all([openAuthUrlInBrowser, unitAuthRedirectIsNotUndefined]);
+
+      Linking.removeSubscription(sub);
 
       if (authRedirectUrl === undefined) {
         throw new AuthorizationError("Invalid authentication redirect url");
