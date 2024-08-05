@@ -1,16 +1,39 @@
 import React from "react";
 import {
   FlatList,
+  Linking,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import { WebView, type WebViewNavigation } from "react-native-webview";
 import { idps } from "./utils/idps";
 import { useDispatch } from "react-redux";
 import { sessionSet } from "./store/actions/session";
 import { WALLET_PROVIDER_BASE_URL } from "@env";
+import URLParse from "url-parse";
+
+const originSchemasWhiteList = [
+  "https://*",
+  "intent://*",
+  "http://*",
+  "iologin://*",
+];
+
+export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
+  const intentProtocol = URLParse.extractProtocol(intentUrl);
+  if (intentProtocol.protocol !== "intent:" || !intentProtocol.slashes) {
+    return undefined;
+  }
+  const hook = "S.browser_fallback_url=";
+  const hookIndex = intentUrl.indexOf(hook);
+  const endIndex = intentUrl.indexOf(";end", hookIndex + hook.length);
+  if (hookIndex !== -1 && endIndex !== -1) {
+    return intentUrl.substring(hookIndex + hook.length, endIndex);
+  }
+  return undefined;
+};
 
 const IdpButton = ({
   idp,
@@ -36,6 +59,17 @@ export default function LoginComponent() {
   const [idp, setIdp] = React.useState<string | undefined>();
   const dispatch = useDispatch();
 
+  const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
+    const url = event.url;
+    // if an intent is coming from the IDP login form, extract the fallbackUrl and use it in Linking.openURL
+    const idpIntent = getIntentFallbackUrl(url);
+    if (idpIntent) {
+      Linking.openURL(idpIntent);
+      return false;
+    }
+    return true;
+  };
+
   return (
     <View style={styles.container}>
       {idp ? (
@@ -56,6 +90,9 @@ export default function LoginComponent() {
           androidMicrophoneAccessDisabled={true}
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={true}
+          originWhitelist={originSchemasWhiteList}
+          cacheEnabled={false}
+          onShouldStartLoadWithRequest={handleShouldStartLoading}
         />
       ) : (
         <FlatList
