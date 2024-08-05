@@ -117,9 +117,10 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         120
       );
 
-      await Promise.all([openAuthUrlInBrowser, unitAuthRedirectIsNotUndefined]);
-
-      Linking.removeSubscription(sub);
+      await Promise.all([
+        openAuthUrlInBrowser,
+        unitAuthRedirectIsNotUndefined,
+      ]).finally(() => Linking.removeSubscription(sub));
 
       if (authRedirectUrl === undefined) {
         throw new AuthorizationError("Invalid authentication redirect url");
