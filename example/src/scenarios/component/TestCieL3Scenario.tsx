@@ -122,7 +122,8 @@ export default function TestCieL3Scenario({
 
     // Evaluate issuer trust
     const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-      issuerUrl
+      issuerUrl,
+      { appFetch }
     );
 
     // Start user authorization
@@ -134,6 +135,7 @@ export default function TestCieL3Scenario({
           walletInstanceAttestation,
           redirectUri: CIE_L3_REDIRECT_URI,
           wiaCryptoContext,
+          appFetch,
         }
       );
 
@@ -222,6 +224,7 @@ export default function TestCieL3Scenario({
           {
             walletInstanceAttestation,
             wiaCryptoContext,
+            appFetch,
           }
         );
 
@@ -233,6 +236,7 @@ export default function TestCieL3Scenario({
         dPoPContext,
         {
           credentialCryptoContext,
+          appFetch,
         }
       );
 

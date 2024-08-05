@@ -70,7 +70,8 @@ export default (
 
       // Evaluate issuer trust
       const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-        issuerUrl
+        issuerUrl,
+        { appFetch }
       );
 
       // Start user authorization

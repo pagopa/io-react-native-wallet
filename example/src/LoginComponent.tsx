@@ -51,6 +51,11 @@ export default function LoginComponent() {
               token && dispatch(sessionSet(token));
             }
           }}
+          javaScriptEnabled={true}
+          androidCameraAccessDisabled={true}
+          androidMicrophoneAccessDisabled={true}
+          allowsInlineMediaPlayback={true}
+          mediaPlaybackRequiresUserAction={true}
         />
       ) : (
         <FlatList
