@@ -148,6 +148,7 @@ export default (
       console.error(e);
       return error(e);
     } finally {
+      // Clean up ephemeral keys
       deleteKeyIfExists(WIA_KEYTAG);
       deleteKeyIfExists(DPOP_KEYTAG);
     }

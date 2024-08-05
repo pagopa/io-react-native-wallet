@@ -179,6 +179,7 @@ export default function TestCieL3Scenario({
     } catch (error) {
       setResult(`❌ ${error}`);
     } finally {
+      // Clean up ephemeral keys
       deleteKeyIfExists(WIA_KEYTAG);
       deleteKeyIfExists(DPOP_KEYTAG);
     }
