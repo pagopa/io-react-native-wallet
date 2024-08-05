@@ -4,7 +4,13 @@ import {
   type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
-import { hasStatus, until, type Out } from "../../utils/misc";
+import {
+  createAbortPromiseFromSignal,
+  hasStatus,
+  isDefined,
+  until,
+  type Out,
+} from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import {
@@ -34,7 +40,8 @@ export type CompleteUserAuthorizationWithQueryMode = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   idpHint: string,
   redirectUri: string,
-  authorizationContext?: AuthorizationContext
+  authorizationContext?: AuthorizationContext,
+  signal?: AbortSignal
 ) => Promise<AuthorizationResult>;
 
 export type CompleteUserAuthorizationWithFormPostJwtMode = (
@@ -68,6 +75,7 @@ export type GetRequestedCredentialToBePresented = (
  * If not specified, the default browser is used
  * @param idphint Unique identifier of the SPID IDP selected by the user
  * @param redirectUri The url to reach to complete the user authorization which is the custom URL scheme that the Wallet Instance is registered to handle, usually a custom URL or deeplink
+ * @param signal An optional AbortController signal to abort the operation when using CieID
  * @throws {AuthorizationError} if an error occurs during the authorization process
  * @throws {AuthorizationIdpError} if an error occurs during the authorization process and the error is related to the IDP
  * @returns the authorization response which contains code, state and iss
@@ -79,7 +87,8 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
     issuerConf,
     idpHint,
     redirectUri,
-    authorizationContext
+    authorizationContext,
+    signal
   ) => {
     const authzRequestEndpoint =
       issuerConf.oauth_authorization_server.authorization_endpoint;
@@ -106,7 +115,10 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         }
       });
 
-      const openAuthUrlInBrowser = Linking.openURL(authUrl);
+      const abortOperation = signal
+        ? createAbortPromiseFromSignal(signal)
+        : undefined;
+      await Linking.openURL(authUrl);
 
       /*
        * Waits for 120 seconds for the identificationRedirectUrl variable to be set
@@ -117,10 +129,18 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         120
       );
 
-      await Promise.all([
-        openAuthUrlInBrowser,
-        unitAuthRedirectIsNotUndefined,
-      ]).finally(() => Linking.removeSubscription(sub));
+      const winner = await Promise.race(
+        [abortOperation?.listen(), unitAuthRedirectIsNotUndefined].filter(
+          isDefined
+        )
+      ).finally(() => {
+        sub.remove();
+        abortOperation?.remove();
+      });
+
+      if (winner === "OPERATION_ABORTED") {
+        throw new AuthorizationError("CieIdOperationAborted");
+      }
 
       if (authRedirectUrl === undefined) {
         throw new AuthorizationError("Invalid authentication redirect url");
