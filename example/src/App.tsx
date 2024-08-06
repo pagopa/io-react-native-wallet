@@ -39,6 +39,7 @@ export default function App() {
   const [mdlContext, setMdlContext] = React.useState<
     CredentialContext | undefined
   >();
+  const [_, setDcContext] = React.useState<CredentialContext | undefined>();
 
   return (
     <SafeAreaProvider>
@@ -92,7 +93,8 @@ export default function App() {
               scenario={scenarios.getCredential(
                 integrityContext!,
                 pidContext!,
-                "MDL"
+                "MDL",
+                setMdlContext
               )}
               disabled={!integrityContext || !pidContext}
             />
@@ -101,7 +103,8 @@ export default function App() {
               scenario={scenarios.getCredential(
                 integrityContext!,
                 pidContext!,
-                "EuropeanDisabilityCard"
+                "EuropeanDisabilityCard",
+                setDcContext
               )}
               disabled={!integrityContext || !pidContext}
             />
