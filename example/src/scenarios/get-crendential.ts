@@ -11,7 +11,7 @@ import {
   WALLET_PROVIDER_BASE_URL,
 } from "@env";
 import uuid from "react-native-uuid";
-import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
+import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 import type { PidContext } from "../App";
 import appFetch from "../utils/fetch";
