@@ -1,8 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from "react";
 
-import { useDispatch, useSelector } from "react-redux";
-import { selectIoAuthToken } from "./store/reducers/sesssion";
+import { useSelector } from "react-redux";
+import { selectIoAuthToken, sessionReset } from "./store/reducers/sesssion";
 import {
   SafeAreaView,
   ScrollView,
@@ -17,7 +17,7 @@ import LoginComponent from "./LoginComponent";
 import TestCieL3Scenario from "./scenarios/component/TestCieL3Scenario";
 import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { sessionReset } from "./store/actions/session";
+import { useAppDispatch } from "./store/dispatch";
 
 const CIE_PROD_IDPHINT =
   "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
@@ -39,7 +39,7 @@ const MainComponent = () => {
 
   const [pidContext, setPidContext] = React.useState<PidContext>();
   const ioAuthToken = useSelector(selectIoAuthToken);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

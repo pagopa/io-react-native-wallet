@@ -4,8 +4,8 @@ import {
   WALLET_PID_PROVIDER_BASE_URL,
   WALLET_PROVIDER_BASE_URL,
 } from "@env";
-import { store } from "../store/store";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { store } from "../store/store";
 
 interface AuthHeaders {
   Authorization?: string;

@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import { idps } from "./utils/idps";
-import { useDispatch } from "react-redux";
-import { sessionSet } from "./store/actions/session";
 import { WALLET_PROVIDER_BASE_URL } from "@env";
 import URLParse from "url-parse";
+import { sessionSet } from "./store/reducers/sesssion";
+import { useAppDispatch } from "./store/dispatch";
 
 const originSchemasWhiteList = [
   "https://*",
@@ -57,7 +57,7 @@ const getLoginUri = (idp: string) => {
 
 export default function LoginComponent() {
   const [idp, setIdp] = React.useState<string | undefined>();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
     const url = event.url;

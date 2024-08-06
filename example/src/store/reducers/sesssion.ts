@@ -1,33 +1,57 @@
-import { getType } from "typesafe-actions";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { persistReducer, type PersistConfig } from "redux-persist";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { RootState } from "../store";
 
-import type { Actions } from "../actions/type";
-import { sessionReset, sessionSet } from "../actions/session";
-import type { GlobalState } from "../store";
+// State type definition for the session slice
+type SessionState = { ioAuthToken: string | undefined };
 
-export type SessionState = {
-  ioAuthToken: string | undefined;
+// Initial state for the session slice
+const initialState: SessionState = { ioAuthToken: undefined };
+
+/**
+ * Redux slice for the session state. It contains the IO auth token.
+ * Two actions are defined:
+ * - sessionSet: sets the IO auth token
+ * - sessionReset: resets the session state
+ */
+export const sessionSlice = createSlice({
+  name: "session",
+  initialState,
+  reducers: {
+    sessionSet: (state, action: PayloadAction<string>) => {
+      state.ioAuthToken = action.payload;
+    },
+    sessionReset: () => initialState,
+  },
+});
+
+/**
+ * Exports the actions for the session slice.
+ */
+export const { sessionSet, sessionReset } = sessionSlice.actions;
+
+/**
+ * Redux persist configuration for the session slice.
+ * Currently it uses AsyncStorage as the storage engine which stores it in clear.
+ */
+const persistConfig: PersistConfig<SessionState> = {
+  key: "session",
+  storage: AsyncStorage,
 };
 
-const initialState: SessionState = {
-  ioAuthToken: undefined,
-};
+/**
+ * Persisted reducer for the session slice.
+ */
+export const sessionReducer = persistReducer(
+  persistConfig,
+  sessionSlice.reducer
+);
 
-export const sessionReducer = (
-  state: SessionState = initialState,
-  action: Actions
-): SessionState => {
-  switch (action.type) {
-    case getType(sessionSet):
-      return {
-        ...state,
-        ioAuthToken: action.payload,
-      };
-    case getType(sessionReset):
-      return initialState;
-    default:
-      return initialState;
-  }
-};
-
-export const selectIoAuthToken = (state: GlobalState) =>
+/**
+ * Selects the IO auth token from the session state.
+ * @param state - The root state of the Redux store
+ * @returns The IO auth token
+ */
+export const selectIoAuthToken = (state: RootState) =>
   state.session.ioAuthToken;
