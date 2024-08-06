@@ -32,12 +32,25 @@ export const isCieUat = CIE_UAT === "true" || CIE_UAT === "1";
  */
 export type PidContext = { pid: string; pidCryptoContext: CryptoContext };
 
+/**
+ * CredentialContext is a tuple containing the credential and its crypto context.
+ * It is used to obtain a credential and must be set after obtaining a credential to check its status.
+ */
+export type CredentialContext = {
+  credential: string;
+  credentialCryptoContext: CryptoContext;
+};
+
 const MainComponent = () => {
   const [integrityContext, setIntegrityContext] = React.useState<
     IntegrityContext | undefined
   >();
 
   const [pidContext, setPidContext] = React.useState<PidContext>();
+  const [mdlContext, setMdlContext] = React.useState<
+    CredentialContext | undefined
+  >();
+  const [_, setDcContext] = React.useState<CredentialContext | undefined>();
   const ioAuthToken = useSelector(selectIoAuthToken);
   const dispatch = useAppDispatch();
 
@@ -50,7 +63,6 @@ const MainComponent = () => {
               title="Prepare Integrity Context"
               scenario={scenarios.prepareIntegrityContext(setIntegrityContext)}
             />
-
             <TestScenario
               title="Create Wallet Instance"
               scenario={scenarios.createWalletInstance(integrityContext!)}
@@ -88,9 +100,29 @@ const MainComponent = () => {
               setPid={setPidContext}
             />
             <TestScenario
-              title="Get credential (mDL)"
-              scenario={scenarios.getCredential(integrityContext!, pidContext!)}
+              title="Get credential (MDL)"
+              scenario={scenarios.getCredential(
+                integrityContext!,
+                pidContext!,
+                "MDL",
+                setMdlContext
+              )}
               disabled={!integrityContext || !pidContext}
+            />
+            <TestScenario
+              title="Get credential (DC)"
+              scenario={scenarios.getCredential(
+                integrityContext!,
+                pidContext!,
+                "EuropeanDisabilityCard",
+                setDcContext
+              )}
+              disabled={!integrityContext || !pidContext}
+            />
+            <TestScenario
+              title="Get credential (mDL) Status Attestation"
+              scenario={scenarios.getCredentialStatusAttestation(mdlContext!)}
+              disabled={!integrityContext || !pidContext || !mdlContext}
             />
           </View>
           <TouchableOpacity
