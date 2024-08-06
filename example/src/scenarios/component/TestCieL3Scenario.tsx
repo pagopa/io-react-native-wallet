@@ -22,11 +22,8 @@ import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
-import {
-  deleteKeyIfExists,
-  regenerateCryptoKey,
-} from "example/src/utils/crypto";
-import { DPOP_KEYTAG, WIA_KEYTAG } from "example/src/utils/consts";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../../utils/crypto";
+import { WIA_KEYTAG, DPOP_KEYTAG } from "../../utils/consts";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
 const CIE_L3_REDIRECT_URI = "https://cie.callback";
