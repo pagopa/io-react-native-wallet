@@ -16,7 +16,7 @@ import { Alert } from "react-native";
 import type { PidContext } from "../App";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
-import { regenerateCryptoKey } from "../utils/crypto";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../utils/crypto";
 
 export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
   async () => {
@@ -135,7 +135,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
       return error(e);
     } finally {
       // Clean up ephemeral keys
-      deleteKey(WIA_KEYTAG);
-      deleteKey(DPOP_KEYTAG);
+      deleteKeyIfExists(WIA_KEYTAG);
+      deleteKeyIfExists(DPOP_KEYTAG);
     }
   };
