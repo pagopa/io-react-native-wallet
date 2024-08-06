@@ -1,4 +1,4 @@
-package it.pagopa.app.io.poc.itwallet;
+package com.ioreactnativewalletexample;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

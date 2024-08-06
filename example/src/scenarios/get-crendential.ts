@@ -96,13 +96,7 @@ export default (
       const { code } =
         await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
           requestObject,
-          {
-            wiaCryptoContext,
-            pidCryptoContext,
-            pid,
-            walletInstanceAttestation,
-            appFetch,
-          }
+          { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
         );
 
       const { accessToken, dPoPContext } =
