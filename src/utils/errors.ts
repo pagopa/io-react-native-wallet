@@ -8,7 +8,9 @@
  * @param attrs A key value record set
  * @returns a human-readable serialization of the set
  */
-const serializeAttrs = (attrs: Record<string, string | string>): string =>
+export const serializeAttrs = (
+  attrs: Record<string, string | string>
+): string =>
   Object.entries(attrs)
     .map(([k, v]) => [k, Array.isArray(v) ? `(${v.join(", ")})` : v])
     .map((_) => _.join("="))
@@ -39,6 +41,30 @@ export class IoWalletError extends Error {
     this.name = this.constructor.name;
     // @ts-ignore
     Error.captureStackTrace?.(this, this.constructor);
+  }
+}
+
+/**
+ * An error subclass thrown when a Wallet Provider http request has a status code different from the one expected.
+ */
+export class UnexpectedStatusCodeError extends IoWalletError {
+  static get code(): "ERR_UNEXPECTED_STATUS_CODE" {
+    return "ERR_UNEXPECTED_STATUS_CODE";
+  }
+
+  code = "ERR_UNEXPECTED_STATUS_CODE";
+
+  /** HTTP status code */
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(
+      serializeAttrs({
+        message,
+        statusCode: statusCode.toString(),
+      })
+    );
+    this.statusCode = statusCode;
   }
 }
 /**
