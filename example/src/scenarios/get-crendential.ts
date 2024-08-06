@@ -31,6 +31,7 @@ export type CredentialSetter = React.Dispatch<
 export default (
     integrityContext: IntegrityContext,
     pidContext: PidContext,
+    type: string,
     setCredential: CredentialSetter
   ) =>
   async () => {
@@ -58,7 +59,7 @@ export default (
       // Start the issuance flow
       const startFlow: Credential.Issuance.StartFlow = () => ({
         issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-        credentialType: "MDL",
+        credentialType: type,
       });
 
       const { issuerUrl, credentialType } = startFlow();
