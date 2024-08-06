@@ -59,6 +59,7 @@ export const createNonceProof = async (
  * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link startUserAuthorization}
  * @param tokenRequestSignedDPop The DPoP signed token request returned by {@link authorizeAccess}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential
+ * @param context.dPopCryptoContext The DPoP crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The credential response containing the credential
  */
