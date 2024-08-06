@@ -78,6 +78,9 @@ export const createAbortPromiseFromSignal = (signal: AbortSignal) => {
   return {
     listen: () =>
       new Promise<"OPERATION_ABORTED">((resolve) => {
+        if (signal.aborted) {
+          return resolve("OPERATION_ABORTED");
+        }
         listener = () => resolve("OPERATION_ABORTED");
         signal.addEventListener("abort", listener);
       }),
