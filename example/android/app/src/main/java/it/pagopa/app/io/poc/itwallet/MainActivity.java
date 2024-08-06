@@ -1,4 +1,4 @@
-package com.ioreactnativewalletexample;
+package it.pagopa.app.io.poc.itwallet;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;

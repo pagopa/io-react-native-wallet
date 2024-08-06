@@ -23,6 +23,7 @@ import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
+import appFetch from "../../utils/fetch";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
 const CIE_L3_REDIRECT_URI = "https://cie.callback";
@@ -35,13 +36,13 @@ type FlowParams = {
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
   credentialDefinition: Parameters<Credential.Issuance.ObtainCredential>[3];
+  ciePin: string;
   setPid: PidSetter;
 };
 
 export default function TestCieL3Scenario({
   integrityContext,
   title,
-  ciePin,
   idpHint,
   isCieUat,
   disabled = false,
@@ -49,7 +50,6 @@ export default function TestCieL3Scenario({
 }: {
   integrityContext: IntegrityContext;
   title: string;
-  ciePin: string;
   idpHint: string;
   isCieUat: boolean;
   disabled?: boolean;
@@ -109,6 +109,7 @@ export default function TestCieL3Scenario({
         wiaCryptoContext,
         integrityContext,
         walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+        appFetch,
       });
 
     // Start the issuance flow
@@ -121,7 +122,8 @@ export default function TestCieL3Scenario({
 
     // Evaluate issuer trust
     const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-      issuerUrl
+      issuerUrl,
+      { appFetch }
     );
 
     // Start user authorization
@@ -133,6 +135,7 @@ export default function TestCieL3Scenario({
           walletInstanceAttestation,
           redirectUri: CIE_L3_REDIRECT_URI,
           wiaCryptoContext,
+          appFetch,
         }
       );
 
@@ -161,21 +164,38 @@ export default function TestCieL3Scenario({
   }, [disabled]);
 
   const run = async () => {
-    try {
-      //Initialize params
-      setFlowParams(undefined);
-      //Hide the webView for the first part of login then open modal
-      setHidden(true);
-      setModalVisible(true);
-      setResult("⏱️");
-      const params = {
-        ...(await prepareFlowParams()),
-        setPid,
-      };
-      setFlowParams(params);
-    } catch (error) {
-      setResult(`❌ ${error}`);
-    }
+    Alert.prompt(
+      "CIE pin",
+      "Enter your CIE pin",
+      [
+        {
+          text: "OK",
+          onPress: async (ciePin) => {
+            if (ciePin && ciePin.length === 8 && /^\d+$/.test(ciePin)) {
+              try {
+                //Initialize params
+                setFlowParams(undefined);
+                //Hide the webView for the first part of login then open modal
+                setHidden(true);
+                setModalVisible(true);
+                setResult("⏱️");
+                const params = {
+                  ...(await prepareFlowParams()),
+                  setPid,
+                  ciePin,
+                };
+                setFlowParams(params);
+              } catch (error) {
+                setResult(`❌ ${error}`);
+              }
+            } else {
+              setResult(`❌ Invalid CIE PIN`);
+            }
+          },
+        },
+      ],
+      "secure-text"
+    );
   };
 
   const continueFlow = async (code: string) => {
@@ -204,6 +224,7 @@ export default function TestCieL3Scenario({
           {
             walletInstanceAttestation,
             wiaCryptoContext,
+            appFetch,
           }
         );
 
@@ -215,6 +236,7 @@ export default function TestCieL3Scenario({
         dPoPContext,
         {
           credentialCryptoContext,
+          appFetch,
         }
       );
 
@@ -310,7 +332,7 @@ export default function TestCieL3Scenario({
                 onSuccess={handleOnSuccess}
                 onEvent={handleOnEvent}
                 onError={handleOnError}
-                pin={ciePin}
+                pin={flowParams.ciePin}
                 redirectUrl={CIE_L3_REDIRECT_URI}
               />
             </View>
