@@ -1,7 +1,7 @@
 import { Credential } from "@pagopa/io-react-native-wallet";
 import { error, result } from "./types";
 import { WALLET_EAA_PROVIDER_BASE_URL } from "@env";
-import type { CredentialContext } from "../App";
+import type { CredentialContext } from "../MainComponent";
 
 /**
  * Example scenario that shows how to get the status of a credential attestation. It currently works only with the MDL.

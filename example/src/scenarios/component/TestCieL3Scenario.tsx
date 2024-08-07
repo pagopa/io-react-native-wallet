@@ -5,7 +5,6 @@ import {
   createCryptoContextFor,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
-
 import React from "react";
 import {
   View,
@@ -23,6 +22,9 @@ import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../../utils/crypto";
+import { WIA_KEYTAG, DPOP_KEYTAG } from "../../utils/consts";
+import appFetch from "../../utils/fetch";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
 const CIE_L3_REDIRECT_URI = "https://cie.callback";
@@ -35,13 +37,13 @@ type FlowParams = {
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
   credentialDefinition: Parameters<Credential.Issuance.ObtainCredential>[3];
+  ciePin: string;
   setPid: PidSetter;
 };
 
 export default function TestCieL3Scenario({
   integrityContext,
   title,
-  ciePin,
   idpHint,
   isCieUat,
   disabled = false,
@@ -49,7 +51,6 @@ export default function TestCieL3Scenario({
 }: {
   integrityContext: IntegrityContext;
   title: string;
-  ciePin: string;
   idpHint: string;
   isCieUat: boolean;
   disabled?: boolean;
@@ -100,15 +101,15 @@ export default function TestCieL3Scenario({
 
   const prepareFlowParams = async () => {
     // Obtain a wallet attestation. A wallet instance must be created before this step.
-    const walletInstanceKeyTag = uuid.v4().toString();
-    await generate(walletInstanceKeyTag);
-    const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+    await regenerateCryptoKey(WIA_KEYTAG);
+    const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
     const walletInstanceAttestation =
       await WalletInstanceAttestation.getAttestation({
         wiaCryptoContext,
         integrityContext,
         walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+        appFetch,
       });
 
     // Start the issuance flow
@@ -121,7 +122,8 @@ export default function TestCieL3Scenario({
 
     // Evaluate issuer trust
     const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-      issuerUrl
+      issuerUrl,
+      { appFetch }
     );
 
     // Start user authorization
@@ -133,6 +135,7 @@ export default function TestCieL3Scenario({
           walletInstanceAttestation,
           redirectUri: CIE_L3_REDIRECT_URI,
           wiaCryptoContext,
+          appFetch,
         }
       );
 
@@ -161,21 +164,45 @@ export default function TestCieL3Scenario({
   }, [disabled]);
 
   const run = async () => {
-    try {
-      //Initialize params
-      setFlowParams(undefined);
-      //Hide the webView for the first part of login then open modal
-      setHidden(true);
-      setModalVisible(true);
-      setResult("⏱️");
-      const params = {
-        ...(await prepareFlowParams()),
-        setPid,
-      };
-      setFlowParams(params);
-    } catch (error) {
-      setResult(`❌ ${error}`);
-    }
+    Alert.prompt(
+      "CIE pin",
+      "Enter your CIE pin",
+      [
+        {
+          text: "OK",
+          onPress: async (ciePin) => {
+            if (ciePin && ciePin.length === 8 && /^\d+$/.test(ciePin)) {
+              try {
+                //Initialize params
+                setFlowParams(undefined);
+                //Hide the webView for the first part of login then open modal
+                setHidden(true);
+                setModalVisible(true);
+                setResult("⏱️");
+                const params = {
+                  ...(await prepareFlowParams()),
+                  setPid,
+                  ciePin,
+                };
+                setFlowParams(params);
+              } catch (error) {
+                setResult(`❌ ${error}`);
+              } finally {
+                /*
+                 * Clean up ephemeral keys.
+                 * In production the WIA keytag should be kept in order to reuse the wallet instance for its duration.
+                 */
+                deleteKeyIfExists(WIA_KEYTAG);
+                deleteKeyIfExists(DPOP_KEYTAG);
+              }
+            } else {
+              setResult(`❌ Invalid CIE PIN`);
+            }
+          },
+        },
+      ],
+      "secure-text"
+    );
   };
 
   const continueFlow = async (code: string) => {
@@ -194,27 +221,33 @@ export default function TestCieL3Scenario({
       await generate(credentialKeyTag);
       const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-      const { accessToken, dPoPContext } =
-        await Credential.Issuance.authorizeAccess(
-          issuerConf,
-          code,
-          clientId,
-          CIE_L3_REDIRECT_URI,
-          codeVerifier,
-          {
-            walletInstanceAttestation,
-            wiaCryptoContext,
-          }
-        );
+      // Create DPoP context for the whole issuance flow
+      regenerateCryptoKey(DPOP_KEYTAG);
+      const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+
+      const { accessToken } = await Credential.Issuance.authorizeAccess(
+        issuerConf,
+        code,
+        clientId,
+        CIE_L3_REDIRECT_URI,
+        codeVerifier,
+        {
+          walletInstanceAttestation,
+          wiaCryptoContext,
+          dPopCryptoContext,
+          appFetch,
+        }
+      );
 
       const { credential, format } = await Credential.Issuance.obtainCredential(
         issuerConf,
         accessToken,
         clientId,
         credentialDefinition,
-        dPoPContext,
         {
           credentialCryptoContext,
+          dPopCryptoContext,
+          appFetch,
         }
       );
 
@@ -310,7 +343,7 @@ export default function TestCieL3Scenario({
                 onSuccess={handleOnSuccess}
                 onEvent={handleOnEvent}
                 onError={handleOnError}
-                pin={ciePin}
+                pin={flowParams.ciePin}
                 redirectUrl={CIE_L3_REDIRECT_URI}
               />
             </View>
