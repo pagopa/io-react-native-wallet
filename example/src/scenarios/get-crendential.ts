@@ -13,12 +13,29 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
-import type { PidContext } from "../App";
+import type { CredentialContext, PidContext } from "../App";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
 import { deleteKeyIfExists, regenerateCryptoKey } from "../utils/crypto";
 
-export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
+/**
+ * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
+ */
+export type CredentialSetter = React.Dispatch<
+  React.SetStateAction<CredentialContext | undefined>
+>;
+/**
+ * Example scenario that shows how to get a credential. In order to get a credential a PID is required.
+ * @param integrityContext - The integrity context which exposes a set of functions to interact with the device integrity service
+ * @param pidContext - The PID and its crypto context. Set by the get PID scenario.
+ * @param setCredential - Callback used to set the credential and its crypto context in the app state which is later used to check its status.
+ */
+export default (
+    integrityContext: IntegrityContext,
+    pidContext: PidContext,
+    type: string,
+    setCredential: CredentialSetter
+  ) =>
   async () => {
     try {
       const { pid, pidCryptoContext } = pidContext;
@@ -43,7 +60,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
       // Start the issuance flow
       const startFlow: Credential.Issuance.StartFlow = () => ({
         issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-        credentialType: "MDL",
+        credentialType: type,
       });
 
       const { issuerUrl, credentialType } = startFlow();
@@ -128,6 +145,7 @@ export default (integrityContext: IntegrityContext, pidContext: PidContext) =>
       ]);
 
       console.log(parsedCredential);
+      setCredential({ credential, credentialCryptoContext });
 
       return result(credential);
     } catch (e) {
