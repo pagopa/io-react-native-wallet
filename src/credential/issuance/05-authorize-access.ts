@@ -1,17 +1,15 @@
 import { hasStatus, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
-import { createCryptoContextFor } from "../../utils/crypto";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 import { createPopToken } from "../../utils/pop";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { ASSERTION_TYPE, DPOP_KET_TAG } from "./const";
+import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
 import { ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
-import { generate } from "@pagopa/io-react-native-crypto";
 
 export type AuthorizeAccess = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -23,8 +21,9 @@ export type AuthorizeAccess = (
     walletInstanceAttestation: string;
     appFetch?: GlobalFetch["fetch"];
     wiaCryptoContext: CryptoContext;
+    dPopCryptoContext: CryptoContext;
   }
-) => Promise<{ accessToken: TokenResponse; dPoPContext: CryptoContext }>;
+) => Promise<{ accessToken: TokenResponse }>;
 
 /**
  * Creates and sends the DPoP Proof JWT to be presented with the authorization code to the /token endpoint of the authorization server
@@ -38,6 +37,7 @@ export type AuthorizeAccess = (
  * @param codeVerifier The code verifier returned by {@link startUserAuthorization}
  * @param context.walletInstanceAttestation The Wallet Instance's attestation
  * @param context.wiaCryptoContext The Wallet Instance's crypto context
+ * @param context.dPopCryptoContext The DPoP crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {ValidationFailed} if an error occurs while parsing the token response
  * @return The token response containing the access token along with the token request signed with DPoP which has to be used in the {@link obtainCredential} step.
@@ -54,6 +54,7 @@ export const authorizeAccess: AuthorizeAccess = async (
     appFetch = fetch,
     walletInstanceAttestation,
     wiaCryptoContext,
+    dPopCryptoContext,
   } = context;
 
   const parEndpoint =
@@ -65,21 +66,13 @@ export const authorizeAccess: AuthorizeAccess = async (
 
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
 
-  try {
-    await generate(DPOP_KET_TAG);
-  } catch {
-    console.log("DPoP key already exist");
-  }
-
-  const dPoPContext = createCryptoContextFor(DPOP_KET_TAG);
-
   const tokenRequestSignedDPop = await createDPopToken(
     {
       htm: "POST",
       htu: tokenUrl,
       jti: `${uuid.v4()}`,
     },
-    dPoPContext
+    dPopCryptoContext
   );
 
   const signedWiaPoP = await createPopToken(
@@ -118,5 +111,5 @@ export const authorizeAccess: AuthorizeAccess = async (
     throw new ValidationFailed(tokenRes.error.message);
   }
 
-  return { accessToken: tokenRes.data, dPoPContext };
+  return { accessToken: tokenRes.data };
 };
