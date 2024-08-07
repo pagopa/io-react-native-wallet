@@ -25,10 +25,10 @@ export const AuthorizationDetails = z.array(AuthorizationDetail);
 export const makeParRequest =
   ({
     wiaCryptoContext,
-    appFetch = fetch,
+    appFetch,
   }: {
     wiaCryptoContext: CryptoContext;
-    appFetch?: GlobalFetch["fetch"];
+    appFetch: GlobalFetch["fetch"];
   }) =>
   async (
     clientId: string,

@@ -13,10 +13,10 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
-import type { CredentialContext, PidContext } from "../App";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
 import { deleteKeyIfExists, regenerateCryptoKey } from "../utils/crypto";
+import type { CredentialContext, PidContext } from "../MainComponent";
 
 /**
  * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
