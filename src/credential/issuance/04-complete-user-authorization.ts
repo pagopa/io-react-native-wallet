@@ -111,7 +111,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         });
     } else {
       // handler for redirectUri
-      const sub = Linking.addEventListener("url", ({ url }) => {
+      const urlEventListener = Linking.addEventListener("url", ({ url }) => {
         if (url.includes(redirectUri)) {
           authRedirectUrl = url;
         }
@@ -141,7 +141,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
           isDefined
         )
       ).finally(() => {
-        sub.remove();
+        urlEventListener.remove();
         operationIsAborted?.remove();
       });
 
