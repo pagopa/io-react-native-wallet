@@ -15,6 +15,8 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
 import appFetch from "../utils/fetch";
 import type { CredentialContext, PidContext } from "../screens/HomeScreen";
+import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../utils/crypto";
 
 /**
  * Callback used to set the PID and its crypto context in the app state which is later used to obtain a credential
@@ -39,9 +41,8 @@ export default (
       const { pid, pidCryptoContext } = pidContext;
 
       // Obtain a wallet attestation. A wallet instance must be created before this step.
-      const walletInstanceKeyTag = uuid.v4().toString();
-      await generate(walletInstanceKeyTag);
-      const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+      await regenerateCryptoKey(WIA_KEYTAG);
+      const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
       const walletInstanceAttestation =
         await WalletInstanceAttestation.getAttestation({
@@ -99,19 +100,23 @@ export default (
           { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
         );
 
-      const { accessToken, dPoPContext } =
-        await Credential.Issuance.authorizeAccess(
-          issuerConf,
-          code,
-          clientId,
-          REDIRECT_URI,
-          codeVerifier,
-          {
-            walletInstanceAttestation,
-            wiaCryptoContext,
-            appFetch,
-          }
-        );
+      // Generate the DPoP context which will be used for the whole issuance flow
+      await regenerateCryptoKey(DPOP_KEYTAG);
+      const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+
+      const { accessToken } = await Credential.Issuance.authorizeAccess(
+        issuerConf,
+        code,
+        clientId,
+        REDIRECT_URI,
+        codeVerifier,
+        {
+          walletInstanceAttestation,
+          wiaCryptoContext,
+          dPopCryptoContext,
+          appFetch,
+        }
+      );
 
       // Obtain the credential
       const { credential, format } = await Credential.Issuance.obtainCredential(
@@ -119,9 +124,9 @@ export default (
         accessToken,
         clientId,
         credentialDefinition,
-        dPoPContext,
         {
           credentialCryptoContext,
+          dPopCryptoContext,
           appFetch,
         }
       );
@@ -146,5 +151,12 @@ export default (
     } catch (e) {
       console.error(e);
       return error(e);
+    } finally {
+      /*
+       * Clean up ephemeral keys.
+       * In production the WIA keytag should be kept in order to reuse the wallet instance for its duration.
+       */
+      deleteKeyIfExists(WIA_KEYTAG);
+      deleteKeyIfExists(DPOP_KEYTAG);
     }
   };

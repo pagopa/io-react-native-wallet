@@ -5,7 +5,6 @@ import {
   createCryptoContextFor,
   type IntegrityContext,
 } from "@pagopa/io-react-native-wallet";
-
 import React from "react";
 import {
   View,
@@ -23,6 +22,8 @@ import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../../utils/crypto";
+import { WIA_KEYTAG, DPOP_KEYTAG } from "../../utils/consts";
 import appFetch from "../../utils/fetch";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
@@ -100,9 +101,8 @@ export default function TestCieL3Scenario({
 
   const prepareFlowParams = async () => {
     // Obtain a wallet attestation. A wallet instance must be created before this step.
-    const walletInstanceKeyTag = uuid.v4().toString();
-    await generate(walletInstanceKeyTag);
-    const wiaCryptoContext = createCryptoContextFor(walletInstanceKeyTag);
+    await regenerateCryptoKey(WIA_KEYTAG);
+    const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
     const walletInstanceAttestation =
       await WalletInstanceAttestation.getAttestation({
@@ -187,6 +187,13 @@ export default function TestCieL3Scenario({
                 setFlowParams(params);
               } catch (error) {
                 setResult(`❌ ${error}`);
+              } finally {
+                /*
+                 * Clean up ephemeral keys.
+                 * In production the WIA keytag should be kept in order to reuse the wallet instance for its duration.
+                 */
+                deleteKeyIfExists(WIA_KEYTAG);
+                deleteKeyIfExists(DPOP_KEYTAG);
               }
             } else {
               setResult(`❌ Invalid CIE PIN`);
@@ -214,28 +221,32 @@ export default function TestCieL3Scenario({
       await generate(credentialKeyTag);
       const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-      const { accessToken, dPoPContext } =
-        await Credential.Issuance.authorizeAccess(
-          issuerConf,
-          code,
-          clientId,
-          CIE_L3_REDIRECT_URI,
-          codeVerifier,
-          {
-            walletInstanceAttestation,
-            wiaCryptoContext,
-            appFetch,
-          }
-        );
+      // Create DPoP context for the whole issuance flow
+      regenerateCryptoKey(DPOP_KEYTAG);
+      const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+
+      const { accessToken } = await Credential.Issuance.authorizeAccess(
+        issuerConf,
+        code,
+        clientId,
+        CIE_L3_REDIRECT_URI,
+        codeVerifier,
+        {
+          walletInstanceAttestation,
+          wiaCryptoContext,
+          dPopCryptoContext,
+          appFetch,
+        }
+      );
 
       const { credential, format } = await Credential.Issuance.obtainCredential(
         issuerConf,
         accessToken,
         clientId,
         credentialDefinition,
-        dPoPContext,
         {
           credentialCryptoContext,
+          dPopCryptoContext,
           appFetch,
         }
       );

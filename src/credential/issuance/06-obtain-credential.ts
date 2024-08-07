@@ -12,16 +12,14 @@ import { CredentialResponse } from "./types";
 
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
-import { deleteKey } from "@pagopa/io-react-native-crypto";
-import { DPOP_KET_TAG } from "./const";
 
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
   credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
-  dPoPContext: CryptoContext,
   context: {
+    dPopCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }
@@ -61,6 +59,7 @@ export const createNonceProof = async (
  * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link startUserAuthorization}
  * @param tokenRequestSignedDPop The DPoP signed token request returned by {@link authorizeAccess}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential
+ * @param context.dPopCryptoContext The DPoP crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The credential response containing the credential
  */
@@ -69,10 +68,13 @@ export const obtainCredential: ObtainCredential = async (
   accessToken,
   clientId,
   credentialDefinition,
-  dPoPContext,
   context
 ) => {
-  const { credentialCryptoContext, appFetch = fetch } = context;
+  const {
+    credentialCryptoContext,
+    appFetch = fetch,
+    dPopCryptoContext,
+  } = context;
 
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
 
@@ -122,10 +124,8 @@ export const obtainCredential: ObtainCredential = async (
       jti: `${uuid.v4()}`,
       ath: await sha256ToBase64(accessToken.access_token),
     },
-    dPoPContext
+    dPopCryptoContext
   );
-
-  await deleteKey(DPOP_KET_TAG);
   const credentialRes = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
