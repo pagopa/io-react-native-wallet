@@ -152,7 +152,10 @@ export default (
       console.error(e);
       return error(e);
     } finally {
-      // Clean up ephemeral keys
+      /*
+       * Clean up ephemeral keys.
+       * In production the WIA keytag should be kept in order to reuse the wallet instance for its duration.
+       */
       deleteKeyIfExists(WIA_KEYTAG);
       deleteKeyIfExists(DPOP_KEYTAG);
     }
