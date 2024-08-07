@@ -1,121 +1,21 @@
-import { CIE_PIN, CIE_UAT, SPID_IDPHINT } from "@env";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { type IntegrityContext } from "@pagopa/io-react-native-wallet";
 import React from "react";
-import { ScrollView } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import "react-native-url-polyfill/auto";
-import scenarios, { TestScenario } from "./scenarios";
-import TestCieL3Scenario from "./scenarios/component/TestCieL3Scenario";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-/**
- * PidContext is a tuple containing the PID and its crypto context.
- * It is used to obtain a credential and must be set after obtaining a PID to obtain another credential.
- */
-export type PidContext = { pid: string; pidCryptoContext: CryptoContext };
+import { Provider } from "react-redux";
 
-/**
- * CredentialContext is a tuple containing the credential and its crypto context.
- * It is used to obtain a credential and must be set after obtaining a credential to check its status.
- */
-export type CredentialContext = {
-  credential: string;
-  credentialCryptoContext: CryptoContext;
-};
-
-const CIE_PROD_IDPHINT =
-  "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
-const CIE_UAT_IDPHINT =
-  "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
-export const isCieUat = CIE_UAT === "true" || CIE_UAT === "1";
+import MainComponent from "./MainComponent";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "./store/store";
 
 export default function App() {
-  const [integrityContext, setIntegrityContext] = React.useState<
-    IntegrityContext | undefined
-  >();
-  const [pidContext, setPidContext] = React.useState<PidContext>();
-  const [mdlContext, setMdlContext] = React.useState<
-    CredentialContext | undefined
-  >();
-  const [_, setDcContext] = React.useState<CredentialContext | undefined>();
-
   return (
-    <SafeAreaProvider>
-      <SafeAreaView>
-        <ScrollView>
-          <TestScenario
-            title="Prepare Integrity Context"
-            scenario={scenarios.prepareIntegrityContext(setIntegrityContext)}
-          />
-
-          <>
-            <TestScenario
-              title="Create Wallet Instance"
-              scenario={scenarios.createWalletInstance(integrityContext!)}
-              disabled={!integrityContext}
-            />
-            <TestScenario
-              title="Obtain Wallet Attestation"
-              scenario={scenarios.getAttestation(integrityContext!)}
-              disabled={!integrityContext}
-            />
-            <TestScenario
-              title="Get PID (SPID DEMO)"
-              scenario={scenarios.getPid(
-                integrityContext!,
-                SPID_IDPHINT,
-                setPidContext
-              )}
-              disabled={!integrityContext}
-            />
-            <TestScenario
-              title="Get PID (CIE DEMO)"
-              scenario={scenarios.getPid(
-                integrityContext!,
-                isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT,
-                setPidContext
-              )}
-              disabled={!integrityContext}
-            />
-            <TestCieL3Scenario
-              title="Get PID (CIE+PIN)"
-              integrityContext={integrityContext!}
-              ciePin={CIE_PIN}
-              isCieUat={isCieUat}
-              idpHint={isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT}
-              disabled={!integrityContext}
-              setPid={setPidContext}
-            />
-            <TestScenario
-              title="Get credential (MDL)"
-              scenario={scenarios.getCredential(
-                integrityContext!,
-                pidContext!,
-                "MDL",
-                setMdlContext
-              )}
-              disabled={!integrityContext || !pidContext}
-            />
-            <TestScenario
-              title="Get credential (DC)"
-              scenario={scenarios.getCredential(
-                integrityContext!,
-                pidContext!,
-                "EuropeanDisabilityCard",
-                setDcContext
-              )}
-              disabled={!integrityContext || !pidContext}
-            />
-            <TestScenario
-              title="Get credential (mDL) Status Attestation"
-              scenario={scenarios.getCredentialStatusAttestation(mdlContext!)}
-              disabled={!integrityContext || !pidContext || !mdlContext}
-            />
-          </>
-        </ScrollView>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <SafeAreaProvider>
+          <MainComponent />
+        </SafeAreaProvider>
+      </PersistGate>
+    </Provider>
   );
 }

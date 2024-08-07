@@ -15,7 +15,7 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
-import type { PidContext } from "../App";
+import type { PidContext } from "../MainComponent";
 import appFetch from "../utils/fetch";
 
 /**
@@ -63,13 +63,15 @@ export default (
       const startFlow: Credential.Issuance.StartFlow = () => ({
         issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
         credentialType: "PersonIdentificationData",
+        appFetch,
       });
 
       const { issuerUrl, credentialType } = startFlow();
 
       // Evaluate issuer trust
       const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-        issuerUrl
+        issuerUrl,
+        { appFetch }
       );
 
       // Start user authorization

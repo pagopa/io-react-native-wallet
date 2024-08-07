@@ -74,9 +74,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.ioreactnativewalletexample"
+    namespace "it.pagopa.app.io.poc.itwallet"
     defaultConfig {
-        applicationId "com.ioreactnativewalletexample"
+        applicationId "it.pagopa.app.io.poc.itwallet"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
