@@ -7,6 +7,10 @@ import LoginScreen from "../screens/LoginScreen";
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Main native stack navigator which is used as the main entry point for the app.
+ * Some routes are protected by the `ioAuthToken` which is the authentication token for `io-backend`
+ */
 export const MainStackNavigator = () => {
   const ioAuthToken = useSelector(selectIoAuthToken);
   return (
