@@ -8,11 +8,11 @@ import {
   View,
 } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
-import { idps } from "./utils/idps";
+import { idps } from "../utils/idps";
 import { WALLET_PROVIDER_BASE_URL } from "@env";
 import URLParse from "url-parse";
-import { sessionSet } from "./store/reducers/sesssion";
-import { useAppDispatch } from "./store/dispatch";
+import { sessionSet } from "../store/reducers/sesssion";
+import { useAppDispatch } from "../store/dispatch";
 
 const originSchemasWhiteList = [
   "https://*",
@@ -55,7 +55,7 @@ const getLoginUri = (idp: string) => {
   return url.href;
 };
 
-export default function LoginComponent() {
+export default function LoginScreen() {
   const [idp, setIdp] = React.useState<string | undefined>();
   const dispatch = useAppDispatch();
 
@@ -114,6 +114,7 @@ export default function LoginComponent() {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "red",
     flex: 1,
     flexGrow: 1,
     alignItems: "center",
