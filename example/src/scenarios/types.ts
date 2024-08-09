@@ -1,6 +1,6 @@
 type ScenarioError = [string];
 type ScenarioResult = [null, string];
-export type ScenarioRunner = () => Promise<ScenarioError | ScenarioResult>;
+export type ScenarioRunner = () => Promise<unknown>;
 
 export const error = (e: unknown): ScenarioError => {
   return [

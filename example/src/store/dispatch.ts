@@ -4,7 +4,7 @@ import type { store } from "./store";
 /**
  * Type definition for the dispatch function of the Redux store.
  */
-type AppDispatch = typeof store.dispatch;
+export type AppDispatch = typeof store.dispatch;
 
 /**
  * Hook to use the Redux dispatch function with the correct type.

@@ -9,6 +9,9 @@ import {
   REGISTER,
   REHYDRATE,
 } from "redux-persist";
+import { instanceReducer } from "./reducers/instance";
+import { attestationSlice } from "./reducers/attestation";
+import { credentialReducer } from "./reducers/credential";
 
 /**
  * Redux store configuration.
@@ -16,6 +19,9 @@ import {
 export const store = configureStore({
   reducer: {
     session: sessionReducer,
+    instance: instanceReducer,
+    attestation: attestationSlice.reducer,
+    credential: credentialReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

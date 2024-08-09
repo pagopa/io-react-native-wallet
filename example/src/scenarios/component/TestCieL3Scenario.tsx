@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-import { type PidSetter } from "../get-pid";
+import { type PidSetter } from "../../thunks/get-credential";
 import { generate } from "@pagopa/io-react-native-crypto";
 import uuid from "react-native-uuid";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";

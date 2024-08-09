@@ -1,39 +1,54 @@
-import React from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
-import type { ScenarioRunner } from "../types";
+import React, { useEffect } from "react";
+import {
+  ActivityIndicator,
+  Button,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import type { WithAsyncState } from "example/src/store/utilts";
 
 export default function TestScenario({
-  scenario,
-  title = scenario.name,
-  disabled = false,
+  title,
+  onPress,
+  isDone,
+  isLoading,
+  hasError,
+  isDisabled = false,
 }: {
-  scenario: ScenarioRunner;
   title: string;
-  disabled?: boolean;
-}) {
+  onPress: () => void;
+  isDisabled?: boolean;
+} & WithAsyncState) {
   const [result, setResult] = React.useState<string | undefined>();
-  React.useEffect(() => {
-    disabled ? setResult("DISABLED") : setResult("READY");
-  }, [disabled]);
 
-  function run(runner: ScenarioRunner) {
-    return async () => {
-      setResult("⏱️");
-      const [error, _result] = await runner();
-      if (error) {
-        console.error(error);
-        setResult(`❌ ${JSON.stringify(error)}`);
-      } else {
-        console.log(_result);
-        setResult(`✅`);
-      }
-    };
+  useEffect(() => {
+    if (hasError.status) {
+      setResult(`❌ ${JSON.stringify(hasError.error)}`);
+    }
+  }, [hasError]);
+
+  useEffect(() => {
+    if (isDone) {
+      setResult(`✅`);
+    }
+  }, [isDone]);
+
+  function run() {
+    setResult("⏱️");
+    onPress();
   }
 
   return (
     <View>
-      <Button title={title} onPress={run(scenario)} disabled={disabled} />
-      <Text style={styles.title}>{result}</Text>
+      <View>
+        <Button
+          title={title}
+          onPress={run}
+          disabled={isLoading || isDisabled}
+        />
+        <Text style={styles.title}>{result}</Text>
+      </View>
     </View>
   );
 }

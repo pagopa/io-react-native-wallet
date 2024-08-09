@@ -3,9 +3,20 @@ import React from "react";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
 import { useSelector } from "react-redux";
 import HomeScreen from "../screens/HomeScreen";
-import LoginScreen from "../screens/LoginScreen";
+import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
+import IdpLoginScreen from "../screens/login/IdpLoginScreen";
 
-const Stack = createNativeStackNavigator();
+/**
+ * MainStackNav parameters list for each defined screen.
+ */
+export type MainStackNavParamList = {
+  Home: undefined;
+  Login: undefined;
+  IdpSelection: undefined;
+  IdpLogin: { idp: string };
+};
+
+const Stack = createNativeStackNavigator<MainStackNavParamList>();
 
 export const MainStackNavigator = () => {
   const ioAuthToken = useSelector(selectIoAuthToken);
@@ -17,7 +28,10 @@ export const MainStackNavigator = () => {
          */
         <Stack.Screen name="Home" component={HomeScreen} />
       ) : (
-        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Group>
+          <Stack.Screen name="IdpSelection" component={IdpSelectionScreen} />
+          <Stack.Screen name="IdpLogin" component={IdpLoginScreen} />
+        </Stack.Group>
       )}
     </Stack.Navigator>
   );
