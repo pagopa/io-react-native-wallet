@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "../store";
+import type { RootState } from "../types";
 
 // State type definition for the session slice
 type SessionState = { ioAuthToken: string | undefined };

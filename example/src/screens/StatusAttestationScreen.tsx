@@ -1,6 +1,5 @@
 import React from "react";
-import { useAppDispatch } from "../store/dispatch";
-import { useAppSelector } from "../store/utilts";
+import { useAppDispatch, useAppSelector } from "../store/utilts";
 import {
   selectCredential,
   selectStatusAttestationState,

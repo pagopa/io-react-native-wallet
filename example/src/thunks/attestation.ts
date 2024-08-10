@@ -5,9 +5,8 @@ import {
 import { WALLET_PROVIDER_BASE_URL } from "@env";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
-import { getIntegrityContext } from "../utils/integrity/integrity";
-import { WIA_KEYTAG } from "../utils/consts";
-import { regenerateCryptoKey } from "../utils/crypto";
+import { getIntegrityContext } from "../utils/integrity";
+import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
 
 export const getAttestationThunk = createAppAsyncThunk(

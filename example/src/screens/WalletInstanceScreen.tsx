@@ -1,7 +1,6 @@
 import React from "react";
-import { useAppDispatch } from "../store/dispatch";
 import { createWalletInstanceThunk } from "../thunks/instance";
-import { useAppSelector } from "../store/utilts";
+import { useAppDispatch, useAppSelector } from "../store/utilts";
 import TestScenario from "../components/TestScenario";
 import {
   selectHasInstanceKeyTag,

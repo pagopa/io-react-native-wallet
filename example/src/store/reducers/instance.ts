@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import type { RootState } from "../store";
-import { withAsyncStateInitial, type WithAsyncState } from "../utilts";
+
 import { createWalletInstanceThunk } from "../../thunks/instance";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { withAsyncStateInitial } from "../utilts";
+import type { RootState, WithAsyncState } from "../types";
 
 // State type definition for the session slice
 type InstanceState = WithAsyncState & {

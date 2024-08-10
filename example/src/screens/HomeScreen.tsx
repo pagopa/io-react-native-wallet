@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAppDispatch } from "../store/dispatch";
 import { sessionReset } from "../store/reducers/sesssion";
 import { WalletInstanceScreen } from "./WalletInstanceScreen";
 import { PidScreen } from "./PidScreen";
 import { CredentialScreen } from "./CredentialScreen";
+import { useAppDispatch } from "../store/utilts";
 
 const HomeScreen = () => {
   const dispatch = useAppDispatch();

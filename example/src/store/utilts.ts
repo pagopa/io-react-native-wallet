@@ -1,24 +1,21 @@
-import { useSelector } from "react-redux";
-import type { RootState } from "./store";
-import type { SerializedError } from "@reduxjs/toolkit";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState, WithAsyncState } from "./types";
 
+/**
+ * Hook to use the Redux selector function with the correct type.
+ */
 export const useAppSelector = useSelector.withTypes<RootState>();
 
-export type WithAsyncState = {
-  isDone: boolean;
-  isLoading: boolean;
-  hasError:
-    | { status: false; error: undefined }
-    | { status: true; error: SerializedError };
-};
+/**
+ * Hook to use the Redux dispatch function with the correct type.
+ */
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
 
+/**
+ * Standard initial state for async operations. To be used with stores that handle async operations and have a state which cincludes {@link WithAsyncState}.
+ */
 export const withAsyncStateInitial: WithAsyncState = {
   isDone: false,
   isLoading: false,
   hasError: { status: false, error: undefined },
 };
-
-export type SupportedCredentials =
-  | "PersonIdentificationData"
-  | "MDL"
-  | "EuropeanDisabilityCard";

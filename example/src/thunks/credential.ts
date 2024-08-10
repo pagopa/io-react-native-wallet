@@ -14,15 +14,13 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
-import { regenerateCryptoKey } from "../utils/crypto";
-import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
-import { createAppAsyncThunk, type GetCredentialThunk } from "./utils";
+import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import { createAppAsyncThunk } from "./utils";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { getIntegrityContext } from "../utils/integrity/integrity";
+import { getIntegrityContext } from "../utils/integrity";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { SupportedCredentials } from "../store/utilts";
 import { selectCredential } from "../store/reducers/credential";
-
+import type { CredentialResult, SupportedCredentials } from "../store/types";
 type GetCredentialThunkInput =
   | {
       idpHint: string;
@@ -42,7 +40,7 @@ type GetCredentialStatusAttestationThunkInput = {
 };
 
 export const getCredentialThunk = createAppAsyncThunk<
-  GetCredentialThunk,
+  CredentialResult,
   GetCredentialThunkInput
 >("credential/credentialGet", async (args, { getState }) => {
   // Retrieve the integrity key tag from the store and create its context
@@ -98,7 +96,7 @@ const getPid = async (
   walletInstanceAttestation: string,
   wiaCryptoContext: CryptoContext,
   credentialType: "PersonIdentificationData"
-): Promise<GetCredentialThunk> => {
+): Promise<CredentialResult> => {
   // Create identification context only for SPID
   const authorizationContext = idpHint.includes("servizicie")
     ? undefined
@@ -206,7 +204,7 @@ const getCredential = async (
   wiaCryptoContext: CryptoContext,
   pid: string,
   pidCryptoContext: CryptoContext
-): Promise<GetCredentialThunk> => {
+): Promise<CredentialResult> => {
   // Create credential crypto context
   const credentialKeyTag = uuid.v4().toString();
   await generate(credentialKeyTag);

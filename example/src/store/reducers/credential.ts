@@ -1,13 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import type { RootState } from "../store";
-import {
-  withAsyncStateInitial,
-  type SupportedCredentials,
-  type WithAsyncState,
-} from "../utilts";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { GetCredentialThunk } from "../../thunks/utils";
 import {
   getCredentialStatusAttestationThunk,
   getCredentialThunk,
@@ -17,10 +10,17 @@ import {
   prepareCieL3FlowParamsThunk,
   type PrepareCieL3FlowParamsThunkOutput,
 } from "../../thunks/pidCieL3";
+import type {
+  CredentialResult,
+  RootState,
+  SupportedCredentials,
+  WithAsyncState,
+} from "../types";
+import { withAsyncStateInitial } from "../utilts";
 
 // State type definition for the session slice
 type CredentialState = {
-  credentials: Record<SupportedCredentials, GetCredentialThunk | undefined>;
+  credentials: Record<SupportedCredentials, CredentialResult | undefined>;
   credentialsState: Record<SupportedCredentials, WithAsyncState>;
   pidCiel3FlowParams: {
     params: PrepareCieL3FlowParamsThunkOutput | undefined;

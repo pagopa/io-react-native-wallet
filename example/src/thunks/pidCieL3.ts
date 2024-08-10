@@ -4,16 +4,16 @@ import {
   WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { regenerateCryptoKey } from "../utils/crypto";
-import { getIntegrityContext } from "../utils/integrity/integrity";
-import { createAppAsyncThunk, type GetCredentialThunk } from "./utils";
-import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
+import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import { getIntegrityContext } from "../utils/integrity";
+import { createAppAsyncThunk } from "./utils";
 import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import appFetch from "../utils/fetch";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { selectPidCieL3FlowParams } from "../store/reducers/credential";
 import parseUrl from "parse-url";
+import type { CredentialResult } from "../store/types";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
 // PUT ME IN UTILS OR ENV
@@ -120,7 +120,7 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
 });
 
 export const continueCieL3FlowThunk = createAppAsyncThunk<
-  GetCredentialThunk,
+  CredentialResult,
   ContinueCieL3FlowThunkInput
 >("ciel3/flowContinue", async (args, { getState }) => {
   const flowParams = selectPidCieL3FlowParams(getState());

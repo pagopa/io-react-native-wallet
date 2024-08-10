@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import type { WithAsyncState } from "example/src/store/utilts";
+import type { WithAsyncState } from "../store/types";
 
 export default function TestScenario({
   title,

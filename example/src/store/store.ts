@@ -36,7 +36,4 @@ export const store = configureStore({
  */
 export const persistor = persistStore(store);
 
-/**
- * Type definition for the root state of the Redux store.
- */
-export type RootState = ReturnType<typeof store.getState>;
+

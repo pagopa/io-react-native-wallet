@@ -4,9 +4,9 @@ import { WebView, type WebViewNavigation } from "react-native-webview";
 import { WALLET_PROVIDER_BASE_URL } from "@env";
 import URLParse from "url-parse";
 import { sessionSet } from "../../store/reducers/sesssion";
-import { useAppDispatch } from "../../store/dispatch";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MainStackNavParamList } from "example/src/navigator/MainStackNavigator";
+import { useAppDispatch } from "example/src/store/utilts";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "IdpLogin">;
 

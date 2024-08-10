@@ -6,7 +6,7 @@ import {
   ensureIntegrityServiceIsReady,
   generateIntegrityHardwareKeyTag,
   getIntegrityContext,
-} from "../utils/integrity/integrity";
+} from "../utils/integrity";
 
 const walletProviderBaseUrl = WALLET_PROVIDER_BASE_URL;
 

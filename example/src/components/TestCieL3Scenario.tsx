@@ -1,4 +1,4 @@
-import { Cie, type IntegrityContext } from "@pagopa/io-react-native-wallet";
+import { Cie } from "@pagopa/io-react-native-wallet";
 import React, { useEffect } from "react";
 import {
   View,
@@ -10,17 +10,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-import { useAppDispatch } from "../store/dispatch";
 import {
   CIE_L3_REDIRECT_URI,
   continueCieL3FlowThunk,
   prepareCieL3FlowParamsThunk,
 } from "../thunks/pidCieL3";
-import { useAppSelector, type WithAsyncState } from "../store/utilts";
+import { useAppDispatch, useAppSelector } from "../store/utilts";
 import {
   pidCiel3FlowReset,
   selectPidCieL3FlowParams,
 } from "../store/reducers/credential";
+import type { WithAsyncState } from "../store/types";
 
 export default function TestCieL3Scenario({
   title,
