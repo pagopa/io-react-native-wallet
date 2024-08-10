@@ -6,6 +6,7 @@ import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { getCredentialThunk } from "../thunks/credential";
 import { CIE_UAT, SPID_IDPHINT } from "@env";
 import { selectCredentialState } from "../store/reducers/credential";
+import TestCieL3Scenario from "../components/TestCieL3Scenario";
 
 export const isCieUat = CIE_UAT === "true" || CIE_UAT === "1";
 
@@ -56,14 +57,15 @@ export const PidScreen = () => {
             hasError={pidState.hasError}
             isDone={pidState.isDone}
           />
-          {/* <TestCieL3Scenario
-        title="Get PID (CIE+PIN)"
-        integrityContext={integrityContext!}
-        isCieUat={isCieUat}
-        idpHint={isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT}
-        disabled={!integrityContext}
-        setPid={setPidContext}
-      /> */}
+          <TestCieL3Scenario
+            title="Get PID (CIE+PIN)"
+            isCieUat={isCieUat}
+            idpHint={isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT}
+            isDisabled={!hasIntegrityKeyTag}
+            isLoading={pidState.isLoading}
+            hasError={pidState.hasError}
+            isDone={pidState.isDone}
+          />
         </>
       ) : (
         <></>
