@@ -4,8 +4,12 @@ import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import {
   selectCredential,
   selectCredentialState,
+  selectStatusAttestationState,
 } from "../store/reducers/credential";
-import { getCredentialThunk } from "../thunks/credential";
+import {
+  getCredentialStatusAttestationThunk,
+  getCredentialThunk,
+} from "../thunks/credential";
 import TestScenario from "../components/TestScenario";
 
 export const CredentialScreen = () => {
@@ -13,7 +17,9 @@ export const CredentialScreen = () => {
 
   const pid = useAppSelector(selectCredential("PersonIdentificationData"));
 
+  const mdl = useAppSelector(selectCredential("MDL"));
   const mdlState = useAppSelector(selectCredentialState("MDL"));
+  const mdlStaAttState = useAppSelector(selectStatusAttestationState("MDL"));
 
   const dcState = useAppSelector(
     selectCredentialState("EuropeanDisabilityCard")
@@ -45,11 +51,23 @@ export const CredentialScreen = () => {
             isLoading={dcState.isLoading}
             hasError={dcState.hasError}
           />
-          {/* <TestScenario
-            title="Get credential (mDL) Status Attestation"
-            scenario={scenarios.getCredentialStatusAttestation(mdlContext!)}
-            disabled={!integrityContext || !pidContext || !mdlContext}
-          /> */}
+          {mdl ? (
+            <TestScenario
+              title="Get credential (mDL) Status Attestation"
+              onPress={() =>
+                dispatch(
+                  getCredentialStatusAttestationThunk({
+                    credential: mdl.credential,
+                    keyTag: mdl.keyTag,
+                    credentialType: "MDL",
+                  })
+                )
+              }
+              hasError={mdlStaAttState.hasError}
+              isDone={mdlStaAttState.isDone}
+              isLoading={mdlStaAttState.isLoading}
+            />
+          ) : null}
         </>
       ) : (
         <></>
