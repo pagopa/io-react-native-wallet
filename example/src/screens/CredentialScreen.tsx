@@ -4,12 +4,8 @@ import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import {
   selectCredential,
   selectCredentialState,
-  selectStatusAttestationState,
 } from "../store/reducers/credential";
-import {
-  getCredentialStatusAttestationThunk,
-  getCredentialThunk,
-} from "../thunks/credential";
+import { getCredentialThunk } from "../thunks/credential";
 import TestScenario from "../components/TestScenario";
 
 /**

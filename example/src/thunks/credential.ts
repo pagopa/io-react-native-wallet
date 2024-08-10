@@ -21,6 +21,10 @@ import { getIntegrityContext } from "../utils/integrity";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { selectCredential } from "../store/reducers/credential";
 import type { CredentialResult, SupportedCredentials } from "../store/types";
+
+/**
+ * Type definition for the input of the {@link getCredentialThunk}.
+ */
 type GetCredentialThunkInput =
   | {
       idpHint: string;
@@ -31,6 +35,9 @@ type GetCredentialThunkInput =
       credentialType: Exclude<SupportedCredentials, "PersonIdentificationData">;
     };
 
+/**
+ * Type definition for the input of the {@link getCredentialStatusAttestationThunk}.
+ */
 type GetCredentialStatusAttestationThunkInput = {
   credentialType: SupportedCredentials;
   credential: Awaited<
@@ -39,6 +46,20 @@ type GetCredentialStatusAttestationThunkInput = {
   keyTag: string;
 };
 
+/**
+ * Type definition for the output of the {@link getCredentialStatusAttestationThunk}.
+ */
+type GetCredentialStatusAttestationThunkOutput = {
+  statusAttestation: string;
+  credentialType: SupportedCredentials;
+};
+
+/**
+ * Thunk to obtain a new credential.
+ * @param args.idPhint- The idPhint for the Identity Provider to use if the requested credential is a `PersonIdentificationData`
+ * @param args.credentialType - The type of the requested credential to obtain
+ * @returns The obtained credential result
+ */
 export const getCredentialThunk = createAppAsyncThunk<
   CredentialResult,
   GetCredentialThunkInput
@@ -91,6 +112,49 @@ export const getCredentialThunk = createAppAsyncThunk<
   }
 });
 
+/**
+ * Thunk to obtain a credential status attestation.
+ * @param args.credentialType - TThe type of credential for which you want to obtain the status attestation.
+ * @returns The obtained credential result
+ */
+export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
+  GetCredentialStatusAttestationThunkOutput,
+  GetCredentialStatusAttestationThunkInput
+>("credential/statusAttestationGet", async (args) => {
+  const { credential, keyTag, credentialType } = args;
+
+  // Create credential crypto context
+  const credentialCryptoContext = createCryptoContextFor(keyTag);
+
+  // Start the issuance flow
+  const startFlow: Credential.Status.StartFlow = () => ({
+    issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+  });
+
+  const { issuerUrl } = startFlow();
+
+  // Evaluate issuer trust
+  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+
+  const res = await Credential.Status.statusAttestation(
+    issuerConf,
+    credential,
+    credentialCryptoContext
+  );
+  return {
+    statusAttestation: res.status_attestation,
+    credentialType,
+  };
+});
+
+/**
+ * Implements a flow to obtain a PID credential.
+ * @param idpHint - The hint for the Identity Provider to use
+ * @param walletInstanceAttestation - The Wallet Instance Attestation
+ * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
+ * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @returns The obtained credential result
+ */
 const getPid = async (
   idpHint: string,
   walletInstanceAttestation: string,
@@ -198,6 +262,15 @@ const getPid = async (
   };
 };
 
+/**
+ * Implements a flow to obtain a generic credential.
+ * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @param walletInstanceAttestation - The Wallet Instance Attestation
+ * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
+ * @param pid - The PID credential
+ * @param pidCryptoContext - The PID credential crypto context
+ * @returns The obtained credential result
+ */
 const getCredential = async (
   credentialType: SupportedCredentials,
   walletInstanceAttestation: string,
@@ -300,33 +373,3 @@ const getCredential = async (
     credentialType,
   };
 };
-
-export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
-  { statusAttestation: string; credentialType: SupportedCredentials },
-  GetCredentialStatusAttestationThunkInput
->("credential/statusAttestationGet", async (args) => {
-  const { credential, keyTag, credentialType } = args;
-
-  // Create credential crypto context
-  const credentialCryptoContext = createCryptoContextFor(keyTag);
-
-  // Start the issuance flow
-  const startFlow: Credential.Status.StartFlow = () => ({
-    issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-  });
-
-  const { issuerUrl } = startFlow();
-
-  // Evaluate issuer trust
-  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
-
-  const res = await Credential.Status.statusAttestation(
-    issuerConf,
-    credential,
-    credentialCryptoContext
-  );
-  return {
-    statusAttestation: res.status_attestation,
-    credentialType,
-  };
-});

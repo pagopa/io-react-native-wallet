@@ -7,6 +7,9 @@ import {
 import { getCredentialStatusAttestationThunk } from "../thunks/credential";
 import TestScenario from "../components/TestScenario";
 
+/**
+ * This component (screen in a future PR) is used to test the status attestation functionalities for the credentials already obtained.
+ */
 export const StatusAttestationScreen = () => {
   const dispatch = useAppDispatch();
 

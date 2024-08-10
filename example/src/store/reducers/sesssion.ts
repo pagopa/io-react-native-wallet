@@ -11,17 +11,16 @@ const initialState: SessionState = { ioAuthToken: undefined };
 
 /**
  * Redux slice for the session state. It contains the IO auth token.
- * Two actions are defined:
- * - sessionSet: sets the IO auth token
- * - sessionReset: resets the session state
  */
 export const sessionSlice = createSlice({
   name: "session",
   initialState,
   reducers: {
+    // Sets the IO auth token
     sessionSet: (state, action: PayloadAction<string>) => {
       state.ioAuthToken = action.payload;
     },
+    // Resets the session state when logging out
     sessionReset: () => initialState,
   },
 });

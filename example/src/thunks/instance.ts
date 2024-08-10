@@ -8,8 +8,14 @@ import {
   getIntegrityContext,
 } from "../utils/integrity";
 
+/**
+ * The wallet provider base url to use for the wallet instance creation.
+ */
 const walletProviderBaseUrl = WALLET_PROVIDER_BASE_URL;
 
+/**
+ * Thunk to create a new wallet instance.
+ */
 export const createWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/create",
   async () => {

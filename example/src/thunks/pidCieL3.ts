@@ -19,15 +19,24 @@ import type { CredentialResult } from "../store/types";
 // PUT ME IN UTILS OR ENV
 export const CIE_L3_REDIRECT_URI = "https://cie.callback";
 
+/**
+ * Type definition for the input of the {@link prepareCieL3FlowParamsThunk}.
+ */
 type PrepareCieL3FlowParamsThunkInput = {
   idpHint: string;
   ciePin: string;
 };
 
+/**
+ * Type definition for the input of the {@link ContinueCieL3FlowThunkInput}.
+ */
 type ContinueCieL3FlowThunkInput = {
   url: string;
 };
 
+/**
+ * Type definition for the output of the {@link prepareCieL3FlowParamsThunk}.
+ */
 export type PrepareCieL3FlowParamsThunkOutput = {
   cieAuthUrl: string;
   issuerConf: Awaited<
@@ -48,6 +57,14 @@ export type PrepareCieL3FlowParamsThunkOutput = {
   ciePin: string;
 };
 
+/**
+ * Thunk to prepare the parameters for the CIE L3 issuance flow.
+ * It performs a partial issuance flow, starting from the issuance request to the user authorization.
+ * This is needed to obtain the needed parameters to continue the flow in the webview in {@link TestCieL3Scenario}.
+ * @param args.idpHint The identity provider hint to use in the issuance flow.
+ * @param args.ciePin The CIE PIN to use in the issuance flow.
+ * @returns The needed parameters to continue the issuance flow.
+ */
 export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
   PrepareCieL3FlowParamsThunkOutput,
   PrepareCieL3FlowParamsThunkInput
@@ -119,6 +136,12 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
   };
 });
 
+/**
+ * Thunk to continue the CIE L3 issuance flow. Follows {@link prepareCieL3FlowParamsThunk}.
+ * It performs the last steps of the issuance flow, obtaining the credential and parsing it.
+ * @param args.url The URL of the webview after the user authorization which contains the authorization code.
+ * @return The credetial result.
+ */
 export const continueCieL3FlowThunk = createAppAsyncThunk<
   CredentialResult,
   ContinueCieL3FlowThunkInput

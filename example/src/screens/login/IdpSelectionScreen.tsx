@@ -39,9 +39,11 @@ const IdpButton = ({
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "IdpSelection">;
 
+/**
+ * IDP selection screen which allows the user to select an IDP to login with.
+ * After selecting an IDP, the user is redirected to the IDP login page via {@link IdpLoginScreen}
+ */
 export default function IdpSelectionScreen({ navigation }: Props) {
-  // const isIntegrityReady = useSelector(selectIntegrityIsReady);
-
   const handleIdpSelection = (id: string) => {
     navigation.navigate("IdpLogin", { idp: id });
   };

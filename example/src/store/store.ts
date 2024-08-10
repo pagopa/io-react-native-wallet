@@ -35,5 +35,3 @@ export const store = configureStore({
  * Redux persistor configuration used in the root component with {@link PersistGate}.
  */
 export const persistor = persistStore(store);
-
-

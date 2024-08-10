@@ -39,6 +39,9 @@ const getLoginUri = (idp: string) => {
   return url.href;
 };
 
+/**
+ * IDP login screen which redirects the user to the IDP login page and handles the login flow.
+ */
 export default function IdpLoginScreen({ route }: Props) {
   const idp = route.params.idp;
   const dispatch = useAppDispatch();

@@ -9,6 +9,9 @@ import { getIntegrityContext } from "../utils/integrity";
 import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
 
+/**
+ * Thunk to obtain a new Wallet Instance Attestation.
+ */
 export const getAttestationThunk = createAppAsyncThunk(
   "walletinstance/attestation",
   async (_, { getState }) => {

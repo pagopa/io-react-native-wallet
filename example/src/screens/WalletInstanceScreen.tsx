@@ -9,6 +9,10 @@ import {
 import { selectAttestationState } from "../store/reducers/attestation";
 import { getAttestationThunk } from "../thunks/attestation";
 
+/**
+ * Component (screen in a future PR) to test the wallet instance functionalities.
+ * This includes creating a wallet instance and getting an attestation.
+ */
 export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();
 
@@ -29,7 +33,7 @@ export const WalletInstanceScreen = () => {
       />
       <TestScenario
         onPress={() => dispatch(getAttestationThunk())}
-        title="Get asdasd Attestation"
+        title="Get Attestation"
         isLoading={attestationState.isLoading}
         hasError={attestationState.hasError}
         isDone={attestationState.isDone}
