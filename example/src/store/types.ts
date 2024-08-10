@@ -20,7 +20,7 @@ export type RootState = ReturnType<typeof store.getState>;
  * - isLoading: whether the operation is in progress
  * - hasError: whether the operation has failed and the error that occurred
  */
-export type WithAsyncState = {
+export type AsyncStatus = {
   isDone: boolean;
   isLoading: boolean;
   hasError:

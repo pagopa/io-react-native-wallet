@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../store/utilts";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import {
   selectCredential,
-  selectCredentialState,
+  selectCredentialAsyncStatus,
 } from "../store/reducers/credential";
 import { getCredentialThunk } from "../thunks/credential";
 import TestScenario from "../components/TestScenario";
@@ -17,10 +17,10 @@ export const CredentialScreen = () => {
 
   const pid = useAppSelector(selectCredential("PersonIdentificationData"));
 
-  const mdlState = useAppSelector(selectCredentialState("MDL"));
+  const mdlState = useAppSelector(selectCredentialAsyncStatus("MDL"));
 
   const dcState = useAppSelector(
-    selectCredentialState("EuropeanDisabilityCard")
+    selectCredentialAsyncStatus("EuropeanDisabilityCard")
   );
 
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);

@@ -4,9 +4,9 @@ import { useAppDispatch, useAppSelector } from "../store/utilts";
 import TestScenario from "../components/TestScenario";
 import {
   selectHasInstanceKeyTag,
-  selectInstanceState,
+  selectInstanceAsyncStatus,
 } from "../store/reducers/instance";
-import { selectAttestationState } from "../store/reducers/attestation";
+import { selectAttestationAsyncStatus } from "../store/reducers/attestation";
 import { getAttestationThunk } from "../thunks/attestation";
 
 /**
@@ -16,9 +16,9 @@ import { getAttestationThunk } from "../thunks/attestation";
 export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();
 
-  const instanceState = useAppSelector(selectInstanceState);
+  const instanceState = useAppSelector(selectInstanceAsyncStatus);
 
-  const attestationState = useAppSelector(selectAttestationState);
+  const attestationState = useAppSelector(selectAttestationAsyncStatus);
 
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 

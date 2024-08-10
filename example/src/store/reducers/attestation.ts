@@ -1,17 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { withAsyncStateInitial } from "../utilts";
+import { asyncStatusInitial } from "../utilts";
 import { getAttestationThunk } from "../../thunks/attestation";
-import type { RootState, WithAsyncState } from "../types";
+import type { RootState, AsyncStatus } from "../types";
 
 // State type definition for the attestion slice
-type AttestationState = WithAsyncState & {
+type AttestationState = {
   attestation: string | undefined;
+  asyncStatus: AsyncStatus;
 };
 
 // Initial state for the attestation slice
 const initialState: AttestationState = {
   attestation: undefined,
-  ...withAsyncStateInitial,
+  asyncStatus: asyncStatusInitial,
 };
 
 /**
@@ -27,24 +28,24 @@ export const attestationSlice = createSlice({
   extraReducers: (builder) => {
     // Dispatched when a get attestion async thunk resolves. Sets the attestation and resets the state.
     builder.addCase(getAttestationThunk.fulfilled, (state, action) => {
-      state.isDone = true;
+      state.asyncStatus.isDone = true;
       state.attestation = action.payload;
-      state.isLoading = initialState.isLoading;
-      state.hasError = initialState.hasError;
+      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
+      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
     // Dispatched when a get attestion async thunk is pending. Sets the loading state to true and resets done and hasError.
     builder.addCase(getAttestationThunk.pending, (state) => {
       // Sets the loading state and resets done and hasError;
-      state.isLoading = true;
-      state.isDone = initialState.isDone;
-      state.hasError = initialState.hasError;
+      state.asyncStatus.isLoading = true;
+      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
+      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
     // Dispatched when a get attestion async thunk rejects. Sets the attestation state to hasError and resets loading and isDone.
     builder.addCase(getAttestationThunk.rejected, (state, action) => {
       // Sets the hasError state and resets done and loading.
-      state.isDone = initialState.isDone;
-      state.isLoading = initialState.isLoading;
-      state.hasError = { status: true, error: action.error };
+      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
+      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
+      state.asyncStatus.hasError = { status: true, error: action.error };
     });
   },
 });
@@ -59,7 +60,8 @@ export const { attestationReset } = attestationSlice.actions;
  * @param state - The root state of the Redux store
  * @returns the attestion state
  */
-export const selectAttestationState = (state: RootState) => state.attestation;
+export const selectAttestationAsyncStatus = (state: RootState) =>
+  state.attestation.asyncStatus;
 
 /**
  * Selects the attestation from the attestation state.

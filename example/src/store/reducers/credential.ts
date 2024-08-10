@@ -14,9 +14,9 @@ import type {
   CredentialResult,
   RootState,
   SupportedCredentials,
-  WithAsyncState,
+  AsyncStatus,
 } from "../types";
-import { withAsyncStateInitial } from "../utilts";
+import { asyncStatusInitial } from "../utilts";
 
 /**
  * State type definition for the credential slice.
@@ -25,14 +25,14 @@ import { withAsyncStateInitial } from "../utilts";
  * - credentialsState: the state of the async operation to get each credential
  * - pidCiel3FlowParams: the parameters for the CiE L3 flow
  * - statusAttestation: the status attestation for the credentials
- * - statusAttestationState: the state of the async operation to get each credential status attestation
+ * - statusAttAsyncStatus: the state of the async operation to get each credential status attestation
  */
 type CredentialState = {
   credentials: Record<SupportedCredentials, CredentialResult | undefined>;
-  credentialsState: Record<SupportedCredentials, WithAsyncState>;
+  credentialsAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
   pidCiel3FlowParams: PrepareCieL3FlowParamsThunkOutput | undefined;
   statusAttestation: Record<SupportedCredentials, string | undefined>;
-  statusAttestationState: Record<SupportedCredentials, WithAsyncState>;
+  statusAttAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
 };
 
 // Initial state for the credential slice
@@ -42,10 +42,10 @@ const initialState: CredentialState = {
     MDL: undefined,
     EuropeanDisabilityCard: undefined,
   },
-  credentialsState: {
-    PersonIdentificationData: withAsyncStateInitial,
-    MDL: withAsyncStateInitial,
-    EuropeanDisabilityCard: withAsyncStateInitial,
+  credentialsAsyncStatus: {
+    PersonIdentificationData: asyncStatusInitial,
+    MDL: asyncStatusInitial,
+    EuropeanDisabilityCard: asyncStatusInitial,
   },
   pidCiel3FlowParams: undefined,
   statusAttestation: {
@@ -53,10 +53,10 @@ const initialState: CredentialState = {
     MDL: undefined,
     EuropeanDisabilityCard: undefined,
   },
-  statusAttestationState: {
-    PersonIdentificationData: withAsyncStateInitial,
-    MDL: withAsyncStateInitial,
-    EuropeanDisabilityCard: withAsyncStateInitial,
+  statusAttAsyncStatus: {
+    PersonIdentificationData: asyncStatusInitial,
+    MDL: asyncStatusInitial,
+    EuropeanDisabilityCard: asyncStatusInitial,
   },
 };
 
@@ -89,8 +89,8 @@ const credentialSlice = createSlice({
       // Set the credential
       state.credentials[credentialType] = action.payload;
       // Set the status
-      state.credentialsState[credentialType] = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus[credentialType] = {
+        ...asyncStatusInitial,
         isDone: true,
       };
     });
@@ -102,8 +102,8 @@ const credentialSlice = createSlice({
      */
     builder.addCase(getCredentialThunk.pending, (state, action) => {
       const credentialType = action.meta.arg.credentialType;
-      state.credentialsState[credentialType] = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus[credentialType] = {
+        ...asyncStatusInitial,
         isLoading: true,
       };
     });
@@ -115,8 +115,8 @@ const credentialSlice = createSlice({
      */
     builder.addCase(getCredentialThunk.rejected, (state, action) => {
       const credentialType = action.meta.arg.credentialType;
-      state.credentialsState[credentialType] = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus[credentialType] = {
+        ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
       };
     });
@@ -140,8 +140,8 @@ const credentialSlice = createSlice({
      * for the PID.
      */
     builder.addCase(prepareCieL3FlowParamsThunk.pending, (state) => {
-      state.credentialsState.PersonIdentificationData = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus.PersonIdentificationData = {
+        ...asyncStatusInitial,
         isLoading: true,
       };
     });
@@ -152,8 +152,8 @@ const credentialSlice = createSlice({
      */
     builder.addCase(prepareCieL3FlowParamsThunk.rejected, (state, action) => {
       state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
-      state.credentialsState.PersonIdentificationData = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus.PersonIdentificationData = {
+        ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
       };
     });
@@ -165,8 +165,8 @@ const credentialSlice = createSlice({
     builder.addCase(continueCieL3FlowThunk.fulfilled, (state, action) => {
       state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
       state.credentials.PersonIdentificationData = action.payload;
-      state.credentialsState.PersonIdentificationData = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus.PersonIdentificationData = {
+        ...asyncStatusInitial,
         isDone: true,
       };
     });
@@ -177,8 +177,8 @@ const credentialSlice = createSlice({
      */
     builder.addCase(continueCieL3FlowThunk.pending, (state) => {
       // Redundant as already set by prepareCieL3FlowParams but we want to be explicit and set the loading state
-      state.credentialsState.PersonIdentificationData = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus.PersonIdentificationData = {
+        ...asyncStatusInitial,
         isLoading: true,
       };
     });
@@ -190,8 +190,8 @@ const credentialSlice = createSlice({
     builder.addCase(continueCieL3FlowThunk.rejected, (state, action) => {
       // Reset the flow params if an error occurs, you must start from scratch
       state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
-      state.credentialsState.PersonIdentificationData = {
-        ...withAsyncStateInitial,
+      state.credentialsAsyncStatus.PersonIdentificationData = {
+        ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
       };
     });
@@ -212,8 +212,8 @@ const credentialSlice = createSlice({
         state.statusAttestation[credentialType] =
           action.payload.statusAttestation;
         // Set the status
-        state.statusAttestationState[credentialType] = {
-          ...withAsyncStateInitial,
+        state.statusAttAsyncStatus[credentialType] = {
+          ...asyncStatusInitial,
           isDone: true,
         };
       }
@@ -227,8 +227,8 @@ const credentialSlice = createSlice({
       getCredentialStatusAttestationThunk.pending,
       (state, action) => {
         const credentialType = action.meta.arg.credentialType;
-        state.statusAttestationState[credentialType] = {
-          ...withAsyncStateInitial,
+        state.statusAttAsyncStatus[credentialType] = {
+          ...asyncStatusInitial,
           isLoading: true,
         };
       }
@@ -242,8 +242,8 @@ const credentialSlice = createSlice({
       getCredentialStatusAttestationThunk.rejected,
       (state, action) => {
         const credentialType = action.meta.arg.credentialType;
-        state.statusAttestationState[credentialType] = {
-          ...withAsyncStateInitial,
+        state.statusAttAsyncStatus[credentialType] = {
+          ...asyncStatusInitial,
           hasError: { status: true, error: action.error },
         };
       }
@@ -286,11 +286,11 @@ export const selectCredential =
 /**
  * Selects the state of the async operation of a given credential.
  * @param credentialType - The type of the credential to select the state
- * @returns the state of the async operation for the requested credential as {@link WithAsyncState}
+ * @returns the state of the async operation for the requested credential as {@link AsyncStatus}
  */
-export const selectCredentialState =
+export const selectCredentialAsyncStatus =
   (credentialType: SupportedCredentials) => (state: RootState) =>
-    state.credential.credentialsState[credentialType];
+    state.credential.credentialsAsyncStatus[credentialType];
 
 /**
  * Selects the status attestation of a given credential.
@@ -304,11 +304,11 @@ export const selectStatusAttestation =
 /**
  * Selects the state of the status attestation async operation of a given credential.
  * @param credentialType - The type of the credential to select the state
- * @returns the state of the async operation for the requested credential as {@link WithAsyncState}
+ * @returns the state of the async operation for the requested credential as {@link AsyncStatus}
  */
-export const selectStatusAttestationState =
+export const selectStatusAttestationAsyncStatus =
   (credentialType: SupportedCredentials) => (state: RootState) =>
-    state.credential.statusAttestationState[credentialType];
+    state.credential.statusAttAsyncStatus[credentialType];
 
 /**
  * Selects the CiE L3 flow params from the credential state.

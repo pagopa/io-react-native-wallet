@@ -3,23 +3,24 @@ import { createSlice } from "@reduxjs/toolkit";
 import { createWalletInstanceThunk } from "../../thunks/instance";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { withAsyncStateInitial } from "../utilts";
-import type { RootState, WithAsyncState } from "../types";
+import { asyncStatusInitial } from "../utilts";
+import type { RootState, AsyncStatus } from "../types";
 
 /**
  * State type definition for the wallet instance slice
  * the state contains:
  * - keyTag: the key tag used to register  the wallet instance
- * - async state: isLoading, isDone, hasError as defined in {@link WithAsyncState}
+ * - async state: isLoading, isDone, hasError as defined in {@link AsyncStatus}
  */
-type InstanceState = WithAsyncState & {
+type InstanceState = {
+  asyncStatus: AsyncStatus;
   keyTag: string | undefined;
 };
 
 // Initial state for the instance slice
 const initialState: InstanceState = {
   keyTag: undefined,
-  ...withAsyncStateInitial,
+  asyncStatus: asyncStatusInitial,
 };
 
 /**
@@ -34,24 +35,24 @@ const instanceSlice = createSlice({
   extraReducers: (builder) => {
     // Dispatched when a wallet istance is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
     builder.addCase(createWalletInstanceThunk.fulfilled, (state, action) => {
-      state.isDone = true;
+      state.asyncStatus.isDone = true;
       state.keyTag = action.payload;
-      state.isLoading = initialState.isLoading;
-      state.hasError = initialState.hasError;
+      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
+      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
 
     // Dispatched when a wallet istance is pending. Sets the state to isLoading and resets isDone and hasError.
     builder.addCase(createWalletInstanceThunk.pending, (state) => {
-      state.isDone = false;
-      state.isLoading = true;
-      state.hasError = initialState.hasError;
+      state.asyncStatus.isDone = false;
+      state.asyncStatus.isLoading = true;
+      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
 
     // Dispatched when a wallet istance is rejected. Sets the state to hasError and resets isLoading and isDone.
     builder.addCase(createWalletInstanceThunk.rejected, (state, action) => {
-      state.isDone = initialState.isDone;
-      state.isLoading = initialState.isLoading;
-      state.hasError = { status: true, error: action.error };
+      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
+      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
+      state.asyncStatus.hasError = { status: true, error: action.error };
     });
   },
 });
@@ -82,9 +83,10 @@ export const instanceReducer = persistReducer(
 /**
  * Selects the instance state from the root state.
  * @param state - The root state of the Redux store
- * @returns The instance state as {@link WithAsyncState}
+ * @returns The instance state as {@link AsyncStatus}
  */
-export const selectInstanceState = (state: RootState) => state.instance;
+export const selectInstanceAsyncStatus = (state: RootState) =>
+  state.instance.asyncStatus;
 
 /**
  * Selects the key tag used to register the wallet instance.

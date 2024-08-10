@@ -4,7 +4,7 @@ import TestScenario from "../components/TestScenario";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { getCredentialThunk } from "../thunks/credential";
 import { SPID_IDPHINT } from "@env";
-import { selectCredentialState } from "../store/reducers/credential";
+import { selectCredentialAsyncStatus } from "../store/reducers/credential";
 import TestCieL3Scenario from "../components/TestCieL3Scenario";
 import { CIE_PROD_IDPHINT, CIE_UAT_IDPHINT, isCieUat } from "../utils/env";
 
@@ -18,7 +18,7 @@ export const PidScreen = () => {
   const dispatch = useAppDispatch();
 
   const pidState = useAppSelector(
-    selectCredentialState("PersonIdentificationData")
+    selectCredentialAsyncStatus("PersonIdentificationData")
   );
 
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);

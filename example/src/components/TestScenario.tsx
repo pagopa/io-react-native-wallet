@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import type { WithAsyncState } from "../store/types";
+import type { AsyncStatus } from "../store/types";
 
 export default function TestScenario({
   title,
@@ -13,7 +13,7 @@ export default function TestScenario({
   title: string;
   onPress: () => void;
   isDisabled?: boolean;
-} & WithAsyncState) {
+} & AsyncStatus) {
   const [result, setResult] = React.useState<string | undefined>();
 
   useEffect(() => {

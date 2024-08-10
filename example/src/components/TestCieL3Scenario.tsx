@@ -20,7 +20,7 @@ import {
   pidCiel3FlowReset,
   selectPidCieL3FlowParams,
 } from "../store/reducers/credential";
-import type { WithAsyncState } from "../store/types";
+import type { AsyncStatus } from "../store/types";
 
 export default function TestCieL3Scenario({
   title,
@@ -35,7 +35,7 @@ export default function TestCieL3Scenario({
   idpHint: string;
   isCieUat: boolean;
   isDisabled?: boolean;
-} & WithAsyncState) {
+} & AsyncStatus) {
   const [result, setResult] = React.useState<string | undefined>();
   const [modalText, setModalText] = React.useState<string | undefined>();
   const [isModalVisible, setModalVisible] = React.useState(false);
