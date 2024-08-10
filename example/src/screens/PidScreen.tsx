@@ -1,9 +1,9 @@
 import React from "react";
 import { useAppDispatch } from "../store/dispatch";
 import { useAppSelector } from "../store/utilts";
-import TestScenario from "../scenarios/component/TestScenario";
+import TestScenario from "../components/TestScenario";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { getCredentialThunk } from "../thunks/get-credential";
+import { getCredentialThunk } from "../thunks/credential";
 import { CIE_UAT, SPID_IDPHINT } from "@env";
 import { selectCredentialState } from "../store/reducers/credential";
 

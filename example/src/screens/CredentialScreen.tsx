@@ -1,13 +1,13 @@
 import React from "react";
 import { useAppDispatch } from "../store/dispatch";
 import { useAppSelector } from "../store/utilts";
-import TestScenario from "../scenarios/component/TestScenario";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import {
   selectCredential,
   selectCredentialState,
 } from "../store/reducers/credential";
-import { getCredentialThunk } from "../thunks/get-credential";
+import { getCredentialThunk } from "../thunks/credential";
+import TestScenario from "../components/TestScenario";
 
 export const CredentialScreen = () => {
   const dispatch = useAppDispatch();

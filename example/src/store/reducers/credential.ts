@@ -8,12 +8,17 @@ import {
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { GetCredentialThunk } from "../../thunks/utils";
-import { getCredentialThunk } from "../../thunks/get-credential";
+import {
+  getCredentialStatusAttestationThunk,
+  getCredentialThunk,
+} from "../../thunks/credential";
 
 // State type definition for the session slice
 type CredentialState = {
   credentials: Record<SupportedCredentials, GetCredentialThunk | undefined>;
   credentialsState: Record<SupportedCredentials, WithAsyncState>;
+  statusAttestation: Record<SupportedCredentials, string | undefined>;
+  statusAttestationState: Record<SupportedCredentials, WithAsyncState>;
 };
 
 // Initial state for the session slice
@@ -24,6 +29,16 @@ const initialState: CredentialState = {
     EuropeanDisabilityCard: undefined,
   },
   credentialsState: {
+    PersonIdentificationData: withAsyncStateInitial,
+    MDL: withAsyncStateInitial,
+    EuropeanDisabilityCard: withAsyncStateInitial,
+  },
+  statusAttestation: {
+    PersonIdentificationData: undefined,
+    MDL: undefined,
+    EuropeanDisabilityCard: undefined,
+  },
+  statusAttestationState: {
     PersonIdentificationData: withAsyncStateInitial,
     MDL: withAsyncStateInitial,
     EuropeanDisabilityCard: withAsyncStateInitial,
@@ -42,7 +57,9 @@ const credentialSlice = createSlice({
     credentialReset: () => initialState,
   },
   extraReducers: (builder) => {
-    // Add reducers for additional action types here, and handle loading state as needed
+    /**
+     * Credential Thunk
+     */
     builder.addCase(getCredentialThunk.fulfilled, (state, action) => {
       const credentialType = action.payload.credentialType;
       // Set the credential
@@ -63,6 +80,37 @@ const credentialSlice = createSlice({
     builder.addCase(getCredentialThunk.rejected, (state, action) => {
       const credentialType = action.meta.arg.credentialType;
       state.credentialsState[credentialType] = {
+        ...withAsyncStateInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
+    /**
+     * Status Attestation Thunk
+     */
+    builder.addCase(
+      getCredentialStatusAttestationThunk.fulfilled,
+      (state, action) => {
+        const credentialType = action.payload.credentialType;
+        // Set the credential
+        state.statusAttestation[credentialType] =
+          action.payload.statusAttestation;
+        // Set the status
+        state.statusAttestationState[credentialType] = {
+          ...withAsyncStateInitial,
+          isDone: true,
+        };
+      }
+    );
+    builder.addCase(getCredentialThunk.pending, (state, action) => {
+      const credentialType = action.meta.arg.credentialType;
+      state.statusAttestationState[credentialType] = {
+        ...withAsyncStateInitial,
+        isLoading: true,
+      };
+    });
+    builder.addCase(getCredentialThunk.rejected, (state, action) => {
+      const credentialType = action.meta.arg.credentialType;
+      state.statusAttestationState[credentialType] = {
         ...withAsyncStateInitial,
         hasError: { status: true, error: action.error },
       };
@@ -96,3 +144,11 @@ export const selectCredential =
 export const selectCredentialState =
   (credentialType: SupportedCredentials) => (state: RootState) =>
     state.credential.credentialsState[credentialType];
+
+export const selectStatusAttestation =
+  (credentialType: SupportedCredentials) => (state: RootState) =>
+    state.credential.statusAttestation[credentialType];
+
+export const selectStatusAttestationState =
+  (credentialType: SupportedCredentials) => (state: RootState) =>
+    state.credential.statusAttestationState[credentialType];

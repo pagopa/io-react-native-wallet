@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../store";
 import { withAsyncStateInitial, type WithAsyncState } from "../utilts";
-import { createWalletInstanceThunk } from "../../thunks/create-wallet-instance";
+import { createWalletInstanceThunk } from "../../thunks/instance";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

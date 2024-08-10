@@ -33,6 +33,14 @@ type GetCredentialThunkInput =
       credentialType: Exclude<SupportedCredentials, "PersonIdentificationData">;
     };
 
+type GetCredentialStatusAttestationThunkInput = {
+  credentialType: SupportedCredentials;
+  credential: Awaited<
+    ReturnType<Credential.Issuance.ObtainCredential>
+  >["credential"];
+  keyTag: string;
+};
+
 export const getCredentialThunk = createAppAsyncThunk<
   GetCredentialThunk,
   GetCredentialThunkInput
@@ -294,3 +302,33 @@ const getCredential = async (
     credentialType,
   };
 };
+
+export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
+  { statusAttestation: string; credentialType: SupportedCredentials },
+  GetCredentialStatusAttestationThunkInput
+>("credential/statusAttestationGet", async (args) => {
+  const { credential, keyTag, credentialType } = args;
+
+  // Create credential crypto context
+  const credentialCryptoContext = createCryptoContextFor(keyTag);
+
+  // Start the issuance flow
+  const startFlow: Credential.Status.StartFlow = () => ({
+    issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+  });
+
+  const { issuerUrl } = startFlow();
+
+  // Evaluate issuer trust
+  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+
+  const res = await Credential.Status.statusAttestation(
+    issuerConf,
+    credential,
+    credentialCryptoContext
+  );
+  return {
+    statusAttestation: res.status_attestation,
+    credentialType,
+  };
+});

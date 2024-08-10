@@ -1,14 +1,14 @@
 import React from "react";
 import { useAppDispatch } from "../store/dispatch";
-import { createWalletInstanceThunk } from "../thunks/create-wallet-instance";
+import { createWalletInstanceThunk } from "../thunks/instance";
 import { useAppSelector } from "../store/utilts";
-import TestScenario from "../scenarios/component/TestScenario";
+import TestScenario from "../components/TestScenario";
 import {
   selectHasInstanceKeyTag,
   selectInstanceState,
 } from "../store/reducers/instance";
 import { selectAttestationState } from "../store/reducers/attestation";
-import { getAttestationThunk } from "../thunks/get-attestation";
+import { getAttestationThunk } from "../thunks/attestation";
 
 export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();

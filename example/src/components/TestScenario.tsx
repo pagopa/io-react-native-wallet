@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Button, StyleSheet, Text, View } from "react-native";
 import type { WithAsyncState } from "example/src/store/utilts";
 
 export default function TestScenario({

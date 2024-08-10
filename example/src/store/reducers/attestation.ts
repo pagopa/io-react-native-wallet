@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../store";
 import { withAsyncStateInitial, type WithAsyncState } from "../utilts";
-import { getAttestationThunk } from "../../thunks/get-attestation";
+import { getAttestationThunk } from "../../thunks/attestation";
 
 // State type definition for the session slice
 type AttestationState = WithAsyncState & {
