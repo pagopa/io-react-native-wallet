@@ -13,17 +13,9 @@ import { getAttestationThunk } from "../thunks/attestation";
 export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();
 
-  const {
-    isLoading: isLoadingInst,
-    hasError: hasErrorInst,
-    isDone: isDoneInst,
-  } = useAppSelector(selectInstanceState);
+  const instanceState = useAppSelector(selectInstanceState);
 
-  const {
-    isLoading: isLoadingAtt,
-    hasError: hasErrorAtt,
-    isDone: isDoneAtt,
-  } = useAppSelector(selectAttestationState);
+  const attestationState = useAppSelector(selectAttestationState);
 
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
@@ -32,16 +24,16 @@ export const WalletInstanceScreen = () => {
       <TestScenario
         onPress={() => dispatch(createWalletInstanceThunk())}
         title="Create Wallet Instance"
-        isLoading={isLoadingInst}
-        hasError={hasErrorInst}
-        isDone={isDoneInst}
+        isLoading={instanceState.isLoading}
+        hasError={instanceState.hasError}
+        isDone={instanceState.isDone}
       />
       <TestScenario
         onPress={() => dispatch(getAttestationThunk())}
         title="Get asdasd Attestation"
-        isLoading={isLoadingAtt}
-        hasError={hasErrorAtt}
-        isDone={isDoneAtt}
+        isLoading={attestationState.isLoading}
+        hasError={attestationState.hasError}
+        isDone={attestationState.isDone}
         isDisabled={!hasIntegrityKeyTag}
       />
     </>

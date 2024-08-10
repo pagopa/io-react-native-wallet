@@ -18,17 +18,9 @@ const CIE_UAT_IDPHINT =
 export const PidScreen = () => {
   const dispatch = useAppDispatch();
 
-  const {
-    isLoading: isLoadingPid,
-    hasError: hasErrorPid,
-    isDone: isDonePid,
-  } = useAppSelector(selectCredentialState("PersonIdentificationData"));
-
-  const {
-    isLoading: isLoadingAtt,
-    hasError: hasErrorAtt,
-    isDone: isDoneAtt,
-  } = useAppSelector(selectCredentialState("PersonIdentificationData"));
+  const pidState = useAppSelector(
+    selectCredentialState("PersonIdentificationData")
+  );
 
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
@@ -46,15 +38,12 @@ export const PidScreen = () => {
               )
             }
             title="Get PID (SPID)"
-            isLoading={isLoadingPid}
-            hasError={hasErrorPid}
-            isDone={isDonePid}
+            isLoading={pidState.isLoading}
+            hasError={pidState.hasError}
+            isDone={pidState.isDone}
           />
           <TestScenario
             title="Get PID (CIE DEMO)"
-            isLoading={isLoadingAtt}
-            hasError={hasErrorAtt}
-            isDone={isDoneAtt}
             onPress={() =>
               dispatch(
                 getCredentialThunk({
@@ -63,6 +52,9 @@ export const PidScreen = () => {
                 })
               )
             }
+            isLoading={pidState.isLoading}
+            hasError={pidState.hasError}
+            isDone={pidState.isDone}
           />
           {/* <TestCieL3Scenario
         title="Get PID (CIE+PIN)"
