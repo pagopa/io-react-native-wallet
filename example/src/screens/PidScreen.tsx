@@ -3,18 +3,17 @@ import { useAppDispatch, useAppSelector } from "../store/utilts";
 import TestScenario from "../components/TestScenario";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { getCredentialThunk } from "../thunks/credential";
-import { CIE_UAT, SPID_IDPHINT } from "@env";
+import { SPID_IDPHINT } from "@env";
 import { selectCredentialState } from "../store/reducers/credential";
 import TestCieL3Scenario from "../components/TestCieL3Scenario";
+import { CIE_PROD_IDPHINT, CIE_UAT_IDPHINT, isCieUat } from "../utils/env";
 
-export const isCieUat = CIE_UAT === "true" || CIE_UAT === "1";
-
-const CIE_PROD_IDPHINT =
-  "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
-const CIE_UAT_IDPHINT =
-  "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
+/**
+ * Component (screen in a future PR) to test the PID functionalities.
+ * This include getting the PID from SPID and CIE, both with CieID and CieID+PIN.
+ * Based on the env variabiles this screen will use the UAT or PROD environment of the identity provider.
+ * @returns
+ */
 export const PidScreen = () => {
   const dispatch = useAppDispatch();
 
@@ -26,7 +25,7 @@ export const PidScreen = () => {
 
   return (
     <>
-      {hasIntegrityKeyTag ? (
+      {hasIntegrityKeyTag ? ( // We need the integrity key to get the PID as this indicates the presence of a wallet instance
         <>
           <TestScenario
             onPress={() =>

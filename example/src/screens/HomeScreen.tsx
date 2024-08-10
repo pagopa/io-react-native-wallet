@@ -13,7 +13,12 @@ import { WalletInstanceScreen } from "./WalletInstanceScreen";
 import { PidScreen } from "./PidScreen";
 import { CredentialScreen } from "./CredentialScreen";
 import { useAppDispatch } from "../store/utilts";
+import { StatusAttestationScreen } from "./StatusAttestationScreen";
 
+/**
+ * Home screen component which contains different sections to test the SDK functionalities.
+ * This includes interacting with the wallet instance provider, issuing a PID and a credential, get their status attestation and more.
+ */
 const HomeScreen = () => {
   const dispatch = useAppDispatch();
 
@@ -24,6 +29,7 @@ const HomeScreen = () => {
           <WalletInstanceScreen />
           <PidScreen />
           <CredentialScreen />
+          <StatusAttestationScreen />
         </View>
         <TouchableOpacity
           onPress={() => dispatch(sessionReset())}

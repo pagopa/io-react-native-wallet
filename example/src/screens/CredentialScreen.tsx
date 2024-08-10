@@ -12,14 +12,16 @@ import {
 } from "../thunks/credential";
 import TestScenario from "../components/TestScenario";
 
+/**
+ * Component (screen in a future PR) to test the credential functionalities.
+ * This includes issuing a credential and getting its status attestation.
+ */
 export const CredentialScreen = () => {
   const dispatch = useAppDispatch();
 
   const pid = useAppSelector(selectCredential("PersonIdentificationData"));
 
-  const mdl = useAppSelector(selectCredential("MDL"));
   const mdlState = useAppSelector(selectCredentialState("MDL"));
-  const mdlStaAttState = useAppSelector(selectStatusAttestationState("MDL"));
 
   const dcState = useAppSelector(
     selectCredentialState("EuropeanDisabilityCard")
@@ -29,7 +31,7 @@ export const CredentialScreen = () => {
 
   return (
     <>
-      {hasIntegrityKeyTag && pid ? (
+      {hasIntegrityKeyTag && pid ? ( // We need the integrity key and the PID to issue a credential
         <>
           <TestScenario
             title="Get credential (MDL)"
@@ -51,23 +53,6 @@ export const CredentialScreen = () => {
             isLoading={dcState.isLoading}
             hasError={dcState.hasError}
           />
-          {mdl ? (
-            <TestScenario
-              title="Get credential (mDL) Status Attestation"
-              onPress={() =>
-                dispatch(
-                  getCredentialStatusAttestationThunk({
-                    credential: mdl.credential,
-                    keyTag: mdl.keyTag,
-                    credentialType: "MDL",
-                  })
-                )
-              }
-              hasError={mdlStaAttState.hasError}
-              isDone={mdlStaAttState.isDone}
-              isLoading={mdlStaAttState.isLoading}
-            />
-          ) : null}
         </>
       ) : (
         <></>

@@ -7,7 +7,7 @@ import {
 import { getCredentialStatusAttestationThunk } from "../thunks/credential";
 import TestScenario from "../components/TestScenario";
 
-export const CredentialScreen = () => {
+export const StatusAttestationScreen = () => {
   const dispatch = useAppDispatch();
 
   const mDl = useAppSelector(selectCredential("MDL"));
