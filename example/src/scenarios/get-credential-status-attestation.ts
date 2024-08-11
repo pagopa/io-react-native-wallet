@@ -23,12 +23,26 @@ export default (credentialContext: CredentialContext) => async () => {
       issuerUrl
     );
 
-    const res = await Credential.Status.statusAttestation(
+    const rawStatusAttestation = await Credential.Status.statusAttestation(
       issuerConf,
       credential,
       credentialCryptoContext
     );
-    return result(res);
+
+    console.log(rawStatusAttestation);
+
+    const parsedStatusAttestation =
+      await Credential.Status.verifyAndParseStatusAttestation(
+        issuerConf,
+        rawStatusAttestation,
+        {
+          credentialCryptoContext,
+        }
+      );
+
+    console.log(parsedStatusAttestation);
+
+    return result(parsedStatusAttestation);
   } catch (e) {
     console.error(e);
     return error(e);
