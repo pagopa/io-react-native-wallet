@@ -3,7 +3,7 @@ import {
   WalletInstanceAttestation,
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
-import { WALLET_EAA_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
+import { WALLET_PROVIDER_BASE_URL } from "@env";
 import appFetch from "../utils/fetch";
 import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { createAppAsyncThunk } from "./utils";
