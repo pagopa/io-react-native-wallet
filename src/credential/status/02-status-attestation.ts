@@ -15,7 +15,9 @@ export type StatusAttestation = (
   credential: Out<ObtainCredential>["credential"],
   credentialCryptoContext: CryptoContext,
   appFetch?: GlobalFetch["fetch"]
-) => Promise<StatusAttestationResponse>;
+) => Promise<{
+  statusAttestation: StatusAttestationResponse["status_attestation"];
+}>;
 
 /**
  * WARNING: This function must be called after {@link startFlow}.
@@ -58,7 +60,7 @@ export const statusAttestation: StatusAttestation = async (
     credential_pop: credentialPop,
   };
 
-  return await appFetch(statusAttUrl, {
+  const result = await appFetch(statusAttUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -69,6 +71,8 @@ export const statusAttestation: StatusAttestation = async (
     .then((raw) => raw.json())
     .then((json) => StatusAttestationResponse.parse(json))
     .catch(handleStatusAttestationError);
+
+  return { statusAttestation: result.status_attestation };
 };
 
 /**

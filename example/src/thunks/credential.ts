@@ -133,7 +133,7 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
     credentialCryptoContext
   );
   return {
-    statusAttestation: res.status_attestation,
+    statusAttestation: res.statusAttestation,
     credentialType,
   };
 });

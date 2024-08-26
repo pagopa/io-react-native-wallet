@@ -9,7 +9,7 @@ import {
 import { idps } from "../../utils/idps";
 import URLParse from "url-parse";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { MainStackNavParamList } from "example/src/navigator/MainStackNavigator";
+import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
 export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   const intentProtocol = URLParse.extractProtocol(intentUrl);
