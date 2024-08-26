@@ -15,8 +15,8 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import { Alert } from "react-native";
-import type { PidContext } from "../MainComponent";
 import appFetch from "../utils/fetch";
+import type { PidContext } from "../screens/HomeScreen";
 import { deleteKeyIfExists, regenerateCryptoKey } from "../utils/crypto";
 import { DPOP_KEYTAG, WIA_KEYTAG } from "../utils/consts";
 
