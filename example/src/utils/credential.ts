@@ -242,3 +242,36 @@ export const getCredential = async (
     credentialType,
   };
 };
+
+/**
+ * Implements a flow to obtain a credential status attestation.
+ * @param credential - The credential to obtain the status attestation for
+ * @param credentialCryptoContext - The credential crypto context associated with the credential
+ * @param credentialType - The type of the credential
+ * @returns The credential status attestation
+ */
+export const getCredentialStatusAttestation = async (
+  credential: string,
+  credentialCryptoContext: CryptoContext,
+  credentialType: SupportedCredentials
+) => {
+  // Start the issuance flow
+  const startFlow: Credential.Status.StartFlow = () => ({
+    issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+  });
+
+  const { issuerUrl } = startFlow();
+
+  // Evaluate issuer trust
+  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+
+  const res = await Credential.Status.statusAttestation(
+    issuerConf,
+    credential,
+    credentialCryptoContext
+  );
+  return {
+    statusAttestation: res.statusAttestation,
+    credentialType,
+  };
+};

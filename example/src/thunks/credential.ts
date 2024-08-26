@@ -11,7 +11,11 @@ import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { getIntegrityContext } from "../utils/integrity";
 import { selectCredential } from "../store/reducers/credential";
 import type { CredentialResult, SupportedCredentials } from "../store/types";
-import { getCredential, getPid } from "../utils/credential";
+import {
+  getCredential,
+  getCredentialStatusAttestation,
+  getPid,
+} from "../utils/credential";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -117,23 +121,9 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
 
-  // Start the issuance flow
-  const startFlow: Credential.Status.StartFlow = () => ({
-    issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-  });
-
-  const { issuerUrl } = startFlow();
-
-  // Evaluate issuer trust
-  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
-
-  const res = await Credential.Status.statusAttestation(
-    issuerConf,
+  return await getCredentialStatusAttestation(
     credential,
-    credentialCryptoContext
+    credentialCryptoContext,
+    credentialType
   );
-  return {
-    statusAttestation: res.statusAttestation,
-    credentialType,
-  };
 });
