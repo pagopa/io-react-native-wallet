@@ -4,12 +4,19 @@ import {
   type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
-import { hasStatus, until, type Out } from "../../utils/misc";
+import {
+  createAbortPromiseFromSignal,
+  hasStatus,
+  isDefined,
+  until,
+  type Out,
+} from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import {
   AuthorizationError,
   AuthorizationIdpError,
+  OperationAbortedError,
   ValidationFailed,
 } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
@@ -34,7 +41,8 @@ export type CompleteUserAuthorizationWithQueryMode = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   idpHint: string,
   redirectUri: string,
-  authorizationContext?: AuthorizationContext
+  authorizationContext?: AuthorizationContext,
+  signal?: AbortSignal
 ) => Promise<AuthorizationResult>;
 
 export type CompleteUserAuthorizationWithFormPostJwtMode = (
@@ -68,8 +76,10 @@ export type GetRequestedCredentialToBePresented = (
  * If not specified, the default browser is used
  * @param idphint Unique identifier of the SPID IDP selected by the user
  * @param redirectUri The url to reach to complete the user authorization which is the custom URL scheme that the Wallet Instance is registered to handle, usually a custom URL or deeplink
+ * @param signal An optional {@link AbortSignal} to abort the operation when using the default browser
  * @throws {AuthorizationError} if an error occurs during the authorization process
  * @throws {AuthorizationIdpError} if an error occurs during the authorization process and the error is related to the IDP
+ * @throws {OperationAbortedError} if the caller aborts the operation via the provided signal
  * @returns the authorization response which contains code, state and iss
  */
 export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWithQueryMode =
@@ -79,7 +89,8 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
     issuerConf,
     idpHint,
     redirectUri,
-    authorizationContext
+    authorizationContext,
+    signal
   ) => {
     const authzRequestEndpoint =
       issuerConf.oauth_authorization_server.authorization_endpoint;
@@ -100,13 +111,16 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         });
     } else {
       // handler for redirectUri
-      Linking.addEventListener("url", ({ url }) => {
+      const urlEventListener = Linking.addEventListener("url", ({ url }) => {
         if (url.includes(redirectUri)) {
           authRedirectUrl = url;
         }
       });
 
-      const openAuthUrlInBrowser = Linking.openURL(authUrl);
+      const operationIsAborted = signal
+        ? createAbortPromiseFromSignal(signal)
+        : undefined;
+      await Linking.openURL(authUrl);
 
       /*
        * Waits for 120 seconds for the identificationRedirectUrl variable to be set
@@ -117,7 +131,23 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         120
       );
 
-      await Promise.all([openAuthUrlInBrowser, unitAuthRedirectIsNotUndefined]);
+      /**
+       * Simultaneously listen for the abort signal (when provided) and the redirect url.
+       * The first event that occurs will resolve the promise.
+       * This is useful to properly cleanup when the caller aborts this operation.
+       */
+      const winner = await Promise.race(
+        [operationIsAborted?.listen(), unitAuthRedirectIsNotUndefined].filter(
+          isDefined
+        )
+      ).finally(() => {
+        urlEventListener.remove();
+        operationIsAborted?.remove();
+      });
+
+      if (winner === "OPERATION_ABORTED") {
+        throw new OperationAbortedError("DefaultQueryModeAuthorization");
+      }
 
       if (authRedirectUrl === undefined) {
         throw new AuthorizationError("Invalid authentication redirect url");
