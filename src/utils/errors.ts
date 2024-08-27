@@ -390,3 +390,39 @@ export class OperationAbortedError extends IoWalletError {
     this.operation = operation;
   }
 }
+
+/**
+ * Error subclass thrown when the status attestation for a credential is invalid.
+ */
+export class StatusAttestationInvalid extends IoWalletError {
+  static get code(): "ERR_STATUS_ATTESTATION_INVALID" {
+    return "ERR_STATUS_ATTESTATION_INVALID";
+  }
+
+  code = "ERR_STATUS_ATTESTATION_INVALID";
+
+  reason: string;
+
+  constructor(message: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, reason }));
+    this.reason = reason;
+  }
+}
+
+/**
+ * Error subclass thrown when an error occurs while obtaining a status attestation for a credential.
+ */
+export class StatusAttestationError extends IoWalletError {
+  static get code(): "ERR_STATUS_ATTESTATION_ERROR" {
+    return "ERR_STATUS_ATTESTATION_ERROR";
+  }
+
+  code = "ERR_STATUS_ATTESTATION_ERROR";
+
+  reason: string;
+
+  constructor(message: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, reason }));
+    this.reason = reason;
+  }
+}
