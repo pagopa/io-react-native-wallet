@@ -16,7 +16,7 @@ import type {
   SupportedCredentials,
   AsyncStatus,
 } from "../types";
-import { asyncStatusInitial } from "../utilts";
+import { asyncStatusInitial } from "../utils";
 
 /**
  * State type definition for the credential slice.
@@ -282,6 +282,9 @@ export const credentialReducer = persistReducer(
 export const selectCredential =
   (credentialType: SupportedCredentials) => (state: RootState) =>
     state.credential.credentials[credentialType];
+
+export const selectCredentials = (state: RootState) =>
+  state.credential.credentials;
 
 /**
  * Selects the state of the async operation of a given credential.

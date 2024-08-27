@@ -1,15 +1,10 @@
 import React from "react";
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { idps } from "../../utils/idps";
+import { idps, type Idp } from "../../utils/idps";
 import URLParse from "url-parse";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+import IdpsGrid from "../../components/IdpsGrid";
+import { VSpacer } from "@pagopa/io-app-design-system";
 
 export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   const intentProtocol = URLParse.extractProtocol(intentUrl);
@@ -25,18 +20,6 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   return undefined;
 };
 
-const IdpButton = ({
-  idp,
-  onPress,
-}: {
-  idp: (typeof idps)[number];
-  onPress: (id: string) => void;
-}) => (
-  <TouchableOpacity onPress={() => onPress(idp.id)} style={[styles.item]}>
-    <Text style={[styles.title]}>{idp.name}</Text>
-  </TouchableOpacity>
-);
-
 type Props = NativeStackScreenProps<MainStackNavParamList, "IdpSelection">;
 
 /**
@@ -44,43 +27,17 @@ type Props = NativeStackScreenProps<MainStackNavParamList, "IdpSelection">;
  * After selecting an IDP, the user is redirected to the IDP login page via {@link IdpLoginScreen}
  */
 export default function IdpSelectionScreen({ navigation }: Props) {
-  const handleIdpSelection = (id: string) => {
-    navigation.navigate("IdpLogin", { idp: id });
+  const handleIdpSelection = (idp: Idp) => {
+    navigation.navigate("IdpLogin", { idp: idp.id });
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        ListHeaderComponent={<Text>Login to IO backend with your IDP</Text>}
-        data={idps}
-        renderItem={(list) => (
-          <IdpButton
-            idp={list.item}
-            onPress={(id: string) => {
-              handleIdpSelection(id);
-            }}
-          />
-        )}
-      />
-    </View>
+    <IdpsGrid
+      testID="idps-grid"
+      idps={idps}
+      onIdpSelected={handleIdpSelection}
+      headerComponent={<VSpacer size={40} />}
+      footerComponent={<VSpacer size={40} />}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  item: {
-    backgroundColor: "#5cfebe",
-    padding: 2,
-    marginVertical: 1,
-    marginHorizontal: 1,
-  },
-  title: {
-    fontSize: 24,
-  },
-  webview: { width: 400, height: 800 },
-});

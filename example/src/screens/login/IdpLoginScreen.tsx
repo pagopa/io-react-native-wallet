@@ -5,7 +5,7 @@ import { WALLET_PROVIDER_BASE_URL } from "@env";
 import URLParse from "url-parse";
 import { sessionSet } from "../../store/reducers/sesssion";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useAppDispatch } from "../../store/utilts";
+import { useAppDispatch } from "../../store/utils";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "IdpLogin">;

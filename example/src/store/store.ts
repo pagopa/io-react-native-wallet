@@ -12,12 +12,14 @@ import {
 import { instanceReducer } from "./reducers/instance";
 import { attestationSlice } from "./reducers/attestation";
 import { credentialReducer } from "./reducers/credential";
+import { debugSlice } from "./reducers/debug";
 
 /**
  * Redux store configuration.
  */
 export const store = configureStore({
   reducer: {
+    debug: debugSlice.reducer,
     session: sessionReducer,
     instance: instanceReducer,
     attestation: attestationSlice.reducer,
