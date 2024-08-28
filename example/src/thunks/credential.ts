@@ -9,7 +9,10 @@ import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { createAppAsyncThunk } from "./utils";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { getIntegrityContext } from "../utils/integrity";
-import { selectCredential } from "../store/reducers/credential";
+import {
+  credentialReset,
+  selectCredential,
+} from "../store/reducers/credential";
 import type { CredentialResult, SupportedCredentials } from "../store/types";
 import {
   getCredential,
@@ -58,7 +61,7 @@ type GetCredentialStatusAttestationThunkOutput = {
 export const getCredentialThunk = createAppAsyncThunk<
   CredentialResult,
   GetCredentialThunkInput
->("credential/credentialGet", async (args, { getState }) => {
+>("credential/credentialGet", async (args, { getState, dispatch }) => {
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
   if (!integrityKeyTag) {
@@ -84,6 +87,8 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   const { idpHint, credentialType } = args;
   if (idpHint && credentialType === "PersonIdentificationData") {
+    // Resets the credential state before obtaining a new PID
+    dispatch(credentialReset());
     return await getPid(
       idpHint,
       walletInstanceAttestation,

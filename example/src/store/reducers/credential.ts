@@ -17,6 +17,8 @@ import type {
   AsyncStatus,
 } from "../types";
 import { asyncStatusInitial } from "../utils";
+import { sessionReset } from "./sesssion";
+import { instanceReset } from "./instance";
 
 /**
  * State type definition for the credential slice.
@@ -248,6 +250,12 @@ const credentialSlice = createSlice({
         };
       }
     );
+
+    // Reset the credential state when the instance is reset.
+    builder.addCase(instanceReset, () => initialState);
+
+    // Reset the credential state when the session is reset.
+    builder.addCase(sessionReset, () => initialState);
   },
 });
 

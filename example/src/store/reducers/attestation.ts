@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import { asyncStatusInitial } from "../utils";
 import { getAttestationThunk } from "../../thunks/attestation";
 import type { RootState, AsyncStatus } from "../types";
+import { sessionReset } from "./sesssion";
+import { instanceReset } from "./instance";
 
 // State type definition for the attestion slice
 type AttestationState = {
@@ -33,6 +35,7 @@ export const attestationSlice = createSlice({
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
+
     // Dispatched when a get attestion async thunk is pending. Sets the loading state to true and resets done and hasError.
     builder.addCase(getAttestationThunk.pending, (state) => {
       // Sets the loading state and resets done and hasError;
@@ -40,6 +43,7 @@ export const attestationSlice = createSlice({
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
+
     // Dispatched when a get attestion async thunk rejects. Sets the attestation state to hasError and resets loading and isDone.
     builder.addCase(getAttestationThunk.rejected, (state, action) => {
       // Sets the hasError state and resets done and loading.
@@ -47,6 +51,12 @@ export const attestationSlice = createSlice({
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = { status: true, error: action.error };
     });
+
+    // Reset the attestation state when the instance is reset.
+    builder.addCase(instanceReset, () => initialState);
+
+    // Reset the attestation state when the session is reset.
+    builder.addCase(sessionReset, () => initialState);
   },
 });
 
