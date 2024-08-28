@@ -10,12 +10,7 @@ import {
   NavigationContainer,
   type Theme,
 } from "@react-navigation/native";
-import {
-  Icon,
-  IconButton,
-  IOThemeLight,
-  IOVisualCostants,
-} from "@pagopa/io-app-design-system";
+import { IconButton, IOThemeLight } from "@pagopa/io-app-design-system";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { PidScreen } from "../screens/PidScreen";
 import { CredentialScreen } from "../screens/CredentialScreen";
@@ -75,22 +70,44 @@ export const MainStackNavigator = () => {
               headerRight: header,
             }}
           >
-            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ title: "ITW Test" }}
+            />
             <Stack.Screen
               name="WalletInstance"
               component={WalletInstanceScreen}
+              options={{ title: "Test Wallet Instance" }}
             />
-            <Stack.Screen name="Pid" component={PidScreen} />
-            <Stack.Screen name="Credentials" component={CredentialScreen} />
+            <Stack.Screen
+              name="Pid"
+              component={PidScreen}
+              options={{ title: "Test PID issuance" }}
+            />
+            <Stack.Screen
+              name="Credentials"
+              component={CredentialScreen}
+              options={{ title: "Test credentials issuance" }}
+            />
             <Stack.Screen
               name="StatusAttestation"
               component={StatusAttestationScreen}
+              options={{ title: "Test credentials attestations" }}
             />
           </Stack.Group>
         ) : (
           <Stack.Group>
-            <Stack.Screen name="IdpSelection" component={IdpSelectionScreen} />
-            <Stack.Screen name="IdpLogin" component={IdpLoginScreen} />
+            <Stack.Screen
+              name="IdpSelection"
+              component={IdpSelectionScreen}
+              options={{ title: "IO Login" }}
+            />
+            <Stack.Screen
+              name="IdpLogin"
+              component={IdpLoginScreen}
+              options={{ title: "IO Login" }}
+            />
           </Stack.Group>
         )}
       </Stack.Navigator>
