@@ -78,22 +78,22 @@ export const MainStackNavigator = () => {
             <Stack.Screen
               name="WalletInstance"
               component={WalletInstanceScreen}
-              options={{ title: "Test Wallet Instance" }}
+              options={{ title: "Wallet Instance" }}
             />
             <Stack.Screen
               name="Pid"
               component={PidScreen}
-              options={{ title: "Test PID issuance" }}
+              options={{ title: "PID Issuance" }}
             />
             <Stack.Screen
               name="Credentials"
               component={CredentialScreen}
-              options={{ title: "Test credentials issuance" }}
+              options={{ title: "Credential Issuance" }}
             />
             <Stack.Screen
               name="StatusAttestation"
               component={StatusAttestationScreen}
-              options={{ title: "Test credentials attestations" }}
+              options={{ title: "Status Attestation" }}
             />
           </Stack.Group>
         ) : (
