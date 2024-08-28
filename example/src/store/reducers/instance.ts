@@ -5,6 +5,7 @@ import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utilts";
 import type { RootState, AsyncStatus } from "../types";
+import { sessionReset } from "./sesssion";
 
 /**
  * State type definition for the wallet instance slice
@@ -54,6 +55,9 @@ const instanceSlice = createSlice({
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = { status: true, error: action.error };
     });
+
+    // Reset the attestation state when the session is reset.
+    builder.addCase(sessionReset, () => initialState);
   },
 });
 

@@ -11,7 +11,10 @@ import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import appFetch from "../utils/fetch";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
-import { selectPidCieL3FlowParams } from "../store/reducers/credential";
+import {
+  credentialReset,
+  selectPidCieL3FlowParams,
+} from "../store/reducers/credential";
 import parseUrl from "parse-url";
 import type { CredentialResult } from "../store/types";
 
@@ -68,7 +71,9 @@ export type PrepareCieL3FlowParamsThunkOutput = {
 export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
   PrepareCieL3FlowParamsThunkOutput,
   PrepareCieL3FlowParamsThunkInput
->("ciel3/flowParamsPrepare", async (args, { getState }) => {
+>("ciel3/flowParamsPrepare", async (args, { getState, dispatch }) => {
+  // Reset the credential state before obtaining a new PID
+  dispatch(credentialReset());
   const { idpHint, ciePin } = args;
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());

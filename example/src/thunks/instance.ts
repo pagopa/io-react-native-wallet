@@ -7,6 +7,7 @@ import {
   generateIntegrityHardwareKeyTag,
   getIntegrityContext,
 } from "../utils/integrity";
+import { instanceReset } from "../store/reducers/instance";
 
 /**
  * The wallet provider base url to use for the wallet instance creation.
@@ -18,7 +19,9 @@ const walletProviderBaseUrl = WALLET_PROVIDER_BASE_URL;
  */
 export const createWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/create",
-  async () => {
+  async (_, { dispatch }) => {
+    // Reset the instance state before creating a new instance. This also resets attestatio and credential states.
+    dispatch(instanceReset());
     await ensureIntegrityServiceIsReady();
     const integrityKeyTag = await generateIntegrityHardwareKeyTag();
     const integrityContext = getIntegrityContext(integrityKeyTag);
