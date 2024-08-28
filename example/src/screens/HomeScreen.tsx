@@ -1,6 +1,9 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from "react";
 
+import { CIE_UAT, SPID_IDPHINT } from "@env";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
 import {
   SafeAreaView,
   ScrollView,
@@ -9,10 +12,7 @@ import {
   View,
 } from "react-native";
 import scenarios, { TestScenario } from "../scenarios";
-import { SPID_IDPHINT, CIE_UAT } from "@env";
 import TestCieL3Scenario from "../scenarios/component/TestCieL3Scenario";
-import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { useAppDispatch } from "../store/dispatch";
 import { sessionReset } from "../store/reducers/sesssion";
 
@@ -110,6 +110,16 @@ const HomeScreen = () => {
               integrityContext!,
               pidContext!,
               "EuropeanDisabilityCard",
+              setDcContext
+            )}
+            disabled={!integrityContext || !pidContext}
+          />
+          <TestScenario
+            title="Get credential (TS)"
+            scenario={scenarios.getCredential(
+              integrityContext!,
+              pidContext!,
+              "EuropeanHealthInsuranceCard",
               setDcContext
             )}
             disabled={!integrityContext || !pidContext}
