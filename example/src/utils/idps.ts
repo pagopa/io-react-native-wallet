@@ -1,3 +1,6 @@
+/**
+ * List of Identity Providers for SPID which will be used in the login screen.
+ */
 export const idps = [
   {
     id: "arubaid",

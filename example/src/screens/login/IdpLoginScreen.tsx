@@ -1,18 +1,14 @@
 import React from "react";
-import {
-  FlatList,
-  Linking,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
-import { idps } from "../utils/idps";
 import { WALLET_PROVIDER_BASE_URL } from "@env";
 import URLParse from "url-parse";
-import { sessionSet } from "../store/reducers/sesssion";
-import { useAppDispatch } from "../store/dispatch";
+import { sessionSet } from "../../store/reducers/sesssion";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useAppDispatch } from "../../store/utilts";
+import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
+type Props = NativeStackScreenProps<MainStackNavParamList, "IdpLogin">;
 
 const originSchemasWhiteList = [
   "https://*",
@@ -35,18 +31,6 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   return undefined;
 };
 
-const IdpButton = ({
-  idp,
-  onPress,
-}: {
-  idp: (typeof idps)[number];
-  onPress: (id: string) => void;
-}) => (
-  <TouchableOpacity onPress={() => onPress(idp.id)} style={[styles.item]}>
-    <Text style={[styles.title]}>{idp.name}</Text>
-  </TouchableOpacity>
-);
-
 const getLoginUri = (idp: string) => {
   let url = new URL(WALLET_PROVIDER_BASE_URL);
   url.pathname = `/login`;
@@ -55,8 +39,11 @@ const getLoginUri = (idp: string) => {
   return url.href;
 };
 
-export default function LoginScreen() {
-  const [idp, setIdp] = React.useState<string | undefined>();
+/**
+ * IDP login screen which redirects the user to the IDP login page and handles the login flow.
+ */
+export default function IdpLoginScreen({ route }: Props) {
+  const idp = route.params.idp;
   const dispatch = useAppDispatch();
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
@@ -72,42 +59,27 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      {idp ? (
-        <WebView
-          source={{
-            uri: getLoginUri(idp),
-          }}
-          style={styles.webview}
-          onNavigationStateChange={(el) => {
-            if (el.url.includes("profile.html")) {
-              const urlParams = new URL(el.url);
-              const token = urlParams.searchParams.get("token");
-              token && dispatch(sessionSet(token));
-            }
-          }}
-          javaScriptEnabled={true}
-          androidCameraAccessDisabled={true}
-          androidMicrophoneAccessDisabled={true}
-          allowsInlineMediaPlayback={true}
-          mediaPlaybackRequiresUserAction={true}
-          originWhitelist={originSchemasWhiteList}
-          cacheEnabled={false}
-          onShouldStartLoadWithRequest={handleShouldStartLoading}
-        />
-      ) : (
-        <FlatList
-          ListHeaderComponent={<Text>Login to IO backend with your IDP</Text>}
-          data={idps}
-          renderItem={(list) => (
-            <IdpButton
-              idp={list.item}
-              onPress={(id: string) => {
-                setIdp(id);
-              }}
-            />
-          )}
-        />
-      )}
+      <WebView
+        source={{
+          uri: getLoginUri(idp),
+        }}
+        style={styles.webview}
+        onNavigationStateChange={(el) => {
+          if (el.url.includes("profile.html")) {
+            const urlParams = new URL(el.url);
+            const token = urlParams.searchParams.get("token");
+            token && dispatch(sessionSet(token));
+          }
+        }}
+        javaScriptEnabled={true}
+        androidCameraAccessDisabled={true}
+        androidMicrophoneAccessDisabled={true}
+        allowsInlineMediaPlayback={true}
+        mediaPlaybackRequiresUserAction={true}
+        originWhitelist={originSchemasWhiteList}
+        cacheEnabled={false}
+        onShouldStartLoadWithRequest={handleShouldStartLoading}
+      />
     </View>
   );
 }

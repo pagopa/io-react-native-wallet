@@ -8,117 +8,28 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import scenarios, { TestScenario } from "../scenarios";
-import { SPID_IDPHINT, CIE_UAT } from "@env";
-import TestCieL3Scenario from "../scenarios/component/TestCieL3Scenario";
-import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { useAppDispatch } from "../store/dispatch";
 import { sessionReset } from "../store/reducers/sesssion";
-
-const CIE_PROD_IDPHINT =
-  "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
-const CIE_UAT_IDPHINT =
-  "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
-export const isCieUat = CIE_UAT === "true" || CIE_UAT === "1";
-/**
- * PidContext is a tuple containing the PID and its crypto context.
- * It is used to obtain a credential and must be set after obtaining a PID.
- */
-export type PidContext = { pid: string; pidCryptoContext: CryptoContext };
+import { WalletInstanceScreen } from "./WalletInstanceScreen";
+import { PidScreen } from "./PidScreen";
+import { CredentialScreen } from "./CredentialScreen";
+import { useAppDispatch } from "../store/utilts";
+import { StatusAttestationScreen } from "./StatusAttestationScreen";
 
 /**
- * CredentialContext is a tuple containing the credential and its crypto context.
- * It is used to obtain a credential and must be set after obtaining a credential to check its status.
+ * Home screen component which contains different sections to test the SDK functionalities.
+ * This includes interacting with the wallet instance provider, issuing a PID and a credential, get their status attestation and more.
  */
-export type CredentialContext = {
-  credential: string;
-  credentialCryptoContext: CryptoContext;
-};
-
 const HomeScreen = () => {
-  const [integrityContext, setIntegrityContext] = React.useState<
-    IntegrityContext | undefined
-  >();
-
-  const [pidContext, setPidContext] = React.useState<PidContext>();
-  const [mdlContext, setMdlContext] = React.useState<
-    CredentialContext | undefined
-  >();
-  const [_, setDcContext] = React.useState<CredentialContext | undefined>();
   const dispatch = useAppDispatch();
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ flex: 1 }}>
-          <TestScenario
-            title="Prepare Integrity Context"
-            scenario={scenarios.prepareIntegrityContext(setIntegrityContext)}
-          />
-          <TestScenario
-            title="Create Wallet Instance"
-            scenario={scenarios.createWalletInstance(integrityContext!)}
-            disabled={!integrityContext}
-          />
-          <TestScenario
-            title="Obtain Wallet Attestation"
-            scenario={scenarios.getAttestation(integrityContext!)}
-            disabled={!integrityContext}
-          />
-          <TestScenario
-            title="Get PID (SPID DEMO)"
-            scenario={scenarios.getPid(
-              integrityContext!,
-              SPID_IDPHINT,
-              setPidContext
-            )}
-            disabled={!integrityContext}
-          />
-          <TestScenario
-            title="Get PID (CIE DEMO)"
-            scenario={scenarios.getPid(
-              integrityContext!,
-              isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT,
-              setPidContext
-            )}
-            disabled={!integrityContext}
-          />
-          <TestCieL3Scenario
-            title="Get PID (CIE+PIN)"
-            integrityContext={integrityContext!}
-            isCieUat={isCieUat}
-            idpHint={isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT}
-            disabled={!integrityContext}
-            setPid={setPidContext}
-          />
-          <TestScenario
-            title="Get credential (MDL)"
-            scenario={scenarios.getCredential(
-              integrityContext!,
-              pidContext!,
-              "MDL",
-              setMdlContext
-            )}
-            disabled={!integrityContext || !pidContext}
-          />
-          <TestScenario
-            title="Get credential (DC)"
-            scenario={scenarios.getCredential(
-              integrityContext!,
-              pidContext!,
-              "EuropeanDisabilityCard",
-              setDcContext
-            )}
-            disabled={!integrityContext || !pidContext}
-          />
-          <TestScenario
-            title="Get credential (mDL) Status Attestation"
-            scenario={scenarios.getCredentialStatusAttestation(mdlContext!)}
-            disabled={!integrityContext || !pidContext || !mdlContext}
-          />
+          <WalletInstanceScreen />
+          <PidScreen />
+          <CredentialScreen />
+          <StatusAttestationScreen />
         </View>
         <TouchableOpacity
           onPress={() => dispatch(sessionReset())}
