@@ -9,13 +9,21 @@ import {
   REGISTER,
   REHYDRATE,
 } from "redux-persist";
+import { instanceReducer } from "./reducers/instance";
+import { attestationSlice } from "./reducers/attestation";
+import { credentialReducer } from "./reducers/credential";
+import { debugSlice } from "./reducers/debug";
 
 /**
  * Redux store configuration.
  */
 export const store = configureStore({
   reducer: {
+    debug: debugSlice.reducer,
     session: sessionReducer,
+    instance: instanceReducer,
+    attestation: attestationSlice.reducer,
+    credential: credentialReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -29,8 +37,3 @@ export const store = configureStore({
  * Redux persistor configuration used in the root component with {@link PersistGate}.
  */
 export const persistor = persistStore(store);
-
-/**
- * Type definition for the root state of the Redux store.
- */
-export type RootState = ReturnType<typeof store.getState>;
