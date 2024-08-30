@@ -1,55 +1,61 @@
-import React, { useEffect } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import type { AsyncStatus } from "../store/types";
+import {
+  Badge,
+  IOIcons,
+  ModuleCredential,
+  useIOToast,
+} from "@pagopa/io-app-design-system";
+
+export type TestScenarioProp = {
+  title: string;
+  onPress: () => void;
+  icon: IOIcons;
+  isPresent?: boolean;
+} & AsyncStatus;
 
 export default function TestScenario({
   title,
   onPress,
-  isDone,
   isLoading,
   hasError,
-  isDisabled = false,
-}: {
-  title: string;
-  onPress: () => void;
-  isDisabled?: boolean;
-} & AsyncStatus) {
-  const [result, setResult] = React.useState<string | undefined>();
+  icon,
+  isPresent = false,
+}: TestScenarioProp) {
+  const [hasLoaded, setHasLoaded] = useState(false); // This in needed to avoid the error toast to be shown on the first render
+  const useToast = useIOToast();
 
   useEffect(() => {
-    if (hasError.status) {
-      setResult(`❌ ${JSON.stringify(hasError.error)}`);
+    if (hasError.status && hasLoaded) {
+      useToast.error(`An error occured, check the debug info`);
+      setHasLoaded(false);
     }
-  }, [hasError]);
+  }, [hasError, hasLoaded, useToast]);
 
-  useEffect(() => {
-    if (isDone) {
-      setResult(`✅`);
+  const getBadge = useCallback((): Badge | undefined => {
+    if (isPresent) {
+      return { text: "OBTAINED", variant: "success" };
+    } else if (hasError.status) {
+      return { text: "ERROR", variant: "error" };
+    } else {
+      return undefined;
     }
-  }, [isDone]);
+  }, [hasError, isPresent]);
 
-  function run() {
-    setResult("⏱️");
+  const onPressOverride = useCallback(() => {
+    setHasLoaded(true);
     onPress();
-  }
+  }, [onPress]);
 
   return (
-    <View>
-      <View>
-        <Button
-          title={title}
-          onPress={run}
-          disabled={isLoading || isDisabled}
-        />
-        <Text style={styles.title}>{result}</Text>
-      </View>
-    </View>
+    <>
+      <ModuleCredential
+        label={title}
+        icon={icon}
+        onPress={onPressOverride}
+        isFetching={isLoading}
+        badge={getBadge()}
+      />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    textAlign: "center",
-    marginVertical: 8,
-  },
-});

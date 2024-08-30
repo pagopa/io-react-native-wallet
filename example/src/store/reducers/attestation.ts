@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { asyncStatusInitial } from "../utilts";
+import { asyncStatusInitial } from "../utils";
 import { getAttestationThunk } from "../../thunks/attestation";
 import type { RootState, AsyncStatus } from "../types";
 import { sessionReset } from "./sesssion";

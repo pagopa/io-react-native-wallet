@@ -51,7 +51,7 @@
 		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -66,13 +66,36 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-  <key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
-      <array>
-        <string>com.apple.developer.nfc.readersession.iso7816.select-identifiers</string>
-        <string>A0000000308000000009816001</string>
-        <string>A00000000039</string>
-        <string>A0000002471001</string>
-        <string>00000000000000</string>
-      </array>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>com.apple.developer.nfc.readersession.iso7816.select-identifiers</string>
+		<string>A0000000308000000009816001</string>
+		<string>A00000000039</string>
+		<string>A0000002471001</string>
+		<string>00000000000000</string>
+	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>TitilliumSansPro-Black.otf</string>
+		<string>TitilliumSansPro-BlackItalic.otf</string>
+		<string>TitilliumSansPro-Bold.otf</string>
+		<string>TitilliumSansPro-BoldItalic.otf</string>
+		<string>TitilliumSansPro-Italic.otf</string>
+		<string>TitilliumSansPro-Light.otf</string>
+		<string>TitilliumSansPro-LightItalic.otf</string>
+		<string>TitilliumSansPro-Regular.otf</string>
+		<string>TitilliumSansPro-Semibold.otf</string>
+		<string>TitilliumSansPro-SemiboldItalic.otf</string>
+		<string>TitilliumSansPro-Thin.otf</string>
+		<string>TitilliumSansPro-ThinItalic.otf</string>
+		<string>DMMono-Medium.ttf</string>
+		<string>ReadexPro-Regular.ttf</string>
+		<string>RobotoMono-Bold.ttf</string>
+		<string>RobotoMono-BoldItalic.ttf</string>
+		<string>RobotoMono-Light.ttf</string>
+		<string>RobotoMono-LightItalic.ttf</string>
+		<string>RobotoMono-Regular.ttf</string>
+		<string>RobotoMono-RegularItalic.ttf</string>
+	</array>
 </dict>
 </plist>

@@ -1,13 +1,22 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { createWalletInstanceThunk } from "../thunks/instance";
-import { useAppDispatch, useAppSelector } from "../store/utilts";
-import TestScenario from "../components/TestScenario";
+import { useAppDispatch, useAppSelector } from "../store/utils";
+import TestScenario, {
+  type TestScenarioProp,
+} from "../components/TestScenario";
 import {
   selectHasInstanceKeyTag,
   selectInstanceAsyncStatus,
+  selectInstanceKeyTag,
 } from "../store/reducers/instance";
-import { selectAttestationAsyncStatus } from "../store/reducers/attestation";
+import {
+  selectAttestation,
+  selectAttestationAsyncStatus,
+} from "../store/reducers/attestation";
 import { getAttestationThunk } from "../thunks/attestation";
+import { useDebugInfo } from "../hooks/useDebugInfo";
+import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { FlatList } from "react-native";
 
 /**
  * Component (screen in a future PR) to test the wallet instance functionalities.
@@ -15,30 +24,75 @@ import { getAttestationThunk } from "../thunks/attestation";
  */
 export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();
-
   const instanceState = useAppSelector(selectInstanceAsyncStatus);
-
   const attestationState = useAppSelector(selectAttestationAsyncStatus);
-
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
+  const instanceKeyTag = useAppSelector(selectInstanceKeyTag);
+  const attestation = useAppSelector(selectAttestation);
+
+  useDebugInfo({
+    instanceState,
+    instanceKeyTag,
+    attestationState,
+    attestation,
+  });
+
+  const scenarios: Array<TestScenarioProp> = useMemo(
+    () => [
+      {
+        title: "Create Wallet Instance",
+        onPress: () => dispatch(createWalletInstanceThunk()),
+        isLoading: instanceState.isLoading,
+        hasError: instanceState.hasError,
+        isDone: instanceState.isDone,
+        icon: "device",
+        isPresent: hasIntegrityKeyTag,
+      },
+      {
+        title: "Get Attestation",
+        onPress: () => dispatch(getAttestationThunk()),
+        isLoading: attestationState.isLoading,
+        hasError: attestationState.hasError,
+        isDone: attestationState.isDone,
+        icon: "bonus",
+        isPresent: !!attestation,
+      },
+    ],
+    [
+      attestation,
+      attestationState.hasError,
+      attestationState.isDone,
+      attestationState.isLoading,
+      dispatch,
+      hasIntegrityKeyTag,
+      instanceState.hasError,
+      instanceState.isDone,
+      instanceState.isLoading,
+    ]
+  );
+
   return (
-    <>
-      <TestScenario
-        onPress={() => dispatch(createWalletInstanceThunk())}
-        title="Create Wallet Instance"
-        isLoading={instanceState.isLoading}
-        hasError={instanceState.hasError}
-        isDone={instanceState.isDone}
-      />
-      <TestScenario
-        onPress={() => dispatch(getAttestationThunk())}
-        title="Get Attestation"
-        isLoading={attestationState.isLoading}
-        hasError={attestationState.hasError}
-        isDone={attestationState.isDone}
-        isDisabled={!hasIntegrityKeyTag}
-      />
-    </>
+    <FlatList
+      contentContainerStyle={{
+        margin: IOVisualCostants.appMarginDefault,
+      }}
+      data={scenarios}
+      keyExtractor={(item, index) => `${item.title}-${index}`}
+      renderItem={({ item }) => (
+        <>
+          <TestScenario
+            onPress={item.onPress}
+            title={item.title}
+            isLoading={item.isLoading}
+            hasError={item.hasError}
+            isDone={item.isDone}
+            icon={item.icon}
+            isPresent={item.isPresent}
+          />
+          <VSpacer />
+        </>
+      )}
+    />
   );
 };

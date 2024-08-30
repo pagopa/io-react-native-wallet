@@ -1,8 +1,7 @@
 import { Cie } from "@pagopa/io-react-native-wallet";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   View,
-  Button,
   StyleSheet,
   Modal,
   Text,
@@ -15,46 +14,50 @@ import {
   continueCieL3FlowThunk,
   prepareCieL3FlowParamsThunk,
 } from "../thunks/pidCieL3";
-import { useAppDispatch, useAppSelector } from "../store/utilts";
+import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   pidCiel3FlowReset,
   selectPidCieL3FlowParams,
 } from "../store/reducers/credential";
 import type { AsyncStatus } from "../store/types";
+import {
+  ModuleCredential,
+  useIOToast,
+  type Badge,
+  type IOIcons,
+} from "@pagopa/io-app-design-system";
+
+export type TestCieL3ScenarioProps = {
+  title: string;
+  idpHint: string;
+  isCieUat: boolean;
+  icon: IOIcons;
+  isPresent?: boolean;
+} & AsyncStatus;
 
 export default function TestCieL3Scenario({
   title,
   idpHint,
   isCieUat,
-  isDone,
   isLoading,
   hasError,
-  isDisabled = false,
-}: {
-  title: string;
-  idpHint: string;
-  isCieUat: boolean;
-  isDisabled?: boolean;
-} & AsyncStatus) {
-  const [result, setResult] = React.useState<string | undefined>();
+  icon,
+  isPresent = false,
+}: TestCieL3ScenarioProps) {
   const [modalText, setModalText] = React.useState<string | undefined>();
   const [isModalVisible, setModalVisible] = React.useState(false);
   const [isHidden, setHidden] = React.useState(true);
+  const [hasLoaded, setHasLoaded] = React.useState(false); // This in needed to avoid the error toast to be shown on the first render
   const dispatch = useAppDispatch();
   const flowParams = useAppSelector(selectPidCieL3FlowParams);
+  const toast = useIOToast();
 
   useEffect(() => {
-    if (hasError.status) {
-      setResult(`❌ ${JSON.stringify(hasError.error)}`);
-      setModalVisible(false);
+    if (hasError.status && hasLoaded) {
+      toast.error(`An error occured, check the debug info`);
+      setHasLoaded(false);
     }
-  }, [hasError]);
-
-  useEffect(() => {
-    if (isDone) {
-      setResult(`✅`);
-    }
-  }, [isDone]);
+  }, [hasError, hasLoaded, toast]);
 
   const handleOnSuccess = (url: string) => {
     dispatch(continueCieL3FlowThunk({ url }));
@@ -63,7 +66,7 @@ export default function TestCieL3Scenario({
   const handleOnError = (error: Cie.CieError) => {
     dispatch(pidCiel3FlowReset());
     setModalVisible(false);
-    setResult(`❌ ${error}`);
+    Alert.alert(`❌ ${JSON.stringify(error)}`);
   };
 
   const handleOnEvent = (event: Cie.CieEvent) => {
@@ -87,6 +90,7 @@ export default function TestCieL3Scenario({
   };
 
   const run = async () => {
+    setHasLoaded(true);
     Alert.prompt(
       "CIE pin",
       "Enter your CIE pin",
@@ -99,10 +103,9 @@ export default function TestCieL3Scenario({
               //Hide the webView for the first part of login then open modal
               setHidden(true);
               setModalVisible(true);
-              setResult("⏱️");
               dispatch(prepareCieL3FlowParamsThunk({ idpHint, ciePin }));
             } else {
-              setResult(`❌ Invalid CIE PIN`);
+              Alert.alert(`❌ Invalid CIE PIN`);
             }
           },
         },
@@ -114,10 +117,20 @@ export default function TestCieL3Scenario({
   const toggleModal = () => {
     setModalText("");
     if (isModalVisible) {
-      setResult(`❌ Modal closed`);
+      Alert.alert(`❌ Modal closed`);
     }
     setModalVisible(!isModalVisible);
   };
+
+  const getBadge = useCallback((): Badge | undefined => {
+    if (isPresent) {
+      return { text: "OBTAINED", variant: "success" };
+    } else if (hasError.status) {
+      return { text: "ERROR", variant: "error" };
+    } else {
+      return undefined;
+    }
+  }, [hasError, isPresent]);
 
   const styles = StyleSheet.create({
     container: {
@@ -161,9 +174,13 @@ export default function TestCieL3Scenario({
 
   return (
     <View>
-      <Button title={title} onPress={run} disabled={isLoading || isDisabled} />
-      <Text style={styles.title}>{result}</Text>
-
+      <ModuleCredential
+        label={title}
+        icon={icon}
+        onPress={run}
+        isFetching={isLoading}
+        badge={getBadge()}
+      />
       {flowParams && (
         <Modal
           animationType="fade"
