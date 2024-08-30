@@ -10,9 +10,9 @@ import {
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import type { ComponentProps } from "react";
-import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectCredential } from "../store/reducers/credential";
 import { useDebugInfo } from "../hooks/useDebugInfo";
+import { selectCredential } from "../store/reducers/credential";
+import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectPid } from "../store/reducers/pid";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;

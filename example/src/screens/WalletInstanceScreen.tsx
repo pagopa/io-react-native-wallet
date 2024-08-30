@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { createWalletInstanceThunk } from "../thunks/instance";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import TestScenario, {

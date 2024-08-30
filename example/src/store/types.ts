@@ -35,7 +35,8 @@ export type AsyncStatus = {
 export type SupportedCredentials =
   | "PersonIdentificationData"
   | "MDL"
-  | "EuropeanDisabilityCard";
+  | "EuropeanDisabilityCard"
+  | "EuropeanHealthInsuranceCard";
 
 /**
  * Type definition for the supported credentials without the PersonIdentificationData.

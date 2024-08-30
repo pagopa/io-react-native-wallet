@@ -41,19 +41,23 @@ const initialState: CredentialState = {
   credentials: {
     MDL: undefined,
     EuropeanDisabilityCard: undefined,
+    EuropeanHealthInsuranceCard: undefined,
   },
   credentialsAsyncStatus: {
     MDL: asyncStatusInitial,
     EuropeanDisabilityCard: asyncStatusInitial,
+    EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
   pidCiel3FlowParams: undefined,
   statusAttestation: {
     MDL: undefined,
     EuropeanDisabilityCard: undefined,
+    EuropeanHealthInsuranceCard: undefined,
   },
   statusAttAsyncStatus: {
     MDL: asyncStatusInitial,
     EuropeanDisabilityCard: asyncStatusInitial,
+    EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
 };
 

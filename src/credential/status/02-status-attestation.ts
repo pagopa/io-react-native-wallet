@@ -7,8 +7,11 @@ import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import { StatusAttestationResponse } from "./types";
-import { UnexpectedStatusCodeError } from "../../utils/errors";
-import { StatusAttestationError, StatusAttestationInvalid } from "./errors";
+import {
+  StatusAttestationError,
+  StatusAttestationInvalid,
+  UnexpectedStatusCodeError,
+} from "../../utils/errors";
 
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],

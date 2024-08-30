@@ -73,7 +73,6 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
 >("ciel3/flowParamsPrepare", async (args, { getState, dispatch }) => {
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-
   const { idpHint, ciePin } = args;
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
