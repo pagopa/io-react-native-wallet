@@ -1,6 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useMemo } from "react";
-
 import {
   ButtonSolid,
   IOVisualCostants,
