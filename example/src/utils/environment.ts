@@ -10,9 +10,11 @@ import {
   PROD_WALLET_PID_PROVIDER_BASE_URL,
   PROD_WALLET_PROVIDER_BASE_URL,
 } from "@env";
+import type { EnvType } from "../store/types";
 
-export type EnvType = "pre" | "prod";
-
+/**
+ * Environment type definition for both the pre and prod environments.
+ */
 export type Env = {
   WALLET_PROVIDER_BASE_URL: string;
   WALLET_PID_PROVIDER_BASE_URL: string;
@@ -21,6 +23,11 @@ export type Env = {
   GOOGLE_CLOUD_PROJECT_NUMBER: string;
 };
 
+/**
+ * Utility functions which returns the environment variables based on the selected environment.
+ * @param env - The selected environment
+ * @returns the environment variables for the selected environment
+ */
 export const getEnv = (env: EnvType): Env => {
   switch (env) {
     case "pre":
@@ -54,7 +61,15 @@ export const CIE_PROD_IDPHINT =
 export const CIE_UAT_IDPHINT =
   "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
 
+/**
+ * Utility function which returns the IDPHINT for CIE based on the selected environment.
+ * @param env - The selected environment
+ * @returns the IDPHINT for CIE based on the selected environment
+ */
 export const getCieIdpHint = (env: EnvType) =>
   env === "pre" ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT;
 
+/**
+ * IDPHINT for SPID when using the PRE environment of the identity provider.
+ */
 export const SPID_DEMO_IDPHINT = "https://demo.spid.gov.it";

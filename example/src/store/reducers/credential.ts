@@ -19,9 +19,8 @@ import { instanceReset } from "./instance";
 /**
  * State type definition for the credential slice.
  * It contains:
- * - credentials: the obtained credentials which are persisted
+ * - credentials: the obtained credentials which are persisted, except for the PID which is stored in the PID slice {@link pidSlice}
  * - credentialsState: the state of the async operation to get each credential
- * - pidCiel3FlowParams: the parameters for the CiE L3 flow
  * - statusAttestation: the status attestation for the credentials
  * - statusAttAsyncStatus: the state of the async operation to get each credential status attestation
  */

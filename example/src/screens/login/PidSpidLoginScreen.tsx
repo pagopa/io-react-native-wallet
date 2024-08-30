@@ -11,8 +11,8 @@ import { getPidThunk } from "../../thunks/pid";
 type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidLogin">;
 
 /**
- * IDP selection screen which allows the user to select an IDP to login with.
- * After selecting an IDP, the user is redirected to the IDP login page via {@link IdpLoginScreen}
+ * IDP selection for the PID authentication flow. This screen dinamically renders the IDPs list based on the environment.
+ * After selecting an IDP, the user is redirected back to the PID screen with the different scenarios where the authentication flow happens.
  */
 export default function PidSpidLoginScreen({ navigation }: Props) {
   const toast = useIOToast();

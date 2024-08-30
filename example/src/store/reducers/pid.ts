@@ -18,13 +18,11 @@ import { instanceReset } from "./instance";
 import { getPidThunk } from "../../thunks/pid";
 
 /**
- * State type definition for the credential slice.
+ * State type definition for the PID slice.
  * It contains:
- * - credentials: the obtained credentials which are persisted
- * - credentialsState: the state of the async operation to get each credential
+ * - pid: the obtained PID which is persisted
+ * - pidAsyncStatus: the state of the async operation to get the PID for each supported authentication method, namely spid, CiE L2 and CiE L3
  * - pidCiel3FlowParams: the parameters for the CiE L3 flow
- * - statusAttestation: the status attestation for the credentials
- * - statusAttAsyncStatus: the state of the async operation to get each credential status attestation
  */
 type PidState = {
   pid: PidResult | undefined;
@@ -32,7 +30,7 @@ type PidState = {
   pidCiel3FlowParams: PrepareCieL3FlowParamsThunkOutput | undefined;
 };
 
-// Initial state for the credential slice
+// Initial state for the pid slice
 const initialState: PidState = {
   pid: undefined,
   pidAsyncStatus: {
@@ -44,8 +42,7 @@ const initialState: PidState = {
 };
 
 /**
- * Redux slice for the attestion state. It contains the credentials, the credential async operation state, the CiE L3 flow params,
- * the status attestation of the credentials and the status attestation async operation state.
+ * Redux slice for the pid state. It contains the pid, the pid async operation state and the CiE L3 flow params.
  */
 const pidSlice = createSlice({
   name: "pid",
@@ -63,9 +60,8 @@ const pidSlice = createSlice({
      */
 
     /*
-     * Dispatched when a get credential async thunk resolves.
-     * Sets the obtained credential and its state to isDone
-     * for the requested credential.
+     * Dispatched when a get pid async thunk resolves.
+     * Sets the obtained pid and its state to isDone.
      */
     builder.addCase(getPidThunk.fulfilled, (state, action) => {
       const authMethod = action.meta.arg.authMethod;
@@ -79,9 +75,8 @@ const pidSlice = createSlice({
     });
 
     /*
-     * Dispatched when a get credential async thunk is pending.
-     * Sets the credential state to isLoading while resetting isDone and hasError
-     * for the requested credential.
+     * Dispatched when a get pid async thunk is pending.
+     * Sets the pid state to isLoading while resetting isDone and hasError.
      */
     builder.addCase(getPidThunk.pending, (state, action) => {
       const authMethod = action.meta.arg.authMethod;
@@ -92,9 +87,8 @@ const pidSlice = createSlice({
     });
 
     /*
-     * Dispatched when a get credential async thunk rejected.
-     * Sets the credential state to hasError while resetting isLoading and hasError
-     * for the requested credential.
+     * Dispatched when a get pid async thunk rejected.
+     * Sets the pid state to hasError while resetting isLoading and hasError.
      */
     builder.addCase(getPidThunk.rejected, (state, action) => {
       const authMethod = action.meta.arg.authMethod;
@@ -188,13 +182,13 @@ const pidSlice = createSlice({
 });
 
 /**
- * Exports the actions for the credential slice.
+ * Exports the actions for the pid slice.
  */
 export const { pidCiel3FlowReset } = pidSlice.actions;
 
 /**
- * Persist configuration for the credential slice.
- * We only persist the obtained credentials.
+ * Persist configuration for the pid slice.
+ * We only persist the obtained pid.
  */
 const persistConfig: PersistConfig<PidState> = {
   key: "pid",
@@ -203,21 +197,22 @@ const persistConfig: PersistConfig<PidState> = {
 };
 
 /**
- * Persisted reducer for the credential slice.
+ * Persisted reducer for the pid slice.
  */
 export const pidReducer = persistReducer(persistConfig, pidSlice.reducer);
 
 /**
- * Selects a credential from the credential state.
+ * Selects the pid from the state.
  * @param credentialType - The type of the credential to select
- * @returns the selected credential as {@link CredentialResult}
+ * @returns the pid
  */
 export const selectPid = (state: RootState) => state.pid.pid;
 
 /**
- * Selects the state of the async operation of a given credential.
- * @param credentialType - The type of the credential to select the state
- * @returns the state of the async operation for the requested credential as {@link AsyncStatus}
+ * Selects the state of the async operation for the pid.
+ * @param authMethod - The type of the auth method selected to obtain the pid
+ * @param state - The root state of the Redux store
+ * @returns the state of the async operation for the pid for the selected auth method
  */
 export const selectPidAsyncStatus =
   (authMethod: PidAuthMethods) => (state: RootState) =>

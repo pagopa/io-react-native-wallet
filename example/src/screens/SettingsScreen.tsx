@@ -10,15 +10,14 @@ import {
   VSpacer,
   type RadioItem,
 } from "@pagopa/io-app-design-system";
-import type { EnvType } from "../utils/environment";
 import { envSet, selectEnv } from "../store/reducers/environment";
 import { selectIoAuthToken, sessionReset } from "../store/reducers/sesssion";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { instanceReset } from "../store/reducers/instance";
+import type { EnvType } from "../store/types";
 
 /**
- * Home screen component which contains different sections to test the SDK functionalities.
- * This includes interacting with the wallet instance provider, issuing a PID and a credential, get their status attestation and more.
+ * Settings screen component which allows to change the environment and manage the session.
  */
 const HomeScreen = () => {
   const dispatch = useAppDispatch();

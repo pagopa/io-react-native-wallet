@@ -67,8 +67,19 @@ export type CredentialResult = CredentialResultBase & {
   credentialType: SupportedCredentialsWithoutPid;
 };
 
+/**
+ * Type definition to represent a PID result to be used in the store.
+ */
 export type PidResult = CredentialResultBase & {
   credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
 };
 
+/**
+ * Authentication methods for the PID authentication flow.
+ */
 export type PidAuthMethods = "spid" | "cieL2" | "cieL3";
+
+/**
+ * Possible environments in the store.
+ */
+export type EnvType = "pre" | "prod";
