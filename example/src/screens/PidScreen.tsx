@@ -3,23 +3,24 @@ import { useAppDispatch, useAppSelector } from "../store/utils";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
-import { getCredentialThunk } from "../thunks/credential";
-import { SPID_IDPHINT } from "@env";
-import {
-  selectCredential,
-  selectCredentialAsyncStatus,
-} from "../store/reducers/credential";
 import TestCieL3Scenario, {
   type TestCieL3ScenarioProps,
 } from "../components/TestCieL3Scenario";
-import { CIE_PROD_IDPHINT, CIE_UAT_IDPHINT, isCieUat } from "../utils/env";
 import { FlatList } from "react-native";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
+import { getCieIdpHint } from "../utils/environment";
+import { selectEnv } from "../store/reducers/environment";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
+import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
+import { getPidThunk } from "../thunks/pid";
 
 type MixedTestScenarioProp =
   | (TestScenarioProp & { isCieL3: false })
   | (TestCieL3ScenarioProps & { isCieL3: true });
+
+type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
 
 /**
  * Component (screen in a future PR) to test the PID functionalities.
@@ -27,17 +28,20 @@ type MixedTestScenarioProp =
  * Based on the env variabiles this screen will use the UAT or PROD environment of the identity provider.
  * @returns
  */
-export const PidScreen = () => {
+export const PidScreen = ({ navigation }: ScreenProps) => {
   const dispatch = useAppDispatch();
-
-  const pidState = useAppSelector(
-    selectCredentialAsyncStatus("PersonIdentificationData")
-  );
-
-  const pid = useAppSelector(selectCredential("PersonIdentificationData"));
+  const pidSpidState = useAppSelector(selectPidAsyncStatus("spid"));
+  const pidCieL2State = useAppSelector(selectPidAsyncStatus("cieL2"));
+  const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
+  const pid = useAppSelector(selectPid);
+  const env = useAppSelector(selectEnv);
+  const cieIdpHint = getCieIdpHint(env);
+  const isEnvPre = env === "pre";
 
   useDebugInfo({
-    pidState,
+    pidSpidState,
+    pidCieL2State,
+    pidCieL3State,
     pid,
   });
 
@@ -45,49 +49,59 @@ export const PidScreen = () => {
     () => [
       {
         isCieL3: false,
-        onPress: () =>
-          dispatch(
-            getCredentialThunk({
-              credentialType: "PersonIdentificationData",
-              idpHint: SPID_IDPHINT,
-            })
-          ),
+        onPress: () => navigation.navigate("PidSpidLogin"),
         title: "Get PID (SPID)",
-        isLoading: pidState.isLoading,
-        hasError: pidState.hasError,
-        isDone: pidState.isDone,
+        isLoading: pidSpidState.isLoading,
+        hasError: pidSpidState.hasError,
+        isDone: pidSpidState.isDone,
         isPresent: !!pid,
         icon: "fiscalCodeIndividual",
       },
       {
         isCieL3: false,
-        title: "Get PID (CIE DEMO)",
+        title: "Get PID (CIE L2)",
         onPress: () =>
           dispatch(
-            getCredentialThunk({
+            getPidThunk({
               credentialType: "PersonIdentificationData",
-              idpHint: isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT,
+              idpHint: cieIdpHint,
+              authMethod: "cieL2",
             })
           ),
-        isLoading: pidState.isLoading,
-        hasError: pidState.hasError,
-        isDone: pidState.isDone,
+        isLoading: pidCieL2State.isLoading,
+        hasError: pidCieL2State.hasError,
+        isDone: pidCieL2State.isDone,
         isPresent: !!pid,
         icon: "fiscalCodeIndividual",
       },
       {
         isCieL3: true,
-        title: "Get PID (CIE+PIN)",
-        isCieUat,
-        idpHint: isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT,
+        title: "Get PID (CIE L3)",
+        isCieUat: isEnvPre,
+        idpHint: cieIdpHint,
         isPresent: !!pid,
-        isLoading: pidState.isLoading,
-        hasError: pidState.hasError,
-        isDone: pidState.isDone,
+        isLoading: pidCieL3State.isLoading,
+        hasError: pidCieL3State.hasError,
+        isDone: pidCieL3State.isDone,
         icon: "fiscalCodeIndividual",
       },
     ],
-    [pidState.isLoading, pidState.hasError, pidState.isDone, pid, dispatch]
+    [
+      pidSpidState.isLoading,
+      pidSpidState.hasError,
+      pidSpidState.isDone,
+      pid,
+      pidCieL2State.isLoading,
+      pidCieL2State.hasError,
+      pidCieL2State.isDone,
+      isEnvPre,
+      cieIdpHint,
+      pidCieL3State.isLoading,
+      pidCieL3State.hasError,
+      pidCieL3State.isDone,
+      navigation,
+      dispatch,
+    ]
   );
 
   return (
@@ -103,12 +117,12 @@ export const PidScreen = () => {
             {item.isCieL3 === true ? (
               <TestCieL3Scenario
                 title="Get PID (CIE+PIN)"
-                isCieUat={isCieUat}
-                idpHint={isCieUat ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT}
+                isCieUat={isEnvPre}
+                idpHint={cieIdpHint}
                 isPresent={!!pid}
-                isLoading={pidState.isLoading}
-                hasError={pidState.hasError}
-                isDone={pidState.isDone}
+                isLoading={pidCieL3State.isLoading}
+                hasError={pidCieL3State.hasError}
+                isDone={pidCieL3State.isDone}
                 icon="fiscalCodeIndividual"
               />
             ) : (

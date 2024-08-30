@@ -1,10 +1,14 @@
 declare module "@env" {
-  export const WALLET_PROVIDER_BASE_URL: string;
-  export const WALLET_PID_PROVIDER_BASE_URL: string;
-  export const WALLET_EAA_PROVIDER_BASE_URL: string;
-  export const IPZS_AUTH_TOKEN: string;
-  export const REDIRECT_URI: string;
-  export const GOOGLE_CLOUD_PROJECT_NUMBER: string;
-  export const CIE_UAT: string;
-  export const SPID_IDPHINT: string;
+  // PRE SECTION
+  export const PRE_WALLET_PROVIDER_BASE_URL: string;
+  export const PRE_WALLET_PID_PROVIDER_BASE_URL: string;
+  export const PRE_WALLET_EAA_PROVIDER_BASE_URL: string;
+  export const PRE_REDIRECT_URI: string;
+  export const PRE_GOOGLE_CLOUD_PROJECT_NUMBER: string;
+  // PROD SECTION
+  export const PROD_WALLET_PROVIDER_BASE_URL: string;
+  export const PROD_WALLET_PID_PROVIDER_BASE_URL: string;
+  export const PROD_WALLET_EAA_PROVIDER_BASE_URL: string;
+  export const PROD_REDIRECT_URI: string;
+  export const PROD_GOOGLE_CLOUD_PROJECT_NUMBER: string;
 }

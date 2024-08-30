@@ -1,40 +1,35 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-import { createWalletInstanceThunk } from "../../thunks/instance";
-import { persistReducer, type PersistConfig } from "redux-persist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
 import type { RootState, AsyncStatus } from "../types";
 import { sessionReset } from "./sesssion";
+import { persistReducer, type PersistConfig } from "redux-persist";
+import { createWalletInstanceThunk } from "../../thunks/instance";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-/**
- * State type definition for the wallet instance slice
- * the state contains:
- * - keyTag: the key tag used to register  the wallet instance
- * - async state: isLoading, isDone, hasError as defined in {@link AsyncStatus}
- */
+// State type definition for the attestion slice
 type InstanceState = {
-  asyncStatus: AsyncStatus;
   keyTag: string | undefined;
+  asyncStatus: AsyncStatus;
 };
 
-// Initial state for the instance slice
+// Initial state for the attestation slice
 const initialState: InstanceState = {
   keyTag: undefined,
   asyncStatus: asyncStatusInitial,
 };
 
 /**
- * Redux slice for the instance state which contains the key tag used to register the wallet instance.
+ * Redux slice for the attestion state. It contains the obtained attestation.
+ * Currently it is not persisted or reused since each operation requires a new attestation.
  */
-const instanceSlice = createSlice({
+export const instanceSlice = createSlice({
   name: "instance",
   initialState,
   reducers: {
-    instanceReset: () => initialState,
+    instanceReset: () => initialState, // Reset the attestation state
   },
   extraReducers: (builder) => {
-    // Dispatched when a wallet istance is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
+    // Dispatched when a get attestion async thunk resolves. Sets the attestation and resets the state.
     builder.addCase(createWalletInstanceThunk.fulfilled, (state, action) => {
       state.asyncStatus.isDone = true;
       state.keyTag = action.payload;
@@ -42,15 +37,17 @@ const instanceSlice = createSlice({
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
 
-    // Dispatched when a wallet istance is pending. Sets the state to isLoading and resets isDone and hasError.
+    // Dispatched when a get attestion async thunk is pending. Sets the loading state to true and resets done and hasError.
     builder.addCase(createWalletInstanceThunk.pending, (state) => {
-      state.asyncStatus.isDone = false;
+      // Sets the loading state and resets done and hasError;
       state.asyncStatus.isLoading = true;
+      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
 
-    // Dispatched when a wallet istance is rejected. Sets the state to hasError and resets isLoading and isDone.
+    // Dispatched when a get attestion async thunk rejects. Sets the attestation state to hasError and resets loading and isDone.
     builder.addCase(createWalletInstanceThunk.rejected, (state, action) => {
+      // Sets the hasError state and resets done and loading.
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = { status: true, error: action.error };
@@ -62,7 +59,7 @@ const instanceSlice = createSlice({
 });
 
 /**
- * Exports the actions for the instance slice.
+ * Exports the actions for the attestaion slice.
  */
 export const { instanceReset } = instanceSlice.actions;
 

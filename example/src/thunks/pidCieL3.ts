@@ -7,16 +7,15 @@ import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getIntegrityContext } from "../utils/integrity";
 import { createAppAsyncThunk } from "./utils";
-import { WALLET_PID_PROVIDER_BASE_URL, WALLET_PROVIDER_BASE_URL } from "@env";
 import appFetch from "../utils/fetch";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
-import {
-  credentialReset,
-  selectPidCieL3FlowParams,
-} from "../store/reducers/credential";
+import { credentialReset } from "../store/reducers/credential";
 import parseUrl from "parse-url";
-import type { CredentialResult } from "../store/types";
+import type { PidResult } from "../store/types";
+import { selectEnv } from "../store/reducers/environment";
+import { getEnv } from "../utils/environment";
+import { selectPidCieL3FlowParams } from "../store/reducers/pid";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
 // PUT ME IN UTILS OR ENV
@@ -74,6 +73,7 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
 >("ciel3/flowParamsPrepare", async (args, { getState, dispatch }) => {
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
+
   const { idpHint, ciePin } = args;
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
@@ -85,6 +85,11 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
   // Obtain a wallet attestation. A wallet instance must be created before this step.
   await regenerateCryptoKey(WIA_KEYTAG);
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+
+  // Get env
+  const env = selectEnv(getState());
+  const { WALLET_PROVIDER_BASE_URL, WALLET_PID_PROVIDER_BASE_URL } =
+    getEnv(env);
 
   const walletInstanceAttestation =
     await WalletInstanceAttestation.getAttestation({
@@ -148,7 +153,7 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
  * @return The credetial result.
  */
 export const continueCieL3FlowThunk = createAppAsyncThunk<
-  CredentialResult,
+  PidResult,
   ContinueCieL3FlowThunkInput
 >("ciel3/flowContinue", async (args, { getState }) => {
   const flowParams = selectPidCieL3FlowParams(getState());

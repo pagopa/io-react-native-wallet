@@ -15,10 +15,7 @@ import {
   prepareCieL3FlowParamsThunk,
 } from "../thunks/pidCieL3";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import {
-  pidCiel3FlowReset,
-  selectPidCieL3FlowParams,
-} from "../store/reducers/credential";
+import { pidCiel3FlowReset } from "../store/reducers/credential";
 import type { AsyncStatus } from "../store/types";
 import {
   ModuleCredential,
@@ -26,6 +23,7 @@ import {
   type Badge,
   type IOIcons,
 } from "@pagopa/io-app-design-system";
+import { selectPidCieL3FlowParams } from "../store/reducers/pid";
 
 export type TestCieL3ScenarioProps = {
   title: string;

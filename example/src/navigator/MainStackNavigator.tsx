@@ -17,6 +17,8 @@ import { CredentialScreen } from "../screens/CredentialScreen";
 import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
 import { useAppDispatch } from "../store/utils";
 import { setDebugVisibility } from "../store/reducers/debug";
+import PidSpidLoginScreen from "../screens/login/PidSpidLoginScreen";
+import SettingsScreen from "../screens/SettingsScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -30,6 +32,8 @@ export type MainStackNavParamList = {
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
+  PidSpidLogin: undefined;
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -47,7 +51,7 @@ export const MainStackNavigator = () => {
   const ioAuthToken = useSelector(selectIoAuthToken);
   const dispatch = useAppDispatch();
 
-  const header = useCallback(
+  const headerRight = useCallback(
     () => (
       <IconButton
         icon="ladybug"
@@ -67,7 +71,7 @@ export const MainStackNavigator = () => {
            */
           <Stack.Group
             screenOptions={{
-              headerRight: header,
+              headerRight: headerRight,
             }}
           >
             <Stack.Screen
@@ -86,6 +90,11 @@ export const MainStackNavigator = () => {
               options={{ title: "Test PID issuance" }}
             />
             <Stack.Screen
+              name="PidSpidLogin"
+              component={PidSpidLoginScreen}
+              options={{ title: "Test PID issuance" }}
+            />
+            <Stack.Screen
               name="Credentials"
               component={CredentialScreen}
               options={{ title: "Test credentials issuance" }}
@@ -94,6 +103,11 @@ export const MainStackNavigator = () => {
               name="StatusAttestation"
               component={StatusAttestationScreen}
               options={{ title: "Test credentials attestations" }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{ title: "Settings" }}
             />
           </Stack.Group>
         ) : (

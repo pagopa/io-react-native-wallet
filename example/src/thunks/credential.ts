@@ -3,41 +3,35 @@ import {
   WalletInstanceAttestation,
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
-import { WALLET_PROVIDER_BASE_URL } from "@env";
 import appFetch from "../utils/fetch";
 import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { createAppAsyncThunk } from "./utils";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { getIntegrityContext } from "../utils/integrity";
-import {
-  credentialReset,
-  selectCredential,
-} from "../store/reducers/credential";
-import type { CredentialResult, SupportedCredentials } from "../store/types";
+import type {
+  CredentialResult,
+  SupportedCredentialsWithoutPid,
+} from "../store/types";
 import {
   getCredential,
   getCredentialStatusAttestation,
-  getPid,
 } from "../utils/credential";
+import { selectEnv } from "../store/reducers/environment";
+import { getEnv } from "../utils/environment";
+import { selectPid } from "../store/reducers/pid";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
  */
-type GetCredentialThunkInput =
-  | {
-      idpHint: string;
-      credentialType: "PersonIdentificationData";
-    }
-  | {
-      idpHint?: undefined;
-      credentialType: Exclude<SupportedCredentials, "PersonIdentificationData">;
-    };
+type GetCredentialThunkInput = {
+  credentialType: SupportedCredentialsWithoutPid;
+};
 
 /**
  * Type definition for the input of the {@link getCredentialStatusAttestationThunk}.
  */
 type GetCredentialStatusAttestationThunkInput = {
-  credentialType: SupportedCredentials;
+  credentialType: SupportedCredentialsWithoutPid;
   credential: Awaited<
     ReturnType<Credential.Issuance.ObtainCredential>
   >["credential"];
@@ -49,7 +43,7 @@ type GetCredentialStatusAttestationThunkInput = {
  */
 type GetCredentialStatusAttestationThunkOutput = {
   statusAttestation: string;
-  credentialType: SupportedCredentials;
+  credentialType: SupportedCredentialsWithoutPid;
 };
 
 /**
@@ -61,7 +55,7 @@ type GetCredentialStatusAttestationThunkOutput = {
 export const getCredentialThunk = createAppAsyncThunk<
   CredentialResult,
   GetCredentialThunkInput
->("credential/credentialGet", async (args, { getState, dispatch }) => {
+>("credential/credentialGet", async (args, { getState }) => {
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
   if (!integrityKeyTag) {
@@ -73,6 +67,14 @@ export const getCredentialThunk = createAppAsyncThunk<
   // ensure the key esists befor starting the issuing process
   await regenerateCryptoKey(WIA_KEYTAG);
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+
+  // Get env URLs
+  const env = selectEnv(getState());
+  const {
+    WALLET_PROVIDER_BASE_URL,
+    WALLET_EAA_PROVIDER_BASE_URL,
+    REDIRECT_URI,
+  } = getEnv(env);
   /**
    * Obtains a new Wallet Instance Attestation.
    * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
@@ -85,31 +87,23 @@ export const getCredentialThunk = createAppAsyncThunk<
       appFetch,
     });
 
-  const { idpHint, credentialType } = args;
-  if (idpHint && credentialType === "PersonIdentificationData") {
-    // Resets the credential state before obtaining a new PID
-    dispatch(credentialReset());
-    return await getPid(
-      idpHint,
-      walletInstanceAttestation,
-      wiaCryptoContext,
-      credentialType
-    );
-  } else {
-    // Get the PID from the store
-    const pid = selectCredential("PersonIdentificationData")(getState());
-    if (!pid) {
-      throw new Error("PID not found");
-    }
-    const pidCryptoContext = createCryptoContextFor(pid.keyTag);
-    return await getCredential(
-      credentialType,
-      walletInstanceAttestation,
-      wiaCryptoContext,
-      pid.credential,
-      pidCryptoContext
-    );
+  const { credentialType } = args;
+
+  // Get the PID from the store
+  const pid = selectPid(getState());
+  if (!pid) {
+    throw new Error("PID not found");
   }
+  const pidCryptoContext = createCryptoContextFor(pid.keyTag);
+  return await getCredential({
+    credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+    redirectUri: REDIRECT_URI,
+    credentialType,
+    walletInstanceAttestation,
+    wiaCryptoContext,
+    pid: pid.credential,
+    pidCryptoContext,
+  });
 });
 
 /**
@@ -120,13 +114,17 @@ export const getCredentialThunk = createAppAsyncThunk<
 export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
   GetCredentialStatusAttestationThunkOutput,
   GetCredentialStatusAttestationThunkInput
->("credential/statusAttestationGet", async (args) => {
+>("credential/statusAttestationGet", async (args, { getState }) => {
   const { credential, keyTag, credentialType } = args;
 
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
 
+  const env = selectEnv(getState());
+  const { WALLET_EAA_PROVIDER_BASE_URL } = getEnv(env);
+
   return await getCredentialStatusAttestation(
+    WALLET_EAA_PROVIDER_BASE_URL,
     credential,
     credentialCryptoContext,
     credentialType

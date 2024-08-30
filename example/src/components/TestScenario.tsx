@@ -32,6 +32,12 @@ export default function TestScenario({
     }
   }, [hasError, hasLoaded, useToast]);
 
+  useEffect(() => {
+    if (isLoading) {
+      setHasLoaded(true);
+    }
+  }, [isLoading]);
+
   const getBadge = useCallback((): Badge | undefined => {
     if (isPresent) {
       return { text: "OBTAINED", variant: "success" };
@@ -42,17 +48,12 @@ export default function TestScenario({
     }
   }, [hasError, isPresent]);
 
-  const onPressOverride = useCallback(() => {
-    setHasLoaded(true);
-    onPress();
-  }, [onPress]);
-
   return (
     <>
       <ModuleCredential
         label={title}
         icon={icon}
-        onPress={onPressOverride}
+        onPress={onPress}
         isFetching={isLoading}
         badge={getBadge()}
       />

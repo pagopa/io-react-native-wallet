@@ -38,9 +38,17 @@ export type SupportedCredentials =
   | "EuropeanDisabilityCard";
 
 /**
+ * Type definition for the supported credentials without the PersonIdentificationData.
+ */
+export type SupportedCredentialsWithoutPid = Exclude<
+  SupportedCredentials,
+  "PersonIdentificationData"
+>;
+
+/**
  * Type definition to represent a credential result to be used in the store.
  */
-export type CredentialResult = {
+type CredentialResultBase = {
   credential: Awaited<
     ReturnType<Credential.Issuance.ObtainCredential>
   >["credential"];
@@ -50,3 +58,16 @@ export type CredentialResult = {
   keyTag: string;
   credentialType: SupportedCredentials;
 };
+
+/**
+ * Type definition to represent a credential result to be used in the store.
+ */
+export type CredentialResult = CredentialResultBase & {
+  credentialType: SupportedCredentialsWithoutPid;
+};
+
+export type PidResult = CredentialResultBase & {
+  credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
+};
+
+export type PidAuthMethods = "spid" | "cieL2" | "cieL3";

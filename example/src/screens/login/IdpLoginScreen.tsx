@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
-import { WALLET_PROVIDER_BASE_URL } from "@env";
 import URLParse from "url-parse";
 import { sessionSet } from "../../store/reducers/sesssion";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useAppDispatch } from "../../store/utils";
+import { useAppDispatch, useAppSelector } from "../../store/utils";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+import { selectEnv } from "../../store/reducers/environment";
+import { getEnv } from "../../utils/environment";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "IdpLogin">;
 
@@ -31,20 +32,13 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   return undefined;
 };
 
-const getLoginUri = (idp: string) => {
-  let url = new URL(WALLET_PROVIDER_BASE_URL);
-  url.pathname = `/login`;
-  url.searchParams.append("entityID", idp);
-  url.searchParams.append("authLevel", "SpidL2");
-  return url.href;
-};
-
 /**
  * IDP login screen which redirects the user to the IDP login page and handles the login flow.
  */
 export default function IdpLoginScreen({ route }: Props) {
-  const idp = route.params.idp;
+  const idpParam = route.params.idp;
   const dispatch = useAppDispatch();
+  const env = useAppSelector(selectEnv);
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
     const url = event.url;
@@ -57,11 +51,23 @@ export default function IdpLoginScreen({ route }: Props) {
     return true;
   };
 
+  const getLoginUri = useCallback(
+    () => (idp: string) => {
+      const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
+      let url = new URL(WALLET_PROVIDER_BASE_URL);
+      url.pathname = `/login`;
+      url.searchParams.append("entityID", idp);
+      url.searchParams.append("authLevel", "SpidL2");
+      return url.href;
+    },
+    [env]
+  )();
+
   return (
     <View style={styles.container}>
       <WebView
         source={{
-          uri: getLoginUri(idp),
+          uri: getLoginUri(idpParam),
         }}
         style={styles.webview}
         onNavigationStateChange={(el) => {

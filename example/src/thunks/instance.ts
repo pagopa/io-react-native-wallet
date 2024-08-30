@@ -1,5 +1,4 @@
 import { WalletInstance } from "@pagopa/io-react-native-wallet";
-import { WALLET_PROVIDER_BASE_URL } from "@env";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
 import {
@@ -8,27 +7,34 @@ import {
   getIntegrityContext,
 } from "../utils/integrity";
 import { instanceReset } from "../store/reducers/instance";
-
-/**
- * The wallet provider base url to use for the wallet instance creation.
- */
-const walletProviderBaseUrl = WALLET_PROVIDER_BASE_URL;
+import { selectEnv } from "../store/reducers/environment";
+import { getEnv } from "../utils/environment";
+import { isAndroid } from "../utils/device";
 
 /**
  * Thunk to create a new wallet instance.
  */
 export const createWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/create",
-  async (_, { dispatch }) => {
-    // Reset the instance state before creating a new instance. This also resets attestatio and credential states.
-    dispatch(instanceReset());
-    await ensureIntegrityServiceIsReady();
+  async (_, { getState, dispatch }) => {
+    dispatch(instanceReset()); // This resets the whole instance state beside the session
+
+    // Get env
+    const env = selectEnv(getState());
+    const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } =
+      getEnv(env);
+
+    const googleCloudProjectNumber = isAndroid
+      ? GOOGLE_CLOUD_PROJECT_NUMBER
+      : undefined;
+
+    await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
     const integrityKeyTag = await generateIntegrityHardwareKeyTag();
     const integrityContext = getIntegrityContext(integrityKeyTag);
 
     await WalletInstance.createWalletInstance({
       integrityContext,
-      walletProviderBaseUrl,
+      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
       appFetch,
     });
 
