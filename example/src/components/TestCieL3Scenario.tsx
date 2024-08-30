@@ -57,6 +57,12 @@ export default function TestCieL3Scenario({
     }
   }, [hasError, hasLoaded, toast]);
 
+  useEffect(() => {
+    if (isLoading) {
+      setHasLoaded(true);
+    }
+  }, [isLoading]);
+
   const handleOnSuccess = (url: string) => {
     dispatch(continueCieL3FlowThunk({ url }));
   };

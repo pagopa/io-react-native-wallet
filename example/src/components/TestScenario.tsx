@@ -23,14 +23,14 @@ export default function TestScenario({
   isPresent = false,
 }: TestScenarioProp) {
   const [hasLoaded, setHasLoaded] = useState(false); // This in needed to avoid the error toast to be shown on the first render
-  const useToast = useIOToast();
+  const toast = useIOToast();
 
   useEffect(() => {
     if (hasError.status && hasLoaded) {
-      useToast.error(`An error occured, check the debug info`);
+      toast.error(`An error occured, check the debug info`);
       setHasLoaded(false);
     }
-  }, [hasError, hasLoaded, useToast]);
+  }, [hasError, hasLoaded, toast]);
 
   useEffect(() => {
     if (isLoading) {
