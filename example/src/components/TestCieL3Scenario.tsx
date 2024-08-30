@@ -15,7 +15,7 @@ import {
   prepareCieL3FlowParamsThunk,
 } from "../thunks/pidCieL3";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import { pidCiel3FlowReset } from "../store/reducers/credential";
+import { pidCiel3FlowReset } from "../store/reducers/pid";
 import type { AsyncStatus } from "../store/types";
 import {
   ModuleCredential,

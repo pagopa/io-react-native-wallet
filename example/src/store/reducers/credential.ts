@@ -70,10 +70,6 @@ const credentialSlice = createSlice({
   initialState,
   reducers: {
     credentialReset: () => initialState,
-    pidCiel3FlowReset: (state) => ({
-      ...state,
-      pidCiel3FlowParams: initialState.pidCiel3FlowParams,
-    }),
   },
   extraReducers: (builder) => {
     /**
@@ -186,7 +182,7 @@ const credentialSlice = createSlice({
 /**
  * Exports the actions for the credential slice.
  */
-export const { credentialReset, pidCiel3FlowReset } = credentialSlice.actions;
+export const { credentialReset } = credentialSlice.actions;
 
 /**
  * Persist configuration for the credential slice.
