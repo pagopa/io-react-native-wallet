@@ -1,9 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useMemo } from "react";
-
-import { Alert, FlatList, SafeAreaView, View } from "react-native";
-import { selectIoAuthToken, sessionReset } from "../store/reducers/sesssion";
-import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   ButtonSolid,
   IOVisualCostants,
@@ -12,9 +8,12 @@ import {
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import type { ComponentProps } from "react";
-import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectCredential } from "../store/reducers/credential";
+import { Alert, FlatList, SafeAreaView, View } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
+import { selectCredential } from "../store/reducers/credential";
+import { selectHasInstanceKeyTag } from "../store/reducers/instance";
+import { selectIoAuthToken, sessionReset } from "../store/reducers/sesssion";
+import { useAppDispatch, useAppSelector } from "../store/utils";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 

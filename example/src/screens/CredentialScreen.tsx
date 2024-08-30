@@ -1,16 +1,16 @@
+import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import React, { useMemo } from "react";
-import { useAppDispatch, useAppSelector } from "../store/utils";
+import { FlatList } from "react-native";
+import TestScenario, {
+  type TestScenarioProp,
+} from "../components/TestScenario";
+import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   selectCredential,
   selectCredentialAsyncStatus,
 } from "../store/reducers/credential";
+import { useAppDispatch, useAppSelector } from "../store/utils";
 import { getCredentialThunk } from "../thunks/credential";
-import TestScenario, {
-  type TestScenarioProp,
-} from "../components/TestScenario";
-import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
-import { FlatList } from "react-native";
-import { useDebugInfo } from "../hooks/useDebugInfo";
 
 /**
  * Component (screen in a future PR) to test the credential functionalities.
@@ -27,11 +27,18 @@ export const CredentialScreen = () => {
   );
   const dc = useAppSelector(selectCredential("EuropeanDisabilityCard"));
 
+  const tsState = useAppSelector(
+    selectCredentialAsyncStatus("EuropeanHealthInsuranceCard")
+  );
+  const ts = useAppSelector(selectCredential("EuropeanHealthInsuranceCard"));
+
   useDebugInfo({
     mdlState,
     mdl,
     dcState,
     dc,
+    tsState,
+    ts,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -57,6 +64,20 @@ export const CredentialScreen = () => {
         icon: "accessibility",
         isPresent: !!dc,
       },
+      {
+        title: "Get credential (TS)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({
+              credentialType: "EuropeanHealthInsuranceCard",
+            })
+          ),
+        isLoading: tsState.isLoading,
+        hasError: tsState.hasError,
+        isDone: tsState.isDone,
+        icon: "healthCard",
+        isPresent: !!ts,
+      },
     ],
     [
       dc,
@@ -68,6 +89,10 @@ export const CredentialScreen = () => {
       mdlState.hasError,
       mdlState.isDone,
       mdlState.isLoading,
+      ts,
+      tsState.hasError,
+      tsState.isDone,
+      tsState.isLoading,
     ]
   );
 
