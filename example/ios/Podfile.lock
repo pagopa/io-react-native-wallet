@@ -513,7 +513,17 @@ PODS:
   - RNReactNativeHapticFeedback (2.3.1):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - RNReanimated (3.12.0):
+  - RNReanimated (3.15.1):
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
+    - ReactCommon/turbomodule/core
+    - RNReanimated/reanimated (= 3.15.1)
+    - RNReanimated/worklets (= 3.15.1)
+  - RNReanimated/reanimated (3.15.1):
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
+    - ReactCommon/turbomodule/core
+  - RNReanimated/worklets (3.15.1):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - ReactCommon/turbomodule/core
@@ -794,7 +804,7 @@ SPEC CHECKSUMS:
   RNCClipboard: 0a720adef5ec193aa0e3de24c3977222c7e52a37
   RNGestureHandler: 9e0d0a46b7af6d21fbe3343912502afa8baf755e
   RNReactNativeHapticFeedback: e115bb12d05ced2aba090123e2690978507811ca
-  RNReanimated: 108a53626a492df35db30b98fc922a7189d1c601
+  RNReanimated: 1896df448c213a64e98cf3f796e4105bbfab41a2
   RNScreens: 284fcee9d8d4648851fdb85dd0e200daebedcc14
   RNSVG: 5da7a24f31968ec74f0b091e3440080f347e279b
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
