@@ -6,7 +6,6 @@ import {
   generateIntegrityHardwareKeyTag,
   getIntegrityContext,
 } from "../utils/integrity";
-import { instanceReset } from "../store/reducers/instance";
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { isAndroid } from "../utils/device";
@@ -16,9 +15,7 @@ import { isAndroid } from "../utils/device";
  */
 export const createWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/create",
-  async (_, { getState, dispatch }) => {
-    dispatch(instanceReset()); // This resets the whole instance state beside the session
-
+  async (_, { getState }) => {
     // Get env
     const env = selectEnv(getState());
     const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } =
