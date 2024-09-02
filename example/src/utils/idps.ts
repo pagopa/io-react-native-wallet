@@ -1,4 +1,5 @@
 import type { ImageSourcePropType } from "react-native";
+import { SPID_DEMO_IDPHINT } from "./environment";
 
 export type Idp = {
   id: string;
@@ -99,3 +100,41 @@ export const idps: IdpList = [
     profileUrl: "https://identity.teamsystem.com/",
   },
 ];
+
+export const testIdps: IdpList = [
+  {
+    id: "spiddemo",
+    name: "SPID Demo",
+    logo: "",
+    localLogo: require("../img/spid.png"),
+    profileUrl: SPID_DEMO_IDPHINT,
+  },
+];
+
+/**
+ * Object of the SPID IDP IDs and the corresponding production hint URLs.
+ */
+const SPID_IDP_HINTS: { [key: string]: string } = {
+  arubaid: "https://loginspid.aruba.it",
+  ehtid: "https://id.eht.eu",
+  infocamereid: "https://loginspid.infocamere.it",
+  infocertid: "https://identity.infocert.it",
+  intesiid: "https://idp.intesigroup.com",
+  lepidaid: "https://id.lepida.it/idp/shibboleth",
+  namirialid: "https://idp.namirialtsp.com/idp",
+  posteid: "https://posteid.poste.it",
+  sielteid: "https://identity.sieltecloud.it",
+  spiditalia: "https://spid.register.it",
+  timid: "https://login.id.tim.it/affwebservices/public/saml2sso",
+  teamsystemid: "https://spid.teamsystem.com/idp",
+  spiddemo: SPID_DEMO_IDPHINT,
+};
+
+/**
+ * Map of the SPID IDP IDs and the corresponding production hint URLs.
+ * If the IDP ID is not present in the map an error is thrown.
+ * @param spidIdpId
+ * @throws {@link Error} if the IDP ID is not present in the map
+ * @returns
+ */
+export const getSpidIdpHint = (spidIdpId: string) => SPID_IDP_HINTS[spidIdpId];

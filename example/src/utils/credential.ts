@@ -3,33 +3,42 @@ import {
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
 import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
-
-import {
-  REDIRECT_URI,
-  WALLET_EAA_PROVIDER_BASE_URL,
-  WALLET_PID_PROVIDER_BASE_URL,
-} from "@env";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { CredentialResult, SupportedCredentials } from "../store/types";
+import type {
+  CredentialResult,
+  PidResult,
+  SupportedCredentialsWithoutPid,
+} from "../store/types";
 
 /**
  * Implements a flow to obtain a PID credential.
+ * @param pidIssuerUrl - The PID issuer URL
+ * @param redirectUri - The redirect URI for the authorization flow
  * @param idpHint - The hint for the Identity Provider to use
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
  * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
  * @returns The obtained credential result
  */
-export const getPid = async (
-  idpHint: string,
-  walletInstanceAttestation: string,
-  wiaCryptoContext: CryptoContext,
-  credentialType: "PersonIdentificationData"
-): Promise<CredentialResult> => {
+export const getPid = async ({
+  pidIssuerUrl,
+  redirectUri,
+  idpHint,
+  walletInstanceAttestation,
+  credentialType,
+  wiaCryptoContext,
+}: {
+  pidIssuerUrl: string;
+  redirectUri: string;
+  idpHint: string;
+  walletInstanceAttestation: string;
+  wiaCryptoContext: CryptoContext;
+  credentialType: "PersonIdentificationData";
+}): Promise<PidResult> => {
   // Create identification context only for SPID
   const authorizationContext = idpHint.includes("servizicie")
     ? undefined
@@ -46,7 +55,7 @@ export const getPid = async (
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
-    issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
+    issuerUrl: pidIssuerUrl,
     credentialType: "PersonIdentificationData",
     appFetch,
   });
@@ -66,7 +75,7 @@ export const getPid = async (
       credentialType,
       {
         walletInstanceAttestation,
-        redirectUri: `${REDIRECT_URI}`,
+        redirectUri,
         wiaCryptoContext,
         appFetch,
       }
@@ -79,7 +88,7 @@ export const getPid = async (
       clientId,
       issuerConf,
       idpHint,
-      REDIRECT_URI,
+      redirectUri,
       authorizationContext
     );
 
@@ -91,7 +100,7 @@ export const getPid = async (
     issuerConf,
     code,
     clientId,
-    REDIRECT_URI,
+    redirectUri,
     codeVerifier,
     {
       walletInstanceAttestation,
@@ -133,6 +142,8 @@ export const getPid = async (
 
 /**
  * Implements a flow to obtain a generic credential.
+ * @param credentialIssuerUrl - The credential issuer URL
+ * @param redirectUri - The redirect URI for the authorization flow
  * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
@@ -140,13 +151,23 @@ export const getPid = async (
  * @param pidCryptoContext - The PID credential crypto context
  * @returns The obtained credential result
  */
-export const getCredential = async (
-  credentialType: SupportedCredentials,
-  walletInstanceAttestation: string,
-  wiaCryptoContext: CryptoContext,
-  pid: string,
-  pidCryptoContext: CryptoContext
-): Promise<CredentialResult> => {
+export const getCredential = async ({
+  credentialIssuerUrl,
+  redirectUri,
+  credentialType,
+  walletInstanceAttestation,
+  wiaCryptoContext,
+  pid,
+  pidCryptoContext,
+}: {
+  credentialIssuerUrl: string;
+  redirectUri: string;
+  credentialType: SupportedCredentialsWithoutPid;
+  walletInstanceAttestation: string;
+  wiaCryptoContext: CryptoContext;
+  pid: string;
+  pidCryptoContext: CryptoContext;
+}): Promise<CredentialResult> => {
   // Create credential crypto context
   const credentialKeyTag = uuid.v4().toString();
   await generate(credentialKeyTag);
@@ -154,7 +175,7 @@ export const getCredential = async (
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
-    issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+    issuerUrl: credentialIssuerUrl,
     credentialType,
   });
 
@@ -172,7 +193,7 @@ export const getCredential = async (
       credentialType,
       {
         walletInstanceAttestation,
-        redirectUri: `${REDIRECT_URI}`,
+        redirectUri,
         wiaCryptoContext,
         appFetch,
       }
@@ -203,7 +224,7 @@ export const getCredential = async (
     issuerConf,
     code,
     clientId,
-    REDIRECT_URI,
+    redirectUri,
     codeVerifier,
     {
       walletInstanceAttestation,
@@ -245,19 +266,21 @@ export const getCredential = async (
 
 /**
  * Implements a flow to obtain a credential status attestation.
+ * @param credentialIssuerUrl - The credential issuer URL
  * @param credential - The credential to obtain the status attestation for
  * @param credentialCryptoContext - The credential crypto context associated with the credential
  * @param credentialType - The type of the credential
  * @returns The credential status attestation
  */
 export const getCredentialStatusAttestation = async (
+  credentialIssuerUrl: string,
   credential: string,
   credentialCryptoContext: CryptoContext,
-  credentialType: SupportedCredentials
+  credentialType: SupportedCredentialsWithoutPid
 ) => {
   // Start the issuance flow
   const startFlow: Credential.Status.StartFlow = () => ({
-    issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+    issuerUrl: credentialIssuerUrl,
   });
 
   const { issuerUrl } = startFlow();

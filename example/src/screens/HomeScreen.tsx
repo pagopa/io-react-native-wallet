@@ -1,19 +1,19 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useMemo } from "react";
+import { Alert, FlatList, SafeAreaView } from "react-native";
+import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { useAppSelector } from "../store/utils";
 import {
-  ButtonSolid,
   IOVisualCostants,
   ModuleSummary,
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import type { ComponentProps } from "react";
-import { Alert, FlatList, SafeAreaView, View } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredential } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectIoAuthToken, sessionReset } from "../store/reducers/sesssion";
-import { useAppDispatch, useAppSelector } from "../store/utils";
+import { selectPid } from "../store/reducers/pid";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 
@@ -22,10 +22,9 @@ type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
  * This includes interacting with the wallet instance provider, issuing a PID and a credential, get their status attestation and more.
  */
 const HomeScreen = () => {
-  const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
-  const pid = useAppSelector(selectCredential("PersonIdentificationData"));
+  const pid = useAppSelector(selectPid);
   const session = useAppSelector(selectIoAuthToken);
   const mdl = useAppSelector(selectCredential("MDL"));
 
@@ -68,6 +67,12 @@ const HomeScreen = () => {
             ? navigation.navigate("StatusAttestation")
             : Alert.alert("Obtain a MDL first"),
       },
+      {
+        label: "Settings",
+        description: "Change the environment and logout",
+        icon: "chevronRight",
+        onPress: () => navigation.navigate("Settings"),
+      },
     ],
     [hasIntegrityKeyTag, mdl, navigation, pid]
   );
@@ -92,20 +97,6 @@ const HomeScreen = () => {
           </>
         )}
       />
-      <View
-        style={{
-          justifyContent: "flex-end",
-          marginHorizontal: IOVisualCostants.appMarginDefault,
-        }}
-      >
-        <ButtonSolid
-          fullWidth
-          icon="logout"
-          color="danger"
-          label="Logout from IO backend"
-          onPress={() => dispatch(sessionReset())}
-        />
-      </View>
     </SafeAreaView>
   );
 };

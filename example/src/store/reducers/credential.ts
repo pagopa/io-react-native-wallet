@@ -5,15 +5,11 @@ import {
   getCredentialStatusAttestationThunk,
   getCredentialThunk,
 } from "../../thunks/credential";
-import {
-  continueCieL3FlowThunk,
-  prepareCieL3FlowParamsThunk,
-  type PrepareCieL3FlowParamsThunkOutput,
-} from "../../thunks/pidCieL3";
+import { type PrepareCieL3FlowParamsThunkOutput } from "../../thunks/pidCieL3";
 import type {
   CredentialResult,
   RootState,
-  SupportedCredentials,
+  SupportedCredentialsWithoutPid,
   AsyncStatus,
 } from "../types";
 import { asyncStatusInitial } from "../utils";
@@ -23,43 +19,41 @@ import { instanceReset } from "./instance";
 /**
  * State type definition for the credential slice.
  * It contains:
- * - credentials: the obtained credentials which are persisted
+ * - credentials: the obtained credentials which are persisted, except for the PID which is stored in the PID slice {@link pidSlice}
  * - credentialsState: the state of the async operation to get each credential
- * - pidCiel3FlowParams: the parameters for the CiE L3 flow
  * - statusAttestation: the status attestation for the credentials
  * - statusAttAsyncStatus: the state of the async operation to get each credential status attestation
  */
 type CredentialState = {
-  credentials: Record<SupportedCredentials, CredentialResult | undefined>;
-  credentialsAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
+  credentials: Record<
+    SupportedCredentialsWithoutPid,
+    CredentialResult | undefined
+  >;
+  credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
   pidCiel3FlowParams: PrepareCieL3FlowParamsThunkOutput | undefined;
-  statusAttestation: Record<SupportedCredentials, string | undefined>;
-  statusAttAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
+  statusAttestation: Record<SupportedCredentialsWithoutPid, string | undefined>;
+  statusAttAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
 };
 
 // Initial state for the credential slice
 const initialState: CredentialState = {
   credentials: {
-    PersonIdentificationData: undefined,
     MDL: undefined,
     EuropeanDisabilityCard: undefined,
     EuropeanHealthInsuranceCard: undefined,
   },
   credentialsAsyncStatus: {
-    PersonIdentificationData: asyncStatusInitial,
     MDL: asyncStatusInitial,
     EuropeanDisabilityCard: asyncStatusInitial,
     EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
   pidCiel3FlowParams: undefined,
   statusAttestation: {
-    PersonIdentificationData: undefined,
     MDL: undefined,
     EuropeanDisabilityCard: undefined,
     EuropeanHealthInsuranceCard: undefined,
   },
   statusAttAsyncStatus: {
-    PersonIdentificationData: asyncStatusInitial,
     MDL: asyncStatusInitial,
     EuropeanDisabilityCard: asyncStatusInitial,
     EuropeanHealthInsuranceCard: asyncStatusInitial,
@@ -75,10 +69,6 @@ const credentialSlice = createSlice({
   initialState,
   reducers: {
     credentialReset: () => initialState,
-    pidCiel3FlowReset: (state) => ({
-      ...state,
-      pidCiel3FlowParams: initialState.pidCiel3FlowParams,
-    }),
   },
   extraReducers: (builder) => {
     /**
@@ -122,81 +112,6 @@ const credentialSlice = createSlice({
     builder.addCase(getCredentialThunk.rejected, (state, action) => {
       const credentialType = action.meta.arg.credentialType;
       state.credentialsAsyncStatus[credentialType] = {
-        ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
-      };
-    });
-
-    /**
-     * CiE L3 Flow Params Thunk
-     */
-
-    /* Dispatched when a prepare CiE L3 flow params async thunk resolves.
-     *  Sets the obtained params and its state to isDone while resetting isLoading and hasError
-     * for the PID.
-     */
-    builder.addCase(prepareCieL3FlowParamsThunk.fulfilled, (state, action) => {
-      state.pidCiel3FlowParams = action.payload;
-      // The flow must be continued after this so we do not set isLoading for the credential state to true yet.
-    });
-
-    /*
-     * Dispatched when a prepare CiE L3 flow params async thunk is pending.
-     * Sets the flow params and the credential state to isLoading
-     * for the PID.
-     */
-    builder.addCase(prepareCieL3FlowParamsThunk.pending, (state) => {
-      state.credentialsAsyncStatus.PersonIdentificationData = {
-        ...asyncStatusInitial,
-        isLoading: true,
-      };
-    });
-
-    /* Dispatched when a prepare CiE L3 flow params async thunk rejected.
-     * Resets the flow params and sets the credential state to hasError while resetting isLoading and hasError
-     * for the requested credential.
-     */
-    builder.addCase(prepareCieL3FlowParamsThunk.rejected, (state, action) => {
-      state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
-      state.credentialsAsyncStatus.PersonIdentificationData = {
-        ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
-      };
-    });
-
-    /* Dispatched when a continue CiE L3 flow async thunk resolves.
-     * Resets the flow params and sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
-     * for the requested credential.
-     */
-    builder.addCase(continueCieL3FlowThunk.fulfilled, (state, action) => {
-      state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
-      state.credentials.PersonIdentificationData = action.payload;
-      state.credentialsAsyncStatus.PersonIdentificationData = {
-        ...asyncStatusInitial,
-        isDone: true,
-      };
-    });
-
-    /* Dispatched when a continue CiE L3 flow async thunk is pending.
-     * Sets the credential state to isLoading while resetting isDone and hasError
-     * for the requested credential.
-     */
-    builder.addCase(continueCieL3FlowThunk.pending, (state) => {
-      // Redundant as already set by prepareCieL3FlowParams but we want to be explicit and set the loading state
-      state.credentialsAsyncStatus.PersonIdentificationData = {
-        ...asyncStatusInitial,
-        isLoading: true,
-      };
-    });
-
-    /* Dispatched when a continue CiE L3 flow async thunk rejected.
-     * Resets the flow params and sets the credential state to hasError while resetting isLoading and hasError
-     * for the requested credential.
-     */
-    builder.addCase(continueCieL3FlowThunk.rejected, (state, action) => {
-      // Reset the flow params if an error occurs, you must start from scratch
-      state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
-      state.credentialsAsyncStatus.PersonIdentificationData = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
       };
@@ -266,7 +181,7 @@ const credentialSlice = createSlice({
 /**
  * Exports the actions for the credential slice.
  */
-export const { credentialReset, pidCiel3FlowReset } = credentialSlice.actions;
+export const { credentialReset } = credentialSlice.actions;
 
 /**
  * Persist configuration for the credential slice.
@@ -292,7 +207,7 @@ export const credentialReducer = persistReducer(
  * @returns the selected credential as {@link CredentialResult}
  */
 export const selectCredential =
-  (credentialType: SupportedCredentials) => (state: RootState) =>
+  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
     state.credential.credentials[credentialType];
 
 export const selectCredentials = (state: RootState) =>
@@ -304,7 +219,7 @@ export const selectCredentials = (state: RootState) =>
  * @returns the state of the async operation for the requested credential as {@link AsyncStatus}
  */
 export const selectCredentialAsyncStatus =
-  (credentialType: SupportedCredentials) => (state: RootState) =>
+  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
     state.credential.credentialsAsyncStatus[credentialType];
 
 /**
@@ -313,7 +228,7 @@ export const selectCredentialAsyncStatus =
  * @returns the status attestation for the requested credential
  */
 export const selectStatusAttestation =
-  (credentialType: SupportedCredentials) => (state: RootState) =>
+  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
     state.credential.statusAttestation[credentialType];
 
 /**
@@ -322,14 +237,5 @@ export const selectStatusAttestation =
  * @returns the state of the async operation for the requested credential as {@link AsyncStatus}
  */
 export const selectStatusAttestationAsyncStatus =
-  (credentialType: SupportedCredentials) => (state: RootState) =>
+  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
     state.credential.statusAttAsyncStatus[credentialType];
-
-/**
- * Selects the CiE L3 flow params from the credential state.
- * @param state - The root state of the Redux store
- * @returns the CiE L3 flow params
- */
-export const selectPidCieL3FlowParams = (state: RootState) => {
-  return state.credential.pidCiel3FlowParams;
-};

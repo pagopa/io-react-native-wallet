@@ -13,17 +13,21 @@ import { instanceReducer } from "./reducers/instance";
 import { attestationSlice } from "./reducers/attestation";
 import { credentialReducer } from "./reducers/credential";
 import { debugSlice } from "./reducers/debug";
+import { environmentReducer } from "./reducers/environment";
+import { pidReducer } from "./reducers/pid";
 
 /**
  * Redux store configuration.
  */
 export const store = configureStore({
   reducer: {
+    environment: environmentReducer,
     debug: debugSlice.reducer,
     session: sessionReducer,
     instance: instanceReducer,
     attestation: attestationSlice.reducer,
     credential: credentialReducer,
+    pid: pidReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

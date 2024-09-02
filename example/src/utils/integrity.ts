@@ -12,7 +12,6 @@ import {
 import { Platform } from "react-native";
 import uuid from "react-native-uuid";
 import { addPadding, removePadding } from "@pagopa/io-react-native-jwt";
-import { GOOGLE_CLOUD_PROJECT_NUMBER } from "@env";
 import { sha256 } from "js-sha256";
 import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
 
@@ -73,9 +72,10 @@ const generateIntegrityHardwareKeyTag = () =>
 
 /**
  * Ensures the integrity service is ready on the device.
+ * @param googleCloudProjectNumber - the Google Cloud Project Number to use for the integrity service on Android.
  * @returns a promise with resolves with a boolean value indicating wheter or not the integrity service is available.
  */
-const ensureIntegrityServiceIsReady = () =>
+const ensureIntegrityServiceIsReady = (googleCloudProjectNumber?: string) =>
   Platform.select({
     ios: async () => await isAttestationServiceAvailable(),
     android: async () => {
@@ -83,7 +83,10 @@ const ensureIntegrityServiceIsReady = () =>
       if (!res) {
         return false;
       }
-      await prepareIntegrityToken(GOOGLE_CLOUD_PROJECT_NUMBER);
+      if (!googleCloudProjectNumber) {
+        throw new Error("Google Cloud Project Number is required for Android");
+      }
+      await prepareIntegrityToken(googleCloudProjectNumber);
       return true;
     },
     default: () => Promise.reject(new Error("Unsupported platform")),

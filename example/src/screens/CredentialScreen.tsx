@@ -1,16 +1,16 @@
-import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import React, { useMemo } from "react";
-import { FlatList } from "react-native";
-import TestScenario, {
-  type TestScenarioProp,
-} from "../components/TestScenario";
-import { useDebugInfo } from "../hooks/useDebugInfo";
+import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   selectCredential,
   selectCredentialAsyncStatus,
 } from "../store/reducers/credential";
-import { useAppDispatch, useAppSelector } from "../store/utils";
 import { getCredentialThunk } from "../thunks/credential";
+import TestScenario, {
+  type TestScenarioProp,
+} from "../components/TestScenario";
+import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { FlatList } from "react-native";
+import { useDebugInfo } from "../hooks/useDebugInfo";
 
 /**
  * Component (screen in a future PR) to test the credential functionalities.
