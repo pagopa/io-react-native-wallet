@@ -5,6 +5,7 @@ import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import {
+  instanceReset,
   selectHasInstanceKeyTag,
   selectInstanceAsyncStatus,
   selectInstanceKeyTag,
@@ -16,7 +17,7 @@ import {
 import { getAttestationThunk } from "../thunks/attestation";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
-import { FlatList } from "react-native";
+import { Alert, FlatList } from "react-native";
 
 /**
  * Component (screen in a future PR) to test the wallet instance functionalities.
@@ -42,7 +43,29 @@ export const WalletInstanceScreen = () => {
     () => [
       {
         title: "Create Wallet Instance",
-        onPress: () => dispatch(createWalletInstanceThunk()),
+        onPress: () => {
+          if (hasIntegrityKeyTag) {
+            Alert.alert(
+              "Wallet instance already exits",
+              "This will reset the whole app state except the session",
+              [
+                {
+                  text: "Ok",
+                  onPress: () => {
+                    dispatch(instanceReset());
+                    dispatch(createWalletInstanceThunk());
+                  },
+                  style: "destructive",
+                },
+                {
+                  text: "Cancel",
+                  onPress: () => console.log("Cancel Pressed"),
+                  style: "cancel",
+                },
+              ]
+            );
+          }
+        },
         isLoading: instanceState.isLoading,
         hasError: instanceState.hasError,
         isDone: instanceState.isDone,
