@@ -46,12 +46,15 @@ export const DebugPrettyPrint = ({
   const prettyData = React.useMemo(() => {
     try {
       const json = JSON.parse(JSON.stringify(data));
-      const shortJson = _.cloneDeepWith(json, (value) =>
-        typeof value === "string"
-          ? _.truncate(value, { length: MAX_CHARACTERS })
-          : value
+      return JSON.stringify(
+        _.cloneDeepWith(json, (value) =>
+          typeof value === "string"
+            ? _.truncate(value, { length: MAX_CHARACTERS })
+            : undefined
+        ),
+        null,
+        2
       );
-      return JSON.stringify(shortJson, null, 2);
     } catch (e) {
       const value = JSON.stringify(data, null, 2);
       return _.truncate(value, { length: MAX_CHARACTERS });
