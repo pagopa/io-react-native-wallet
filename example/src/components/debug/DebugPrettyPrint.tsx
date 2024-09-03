@@ -12,6 +12,7 @@ import {
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
+import _ from "lodash";
 
 type ExpandableProps =
   | {
@@ -28,6 +29,8 @@ type Props = {
   data: any;
 } & ExpandableProps;
 
+const MAX_CHARACTERS = 256;
+
 /**
  * This component allows to print the content of an object in an elegant and readable way.
  * and to copy its content to the clipboard by pressing on the title.
@@ -40,7 +43,20 @@ export const DebugPrettyPrint = ({
   isExpanded = false,
 }: Props) => {
   const [expanded, setExpanded] = React.useState(isExpanded);
-  const prettyData = React.useMemo(() => JSON.stringify(data, null, 2), [data]);
+  const prettyData = React.useMemo(() => {
+    try {
+      const json = JSON.parse(JSON.stringify(data));
+      const shortJson = _.cloneDeepWith(json, (value) =>
+        typeof value === "string"
+          ? _.truncate(value, { length: MAX_CHARACTERS })
+          : value
+      );
+      return JSON.stringify(shortJson, null, 2);
+    } catch (e) {
+      const value = JSON.stringify(data, null, 2);
+      return _.truncate(value, { length: MAX_CHARACTERS });
+    }
+  }, [data]);
 
   const content = React.useMemo(() => {
     if ((expandable && !expanded) || !expandable) {
