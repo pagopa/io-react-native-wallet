@@ -5,7 +5,6 @@ import {
   getCredentialStatusAttestationThunk,
   getCredentialThunk,
 } from "../../thunks/credential";
-import { type PrepareCieL3FlowParamsThunkOutput } from "../../thunks/pidCieL3";
 import type {
   CredentialResult,
   RootState,
@@ -30,7 +29,6 @@ type CredentialState = {
     CredentialResult | undefined
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-  pidCiel3FlowParams: PrepareCieL3FlowParamsThunkOutput | undefined;
   statusAttestation: Record<SupportedCredentialsWithoutPid, string | undefined>;
   statusAttAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
 };
@@ -47,7 +45,6 @@ const initialState: CredentialState = {
     EuropeanDisabilityCard: asyncStatusInitial,
     EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
-  pidCiel3FlowParams: undefined,
   statusAttestation: {
     MDL: undefined,
     EuropeanDisabilityCard: undefined,

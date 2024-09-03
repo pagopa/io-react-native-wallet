@@ -52,6 +52,10 @@ const pidSlice = createSlice({
     pidCiel3FlowReset: (state) => ({
       ...state,
       pidCiel3FlowParams: initialState.pidCiel3FlowParams,
+      pidAsyncStatus: {
+        ...state.pidAsyncStatus,
+        cieL3: asyncStatusInitial,
+      },
     }),
   },
   extraReducers: (builder) => {
@@ -223,5 +227,5 @@ export const selectPidAsyncStatus =
  * @returns the CiE L3 flow params
  */
 export const selectPidCieL3FlowParams = (state: RootState) => {
-  return state.credential.pidCiel3FlowParams;
+  return state.pid.pidCiel3FlowParams;
 };

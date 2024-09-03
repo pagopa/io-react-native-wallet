@@ -183,7 +183,7 @@ export const continueCieL3FlowThunk = createAppAsyncThunk<
   const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
   // Create DPoP context for the whole issuance flow
-  regenerateCryptoKey(DPOP_KEYTAG);
+  await regenerateCryptoKey(DPOP_KEYTAG);
   const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
   const { accessToken } = await Credential.Issuance.authorizeAccess(

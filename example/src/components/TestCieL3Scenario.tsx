@@ -124,6 +124,7 @@ export default function TestCieL3Scenario({
       Alert.alert(`❌ Modal closed`);
     }
     setModalVisible(!isModalVisible);
+    dispatch(pidCiel3FlowReset());
   };
 
   const getBadge = useCallback((): Badge | undefined => {
@@ -194,6 +195,9 @@ export default function TestCieL3Scenario({
         >
           <View style={styles.modalContainer}>
             <Text style={styles.modalText}>{modalText}</Text>
+            <TouchableOpacity onPress={toggleModal}>
+              <Text style={styles.modalText}>Press to close</Text>
+            </TouchableOpacity>
             <View style={styles.webviewContainer}>
               <TouchableOpacity
                 style={styles.closeButton}
