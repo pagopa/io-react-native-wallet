@@ -68,7 +68,6 @@ export default function TestCieL3Scenario({
   };
 
   const handleOnError = (error: Cie.CieError) => {
-    console.log(error);
     dispatch(pidCiel3FlowReset());
     setModalVisible(false);
     Alert.alert(`❌ ${JSON.stringify(error)}`);
