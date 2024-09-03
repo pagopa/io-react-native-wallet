@@ -59,11 +59,12 @@ export const WalletInstanceScreen = () => {
                 },
                 {
                   text: "Cancel",
-                  onPress: () => console.log("Cancel Pressed"),
                   style: "cancel",
                 },
               ]
             );
+          } else {
+            dispatch(createWalletInstanceThunk());
           }
         },
         isLoading: instanceState.isLoading,
