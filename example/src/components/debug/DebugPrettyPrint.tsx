@@ -43,6 +43,7 @@ export const DebugPrettyPrint = ({
   isExpanded = false,
 }: Props) => {
   const [expanded, setExpanded] = React.useState(isExpanded);
+  const clipboardData = React.useMemo(() => JSON.stringify(data), [data]);
   const prettyData = React.useMemo(() => {
     try {
       const json = JSON.parse(JSON.stringify(data));
@@ -82,7 +83,7 @@ export const DebugPrettyPrint = ({
           <IconButton
             icon={"copy"}
             accessibilityLabel="copy"
-            onPress={() => clipboardSetStringWithFeedback(prettyData)}
+            onPress={() => clipboardSetStringWithFeedback(clipboardData)}
             color="contrast"
           />
           {expandable && (
