@@ -1,6 +1,6 @@
 # 🪪 @pagopa/io-react-native-wallet
 
-Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via a predefined flows, a set of utilities and helpers. It is designed to be used in React Native applications.
+Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via a predefined flows, a set of utilities and helpers. It is designed to be used in [io-app](https://github.com/pagopa/io-app).
 Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications, currently aligned with version [0.7.1](https://github.com/italia/eudi-wallet-it-docs/releases/tag/0.7.1).
 
 ## Dependencies
@@ -33,6 +33,8 @@ User flows implementions make use of tokens signed using asymmetric key pairs. S
 - The package knows when and where to use them.
 
 The interface is `CryptoContext` inherited from the `@pagopa/io-react-native-jwt` package:
+
+The suggested library to manage cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto).
 
 ```ts
 export interface CryptoContext {
@@ -96,6 +98,8 @@ const authorizationContext: AuthorizationContext = {
 };
 ```
 
+The suggested library to manage authorizations is [io-react-native-login-utils](https://github.com/pagopa/io-react-native-login-utils).
+
 </details>
 
 <details>
@@ -122,6 +126,8 @@ export interface IntegrityContext {
 
 Usually this is achieved by using [Google Play Integrity API](https://developer.android.com/google/play/integrity/overview) and [Key Attestation](https://developer.android.com/privacy-and-security/security-key-attestation) on Android, [DCAppAttestService](https://developer.apple.com/documentation/devicecheck/establishing-your-app-s-integrity) on iOS.
 
+The suggested library to manage integrity is [io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity).
+
 </details>
 
 <details>
@@ -142,3 +148,7 @@ Different flows are provided to perform common operations. Each flow is a set of
   - [Issuance](./src/credential/issuance/README.md)
   - [Presentation](./src/credential/presentation/README.md) (TODO)
   - [Status](./src/credential/status/README.md)
+
+### Example
+
+An example app is provided in [example](./example) folder which demostrates how to implemente these flows. To run it, follow the instructions in the [README](./example/README.md).

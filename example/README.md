@@ -3,7 +3,7 @@
 This example app demonstrates how to use the `io-react-native-wallet` library to interact with the IO Wallet.
 Currently it must be run on a **physical device**, as the library uses native code to generate hardware attestations, integrity tokens and cryptographic keys. These features are only partially available or not available at all on Android emulators and iOS simulators.
 
-In order to create a wallet instance and get an attestation, you must login with SPID credentials to IO backend. Thus a valid session is required.
+In order to create a wallet instance and get an attestation, you must login with SPID credentials to [IO backend](https://github.com/pagopa/io-backend). Thus a valid session is required, mimicking what happens in [io-app](https://github.com/pagopa/io-app).
 
 The app supports the hotswap between PRE and PROD environments. The default environment is PROD, but it can be changed in the app settings. The environment variables required are contained in the [.env.example](./env.example) file.
 
