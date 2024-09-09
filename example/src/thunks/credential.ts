@@ -19,6 +19,7 @@ import {
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { selectPid } from "../store/reducers/pid";
+import type { Out } from "src/utils/misc";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -32,17 +33,16 @@ type GetCredentialThunkInput = {
  */
 type GetCredentialStatusAttestationThunkInput = {
   credentialType: SupportedCredentialsWithoutPid;
-  credential: Awaited<
-    ReturnType<Credential.Issuance.ObtainCredential>
-  >["credential"];
+  credential: Out<Credential.Issuance.ObtainCredential>["credential"];
   keyTag: string;
 };
 
 /**
  * Type definition for the output of the {@link getCredentialStatusAttestationThunk}.
  */
-type GetCredentialStatusAttestationThunkOutput = {
-  statusAttestation: string;
+export type GetCredentialStatusAttestationThunkOutput = {
+  statusAttestation: Out<Credential.Status.StatusAttestation>["statusAttestation"];
+  parsedStatusAttestation: Out<Credential.Status.VerifyAndParseStatusAttestation>["parsedStatusAttestation"];
   credentialType: SupportedCredentialsWithoutPid;
 };
 
