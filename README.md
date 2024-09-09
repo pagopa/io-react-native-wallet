@@ -87,7 +87,7 @@ export interface AuthorizationContext {
 ```
 
 The authorize function is called with the URL to be opened and the schema to be used to redirect the user back to the application. The function should return a promise that resolves with the URL that the user has been redirected to.
-An example using the package [io-react-native-wallet-login-utils](https://github.com/pagopa/io-react-native-login-utils) is shown below:
+The suggested library to manage authorizations is [io-react-native-login-utils](https://github.com/pagopa/io-react-native-login-utils), an example is shown below:
 
 ```ts
 import { type AuthorizationContext } from "@pagopa/io-react-native-wallet";
@@ -97,8 +97,6 @@ const authorizationContext: AuthorizationContext = {
   authorize: openAuthenticationSession,
 };
 ```
-
-The suggested library to manage authorizations is [io-react-native-login-utils](https://github.com/pagopa/io-react-native-login-utils).
 
 </details>
 
