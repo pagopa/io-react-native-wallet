@@ -37,6 +37,12 @@ graph TD;
     6 --> 7
 ```
 
+## Mapped results
+
+### 404 Not Found (CredentialNotEntitledError)
+
+A `404 Not Found` response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential.
+
 ## Strong authentication for eID issuance (Query Mode)
 
 The eID issuance requires a strong authentication method. Currently SPID (L2), CieID (L2) and CIE+PIN (L3) are supported. The strong authentication method is determined by the IDP hint which is passed to the `completeUserAuthorizationWithQueryMode` function.
