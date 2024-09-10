@@ -426,3 +426,39 @@ export class StatusAttestationError extends IoWalletError {
     this.reason = reason;
   }
 }
+
+/**
+ * Error subclass thrown when the citizen is not entitled to a credential.
+ */
+export class CredentialNotEntitledError extends IoWalletError {
+  static get code(): "CREDENTIAL_NOT_ENTITLED_ERROR" {
+    return "CREDENTIAL_NOT_ENTITLED_ERROR";
+  }
+
+  code = "CREDENTIAL_NOT_ENTITLED_ERROR";
+
+  reason: string;
+
+  constructor(message: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, reason }));
+    this.reason = reason;
+  }
+}
+
+/**
+ * Error subclass thrown when an error occurs while requesting a credential.
+ */
+export class CredentialRequestError extends IoWalletError {
+  static get code(): "CREDENTIAL_REQUEST_ERROR" {
+    return "CREDENTIAL_REQUEST_ERROR";
+  }
+
+  code = "CREDENTIAL_REQUEST_ERROR";
+
+  reason: string;
+
+  constructor(message: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, reason }));
+    this.reason = reason;
+  }
+}
