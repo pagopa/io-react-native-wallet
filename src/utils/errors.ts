@@ -428,7 +428,7 @@ export class StatusAttestationError extends IoWalletError {
 }
 
 /**
- * Error subclass thrown when the citizen is not entitled to a credential.
+ * Error subclass thrown when the the user is not entitled to receive the requested credential.
  */
 export class CredentialNotEntitledError extends IoWalletError {
   static get code(): "CREDENTIAL_NOT_ENTITLED_ERROR" {
