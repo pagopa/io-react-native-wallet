@@ -16,6 +16,12 @@ graph TD;
     1 --> 2
 ```
 
+## Mapped results
+
+### 404 Not Found
+
+A `404 Not Found` response is returned by the credential issuer when the status attestation is invalid and is therefore mapped to a specific exception `StatusAttestationInvalid`.
+
 ## Example
 
 <details>
