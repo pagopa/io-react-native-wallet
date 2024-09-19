@@ -7,7 +7,12 @@ import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { hasStatus, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
-import { ValidationFailed } from "../../utils/errors";
+import {
+  CredentialNotEntitledError,
+  CredentialRequestError,
+  UnexpectedStatusCodeError,
+  ValidationFailed,
+} from "../../utils/errors";
 import { CredentialResponse } from "./types";
 
 import { createDPopToken } from "../../utils/dpop";
@@ -137,11 +142,37 @@ export const obtainCredential: ObtainCredential = async (
   })
     .then(hasStatus(200))
     .then((res) => res.json())
-    .then((body) => CredentialResponse.safeParse(body));
+    .then((body) => CredentialResponse.safeParse(body))
+    .catch(handleObtainCredentialError);
 
   if (!credentialRes.success) {
     throw new ValidationFailed(credentialRes.error.message);
   }
 
   return credentialRes.data;
+};
+
+/**
+ * Handle the credential error by mapping it to a custom exception.
+ * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
+ * @param e - The error to be handled
+ * @throws {@link StatusAttestationError} if the status code is different from 404
+ * @throws {@link StatusAttestationInvalid} if the status code is 404 (meaning the credential is invalid)
+ */
+const handleObtainCredentialError = (e: unknown) => {
+  if (!(e instanceof UnexpectedStatusCodeError)) {
+    throw e;
+  }
+
+  if (e.statusCode === 404) {
+    throw new CredentialNotEntitledError(
+      "Invalid status found for the given credential",
+      e.message
+    );
+  }
+
+  throw new CredentialRequestError(
+    `Unable to obtain the requested credential [response status code: ${e.statusCode}]`,
+    e.message
+  );
 };
