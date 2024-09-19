@@ -1,6 +1,6 @@
 # 🪪 @pagopa/io-react-native-wallet
 
-Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via a predefined flows, a set of utilities and helpers. It is designed to be used in [io-app](https://github.com/pagopa/io-app).
+Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via a predefined flows, a set of utilities and helpers.
 Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications, currently aligned with version [0.7.1](https://github.com/italia/eudi-wallet-it-docs/releases/tag/0.7.1).
 
 ## Dependencies
@@ -150,3 +150,51 @@ Different flows are provided to perform common operations. Each flow is a set of
 ### Example
 
 An example app is provided in [example](./example) folder which demostrates how to implemente these flows. To run it, follow the instructions in the [README](./example/README.md).
+
+### Ecosystem
+
+`io-react-native-wallet` is designed to be used in [io-app](https://github.com/pagopa/io-app) and its ecosystem. There are a few libraries that can be used to implement the context required to implement the flows defined by this package.
+Below there's a list of the libraries and a schema of how they interact with each other:
+
+- [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Used to manage cryptographic keys and signatures
+- [@pagopa/io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity) - Used to manage and verify the integrity of the device
+- [@pagopa/io-react-native-login-utils](https://github.com/pagopa/io-react-native-login-utils) - Used to manage strong authentication flows securely
+- [@pagopa/io-react-native-secure-storage](https://github.com/pagopa/io-react-native-secure-storage) - Used to store data securely on the device
+
+```mermaid
+graph TD;
+    ioa[io-app]
+    iornw[io-react-native-wallet]
+    iornc[io-react-native-crypto]
+    iorni[io-react-native-integrity]
+    iornlu[io-react-native-login-utils]
+    iornss[io-react-native-secure-storage]
+    iornjwt[io-react-native-jwt]
+    rncie[react-native-cie]
+    rnw(react-native-webview)
+
+    ioa --> iornw
+    iornw --> iornjwt
+    iornw --> rncie
+    iornw --> rnw
+
+    subgraph IoApp Deps
+      direction TB
+      iornc
+      iorni
+      iornlu
+      iornss
+    end
+
+    subgraph IoRnWallet Deps
+      iornjwt
+      rncie
+      rnw
+    end
+
+    ioa --> |dependency to implement CryptoContext| iornc
+    ioa --> |dependency to implement IntegrityContext| iorni
+    ioa --> |dependency to implement AuthorizationContext| iornlu
+    ioa --> |dependency to store credentials| iornss
+
+```
