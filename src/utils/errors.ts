@@ -462,3 +462,21 @@ export class CredentialRequestError extends IoWalletError {
     this.reason = reason;
   }
 }
+
+/**
+ * Error subclass thrown when a credential cannot be issued immediately because it follows the async flow.
+ */
+export class CredentialIssuingNotSynchronousError extends IoWalletError {
+  static get code(): "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR" {
+    return "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR";
+  }
+
+  code = "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR";
+
+  reason: string;
+
+  constructor(message: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, reason }));
+    this.reason = reason;
+  }
+}
