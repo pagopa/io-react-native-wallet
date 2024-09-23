@@ -45,6 +45,9 @@ $ cd io-react-native-wallet
 # Install library dependencies
 $ yarn install
 
+# Generate wallet provider types
+$ yarn generate
+
 # CD into the example folder
 $ cd example
 
