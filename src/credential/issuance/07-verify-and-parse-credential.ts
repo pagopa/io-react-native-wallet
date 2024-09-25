@@ -181,7 +181,11 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
-  { credentialCryptoContext, ignoreMissingAttributes }
+  {
+    credentialCryptoContext,
+    ignoreMissingAttributes,
+    includeUndefinedAttributes,
+  }
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
@@ -192,7 +196,8 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   const parsedCredential = parseCredentialSdJwt(
     issuerConf.openid_credential_issuer.credential_configurations_supported,
     decoded,
-    ignoreMissingAttributes
+    ignoreMissingAttributes,
+    includeUndefinedAttributes
   );
 
   return { parsedCredential };
