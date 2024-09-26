@@ -8,6 +8,7 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { hasStatus, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
+  CredentialIssuingNotSynchronousError,
   CredentialNotEntitledError,
   CredentialRequestError,
   UnexpectedStatusCodeError,
@@ -162,6 +163,15 @@ export const obtainCredential: ObtainCredential = async (
 const handleObtainCredentialError = (e: unknown) => {
   if (!(e instanceof UnexpectedStatusCodeError)) {
     throw e;
+  }
+
+  // Although it is technically not an error, we handle it as such to avoid
+  // changing the return type of `obtainCredential` and introduce a breaking change.
+  if (e.statusCode === 201) {
+    throw new CredentialIssuingNotSynchronousError(
+      "This credential cannot be issued synchronously. It will be available at a later time.",
+      e.message
+    );
   }
 
   if (e.statusCode === 404) {
