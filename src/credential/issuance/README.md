@@ -39,6 +39,10 @@ graph TD;
 
 ## Mapped results
 
+### 201 Created (CredentialIssuingNotSynchronousError)
+
+A `201 Created` response is returned by the credential issuer when the request has been queued because the credential cannot be issued synchronously. The consumer should try to obtain the credential at a later time.
+
 ### 404 Not Found (CredentialNotEntitledError)
 
 A `404 Not Found` response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential.
@@ -175,12 +179,19 @@ const { credential, format } = await Credential.Issuance.obtainCredential(
   }
 );
 
-// Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
+/*
+ * Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
+ * WARNING: includeUndefinedAttributes should not be set to true in production in order to get only claims explicitly declared by the issuer.
+ */
 const { parsedCredential } = await Credential.Issuance.verifyAndParseCredential(
   issuerConf,
   credential,
   format,
-  { credentialCryptoContext, ignoreMissingAttributes: true }
+  {
+    credentialCryptoContext,
+    ignoreMissingAttributes: true,
+    includeUndefinedAttributes: false
+  }
 );
 
 return {
@@ -318,6 +329,6 @@ return {
 };
 ```
 
-The result of this flow is a row credential and a parsed credential which must be stored securely in the wallet along with its crypto key.
+The result of this flow is a raw credential and a parsed credential which must be stored securely in the wallet along with its crypto key.
 
 </details>

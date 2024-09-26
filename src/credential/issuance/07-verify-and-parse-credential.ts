@@ -13,7 +13,13 @@ export type VerifyAndParseCredential = (
   format: Out<ObtainCredential>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
+    /**
+     * Do not throw an error when an attribute is not found within disclosures.
+     */
     ignoreMissingAttributes?: boolean;
+    /**
+     * Include attributes that are not explicitly mapped in the issuer configuration.
+     */
     includeUndefinedAttributes?: boolean;
   }
 ) => Promise<{ parsedCredential: ParsedCredential }>;
