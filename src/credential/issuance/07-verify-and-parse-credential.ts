@@ -1,10 +1,11 @@
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
+import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { ObtainCredential } from "./06-obtain-credential";
 
 export type VerifyAndParseCredential = (
@@ -16,7 +17,11 @@ export type VerifyAndParseCredential = (
     ignoreMissingAttributes?: boolean;
     includeUndefinedAttributes?: boolean;
   }
-) => Promise<{ parsedCredential: ParsedCredential }>;
+) => Promise<{
+  parsedCredential: ParsedCredential;
+  expiration: Date;
+  issuedAt: Date;
+}>;
 
 // The credential as a collection of attributes in plain value
 type ParsedCredential = Record<
@@ -195,7 +200,13 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
     ignoreMissingAttributes
   );
 
-  return { parsedCredential };
+  return {
+    parsedCredential,
+    expiration: new Date(decoded.sdJwt.payload.exp * 1000),
+    issuedAt: new Date(
+      getValueFromDisclosures(decoded.disclosures, "iat") * 1000
+    ),
+  };
 };
 
 /**
