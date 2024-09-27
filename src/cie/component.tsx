@@ -12,6 +12,8 @@ import type {
 import { startCieAndroid, startCieiOS, type ContinueWithUrl } from "./manager";
 import { CieError, CieErrorType } from "./error";
 
+const AUTH_LINK_PATTERN = "lettura carta";
+
 /* To obtain the authentication URL on CIE L3 it is necessary to take the
  * link contained in the "Entra con lettura carta CIE" button.
  * This link can then be used on CieManager.
@@ -21,7 +23,7 @@ const injectedJavaScript = `
     (function() {
       function sendDocumentContent() {
         const idpAuthUrl = [...document.querySelectorAll("a")]
-        .filter(a => a.textContent.includes("lettura carta CIE"))
+        .filter(a => a.textContent.toLowerCase().includes("${AUTH_LINK_PATTERN}"))
         .map(a=>a.href)[0];
 
         if(idpAuthUrl) {
