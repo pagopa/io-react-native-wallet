@@ -13,7 +13,13 @@ export type VerifyAndParseCredential = (
   format: Out<ObtainCredential>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
+    /**
+     * Do not throw an error when an attribute is not found within disclosures.
+     */
     ignoreMissingAttributes?: boolean;
+    /**
+     * Include attributes that are not explicitly mapped in the issuer configuration.
+     */
     includeUndefinedAttributes?: boolean;
   }
 ) => Promise<{ parsedCredential: ParsedCredential }>;
@@ -181,7 +187,11 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
-  { credentialCryptoContext, ignoreMissingAttributes }
+  {
+    credentialCryptoContext,
+    ignoreMissingAttributes,
+    includeUndefinedAttributes,
+  }
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
@@ -192,7 +202,8 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   const parsedCredential = parseCredentialSdJwt(
     issuerConf.openid_credential_issuer.credential_configurations_supported,
     decoded,
-    ignoreMissingAttributes
+    ignoreMissingAttributes,
+    includeUndefinedAttributes
   );
 
   return { parsedCredential };
@@ -204,6 +215,8 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
  * @param credential The encoded credential returned by {@link obtainCredential}
  * @param format The format of the credentual returned by {@link obtainCredential}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
+ * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
+ * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
  * @returns A parsed credential with attributes in plain value
  * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
  * @throws {IoWalletError} If the credential is not bound to the provided user key
