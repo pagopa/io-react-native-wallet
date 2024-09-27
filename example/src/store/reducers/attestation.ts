@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import { getAttestationThunk } from "../../thunks/attestation";
 import { createSecureStorage } from "../storage";
@@ -6,6 +6,7 @@ import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./sesssion";
+import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 
 // State type definition for the attestion slice
 type AttestationState = {
@@ -99,3 +100,22 @@ export const selectAttestationAsyncStatus = (state: RootState) =>
  */
 export const selectAttestation = (state: RootState) =>
   state.attestation.attestation;
+
+/**
+ * Checks if the Wallet Instance Attestation needs to be requested by
+ * checking the expiry date
+ * @param state - the root state of the Redux store
+ * @returns true if the Wallet Instance Attestation is expired or not present
+ */
+export const shouldRequestAttestationSelector = createSelector(
+  selectAttestation,
+  (attestation) => {
+    if (!attestation) {
+      return true;
+    }
+    const { payload } = WalletInstanceAttestation.decode(attestation);
+    const expiryDate = new Date(payload.exp * 1000);
+    const now = new Date();
+    return now > expiryDate;
+  }
+);

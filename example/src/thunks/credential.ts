@@ -2,7 +2,10 @@ import {
   createCryptoContextFor,
   Credential,
 } from "@pagopa/io-react-native-wallet";
-import { selectAttestation } from "../store/reducers/attestation";
+import {
+  selectAttestation,
+  shouldRequestAttestationSelector,
+} from "../store/reducers/attestation";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPid } from "../store/reducers/pid";
 import type {
@@ -16,6 +19,7 @@ import {
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import { createAppAsyncThunk } from "./utils";
+import { getAttestationThunk } from "./attestation";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -52,7 +56,13 @@ type GetCredentialStatusAttestationThunkOutput = {
 export const getCredentialThunk = createAppAsyncThunk<
   CredentialResult,
   GetCredentialThunkInput
->("credential/credentialGet", async (args, { getState }) => {
+>("credential/credentialGet", async (args, { getState, dispatch }) => {
+  // Checks if the wallet instance attestation needs to be reuqested
+  if (shouldRequestAttestationSelector(getState())) {
+    await dispatch(getAttestationThunk());
+  }
+
+  // Gets the Wallet Instance Attestation from the persisted store
   const walletInstanceAttestation = selectAttestation(getState());
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");

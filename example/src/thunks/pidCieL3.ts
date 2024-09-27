@@ -6,7 +6,10 @@ import {
 } from "@pagopa/io-react-native-wallet";
 import parseUrl from "parse-url";
 import uuid from "react-native-uuid";
-import { selectAttestation } from "../store/reducers/attestation";
+import {
+  selectAttestation,
+  shouldRequestAttestationSelector,
+} from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidCieL3FlowParams } from "../store/reducers/pid";
@@ -14,6 +17,7 @@ import type { PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
+import { getAttestationThunk } from "./attestation";
 import { createAppAsyncThunk } from "./utils";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
@@ -70,6 +74,12 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
   PrepareCieL3FlowParamsThunkOutput,
   PrepareCieL3FlowParamsThunkInput
 >("ciel3/flowParamsPrepare", async (args, { getState, dispatch }) => {
+  // Checks if the wallet instance attestation needs to be reuqested
+  if (shouldRequestAttestationSelector(getState())) {
+    await dispatch(getAttestationThunk());
+  }
+
+  // Gets the Wallet Instance Attestation from the persisted store
   const walletInstanceAttestation = selectAttestation(getState());
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");
