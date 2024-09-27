@@ -43,6 +43,11 @@ graph TD;
 
 A `404 Not Found` response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential.
 
+### 201 Created (CredentialIssuingNotSynchronousError)
+
+Although `201 Created` is not considered an error, it is mapped as an error in this context in order to handle the case where the credential issuance is not synchronous.
+This allows keeping the flow consistent and handle the case where the credential is not immediately available.
+
 ## Strong authentication for eID issuance (Query Mode)
 
 The eID issuance requires a strong authentication method. Currently SPID (L2), CieID (L2) and CIE+PIN (L3) are supported. The strong authentication method is determined by the IDP hint which is passed to the `completeUserAuthorizationWithQueryMode` function.
