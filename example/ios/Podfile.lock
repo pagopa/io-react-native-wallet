@@ -73,6 +73,9 @@ PODS:
   - hermes-engine (0.72.14):
     - hermes-engine/Pre-built (= 0.72.14)
   - hermes-engine/Pre-built (0.72.14)
+  - io-react-native-secure-storage (0.1.1):
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
   - JOSESwift (2.4.0)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
@@ -566,6 +569,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (= 0.182.0)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - io-react-native-secure-storage (from `../node_modules/io-react-native-secure-storage`)
   - libevent (~> 2.1.12)
   - OpenSSL-Universal (= 1.1.1100)
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
@@ -649,6 +653,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
+  io-react-native-secure-storage:
+    :path: "../node_modules/io-react-native-secure-storage"
   pagopa-io-react-native-crypto:
     :path: "../node_modules/@pagopa/io-react-native-crypto"
   pagopa-io-react-native-integrity:
@@ -759,6 +765,7 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: b213bace5f31766ad1434d2d9b2cbf04cf92a2b6
+  io-react-native-secure-storage: 5e6f84d27ead13de84f2014ecc767bffdc3e97e9
   JOSESwift: 7ff178bb9173ff42c6e990929a9f2fa702a34f69
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
