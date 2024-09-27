@@ -1,9 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { asyncStatusInitial } from "../utils";
+import { persistReducer, type PersistConfig } from "redux-persist";
 import { getAttestationThunk } from "../../thunks/attestation";
-import type { RootState, AsyncStatus } from "../types";
-import { sessionReset } from "./sesssion";
+import { createSecureStorage } from "../storage";
+import type { AsyncStatus, RootState } from "../types";
+import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
+import { sessionReset } from "./sesssion";
 
 // State type definition for the attestion slice
 type AttestationState = {
@@ -21,7 +23,7 @@ const initialState: AttestationState = {
  * Redux slice for the attestion state. It contains the obtained attestation.
  * Currently it is not persisted or reused since each operation requires a new attestation.
  */
-export const attestationSlice = createSlice({
+const attestationSlice = createSlice({
   name: "attestation",
   initialState,
   reducers: {
@@ -64,6 +66,23 @@ export const attestationSlice = createSlice({
  * Exports the actions for the attestaion slice.
  */
 export const { attestationReset } = attestationSlice.actions;
+
+/**
+ * Persist configuration for the attestation slice.
+ */
+const persistConfig: PersistConfig<AttestationState> = {
+  key: "attestation",
+  storage: createSecureStorage(),
+  whitelist: ["attestation"],
+};
+
+/**
+ * Persisted reducer for the credential slice.
+ */
+export const attestationReducer = persistReducer(
+  persistConfig,
+  attestationSlice.reducer
+);
 
 /**
  * Selector which returns the attestation state of the related async operation.
