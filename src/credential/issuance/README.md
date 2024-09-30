@@ -319,7 +319,7 @@ const { credential, format } = await Credential.Issuance.obtainCredential(
 );
 
 // Parse and verify the eID credential
-const { parsedCredential } = await Credential.Issuance.verifyAndParseCredential(
+const { parsedCredential, issuedAt, expiration } = await Credential.Issuance.verifyAndParseCredential(
   issuerConf,
   credential,
   format,
@@ -331,6 +331,8 @@ return {
   credential,
   keyTag: credentialKeyTag,
   credentialType,
+  issuedAt,
+  expiration
 };
 ```
 
