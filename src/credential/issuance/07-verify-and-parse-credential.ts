@@ -1,10 +1,11 @@
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
+import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { ObtainCredential } from "./06-obtain-credential";
 
 export type VerifyAndParseCredential = (
@@ -13,10 +14,20 @@ export type VerifyAndParseCredential = (
   format: Out<ObtainCredential>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
+    /**
+     * Do not throw an error when an attribute is not found within disclosures.
+     */
     ignoreMissingAttributes?: boolean;
+    /**
+     * Include attributes that are not explicitly mapped in the issuer configuration.
+     */
     includeUndefinedAttributes?: boolean;
   }
-) => Promise<{ parsedCredential: ParsedCredential }>;
+) => Promise<{
+  parsedCredential: ParsedCredential;
+  expiration: Date;
+  issuedAt: Date;
+}>;
 
 // The credential as a collection of attributes in plain value
 type ParsedCredential = Record<
@@ -181,7 +192,11 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
-  { credentialCryptoContext, ignoreMissingAttributes }
+  {
+    credentialCryptoContext,
+    ignoreMissingAttributes,
+    includeUndefinedAttributes,
+  }
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
@@ -192,10 +207,17 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   const parsedCredential = parseCredentialSdJwt(
     issuerConf.openid_credential_issuer.credential_configurations_supported,
     decoded,
-    ignoreMissingAttributes
+    ignoreMissingAttributes,
+    includeUndefinedAttributes
   );
 
-  return { parsedCredential };
+  return {
+    parsedCredential,
+    expiration: new Date(decoded.sdJwt.payload.exp * 1000),
+    issuedAt: new Date(
+      getValueFromDisclosures(decoded.disclosures, "iat") * 1000
+    ),
+  };
 };
 
 /**
@@ -204,7 +226,9 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
  * @param credential The encoded credential returned by {@link obtainCredential}
  * @param format The format of the credentual returned by {@link obtainCredential}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
- * @returns A parsed credential with attributes in plain value
+ * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
+ * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
+ * @returns A parsed credential with attributes in plain value, the expiration and issuance date of the credential
  * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
  * @throws {IoWalletError} If the credential is not bound to the provided user key
  * @throws {IoWalletError} If the credential data fail to parse
