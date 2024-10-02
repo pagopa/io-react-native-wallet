@@ -26,7 +26,7 @@ export type VerifyAndParseCredential = (
 ) => Promise<{
   parsedCredential: ParsedCredential;
   expiration: Date;
-  issuedAt?: Date;
+  issuedAt: Date | undefined;
 }>;
 
 // The credential as a collection of attributes in plain value
