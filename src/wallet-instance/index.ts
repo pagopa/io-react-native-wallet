@@ -27,3 +27,14 @@ export async function createWalletInstance(context: {
 
   return hardwareKeyTag;
 }
+
+export async function revokeCurrentWalletInstance(context: {
+  walletProviderBaseUrl: string;
+  appFetch?: GlobalFetch["fetch"];
+}): Promise<void> {
+  const api = getWalletProviderClient(context);
+
+  await api.put("/wallet-instances/current/status", {
+    body: "REVOKED",
+  });
+}
