@@ -15,7 +15,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/NonceDetailView"
         "500":
-          $ref: "#/components/responses/Unexpected"
+          $ref: "#/components/responses/InternalServerError"
 
   /wallet-instances:
     post:
@@ -33,7 +33,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableContent"
         "500":
-          $ref: "#/components/responses/Unexpected"
+          $ref: "#/components/responses/InternalServerError"
 
   /token:
     description: This is a token endpoint (as defined in RFC 7523 section 4)
@@ -62,7 +62,27 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableContent"
         "500":
-          $ref: "#/components/responses/Unexpected"
+          $ref: "#/components/responses/InternalServerError"
+
+  /wallet-instances/current/status:
+    put:
+      summary: Revoke current Wallet Instance
+      operationId: setCurrentWalletInstanceStatus
+      description: |
+        Revoke the current Wallet Instance.
+        If the Wallet Instance is already revoked, the operation will succeed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetWalletInstanceStatusData"
+      responses:
+        "204":
+          description: Wallet Instance status successfully set
+        "422":
+          $ref: "#/components/responses/UnprocessableContent"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
   responses:
@@ -87,8 +107,8 @@ components:
           schema:
             $ref: "#/components/schemas/ProblemDetail"
 
-    Unexpected:
-      description: Unexpected error
+    InternalServerError:
+      description: Internal Server Error
       content:
         application/json:
           schema:
@@ -199,3 +219,7 @@ components:
       type: string
       description: UUID
       example: 32928ece-6ca0-488c-9a6a-eb8ee66ab69a
+
+    SetWalletInstanceStatusData:
+      type: string
+      enum: ["REVOKED"]
