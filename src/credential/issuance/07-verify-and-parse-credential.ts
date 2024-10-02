@@ -26,7 +26,7 @@ export type VerifyAndParseCredential = (
 ) => Promise<{
   parsedCredential: ParsedCredential;
   expiration: Date;
-  issuedAt: Date;
+  issuedAt: Date | undefined;
 }>;
 
 // The credential as a collection of attributes in plain value
@@ -211,12 +211,15 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
     includeUndefinedAttributes
   );
 
+  const maybeIssuedAt = getValueFromDisclosures(decoded.disclosures, "iat");
+
   return {
     parsedCredential,
     expiration: new Date(decoded.sdJwt.payload.exp * 1000),
-    issuedAt: new Date(
-      getValueFromDisclosures(decoded.disclosures, "iat") * 1000
-    ),
+    issuedAt:
+      typeof maybeIssuedAt === "number"
+        ? new Date(maybeIssuedAt * 1000)
+        : undefined,
   };
 };
 
