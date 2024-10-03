@@ -27,3 +27,9 @@ return integrityKeyTag;
 ```
 
 The returned `integrityKeyTag` is supposed to be stored and used to verify the integrity of the device in the future when using an `IntegrityContext` object. It must be regenerated if another wallet instance is created.
+
+## Mapped results
+
+### 409 Conflict (WalletInstanceCreationIntegrityError)
+
+A `409 Conflict` response is returned by the wallet provider when an integrity check fails.
