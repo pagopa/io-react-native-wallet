@@ -15,7 +15,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/NonceDetailView"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          $ref: "#/components/responses/Unexpected"
 
   /wallet-instances:
     post:
@@ -33,7 +33,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableContent"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          $ref: "#/components/responses/Unexpected"
 
   /token:
     description: This is a token endpoint (as defined in RFC 7523 section 4)
@@ -62,7 +62,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableContent"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          $ref: "#/components/responses/Unexpected"
 
   /wallet-instances/current/status:
     put:
@@ -82,7 +82,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableContent"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          $ref: "#/components/responses/Unexpected"
 
 components:
   responses:
@@ -107,8 +107,8 @@ components:
           schema:
             $ref: "#/components/schemas/ProblemDetail"
 
-    InternalServerError:
-      description: Internal Server Error
+    Unexpected:
+      description: Unexpected error
       content:
         application/json:
           schema:
