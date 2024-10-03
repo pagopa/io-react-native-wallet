@@ -33,3 +33,9 @@ return issuedAttestation;
 ```
 
 The returned `issuedAttestation` is supposed to be stored and used for any future operation that requires a Wallet Instance Attestation. The wallet attestation has a limited validity and must be regenerated when it expires.
+
+## Mapped results
+
+### 409 Conflict (WalletInstanceIntegrityFailedError)
+
+A `409 Conflict` response is returned by the wallet provider when an integrity check fails.
