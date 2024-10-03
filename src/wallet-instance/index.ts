@@ -35,6 +35,6 @@ export async function revokeCurrentWalletInstance(context: {
   const api = getWalletProviderClient(context);
 
   await api.put("/wallet-instances/current/status", {
-    body: "REVOKED",
+    body: { status: "REVOKED" },
   });
 }

@@ -68,14 +68,12 @@ paths:
     put:
       summary: Revoke current Wallet Instance
       operationId: setCurrentWalletInstanceStatus
-      description: |
-        Revoke the current Wallet Instance.
-        If the Wallet Instance is already revoked, the operation will succeed.
+      description: Revoke the current Wallet Instance. If the Wallet Instance is already revoked, the operation will succeed.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SetWalletInstanceStatusData"
+              $ref: "#/components/schemas/SetCurrentWalletInstanceStatusBody"
       responses:
         "204":
           description: Wallet Instance status successfully set
@@ -220,6 +218,11 @@ components:
       description: UUID
       example: 32928ece-6ca0-488c-9a6a-eb8ee66ab69a
 
-    SetWalletInstanceStatusData:
-      type: string
-      enum: ["REVOKED"]
+    SetCurrentWalletInstanceStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["REVOKED"]
+      required:
+        - status
