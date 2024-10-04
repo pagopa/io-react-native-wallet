@@ -12,6 +12,7 @@ export type TestScenarioProp = {
   onPress: () => void;
   icon: IOIcons;
   isPresent?: boolean;
+  isHidden?: boolean;
 } & AsyncStatus;
 
 export default function TestScenario({
@@ -49,14 +50,12 @@ export default function TestScenario({
   }, [hasError, isPresent]);
 
   return (
-    <>
-      <ModuleCredential
-        label={title}
-        icon={icon}
-        onPress={onPress}
-        isFetching={isLoading}
-        badge={getBadge()}
-      />
-    </>
+    <ModuleCredential
+      label={title}
+      icon={icon}
+      onPress={onPress}
+      isFetching={isLoading}
+      badge={getBadge()}
+    />
   );
 }

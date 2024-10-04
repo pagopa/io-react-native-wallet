@@ -1,5 +1,8 @@
 import React, { useMemo } from "react";
-import { createWalletInstanceThunk } from "../thunks/instance";
+import {
+  createWalletInstanceThunk,
+  revokeWalletInstanceThunk,
+} from "../thunks/instance";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import TestScenario, {
   type TestScenarioProp,
@@ -9,6 +12,7 @@ import {
   selectHasInstanceKeyTag,
   selectInstanceAsyncStatus,
   selectInstanceKeyTag,
+  selectInstanceRevocationAsyncStatus,
 } from "../store/reducers/instance";
 import {
   selectAttestation,
@@ -27,6 +31,9 @@ export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();
   const instanceState = useAppSelector(selectInstanceAsyncStatus);
   const attestationState = useAppSelector(selectAttestationAsyncStatus);
+  const instanceRevocationState = useAppSelector(
+    selectInstanceRevocationAsyncStatus
+  );
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
   const instanceKeyTag = useAppSelector(selectInstanceKeyTag);
@@ -37,6 +44,7 @@ export const WalletInstanceScreen = () => {
     instanceKeyTag,
     attestationState,
     attestation,
+    instanceRevocationState,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -82,6 +90,15 @@ export const WalletInstanceScreen = () => {
         icon: "bonus",
         isPresent: !!attestation,
       },
+      {
+        title: "Revoke Wallet Instance",
+        onPress: () => dispatch(revokeWalletInstanceThunk()),
+        isLoading: instanceRevocationState.isLoading,
+        hasError: instanceRevocationState.hasError,
+        isDone: instanceRevocationState.isDone,
+        icon: "trashcan",
+        isHidden: !hasIntegrityKeyTag,
+      },
     ],
     [
       attestation,
@@ -93,6 +110,9 @@ export const WalletInstanceScreen = () => {
       instanceState.hasError,
       instanceState.isDone,
       instanceState.isLoading,
+      instanceRevocationState.isDone,
+      instanceRevocationState.isLoading,
+      instanceRevocationState.hasError,
     ]
   );
 
@@ -101,7 +121,7 @@ export const WalletInstanceScreen = () => {
       contentContainerStyle={{
         margin: IOVisualCostants.appMarginDefault,
       }}
-      data={scenarios}
+      data={scenarios.filter((scenario) => !scenario.isHidden)}
       keyExtractor={(item, index) => `${item.title}-${index}`}
       renderItem={({ item }) => (
         <>
