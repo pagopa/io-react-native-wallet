@@ -10,7 +10,7 @@ import {
   REHYDRATE,
 } from "redux-persist";
 import { instanceReducer } from "./reducers/instance";
-import { attestationSlice } from "./reducers/attestation";
+import { attestationReducer } from "./reducers/attestation";
 import { credentialReducer } from "./reducers/credential";
 import { debugSlice } from "./reducers/debug";
 import { environmentReducer } from "./reducers/environment";
@@ -25,7 +25,7 @@ export const store = configureStore({
     debug: debugSlice.reducer,
     session: sessionReducer,
     instance: instanceReducer,
-    attestation: attestationSlice.reducer,
+    attestation: attestationReducer,
     credential: credentialReducer,
     pid: pidReducer,
   },

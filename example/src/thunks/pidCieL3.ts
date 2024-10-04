@@ -1,21 +1,24 @@
+import { generate } from "@pagopa/io-react-native-crypto";
 import {
   createCryptoContextFor,
   Credential,
   WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
-import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
-import { getIntegrityContext } from "../utils/integrity";
-import { createAppAsyncThunk } from "./utils";
-import appFetch from "../utils/fetch";
-import uuid from "react-native-uuid";
-import { generate } from "@pagopa/io-react-native-crypto";
-import { credentialReset } from "../store/reducers/credential";
 import parseUrl from "parse-url";
-import type { PidResult } from "../store/types";
+import uuid from "react-native-uuid";
+import {
+  selectAttestation,
+  shouldRequestAttestationSelector,
+} from "../store/reducers/attestation";
+import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
-import { getEnv } from "../utils/environment";
 import { selectPidCieL3FlowParams } from "../store/reducers/pid";
+import type { PidResult } from "../store/types";
+import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import { getEnv } from "../utils/environment";
+import appFetch from "../utils/fetch";
+import { getAttestationThunk } from "./attestation";
+import { createAppAsyncThunk } from "./utils";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
 // PUT ME IN UTILS OR ENV
@@ -71,32 +74,26 @@ export const prepareCieL3FlowParamsThunk = createAppAsyncThunk<
   PrepareCieL3FlowParamsThunkOutput,
   PrepareCieL3FlowParamsThunkInput
 >("ciel3/flowParamsPrepare", async (args, { getState, dispatch }) => {
+  // Checks if the wallet instance attestation needs to be reuqested
+  if (shouldRequestAttestationSelector(getState())) {
+    await dispatch(getAttestationThunk());
+  }
+
+  // Gets the Wallet Instance Attestation from the persisted store
+  const walletInstanceAttestation = selectAttestation(getState());
+  if (!walletInstanceAttestation) {
+    throw new Error("Wallet Instance Attestation not found");
+  }
+
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
   const { idpHint, ciePin } = args;
-  // Retrieve the integrity key tag from the store and create its context
-  const integrityKeyTag = selectInstanceKeyTag(getState());
-  if (!integrityKeyTag) {
-    throw new Error("Integrity key not found");
-  }
-  const integrityContext = getIntegrityContext(integrityKeyTag);
 
-  // Obtain a wallet attestation. A wallet instance must be created before this step.
-  await regenerateCryptoKey(WIA_KEYTAG);
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   // Get env
   const env = selectEnv(getState());
-  const { WALLET_PROVIDER_BASE_URL, WALLET_PID_PROVIDER_BASE_URL } =
-    getEnv(env);
-
-  const walletInstanceAttestation =
-    await WalletInstanceAttestation.getAttestation({
-      wiaCryptoContext,
-      integrityContext,
-      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-      appFetch,
-    });
+  const { WALLET_PID_PROVIDER_BASE_URL } = getEnv(env);
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({

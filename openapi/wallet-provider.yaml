@@ -1,7 +1,11 @@
 openapi: 3.0.3
 info:
-  title: IO Wallet - User API
+  title: IO Wallet
   version: 1.0.0
+servers:
+  - url: https://api-app.io.pagopa.it/api/v1/wallet
+security:
+  - Bearer: []
 paths:
   /nonce:
     get:
@@ -30,6 +34,12 @@ paths:
       responses:
         "204":
           description: Wallet instance successfully created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "422":
           $ref: "#/components/responses/UnprocessableContent"
         "500":
@@ -53,12 +63,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WalletAttestationView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: The wallet instance was revoked
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: The wallet instance was not found
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "422":
           $ref: "#/components/responses/UnprocessableContent"
         "500":
@@ -83,6 +95,12 @@ paths:
           $ref: "#/components/responses/Unexpected"
 
 components:
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header
+
   responses:
     Forbidden:
       description: The server understands the request but refuses to authorize it
@@ -100,6 +118,20 @@ components:
 
     UnprocessableContent:
       description: Unprocessable Content
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    Conflict:
+      description: There has been a conflict
       content:
         application/json:
           schema:
@@ -205,18 +237,6 @@ components:
             An absolute URI that identifies the specific occurrence of the
             problem. It may or may not yield further information if
             dereferenced.
-
-    FiscalCode:
-      type: string
-      description: User's fiscal code.
-      format: FiscalCode
-      x-import: "@pagopa/ts-commons/lib/strings"
-      example: SPNDNL80R13C555X
-
-    Id:
-      type: string
-      description: UUID
-      example: 32928ece-6ca0-488c-9a6a-eb8ee66ab69a
 
     SetCurrentWalletInstanceStatusBody:
       type: object

@@ -11,6 +11,7 @@ The following methods are available:
 Examples are provided as follows:
 
 ### Wallet instance creation
+
 ```ts
 // Get env
 const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object containing the environment variables
@@ -35,6 +36,7 @@ return integrityKeyTag;
 The returned `integrityKeyTag` is supposed to be stored and used to verify the integrity of the device in the future when using an `IntegrityContext` object. It must be regenerated if another wallet instance is created.
 
 ### Wallet instance revocation
+
 ```ts
 const { WALLET_PROVIDER_BASE_URL } = env;
 
@@ -43,3 +45,9 @@ await WalletInstance.revokeCurrentWalletInstance({
   appFetch,
 });
 ```
+
+## Mapped results
+
+### 409 Conflict (WalletInstanceCreationIntegrityError)
+
+A `409 Conflict` response is returned by the wallet provider when an integrity check fails.
