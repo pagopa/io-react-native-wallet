@@ -1,9 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { asyncStatusInitial } from "../utils";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
+import { persistReducer, type PersistConfig } from "redux-persist";
 import { getAttestationThunk } from "../../thunks/attestation";
-import type { RootState, AsyncStatus } from "../types";
-import { sessionReset } from "./sesssion";
+import { createSecureStorage } from "../storage";
+import type { AsyncStatus, RootState } from "../types";
+import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
+import { sessionReset } from "./sesssion";
+import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 
 // State type definition for the attestion slice
 type AttestationState = {
@@ -21,7 +24,7 @@ const initialState: AttestationState = {
  * Redux slice for the attestion state. It contains the obtained attestation.
  * Currently it is not persisted or reused since each operation requires a new attestation.
  */
-export const attestationSlice = createSlice({
+const attestationSlice = createSlice({
   name: "attestation",
   initialState,
   reducers: {
@@ -66,6 +69,23 @@ export const attestationSlice = createSlice({
 export const { attestationReset } = attestationSlice.actions;
 
 /**
+ * Persist configuration for the attestation slice.
+ */
+const persistConfig: PersistConfig<AttestationState> = {
+  key: "attestation",
+  storage: createSecureStorage(),
+  whitelist: ["attestation"],
+};
+
+/**
+ * Persisted reducer for the credential slice.
+ */
+export const attestationReducer = persistReducer(
+  persistConfig,
+  attestationSlice.reducer
+);
+
+/**
  * Selector which returns the attestation state of the related async operation.
  * @param state - The root state of the Redux store
  * @returns the attestion state
@@ -80,3 +100,22 @@ export const selectAttestationAsyncStatus = (state: RootState) =>
  */
 export const selectAttestation = (state: RootState) =>
   state.attestation.attestation;
+
+/**
+ * Checks if the Wallet Instance Attestation needs to be requested by
+ * checking the expiry date
+ * @param state - the root state of the Redux store
+ * @returns true if the Wallet Instance Attestation is expired or not present
+ */
+export const shouldRequestAttestationSelector = createSelector(
+  selectAttestation,
+  (attestation) => {
+    if (!attestation) {
+      return true;
+    }
+    const { payload } = WalletInstanceAttestation.decode(attestation);
+    const expiryDate = new Date(payload.exp * 1000);
+    const now = new Date();
+    return now > expiryDate;
+  }
+);

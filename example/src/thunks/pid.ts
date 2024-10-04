@@ -1,21 +1,20 @@
+import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
 import {
-  WalletInstanceAttestation,
-  createCryptoContextFor,
-} from "@pagopa/io-react-native-wallet";
-import appFetch from "../utils/fetch";
-import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
-import { createAppAsyncThunk } from "./utils";
-import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { getIntegrityContext } from "../utils/integrity";
+  selectAttestation,
+  shouldRequestAttestationSelector,
+} from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
+import { selectEnv } from "../store/reducers/environment";
 import type {
   PidAuthMethods,
   PidResult,
   SupportedCredentials,
 } from "../store/types";
 import { getPid } from "../utils/credential";
-import { selectEnv } from "../store/reducers/environment";
+import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
+import { createAppAsyncThunk } from "./utils";
+import { getAttestationThunk } from "./attestation";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -35,36 +34,22 @@ type GetPidThunkInput = {
 export const getPidThunk = createAppAsyncThunk<PidResult, GetPidThunkInput>(
   "pid/pidGet",
   async (args, { getState, dispatch }) => {
-    // Retrieve the integrity key tag from the store and create its context
-    const integrityKeyTag = selectInstanceKeyTag(getState());
-    if (!integrityKeyTag) {
-      throw new Error("Integrity key not found");
+    // Checks if the wallet instance attestation needs to be reuqested
+    if (shouldRequestAttestationSelector(getState())) {
+      await dispatch(getAttestationThunk());
     }
-    const integrityContext = getIntegrityContext(integrityKeyTag);
 
-    // generate Key for Wallet Instance Attestation
-    // ensure the key esists befor starting the issuing process
-    await regenerateCryptoKey(WIA_KEYTAG);
+    // Gets the Wallet Instance Attestation from the persisted store
+    const walletInstanceAttestation = selectAttestation(getState());
+    if (!walletInstanceAttestation) {
+      throw new Error("Wallet Instance Attestation not found");
+    }
+
     const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
     // Get env URLs
     const env = selectEnv(getState());
-    const {
-      WALLET_PROVIDER_BASE_URL,
-      WALLET_PID_PROVIDER_BASE_URL,
-      REDIRECT_URI,
-    } = getEnv(env);
-    /**
-     * Obtains a new Wallet Instance Attestation.
-     * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
-     */
-    const walletInstanceAttestation =
-      await WalletInstanceAttestation.getAttestation({
-        wiaCryptoContext,
-        integrityContext,
-        walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-        appFetch,
-      });
+    const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
 
     const { idpHint, credentialType } = args;
     // Resets the credential state before obtaining a new PID
