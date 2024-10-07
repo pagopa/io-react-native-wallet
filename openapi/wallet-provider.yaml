@@ -76,6 +76,24 @@ paths:
         "500":
           $ref: "#/components/responses/Unexpected"
 
+  /wallet-instances/current/status:
+    put:
+      summary: Revoke current Wallet Instance
+      operationId: setCurrentWalletInstanceStatus
+      description: Revoke the current Wallet Instance. If the Wallet Instance is already revoked, the operation will succeed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCurrentWalletInstanceStatusBody"
+      responses:
+        "204":
+          description: Wallet Instance status successfully set
+        "422":
+          $ref: "#/components/responses/UnprocessableContent"
+        "500":
+          $ref: "#/components/responses/Unexpected"
+
 components:
   securitySchemes:
     Bearer:
@@ -219,3 +237,12 @@ components:
             An absolute URI that identifies the specific occurrence of the
             problem. It may or may not yield further information if
             dereferenced.
+
+    SetCurrentWalletInstanceStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["REVOKED"]
+      required:
+        - status

@@ -7,6 +7,7 @@ import {
   getIntegrityContext,
 } from "../utils/integrity";
 import { selectEnv } from "../store/reducers/environment";
+import { instanceReset } from "../store/reducers/instance";
 import { getEnv } from "../utils/environment";
 import { isAndroid } from "../utils/device";
 
@@ -36,5 +37,20 @@ export const createWalletInstanceThunk = createAppAsyncThunk(
     });
 
     return integrityKeyTag;
+  }
+);
+
+export const revokeWalletInstanceThunk = createAppAsyncThunk(
+  "walletinstance/revoke",
+  async (_, { getState, dispatch }) => {
+    const env = selectEnv(getState());
+    const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
+
+    await WalletInstance.revokeCurrentWalletInstance({
+      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      appFetch,
+    });
+
+    dispatch(instanceReset());
   }
 );

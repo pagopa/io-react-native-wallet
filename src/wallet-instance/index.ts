@@ -54,3 +54,14 @@ const handleCreateWalletInstanceError = (e: unknown) => {
     e.reason
   );
 };
+
+export async function revokeCurrentWalletInstance(context: {
+  walletProviderBaseUrl: string;
+  appFetch?: GlobalFetch["fetch"];
+}): Promise<void> {
+  const api = getWalletProviderClient(context);
+
+  await api.put("/wallet-instances/current/status", {
+    body: { status: "REVOKED" },
+  });
+}
