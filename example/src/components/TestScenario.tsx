@@ -12,7 +12,6 @@ export type TestScenarioProp = {
   onPress: () => void;
   icon: IOIcons;
   isPresent?: boolean;
-  isHidden?: boolean;
 } & AsyncStatus;
 
 export default function TestScenario({

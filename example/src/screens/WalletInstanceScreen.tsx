@@ -91,13 +91,12 @@ export const WalletInstanceScreen = () => {
         isPresent: !!attestation,
       },
       {
-        title: "Revoke Wallet Instance",
+        title: "Revoke current Wallet Instance",
         onPress: () => dispatch(revokeWalletInstanceThunk()),
         isLoading: instanceRevocationState.isLoading,
         hasError: instanceRevocationState.hasError,
         isDone: instanceRevocationState.isDone,
         icon: "trashcan",
-        isHidden: !hasIntegrityKeyTag,
       },
     ],
     [
@@ -121,7 +120,7 @@ export const WalletInstanceScreen = () => {
       contentContainerStyle={{
         margin: IOVisualCostants.appMarginDefault,
       }}
-      data={scenarios.filter((scenario) => !scenario.isHidden)}
+      data={scenarios}
       keyExtractor={(item, index) => `${item.title}-${index}`}
       renderItem={({ item }) => (
         <>
