@@ -62,7 +62,7 @@ const SupportedCredentialMetadata = z.object({
   claims: ClaimsMetadata.optional(), // TODO [SIW-1268]: should not be optional
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
-  authentic_source: z.string(),
+  authentic_source: z.string().optional(),
 });
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
