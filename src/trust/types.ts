@@ -53,7 +53,7 @@ const ClaimsMetadata = z.record(
   })
 );
 
-// Metadata for a credentia which i supported by a Issuer
+// Metadata for a credentia which is supported by a Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
   format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
@@ -62,6 +62,7 @@ const SupportedCredentialMetadata = z.object({
   claims: ClaimsMetadata.optional(), // TODO [SIW-1268]: should not be optional
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
+  authentic_source: z.string().optional(),
 });
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
