@@ -3,6 +3,7 @@ import { persistReducer, type PersistConfig } from "redux-persist";
 import {
   getCredentialStatusAttestationThunk,
   getCredentialThunk,
+  type GetCredentialStatusAttestationThunkOutput,
 } from "../../thunks/credential";
 import type {
   CredentialResult,
@@ -29,7 +30,10 @@ type CredentialState = {
     CredentialResult | undefined
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-  statusAttestation: Record<SupportedCredentialsWithoutPid, string | undefined>;
+  statusAttestation: Record<
+    SupportedCredentialsWithoutPid,
+    GetCredentialStatusAttestationThunkOutput | undefined
+  >;
   statusAttAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
 };
 
@@ -127,8 +131,7 @@ const credentialSlice = createSlice({
       (state, action) => {
         const credentialType = action.payload.credentialType;
         // Set the credential
-        state.statusAttestation[credentialType] =
-          action.payload.statusAttestation;
+        state.statusAttestation[credentialType] = action.payload;
         // Set the status
         state.statusAttAsyncStatus[credentialType] = {
           ...asyncStatusInitial,

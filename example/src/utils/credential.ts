@@ -288,13 +288,24 @@ export const getCredentialStatusAttestation = async (
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
 
-  const res = await Credential.Status.statusAttestation(
+  const statusAttestation = await Credential.Status.statusAttestation(
     issuerConf,
     credential,
     credentialCryptoContext
   );
+
+  const parsedStatusAttestation =
+    await Credential.Status.verifyAndParseStatusAttestation(
+      issuerConf,
+      statusAttestation,
+      {
+        credentialCryptoContext,
+      }
+    );
+
   return {
-    statusAttestation: res.statusAttestation,
+    ...statusAttestation,
+    ...parsedStatusAttestation,
     credentialType,
   };
 };
