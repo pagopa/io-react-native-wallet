@@ -1,21 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getPidThunk } from "../../thunks/pid";
 import {
   continueCieL3FlowThunk,
   prepareCieL3FlowParamsThunk,
   type PrepareCieL3FlowParamsThunkOutput,
 } from "../../thunks/pidCieL3";
+import { createSecureStorage } from "../storage";
 import type {
-  RootState,
   AsyncStatus,
   PidAuthMethods,
   PidResult,
+  RootState,
 } from "../types";
 import { asyncStatusInitial } from "../utils";
-import { sessionReset } from "./sesssion";
 import { instanceReset } from "./instance";
-import { getPidThunk } from "../../thunks/pid";
+import { sessionReset } from "./sesssion";
 
 /**
  * State type definition for the PID slice.
@@ -196,7 +196,7 @@ export const { pidCiel3FlowReset } = pidSlice.actions;
  */
 const persistConfig: PersistConfig<PidState> = {
   key: "pid",
-  storage: AsyncStorage,
+  storage: createSecureStorage(),
   whitelist: ["pid"],
 };
 
