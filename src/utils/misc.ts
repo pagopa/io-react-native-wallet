@@ -11,11 +11,11 @@ export const hasStatus =
   (status: number) =>
   async (res: Response): Promise<Response> => {
     if (res.status !== status) {
+      const responseBody = await res.text();
       throw new UnexpectedStatusCodeError(
-        `Http request failed. Expected ${status}, got ${res.status}, url: ${
-          res.url
-        } with response: ${await res.text()}`,
-        res.status
+        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url} with response: ${responseBody}`,
+        res.status,
+        responseBody
       );
     }
     return res;
@@ -109,3 +109,11 @@ export const createAbortPromiseFromSignal = (signal: AbortSignal) => {
 
 export const isDefined = <T>(x: T | undefined | null | ""): x is T =>
   Boolean(x);
+
+export const safeJsonParse = <T>(text: string, withDefault?: T): T | null => {
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    return withDefault ?? null;
+  }
+};

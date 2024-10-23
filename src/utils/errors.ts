@@ -56,8 +56,10 @@ export class UnexpectedStatusCodeError extends IoWalletError {
 
   /** HTTP status code */
   statusCode: number;
+  /** The stringified response body, useful to process the error response */
+  responseBody: string;
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number, responseBody: string) {
     super(
       serializeAttrs({
         message,
@@ -65,6 +67,7 @@ export class UnexpectedStatusCodeError extends IoWalletError {
       })
     );
     this.statusCode = statusCode;
+    this.responseBody = responseBody;
   }
 }
 /**
@@ -470,10 +473,19 @@ export class StatusAttestationInvalid extends IoWalletError {
 
   code = "ERR_STATUS_ATTESTATION_INVALID";
 
+  /**
+   * The error code that should be mapped with one of the `issuance_errors_supported` in the EC.
+   */
+  errorCode: string;
   reason: string;
 
-  constructor(message: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, reason }));
+  constructor(
+    message: string,
+    errorCode: string,
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, errorCode, reason }));
+    this.errorCode = errorCode;
     this.reason = reason;
   }
 }

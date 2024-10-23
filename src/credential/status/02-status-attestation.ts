@@ -1,12 +1,16 @@
 import {
   getCredentialHashWithouDiscloures,
   hasStatus,
+  safeJsonParse,
   type Out,
 } from "../../utils/misc";
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
-import { StatusAttestationResponse } from "./types";
+import {
+  InvalidStatusAttestationResponse,
+  StatusAttestationResponse,
+} from "./types";
 import {
   StatusAttestationError,
   StatusAttestationInvalid,
@@ -91,8 +95,12 @@ const handleStatusAttestationError = (e: unknown) => {
   }
 
   if (e.statusCode === 404) {
+    const maybeError = InvalidStatusAttestationResponse.safeParse(
+      safeJsonParse(e.responseBody)
+    );
     throw new StatusAttestationInvalid(
       "Invalid status found for the given credential",
+      maybeError.success ? maybeError.data.error : "unknown",
       e.message
     );
   }
