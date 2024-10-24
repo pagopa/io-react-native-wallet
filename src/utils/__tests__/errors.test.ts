@@ -31,6 +31,24 @@ describe("extractErrorMessageFromIssuerConf", () => {
         } as EntityConfig,
       })
     ).toBeUndefined();
+
+    expect(
+      extractErrorMessageFromIssuerConf("credential_revoked", {
+        credentialType: "MDL",
+        // @ts-expect-error partial type
+        issuerConf: {
+          openid_credential_issuer: {
+            credential_configurations_supported: {
+              MDL: {
+                issuance_errors_supported: {
+                  credential_voided: {},
+                },
+              },
+            },
+          },
+        } as EntityConfig,
+      })
+    ).toBeUndefined();
   });
 
   it("should return the error message with the specified locale", async () => {

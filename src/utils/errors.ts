@@ -588,7 +588,7 @@ export function extractErrorMessageFromIssuerConf(
     return undefined;
   }
 
-  const localesList = issuance_errors_supported[errorCode].display;
+  const localesList = issuance_errors_supported[errorCode]!.display;
 
   return localesList.reduce(
     (acc, { locale, ...rest }) => ({ ...acc, [locale]: rest }),
