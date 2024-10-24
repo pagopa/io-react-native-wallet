@@ -51,7 +51,7 @@ describe("extractErrorMessageFromIssuerConf", () => {
     ).toBeUndefined();
   });
 
-  it("should return the error message with the specified locale", async () => {
+  it("should return the error message grouped by locales", async () => {
     expect(
       extractErrorMessageFromIssuerConf("credential_revoked", {
         credentialType: "MDL",
