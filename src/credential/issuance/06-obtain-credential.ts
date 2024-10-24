@@ -5,16 +5,16 @@ import {
 } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { hasStatus, type Out } from "../../utils/misc";
+import { hasStatus, safeJsonParse, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
+  CredentialInvalidStatusError,
   CredentialIssuingNotSynchronousError,
-  CredentialNotEntitledError,
   CredentialRequestError,
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialResponse } from "./types";
+import { CredentialIssuanceFailureResponse, CredentialResponse } from "./types";
 
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
@@ -174,9 +174,13 @@ const handleObtainCredentialError = (e: unknown) => {
     );
   }
 
-  if (e.statusCode === 404) {
-    throw new CredentialNotEntitledError(
+  if ([403, 404].includes(e.statusCode)) {
+    const maybeError = CredentialIssuanceFailureResponse.safeParse(
+      safeJsonParse(e.responseBody)
+    );
+    throw new CredentialInvalidStatusError(
       "Invalid status found for the given credential",
+      maybeError.success ? maybeError.data.error : "unknown",
       e.message
     );
   }

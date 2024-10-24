@@ -13,7 +13,7 @@ import {
 } from "./types";
 import {
   StatusAttestationError,
-  StatusAttestationInvalid,
+  CredentialInvalidStatusError,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
 
@@ -98,7 +98,7 @@ const handleStatusAttestationError = (e: unknown) => {
     const maybeError = InvalidStatusAttestationResponse.safeParse(
       safeJsonParse(e.responseBody)
     );
-    throw new StatusAttestationInvalid(
+    throw new CredentialInvalidStatusError(
       "Invalid status found for the given credential",
       maybeError.success ? maybeError.data.error : "unknown",
       e.message

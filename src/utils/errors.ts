@@ -464,14 +464,14 @@ export class OperationAbortedError extends IoWalletError {
 }
 
 /**
- * Error subclass thrown when the status attestation for a credential is invalid.
+ * Error subclass thrown when a credential status is invalid, either during issuance or when requesting a status attestation.
  */
-export class StatusAttestationInvalid extends IoWalletError {
-  static get code(): "ERR_STATUS_ATTESTATION_INVALID" {
-    return "ERR_STATUS_ATTESTATION_INVALID";
+export class CredentialInvalidStatusError extends IoWalletError {
+  static get code(): "ERR_CREDENTIAL_INVALID_STATUS" {
+    return "ERR_CREDENTIAL_INVALID_STATUS";
   }
 
-  code = "ERR_STATUS_ATTESTATION_INVALID";
+  code = "ERR_CREDENTIAL_INVALID_STATUS";
 
   /**
    * The error code that should be mapped with one of the `issuance_errors_supported` in the EC.
@@ -499,24 +499,6 @@ export class StatusAttestationError extends IoWalletError {
   }
 
   code = "ERR_STATUS_ATTESTATION_ERROR";
-
-  reason: string;
-
-  constructor(message: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, reason }));
-    this.reason = reason;
-  }
-}
-
-/**
- * Error subclass thrown when the the user is not entitled to receive the requested credential.
- */
-export class CredentialNotEntitledError extends IoWalletError {
-  static get code(): "CREDENTIAL_NOT_ENTITLED_ERROR" {
-    return "CREDENTIAL_NOT_ENTITLED_ERROR";
-  }
-
-  code = "CREDENTIAL_NOT_ENTITLED_ERROR";
 
   reason: string;
 
