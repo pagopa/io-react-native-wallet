@@ -53,6 +53,17 @@ const ClaimsMetadata = z.record(
   })
 );
 
+type IssuanceErrorSupported = z.infer<typeof IssuanceErrorSupported>;
+const IssuanceErrorSupported = z.object({
+  display: z.array(
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      locale: z.string(),
+    })
+  ),
+});
+
 // Metadata for a credentia which is supported by a Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
@@ -63,6 +74,7 @@ const SupportedCredentialMetadata = z.object({
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
   authentic_source: z.string().optional(),
+  issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
 });
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
