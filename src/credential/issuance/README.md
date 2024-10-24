@@ -43,14 +43,16 @@ graph TD;
 
 A `201 Created` response is returned by the credential issuer when the request has been queued because the credential cannot be issued synchronously. The consumer should try to obtain the credential at a later time.
 
-### 404 Not Found (CredentialNotEntitledError)
-
-A `404 Not Found` response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential.
-
-### 201 Created (CredentialIssuingNotSynchronousError)
-
 Although `201 Created` is not considered an error, it is mapped as an error in this context in order to handle the case where the credential issuance is not synchronous.
 This allows keeping the flow consistent and handle the case where the credential is not immediately available.
+
+### 403 Forbidden (CredentialInvalidStatusError)
+
+A `403 Forbidden` response is returned by the credential issuer when the requested credential has an invalid status. It might contain more details in the `errorCode` property.
+
+### 404 Not Found (CredentialInvalidStatusError)
+
+A `404 Not Found` response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential. It might contain more details in the `errorCode` property.
 
 ## Strong authentication for eID issuance (Query Mode)
 

@@ -157,8 +157,8 @@ export const obtainCredential: ObtainCredential = async (
  * Handle the credential error by mapping it to a custom exception.
  * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
  * @param e - The error to be handled
- * @throws {@link StatusAttestationError} if the status code is different from 404
- * @throws {@link StatusAttestationInvalid} if the status code is 404 (meaning the credential is invalid)
+ * @throws {@link CredentialRequestError} if the status code is different from 404
+ * @throws {@link CredentialInvalidStatusError} if the status code is 404 (meaning the credential is invalid)
  */
 const handleObtainCredentialError = (e: unknown) => {
   if (!(e instanceof UnexpectedStatusCodeError)) {
