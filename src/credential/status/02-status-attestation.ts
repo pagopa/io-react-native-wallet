@@ -1,15 +1,19 @@
 import {
   getCredentialHashWithouDiscloures,
   hasStatus,
+  safeJsonParse,
   type Out,
 } from "../../utils/misc";
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
-import { StatusAttestationResponse } from "./types";
+import {
+  InvalidStatusAttestationResponse,
+  StatusAttestationResponse,
+} from "./types";
 import {
   StatusAttestationError,
-  StatusAttestationInvalid,
+  CredentialInvalidStatusError,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
 
@@ -29,7 +33,7 @@ export type StatusAttestation = (
  * @param credential - The credential to be verified
  * @param credentialCryptoContext - The credential's crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {@link StatusAttestationInvalid} if the status attestation is invalid and thus the credential is not valid
+ * @throws {@link CredentialInvalidStatusError} if the status attestation is invalid and thus the credential is not valid
  * @throws {@link StatusAttestationError} if an error occurs during the status attestation
  * @returns The credential status attestation
  */
@@ -83,7 +87,7 @@ export const statusAttestation: StatusAttestation = async (
  * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
  * @param e - The error to be handled
  * @throws {@link StatusAttestationError} if the status code is different from 404
- * @throws {@link StatusAttestationInvalid} if the status code is 404 (meaning the credential is invalid)
+ * @throws {@link CredentialInvalidStatusError} if the status code is 404 (meaning the credential is invalid)
  */
 const handleStatusAttestationError = (e: unknown) => {
   if (!(e instanceof UnexpectedStatusCodeError)) {
@@ -91,8 +95,12 @@ const handleStatusAttestationError = (e: unknown) => {
   }
 
   if (e.statusCode === 404) {
-    throw new StatusAttestationInvalid(
+    const maybeError = InvalidStatusAttestationResponse.safeParse(
+      safeJsonParse(e.responseBody)
+    );
+    throw new CredentialInvalidStatusError(
       "Invalid status found for the given credential",
+      maybeError.success ? maybeError.data.error : "unknown",
       e.message
     );
   }
