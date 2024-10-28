@@ -3,8 +3,6 @@ import { z } from "zod";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-
-import { decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
@@ -12,9 +10,11 @@ import {
   ClaimsNotFoundBetweenDislosures,
   ClaimsNotFoundInToken,
 } from "../utils/errors";
+import { Base64 } from "js-base64";
 
 const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {
-  const decoded = Disclosure.parse(JSON.parse(decodeBase64(encoded)));
+  const utf8String = Base64.decode(encoded); // Decode Base64 into UTF-8 string
+  const decoded = Disclosure.parse(JSON.parse(utf8String));
   return { decoded, encoded };
 };
 
