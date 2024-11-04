@@ -95,7 +95,8 @@ const selectResponseMode = (
  * @param issuerConf The issuer configuration
  * @param credentialType The type of the credential to be requested returned by {@link selectCredentialDefinition}
  * @param ctx The context object containing the Wallet Instance's cryptographic context, the Wallet Instance's attestation, the redirect URI and the fetch implementation
- * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier and the credential definition
+ * @param idpHint Optional identity provider hint to be included in the authorization request
+ * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier, the credential definition, and the optional authUrl
  */
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,

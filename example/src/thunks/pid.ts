@@ -35,7 +35,7 @@ type PreparePidFlowParamsThunkInput = {
 };
 
 /**
- * Type definition for the input of the {@link ContinueCieL3FlowThunkInput}.
+ * Type definition for the input of the {@link ContinuePidFlowThunkInput}.
  */
 type ContinuePidFlowThunkInput = {
   authUrl: string;
@@ -81,6 +81,8 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   PreparePidFlowParamsThunkInput
 >("pid/flowParamsPrepare", async (args, { getState, dispatch }) => {
 
+  console.log("args", JSON.stringify(args))
+
   // Checks if the wallet instance attestation needs to be reuqested
   if (shouldRequestAttestationSelector(getState())) {
     await dispatch(getAttestationThunk());
@@ -104,7 +106,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const env = selectEnv(getState());
   const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
 
-  const redirect_uri = (isCie) ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
+  const redirect_uri = isCie ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({

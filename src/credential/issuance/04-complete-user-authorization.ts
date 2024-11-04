@@ -60,16 +60,10 @@ export type GetRequestedCredentialToBePresented = (
 
 /**
  * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link authorizeAccess}.
- * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
- * It is used to complete the user authorization by catching the redirectSchema from the authorization server which then contains the authorization response.
- * This function utilizes the authorization context to open an in-app browser capable of catching the redirectSchema to perform a get request to the authorization endpoint.
+ * Complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
+ * This function opens an in-app browser capable of catching the redirectSchema to perform a get request to the authorization endpoint.
  * If the 302 redirect happens and the redirectSchema is caught, the function will return the authorization response after parsing it from the query string.
- * @param issuerRequestUri the URI of the issuer where the request is sent
- * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema.
- * If not specified, the default browser is used
- * @param idphint Unique identifier of the SPID IDP selected by the user
+ * @param authUrl The URL to which the end user should be redirected to start the authentication flow
  * @param redirectUri The url to reach to complete the user authorization which is the custom URL scheme that the Wallet Instance is registered to handle, usually a custom URL or deeplink
  * @param signal An optional {@link AbortSignal} to abort the operation when using the default browser
  * @throws {AuthorizationError} if an error occurs during the authorization process
