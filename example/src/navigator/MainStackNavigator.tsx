@@ -17,8 +17,9 @@ import { CredentialScreen } from "../screens/CredentialScreen";
 import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
 import { useAppDispatch } from "../store/utils";
 import { setDebugVisibility } from "../store/reducers/debug";
-import PidSpidLoginScreen from "../screens/login/PidSpidLoginScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScreen";
+import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -32,8 +33,9 @@ export type MainStackNavParamList = {
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
-  PidSpidLogin: undefined;
+  PidSpidIdpSelection: undefined;
   Settings: undefined;
+  PidSpidLogin: { authUrl: string };
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -90,9 +92,14 @@ export const MainStackNavigator = () => {
               options={{ title: "Test PID issuance" }}
             />
             <Stack.Screen
+              name="PidSpidIdpSelection"
+              component={PidSpidIdpSelectionScreen}
+              options={{ title: "Test PID issuance" }}
+            />
+            <Stack.Screen
               name="PidSpidLogin"
               component={PidSpidLoginScreen}
-              options={{ title: "Test PID issuance" }}
+              options={{ title: "PID SPID Login" }}
             />
             <Stack.Screen
               name="Credentials"

@@ -1,4 +1,6 @@
-import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+import {
+  createCryptoContextFor,
+} from "@pagopa/io-react-native-wallet";
 import {
   selectAttestation,
   shouldRequestAttestationSelector,
@@ -7,36 +9,34 @@ import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import type {
   PidAuthMethods,
+  PidResult,
   SupportedCredentials,
 } from "../store/types";
-import { startUserAuthorizationTest } from "../utils/credential";
+import { getPidCieID } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import { createAppAsyncThunk } from "./utils";
 import { getAttestationThunk } from "./attestation";
 
 /**
- * Type definition for the input of the {@link startUserAuthorizationThunk}.
+ * Type definition for the input of the {@link getCredentialThunk}.
  */
-type StartUserAuthorizationThunkInput = {
+type GetPidThunkInput = {
   idpHint: string;
   authMethod: PidAuthMethods;
   credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
 };
 
 /**
- * Thunk to start the user authorization process.
- * @param args.idPhint - The idPhint for the Identity Provider to use if the requested credential is a `PersonIdentificationData`
+ * Thunk to obtain PID with CieID auth method.
+ * @param args.idpHint- The idpHint for the Identity Provider to use if the requested credential is a `PersonIdentificationData`
  * @param args.credentialType - The type of the requested credential to obtain
- * @returns The authorization URL and other necessary data
+ * @returns The obtained credential result
  */
-export const startUserAuthorizationThunk = createAppAsyncThunk<
-  { authUrl: string; issuerConf: any; clientId: string; codeVerifier: string; credentialDefinition: any },
-  StartUserAuthorizationThunkInput
->(
-  "pid/startUserAuthorization",
+export const getPidCieIDThunk = createAppAsyncThunk<PidResult, GetPidThunkInput>(
+  "cieID/pidGet",
   async (args, { getState, dispatch }) => {
-    // Checks if the wallet instance attestation needs to be requested
+    // Checks if the wallet instance attestation needs to be reuqested
     if (shouldRequestAttestationSelector(getState())) {
       await dispatch(getAttestationThunk());
     }
@@ -56,7 +56,7 @@ export const startUserAuthorizationThunk = createAppAsyncThunk<
     const { idpHint, credentialType } = args;
     // Resets the credential state before obtaining a new PID
     dispatch(credentialReset());
-    return await startUserAuthorizationTest({
+    return await getPidCieID({
       pidIssuerUrl: WALLET_PID_PROVIDER_BASE_URL,
       redirectUri: REDIRECT_URI,
       idpHint,

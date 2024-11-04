@@ -14,7 +14,7 @@ import { selectEnv } from "../store/reducers/environment";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
-import { getPidThunk } from "../thunks/pid";
+import { getPidCieIDThunk } from "../thunks/pidCieID";
 
 type MixedTestScenarioProp =
   | (TestScenarioProp & { isCieL3: false })
@@ -49,7 +49,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
     () => [
       {
         isCieL3: false,
-        onPress: () => navigation.navigate("PidSpidLogin"),
+        onPress: () => navigation.navigate("PidSpidIdpSelection"),
         title: "Get PID (SPID)",
         isLoading: pidSpidState.isLoading,
         hasError: pidSpidState.hasError,
@@ -62,7 +62,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         title: "Get PID (CIE L2)",
         onPress: () =>
           dispatch(
-            getPidThunk({
+            getPidCieIDThunk({
               credentialType: "PersonIdentificationData",
               idpHint: cieIdpHint,
               authMethod: "cieL2",

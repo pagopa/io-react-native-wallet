@@ -14,12 +14,14 @@ export type StartUserAuthorization = (
     walletInstanceAttestation: string;
     redirectUri: string;
     appFetch?: GlobalFetch["fetch"];
-  }
+  },
+  idpHint?: string
 ) => Promise<{
   issuerRequestUri: string;
   clientId: string;
   codeVerifier: string;
   credentialDefinition: AuthorizationDetail;
+  authUrl?: string;
 }>;
 
 /**
@@ -98,7 +100,8 @@ const selectResponseMode = (
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,
   credentialType,
-  ctx
+  ctx,
+  idpHint
 ) => {
   const {
     wiaCryptoContext,
@@ -107,6 +110,8 @@ export const startUserAuthorization: StartUserAuthorization = async (
     appFetch = fetch,
   } = ctx;
 
+  var authUrl: string | undefined;
+  
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
@@ -129,5 +134,26 @@ export const startUserAuthorization: StartUserAuthorization = async (
     ASSERTION_TYPE
   );
 
-  return { issuerRequestUri, clientId, codeVerifier, credentialDefinition };
+  if (idpHint) {
+    
+    const authzRequestEndpoint =
+      issuerConf.oauth_authorization_server.authorization_endpoint;
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      request_uri: issuerRequestUri,
+      idphint: idpHint,
+    });
+
+    authUrl = `${authzRequestEndpoint}?${params}`;
+
+  }
+
+  return {
+    issuerRequestUri,
+    clientId,
+    codeVerifier,
+    credentialDefinition,
+    authUrl,
+  };
 };

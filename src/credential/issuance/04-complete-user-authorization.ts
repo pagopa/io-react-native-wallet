@@ -1,7 +1,6 @@
 import {
   AuthorizationErrorShape,
   AuthorizationResultShape,
-  type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
 import {
@@ -20,7 +19,6 @@ import {
   ValidationFailed,
 } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { Linking } from "react-native";
 import {
   decode,
   encodeBase64,
@@ -31,17 +29,14 @@ import { RequestObject } from "../presentation/types";
 import uuid from "react-native-uuid";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
+import { Linking } from "react-native";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
  */
 export type CompleteUserAuthorizationWithQueryMode = (
-  issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  idpHint: string,
+  authUrl: Out<StartUserAuthorization>["authUrl"],
   redirectUri: string,
-  authorizationContext?: AuthorizationContext,
   signal?: AbortSignal
 ) => Promise<AuthorizationResult>;
 
@@ -83,34 +78,11 @@ export type GetRequestedCredentialToBePresented = (
  * @returns the authorization response which contains code, state and iss
  */
 export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWithQueryMode =
-  async (
-    issuerRequestUri,
-    clientId,
-    issuerConf,
-    idpHint,
-    redirectUri,
-    authorizationContext,
-    signal
-  ) => {
-    const authzRequestEndpoint =
-      issuerConf.oauth_authorization_server.authorization_endpoint;
-    const params = new URLSearchParams({
-      client_id: clientId,
-      request_uri: issuerRequestUri,
-      idphint: idpHint,
-    });
-    const authUrl = `${authzRequestEndpoint}?${params}`;
-    var authRedirectUrl: string | undefined;
+  async (authUrl, redirectUri, signal) => {
+    
+    let authRedirectUrl: string | undefined;
 
-    if (authorizationContext) {
-      const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
-      authRedirectUrl = await authorizationContext
-        .authorize(authUrl, redirectSchema)
-        .catch((e) => {
-          throw new AuthorizationError(e.message);
-        });
-    } else {
-      // handler for redirectUri
+    if (redirectUri && authUrl) {
       const urlEventListener = Linking.addEventListener("url", ({ url }) => {
         if (url.includes(redirectUri)) {
           authRedirectUrl = url;
@@ -148,10 +120,10 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
       if (winner === "OPERATION_ABORTED") {
         throw new OperationAbortedError("DefaultQueryModeAuthorization");
       }
+    }
 
-      if (authRedirectUrl === undefined) {
-        throw new AuthorizationError("Invalid authentication redirect url");
-      }
+    if (authRedirectUrl === undefined) {
+      throw new AuthorizationError("Invalid authentication redirect url");
     }
 
     const query = parseUrl(authRedirectUrl).query;

@@ -11,9 +11,8 @@ import {
 
 import {
   CIE_L3_REDIRECT_URI,
-  continueCieL3FlowThunk,
-  prepareCieL3FlowParamsThunk,
-} from "../thunks/pidCieL3";
+  continuePidFlowThunk,
+} from "../thunks/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { pidCiel3FlowReset } from "../store/reducers/pid";
 import type { AsyncStatus } from "../store/types";
@@ -23,7 +22,8 @@ import {
   type Badge,
   type IOIcons,
 } from "@pagopa/io-app-design-system";
-import { selectPidCieL3FlowParams } from "../store/reducers/pid";
+import { selectPidFlowParams } from "../store/reducers/pid";
+import { preparePidFlowParamsThunk } from "../thunks/pid";
 
 export type TestCieL3ScenarioProps = {
   title: string;
@@ -47,7 +47,7 @@ export default function TestCieL3Scenario({
   const [isHidden, setHidden] = React.useState(true);
   const [hasLoaded, setHasLoaded] = React.useState(false); // This in needed to avoid the error toast to be shown on the first render
   const dispatch = useAppDispatch();
-  const flowParams = useAppSelector(selectPidCieL3FlowParams);
+  const flowParams = useAppSelector(selectPidFlowParams);
   const toast = useIOToast();
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function TestCieL3Scenario({
   }, [isLoading]);
 
   const handleOnSuccess = (url: string) => {
-    dispatch(continueCieL3FlowThunk({ url }));
+    dispatch(continuePidFlowThunk({ authUrl: url }));
   };
 
   const handleOnError = (error: Cie.CieError) => {
@@ -107,7 +107,12 @@ export default function TestCieL3Scenario({
               //Hide the webView for the first part of login then open modal
               setHidden(true);
               setModalVisible(true);
-              dispatch(prepareCieL3FlowParamsThunk({ idpHint, ciePin }));
+              dispatch(preparePidFlowParamsThunk({
+                 idpHint, 
+                 authMethod: "cieL3",
+                 credentialType: "PersonIdentificationData",
+                 ciePin 
+                }));
             } else {
               Alert.alert(`❌ Invalid CIE PIN`);
             }
@@ -186,7 +191,7 @@ export default function TestCieL3Scenario({
         isFetching={isLoading}
         badge={getBadge()}
       />
-      {flowParams && (
+      {flowParams && flowParams.authUrl && flowParams.ciePin && (
         <Modal
           animationType="fade"
           transparent={true}
@@ -207,7 +212,7 @@ export default function TestCieL3Scenario({
               </TouchableOpacity>
               <Cie.WebViewComponent
                 useUat={isCieUat}
-                authUrl={flowParams.cieAuthUrl}
+                authUrl={flowParams.authUrl}
                 onSuccess={handleOnSuccess}
                 onEvent={handleOnEvent}
                 onError={handleOnError}

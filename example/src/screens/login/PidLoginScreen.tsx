@@ -5,9 +5,9 @@ import URLParse from "url-parse";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAppDispatch } from "../../store/utils";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
-import { pidCompleteFlowThunk } from "../../thunks/pid";
+import { continuePidFlowThunk } from "../../thunks/pid";
 
-type Props = NativeStackScreenProps<MainStackNavParamList, "EIDLogin">;
+type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidLogin">;
 
 const originSchemasWhiteList = [
   "https://*",
@@ -30,13 +30,17 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   return undefined;
 };
 
-export default function EIDLoginScreen({ route }: Props) {
-  const { authUrl, issuerConf, clientId, codeVerifier, credentialDefinition } = route.params;
+/**
+ * Screen to handle the PID authentication flow.
+ * This screen uses a WebView to load the authentication URL and manage the
+ * navigation state changes to intercept the redirect URL, completing the PID issuance flow.
+ */
+export default function PidSpidLoginScreen({ route, navigation }: Props) {
+  const { authUrl } = route.params;
   const dispatch = useAppDispatch();
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
     const url = event.url;
-    console.log("WebView attempting to load URL:", url);
     const idpIntent = getIntentFallbackUrl(url);
     if (idpIntent) {
       Linking.openURL(idpIntent);
@@ -45,29 +49,20 @@ export default function EIDLoginScreen({ route }: Props) {
     return true;
   };
 
-  // const handleNavigationStateChange = async (navState: WebViewNavigation) => {
-  //   const { url } = navState;
-  //   if (url.startsWith('YOUR_REDIRECT_URI')) {
-  //     const code = new URL(url).searchParams.get('code');
-  //     if (code) {
-  //       try {
-  //         const result = await dispatch(pidCompleteFlowThunk({
-  //           code,
-  //           issuerConf,
-  //           clientId,
-  //           redirectUri: 'YOUR_REDIRECT_URI',
-  //           codeVerifier,
-  //           credentialDefinition,
-  //           walletInstanceAttestation: 'YOUR_WALLET_INSTANCE_ATTESTATION',
-  //           wiaCryptoContext: 'YOUR_WIA_CRYPTO_CONTEXT',
-  //           credentialType: 'PersonIdentificationData',
-  //         })).unwrap();
-
-  //       } catch (error) {
-  //       }
-  //     }
-  //   }
-  // };
+  const handleNavigationStateChange = async (navState: WebViewNavigation) => {
+    const { url } = navState;
+    if (url.includes("iowallet")) {
+      try {
+        dispatch(continuePidFlowThunk({
+          authUrl: url,
+        }));
+        navigation.goBack();
+      } catch (error) {
+        //In case of error, return to the previous screen
+        navigation.goBack();
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -82,7 +77,7 @@ export default function EIDLoginScreen({ route }: Props) {
         originWhitelist={originSchemasWhiteList}
         cacheEnabled={false}
         onShouldStartLoadWithRequest={handleShouldStartLoading}
-        //onNavigationStateChange={handleNavigationStateChange}
+        onNavigationStateChange={handleNavigationStateChange}
       />
     </View>
   );
