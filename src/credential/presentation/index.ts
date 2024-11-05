@@ -24,3 +24,4 @@ export type {
   GetRequestObject,
   SendAuthorizationResponse,
 };
+export * as Errors from "./errors";

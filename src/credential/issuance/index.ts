@@ -48,3 +48,4 @@ export type {
   ObtainCredential,
   VerifyAndParseCredential,
 };
+export * as Errors from "./errors";

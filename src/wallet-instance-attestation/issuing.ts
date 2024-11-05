@@ -5,12 +5,9 @@ import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
 import { WalletProviderResponseError } from "../utils/errors";
 import { TokenResponse } from "./types";
-import {
-  WalletInstanceAttestationIssuingError,
-  WalletInstanceIntegrityFailedError,
-  WalletInstanceNotFoundError,
-  WalletInstanceRevokedError,
-} from "./errors";
+import * as Errors from "./errors";
+
+export { Errors };
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -121,7 +118,7 @@ const handleAttestationCreationError = (e: unknown) => {
   }
 
   if (e.statusCode === 403) {
-    throw new WalletInstanceRevokedError(
+    throw new Errors.WalletInstanceRevokedError(
       "Unable to get an attestation for a revoked Wallet Instance",
       e.claim,
       e.reason
@@ -129,7 +126,7 @@ const handleAttestationCreationError = (e: unknown) => {
   }
 
   if (e.statusCode === 404) {
-    throw new WalletInstanceNotFoundError(
+    throw new Errors.WalletInstanceNotFoundError(
       "Unable to get an attestation for a Wallet Instance that does not exist",
       e.claim,
       e.reason
@@ -137,14 +134,14 @@ const handleAttestationCreationError = (e: unknown) => {
   }
 
   if (e.statusCode === 409) {
-    throw new WalletInstanceIntegrityFailedError(
+    throw new Errors.WalletInstanceIntegrityFailedError(
       "Unable to get an attestation for a Wallet Instance that failed the integrity check",
       e.claim,
       e.reason
     );
   }
 
-  throw new WalletInstanceAttestationIssuingError(
+  throw new Errors.WalletInstanceAttestationIssuingError(
     `Unable to obtain wallet instance attestation [response status code: ${e.statusCode}]`,
     e.claim,
     e.reason

@@ -6,10 +6,7 @@ import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
-import {
-  ClaimsNotFoundBetweenDislosures,
-  ClaimsNotFoundInToken,
-} from "./errors";
+import * as Errors from "./errors";
 import { Base64 } from "js-base64";
 
 const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {
@@ -94,7 +91,7 @@ export const disclose = async (
 
       // check every claim represents a known disclosure
       if (!disclosure) {
-        throw new ClaimsNotFoundBetweenDislosures(claim);
+        throw new Errors.ClaimsNotFoundBetweenDislosures(claim);
       }
 
       const hash = await sha256ToBase64(disclosure.encoded);
@@ -106,7 +103,7 @@ export const disclose = async (
         return { claim, path: `verified_claims.claims._sd[${index}]` };
       }
 
-      throw new ClaimsNotFoundInToken(claim);
+      throw new Errors.ClaimsNotFoundInToken(claim);
     })
   );
 
@@ -166,4 +163,4 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   };
 };
 
-export { SdJwt4VC };
+export { SdJwt4VC, Errors };

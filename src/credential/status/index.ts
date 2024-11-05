@@ -20,3 +20,4 @@ export type {
   StatusAttestation,
   VerifyAndParseStatusAttestation,
 };
+export * as Errors from "./errors";
