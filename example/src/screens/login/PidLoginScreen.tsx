@@ -53,9 +53,11 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
     const { url } = navState;
     if (url.includes("iowallet")) {
       try {
-        dispatch(continuePidFlowThunk({
-          authUrl: url,
-        }));
+        dispatch(
+          continuePidFlowThunk({
+            authUrl: url,
+          })
+        );
         navigation.goBack();
       } catch (error) {
         //In case of error, return to the previous screen

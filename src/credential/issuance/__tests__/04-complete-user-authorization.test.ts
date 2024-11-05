@@ -5,7 +5,7 @@ import {
 import { completeUserAuthorizationWithQueryMode } from "../04-complete-user-authorization";
 
 describe("authorizeUserWithQueryMode", () => {
-
+  const redirectUri = "test://cb";
   it("should return the authorization result when the authorization server responds with a valid response", async () => {
     const authRes = {
       code: "abcdefg",
@@ -16,7 +16,8 @@ describe("authorizeUserWithQueryMode", () => {
     const authRedirectUrl = `test://cb?code=abcdefg&state=123456&iss=123456`;
 
     const result = await completeUserAuthorizationWithQueryMode(
-      authRedirectUrl
+      authRedirectUrl,
+      redirectUri
     );
 
     expect(result).toMatchObject(authRes);
@@ -31,9 +32,7 @@ describe("authorizeUserWithQueryMode", () => {
     const authRedirectUrl = `test://cb?${authErr.toString()}`;
 
     await expect(() =>
-      completeUserAuthorizationWithQueryMode(
-        authRedirectUrl
-      )
+      completeUserAuthorizationWithQueryMode(authRedirectUrl, redirectUri)
     ).rejects.toThrowError(AuthorizationIdpError);
   });
 
@@ -45,9 +44,7 @@ describe("authorizeUserWithQueryMode", () => {
     const authRedirectUrl = `test://cb?${wrongAuthRes.toString()}`;
 
     await expect(() =>
-      completeUserAuthorizationWithQueryMode(
-        authRedirectUrl
-      )
+      completeUserAuthorizationWithQueryMode(authRedirectUrl, redirectUri)
     ).rejects.toThrowError(AuthorizationError);
   });
 });

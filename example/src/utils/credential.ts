@@ -62,28 +62,24 @@ export const getPidCieID = async ({
   );
 
   // Start user authorization
-  const {
-    clientId,
-    codeVerifier,
-    credentialDefinition,
-    authUrl,
-  } = await Credential.Issuance.startUserAuthorization(
-    issuerConf,
-    credentialType,
-    {
-      walletInstanceAttestation,
-      redirectUri,
-      wiaCryptoContext,
-      appFetch,
-    },
-    idpHint
-  );
+  const { clientId, codeVerifier, credentialDefinition, authUrl } =
+    await Credential.Issuance.startUserAuthorization(
+      issuerConf,
+      credentialType,
+      {
+        walletInstanceAttestation,
+        redirectUri,
+        wiaCryptoContext,
+        appFetch,
+      },
+      idpHint
+    );
 
   // Complete the authroization process with query mode with the authorizationContext which opens the browser
   const { code } =
     await Credential.Issuance.completeUserAuthorizationWithQueryMode(
       authUrl,
-      redirectUri,
+      redirectUri
     );
 
   // Create DPoP context which will be used for the whole issuance flow

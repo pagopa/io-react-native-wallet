@@ -1,6 +1,4 @@
-import {
-  createCryptoContextFor,
-} from "@pagopa/io-react-native-wallet";
+import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
 import {
   selectAttestation,
   shouldRequestAttestationSelector,
@@ -33,36 +31,36 @@ type GetPidThunkInput = {
  * @param args.credentialType - The type of the requested credential to obtain
  * @returns The obtained credential result
  */
-export const getPidCieIDThunk = createAppAsyncThunk<PidResult, GetPidThunkInput>(
-  "cieID/pidGet",
-  async (args, { getState, dispatch }) => {
-    // Checks if the wallet instance attestation needs to be reuqested
-    if (shouldRequestAttestationSelector(getState())) {
-      await dispatch(getAttestationThunk());
-    }
-
-    // Gets the Wallet Instance Attestation from the persisted store
-    const walletInstanceAttestation = selectAttestation(getState());
-    if (!walletInstanceAttestation) {
-      throw new Error("Wallet Instance Attestation not found");
-    }
-
-    const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
-    // Get env URLs
-    const env = selectEnv(getState());
-    const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
-
-    const { idpHint, credentialType } = args;
-    // Resets the credential state before obtaining a new PID
-    dispatch(credentialReset());
-    return await getPidCieID({
-      pidIssuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-      redirectUri: REDIRECT_URI,
-      idpHint,
-      walletInstanceAttestation,
-      wiaCryptoContext,
-      credentialType,
-    });
+export const getPidCieIDThunk = createAppAsyncThunk<
+  PidResult,
+  GetPidThunkInput
+>("cieID/pidGet", async (args, { getState, dispatch }) => {
+  // Checks if the wallet instance attestation needs to be reuqested
+  if (shouldRequestAttestationSelector(getState())) {
+    await dispatch(getAttestationThunk());
   }
-);
+
+  // Gets the Wallet Instance Attestation from the persisted store
+  const walletInstanceAttestation = selectAttestation(getState());
+  if (!walletInstanceAttestation) {
+    throw new Error("Wallet Instance Attestation not found");
+  }
+
+  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+
+  // Get env URLs
+  const env = selectEnv(getState());
+  const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
+
+  const { idpHint, credentialType } = args;
+  // Resets the credential state before obtaining a new PID
+  dispatch(credentialReset());
+  return await getPidCieID({
+    pidIssuerUrl: WALLET_PID_PROVIDER_BASE_URL,
+    redirectUri: REDIRECT_URI,
+    idpHint,
+    walletInstanceAttestation,
+    wiaCryptoContext,
+    credentialType,
+  });
+});

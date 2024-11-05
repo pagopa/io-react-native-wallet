@@ -73,7 +73,6 @@ export type GetRequestedCredentialToBePresented = (
  */
 export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWithQueryMode =
   async (authUrl, redirectUri, signal) => {
-    
     let authRedirectUrl: string | undefined;
 
     if (redirectUri && authUrl) {

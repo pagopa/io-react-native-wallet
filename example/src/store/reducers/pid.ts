@@ -60,7 +60,6 @@ const pidSlice = createSlice({
     }),
   },
   extraReducers: (builder) => {
-    
     /**
      * PID CieID Thunk
      */
@@ -103,7 +102,6 @@ const pidSlice = createSlice({
         hasError: { status: true, error: action.error },
       };
     });
-
 
     /**
      * PID flow Params Thunk

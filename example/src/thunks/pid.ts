@@ -13,7 +13,11 @@ import {
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
-import type { PidAuthMethods, PidResult, SupportedCredentials } from "../store/types";
+import type {
+  PidAuthMethods,
+  PidResult,
+  SupportedCredentials,
+} from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -80,9 +84,6 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   PreparePidFlowParamsThunkOutput,
   PreparePidFlowParamsThunkInput
 >("pid/flowParamsPrepare", async (args, { getState, dispatch }) => {
-
-  console.log("args", JSON.stringify(args))
-
   // Checks if the wallet instance attestation needs to be reuqested
   if (shouldRequestAttestationSelector(getState())) {
     await dispatch(getAttestationThunk());
@@ -158,7 +159,6 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   PidResult,
   ContinuePidFlowThunkInput
 >("pid/flowContinue", async (args, { getState }) => {
-
   const { authUrl } = args;
 
   const flowParams = selectPidFlowParams(getState());

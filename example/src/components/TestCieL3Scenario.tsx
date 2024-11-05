@@ -8,11 +8,7 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-
-import {
-  CIE_L3_REDIRECT_URI,
-  continuePidFlowThunk,
-} from "../thunks/pid";
+import { CIE_L3_REDIRECT_URI, continuePidFlowThunk } from "../thunks/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { pidCiel3FlowReset } from "../store/reducers/pid";
 import type { AsyncStatus } from "../store/types";
@@ -107,12 +103,14 @@ export default function TestCieL3Scenario({
               //Hide the webView for the first part of login then open modal
               setHidden(true);
               setModalVisible(true);
-              dispatch(preparePidFlowParamsThunk({
-                 idpHint, 
-                 authMethod: "cieL3",
-                 credentialType: "PersonIdentificationData",
-                 ciePin 
-                }));
+              dispatch(
+                preparePidFlowParamsThunk({
+                  idpHint,
+                  authMethod: "cieL3",
+                  credentialType: "PersonIdentificationData",
+                  ciePin,
+                })
+              );
             } else {
               Alert.alert(`❌ Invalid CIE PIN`);
             }

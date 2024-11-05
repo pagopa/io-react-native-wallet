@@ -8,7 +8,10 @@ import { selectEnv } from "../../store/reducers/environment";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import { preparePidFlowParamsThunk } from "../../thunks/pid";
 
-type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidIdpSelection">;
+type Props = NativeStackScreenProps<
+  MainStackNavParamList,
+  "PidSpidIdpSelection"
+>;
 
 /**
  * IDP selection for the PID authentication flow. This screen dinamically renders the IDPs list based on the environment.
@@ -27,16 +30,18 @@ export default function PidSpidIdpSelectionScreen({ navigation }: Props) {
       toast.error("IDP hint not found");
     } else {
       try {
-        const { authUrl } = await dispatch(preparePidFlowParamsThunk({
-          idpHint,
-          authMethod: "spid",
-          credentialType: "PersonIdentificationData",
-        })).unwrap();
-        
-        if(!authUrl) {
+        const { authUrl } = await dispatch(
+          preparePidFlowParamsThunk({
+            idpHint,
+            authMethod: "spid",
+            credentialType: "PersonIdentificationData",
+          })
+        ).unwrap();
+
+        if (!authUrl) {
           throw new Error("Auth URL not found");
         }
-        navigation.navigate('PidSpidLogin', { authUrl });
+        navigation.navigate("PidSpidLogin", { authUrl });
       } catch (error) {
         toast.error("Error during authentication");
       }

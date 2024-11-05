@@ -112,7 +112,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   } = ctx;
 
   var authUrl: string | undefined;
-  
+
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
@@ -136,7 +136,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
   );
 
   if (idpHint) {
-    
     const authzRequestEndpoint =
       issuerConf.oauth_authorization_server.authorization_endpoint;
 
@@ -147,7 +146,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     });
 
     authUrl = `${authzRequestEndpoint}?${params}`;
-
   }
 
   return {
