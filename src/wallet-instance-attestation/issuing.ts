@@ -3,14 +3,14 @@ import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { JWK, fixBase64EncodingOnKey } from "../utils/jwk";
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
+import { WalletProviderResponseError } from "../utils/errors";
+import { TokenResponse } from "./types";
 import {
-  WalletProviderResponseError,
-  WalletInstanceRevokedError,
-  WalletInstanceNotFoundError,
   WalletInstanceAttestationIssuingError,
   WalletInstanceIntegrityFailedError,
-} from "../utils/errors";
-import { TokenResponse } from "./types";
+  WalletInstanceNotFoundError,
+  WalletInstanceRevokedError,
+} from "./errors";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.

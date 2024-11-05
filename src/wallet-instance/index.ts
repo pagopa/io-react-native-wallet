@@ -1,10 +1,10 @@
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
+import { WalletProviderResponseError } from "../utils/errors";
 import {
   WalletInstanceCreationError,
   WalletInstanceCreationIntegrityError,
-  WalletProviderResponseError,
-} from "../utils/errors";
+} from "./errors";
 
 export async function createWalletInstance(context: {
   integrityContext: IntegrityContext;

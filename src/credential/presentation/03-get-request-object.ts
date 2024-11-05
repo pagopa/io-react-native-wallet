@@ -7,7 +7,7 @@ import {
 } from "@pagopa/io-react-native-jwt";
 
 import { createDPopToken } from "../../utils/dpop";
-import { NoSuitableKeysFoundInEntityConfiguration } from "../../utils/errors";
+import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
 import { hasStatus, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";

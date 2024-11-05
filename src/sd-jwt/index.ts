@@ -9,7 +9,7 @@ import type { JWK } from "../utils/jwk";
 import {
   ClaimsNotFoundBetweenDislosures,
   ClaimsNotFoundInToken,
-} from "../utils/errors";
+} from "./errors";
 import { Base64 } from "js-base64";
 
 const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {

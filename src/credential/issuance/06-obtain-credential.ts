@@ -8,16 +8,17 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { hasStatus, safeJsonParse, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
-  CredentialInvalidStatusError,
-  CredentialIssuingNotSynchronousError,
-  CredentialRequestError,
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
 import { CredentialIssuanceFailureResponse, CredentialResponse } from "./types";
-
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
+import { CredentialInvalidStatusError } from "../status/errors";
+import {
+  CredentialIssuingNotSynchronousError,
+  CredentialRequestError,
+} from "./errors";
 
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],

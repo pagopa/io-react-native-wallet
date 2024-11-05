@@ -11,11 +11,8 @@ import {
   InvalidStatusAttestationResponse,
   StatusAttestationResponse,
 } from "./types";
-import {
-  StatusAttestationError,
-  CredentialInvalidStatusError,
-  UnexpectedStatusCodeError,
-} from "../../utils/errors";
+import { UnexpectedStatusCodeError } from "../../utils/errors";
+import { CredentialInvalidStatusError, StatusAttestationError } from "./errors";
 
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],

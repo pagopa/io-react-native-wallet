@@ -2,7 +2,7 @@ import { EncryptJwe, SignJWT } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
-import { NoSuitableKeysFoundInEntityConfiguration } from "../../utils/errors";
+import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatus, type Out } from "../../utils/misc";
 import type { GetRequestObject } from "./03-get-request-object";
 import { disclose } from "../../sd-jwt";
