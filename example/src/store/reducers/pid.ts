@@ -148,8 +148,15 @@ const pidSlice = createSlice({
      */
     builder.addCase(continuePidFlowThunk.fulfilled, (state, action) => {
       state.pidFlowParams = initialState.pidFlowParams;
+      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
+      const spidIsLoading = state.pidAsyncStatus.spid.isLoading;
+      const authMethod = cieL3IsLoading
+        ? "cieL3"
+        : spidIsLoading
+        ? "spid"
+        : "spid";
       state.pid = action.payload;
-      state.pidAsyncStatus.spid = {
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isDone: true,
       };
@@ -161,7 +168,14 @@ const pidSlice = createSlice({
      */
     builder.addCase(continuePidFlowThunk.pending, (state) => {
       // Redundant as already set by preparePidFlowParams but we want to be explicit and set the loading state
-      state.pidAsyncStatus.spid = {
+      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
+      const spidIsLoading = state.pidAsyncStatus.spid.isLoading;
+      const authMethod = cieL3IsLoading
+        ? "cieL3"
+        : spidIsLoading
+        ? "spid"
+        : "spid";
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isLoading: true,
       };
@@ -174,7 +188,10 @@ const pidSlice = createSlice({
     builder.addCase(continuePidFlowThunk.rejected, (state, action) => {
       // Reset the flow params if an error occurs, you must start from scratch
       state.pidFlowParams = initialState.pidFlowParams;
-      state.pidAsyncStatus.spid = {
+      const authMethod = action.meta.arg.authUrl.includes("cie")
+        ? "cieL3"
+        : "spid";
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
       };
