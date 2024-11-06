@@ -1,3 +1,4 @@
+import { Base64 as mockBase64 } from "js-base64";
 import { sha256 as mockSha256 } from "js-sha256";
 import type { JWK } from "src/utils/jwk";
 
@@ -44,5 +45,5 @@ export const verify = (jwt: string, _: JWK | JWK[]) => {
   );
 };
 
-export const decodeBase64 = (value: string) => atob(value);
-export const encodeBase64 = (value: string) => removePadding(btoa(value));
+export const decodeBase64 = (value: string) => mockBase64.decode(value);
+export const encodeBase64 = (value: string) => mockBase64.encode(value, true);
