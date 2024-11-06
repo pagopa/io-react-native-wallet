@@ -8,6 +8,7 @@ import {
   WalletInstanceRevokedError,
   WalletInstanceNotFoundError,
   WalletInstanceAttestationIssuingError,
+  WalletInstanceIntegrityFailedError,
 } from "../utils/errors";
 import { TokenResponse } from "./types";
 
@@ -130,6 +131,14 @@ const handleAttestationCreationError = (e: unknown) => {
   if (e.statusCode === 404) {
     throw new WalletInstanceNotFoundError(
       "Unable to get an attestation for a Wallet Instance that does not exist",
+      e.claim,
+      e.reason
+    );
+  }
+
+  if (e.statusCode === 409) {
+    throw new WalletInstanceIntegrityFailedError(
+      "Unable to get an attestation for a Wallet Instance that failed the integrity check",
       e.claim,
       e.reason
     );

@@ -1,9 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getCredentialStatusAttestationThunk,
   getCredentialThunk,
+  type GetCredentialStatusAttestationThunkOutput,
 } from "../../thunks/credential";
 import type {
   CredentialResult,
@@ -14,6 +14,7 @@ import type {
 import { asyncStatusInitial } from "../utils";
 import { sessionReset } from "./sesssion";
 import { instanceReset } from "./instance";
+import { createSecureStorage } from "../storage";
 
 /**
  * State type definition for the credential slice.
@@ -29,7 +30,10 @@ type CredentialState = {
     CredentialResult | undefined
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-  statusAttestation: Record<SupportedCredentialsWithoutPid, string | undefined>;
+  statusAttestation: Record<
+    SupportedCredentialsWithoutPid,
+    GetCredentialStatusAttestationThunkOutput | undefined
+  >;
   statusAttAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
 };
 
@@ -127,8 +131,7 @@ const credentialSlice = createSlice({
       (state, action) => {
         const credentialType = action.payload.credentialType;
         // Set the credential
-        state.statusAttestation[credentialType] =
-          action.payload.statusAttestation;
+        state.statusAttestation[credentialType] = action.payload;
         // Set the status
         state.statusAttAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
@@ -186,7 +189,7 @@ export const { credentialReset } = credentialSlice.actions;
  */
 const persistConfig: PersistConfig<CredentialState> = {
   key: "credential",
-  storage: AsyncStorage,
+  storage: createSecureStorage(),
   whitelist: ["credentials"],
 };
 

@@ -49,14 +49,12 @@ export default function TestScenario({
   }, [hasError, isPresent]);
 
   return (
-    <>
-      <ModuleCredential
-        label={title}
-        icon={icon}
-        onPress={onPress}
-        isFetching={isLoading}
-        badge={getBadge()}
-      />
-    </>
+    <ModuleCredential
+      label={title}
+      icon={icon}
+      onPress={onPress}
+      isFetching={isLoading}
+      badge={getBadge()}
+    />
   );
 }

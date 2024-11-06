@@ -1,6 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { createWalletInstanceThunk } from "../../thunks/instance";
+import {
+  createWalletInstanceThunk,
+  revokeWalletInstanceThunk,
+} from "../../thunks/instance";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
@@ -15,6 +18,7 @@ import { sessionReset } from "./sesssion";
  */
 type InstanceState = {
   asyncStatus: AsyncStatus;
+  revocationAsyncStatus: AsyncStatus;
   keyTag: string | undefined;
 };
 
@@ -22,6 +26,7 @@ type InstanceState = {
 const initialState: InstanceState = {
   keyTag: undefined,
   asyncStatus: asyncStatusInitial,
+  revocationAsyncStatus: asyncStatusInitial,
 };
 
 /**
@@ -42,6 +47,13 @@ const instanceSlice = createSlice({
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
 
+    // Dispatched when a wallet istance is revoked. Removes the key tag.
+    builder.addCase(revokeWalletInstanceThunk.fulfilled, (state) => {
+      state.revocationAsyncStatus.isDone = true;
+      state.revocationAsyncStatus.isLoading = false;
+      state.revocationAsyncStatus.hasError = initialState.asyncStatus.hasError;
+    });
+
     // Dispatched when a wallet istance is pending. Sets the state to isLoading and resets isDone and hasError.
     builder.addCase(createWalletInstanceThunk.pending, (state) => {
       state.asyncStatus.isDone = false;
@@ -49,11 +61,28 @@ const instanceSlice = createSlice({
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
 
+    // Dispatched when a wallet istance is being revoked.
+    builder.addCase(revokeWalletInstanceThunk.pending, (state) => {
+      state.revocationAsyncStatus.isDone = false;
+      state.revocationAsyncStatus.isLoading = true;
+      state.revocationAsyncStatus.hasError = initialState.asyncStatus.hasError;
+    });
+
     // Dispatched when a wallet istance is rejected. Sets the state to hasError and resets isLoading and isDone.
     builder.addCase(createWalletInstanceThunk.rejected, (state, action) => {
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = { status: true, error: action.error };
+    });
+
+    // Dispatched when a wallet istance revocation request is rejected.
+    builder.addCase(revokeWalletInstanceThunk.rejected, (state, action) => {
+      state.revocationAsyncStatus.isDone = false;
+      state.revocationAsyncStatus.isLoading = false;
+      state.revocationAsyncStatus.hasError = {
+        status: true,
+        error: action.error,
+      };
     });
 
     // Reset the attestation state when the session is reset.
@@ -91,6 +120,14 @@ export const instanceReducer = persistReducer(
  */
 export const selectInstanceAsyncStatus = (state: RootState) =>
   state.instance.asyncStatus;
+
+/**
+ * Selects the instance revocation state from the root state.
+ * @param state - The root state of the Redux store
+ * @returns The instance revocation state as {@link AsyncStatus}
+ */
+export const selectInstanceRevocationAsyncStatus = (state: RootState) =>
+  state.instance.revocationAsyncStatus;
 
 /**
  * Selects the key tag used to register the wallet instance.

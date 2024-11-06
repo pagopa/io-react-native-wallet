@@ -1,3 +1,5 @@
+import type { CredentialIssuerEntityConfiguration } from "../trust/types";
+
 /**
  * utility to format a set of attributes into an error message string
  *
@@ -56,8 +58,10 @@ export class UnexpectedStatusCodeError extends IoWalletError {
 
   /** HTTP status code */
   statusCode: number;
+  /** The stringified response body, useful to process the error response */
+  responseBody: string;
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number, responseBody: string) {
     super(
       serializeAttrs({
         message,
@@ -65,6 +69,7 @@ export class UnexpectedStatusCodeError extends IoWalletError {
       })
     );
     this.statusCode = statusCode;
+    this.responseBody = responseBody;
   }
 }
 /**
@@ -335,6 +340,75 @@ export class WalletInstanceNotFoundError extends IoWalletError {
 }
 
 /**
+ * An error subclass thrown when obtaining a wallet instance attestation which fails due to the integrity.
+ */
+export class WalletInstanceIntegrityFailedError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED" {
+    return "ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED";
+  }
+
+  code = "ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED";
+
+  reason: string;
+
+  claim: string;
+
+  constructor(message: string, claim: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, claim, reason }));
+    this.reason = reason;
+    this.claim = claim;
+  }
+}
+
+/**
+ * An error subclass thrown when an error occurs during the wallet instance creation process.
+ */
+export class WalletInstanceCreationError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_INSTANCE_CREATION_ERROR" {
+    return "ERR_IO_WALLET_INSTANCE_CREATION_ERROR";
+  }
+
+  code = "ERR_IO_WALLET_INSTANCE_CREATION_ERROR";
+
+  /** The Claim for which the validation failed. */
+  claim: string;
+
+  /** Reason code for the validation failure. */
+  reason: string;
+
+  constructor(
+    message: string,
+    claim: string = "unspecified",
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, claim, reason }));
+    this.claim = claim;
+    this.reason = reason;
+  }
+}
+
+/**
+ * An error subclass thrown when obtaining a wallet instance attestation which fails due to the integrity.
+ */
+export class WalletInstanceCreationIntegrityError extends IoWalletError {
+  static get code(): "ERR_IO_WALLET_INSTANCE_CREATION_INTEGRITY_ERROR" {
+    return "ERR_IO_WALLET_INSTANCE_CREATION_INTEGRITY_ERROR";
+  }
+
+  code = "ERR_IO_WALLET_INSTANCE_CREATION_INTEGRITY_ERROR";
+
+  reason: string;
+
+  claim: string;
+
+  constructor(message: string, claim: string, reason: string = "unspecified") {
+    super(serializeAttrs({ message, claim, reason }));
+    this.reason = reason;
+    this.claim = claim;
+  }
+}
+
+/**
  * An error subclass thrown when an error occurs during the authorization process.
  */
 export class AuthorizationError extends IoWalletError {
@@ -392,19 +466,28 @@ export class OperationAbortedError extends IoWalletError {
 }
 
 /**
- * Error subclass thrown when the status attestation for a credential is invalid.
+ * Error subclass thrown when a credential status is invalid, either during issuance or when requesting a status attestation.
  */
-export class StatusAttestationInvalid extends IoWalletError {
-  static get code(): "ERR_STATUS_ATTESTATION_INVALID" {
-    return "ERR_STATUS_ATTESTATION_INVALID";
+export class CredentialInvalidStatusError extends IoWalletError {
+  static get code(): "ERR_CREDENTIAL_INVALID_STATUS" {
+    return "ERR_CREDENTIAL_INVALID_STATUS";
   }
 
-  code = "ERR_STATUS_ATTESTATION_INVALID";
+  code = "ERR_CREDENTIAL_INVALID_STATUS";
 
+  /**
+   * The error code that should be mapped with one of the `issuance_errors_supported` in the EC.
+   */
+  errorCode: string;
   reason: string;
 
-  constructor(message: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, reason }));
+  constructor(
+    message: string,
+    errorCode: string,
+    reason: string = "unspecified"
+  ) {
+    super(serializeAttrs({ message, errorCode, reason }));
+    this.errorCode = errorCode;
     this.reason = reason;
   }
 }
@@ -418,24 +501,6 @@ export class StatusAttestationError extends IoWalletError {
   }
 
   code = "ERR_STATUS_ATTESTATION_ERROR";
-
-  reason: string;
-
-  constructor(message: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, reason }));
-    this.reason = reason;
-  }
-}
-
-/**
- * Error subclass thrown when the the user is not entitled to receive the requested credential.
- */
-export class CredentialNotEntitledError extends IoWalletError {
-  static get code(): "CREDENTIAL_NOT_ENTITLED_ERROR" {
-    return "CREDENTIAL_NOT_ENTITLED_ERROR";
-  }
-
-  code = "CREDENTIAL_NOT_ENTITLED_ERROR";
 
   reason: string;
 
@@ -479,4 +544,54 @@ export class CredentialIssuingNotSynchronousError extends IoWalletError {
     super(serializeAttrs({ message, reason }));
     this.reason = reason;
   }
+}
+
+type LocalizedIssuanceError = {
+  [locale: string]: {
+    title: string;
+    description: string;
+  };
+};
+
+/**
+ * Function to extract the error message from the Entity Configuration's supported error codes.
+ * @param errorCode The error code to map to a meaningful message
+ * @param params.issuerConf The entity configuration for credentials
+ * @param params.credentialType The type of credential the error belongs to
+ * @returns A localized error {@link LocalizedIssuanceError} or undefined
+ * @throws {Error} When no credential config is found
+ */
+export function extractErrorMessageFromIssuerConf(
+  errorCode: string,
+  {
+    issuerConf,
+    credentialType,
+  }: {
+    issuerConf: CredentialIssuerEntityConfiguration["payload"]["metadata"];
+    credentialType: string;
+  }
+): LocalizedIssuanceError | undefined {
+  const credentialConfiguration =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credentialType
+    ];
+
+  if (!credentialConfiguration) {
+    throw new Error(
+      `No configuration found for ${credentialType} in the provided EC`
+    );
+  }
+
+  const { issuance_errors_supported } = credentialConfiguration;
+
+  if (!issuance_errors_supported?.[errorCode]) {
+    return undefined;
+  }
+
+  const localesList = issuance_errors_supported[errorCode]!.display;
+
+  return localesList.reduce(
+    (acc, { locale, ...rest }) => ({ ...acc, [locale]: rest }),
+    {} as LocalizedIssuanceError
+  );
 }
