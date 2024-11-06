@@ -128,7 +128,6 @@ Below there's a list of the libraries and a schema of how they interact with eac
 
 - [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Used to manage cryptographic keys and signatures
 - [@pagopa/io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity) - Used to manage and verify the integrity of the device
-- [@pagopa/io-react-native-login-utils](https://github.com/pagopa/io-react-native-login-utils) - Used to manage strong authentication flows securely
 - [@pagopa/io-react-native-secure-storage](https://github.com/pagopa/io-react-native-secure-storage) - Used to store data securely on the device
 
 ```mermaid
@@ -137,7 +136,6 @@ graph TD;
     iornw[io-react-native-wallet]
     iornc[io-react-native-crypto]
     iorni[io-react-native-integrity]
-    iornlu[io-react-native-login-utils]
     iornss[io-react-native-secure-storage]
     iornjwt[io-react-native-jwt]
     rncie[react-native-cie]
