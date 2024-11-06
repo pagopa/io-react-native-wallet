@@ -80,6 +80,7 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
         cacheEnabled={false}
         onShouldStartLoadWithRequest={handleShouldStartLoading}
         onNavigationStateChange={handleNavigationStateChange}
+        userAgent="MyApp/1.0.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.93 Mobile Safari/537.36"
       />
     </View>
   );
