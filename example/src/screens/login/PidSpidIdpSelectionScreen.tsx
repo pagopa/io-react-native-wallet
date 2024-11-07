@@ -37,7 +37,6 @@ export default function PidSpidIdpSelectionScreen({ navigation }: Props) {
             credentialType: "PersonIdentificationData",
           })
         ).unwrap();
-        
         navigation.navigate("PidSpidLogin", { authUrl });
       } catch (error) {
         toast.error("Error during authentication");
