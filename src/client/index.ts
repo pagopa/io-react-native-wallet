@@ -1,9 +1,12 @@
-import { WalletProviderResponseError } from "../utils/errors";
 import {
-  ProblemDetail,
+  WalletProviderResponseError,
+  WalletProviderResponseErrorCodes,
+} from "../utils/errors";
+import {
+  ApiClient as WalletProviderApiClient,
   createApiClient as createWalletProviderApiClient,
+  ProblemDetail,
 } from "./generated/wallet-provider";
-import { ApiClient as WalletProviderApiClient } from "./generated/wallet-provider";
 
 export type WalletProviderClient = WalletProviderApiClient;
 
@@ -19,6 +22,7 @@ const validateResponse = async (response: Response) => {
     }
 
     throw new WalletProviderResponseError(
+      WalletProviderResponseErrorCodes.WalletProviderGeneric,
       responseBody.title ?? "Invalid response from Wallet Provider",
       JSON.stringify(responseBody), // Pass the stringified response body as error reason for further processing
       response.status

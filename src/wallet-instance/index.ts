@@ -1,9 +1,9 @@
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
-import { WalletProviderResponseError } from "../utils/errors";
-import * as Errors from "./errors";
-
-export { Errors };
+import {
+  WalletProviderResponseError,
+  WalletProviderResponseErrorCodes,
+} from "../utils/errors";
 
 export async function createWalletInstance(context: {
   integrityContext: IntegrityContext;
@@ -40,15 +40,19 @@ const handleCreateWalletInstanceError = (e: unknown) => {
   }
 
   if (e.statusCode === 409) {
-    throw new Errors.WalletInstanceCreationIntegrityError(
-      "Unable to get an attestation for a Wallet Instance that failed the integrity check",
-      e.reason
+    throw new WalletProviderResponseError(
+      WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed, // Code
+      "Unable to create a wallet instance with a device that failed the integrity check", // Message
+      e.reason, // Reason
+      e.statusCode // Status code
     );
   }
 
-  throw new Errors.WalletInstanceCreationError(
-    `Unable to obtain wallet instance attestation [response status code: ${e.statusCode}]`,
-    e.reason
+  throw new WalletProviderResponseError(
+    WalletProviderResponseErrorCodes.WalletInstanceCreation, // Code
+    `Unable to create wallet instance`, // Message
+    e.reason, // Reason
+    e.statusCode // Status code
   );
 };
 

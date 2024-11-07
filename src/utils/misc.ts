@@ -1,4 +1,8 @@
-import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
+import {
+  IoWalletError,
+  IssuerResponseErrorCodes,
+  UnexpectedStatusCodeError,
+} from "./errors";
 import { sha256 } from "js-sha256";
 
 /**
@@ -13,8 +17,10 @@ export const hasStatusOrThrow =
   async (res: Response): Promise<Response> => {
     if (res.status !== status) {
       const responseBody = await res.text();
+      console.log("Response body: ", responseBody);
       const ErrorClass = customError ?? UnexpectedStatusCodeError;
       throw new ErrorClass(
+        IssuerResponseErrorCodes.IssuerGeneric,
         `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url} with response: ${responseBody}`,
         responseBody, // Pass the stringified response body as error reason for further processing
         res.status

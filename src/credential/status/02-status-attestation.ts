@@ -1,18 +1,21 @@
 import {
   getCredentialHashWithouDiscloures,
   hasStatusOrThrow,
-  safeJsonParse,
   type Out,
+  safeJsonParse,
 } from "../../utils/misc";
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
-import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import {
   InvalidStatusAttestationResponse,
   StatusAttestationResponse,
 } from "./types";
-import { UnexpectedStatusCodeError } from "../../utils/errors";
-import { CredentialInvalidStatusError, StatusAttestationError } from "./errors";
+import {
+  IssuerResponseError,
+  IssuerResponseErrorCodes,
+  UnexpectedStatusCodeError,
+} from "../../utils/errors";
 
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -95,15 +98,18 @@ const handleStatusAttestationError = (e: unknown) => {
     const maybeError = InvalidStatusAttestationResponse.safeParse(
       safeJsonParse(e.reason)
     );
-    throw new CredentialInvalidStatusError(
-      "Invalid status found for the given credential",
-      maybeError.success ? maybeError.data.error_description : "unknown", // Reason
-      maybeError.success ? maybeError.data.error : "unknown" // Error code
+    throw new IssuerResponseError(
+      IssuerResponseErrorCodes.CredentialInvalidStatus, // Code
+      "Invalid status found for the given credential", // Message
+      maybeError.success ? maybeError.data.error : "unknown", // Reason
+      e.statusCode // Status code
     );
   }
 
-  throw new StatusAttestationError(
-    `Unable to obtain the status attestation for the given credential [response status code: ${e.statusCode}]`,
-    e.reason
+  throw new IssuerResponseError(
+    IssuerResponseErrorCodes.StatusAttestationError, // Code
+    `Unable to obtain the status attestation for the given credential`, // Message
+    e.reason, // Reason
+    e.statusCode // Status code
   );
 };
