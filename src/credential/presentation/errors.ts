@@ -5,10 +5,6 @@ import { IoWalletError, serializeAttrs } from "../../utils/errors";
  *
  */
 export class AuthRequestDecodeError extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_AUTHENTICATION_REQUEST_DECODE_FAILED" {
-    return "ERR_IO_WALLET_AUTHENTICATION_REQUEST_DECODE_FAILED";
-  }
-
   code = "ERR_IO_WALLET_AUTHENTICATION_REQUEST_DECODE_FAILED";
 
   /** The Claim for which the validation failed. */
@@ -33,10 +29,6 @@ export class AuthRequestDecodeError extends IoWalletError {
  *
  */
 export class NoSuitableKeysFoundInEntityConfiguration extends IoWalletError {
-  static get code(): "ERR_NO_SUITABLE_KEYS_NOT_FOUND" {
-    return "ERR_NO_SUITABLE_KEYS_NOT_FOUND";
-  }
-
   code = "ERR_NO_SUITABLE_KEYS_NOT_FOUND";
 
   /**

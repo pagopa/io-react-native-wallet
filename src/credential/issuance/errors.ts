@@ -5,10 +5,6 @@ import { IoWalletError, serializeAttrs } from "../../utils/errors";
  * An error subclass thrown when an error occurs during the authorization process.
  */
 export class AuthorizationError extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_AUTHORIZATION_ERROR" {
-    return "ERR_IO_WALLET_AUTHORIZATION_ERROR";
-  }
-
   code = "ERR_IO_WALLET_AUTHORIZATION_ERROR";
 
   constructor(message?: string) {
@@ -22,10 +18,6 @@ export class AuthorizationError extends IoWalletError {
  * It contains the error and error description returned by the IDP.
  */
 export class AuthorizationIdpError extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_ERROR" {
-    return "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_ERROR";
-  }
-
   code = "ERR_IO_WALLET_IDENTIFICATION_RESPONSE_PARSING_FAILED";
 
   error: string;
@@ -43,10 +35,6 @@ export class AuthorizationIdpError extends IoWalletError {
  * Error subclass thrown when an operation has been aborted.
  */
 export class OperationAbortedError extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_OPERATION_ABORTED" {
-    return "ERR_IO_WALLET_OPERATION_ABORTED";
-  }
-
   code = "ERR_IO_WALLET_OPERATION_ABORTED";
 
   /** The aborted operation */
