@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 2
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3.6.0
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           cache: "yarn"
           registry-url: "https://registry.npmjs.org/"
