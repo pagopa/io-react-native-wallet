@@ -5,7 +5,7 @@ import {
 } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { hasStatusOrThrow, type Out, safeJsonParse } from "../../utils/misc";
+import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
   IssuerResponseError,
@@ -166,31 +166,29 @@ const handleObtainCredentialError = (e: unknown) => {
   // Although it is technically not an error, we handle it as such to avoid
   // changing the return type of `obtainCredential` and introduce a breaking change.
   if (e.statusCode === 201) {
-    throw new IssuerResponseError(
-      IssuerResponseErrorCodes.CredentialIssuingNotSynchronous, // Code
-      "This credential cannot be issued synchronously. It will be available at a later time.", // Message
-      "Deferred issuance", // Reason
-      e.statusCode // Status code
-    );
+    throw new IssuerResponseError({
+      code: IssuerResponseErrorCodes.CredentialIssuingNotSynchronous,
+      message:
+        "This credential cannot be issued synchronously. It will be available at a later time.",
+      reason: "Deferred issuance",
+      statusCode: e.statusCode,
+    });
   }
 
-  if (e.statusCode === 403 || e.statusCode === 404) {
-    console.log("CredentialIssuanceFailureResponse", e.reason);
-    const maybeError = CredentialIssuanceFailureResponse.safeParse(
-      safeJsonParse(e.reason)
-    );
-    throw new IssuerResponseError(
-      IssuerResponseErrorCodes.CredentialInvalidStatus, // Code
-      "Invalid status found for the given credential", // Message
-      maybeError.success ? maybeError.data.error : "unknown", // Reason
-      e.statusCode // Status code
-    );
+  if ([403, 404].includes(e.statusCode)) {
+    const maybeError = CredentialIssuanceFailureResponse.safeParse(e.reason);
+    throw new IssuerResponseError({
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      message: "Invalid status found for the given credential",
+      reason: maybeError.success ? maybeError.data.error : "unknown",
+      statusCode: e.statusCode,
+    });
   }
 
-  throw new IssuerResponseError(
-    IssuerResponseErrorCodes.CredentialRequest, // Code
-    `Unable to obtain the requested credential`, // Message
-    e.reason, // Reason
-    e.statusCode // Status code
-  );
+  throw new IssuerResponseError({
+    code: IssuerResponseErrorCodes.CredentialRequestFailed,
+    message: "Unable to obtain the requested credential",
+    reason: e.reason,
+    statusCode: e.statusCode,
+  });
 };

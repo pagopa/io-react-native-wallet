@@ -121,36 +121,38 @@ const handleAttestationCreationError = (e: unknown) => {
   }
 
   if (e.statusCode === 403) {
-    throw new WalletProviderResponseError(
-      WalletProviderResponseErrorCodes.WalletInstanceRevoked, // Code
-      "Unable to get an attestation for a revoked Wallet Instance", // Message
-      e.reason, // Reason
-      e.statusCode // Status code
-    );
+    throw new WalletProviderResponseError({
+      code: WalletProviderResponseErrorCodes.WalletInstanceRevoked,
+      message: "Unable to get an attestation for a revoked Wallet Instance",
+      reason: e.reason,
+      statusCode: e.statusCode,
+    });
   }
 
   if (e.statusCode === 404) {
-    throw new WalletProviderResponseError(
-      WalletProviderResponseErrorCodes.WalletInstanceNotFound, // Code
-      "Unable to get an attestation for a Wallet Instance that does not exist", // Message
-      e.reason, // Reason
-      e.statusCode // Status code
-    );
+    throw new WalletProviderResponseError({
+      code: WalletProviderResponseErrorCodes.WalletInstanceNotFound,
+      message:
+        "Unable to get an attestation for a Wallet Instance that does not exist",
+      reason: e.reason,
+      statusCode: e.statusCode,
+    });
   }
 
   if (e.statusCode === 409) {
-    throw new WalletProviderResponseError(
-      WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed, // Code
-      "Unable to get an attestation for a Wallet Instance that failed the integrity check", // Message
-      e.reason, // Reason
-      e.statusCode // Status code
-    );
+    throw new WalletProviderResponseError({
+      code: WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed,
+      message:
+        "Unable to get an attestation for a Wallet Instance that failed the integrity check",
+      reason: e.reason,
+      statusCode: e.statusCode,
+    });
   }
 
-  throw new WalletProviderResponseError(
-    WalletProviderResponseErrorCodes.WalletInstanceAttestationIssuing, // Code
-    `Unable to obtain wallet instance attestation`, // Message
-    e.reason, // Reason
-    e.statusCode // Status code
-  );
+  throw new WalletProviderResponseError({
+    code: WalletProviderResponseErrorCodes.WalletInstanceAttestationIssuingFailed,
+    message: "Unable to obtain wallet instance attestation",
+    reason: e.reason,
+    statusCode: e.statusCode,
+  });
 };

@@ -1,7 +1,5 @@
-import {
-  WalletProviderResponseError,
-  WalletProviderResponseErrorCodes,
-} from "../utils/errors";
+import { parseRawHttpResponse } from "src/utils/misc";
+import { WalletProviderResponseError } from "../utils/errors";
 import {
   ApiClient as WalletProviderApiClient,
   createApiClient as createWalletProviderApiClient,
@@ -21,12 +19,11 @@ const validateResponse = async (response: Response) => {
       };
     }
 
-    throw new WalletProviderResponseError(
-      WalletProviderResponseErrorCodes.WalletProviderGeneric,
-      responseBody.title ?? "Invalid response from Wallet Provider",
-      JSON.stringify(responseBody), // Pass the stringified response body as error reason for further processing
-      response.status
-    );
+    throw new WalletProviderResponseError({
+      message: responseBody.title ?? "Invalid response from Wallet Provider",
+      reason: responseBody,
+      statusCode: response.status,
+    });
   }
   return response;
 };
@@ -47,13 +44,7 @@ export const getWalletProviderClient = (context: {
         },
       })
         .then(validateResponse)
-        .then((res) => {
-          const contentType = res.headers.get("content-type");
-          if (contentType?.includes("application/json")) {
-            return res.json();
-          }
-          return res.text();
-        }),
+        .then<string | Record<string, unknown>>(parseRawHttpResponse),
     walletProviderBaseUrl
   );
 };

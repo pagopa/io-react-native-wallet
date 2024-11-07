@@ -2,7 +2,6 @@ import {
   getCredentialHashWithouDiscloures,
   hasStatusOrThrow,
   type Out,
-  safeJsonParse,
 } from "../../utils/misc";
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
@@ -95,21 +94,19 @@ const handleStatusAttestationError = (e: unknown) => {
   }
 
   if (e.statusCode === 404) {
-    const maybeError = InvalidStatusAttestationResponse.safeParse(
-      safeJsonParse(e.reason)
-    );
-    throw new IssuerResponseError(
-      IssuerResponseErrorCodes.CredentialInvalidStatus, // Code
-      "Invalid status found for the given credential", // Message
-      maybeError.success ? maybeError.data.error : "unknown", // Reason
-      e.statusCode // Status code
-    );
+    const maybeError = InvalidStatusAttestationResponse.safeParse(e.reason);
+    throw new IssuerResponseError({
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      message: "Invalid status found for the given credential",
+      reason: maybeError.success ? maybeError.data.error : "unknown",
+      statusCode: e.statusCode,
+    });
   }
 
-  throw new IssuerResponseError(
-    IssuerResponseErrorCodes.StatusAttestationError, // Code
-    `Unable to obtain the status attestation for the given credential`, // Message
-    e.reason, // Reason
-    e.statusCode // Status code
-  );
+  throw new IssuerResponseError({
+    code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
+    message: `Unable to obtain the status attestation for the given credential`,
+    reason: e.reason,
+    statusCode: e.statusCode,
+  });
 };

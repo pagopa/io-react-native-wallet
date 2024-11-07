@@ -1,57 +1,15 @@
 import type { CredentialIssuerEntityConfiguration } from "../trust";
+import {
+  IssuerResponseErrorCodes,
+  WalletProviderResponseErrorCodes,
+  type IssuerResponseErrorCode,
+  type WalletProviderResponseErrorCode,
+} from "./errorCodes";
 
-export const IssuerResponseErrorCodes = {
-  IssuerGeneric: "ERR_ISSUER_GENERIC_ERROR",
-  /**
-   * Error code thrown when a credential cannot be issued immediately because it follows the async flow.
-   */
-  CredentialIssuingNotSynchronous: "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR",
-  /**
-   * Error code thrown when an error occurs while requesting a credential.
-   */
-  CredentialRequest: "CREDENTIAL_REQUEST_ERROR",
-  /**
-   * Error code thrown when a credential status is invalid, either during issuance or when requesting a status attestation.
-   */
-  CredentialInvalidStatus: "ERR_CREDENTIAL_INVALID_STATUS",
-  /**
-   * Error code thrown when an error occurs while obtaining a status attestation for a credential.
-   */
-  StatusAttestationError: "ERR_STATUS_ATTESTATION_ERROR",
-} as const;
+export { IssuerResponseErrorCodes, WalletProviderResponseErrorCodes };
 
-export const WalletProviderResponseErrorCodes = {
-  WalletProviderGeneric: "ERR_IO_WALLET_PROVIDER_GENERIC_ERROR",
-  /**
-   * An error code thrown when an error occurs during the wallet instance creation process.
-   */
-  WalletInstanceCreation: "ERR_IO_WALLET_INSTANCE_CREATION_ERROR",
-  /**
-   * An error code thrown when validation fail
-   */
-  WalletInstanceAttestationIssuing:
-    "ERR_IO_WALLET_INSTANCE_ATTESTATION_ISSUING_FAILED",
-  /**
-   * An error code thrown when obtaining a wallet instance attestation which fails due to the integrity.
-   */
-  WalletInstanceIntegrityFailed: "ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED",
-  /**
-   * An error code thrown when obtaining a wallet instance attestation but the wallet instance is revoked.
-   */
-  WalletInstanceRevoked: "ERR_IO_WALLET_INSTANCE_REVOKED",
-  /**
-   * An error code thrown when obtaining a wallet instance attestation but the wallet instance is not found.
-   */
-  WalletInstanceNotFound: "ERR_IO_WALLET_INSTANCE_NOT_FOUND",
-} as const;
-
-type IssuerResponseErrorCode =
-  (typeof IssuerResponseErrorCodes)[keyof typeof IssuerResponseErrorCodes];
-type WalletProviderResponseErrorCode =
-  (typeof WalletProviderResponseErrorCodes)[keyof typeof WalletProviderResponseErrorCodes];
-type UnexpectedStatusErrorCode =
-  | IssuerResponseErrorCode
-  | WalletProviderResponseErrorCode;
+// An error reason that supports both a string and a generic JSON object
+type ErrorReason = string | Record<string, unknown>;
 
 /**
  * utility to format a set of attributes into an error message string
@@ -64,11 +22,15 @@ type UnexpectedStatusErrorCode =
  * @returns a human-readable serialization of the set
  */
 export const serializeAttrs = (
-  attrs: Record<string, string | Array<string> | undefined>
+  attrs: Record<string, ErrorReason | number | Array<string> | undefined>
 ): string =>
   Object.entries(attrs)
     .filter(([, v]) => v !== undefined)
-    .map(([k, v]) => [k, Array.isArray(v) ? `(${v.join(", ")})` : v])
+    .map(([k, v]) => {
+      if (Array.isArray(v)) return [k, `(${v.join(", ")})`];
+      if (typeof v !== "string") return [k, JSON.stringify(v)];
+      return [k, v];
+    })
     .map((_) => _.join("="))
     .join(" ");
 
@@ -123,50 +85,54 @@ export class ValidationFailed extends IoWalletError {
 export class UnexpectedStatusCodeError extends IoWalletError {
   code: string = "ERR_UNEXPECTED_STATUS_CODE";
   statusCode: number;
-  reason: string;
+  reason: ErrorReason;
 
-  constructor(
-    code: UnexpectedStatusErrorCode,
-    message: string,
-    reason: string,
-    statusCode: number
-  ) {
-    super(
-      serializeAttrs({ message, reason, statusCode: statusCode?.toString() })
-    );
-    this.code = code;
-    this.reason = reason;
-    this.statusCode = statusCode;
+  constructor(params: {
+    message: string;
+    reason: ErrorReason;
+    statusCode: number;
+  }) {
+    super(serializeAttrs(params));
+    this.reason = params.reason;
+    this.statusCode = params.statusCode;
   }
 }
 
 /**
- * A generic error subclass thrown when an Issuer HTTP request fails.
- * This class can be extended to map more specific Issuer errors.
+ * An error subclass thrown when an Issuer HTTP request fails.
+ * The specific error can be found in the `code` property.
  */
 export class IssuerResponseError extends UnexpectedStatusCodeError {
-  constructor(
-    code: IssuerResponseErrorCode,
-    message: string,
-    reason: string,
-    statusCode: number
-  ) {
-    super(code, message, reason, statusCode);
+  code: IssuerResponseErrorCode;
+
+  constructor(params: {
+    code?: IssuerResponseErrorCode;
+    message: string;
+    reason: ErrorReason;
+    statusCode: number;
+  }) {
+    super(params);
+    this.code = params.code ?? IssuerResponseErrorCodes.IssuerGenericError;
   }
 }
 
 /**
- * A generic error subclass thrown when a Wallet Provider HTTP request fails.
- * This class can be extended to map more specific Wallet Provider errors.
+ * An error subclass thrown when a Wallet Provider HTTP request fails.
+ * The specific error can be found in the `code` property.
  */
 export class WalletProviderResponseError extends UnexpectedStatusCodeError {
-  constructor(
-    code: WalletProviderResponseErrorCode,
-    message: string,
-    reason: string,
-    statusCode: number
-  ) {
-    super(code, message, reason, statusCode);
+  code: WalletProviderResponseErrorCode;
+
+  constructor(params: {
+    code?: WalletProviderResponseErrorCode;
+    message: string;
+    reason: ErrorReason;
+    statusCode: number;
+  }) {
+    super(params);
+    this.code =
+      params.code ??
+      WalletProviderResponseErrorCodes.WalletProviderGenericError;
   }
 }
 
