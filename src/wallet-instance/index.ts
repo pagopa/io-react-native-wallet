@@ -42,14 +42,12 @@ const handleCreateWalletInstanceError = (e: unknown) => {
   if (e.statusCode === 409) {
     throw new Errors.WalletInstanceCreationIntegrityError(
       "Unable to get an attestation for a Wallet Instance that failed the integrity check",
-      e.claim,
       e.reason
     );
   }
 
   throw new Errors.WalletInstanceCreationError(
     `Unable to obtain wallet instance attestation [response status code: ${e.statusCode}]`,
-    e.claim,
     e.reason
   );
 };

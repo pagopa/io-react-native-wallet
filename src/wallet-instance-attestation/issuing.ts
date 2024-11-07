@@ -120,7 +120,6 @@ const handleAttestationCreationError = (e: unknown) => {
   if (e.statusCode === 403) {
     throw new Errors.WalletInstanceRevokedError(
       "Unable to get an attestation for a revoked Wallet Instance",
-      e.claim,
       e.reason
     );
   }
@@ -128,7 +127,6 @@ const handleAttestationCreationError = (e: unknown) => {
   if (e.statusCode === 404) {
     throw new Errors.WalletInstanceNotFoundError(
       "Unable to get an attestation for a Wallet Instance that does not exist",
-      e.claim,
       e.reason
     );
   }
@@ -136,14 +134,12 @@ const handleAttestationCreationError = (e: unknown) => {
   if (e.statusCode === 409) {
     throw new Errors.WalletInstanceIntegrityFailedError(
       "Unable to get an attestation for a Wallet Instance that failed the integrity check",
-      e.claim,
       e.reason
     );
   }
 
   throw new Errors.WalletInstanceAttestationIssuingError(
     `Unable to obtain wallet instance attestation [response status code: ${e.statusCode}]`,
-    e.claim,
     e.reason
   );
 };

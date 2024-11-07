@@ -8,11 +8,13 @@ import {
   verifyAndParseStatusAttestation,
   type VerifyAndParseStatusAttestation,
 } from "./03-verify-and-parse-status-attestation";
+import * as Errors from "./errors";
 
 export {
   evaluateIssuerTrust,
   statusAttestation,
   verifyAndParseStatusAttestation,
+  Errors,
 };
 export type {
   StartFlow,
@@ -20,4 +22,3 @@ export type {
   StatusAttestation,
   VerifyAndParseStatusAttestation,
 };
-export * as Errors from "./errors";

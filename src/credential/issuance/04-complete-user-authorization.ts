@@ -6,14 +6,14 @@ import {
 } from "../../utils/auth";
 import {
   createAbortPromiseFromSignal,
-  hasStatus,
+  hasStatusOrThrow,
   isDefined,
   until,
   type Out,
 } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
-import { ValidationFailed } from "../../utils/errors";
+import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { Linking } from "react-native";
 import {
@@ -183,7 +183,7 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
       `${authzRequestEndpoint}?${params.toString()}`,
       { method: "GET" }
     )
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then((jws) => decode(jws))
       .then((reqObj) => RequestObject.safeParse(reqObj.payload));
@@ -300,7 +300,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       },
       body,
     })
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((reqUri) => reqUri.json());
 
     const responseUri = ResponseUriResultShape.safeParse(resUriRes);
@@ -312,7 +312,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     }
 
     return await appFetch(responseUri.data.redirect_uri)
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then(getJwtFromFormPost)
       .then((cbRes) => parseAuthroizationResponse(cbRes.decodedJwt.payload));

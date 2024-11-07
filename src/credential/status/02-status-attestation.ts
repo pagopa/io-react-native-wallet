@@ -1,6 +1,6 @@
 import {
   getCredentialHashWithouDiscloures,
-  hasStatus,
+  hasStatusOrThrow,
   safeJsonParse,
   type Out,
 } from "../../utils/misc";
@@ -71,7 +71,7 @@ export const statusAttestation: StatusAttestation = async (
     },
     body: JSON.stringify(body),
   })
-    .then(hasStatus(201))
+    .then(hasStatusOrThrow(201))
     .then((raw) => raw.json())
     .then((json) => StatusAttestationResponse.parse(json))
     .catch(handleStatusAttestationError);
@@ -93,17 +93,17 @@ const handleStatusAttestationError = (e: unknown) => {
 
   if (e.statusCode === 404) {
     const maybeError = InvalidStatusAttestationResponse.safeParse(
-      safeJsonParse(e.responseBody)
+      safeJsonParse(e.reason)
     );
     throw new CredentialInvalidStatusError(
       "Invalid status found for the given credential",
-      maybeError.success ? maybeError.data.error : "unknown",
-      e.message
+      maybeError.success ? maybeError.data.error_description : "unknown", // Reason
+      maybeError.success ? maybeError.data.error : "unknown" // Error code
     );
   }
 
   throw new StatusAttestationError(
     `Unable to obtain the status attestation for the given credential [response status code: ${e.statusCode}]`,
-    e.message
+    e.reason
   );
 };

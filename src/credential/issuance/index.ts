@@ -25,6 +25,7 @@ import {
   verifyAndParseCredential,
   type VerifyAndParseCredential,
 } from "./07-verify-and-parse-credential";
+import * as Errors from "./errors";
 
 export {
   evaluateIssuerTrust,
@@ -36,6 +37,7 @@ export {
   obtainCredential,
   verifyAndParseCredential,
   parseAuthroizationResponse,
+  Errors,
 };
 export type {
   StartFlow,
@@ -48,4 +50,3 @@ export type {
   ObtainCredential,
   VerifyAndParseCredential,
 };
-export * as Errors from "./errors";

@@ -32,7 +32,7 @@ export class AuthRequestDecodeError extends IoWalletError {
  * When selecting a public key from an entity configuration, and no one meets the requirements for the scenario
  *
  */
-export class NoSuitableKeysFoundInEntityConfiguration extends Error {
+export class NoSuitableKeysFoundInEntityConfiguration extends IoWalletError {
   static get code(): "ERR_NO_SUITABLE_KEYS_NOT_FOUND" {
     return "ERR_NO_SUITABLE_KEYS_NOT_FOUND";
   }

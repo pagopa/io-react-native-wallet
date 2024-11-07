@@ -4,18 +4,20 @@ import { sha256 } from "js-sha256";
 /**
  * Check if a response is in the expected status, other
  * @param status - The expected status
- * @throws {@link UnexpectedStatusCodeError} if the status is different from the one expected
+ * @param customError - A custom error compatible with {@link UnexpectedStatusCodeError}
+ * @throws UnexpectedStatusCodeError if the status is different from the one expected
  * @returns The given response object
  */
-export const hasStatus =
-  (status: number) =>
+export const hasStatusOrThrow =
+  (status: number, customError?: typeof UnexpectedStatusCodeError) =>
   async (res: Response): Promise<Response> => {
     if (res.status !== status) {
       const responseBody = await res.text();
-      throw new UnexpectedStatusCodeError(
+      const ErrorClass = customError ?? UnexpectedStatusCodeError;
+      throw new ErrorClass(
         `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url} with response: ${responseBody}`,
-        res.status,
-        responseBody
+        responseBody, // Pass the stringified response body as error reason for further processing
+        res.status
       );
     }
     return res;

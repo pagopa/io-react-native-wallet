@@ -11,9 +11,10 @@ import type { CredentialIssuerEntityConfiguration } from "../trust/types";
  * @returns a human-readable serialization of the set
  */
 export const serializeAttrs = (
-  attrs: Record<string, string | string>
+  attrs: Record<string, string | Array<string> | undefined>
 ): string =>
   Object.entries(attrs)
+    .filter(([, v]) => v !== undefined)
     .map(([k, v]) => [k, Array.isArray(v) ? `(${v.join(", ")})` : v])
     .map((_) => _.join("="))
     .join(" ");
@@ -41,37 +42,9 @@ export class IoWalletError extends Error {
   constructor(message?: string) {
     super(message);
     this.name = this.constructor.name;
-    // @ts-ignore
-    Error.captureStackTrace?.(this, this.constructor);
   }
 }
 
-/**
- * An error subclass thrown when a Wallet Provider http request has a status code different from the one expected.
- */
-export class UnexpectedStatusCodeError extends IoWalletError {
-  static get code(): "ERR_UNEXPECTED_STATUS_CODE" {
-    return "ERR_UNEXPECTED_STATUS_CODE";
-  }
-
-  code = "ERR_UNEXPECTED_STATUS_CODE";
-
-  /** HTTP status code */
-  statusCode: number;
-  /** The stringified response body, useful to process the error response */
-  responseBody: string;
-
-  constructor(message: string, statusCode: number, responseBody: string) {
-    super(
-      serializeAttrs({
-        message,
-        statusCode: statusCode.toString(),
-      })
-    );
-    this.statusCode = statusCode;
-    this.responseBody = responseBody;
-  }
-}
 /**
  * An error subclass thrown when validation fail
  *
@@ -101,42 +74,55 @@ export class ValidationFailed extends IoWalletError {
 }
 
 /**
- * An error subclass thrown when a Wallet Provider http request fail
- *
+ * An error subclass thrown when an HTTP request has a status code different from the one expected.
  */
-export class WalletProviderResponseError extends IoWalletError {
-  static get code(): "ERR_IO_WALLET_PROVIDER_RESPONSE_FAILED" {
+export class UnexpectedStatusCodeError extends IoWalletError {
+  static get code(): string {
+    return "ERR_UNEXPECTED_STATUS_CODE";
+  }
+
+  code: string = "ERR_UNEXPECTED_STATUS_CODE";
+  statusCode: number | undefined;
+  reason: string;
+
+  constructor(message: string, reason: string, statusCode?: number) {
+    super(
+      serializeAttrs({ message, reason, statusCode: statusCode?.toString() })
+    );
+    this.reason = reason;
+    this.statusCode = statusCode;
+  }
+}
+
+/**
+ * A generic error subclass thrown when an Issuer HTTP request fails.
+ * This class can be extended to map more specific Issuer errors.
+ */
+export class IssuerResponseError extends UnexpectedStatusCodeError {
+  static get code(): string {
+    return "ERR_IO_ISSUER_RESPONSE_FAILED";
+  }
+
+  code: string = "ERR_IO_ISSUER_RESPONSE_FAILED";
+
+  constructor(message: string, reason: string, statusCode?: number) {
+    super(message, reason, statusCode);
+  }
+}
+
+/**
+ * A generic error subclass thrown when a Wallet Provider HTTP request fails.
+ * This class can be extended to map more specific Wallet Provider errors.
+ */
+export class WalletProviderResponseError extends UnexpectedStatusCodeError {
+  static get code(): string {
     return "ERR_IO_WALLET_PROVIDER_RESPONSE_FAILED";
   }
 
-  code = "ERR_IO_WALLET_PROVIDER_RESPONSE_FAILED";
+  code: string = "ERR_IO_WALLET_PROVIDER_RESPONSE_FAILED";
 
-  /** The Claim for which the validation failed. */
-  claim: string;
-
-  /** Reason code for the validation failure. */
-  reason: string;
-
-  /** HTTP status code */
-  statusCode: number;
-
-  constructor(
-    message: string,
-    claim: string = "unspecified",
-    reason: string = "unspecified",
-    statusCode: number
-  ) {
-    super(
-      serializeAttrs({
-        message,
-        claim,
-        reason,
-        statusCode: statusCode.toString(),
-      })
-    );
-    this.claim = claim;
-    this.reason = reason;
-    this.statusCode = statusCode;
+  constructor(message: string, reason: string, statusCode?: number) {
+    super(message, reason, statusCode);
   }
 }
 
@@ -171,7 +157,7 @@ export function extractErrorMessageFromIssuerConf(
     ];
 
   if (!credentialConfiguration) {
-    throw new Error(
+    throw new IoWalletError(
       `No configuration found for ${credentialType} in the provided EC`
     );
   }

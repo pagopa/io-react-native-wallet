@@ -9,19 +9,18 @@ export type WalletProviderClient = WalletProviderApiClient;
 
 const validateResponse = async (response: Response) => {
   if (!response.ok) {
-    let problemDetail: ProblemDetail = {};
+    let responseBody: ProblemDetail = {};
     try {
-      problemDetail = ProblemDetail.parse(await response.json());
+      responseBody = ProblemDetail.parse(await response.json());
     } catch {
-      problemDetail = {
+      responseBody = {
         title: "Invalid response from Wallet Provider",
       };
     }
 
     throw new WalletProviderResponseError(
-      problemDetail.title ?? "Invalid response from Wallet Provider",
-      problemDetail.type,
-      problemDetail.detail,
+      responseBody.title ?? "Invalid response from Wallet Provider",
+      JSON.stringify(responseBody), // Pass the stringified response body as error reason for further processing
       response.status
     );
   }

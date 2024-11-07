@@ -46,6 +46,7 @@ export const ParsedStatusAttestation = z.object({
  * Shape from parsing a status attestation response in case of error.
  */
 export const InvalidStatusAttestationResponse = z.object({
+  error_description: z.string(),
   error: z.string(),
 });
 

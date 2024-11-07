@@ -5,7 +5,7 @@ import {
 } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { hasStatus, safeJsonParse, type Out } from "../../utils/misc";
+import { hasStatusOrThrow, safeJsonParse, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
   UnexpectedStatusCodeError,
@@ -124,7 +124,7 @@ export const obtainCredential: ObtainCredential = async (
     },
   };
 
-  const tokenRequestSignedDPop = await await createDPopToken(
+  const tokenRequestSignedDPop = await createDPopToken(
     {
       htm: "POST",
       htu: credentialUrl,
@@ -142,7 +142,7 @@ export const obtainCredential: ObtainCredential = async (
     },
     body: JSON.stringify(credentialRequestFormBody),
   })
-    .then(hasStatus(200))
+    .then(hasStatusOrThrow(200))
     .then((res) => res.json())
     .then((body) => CredentialResponse.safeParse(body))
     .catch(handleObtainCredentialError);
@@ -170,24 +170,23 @@ const handleObtainCredentialError = (e: unknown) => {
   // changing the return type of `obtainCredential` and introduce a breaking change.
   if (e.statusCode === 201) {
     throw new CredentialIssuingNotSynchronousError(
-      "This credential cannot be issued synchronously. It will be available at a later time.",
-      e.message
+      "This credential cannot be issued synchronously. It will be available at a later time."
     );
   }
 
-  if ([403, 404].includes(e.statusCode)) {
+  if (e.statusCode === 403 || e.statusCode === 404) {
     const maybeError = CredentialIssuanceFailureResponse.safeParse(
-      safeJsonParse(e.responseBody)
+      safeJsonParse(e.reason)
     );
     throw new CredentialInvalidStatusError(
       "Invalid status found for the given credential",
-      maybeError.success ? maybeError.data.error : "unknown",
-      e.message
+      maybeError.success ? maybeError.data.error_description : "unknown", // Reason
+      maybeError.success ? maybeError.data.error : "unknown" // Error code
     );
   }
 
   throw new CredentialRequestError(
     `Unable to obtain the requested credential [response status code: ${e.statusCode}]`,
-    e.message
+    e.reason
   );
 };

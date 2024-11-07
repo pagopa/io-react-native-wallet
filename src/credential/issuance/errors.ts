@@ -1,4 +1,8 @@
-import { IoWalletError, serializeAttrs } from "../../utils/errors";
+import {
+  IoWalletError,
+  IssuerResponseError,
+  serializeAttrs,
+} from "../../utils/errors";
 
 /**
  * An error subclass thrown when an error occurs during the authorization process.
@@ -30,47 +34,9 @@ export class AuthorizationIdpError extends IoWalletError {
   errorDescription?: string;
 
   constructor(error: string, errorDescription?: string) {
-    super(
-      serializeAttrs(errorDescription ? { error, errorDescription } : { error })
-    );
+    super(serializeAttrs({ error, errorDescription }));
     this.error = error;
     this.errorDescription = errorDescription;
-  }
-}
-
-/**
- * Error subclass thrown when a credential cannot be issued immediately because it follows the async flow.
- */
-export class CredentialIssuingNotSynchronousError extends IoWalletError {
-  static get code(): "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR" {
-    return "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR";
-  }
-
-  code = "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR";
-
-  reason: string;
-
-  constructor(message: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, reason }));
-    this.reason = reason;
-  }
-}
-
-/**
- * Error subclass thrown when an error occurs while requesting a credential.
- */
-export class CredentialRequestError extends IoWalletError {
-  static get code(): "CREDENTIAL_REQUEST_ERROR" {
-    return "CREDENTIAL_REQUEST_ERROR";
-  }
-
-  code = "CREDENTIAL_REQUEST_ERROR";
-
-  reason: string;
-
-  constructor(message: string, reason: string = "unspecified") {
-    super(serializeAttrs({ message, reason }));
-    this.reason = reason;
   }
 }
 
@@ -90,5 +56,35 @@ export class OperationAbortedError extends IoWalletError {
   constructor(operation: string) {
     super(serializeAttrs({ operation }));
     this.operation = operation;
+  }
+}
+
+/**
+ * Error subclass thrown when a credential cannot be issued immediately because it follows the async flow.
+ */
+export class CredentialIssuingNotSynchronousError extends IssuerResponseError {
+  static get code(): "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR" {
+    return "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR";
+  }
+
+  code = "CREDENTIAL_ISSUING_NOT_SYNCHRONOUS_ERROR";
+
+  constructor(message: string) {
+    super(message, "Deferred issuance");
+  }
+}
+
+/**
+ * Error subclass thrown when an error occurs while requesting a credential.
+ */
+export class CredentialRequestError extends IssuerResponseError {
+  static get code(): "CREDENTIAL_REQUEST_ERROR" {
+    return "CREDENTIAL_REQUEST_ERROR";
+  }
+
+  code = "CREDENTIAL_REQUEST_ERROR";
+
+  constructor(message: string, reason: string) {
+    super(message, reason);
   }
 }
