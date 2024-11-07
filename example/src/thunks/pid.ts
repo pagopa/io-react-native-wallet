@@ -4,7 +4,6 @@ import {
   Credential,
   WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
-import parseUrl from "parse-url";
 import uuid from "react-native-uuid";
 import {
   selectAttestation,
@@ -42,14 +41,14 @@ type PreparePidFlowParamsThunkInput = {
  * Type definition for the input of the {@link ContinuePidFlowThunkInput}.
  */
 type ContinuePidFlowThunkInput = {
-  authUrl: string;
+  authRedirectUrl: string;
 };
 
 /**
  * Type definition for the output of the {@link preparePidFlowParamsThunk}.
  */
 export type PreparePidFlowParamsThunkOutput = {
-  authUrl?: string;
+  authUrl: string;
   issuerConf: Awaited<
     ReturnType<typeof Credential.Issuance.evaluateIssuerTrust>
   >["issuerConf"];
@@ -124,7 +123,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   );
 
   // Start user authorization
-  const { authUrl, clientId, codeVerifier, credentialDefinition } =
+  const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
       credentialType,
@@ -133,9 +132,16 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
         redirectUri: redirect_uri,
         wiaCryptoContext,
         appFetch,
-      },
-      idpHint
+      }
     );
+
+  // Obtain the Authorization URL
+  const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+    issuerRequestUri,
+    clientId,
+    issuerConf,
+    idpHint
+  );
 
   return {
     authUrl,
@@ -152,14 +158,14 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 /**
  * Thunk to continue the CIE L3 issuance flow. Follows {@link preparePidFlowParamsThunk}.
  * It performs the last steps of the issuance flow, obtaining the credential and parsing it.
- * @param args.url The URL of the webview after the user authorization which contains the authorization code.
+ * @param args.authRedirectUrl The URL of the webview after the user authorization which contains the authorization code.
  * @return The credetial result.
  */
 export const continuePidFlowThunk = createAppAsyncThunk<
   PidResult,
   ContinuePidFlowThunkInput
 >("pid/flowContinue", async (args, { getState }) => {
-  const { authUrl } = args;
+  const { authRedirectUrl } = args;
 
   const flowParams = selectPidFlowParams(getState());
 
@@ -176,9 +182,10 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     redirect_uri,
   } = flowParams;
 
-  const query = parseUrl(authUrl).query;
-
-  const { code } = Credential.Issuance.parseAuthroizationResponse(query);
+  const { code } =
+    await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+      authRedirectUrl
+    );
 
   /*
    * Create wia crypto context, we are using the same keytag used in {@link prepareCieL3FlowParamsThunk},

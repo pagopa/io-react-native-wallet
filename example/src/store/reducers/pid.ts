@@ -188,7 +188,7 @@ const pidSlice = createSlice({
     builder.addCase(continuePidFlowThunk.rejected, (state, action) => {
       // Reset the flow params if an error occurs, you must start from scratch
       state.pidFlowParams = initialState.pidFlowParams;
-      const authMethod = action.meta.arg.authUrl.includes("cie")
+      const authMethod = action.meta.arg.authRedirectUrl.includes("cie")
         ? "cieL3"
         : "spid";
       state.pidAsyncStatus[authMethod] = {

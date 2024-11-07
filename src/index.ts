@@ -12,6 +12,7 @@ import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as Trust from "./trust";
 import * as WalletInstance from "./wallet-instance";
 import * as Cie from "./cie";
+import * as Misc from "./utils/misc";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
@@ -29,6 +30,7 @@ export {
   AuthorizationDetails,
   fixBase64EncodingOnKey,
   Cie,
+  Misc,
 };
 
 export type { IntegrityContext, AuthorizationContext };

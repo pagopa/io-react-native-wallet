@@ -12,6 +12,7 @@ import type {
   PidResult,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
+import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
 
 /**
  * Implements a flow to obtain a PID credential.
@@ -62,7 +63,7 @@ export const getPidCieID = async ({
   );
 
   // Start user authorization
-  const { clientId, codeVerifier, credentialDefinition, authUrl } =
+  const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
       credentialType,
@@ -71,15 +72,27 @@ export const getPidCieID = async ({
         redirectUri,
         wiaCryptoContext,
         appFetch,
-      },
-      idpHint
+      }
     );
 
-  // Complete the authroization process with query mode with the authorizationContext which opens the browser
+  // Obtain the Authorization URL
+  const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+    issuerRequestUri,
+    clientId,
+    issuerConf,
+    idpHint
+  );
+
+  // Open the authorization URL and listen for the redirect
+  const { authRedirectUrl } = await openUrlAndListenForAuthRedirect(
+    redirectUri,
+    authUrl
+  );
+
+  // Complete the authroization process with query mode
   const { code } =
     await Credential.Issuance.completeUserAuthorizationWithQueryMode(
-      authUrl,
-      redirectUri
+      authRedirectUrl
     );
 
   // Create DPoP context which will be used for the whole issuance flow

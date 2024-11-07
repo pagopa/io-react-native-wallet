@@ -55,7 +55,7 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
       try {
         dispatch(
           continuePidFlowThunk({
-            authUrl: url,
+            authRedirectUrl: url,
           })
         );
         navigation.goBack();

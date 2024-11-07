@@ -14,14 +14,12 @@ export type StartUserAuthorization = (
     walletInstanceAttestation: string;
     redirectUri: string;
     appFetch?: GlobalFetch["fetch"];
-  },
-  idpHint?: string
+  }
 ) => Promise<{
   issuerRequestUri: string;
   clientId: string;
   codeVerifier: string;
   credentialDefinition: AuthorizationDetail;
-  authUrl?: string;
 }>;
 
 /**
@@ -95,14 +93,12 @@ const selectResponseMode = (
  * @param issuerConf The issuer configuration
  * @param credentialType The type of the credential to be requested returned by {@link selectCredentialDefinition}
  * @param ctx The context object containing the Wallet Instance's cryptographic context, the Wallet Instance's attestation, the redirect URI and the fetch implementation
- * @param idpHint Optional identity provider hint to be included in the authorization request
- * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier, the credential definition, and the optional authUrl
+ * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier and the credential definition
  */
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,
   credentialType,
-  ctx,
-  idpHint
+  ctx
 ) => {
   const {
     wiaCryptoContext,
@@ -110,8 +106,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     redirectUri,
     appFetch = fetch,
   } = ctx;
-
-  var authUrl: string | undefined;
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
@@ -135,24 +129,5 @@ export const startUserAuthorization: StartUserAuthorization = async (
     ASSERTION_TYPE
   );
 
-  if (idpHint) {
-    const authzRequestEndpoint =
-      issuerConf.oauth_authorization_server.authorization_endpoint;
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      request_uri: issuerRequestUri,
-      idphint: idpHint,
-    });
-
-    authUrl = `${authzRequestEndpoint}?${params}`;
-  }
-
-  return {
-    issuerRequestUri,
-    clientId,
-    codeVerifier,
-    credentialDefinition,
-    authUrl,
-  };
+  return { issuerRequestUri, clientId, codeVerifier, credentialDefinition };
 };

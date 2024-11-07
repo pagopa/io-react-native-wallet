@@ -11,9 +11,11 @@ import {
   completeUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
   parseAuthroizationResponse,
+  buildAuthorizationUrl,
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
   type GetRequestedCredentialToBePresented,
+  type BuildAuthorizationUrl,
   getRequestedCredentialToBePresented,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
@@ -29,6 +31,7 @@ import {
 export {
   evaluateIssuerTrust,
   startUserAuthorization,
+  buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
   getRequestedCredentialToBePresented,
   completeUserAuthorizationWithFormPostJwtMode,
@@ -41,6 +44,7 @@ export type {
   StartFlow,
   EvaluateIssuerTrust,
   StartUserAuthorization,
+  BuildAuthorizationUrl,
   CompleteUserAuthorizationWithQueryMode,
   GetRequestedCredentialToBePresented,
   CompleteUserAuthorizationWithFormPostJwtMode,

@@ -37,10 +37,7 @@ export default function PidSpidIdpSelectionScreen({ navigation }: Props) {
             credentialType: "PersonIdentificationData",
           })
         ).unwrap();
-
-        if (!authUrl) {
-          throw new Error("Auth URL not found");
-        }
+        
         navigation.navigate("PidSpidLogin", { authUrl });
       } catch (error) {
         toast.error("Error during authentication");

@@ -60,7 +60,7 @@ export default function TestCieL3Scenario({
   }, [isLoading]);
 
   const handleOnSuccess = (url: string) => {
-    dispatch(continuePidFlowThunk({ authUrl: url }));
+    dispatch(continuePidFlowThunk({ authRedirectUrl: url }));
   };
 
   const handleOnError = (error: Cie.CieError) => {
@@ -189,7 +189,7 @@ export default function TestCieL3Scenario({
         isFetching={isLoading}
         badge={getBadge()}
       />
-      {flowParams && flowParams.authUrl && flowParams.ciePin && (
+      {flowParams && flowParams.ciePin && (
         <Modal
           animationType="fade"
           transparent={true}
