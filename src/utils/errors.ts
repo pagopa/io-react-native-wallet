@@ -3,14 +3,13 @@ import type { CredentialIssuerEntityConfiguration } from "../trust";
 import {
   IssuerResponseErrorCodes,
   WalletProviderResponseErrorCodes,
+  type GenericErrorReason,
+  type IssuerErrorReasonsByCode,
   type IssuerResponseErrorCode,
   type WalletProviderResponseErrorCode,
 } from "./error-codes";
 
 export { IssuerResponseErrorCodes, WalletProviderResponseErrorCodes };
-
-// An error reason that supports both a string and a generic JSON object
-type GenericErrorReason = string | Record<string, unknown>;
 
 /**
  * utility to format a set of attributes into an error message string
@@ -102,18 +101,25 @@ export class UnexpectedStatusCodeError extends IoWalletError {
 /**
  * An error subclass thrown when an Issuer HTTP request fails.
  * The specific error can be found in the `code` property.
+ *
+ * The class is generic over the error code to narrow down the reason.
  */
-export class IssuerResponseError extends UnexpectedStatusCodeError {
-  code: IssuerResponseErrorCode;
+export class IssuerResponseError<
+  T extends IssuerResponseErrorCode
+> extends UnexpectedStatusCodeError {
+  code: T;
+  reason: IssuerErrorReasonsByCode[T];
 
   constructor(params: {
-    code?: IssuerResponseErrorCode;
+    code?: T;
     message: string;
-    reason: GenericErrorReason;
+    reason: IssuerErrorReasonsByCode[T];
     statusCode: number;
   }) {
     super(params);
-    this.code = params.code ?? IssuerResponseErrorCodes.IssuerGenericError;
+    this.reason = params.reason;
+    this.code = (params.code ??
+      IssuerResponseErrorCodes.IssuerGenericError) as T;
   }
 }
 
@@ -194,10 +200,10 @@ export function extractErrorMessageFromIssuerConf(
  * @param error The error to check
  * @param code Optional code to narrow down the issuer error
  */
-export const isIssuerResponseError = (
+export const isIssuerResponseError = <T extends IssuerResponseErrorCode>(
   error: unknown,
-  code?: IssuerResponseErrorCode
-): error is IssuerResponseError =>
+  code?: T
+): error is IssuerResponseError<T> =>
   error instanceof IssuerResponseError && error.code === (code ?? error.code);
 
 /**
