@@ -1,5 +1,6 @@
-import { Errors, Misc } from "@pagopa/io-react-native-wallet";
+import { Errors } from "@pagopa/io-react-native-wallet";
 import { Linking } from "react-native";
+import { createAbortPromiseFromSignal, isDefined, until } from "./misc";
 
 export type OpenUrlAndListenForAuthRedirect = (
   redirectUri: string,
@@ -33,7 +34,7 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
       });
 
       const operationIsAborted = signal
-        ? Misc.createAbortPromiseFromSignal(signal)
+        ? createAbortPromiseFromSignal(signal)
         : undefined;
       await Linking.openURL(authUrl);
 
@@ -41,7 +42,7 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
        * Waits for 120 seconds for the authRedirectUrl variable to be set
        * by the custom url handler. If the timeout is exceeded, throw an exception
        */
-      const untilAuthRedirectIsNotUndefined = Misc.until(
+      const untilAuthRedirectIsNotUndefined = until(
         () => authRedirectUrl !== undefined,
         120
       );
@@ -53,7 +54,7 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
        */
       const winner = await Promise.race(
         [operationIsAborted?.listen(), untilAuthRedirectIsNotUndefined].filter(
-          Misc.isDefined
+          isDefined
         )
       ).finally(() => {
         urlEventListener.remove();
