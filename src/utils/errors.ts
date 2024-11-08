@@ -1,15 +1,16 @@
+import type { ProblemDetail } from "../client/generated/wallet-provider";
 import type { CredentialIssuerEntityConfiguration } from "../trust";
 import {
   IssuerResponseErrorCodes,
   WalletProviderResponseErrorCodes,
   type IssuerResponseErrorCode,
   type WalletProviderResponseErrorCode,
-} from "./errorCodes";
+} from "./error-codes";
 
 export { IssuerResponseErrorCodes, WalletProviderResponseErrorCodes };
 
 // An error reason that supports both a string and a generic JSON object
-type ErrorReason = string | Record<string, unknown>;
+type GenericErrorReason = string | Record<string, unknown>;
 
 /**
  * utility to format a set of attributes into an error message string
@@ -22,7 +23,7 @@ type ErrorReason = string | Record<string, unknown>;
  * @returns a human-readable serialization of the set
  */
 export const serializeAttrs = (
-  attrs: Record<string, ErrorReason | number | Array<string> | undefined>
+  attrs: Record<string, GenericErrorReason | number | Array<string> | undefined>
 ): string =>
   Object.entries(attrs)
     .filter(([, v]) => v !== undefined)
@@ -85,11 +86,11 @@ export class ValidationFailed extends IoWalletError {
 export class UnexpectedStatusCodeError extends IoWalletError {
   code: string = "ERR_UNEXPECTED_STATUS_CODE";
   statusCode: number;
-  reason: ErrorReason;
+  reason: GenericErrorReason;
 
   constructor(params: {
     message: string;
-    reason: ErrorReason;
+    reason: GenericErrorReason;
     statusCode: number;
   }) {
     super(serializeAttrs(params));
@@ -108,7 +109,7 @@ export class IssuerResponseError extends UnexpectedStatusCodeError {
   constructor(params: {
     code?: IssuerResponseErrorCode;
     message: string;
-    reason: ErrorReason;
+    reason: GenericErrorReason;
     statusCode: number;
   }) {
     super(params);
@@ -122,14 +123,16 @@ export class IssuerResponseError extends UnexpectedStatusCodeError {
  */
 export class WalletProviderResponseError extends UnexpectedStatusCodeError {
   code: WalletProviderResponseErrorCode;
+  reason: ProblemDetail;
 
   constructor(params: {
     code?: WalletProviderResponseErrorCode;
     message: string;
-    reason: ErrorReason;
+    reason: ProblemDetail;
     statusCode: number;
   }) {
     super(params);
+    this.reason = params.reason;
     this.code =
       params.code ??
       WalletProviderResponseErrorCodes.WalletProviderGenericError;
@@ -149,7 +152,7 @@ type LocalizedIssuanceError = {
  * @param issuerConf The entity configuration for credentials
  * @param credentialType The type of credential the error belongs to
  * @returns A localized error {@link LocalizedIssuanceError} or undefined
- * @throws {Error} When no credential config is found
+ * @throws {IoWalletError} When no credential config is found
  */
 export function extractErrorMessageFromIssuerConf(
   errorCode: string,
@@ -185,3 +188,26 @@ export function extractErrorMessageFromIssuerConf(
     {} as LocalizedIssuanceError
   );
 }
+
+/**
+ * Type guard for issuer errors.
+ * @param error The error to check
+ * @param code Optional code to narrow down the issuer error
+ */
+export const isIssuerResponseError = (
+  error: unknown,
+  code?: IssuerResponseErrorCode
+): error is IssuerResponseError =>
+  error instanceof IssuerResponseError && error.code === (code ?? error.code);
+
+/**
+ * Type guard for wallet provider errors.
+ * @param error The error to check
+ * @param code Optional code to narrow down the wallet provider error
+ */
+export const isWalletProviderResponseError = (
+  error: unknown,
+  code?: WalletProviderResponseErrorCode
+): error is WalletProviderResponseError =>
+  error instanceof WalletProviderResponseError &&
+  error.code === (code ?? error.code);

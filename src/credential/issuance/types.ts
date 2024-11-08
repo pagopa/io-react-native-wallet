@@ -32,7 +32,6 @@ export const ResponseUriResultShape = z.object({
 export type ResponseMode = "query" | "form_post.jwt";
 
 export const CredentialIssuanceFailureResponse = z.object({
-  error_description: z.string(),
   error: z.string(),
 });
 
