@@ -3,13 +3,14 @@ import type { CredentialIssuerEntityConfiguration } from "../trust";
 import {
   IssuerResponseErrorCodes,
   WalletProviderResponseErrorCodes,
-  type GenericErrorReason,
-  type IssuerErrorReasonsByCode,
   type IssuerResponseErrorCode,
   type WalletProviderResponseErrorCode,
 } from "./error-codes";
 
 export { IssuerResponseErrorCodes, WalletProviderResponseErrorCodes };
+
+// An error reason that supports both a string and a generic JSON object
+type GenericErrorReason = string | Record<string, unknown>;
 
 /**
  * utility to format a set of attributes into an error message string
@@ -87,14 +88,18 @@ export class UnexpectedStatusCodeError extends IoWalletError {
   statusCode: number;
   reason: GenericErrorReason;
 
-  constructor(params: {
+  constructor({
+    message,
+    reason,
+    statusCode,
+  }: {
     message: string;
     reason: GenericErrorReason;
     statusCode: number;
   }) {
-    super(serializeAttrs(params));
-    this.reason = params.reason;
-    this.statusCode = params.statusCode;
+    super(serializeAttrs({ message, reason, statusCode }));
+    this.reason = reason;
+    this.statusCode = statusCode;
   }
 }
 
@@ -104,22 +109,17 @@ export class UnexpectedStatusCodeError extends IoWalletError {
  *
  * The class is generic over the error code to narrow down the reason.
  */
-export class IssuerResponseError<
-  T extends IssuerResponseErrorCode
-> extends UnexpectedStatusCodeError {
-  code: T;
-  reason: IssuerErrorReasonsByCode[T];
+export class IssuerResponseError extends UnexpectedStatusCodeError {
+  code: IssuerResponseErrorCode;
 
   constructor(params: {
-    code?: T;
+    code?: IssuerResponseErrorCode;
     message: string;
-    reason: IssuerErrorReasonsByCode[T];
+    reason: GenericErrorReason;
     statusCode: number;
   }) {
     super(params);
-    this.reason = params.reason;
-    this.code = (params.code ??
-      IssuerResponseErrorCodes.IssuerGenericError) as T;
+    this.code = params.code ?? IssuerResponseErrorCodes.IssuerGenericError;
   }
 }
 
@@ -200,10 +200,10 @@ export function extractErrorMessageFromIssuerConf(
  * @param error The error to check
  * @param code Optional code to narrow down the issuer error
  */
-export const isIssuerResponseError = <T extends IssuerResponseErrorCode>(
+export const isIssuerResponseError = (
   error: unknown,
-  code?: T
-): error is IssuerResponseError<T> =>
+  code?: IssuerResponseErrorCode
+): error is IssuerResponseError =>
   error instanceof IssuerResponseError && error.code === (code ?? error.code);
 
 /**
@@ -217,3 +217,51 @@ export const isWalletProviderResponseError = (
 ): error is WalletProviderResponseError =>
   error instanceof WalletProviderResponseError &&
   error.code === (code ?? error.code);
+
+type ErrorCodeMap<T> = T extends typeof IssuerResponseError
+  ? IssuerResponseErrorCode
+  : T extends typeof WalletProviderResponseError
+  ? WalletProviderResponseErrorCode
+  : never;
+
+/**
+ * Builder class used to create specialized errors from type {@link UnexpectedStatusCodeError} that handles multiple status codes.
+ *
+ * Chain multiple `handle` to add cases that depend on the status code, then call `buildFrom` when done.
+ *
+ * For example:
+ * ```
+ * new ResponseErrorBuilder(IssuerResponseError)
+ *   .handle(403, { code: "ERROR_CODE_1", message: "Forbidden" })
+ *   .handle(500, { code: "ERROR_CODE_2", message: "Unexpected error" })
+ *   .handle("*", { code: "ERROR_CODE_3", message: "Fallback" })
+ *   .buildFrom(baseError)
+ * ```
+ */
+export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
+  private errorCases: {
+    [K in number | "*"]?: {
+      code: ErrorCodeMap<T>;
+      message: string;
+      reason?: GenericErrorReason;
+    };
+  } = {};
+
+  constructor(private ErrorClass: T) {}
+
+  handle(status: number | "*", params: (typeof this.errorCases)[number]) {
+    this.errorCases[status] = params;
+    return this;
+  }
+
+  buildFrom(originalError: UnexpectedStatusCodeError) {
+    const params =
+      this.errorCases[originalError.statusCode] ?? this.errorCases["*"];
+
+    if (params) {
+      return new this.ErrorClass({ ...originalError, ...params });
+    }
+
+    return originalError;
+  }
+}

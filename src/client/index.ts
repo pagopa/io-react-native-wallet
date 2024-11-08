@@ -1,9 +1,9 @@
 import { parseRawHttpResponse } from "../utils/misc";
 import { WalletProviderResponseError } from "../utils/errors";
 import {
-  ApiClient as WalletProviderApiClient,
-  createApiClient as createWalletProviderApiClient,
   ProblemDetail,
+  createApiClient as createWalletProviderApiClient,
+  ApiClient as WalletProviderApiClient,
 } from "./generated/wallet-provider";
 
 export type WalletProviderClient = WalletProviderApiClient;

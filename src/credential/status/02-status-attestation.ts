@@ -6,13 +6,11 @@ import {
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
-import {
-  InvalidStatusAttestationResponse,
-  StatusAttestationResponse,
-} from "./types";
+import { StatusAttestationResponse } from "./types";
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
+  ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
 
@@ -93,20 +91,14 @@ const handleStatusAttestationError = (e: unknown) => {
     throw e;
   }
 
-  if (e.statusCode === 404) {
-    const maybeError = InvalidStatusAttestationResponse.safeParse(e.reason);
-    throw new IssuerResponseError({
+  throw new ResponseErrorBuilder(IssuerResponseError)
+    .handle(404, {
       code: IssuerResponseErrorCodes.CredentialInvalidStatus,
       message: "Invalid status found for the given credential",
-      reason: maybeError.success ? maybeError.data.error : "unknown",
-      statusCode: e.statusCode,
-    });
-  }
-
-  throw new IssuerResponseError({
-    code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
-    message: `Unable to obtain the status attestation for the given credential`,
-    reason: e.reason,
-    statusCode: e.statusCode,
-  });
+    })
+    .handle("*", {
+      code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
+      message: `Unable to obtain the status attestation for the given credential`,
+    })
+    .buildFrom(e);
 };

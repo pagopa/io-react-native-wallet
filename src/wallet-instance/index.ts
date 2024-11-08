@@ -1,6 +1,7 @@
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
 import {
+  ResponseErrorBuilder,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../utils/errors";
@@ -39,22 +40,17 @@ const handleCreateWalletInstanceError = (e: unknown) => {
     throw e;
   }
 
-  if (e.statusCode === 409) {
-    throw new WalletProviderResponseError({
+  throw new ResponseErrorBuilder(WalletProviderResponseError)
+    .handle(409, {
       code: WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed,
       message:
         "Unable to create a wallet instance with a device that failed the integrity check",
-      reason: e.reason,
-      statusCode: e.statusCode,
-    });
-  }
-
-  throw new WalletProviderResponseError({
-    code: WalletProviderResponseErrorCodes.WalletInstanceCreationFailed,
-    message: "Unable to create wallet instance",
-    reason: e.reason,
-    statusCode: e.statusCode,
-  });
+    })
+    .handle("*", {
+      code: WalletProviderResponseErrorCodes.WalletInstanceCreationFailed,
+      message: "Unable to create wallet instance",
+    })
+    .buildFrom(e);
 };
 
 export async function revokeCurrentWalletInstance(context: {

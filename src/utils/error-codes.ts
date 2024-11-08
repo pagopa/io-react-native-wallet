@@ -48,17 +48,3 @@ export type IssuerResponseErrorCode =
 
 export type WalletProviderResponseErrorCode =
   (typeof WalletProviderResponseErrorCodes)[keyof typeof WalletProviderResponseErrorCodes];
-
-// An error reason that supports both a string and a generic JSON object
-export type GenericErrorReason = string | Record<string, unknown>;
-
-/**
- * Map known error reasons with specific types, otherwise default to {@link GenericErrorReason}
- */
-export type IssuerErrorReasonsByCode = {
-  [IssuerResponseErrorCodes.CredentialInvalidStatus]: string;
-  [IssuerResponseErrorCodes.CredentialIssuingNotSynchronous]: string;
-  [IssuerResponseErrorCodes.IssuerGenericError]: GenericErrorReason;
-  [IssuerResponseErrorCodes.CredentialRequestFailed]: GenericErrorReason;
-  [IssuerResponseErrorCodes.StatusAttestationRequestFailed]: GenericErrorReason;
-};

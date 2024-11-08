@@ -7,6 +7,7 @@ import { fixBase64EncodingOnKey, JWK } from "../utils/jwk";
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
 import {
+  ResponseErrorBuilder,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../utils/errors";
@@ -120,39 +121,24 @@ const handleAttestationCreationError = (e: unknown) => {
     throw e;
   }
 
-  if (e.statusCode === 403) {
-    throw new WalletProviderResponseError({
+  throw new ResponseErrorBuilder(WalletProviderResponseError)
+    .handle(403, {
       code: WalletProviderResponseErrorCodes.WalletInstanceRevoked,
       message: "Unable to get an attestation for a revoked Wallet Instance",
-      reason: e.reason,
-      statusCode: e.statusCode,
-    });
-  }
-
-  if (e.statusCode === 404) {
-    throw new WalletProviderResponseError({
+    })
+    .handle(404, {
       code: WalletProviderResponseErrorCodes.WalletInstanceNotFound,
       message:
         "Unable to get an attestation for a Wallet Instance that does not exist",
-      reason: e.reason,
-      statusCode: e.statusCode,
-    });
-  }
-
-  if (e.statusCode === 409) {
-    throw new WalletProviderResponseError({
+    })
+    .handle(409, {
       code: WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed,
       message:
         "Unable to get an attestation for a Wallet Instance that failed the integrity check",
-      reason: e.reason,
-      statusCode: e.statusCode,
-    });
-  }
-
-  throw new WalletProviderResponseError({
-    code: WalletProviderResponseErrorCodes.WalletInstanceAttestationIssuingFailed,
-    message: "Unable to obtain wallet instance attestation",
-    reason: e.reason,
-    statusCode: e.statusCode,
-  });
+    })
+    .handle("*", {
+      code: WalletProviderResponseErrorCodes.WalletInstanceAttestationIssuingFailed,
+      message: "Unable to obtain wallet instance attestation",
+    })
+    .buildFrom(e);
 };

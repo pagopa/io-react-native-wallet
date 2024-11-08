@@ -10,10 +10,11 @@ import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
+  ResponseErrorBuilder,
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialIssuanceFailureResponse, CredentialResponse } from "./types";
+import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 
@@ -163,32 +164,25 @@ const handleObtainCredentialError = (e: unknown) => {
     throw e;
   }
 
-  // Although it is technically not an error, we handle it as such to avoid
-  // changing the return type of `obtainCredential` and introduce a breaking change.
-  if (e.statusCode === 201) {
-    throw new IssuerResponseError({
+  throw new ResponseErrorBuilder(IssuerResponseError)
+    .handle(201, {
+      // Although it is technically not an error, we handle it as such to avoid
+      // changing the return type of `obtainCredential` and introduce a breaking change.
       code: IssuerResponseErrorCodes.CredentialIssuingNotSynchronous,
       message:
         "This credential cannot be issued synchronously. It will be available at a later time.",
-      reason: "Deferred issuance",
-      statusCode: e.statusCode,
-    });
-  }
-
-  if ([403, 404].includes(e.statusCode)) {
-    const maybeError = CredentialIssuanceFailureResponse.safeParse(e.reason);
-    throw new IssuerResponseError({
+    })
+    .handle(403, {
       code: IssuerResponseErrorCodes.CredentialInvalidStatus,
       message: "Invalid status found for the given credential",
-      reason: maybeError.success ? maybeError.data.error : "unknown",
-      statusCode: e.statusCode,
-    });
-  }
-
-  throw new IssuerResponseError({
-    code: IssuerResponseErrorCodes.CredentialRequestFailed,
-    message: "Unable to obtain the requested credential",
-    reason: e.reason,
-    statusCode: e.statusCode,
-  });
+    })
+    .handle(404, {
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      message: "Invalid status found for the given credential",
+    })
+    .handle("*", {
+      code: IssuerResponseErrorCodes.CredentialRequestFailed,
+      message: "Unable to obtain the requested credential",
+    })
+    .buildFrom(e);
 };
