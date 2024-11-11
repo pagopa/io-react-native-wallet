@@ -1,9 +1,8 @@
+import { completeUserAuthorizationWithQueryMode } from "../04-complete-user-authorization";
 import {
   AuthorizationError,
   AuthorizationIdpError,
 } from "../../../utils/errors";
-import { parseAuthroizationResponse } from "../04-complete-user-authorization";
-import parseUrl from "parse-url";
 
 describe("authorizeUserWithQueryMode", () => {
   it("should return the authorization result when the authorization server responds with a valid response", async () => {
@@ -14,8 +13,9 @@ describe("authorizeUserWithQueryMode", () => {
     };
     const authRedirectUrl = `test://cb?code=abcdefg&state=123456&iss=123456`;
 
-    const query = parseUrl(authRedirectUrl).query;
-    const authResParsed = parseAuthroizationResponse(query);
+    const authResParsed = await completeUserAuthorizationWithQueryMode(
+      authRedirectUrl
+    );
 
     expect(authResParsed).toMatchObject(authRes);
   });
@@ -28,10 +28,8 @@ describe("authorizeUserWithQueryMode", () => {
 
     const authRedirectUrl = `test://cb?${authErr.toString()}`;
 
-    const query = parseUrl(authRedirectUrl).query;
-
     try {
-      await parseAuthroizationResponse(query);
+      await completeUserAuthorizationWithQueryMode(authRedirectUrl);
     } catch (error) {
       expect(error).toBeInstanceOf(AuthorizationIdpError);
     }
@@ -44,10 +42,8 @@ describe("authorizeUserWithQueryMode", () => {
 
     const authRedirectUrl = `test://cb?${wrongAuthRes.toString()}`;
 
-    const query = parseUrl(authRedirectUrl).query;
-
     try {
-      await parseAuthroizationResponse(query);
+      await completeUserAuthorizationWithQueryMode(authRedirectUrl);
     } catch (error) {
       expect(error).toBeInstanceOf(AuthorizationError);
     }
