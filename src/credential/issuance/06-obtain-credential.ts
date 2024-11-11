@@ -96,7 +96,7 @@ export const obtainCredential: ObtainCredential = async (
   );
 
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
-  const constainsCredentialDefinition = accessToken.authorization_details.some(
+  const containsCredentialDefinition = accessToken.authorization_details.some(
     (c) =>
       c.credential_configuration_id ===
         credentialDefinition.credential_configuration_id &&
@@ -104,10 +104,11 @@ export const obtainCredential: ObtainCredential = async (
       c.type === credentialDefinition.type
   );
 
-  if (!constainsCredentialDefinition) {
-    throw new ValidationFailed(
-      "The access token response does not contain the requested credential"
-    );
+  if (!containsCredentialDefinition) {
+    throw new ValidationFailed({
+      message:
+        "The access token response does not contain the requested credential",
+    });
   }
 
   /** The credential request body */
@@ -146,7 +147,10 @@ export const obtainCredential: ObtainCredential = async (
     .catch(handleObtainCredentialError);
 
   if (!credentialRes.success) {
-    throw new ValidationFailed(credentialRes.error.message);
+    throw new ValidationFailed({
+      message: "Credential Response validation failed",
+      reason: credentialRes.error.message,
+    });
   }
 
   return credentialRes.data;

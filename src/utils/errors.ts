@@ -69,11 +69,15 @@ export class ValidationFailed extends IoWalletError {
   /** Reason code for the validation failure. */
   reason: string;
 
-  constructor(
-    message: string,
-    claim: string = "unspecified",
-    reason: string = "unspecified"
-  ) {
+  constructor({
+    message,
+    claim = "unspecified",
+    reason = "unspecified",
+  }: {
+    message: string;
+    claim?: string;
+    reason?: string;
+  }) {
     super(serializeAttrs({ message, claim, reason }));
     this.claim = claim;
     this.reason = reason;

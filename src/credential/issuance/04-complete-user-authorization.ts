@@ -189,10 +189,10 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
       .then((reqObj) => RequestObject.safeParse(reqObj.payload));
 
     if (!requestObject.success) {
-      throw new ValidationFailed(
-        "Request Object validation failed",
-        requestObject.error.message
-      );
+      throw new ValidationFailed({
+        message: "Request Object validation failed",
+        reason: requestObject.error.message,
+      });
     }
     return requestObject.data;
   };
@@ -305,10 +305,10 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
 
     const responseUri = ResponseUriResultShape.safeParse(resUriRes);
     if (!responseUri.success) {
-      throw new ValidationFailed(
-        "Response Uri validation failed",
-        responseUri.error.message
-      );
+      throw new ValidationFailed({
+        message: "Response Uri validation failed",
+        reason: responseUri.error.message,
+      });
     }
 
     return await appFetch(responseUri.data.redirect_uri)

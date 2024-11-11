@@ -108,7 +108,10 @@ export const authorizeAccess: AuthorizeAccess = async (
     .then((body) => TokenResponse.safeParse(body));
 
   if (!tokenRes.success) {
-    throw new ValidationFailed(tokenRes.error.message);
+    throw new ValidationFailed({
+      message: "Token Response validation failed",
+      reason: tokenRes.error.message,
+    });
   }
 
   return { accessToken: tokenRes.data };
