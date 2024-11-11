@@ -58,7 +58,7 @@ export type BuildAuthorizationUrl = (
 }>;
 
 /**
- * WARNING: This function must be called after {@link startUserAuthorization}. The generated authURL will be used in the webviews for CIE L3 and SPID.
+ * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
  * Builds the authorization URL to which the end user should be redirected to continue the authentication flow.
  * @param issuerRequestUri the URI of the issuer where the request is sent
  * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
