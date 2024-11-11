@@ -44,4 +44,5 @@ The following errors are mapped to a `WalletProviderResponseError` with specific
 |`404 Not Found`|`ERR_IO_WALLET_INSTANCE_NOT_FOUND`|This response is returned by the wallet provider when the wallet instance does not exist.|
 |`404 Not Found`|`ERR_IO_WALLET_INSTANCE_NOT_FOUND`|This response is returned by the wallet provider when the wallet instance does not exist.|
 |`409 Conflict`|`ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED`|This response is returned by the wallet provider when an integrity check fails.|
+|`*`|`ERR_IO_WALLET_PROVIDER_GENERIC_ERROR`|This is a generic error code to map unexpected errors that occurred when interacting with the Wallet Provider.|
 
