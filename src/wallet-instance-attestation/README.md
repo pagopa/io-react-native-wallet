@@ -36,6 +36,12 @@ The returned `issuedAttestation` is supposed to be stored and used for any futur
 
 ## Mapped results
 
-### 409 Conflict (WalletInstanceIntegrityFailedError)
+The following errors are mapped to a `WalletProviderResponseError` with specific codes.
 
-A `409 Conflict` response is returned by the wallet provider when an integrity check fails.
+|HTTP Status|Error Code|Description|
+|-----------|----------|-----------|
+|`403 Forbidden`|`ERR_IO_WALLET_INSTANCE_REVOKED`|This response is returned by the wallet provider when the wallet instance has been revoked.|
+|`404 Not Found`|`ERR_IO_WALLET_INSTANCE_NOT_FOUND`|This response is returned by the wallet provider when the wallet instance does not exist.|
+|`404 Not Found`|`ERR_IO_WALLET_INSTANCE_NOT_FOUND`|This response is returned by the wallet provider when the wallet instance does not exist.|
+|`409 Conflict`|`ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED`|This response is returned by the wallet provider when an integrity check fails.|
+

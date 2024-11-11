@@ -16,11 +16,14 @@ graph TD;
     1 --> 2
 ```
 
+
 ## Mapped results
 
-### 404 Not Found (CredentialInvalidStatusError)
+The following errors are mapped to a `IssuerResponseError` with specific codes.
 
-A `404 Not Found` response is returned by the credential issuer when the status attestation is invalid.
+|HTTP Status|Error Code|Description|
+|-----------|----------|-----------|
+|`404 Not Found`|`ERR_CREDENTIAL_INVALID_STATUS`|This response is returned by the credential issuer when the status attestation is invalid. It might contain more details in the `reason` property.|
 
 ## Example
 

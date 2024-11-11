@@ -2,7 +2,7 @@ import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
 import { sha256 } from "js-sha256";
 
 /**
- * Check if a response is in the expected status, other
+ * Check if a response is in the expected status, otherwise throw an error
  * @param status - The expected status
  * @param customError - A custom error compatible with {@link UnexpectedStatusCodeError}
  * @throws UnexpectedStatusCodeError if the status is different from the one expected
@@ -16,7 +16,7 @@ export const hasStatusOrThrow =
       throw new ErrorClass({
         message: `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
         statusCode: res.status,
-        reason: await parseRawHttpResponse(res),
+        reason: await parseRawHttpResponse(res), // Pass the response body as reason so the original error can surface
       });
     }
     return res;
