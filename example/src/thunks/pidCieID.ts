@@ -25,6 +25,7 @@ type GetPidThunkInput = {
   credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
 };
 
+// TODO: Refactor this function to use the same two-step process as CIE + PIN and SPID (Jira Task ID: SIW-1840)
 /**
  * Thunk to obtain PID with CieID auth method.
  * @param args.idpHint- The idpHint for the Identity Provider to use if the requested credential is a `PersonIdentificationData`
