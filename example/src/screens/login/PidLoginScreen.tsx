@@ -82,7 +82,6 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
         onNavigationStateChange={handleNavigationStateChange}
         userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X; Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.93 Mobile Safari/537.36"
       />
-      
     </View>
   );
 }
