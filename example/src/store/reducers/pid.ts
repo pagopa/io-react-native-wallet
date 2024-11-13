@@ -149,12 +149,7 @@ const pidSlice = createSlice({
     builder.addCase(continuePidFlowThunk.fulfilled, (state, action) => {
       state.pidFlowParams = initialState.pidFlowParams;
       const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
-      const spidIsLoading = state.pidAsyncStatus.spid.isLoading;
-      const authMethod = cieL3IsLoading
-        ? "cieL3"
-        : spidIsLoading
-        ? "spid"
-        : "spid";
+      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
       state.pid = action.payload;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
@@ -169,12 +164,7 @@ const pidSlice = createSlice({
     builder.addCase(continuePidFlowThunk.pending, (state) => {
       // Redundant as already set by preparePidFlowParams but we want to be explicit and set the loading state
       const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
-      const spidIsLoading = state.pidAsyncStatus.spid.isLoading;
-      const authMethod = cieL3IsLoading
-        ? "cieL3"
-        : spidIsLoading
-        ? "spid"
-        : "spid";
+      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isLoading: true,
