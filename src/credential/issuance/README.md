@@ -272,7 +272,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     appFetch,
   });
 
-// Complete the authroization process with query mode with the authorizationContext which opens the browser
+// Complete the authorization process with query mode with the authorizationContext which opens the browser
 const { code } =
   await Credential.Issuance.completeUserAuthorizationWithQueryMode(
     issuerRequestUri,

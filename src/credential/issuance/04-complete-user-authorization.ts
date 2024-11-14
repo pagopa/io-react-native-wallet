@@ -155,7 +155,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
     }
 
     const query = parseUrl(authRedirectUrl).query;
-    return parseAuthroizationResponse(query);
+    return parseAuthorizationResponse(query);
   };
 
 /**
@@ -315,7 +315,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then(getJwtFromFormPost)
-      .then((cbRes) => parseAuthroizationResponse(cbRes.decodedJwt.payload));
+      .then((cbRes) => parseAuthorizationResponse(cbRes.decodedJwt.payload));
   };
 
 /**
@@ -325,7 +325,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
  * @param authRes the authorization response to be parsed
  * @returns the authorization result which contains code, state and iss
  */
-export const parseAuthroizationResponse = (
+export const parseAuthorizationResponse = (
   authRes: unknown
 ): AuthorizationResult => {
   const authResParsed = AuthorizationResultShape.safeParse(authRes);

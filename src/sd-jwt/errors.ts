@@ -2,7 +2,7 @@
  * When claims are requested but not found in the credential
  *
  */
-export class ClaimsNotFoundBetweenDislosures extends Error {
+export class ClaimsNotFoundBetweenDisclosures extends Error {
   code = "ERR_CLAIMS_NOT_FOUND";
 
   /** The Claims not found */

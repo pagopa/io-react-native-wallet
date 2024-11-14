@@ -166,7 +166,7 @@ export const continueCieL3FlowThunk = createAppAsyncThunk<
 
   const query = parseUrl(args.url).query;
 
-  const { code } = Credential.Issuance.parseAuthroizationResponse(query);
+  const { code } = Credential.Issuance.parseAuthorizationResponse(query);
 
   /*
    * Create wia crypto context, we are using the same keytag used in {@link prepareCieL3FlowParamsThunk},

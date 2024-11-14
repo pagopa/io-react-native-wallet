@@ -10,7 +10,7 @@ import {
 import {
   completeUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
-  parseAuthroizationResponse,
+  parseAuthorizationResponse,
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
   type GetRequestedCredentialToBePresented,
@@ -36,7 +36,7 @@ export {
   authorizeAccess,
   obtainCredential,
   verifyAndParseCredential,
-  parseAuthroizationResponse,
+  parseAuthorizationResponse,
   Errors,
 };
 export type {
