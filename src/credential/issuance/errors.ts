@@ -1,6 +1,5 @@
 import { IoWalletError, serializeAttrs } from "../../utils/errors";
 
-//TODO: Check for io-react-native-utils before removing them
 /**
  * An error subclass thrown when an error occurs during the authorization process.
  */
@@ -12,7 +11,6 @@ export class AuthorizationError extends IoWalletError {
   }
 }
 
-//TODO: Check for io-react-native-utils before removing them
 /**
  * An error subclass thrown when an error occurs during the authorization process with the IDP.
  * It contains the error and error description returned by the IDP.
@@ -30,7 +28,6 @@ export class AuthorizationIdpError extends IoWalletError {
   }
 }
 
-//TODO: Check for io-react-native-utils before removing them
 /**
  * Error subclass thrown when an operation has been aborted.
  */
