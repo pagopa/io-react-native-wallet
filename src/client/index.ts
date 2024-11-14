@@ -8,6 +8,8 @@ import {
 
 export type WalletProviderClient = WalletProviderApiClient;
 
+type RawHttpResponse = Awaited<ReturnType<typeof parseRawHttpResponse>>;
+
 const validateResponse = async (response: Response) => {
   if (!response.ok) {
     let problemDetail: ProblemDetail = {};
@@ -44,7 +46,7 @@ export const getWalletProviderClient = (context: {
         },
       })
         .then(validateResponse)
-        .then<string | Record<string, unknown>>(parseRawHttpResponse),
+        .then<RawHttpResponse>(parseRawHttpResponse),
     walletProviderBaseUrl
   );
 };

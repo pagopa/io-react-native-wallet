@@ -228,6 +228,12 @@ type ErrorCodeMap<T> = T extends typeof IssuerResponseError
   ? WalletProviderResponseErrorCode
   : never;
 
+type ErrorCase<T> = {
+  code: ErrorCodeMap<T>;
+  message: string;
+  reason?: GenericErrorReason;
+};
+
 /**
  * Builder class used to create specialized errors from type {@link UnexpectedStatusCodeError} that handles multiple status codes.
  *
@@ -244,16 +250,12 @@ type ErrorCodeMap<T> = T extends typeof IssuerResponseError
  */
 export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
   private errorCases: {
-    [K in number | "*"]?: {
-      code: ErrorCodeMap<T>;
-      message: string;
-      reason?: GenericErrorReason;
-    };
+    [K in number | "*"]?: ErrorCase<T>;
   } = {};
 
   constructor(private ErrorClass: T) {}
 
-  handle(status: number | "*", params: (typeof this.errorCases)[number]) {
+  handle(status: number | "*", params: ErrorCase<T>) {
     this.errorCases[status] = params;
     return this;
   }
