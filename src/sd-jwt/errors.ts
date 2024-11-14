@@ -28,11 +28,12 @@ export class ClaimsNotFoundInToken extends Error {
   claims: string[];
 
   constructor(claims: string | string[]) {
-    const c = Array.isArray(claims) ? claims : [claims];
-    const message = `Some claims are not found in the given token, claims: ${c.join(
-      ", "
-    )}`;
-    super(message);
-    this.claims = c;
+    const claimsArray = Array.isArray(claims) ? claims : [claims];
+    super(
+      `Some requested claims are not present in the disclosurable values: ${claimsArray.join(
+        ", "
+      )}`
+    );
+    this.claims = claimsArray;
   }
 }
