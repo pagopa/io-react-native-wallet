@@ -3,9 +3,11 @@ import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useAppDispatch } from "../../store/utils";
+import { useAppDispatch, useAppSelector } from "../../store/utils";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { continuePidFlowThunk } from "../../thunks/pid";
+import { selectEnv } from "../../store/reducers/environment";
+import { getEnv } from "../../utils/environment";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidLogin">;
 
@@ -38,6 +40,8 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
 export default function PidSpidLoginScreen({ route, navigation }: Props) {
   const { authUrl } = route.params;
   const dispatch = useAppDispatch();
+  const env = useAppSelector(selectEnv);
+  const { REDIRECT_URI } = getEnv(env);
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
     const url = event.url;
@@ -51,7 +55,7 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     const { url } = navState;
-    if (url.includes("iowallet")) {
+    if (url.startsWith(REDIRECT_URI)) {
       try {
         dispatch(
           continuePidFlowThunk({
