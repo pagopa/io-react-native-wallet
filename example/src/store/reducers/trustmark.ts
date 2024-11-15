@@ -80,7 +80,7 @@ export const trustmarkReducer = trustmarkSlice.reducer;
  * Selects the trustmark signed JWT from the trustmark state.
  * @returns the trustmark signed JWT
  */
-export const selectTrustmark = (state: RootState) =>
+export const selectTrustmarkJwt = (state: RootState) =>
   state.trustmark.trustmarkJwt;
 
 /**

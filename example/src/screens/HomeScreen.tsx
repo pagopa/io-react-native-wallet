@@ -32,6 +32,11 @@ const HomeScreen = () => {
     session,
   });
 
+  const hasSomeCredential = React.useMemo(
+    () => Object.values(credentials).filter((_) => !!_).length > 0,
+    [credentials]
+  );
+
   const sections: Array<ModuleSummaryProps> = useMemo(
     () => [
       {
@@ -72,7 +77,7 @@ const HomeScreen = () => {
         description: "Obtain the trustmark of a credential",
         icon: "chevronRight",
         onPress: () =>
-          Object.values(credentials).length > 0
+          hasSomeCredential
             ? navigation.navigate("Trustmark")
             : Alert.alert("Obtain a credential first"),
       },
@@ -83,7 +88,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, credentials]
+    [hasIntegrityKeyTag, navigation, pid, credentials, hasSomeCredential]
   );
 
   return (
