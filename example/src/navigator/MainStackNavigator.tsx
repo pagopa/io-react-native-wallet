@@ -1,24 +1,25 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { useCallback } from "react";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
-import { useSelector } from "react-redux";
-import HomeScreen from "../screens/HomeScreen";
-import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
-import IdpLoginScreen from "../screens/login/IdpLoginScreen";
+import { IconButton, IOThemeLight } from "@pagopa/io-app-design-system";
 import {
   DefaultTheme,
   NavigationContainer,
   type Theme,
 } from "@react-navigation/native";
-import { IconButton, IOThemeLight } from "@pagopa/io-app-design-system";
-import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
-import { PidScreen } from "../screens/PidScreen";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React, { useCallback } from "react";
+import { useSelector } from "react-redux";
 import { CredentialScreen } from "../screens/CredentialScreen";
-import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
-import { useAppDispatch } from "../store/utils";
-import { setDebugVisibility } from "../store/reducers/debug";
+import HomeScreen from "../screens/HomeScreen";
+import IdpLoginScreen from "../screens/login/IdpLoginScreen";
+import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
 import PidSpidLoginScreen from "../screens/login/PidSpidLoginScreen";
+import { PidScreen } from "../screens/PidScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
+import { TrustmarkScreen } from "../screens/TrustmarkScreen";
+import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
+import { setDebugVisibility } from "../store/reducers/debug";
+import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { useAppDispatch } from "../store/utils";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -29,6 +30,7 @@ export type MainStackNavParamList = {
   Pid: undefined;
   Credentials: undefined;
   StatusAttestation: undefined;
+  Trustmark: undefined;
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
@@ -103,6 +105,11 @@ export const MainStackNavigator = () => {
               name="StatusAttestation"
               component={StatusAttestationScreen}
               options={{ title: "Test credentials attestations" }}
+            />
+            <Stack.Screen
+              name="Trustmark"
+              component={TrustmarkScreen}
+              options={{ title: "Test credentials trustmark" }}
             />
             <Stack.Screen
               name="Settings"
