@@ -7,11 +7,13 @@ import { QrCodeImage } from "../components/QrCodeImage";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
+import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import {
   selectCredential,
   selectCredentials,
   selectTrustmark,
+  selectTrustmarkAsyncStatus,
   trustmarkReset,
 } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
@@ -90,9 +92,17 @@ export const TrustmarkQrCodeScreen = ({
   const { credentialType } = route.params;
   const dispatch = useAppDispatch();
   const trustmark = useAppSelector(selectTrustmark(credentialType));
+  const trustmarkAsyncStatus = useAppSelector(
+    selectTrustmarkAsyncStatus(credentialType)
+  );
   const credential = useAppSelector(selectCredential(credentialType));
   const selectedEnv = useAppSelector(selectEnv);
   const { VERIFIER_BASE_URL } = getEnv(selectedEnv);
+
+  useDebugInfo({
+    trustmarkJwt: trustmark?.trustmarkJwt,
+    trustmarkAsyncStatus,
+  });
 
   React.useEffect(() => {
     if (credential) {

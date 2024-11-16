@@ -124,7 +124,6 @@ export const MainStackNavigator = () => {
                 title: `${
                   labelByCredentialType[route.params.credentialType]
                 } trustmark`,
-                presentation: "modal",
               })}
             />
             <Stack.Screen
