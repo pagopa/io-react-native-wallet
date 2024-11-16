@@ -1,109 +1,52 @@
 import { H3, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useMemo } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { QrCodeImage } from "../components/QrCodeImage";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
-import { useDebugInfo } from "../hooks/useDebugInfo";
-import { selectCredentials } from "../store/reducers/credential";
-import { selectEnv } from "../store/reducers/environment";
+import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import {
-  selectTrustmarkAsyncStatus,
-  selectTrustmarkJwt,
+  selectCredential,
+  selectCredentials,
+  selectTrustmark,
   trustmarkReset,
-} from "../store/reducers/trustmark";
+} from "../store/reducers/credential";
+import { selectEnv } from "../store/reducers/environment";
 import type { CredentialResult } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { getTrustmarkThunk } from "../thunks/trustmark";
 import { getEnv } from "../utils/environment";
+import { iconByCredentialType, labelByCredentialType } from "../utils/ui";
 
-const getCredentialDocumentNumber = (
-  credential: CredentialResult | undefined
-): string | undefined => {
-  if (credential === undefined) {
-    return undefined;
-  }
-
-  return credential.parsedCredential.document_number?.value as string;
-};
+type TrustmarkQrCodeScreenProps = NativeStackScreenProps<
+  MainStackNavParamList,
+  "TrustmarkQrCode"
+>;
 
 /**
- * This screen is for displaying the trustmark of an obtained credential
+ * This screen is for displaying the credentials available for obtaining a trustmark
  */
 export const TrustmarkScreen = () => {
-  const dispatch = useAppDispatch();
+  const navigation = useNavigation();
   const credentials = useAppSelector(selectCredentials);
-  const trustmarkJwt = useAppSelector(selectTrustmarkJwt);
-  const trustmarkAsyncStatus = useAppSelector(selectTrustmarkAsyncStatus);
-
-  useDebugInfo({
-    trustmarkJwt,
-    trustmarkAsyncStatus,
-  });
-
-  /**
-   * Resets the trustmark when leaving this screen
-   */
-  React.useEffect(() => {
-    return () => {
-      dispatch(trustmarkReset());
-    };
-  }, [dispatch]);
 
   const scenarios: Array<TestScenarioProp | undefined> = useMemo(
-    () => [
-      credentials.MDL
-        ? {
-            title: "Get Trustmark (MDL)",
-            onPress: () =>
-              dispatch(
-                getTrustmarkThunk({
-                  credentialType: "MDL",
-                  documentNumber: getCredentialDocumentNumber(credentials.MDL),
-                })
-              ),
-            isLoading: trustmarkAsyncStatus.isLoading,
-            hasError: trustmarkAsyncStatus.hasError,
-            isDone: trustmarkAsyncStatus.isDone,
-            icon: "car",
-          }
-        : undefined,
-      credentials.EuropeanDisabilityCard
-        ? {
-            title: "Get Trustmark (DC)",
-            onPress: () =>
-              dispatch(
-                getTrustmarkThunk({
-                  credentialType: "EuropeanDisabilityCard",
-                  documentNumber: getCredentialDocumentNumber(
-                    credentials.EuropeanDisabilityCard
-                  ),
-                })
-              ),
-            isLoading: trustmarkAsyncStatus.isLoading,
-            hasError: trustmarkAsyncStatus.hasError,
-            isDone: trustmarkAsyncStatus.isDone,
-            icon: "accessibility",
-          }
-        : undefined,
-      credentials.EuropeanHealthInsuranceCard
-        ? {
-            title: "Get Trustmark (TS)",
-            onPress: () =>
-              dispatch(
-                getTrustmarkThunk({
-                  credentialType: "EuropeanHealthInsuranceCard",
-                })
-              ),
-            isLoading: trustmarkAsyncStatus.isLoading,
-            hasError: trustmarkAsyncStatus.hasError,
-            isDone: trustmarkAsyncStatus.isDone,
-            icon: "healthCard",
-          }
-        : undefined,
-    ],
-    [dispatch, credentials, trustmarkAsyncStatus]
+    () =>
+      Object.values(credentials)
+        .filter((_) => !!_)
+        .map(({ credentialType }) => ({
+          title: `Get Trustmark (${labelByCredentialType[credentialType]})`,
+          onPress: () =>
+            navigation.navigate("TrustmarkQrCode", { credentialType }),
+          isLoading: false,
+          hasError: { status: false, error: undefined },
+          isDone: false,
+          icon: iconByCredentialType[credentialType],
+        })),
+    [navigation, credentials]
   );
 
   return (
@@ -134,15 +77,41 @@ export const TrustmarkScreen = () => {
           </>
         )}
       />
-      {trustmarkJwt && <TrustmarkQrCode trustmarkJwt={trustmarkJwt} />}
     </View>
   );
 };
 
-const TrustmarkQrCode = ({ trustmarkJwt }: { trustmarkJwt: string }) => {
+/**
+ * This screen is for displays a credential trustmark
+ */
+export const TrustmarkQrCodeScreen = ({
+  route,
+}: TrustmarkQrCodeScreenProps) => {
+  const { credentialType } = route.params;
+  const dispatch = useAppDispatch();
+  const trustmark = useAppSelector(selectTrustmark(credentialType));
+  const credential = useAppSelector(selectCredential(credentialType));
   const selectedEnv = useAppSelector(selectEnv);
   const { VERIFIER_BASE_URL } = getEnv(selectedEnv);
 
+  React.useEffect(() => {
+    if (credential) {
+      const documentNumber = getCredentialDocumentNumber(credential);
+      dispatch(getTrustmarkThunk({ credentialType, documentNumber }));
+
+      return () => {
+        dispatch(trustmarkReset(credentialType));
+      };
+    }
+
+    return undefined;
+  }, [dispatch, credential, credentialType]);
+
+  if (trustmark === undefined) {
+    return null;
+  }
+
+  const { trustmarkJwt } = trustmark;
   const trustmarkUrl = `${VERIFIER_BASE_URL}\\${trustmarkJwt}`;
 
   return (
@@ -153,6 +122,25 @@ const TrustmarkQrCode = ({ trustmarkJwt }: { trustmarkJwt: string }) => {
   );
 };
 
+/**
+ * Returns the document number for a credential, if applicable
+ * @param credential the credential from which to extract the document number
+ * @returns a string representing the document number, undefined if not found
+ */
+const getCredentialDocumentNumber = (
+  credential: CredentialResult | undefined
+): string | undefined => {
+  if (credential === undefined) {
+    return undefined;
+  }
+
+  return credential.parsedCredential.document_number?.value as string;
+};
+
+/**
+ * Displsys a countdown timer for the QR Code expiration time
+ * @param time time in seconds for the expiration
+ */
 const ExpirationTimer = ({ time }: { time: number }) => {
   const [timeLeft, setTimeLeft] = React.useState(time);
 

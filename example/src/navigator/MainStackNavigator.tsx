@@ -15,11 +15,16 @@ import PidSpidLoginScreen from "../screens/login/PidSpidLoginScreen";
 import { PidScreen } from "../screens/PidScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
-import { TrustmarkScreen } from "../screens/TrustmarkScreen";
+import {
+  TrustmarkQrCodeScreen,
+  TrustmarkScreen,
+} from "../screens/TrustmarkScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
+import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch } from "../store/utils";
+import { labelByCredentialType } from "../utils/ui";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -31,6 +36,7 @@ export type MainStackNavParamList = {
   Credentials: undefined;
   StatusAttestation: undefined;
   Trustmark: undefined;
+  TrustmarkQrCode: { credentialType: SupportedCredentialsWithoutPid };
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
@@ -110,6 +116,16 @@ export const MainStackNavigator = () => {
               name="Trustmark"
               component={TrustmarkScreen}
               options={{ title: "Test credentials trustmark" }}
+            />
+            <Stack.Screen
+              name="TrustmarkQrCode"
+              component={TrustmarkQrCodeScreen}
+              options={({ route }) => ({
+                title: `${
+                  labelByCredentialType[route.params.credentialType]
+                } trustmark`,
+                presentation: "modal",
+              })}
             />
             <Stack.Screen
               name="Settings"

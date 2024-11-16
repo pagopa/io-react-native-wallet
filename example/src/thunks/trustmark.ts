@@ -17,6 +17,7 @@ type GetTrustmarkThunkInput = {
 
 export type GetTrustmarkThunkOutput = {
   trustmarkJwt: string;
+  credentialType: SupportedCredentialsWithoutPid;
 };
 
 /**
@@ -44,5 +45,6 @@ export const getTrustmarkThunk = createAppAsyncThunk<
 
   return {
     trustmarkJwt,
+    credentialType: args.credentialType,
   };
 });
