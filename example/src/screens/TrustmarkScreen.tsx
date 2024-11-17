@@ -122,7 +122,7 @@ export const TrustmarkQrCodeScreen = ({
   }
 
   const { trustmarkJwt } = trustmark;
-  const trustmarkUrl = `${VERIFIER_BASE_URL}\\${trustmarkJwt}`;
+  const trustmarkUrl = `${VERIFIER_BASE_URL}?tm=${trustmarkJwt}`;
 
   return (
     <View style={styles.trustmarkContainer}>
