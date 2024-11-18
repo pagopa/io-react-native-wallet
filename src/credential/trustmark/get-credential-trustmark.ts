@@ -1,4 +1,5 @@
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { obfuscateString } from "../../utils/string";
 
 export type GetCredentialTrustmarkJwt = (
   walletInstanceAttestation: string,
@@ -22,6 +23,10 @@ export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
   credentialType,
   documentNumber
 ): Promise<string> => {
+  const obfuscatedDocumentNumber = documentNumber
+    ? obfuscateString(documentNumber)
+    : undefined;
+
   const signedTrustmarkJwt = await new SignJWT(wiaCryptoContext)
     .setProtectedHeader({
       alg: "ES256",
@@ -29,7 +34,7 @@ export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
     .setPayload({
       iss: walletInstanceAttestation,
       sub: credentialType,
-      subtyp: documentNumber,
+      subtyp: obfuscatedDocumentNumber,
     })
     .setIssuedAt()
     .setExpirationTime("2m")
