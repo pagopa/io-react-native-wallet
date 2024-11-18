@@ -11,7 +11,7 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import {
   selectCredential,
-  selectCredentials,
+  selectObtainedCredentials,
   selectTrustmark,
   selectTrustmarkAsyncStatus,
   trustmarkReset,
@@ -33,7 +33,7 @@ type TrustmarkQrCodeScreenProps = NativeStackScreenProps<
  */
 export const TrustmarkScreen = () => {
   const navigation = useNavigation();
-  const credentials = useAppSelector(selectCredentials);
+  const credentials = useAppSelector(selectObtainedCredentials);
 
   const scenarios: Array<TestScenarioProp | undefined> = useMemo(
     () =>

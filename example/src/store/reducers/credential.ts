@@ -289,6 +289,13 @@ export const selectCredential =
 export const selectCredentials = (state: RootState) =>
   state.credential.credentials;
 
+export const selectObtainedCredentials = (
+  state: RootState
+): Array<CredentialResult> =>
+  Object.values(state.credential.credentials).filter(
+    (cred) => cred !== undefined
+  ) as Array<CredentialResult>;
+
 /**
  * Selects the state of the async operation of a given credential.
  * @param credentialType - The type of the credential to select the state
