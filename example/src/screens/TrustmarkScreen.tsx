@@ -140,11 +140,7 @@ export const TrustmarkQrCodeScreen = ({
 const getCredentialDocumentNumber = (
   credential: CredentialResult | undefined
 ): string | undefined => {
-  if (credential === undefined) {
-    return undefined;
-  }
-
-  return credential.parsedCredential.document_number?.value as string;
+  return credential?.parsedCredential.document_number?.value as string;
 };
 
 /**
