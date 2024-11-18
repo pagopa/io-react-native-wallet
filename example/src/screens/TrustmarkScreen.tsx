@@ -148,7 +148,7 @@ const getCredentialDocumentNumber = (
 };
 
 /**
- * Displsys a countdown timer for the QR Code expiration time
+ * Display a countdown timer for the QR Code expiration time
  * @param time time in seconds for the expiration
  */
 const ExpirationTimer = ({ time }: { time: number }) => {
