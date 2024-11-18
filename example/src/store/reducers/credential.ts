@@ -1,4 +1,8 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  createSelector,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import {
   getCredentialStatusAttestationThunk,
@@ -289,12 +293,13 @@ export const selectCredential =
 export const selectCredentials = (state: RootState) =>
   state.credential.credentials;
 
-export const selectObtainedCredentials = (
-  state: RootState
-): Array<CredentialResult> =>
-  Object.values(state.credential.credentials).filter(
-    (cred) => cred !== undefined
-  ) as Array<CredentialResult>;
+export const selectObtainedCredentials = createSelector(
+  selectCredentials,
+  (credentials): Array<CredentialResult> =>
+    Object.values(credentials).filter(
+      (cred) => cred !== undefined
+    ) as Array<CredentialResult>
+);
 
 /**
  * Selects the state of the async operation of a given credential.
