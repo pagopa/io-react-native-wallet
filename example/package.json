@@ -40,6 +40,7 @@
     "react-redux": "^9.1.2",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
+    "rn-qr-generator": "^1.4.2",
     "typesafe-actions": "^5.1.0",
     "url-parse": "^1.5.10"
   },
