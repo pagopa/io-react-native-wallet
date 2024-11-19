@@ -2,17 +2,45 @@ import {
   SignJWT,
   thumbprint,
   type CryptoContext,
+  decode as decodeJwt,
 } from "@pagopa/io-react-native-jwt";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import { IoWalletError } from "../../utils/errors";
 import { obfuscateString } from "../../utils/string";
 
-export type GetCredentialTrustmarkJwt = (
-  walletInstanceAttestation: string,
-  wiaCryptoContext: CryptoContext,
-  credentialType: string,
-  docNumber?: string
-) => Promise<string>;
+export type GetCredentialTrustmarkJwt = (params: {
+  /**
+   * The Wallet Instance's attestation
+   */
+  walletInstanceAttestation: string;
+  /**
+   * The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
+   */
+  wiaCryptoContext: CryptoContext;
+  /**
+   * The type of credential for which the trustmark is generated
+   */
+  credentialType: string;
+  /**
+   * (Optional) Document number contained in the credential, if applicable
+   */
+  docNumber?: string;
+  /**
+   * (Optional) Expiration time for the trustmark, default is 2 minutes.
+   * If a number is provided, it is interpreted as a timestamp in seconds.
+   * If a string is provided, it is interpreted as a time span and added to the current timestamp.
+   */
+  expirationTime?: number | string;
+}) => Promise<{
+  /**
+   * The signed JWT
+   */
+  jwt: string;
+  /**
+   * The expiration time of the JWT in seconds
+   */
+  expirationTime: number;
+}>;
 
 /**
  * Generates a trustmark signed JWT, which is used to verify the authenticity of a credential.
@@ -22,15 +50,19 @@ export type GetCredentialTrustmarkJwt = (
  * @param wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
  * @param credentialType The type of credential for which the trustmark is generated
  * @param docNumber (Optional) Document number contained in the credential, if applicable
+ * @param expirationTime (Optional) Expiration time for the trustmark, default is 2 minutes.
+ * If a number is provided, it is interpreted as a timestamp in seconds.
+ * If a string is provided, it is interpreted as a time span and added to the current timestamp.
  * @throws {IoWalletError} If the public key associated to the WIA is not the same for the CryptoContext
- * @returns A promise that resolves to the signed JWT string, representing the credential's trustmark.
+ * @returns A promise containing the signed JWT and its expiration time in seconds
  */
-export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
+export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
   walletInstanceAttestation,
   wiaCryptoContext,
   credentialType,
-  docNumber
-): Promise<string> => {
+  docNumber,
+  expirationTime = "2m",
+}) => {
   /**
    * Check that the public key used to sign the trustmark is the one used for the WIA
    */
@@ -67,8 +99,13 @@ export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
       ...(docNumber ? { subtyp: obfuscateString(docNumber) } : {}),
     })
     .setIssuedAt()
-    .setExpirationTime("2m")
+    .setExpirationTime(expirationTime)
     .sign();
 
-  return signedTrustmarkJwt;
+  const decodedTrustmark = decodeJwt(signedTrustmarkJwt);
+
+  return {
+    jwt: signedTrustmarkJwt,
+    expirationTime: decodedTrustmark.payload.exp ?? 0,
+  };
 };
