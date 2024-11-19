@@ -7,7 +7,7 @@ export type GetCredentialTrustmarkJwt = (
   walletInstanceAttestation: string,
   wiaCryptoContext: CryptoContext,
   credentialType: string,
-  documentNumber?: string
+  docNumber?: string
 ) => Promise<string>;
 
 /**
@@ -16,7 +16,7 @@ export type GetCredentialTrustmarkJwt = (
  * @param walletInstanceAttestation the Wallet Instance's attestation
  * @param wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
  * @param credentialType The type of credential for which the trustmark is generated
- * @param documentNumber (Optional) Document number contained in the credential, if applicable
+ * @param docNumber (Optional) Document number contained in the credential, if applicable
  * @throws {IoWalletError} If the public key associated to the WIA is not the same for the CryptoContext
  * @returns A promise that resolves to the signed JWT string, representing the credential's trustmark.
  */
@@ -24,7 +24,7 @@ export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
   walletInstanceAttestation,
   wiaCryptoContext,
   credentialType,
-  documentNumber
+  docNumber
 ): Promise<string> => {
   /**
    * Check that the public key used to sign the trustmark is the one used for the WIA
@@ -44,13 +44,6 @@ export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
   }
 
   /**
-   * Obfuscate the document number before adding it to the payload
-   */
-  const obfuscatedDocumentNumber = documentNumber
-    ? obfuscateString(documentNumber)
-    : undefined;
-
-  /**
    * Generate Trustmark signed JWT
    */
   const signedTrustmarkJwt = await new SignJWT(wiaCryptoContext)
@@ -60,7 +53,10 @@ export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
     .setPayload({
       iss: walletInstanceAttestation,
       sub: credentialType,
-      subtyp: obfuscatedDocumentNumber,
+      /**
+       * If present, the document number is obfuscated before adding it to the payload
+       */
+      ...(docNumber ? { subtyp: obfuscateString(docNumber) } : {}),
     })
     .setIssuedAt()
     .setExpirationTime("2m")
