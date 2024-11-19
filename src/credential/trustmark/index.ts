@@ -1,8 +1,8 @@
 import {
   type GetCredentialTrustmarkJwt,
-  getCredentialTrustmarkJwt,
+  getCredentialTrustmark,
 } from "./get-credential-trustmark";
 
-export { getCredentialTrustmarkJwt };
+export { getCredentialTrustmark };
 
 export type { GetCredentialTrustmarkJwt };
