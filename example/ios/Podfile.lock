@@ -513,6 +513,9 @@ PODS:
   - RNGestureHandler (2.18.1):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+  - RNQrGenerator (1.4.2):
+    - React
+    - ZXingObjC
   - RNReactNativeHapticFeedback (2.3.1):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
@@ -541,6 +544,9 @@ PODS:
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
+  - ZXingObjC (3.6.9):
+    - ZXingObjC/All (= 3.6.9)
+  - ZXingObjC/All (3.6.9)
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
@@ -615,6 +621,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNQrGenerator (from `../node_modules/rn-qr-generator`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -639,6 +646,7 @@ SPEC REPOS:
     - SocketRocket
     - SwiftCBOR
     - YogaKit
+    - ZXingObjC
 
 EXTERNAL SOURCES:
   boost:
@@ -737,6 +745,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNQrGenerator:
+    :path: "../node_modules/rn-qr-generator"
   RNReactNativeHapticFeedback:
     :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
@@ -810,6 +820,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: ec53e44dc3e75b44aa2a9f37618a49c3bc080a7a
   RNCClipboard: 0a720adef5ec193aa0e3de24c3977222c7e52a37
   RNGestureHandler: 9e0d0a46b7af6d21fbe3343912502afa8baf755e
+  RNQrGenerator: 5c12ab86443a07e923735800679da7b6fcaaeb31
   RNReactNativeHapticFeedback: e115bb12d05ced2aba090123e2690978507811ca
   RNReanimated: 1896df448c213a64e98cf3f796e4105bbfab41a2
   RNScreens: 284fcee9d8d4648851fdb85dd0e200daebedcc14
@@ -818,6 +829,7 @@ SPEC CHECKSUMS:
   SwiftCBOR: 465775bed0e8bac7bfb8160bcf7b95d7f75971e4
   Yoga: c32e0be1a17f8f1f0e633a3122f7666441f52c82
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
+  ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
 PODFILE CHECKSUM: 716eedf3814f18a14d16e28594b94815abc650c1
 
