@@ -51,9 +51,11 @@ export type GetCredentialTrustmarkJwt = (params: {
  * @param credentialType The type of credential for which the trustmark is generated
  * @param docNumber (Optional) Document number contained in the credential, if applicable
  * @param expirationTime (Optional) Expiration time for the trustmark, default is 2 minutes.
- * If a number is provided, it is interpreted as a timestamp in seconds.
- * If a string is provided, it is interpreted as a time span and added to the current timestamp.
+ *                        If a number is provided, it is interpreted as a timestamp in seconds.
+ *                        If a string is provided, it is interpreted as a time span and added to the current timestamp.
+ * @throws {IoWalletError} If the WIA is expired
  * @throws {IoWalletError} If the public key associated to the WIA is not the same for the CryptoContext
+ * @throws {JWSSignatureVerificationFailed} If the WIA signature is not valid
  * @returns A promise containing the signed JWT and its expiration time in seconds
  */
 export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
@@ -70,6 +72,13 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
   const decodedWia = WalletInstanceAttestation.decode(
     walletInstanceAttestation
   );
+
+  /**
+   * Check that the WIA is not expired
+   */
+  if (decodedWia.payload.exp * 1000 < Date.now()) {
+    throw new IoWalletError("Wallet Instance Attestation expired");
+  }
 
   /**
    * Verify holder binding by comparing thumbprints of the WIA and the CryptoContext key
@@ -92,11 +101,11 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
     })
     .setPayload({
       iss: walletInstanceAttestation,
-      sub: credentialType,
       /**
        * If present, the document number is obfuscated before adding it to the payload
        */
-      ...(docNumber ? { subtyp: obfuscateString(docNumber) } : {}),
+      ...(docNumber ? { sub: obfuscateString(docNumber) } : {}),
+      subtyp: credentialType,
     })
     .setIssuedAt()
     .setExpirationTime(expirationTime)
