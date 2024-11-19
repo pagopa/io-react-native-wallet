@@ -1,4 +1,8 @@
-import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import {
+  SignJWT,
+  thumbprint,
+  type CryptoContext,
+} from "@pagopa/io-react-native-jwt";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import { IoWalletError } from "../../utils/errors";
 import { obfuscateString } from "../../utils/string";
@@ -12,6 +16,7 @@ export type GetCredentialTrustmarkJwt = (
 
 /**
  * Generates a trustmark signed JWT, which is used to verify the authenticity of a credential.
+ * The public key used to sign the trustmark must the same used for the Wallet Instance Attestation.
  *
  * @param walletInstanceAttestation the Wallet Instance's attestation
  * @param wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
@@ -34,12 +39,15 @@ export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
     walletInstanceAttestation
   );
 
-  if (
-    !decodedWia.payload.cnf.jwk.kid ||
-    decodedWia.payload.cnf.jwk.kid !== holderBindingKey.kid
-  ) {
+  /**
+   * Verify holder binding by comparing thumbprints of the WIA and the CryptoContext key
+   */
+  const wiaThumbprint = await thumbprint(decodedWia.payload.cnf.jwk);
+  const cryptoContextThumbprint = await thumbprint(holderBindingKey);
+
+  if (wiaThumbprint !== cryptoContextThumbprint) {
     throw new IoWalletError(
-      `Failed to verify holder binding for status attestation, expected kid: ${holderBindingKey.kid}, got: ${decodedWia.payload.cnf.jwk.kid}`
+      `Failed to verify holder binding for status attestation, expected thumbprint: ${cryptoContextThumbprint}, got: ${wiaThumbprint}`
     );
   }
 
