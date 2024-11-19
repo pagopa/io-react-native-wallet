@@ -17,6 +17,7 @@ export type GetCredentialTrustmarkJwt = (
  * @param wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
  * @param credentialType The type of credential for which the trustmark is generated
  * @param documentNumber (Optional) Document number contained in the credential, if applicable
+ * @throws {IoWalletError} If the public key associated to the WIA is not the same for the CryptoContext
  * @returns A promise that resolves to the signed JWT string, representing the credential's trustmark.
  */
 export const getCredentialTrustmarkJwt: GetCredentialTrustmarkJwt = async (
