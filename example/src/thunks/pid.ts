@@ -64,7 +64,7 @@ export type PreparePidFlowParamsThunkOutput = {
   credentialDefinition: Awaited<
     ReturnType<typeof Credential.Issuance.startUserAuthorization>
   >["credentialDefinition"];
-  redirect_uri: string;
+  redirectUri: string;
   ciePin?: string;
 };
 
@@ -106,7 +106,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const env = selectEnv(getState());
   const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
 
-  const redirect_uri = isCie ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
+  const redirectUri = isCie ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
@@ -129,7 +129,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
       credentialType,
       {
         walletInstanceAttestation,
-        redirectUri: redirect_uri,
+        redirectUri: redirectUri,
         wiaCryptoContext,
         appFetch,
       }
@@ -150,7 +150,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     codeVerifier,
     walletInstanceAttestation,
     credentialDefinition,
-    redirect_uri,
+    redirectUri,
     ciePin,
   };
 });
@@ -179,7 +179,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     codeVerifier,
     walletInstanceAttestation,
     credentialDefinition,
-    redirect_uri,
+    redirectUri,
   } = flowParams;
 
   const { code } =
@@ -206,7 +206,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     issuerConf,
     code,
     clientId,
-    redirect_uri,
+    redirectUri,
     codeVerifier,
     {
       walletInstanceAttestation,

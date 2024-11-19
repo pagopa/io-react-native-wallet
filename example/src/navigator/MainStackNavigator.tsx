@@ -35,7 +35,10 @@ export type MainStackNavParamList = {
   IdpLogin: { idp: string };
   PidSpidIdpSelection: undefined;
   Settings: undefined;
-  PidSpidLogin: { authUrl: string };
+  PidSpidLogin: { 
+    authUrl: string, 
+    redirectUri: string 
+  };
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();

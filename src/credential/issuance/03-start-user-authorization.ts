@@ -88,7 +88,7 @@ const selectResponseMode = (
  * the application session identifier on the Wallet Instance side (state),
  * the method (query or form_post.jwt) by which the Authorization Server
  * should transmit the Authorization Response containing the authorization code issued upon the end user's authentication (response_mode)
- * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirect_uri of the Wallet Instance where the Authorization Response
+ * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirectUri of the Wallet Instance where the Authorization Response
  * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
  * @param issuerConf The issuer configuration
  * @param credentialType The type of the credential to be requested returned by {@link selectCredentialDefinition}

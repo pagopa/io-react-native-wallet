@@ -30,14 +30,14 @@ export default function PidSpidIdpSelectionScreen({ navigation }: Props) {
       toast.error("IDP hint not found");
     } else {
       try {
-        const { authUrl } = await dispatch(
+        const { authUrl, redirectUri } = await dispatch(
           preparePidFlowParamsThunk({
             idpHint,
             authMethod: "spid",
             credentialType: "PersonIdentificationData",
           })
         ).unwrap();
-        navigation.navigate("PidSpidLogin", { authUrl });
+        navigation.navigate("PidSpidLogin", { authUrl, redirectUri });
       } catch (error) {
         toast.error("Error during authentication");
       }
