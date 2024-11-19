@@ -18,6 +18,7 @@ type GetTrustmarkThunkInput = {
 export type GetTrustmarkThunkOutput = {
   trustmarkJwt: string;
   credentialType: SupportedCredentialsWithoutPid;
+  expirationTime: number;
 };
 
 /**
@@ -36,15 +37,17 @@ export const getTrustmarkThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   // Generate a trustmark for the credential
-  const trustmarkJwt = await Credential.Trustmark.getCredentialTrustmarkJwt(
-    walletInstanceAttestation,
-    wiaCryptoContext,
-    args.credentialType,
-    args.documentNumber
-  );
+  const { jwt, expirationTime } =
+    await Credential.Trustmark.getCredentialTrustmark({
+      walletInstanceAttestation,
+      wiaCryptoContext,
+      credentialType: args.credentialType,
+      docNumber: args.documentNumber,
+    });
 
   return {
-    trustmarkJwt,
+    trustmarkJwt: jwt,
     credentialType: args.credentialType,
+    expirationTime,
   };
 });
