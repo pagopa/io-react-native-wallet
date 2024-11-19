@@ -1,7 +1,7 @@
 import { decode, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { getCredentialTrustmarkJwt } from "../get-credential-trustmark";
 import { createCryptoContextFor } from "../../../utils/crypto";
-import { deleteKey, generate, sign } from "@pagopa/io-react-native-crypto";
+import { generate, sign } from "@pagopa/io-react-native-crypto";
 
 // Wallet Instance Attestation
 const wia =
@@ -9,7 +9,6 @@ const wia =
 
 describe("getCredentialTrustmarkJwt", () => {
   it("should generate a JWT with the correct payload", async () => {
-    await deleteKey("WIA_KEYTAG");
     await generate("WIA_KEYTAG");
 
     const wiaCryptoContext: CryptoContext = {
