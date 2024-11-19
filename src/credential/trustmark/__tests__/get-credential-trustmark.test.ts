@@ -47,8 +47,8 @@ describe("getCredentialTrustmarkJwt", () => {
 
     const decoded = decode(jwt);
     expect(decoded.payload.iss).toBe(walletInstanceAttestation);
-    expect(decoded.payload.sub).toBe(credentialType);
-    expect(decoded.payload.subtyp).toContain("*");
+    expect(decoded.payload.sub).toContain("*");
+    expect(decoded.payload.subtyp).toBe(credentialType);
     expect(expirationTime).toBe(1732004697);
   });
 
@@ -68,7 +68,9 @@ describe("getCredentialTrustmarkJwt", () => {
   });
 
   it("should allow to specify an exact expiration time", async () => {
-    await generate("WIA_KEYTAG");
+    // Mock Date
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(1732004577000));
 
     const { expirationTime } = await getCredentialTrustmark({
       walletInstanceAttestation,
@@ -78,6 +80,22 @@ describe("getCredentialTrustmarkJwt", () => {
       expirationTime: 1732004577,
     });
     expect(expirationTime).toBe(1732004577);
+  });
+
+  it("should throw error if wia is expired", async () => {
+    // Mock Date
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(1832004577000));
+
+    await expect(() =>
+      getCredentialTrustmark({
+        walletInstanceAttestation,
+        wiaCryptoContext,
+        credentialType: "MDL",
+        docNumber: "1234567890",
+        expirationTime: "2m",
+      })
+    ).rejects.toThrow();
   });
 
   it("should throw error if thumbprints do not match", async () => {
