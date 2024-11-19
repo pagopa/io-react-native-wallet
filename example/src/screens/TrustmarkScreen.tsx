@@ -101,6 +101,7 @@ export const TrustmarkQrCodeScreen = ({
 
   useDebugInfo({
     trustmarkJwt: trustmark?.trustmarkJwt,
+    expirationTime: trustmark?.expirationTime,
     trustmarkAsyncStatus,
   });
 
@@ -121,13 +122,13 @@ export const TrustmarkQrCodeScreen = ({
     return null;
   }
 
-  const { trustmarkJwt } = trustmark;
+  const { trustmarkJwt, expirationTime } = trustmark;
   const trustmarkUrl = `${VERIFIER_BASE_URL}?tm=${trustmarkJwt}`;
 
   return (
     <View style={styles.trustmarkContainer}>
       <QrCodeImage value={trustmarkUrl} size={"90%"} />
-      <ExpirationTimer time={120} />
+      <ExpirationTimer time={expirationTime} />
     </View>
   );
 };
@@ -145,10 +146,10 @@ const getCredentialDocumentNumber = (
 
 /**
  * Display a countdown timer for the QR Code expiration time
- * @param time time in seconds for the expiration
+ * @param time timestamp in seconds for the expiration
  */
 const ExpirationTimer = ({ time }: { time: number }) => {
-  const [timeLeft, setTimeLeft] = React.useState(time);
+  const [timeLeft, setTimeLeft] = React.useState(time - Date.now() / 1000);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -170,7 +171,7 @@ const ExpirationTimer = ({ time }: { time: number }) => {
 
   return (
     <H3>
-      {`Expires in: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60)
+      {`Expires in: ${Math.floor(timeLeft / 60)}:${Math.floor(timeLeft % 60)
         .toString()
         .padStart(2, "0")}`}
     </H3>
