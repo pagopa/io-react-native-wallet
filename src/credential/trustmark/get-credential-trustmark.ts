@@ -1,5 +1,5 @@
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
-import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
+import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import { IoWalletError } from "../../utils/errors";
 import { obfuscateString } from "../../utils/string";
 
