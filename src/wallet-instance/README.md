@@ -6,7 +6,8 @@ The suggested way to implement this service is to use [io-react-native-integrity
 
 The following methods are available:
 - `createWalletInstance` creates a new wallet instance;
-- `revokeCurrentWalletInstance` revokes the currently valid wallet instance of the user who made the request.
+- `revokeWalletInstance` revokes a wallet instance by ID.
+- `getWalletInstanceStatus` fecthes the status of wallet instance by ID without the need to require an attestation.
 
 Examples are provided as follows:
 
