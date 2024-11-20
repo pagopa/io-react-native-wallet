@@ -127,7 +127,7 @@ export const TrustmarkQrCodeScreen = ({
 
   return (
     <View style={styles.trustmarkContainer}>
-      <QrCodeImage value={trustmarkUrl} size={"90%"} />
+      <QrCodeImage value={trustmarkUrl} size={"90%"} correctionLevel="L" />
       <ExpirationTimer time={expirationTime} />
     </View>
   );
