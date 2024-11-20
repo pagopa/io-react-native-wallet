@@ -35,12 +35,29 @@ return integrityKeyTag;
 
 The returned `integrityKeyTag` is supposed to be stored and used to verify the integrity of the device in the future when using an `IntegrityContext` object. It must be regenerated if another wallet instance is created.
 
-### Wallet instance revocation
+### Wallet Instance revocation
+
+Revoke a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
 
 ```ts
 const { WALLET_PROVIDER_BASE_URL } = env;
 
-await WalletInstance.revokeCurrentWalletInstance({
+await WalletInstance.revokeWalletInstance({
+  id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
+  walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+  appFetch,
+});
+
+```
+### Wallet Instance status
+
+Get the status of a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
+
+```ts
+const { WALLET_PROVIDER_BASE_URL } = env;
+
+const status = await WalletInstance.getWalletInstanceStatus({
+  id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
 });
