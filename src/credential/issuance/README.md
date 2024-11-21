@@ -39,20 +39,14 @@ graph TD;
 
 ## Mapped results
 
-### 201 Created (CredentialIssuingNotSynchronousError)
+The following errors are mapped to a `IssuerResponseError` with specific codes.
 
-A `201 Created` response is returned by the credential issuer when the request has been queued because the credential cannot be issued synchronously. The consumer should try to obtain the credential at a later time.
-
-Although `201 Created` is not considered an error, it is mapped as an error in this context in order to handle the case where the credential issuance is not synchronous.
-This allows keeping the flow consistent and handle the case where the credential is not immediately available.
-
-### 403 Forbidden (CredentialInvalidStatusError)
-
-A `403 Forbidden` response is returned by the credential issuer when the requested credential has an invalid status. It might contain more details in the `errorCode` property.
-
-### 404 Not Found (CredentialInvalidStatusError)
-
-A `404 Not Found` response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential. It might contain more details in the `errorCode` property.
+|HTTP Status|Error Code|Description|
+|-----------|----------|-----------|
+|`201 Created`|`ERR_CREDENTIAL_ISSUING_NOT_SYNCHRONOUS`| This response is returned by the credential issuer when the request has been queued because the credential cannot be issued synchronously. The consumer should try to obtain the credential at a later time. Although `201 Created` is not considered an error, it is mapped as an error in this context in order to handle the case where the credential issuance is not synchronous. This allows keeping the flow consistent and handle the case where the credential is not immediately available.|
+|`403 Forbidden`|`ERR_CREDENTIAL_INVALID_STATUS`|This response is returned by the credential issuer when the requested credential has an invalid status. It might contain more details in the `reason` property.|
+|`404 Not Found`|`ERR_CREDENTIAL_INVALID_STATUS`| This response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential. It might contain more details in the `reason` property.|
+|`*`|`ERR_ISSUER_GENERIC_ERROR`|This is a generic error code to map unexpected errors that occurred when interacting with the Issuer.|
 
 ## Strong authentication for eID issuance (Query Mode)
 
@@ -278,7 +272,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     appFetch,
   });
 
-// Complete the authroization process with query mode with the authorizationContext which opens the browser
+// Complete the authorization process with query mode with the authorizationContext which opens the browser
 const { code } =
   await Credential.Issuance.completeUserAuthorizationWithQueryMode(
     issuerRequestUri,

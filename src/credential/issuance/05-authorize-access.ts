@@ -1,4 +1,4 @@
-import { hasStatus, type Out } from "../../utils/misc";
+import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
@@ -8,7 +8,7 @@ import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
-import { ValidationFailed } from "../../utils/errors";
+import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
 
 export type AuthorizeAccess = (
@@ -103,12 +103,15 @@ export const authorizeAccess: AuthorizeAccess = async (
     },
     body: authorizationRequestFormBody.toString(),
   })
-    .then(hasStatus(200))
+    .then(hasStatusOrThrow(200, IssuerResponseError))
     .then((res) => res.json())
     .then((body) => TokenResponse.safeParse(body));
 
   if (!tokenRes.success) {
-    throw new ValidationFailed(tokenRes.error.message);
+    throw new ValidationFailed({
+      message: "Token Response validation failed",
+      reason: tokenRes.error.message,
+    });
   }
 
   return { accessToken: tokenRes.data };

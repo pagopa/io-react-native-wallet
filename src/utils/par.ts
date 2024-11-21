@@ -6,8 +6,9 @@ import {
 import uuid from "react-native-uuid";
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
-import { generateRandomAlphaNumericString, hasStatus } from "./misc";
+import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
+import { IssuerResponseError } from "./errors";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
@@ -109,7 +110,7 @@ export const makeParRequest =
       },
       body: formBody.toString(),
     })
-      .then(hasStatus(201))
+      .then(hasStatusOrThrow(201, IssuerResponseError))
       .then((res) => res.json())
       .then((result) => result.request_uri);
   };

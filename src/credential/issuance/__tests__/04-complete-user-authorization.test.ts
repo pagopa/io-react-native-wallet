@@ -1,8 +1,5 @@
 import type { AuthorizationContext } from "src/utils/auth";
-import {
-  AuthorizationError,
-  AuthorizationIdpError,
-} from "../../../utils/errors";
+import { AuthorizationError, AuthorizationIdpError } from "../errors";
 import { completeUserAuthorizationWithQueryMode } from "../04-complete-user-authorization";
 import { CredentialIssuerEntityConfiguration } from "../../../trust/types";
 

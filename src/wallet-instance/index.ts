@@ -1,9 +1,9 @@
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
 import {
-  WalletInstanceCreationError,
-  WalletInstanceCreationIntegrityError,
+  ResponseErrorBuilder,
   WalletProviderResponseError,
+  WalletProviderResponseErrorCodes,
 } from "../utils/errors";
 
 export async function createWalletInstance(context: {
@@ -40,19 +40,17 @@ const handleCreateWalletInstanceError = (e: unknown) => {
     throw e;
   }
 
-  if (e.statusCode === 409) {
-    throw new WalletInstanceCreationIntegrityError(
-      "Unable to get an attestation for a Wallet Instance that failed the integrity check",
-      e.claim,
-      e.reason
-    );
-  }
-
-  throw new WalletInstanceCreationError(
-    `Unable to obtain wallet instance attestation [response status code: ${e.statusCode}]`,
-    e.claim,
-    e.reason
-  );
+  throw new ResponseErrorBuilder(WalletProviderResponseError)
+    .handle(409, {
+      code: WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed,
+      message:
+        "Unable to create a wallet instance with a device that failed the integrity check",
+    })
+    .handle("*", {
+      code: WalletProviderResponseErrorCodes.WalletInstanceCreationFailed,
+      message: "Unable to create wallet instance",
+    })
+    .buildFrom(e);
 };
 
 export async function revokeCurrentWalletInstance(context: {

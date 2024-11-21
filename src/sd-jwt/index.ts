@@ -6,10 +6,7 @@ import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
-import {
-  ClaimsNotFoundBetweenDislosures,
-  ClaimsNotFoundInToken,
-} from "../utils/errors";
+import * as Errors from "./errors";
 import { Base64 } from "js-base64";
 
 const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {
@@ -73,7 +70,7 @@ export const decode = <S extends z.ZodType<SdJwt4VC>>(
  * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
  * @param claims The list of claims to be disclosed
  *
- * @throws {ClaimsNotFoundBetweenDislosures} When one or more claims does not relate to any discloure.
+ * @throws {ClaimsNotFoundBetweenDisclosures} When one or more claims does not relate to any discloure.
  * @throws {ClaimsNotFoundInToken} When one or more claims are not contained in the SD-JWT token.
  * @returns The encoded token with only the requested disclosures, along with the path each claim can be found on the SD-JWT token
  *
@@ -94,7 +91,7 @@ export const disclose = async (
 
       // check every claim represents a known disclosure
       if (!disclosure) {
-        throw new ClaimsNotFoundBetweenDislosures(claim);
+        throw new Errors.ClaimsNotFoundBetweenDisclosures(claim);
       }
 
       const hash = await sha256ToBase64(disclosure.encoded);
@@ -106,7 +103,7 @@ export const disclose = async (
         return { claim, path: `verified_claims.claims._sd[${index}]` };
       }
 
-      throw new ClaimsNotFoundInToken(claim);
+      throw new Errors.ClaimsNotFoundInToken(claim);
     })
   );
 
@@ -166,4 +163,4 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   };
 };
 
-export { SdJwt4VC };
+export { SdJwt4VC, Errors };
