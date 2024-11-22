@@ -30,7 +30,7 @@ export const WalletProviderResponseErrorCodes = {
   WalletInstanceAttestationIssuingFailed:
     "ERR_IO_WALLET_INSTANCE_ATTESTATION_ISSUING_FAILED",
   /**
-   * An error code thrown when obtaining a wallet instance attestation which fails due to the integrity.
+   * An error code thrown when the requester does not pass the integrity checks when interacting with the Wallet Provider.
    */
   WalletInstanceIntegrityFailed: "ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED",
   /**
