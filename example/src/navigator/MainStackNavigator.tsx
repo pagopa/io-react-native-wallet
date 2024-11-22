@@ -44,8 +44,8 @@ export type MainStackNavParamList = {
   PidSpidIdpSelection: undefined;
   Settings: undefined;
   PidSpidLogin: {
-    authUrl: string; 
-    redirectUri: string; 
+    authUrl: string;
+    redirectUri: string;
   };
 };
 
