@@ -1,6 +1,9 @@
 import { Linking } from "react-native";
 import { createAbortPromiseFromSignal, isDefined, until } from "./misc";
-import { AuthorizationError, OperationAbortedError } from "../../../src/credential/issuance/errors";
+import {
+  AuthorizationError,
+  OperationAbortedError
+} from "../../../src/credential/issuance/errors";
 
 export type OpenUrlAndListenForAuthRedirect = (
   redirectUri: string,
@@ -67,9 +70,7 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
     }
 
     if (authRedirectUrl === undefined) {
-      throw new AuthorizationError(
-        "Invalid authentication redirect url"
-      );
+      throw new AuthorizationError("Invalid authentication redirect url");
     }
 
     return { authRedirectUrl };
