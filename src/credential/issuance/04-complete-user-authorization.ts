@@ -3,10 +3,7 @@ import {
   AuthorizationResultShape,
   type AuthorizationResult,
 } from "../../utils/auth";
-import {
-  hasStatusOrThrow,
-  type Out,
-} from "../../utils/misc";
+import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
@@ -21,10 +18,7 @@ import { RequestObject } from "../presentation/types";
 import uuid from "react-native-uuid";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
-import {
-  AuthorizationError,
-  AuthorizationIdpError,
-} from "./errors";
+import { AuthorizationError, AuthorizationIdpError } from "./errors";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
