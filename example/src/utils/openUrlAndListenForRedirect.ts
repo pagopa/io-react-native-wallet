@@ -2,7 +2,7 @@ import { Linking } from "react-native";
 import { createAbortPromiseFromSignal, isDefined, until } from "./misc";
 import {
   AuthorizationError,
-  OperationAbortedError
+  OperationAbortedError,
 } from "../../../src/credential/issuance/errors";
 
 export type OpenUrlAndListenForAuthRedirect = (
