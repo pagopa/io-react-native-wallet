@@ -41,18 +41,3 @@ export const ParsedStatusAttestation = z.object({
     iat: UnixTime,
   }),
 });
-
-/**
- * Shape from parsing a status attestation response in case of error.
- */
-export const InvalidStatusAttestationResponse = z.object({
-  error: z.string(),
-});
-
-/**
- * Type from parsing a status attestation response in case of error.
- * Inferred from {@link InvalidStatusAttestationResponse}.
- */
-export type InvalidStatusAttestationResponse = z.infer<
-  typeof InvalidStatusAttestationResponse
->;
