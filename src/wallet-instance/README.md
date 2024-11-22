@@ -48,6 +48,9 @@ await WalletInstance.revokeCurrentWalletInstance({
 
 ## Mapped results
 
-### 409 Conflict (WalletInstanceCreationIntegrityError)
+The following errors are mapped to a `WalletProviderResponseError` with specific codes.
 
-A `409 Conflict` response is returned by the wallet provider when an integrity check fails.
+|HTTP Status|Error Code|Description|
+|-----------|----------|-----------|
+|`409 Conflict`|`ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED`|This response is returned by the wallet provider when an integrity check fails.|
+|`*`|`ERR_IO_WALLET_PROVIDER_GENERIC_ERROR`|This is a generic error code to map unexpected errors that occurred when interacting with the Wallet Provider.|

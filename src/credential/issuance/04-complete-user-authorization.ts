@@ -3,14 +3,13 @@ import {
   AuthorizationResultShape,
   type AuthorizationResult,
 } from "../../utils/auth";
-import { hasStatus, type Out } from "../../utils/misc";
+import {
+  hasStatusOrThrow,
+  type Out,
+} from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
-import {
-  AuthorizationError,
-  AuthorizationIdpError,
-  ValidationFailed,
-} from "../../utils/errors";
+import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import {
   decode,
@@ -22,6 +21,10 @@ import { RequestObject } from "../presentation/types";
 import uuid from "react-native-uuid";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
+import {
+  AuthorizationError,
+  AuthorizationIdpError,
+} from "./errors";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -97,7 +100,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
   async (authRedirectUrl) => {
     const query = parseUrl(authRedirectUrl).query;
 
-    return parseAuthroizationResponse(query);
+    return parseAuthorizationResponse(query);
   };
 
 /**
@@ -125,16 +128,16 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
       `${authzRequestEndpoint}?${params.toString()}`,
       { method: "GET" }
     )
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then((jws) => decode(jws))
       .then((reqObj) => RequestObject.safeParse(reqObj.payload));
 
     if (!requestObject.success) {
-      throw new ValidationFailed(
-        "Request Object validation failed",
-        requestObject.error.message
-      );
+      throw new ValidationFailed({
+        message: "Request Object validation failed",
+        reason: requestObject.error.message,
+      });
     }
     return requestObject.data;
   };
@@ -242,22 +245,22 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       },
       body,
     })
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((reqUri) => reqUri.json());
 
     const responseUri = ResponseUriResultShape.safeParse(resUriRes);
     if (!responseUri.success) {
-      throw new ValidationFailed(
-        "Response Uri validation failed",
-        responseUri.error.message
-      );
+      throw new ValidationFailed({
+        message: "Response Uri validation failed",
+        reason: responseUri.error.message,
+      });
     }
 
     return await appFetch(responseUri.data.redirect_uri)
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then(getJwtFromFormPost)
-      .then((cbRes) => parseAuthroizationResponse(cbRes.decodedJwt.payload));
+      .then((cbRes) => parseAuthorizationResponse(cbRes.decodedJwt.payload));
   };
 
 /**
@@ -267,7 +270,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
  * @param authRes the authorization response to be parsed
  * @returns the authorization result which contains code, state and iss
  */
-export const parseAuthroizationResponse = (
+export const parseAuthorizationResponse = (
   authRes: unknown
 ): AuthorizationResult => {
   const authResParsed = AuthorizationResultShape.safeParse(authRes);

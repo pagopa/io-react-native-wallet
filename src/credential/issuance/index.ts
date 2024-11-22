@@ -10,7 +10,7 @@ import {
 import {
   completeUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
-  parseAuthroizationResponse,
+  parseAuthorizationResponse,
   buildAuthorizationUrl,
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
@@ -27,6 +27,7 @@ import {
   verifyAndParseCredential,
   type VerifyAndParseCredential,
 } from "./07-verify-and-parse-credential";
+import * as Errors from "./errors";
 
 export {
   evaluateIssuerTrust,
@@ -38,7 +39,8 @@ export {
   authorizeAccess,
   obtainCredential,
   verifyAndParseCredential,
-  parseAuthroizationResponse,
+  parseAuthorizationResponse,
+  Errors,
 };
 export type {
   StartFlow,

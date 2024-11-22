@@ -2,24 +2,35 @@ import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
 import { sha256 } from "js-sha256";
 
 /**
- * Check if a response is in the expected status, other
+ * Check if a response is in the expected status, otherwise throw an error
  * @param status - The expected status
- * @throws {@link UnexpectedStatusCodeError} if the status is different from the one expected
+ * @param customError - A custom error compatible with {@link UnexpectedStatusCodeError}
+ * @throws UnexpectedStatusCodeError if the status is different from the one expected
  * @returns The given response object
  */
-export const hasStatus =
-  (status: number) =>
+export const hasStatusOrThrow =
+  (status: number, customError?: typeof UnexpectedStatusCodeError) =>
   async (res: Response): Promise<Response> => {
     if (res.status !== status) {
-      const responseBody = await res.text();
-      throw new UnexpectedStatusCodeError(
-        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url} with response: ${responseBody}`,
-        res.status,
-        responseBody
-      );
+      const ErrorClass = customError ?? UnexpectedStatusCodeError;
+      throw new ErrorClass({
+        message: `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
+        statusCode: res.status,
+        reason: await parseRawHttpResponse(res), // Pass the response body as reason so the original error can surface
+      });
     }
     return res;
   };
+
+/**
+ * Utility function to parse a raw HTTP response as JSON if supported, otherwise as text.
+ */
+export const parseRawHttpResponse = <T extends Record<string, unknown>>(
+  response: Response
+) =>
+  response.headers.get("content-type")?.includes("application/json")
+    ? (response.json() as Promise<T>)
+    : response.text();
 
 // extract a type from an async function output
 // helpful to bind the input of a function to the output of another
@@ -62,3 +73,25 @@ export const safeJsonParse = <T>(text: string, withDefault?: T): T | null => {
     return withDefault ?? null;
   }
 };
+
+/**
+ * Creates a promise that waits until the provided signal is aborted.
+ * @returns {Object} An object with `listen` and `remove` methods to handle subscribing and unsubscribing.
+ */
+export const createAbortPromiseFromSignal = (signal: AbortSignal) => {
+  let listener: () => void;
+  return {
+    listen: () =>
+      new Promise<"OPERATION_ABORTED">((resolve) => {
+        if (signal.aborted) {
+          return resolve("OPERATION_ABORTED");
+        }
+        listener = () => resolve("OPERATION_ABORTED");
+        signal.addEventListener("abort", listener);
+      }),
+    remove: () => signal.removeEventListener("abort", listener),
+  };
+};
+
+export const isDefined = <T>(x: T | undefined | null | ""): x is T =>
+  Boolean(x);

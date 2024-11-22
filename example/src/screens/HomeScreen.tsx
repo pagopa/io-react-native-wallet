@@ -1,8 +1,4 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useMemo } from "react";
-import { Alert, FlatList, SafeAreaView } from "react-native";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
-import { useAppSelector } from "../store/utils";
 import {
   IOVisualCostants,
   ModuleSummary,
@@ -10,10 +6,14 @@ import {
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import type { ComponentProps } from "react";
+import React, { useMemo } from "react";
+import { Alert, FlatList, SafeAreaView } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { selectCredential } from "../store/reducers/credential";
+import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectPid } from "../store/reducers/pid";
+import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { useAppSelector } from "../store/utils";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 
@@ -26,11 +26,16 @@ const HomeScreen = () => {
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
   const pid = useAppSelector(selectPid);
   const session = useAppSelector(selectIoAuthToken);
-  const mdl = useAppSelector(selectCredential("MDL"));
+  const credentials = useAppSelector(selectCredentials);
 
   useDebugInfo({
     session,
   });
+
+  const hasSomeCredential = React.useMemo(
+    () => Object.values(credentials).filter((_) => !!_).length > 0,
+    [credentials]
+  );
 
   const sections: Array<ModuleSummaryProps> = useMemo(
     () => [
@@ -63,9 +68,18 @@ const HomeScreen = () => {
         description: "Obtain the status attestation of a credential",
         icon: "chevronRight",
         onPress: () =>
-          mdl
+          credentials.MDL
             ? navigation.navigate("StatusAttestation")
             : Alert.alert("Obtain a MDL first"),
+      },
+      {
+        label: "Trustmark",
+        description: "Obtain the trustmark of a credential",
+        icon: "chevronRight",
+        onPress: () =>
+          hasSomeCredential
+            ? navigation.navigate("Trustmark")
+            : Alert.alert("Obtain a credential first"),
       },
       {
         label: "Settings",
@@ -74,7 +88,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, mdl, navigation, pid]
+    [hasIntegrityKeyTag, navigation, pid, credentials, hasSomeCredential]
   );
 
   return (
