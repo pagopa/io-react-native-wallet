@@ -73,25 +73,3 @@ export const safeJsonParse = <T>(text: string, withDefault?: T): T | null => {
     return withDefault ?? null;
   }
 };
-
-/**
- * Creates a promise that waits until the provided signal is aborted.
- * @returns {Object} An object with `listen` and `remove` methods to handle subscribing and unsubscribing.
- */
-export const createAbortPromiseFromSignal = (signal: AbortSignal) => {
-  let listener: () => void;
-  return {
-    listen: () =>
-      new Promise<"OPERATION_ABORTED">((resolve) => {
-        if (signal.aborted) {
-          return resolve("OPERATION_ABORTED");
-        }
-        listener = () => resolve("OPERATION_ABORTED");
-        signal.addEventListener("abort", listener);
-      }),
-    remove: () => signal.removeEventListener("abort", listener),
-  };
-};
-
-export const isDefined = <T>(x: T | undefined | null | ""): x is T =>
-  Boolean(x);
