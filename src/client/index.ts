@@ -57,7 +57,7 @@ export const getWalletProviderClient = (context: {
  * The client generator expects the literal name of the param in the url
  * and passes the actual values in a separate object.
  */
-const interpolateUrl = (url: string, params?: EndpointParameters) => {
+export const interpolateUrl = (url: string, params?: EndpointParameters) => {
   if (!params?.path) return url;
 
   for (const [key, value] of Object.entries(params.path)) {
