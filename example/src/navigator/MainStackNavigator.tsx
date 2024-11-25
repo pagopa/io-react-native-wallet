@@ -10,8 +10,8 @@ import { useSelector } from "react-redux";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
 import IdpLoginScreen from "../screens/login/IdpLoginScreen";
-import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
-import PidSpidLoginScreen from "../screens/login/PidSpidLoginScreen";
+import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScreen";
+import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
 import { PidScreen } from "../screens/PidScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
@@ -25,6 +25,7 @@ import { selectIoAuthToken } from "../store/reducers/sesssion";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch } from "../store/utils";
 import { labelByCredentialType } from "../utils/ui";
+import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -40,8 +41,12 @@ export type MainStackNavParamList = {
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
-  PidSpidLogin: undefined;
+  PidSpidIdpSelection: undefined;
   Settings: undefined;
+  PidSpidLogin: {
+    authUrl: string;
+    redirectUri: string;
+  };
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -98,9 +103,14 @@ export const MainStackNavigator = () => {
               options={{ title: "Test PID issuance" }}
             />
             <Stack.Screen
+              name="PidSpidIdpSelection"
+              component={PidSpidIdpSelectionScreen}
+              options={{ title: "Test PID issuance" }}
+            />
+            <Stack.Screen
               name="PidSpidLogin"
               component={PidSpidLoginScreen}
-              options={{ title: "Test PID issuance" }}
+              options={{ title: "PID SPID Login" }}
             />
             <Stack.Screen
               name="Credentials"
