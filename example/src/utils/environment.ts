@@ -29,6 +29,7 @@ export type Env = {
  * @returns the environment variables for the selected environment
  */
 export const getEnv = (env: EnvType): Env => {
+  //
   switch (env) {
     case "pre":
       return {

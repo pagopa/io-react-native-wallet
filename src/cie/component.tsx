@@ -92,7 +92,7 @@ const webView = createRef<WebView>();
  * @param {Function} params.onSuccess - Callback at the end of authentication to which the redirect URL including parameters is passed.
  * @param {string} params.redirectUrl - Redirect URL set by the Service Provider. It is used to stop the flow and return to the calling function via onSuccess.
  * @param {Function} params.onEvent - Callback function that is called whenever there is a new CieEvent from the CIE reader.
- * @returns {JSX.Element} - The configured component with WebView.
+ * @returns {React.JSX.Element} - The configured component with WebView.
  */
 export const WebViewComponent = (params: CIEParams) => {
   const [webViewUrl, setWebViewUrl] = React.useState(params.authUrl);

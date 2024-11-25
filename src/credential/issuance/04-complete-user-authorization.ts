@@ -131,6 +131,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         120
       );
 
+
       /**
        * Simultaneously listen for the abort signal (when provided) and the redirect url.
        * The first event that occurs will resolve the promise.
@@ -153,7 +154,6 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
         throw new AuthorizationError("Invalid authentication redirect url");
       }
     }
-
     const query = parseUrl(authRedirectUrl).query;
     return parseAuthroizationResponse(query);
   };
