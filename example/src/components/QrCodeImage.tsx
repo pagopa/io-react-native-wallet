@@ -1,19 +1,18 @@
 import React from "react";
-import {
-  Image,
-  useWindowDimensions,
-  type ImageSourcePropType,
-} from "react-native";
+import { useWindowDimensions } from "react-native";
+import QRCode, { type QRCodeProps } from "react-native-qrcode-svg";
 import Placeholder from "rn-placeholder";
-import RNQRGenerator from "rn-qr-generator";
 
 export type QrCodeImageProps = {
   // Value to decode and present using a QR Code
-  value: string;
+  // If undefined, a placeholder is shown
+  value?: string;
   // Relative or absolute size of the QRCode image
   size?: number | `${number}%`;
   // Optional background color for the QR Code image
   backgroundColor?: string;
+  // Optional correction level for the QR Code image
+  correctionLevel?: QRCodeProps["ecl"];
 };
 
 /**
@@ -23,8 +22,8 @@ const QrCodeImage = ({
   value,
   size = 200,
   backgroundColor,
+  correctionLevel = "H",
 }: QrCodeImageProps) => {
-  const [source, setSource] = React.useState<ImageSourcePropType>();
   const { width } = useWindowDimensions();
   const realSize = React.useMemo<number>(() => {
     if (typeof size === "number") {
@@ -34,20 +33,13 @@ const QrCodeImage = ({
     return (parseFloat(size) / 100.0) * width;
   }, [size, width]);
 
-  React.useEffect(() => {
-    RNQRGenerator.generate({
-      value,
-      height: realSize,
-      width: realSize,
-      backgroundColor,
-      correctionLevel: "L",
-    })
-      .then((result) => setSource(result))
-      .catch((_) => undefined);
-  }, [value, realSize, backgroundColor]);
-
-  return source ? (
-    <Image source={source} />
+  return value ? (
+    <QRCode
+      value={value}
+      size={realSize}
+      ecl={correctionLevel}
+      backgroundColor={backgroundColor}
+    />
   ) : (
     <Placeholder.Box
       height={realSize}
