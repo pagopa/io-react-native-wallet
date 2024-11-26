@@ -10,10 +10,12 @@ import {
 import {
   completeUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
-  parseAuthroizationResponse,
+  parseAuthorizationResponse,
+  buildAuthorizationUrl,
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
   type GetRequestedCredentialToBePresented,
+  type BuildAuthorizationUrl,
   getRequestedCredentialToBePresented,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
@@ -25,22 +27,26 @@ import {
   verifyAndParseCredential,
   type VerifyAndParseCredential,
 } from "./07-verify-and-parse-credential";
+import * as Errors from "./errors";
 
 export {
   evaluateIssuerTrust,
   startUserAuthorization,
+  buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
   getRequestedCredentialToBePresented,
   completeUserAuthorizationWithFormPostJwtMode,
   authorizeAccess,
   obtainCredential,
   verifyAndParseCredential,
-  parseAuthroizationResponse,
+  parseAuthorizationResponse,
+  Errors,
 };
 export type {
   StartFlow,
   EvaluateIssuerTrust,
   StartUserAuthorization,
+  BuildAuthorizationUrl,
   CompleteUserAuthorizationWithQueryMode,
   GetRequestedCredentialToBePresented,
   CompleteUserAuthorizationWithFormPostJwtMode,

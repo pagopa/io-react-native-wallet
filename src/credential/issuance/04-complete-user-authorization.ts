@@ -1,26 +1,13 @@
 import {
   AuthorizationErrorShape,
   AuthorizationResultShape,
-  type AuthorizationContext,
   type AuthorizationResult,
 } from "../../utils/auth";
-import {
-  createAbortPromiseFromSignal,
-  hasStatus,
-  isDefined,
-  until,
-  type Out,
-} from "../../utils/misc";
+import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
-import {
-  AuthorizationError,
-  AuthorizationIdpError,
-  OperationAbortedError,
-  ValidationFailed,
-} from "../../utils/errors";
+import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { Linking } from "react-native";
 import {
   decode,
   encodeBase64,
@@ -31,18 +18,13 @@ import { RequestObject } from "../presentation/types";
 import uuid from "react-native-uuid";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
+import { AuthorizationError, AuthorizationIdpError } from "./errors";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
  */
 export type CompleteUserAuthorizationWithQueryMode = (
-  issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  idpHint: string,
-  redirectUri: string,
-  authorizationContext?: AuthorizationContext,
-  signal?: AbortSignal
+  authRedirectUrl: string
 ) => Promise<AuthorizationResult>;
 
 export type CompleteUserAuthorizationWithFormPostJwtMode = (
@@ -63,99 +45,56 @@ export type GetRequestedCredentialToBePresented = (
   appFetch?: GlobalFetch["fetch"]
 ) => Promise<RequestObject>;
 
+export type BuildAuthorizationUrl = (
+  issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
+  clientId: Out<StartUserAuthorization>["clientId"],
+  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  idpHint: string
+) => Promise<{
+  authUrl: string;
+}>;
+
 /**
- * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link authorizeAccess}.
- * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
- * It is used to complete the user authorization by catching the redirectSchema from the authorization server which then contains the authorization response.
- * This function utilizes the authorization context to open an in-app browser capable of catching the redirectSchema to perform a get request to the authorization endpoint.
- * If the 302 redirect happens and the redirectSchema is caught, the function will return the authorization response after parsing it from the query string.
+ * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
+ * Builds the authorization URL to which the end user should be redirected to continue the authentication flow.
  * @param issuerRequestUri the URI of the issuer where the request is sent
  * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
  * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param authorizationContext The context to identify the user which will be used to start the authorization. It's needed only when requesting a PersonalIdentificationData credential. The implementantion should open an in-app browser capable of catching the redirectSchema.
- * If not specified, the default browser is used
- * @param idphint Unique identifier of the SPID IDP selected by the user
- * @param redirectUri The url to reach to complete the user authorization which is the custom URL scheme that the Wallet Instance is registered to handle, usually a custom URL or deeplink
- * @param signal An optional {@link AbortSignal} to abort the operation when using the default browser
- * @throws {AuthorizationError} if an error occurs during the authorization process
- * @throws {AuthorizationIdpError} if an error occurs during the authorization process and the error is related to the IDP
- * @throws {OperationAbortedError} if the caller aborts the operation via the provided signal
+ * @param idpHint Unique identifier of the IDP selected by the user
+ * @returns An object containing the authorization URL
+ */
+export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
+  issuerRequestUri,
+  clientId,
+  issuerConf,
+  idpHint
+) => {
+  const authzRequestEndpoint =
+    issuerConf.oauth_authorization_server.authorization_endpoint;
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    request_uri: issuerRequestUri,
+    idphint: idpHint,
+  });
+
+  const authUrl = `${authzRequestEndpoint}?${params}`;
+
+  return { authUrl };
+};
+
+/**
+ * WARNING: This function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID.
+ * Complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
+ * This function parses the authorization redirect URL to extract the authorization response.
+ * @param authRedirectUrl The URL to which the end user should be redirected to start the authentication flow
  * @returns the authorization response which contains code, state and iss
  */
 export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWithQueryMode =
-  async (
-    issuerRequestUri,
-    clientId,
-    issuerConf,
-    idpHint,
-    redirectUri,
-    authorizationContext,
-    signal
-  ) => {
-    const authzRequestEndpoint =
-      issuerConf.oauth_authorization_server.authorization_endpoint;
-    const params = new URLSearchParams({
-      client_id: clientId,
-      request_uri: issuerRequestUri,
-      idphint: idpHint,
-    });
-    const authUrl = `${authzRequestEndpoint}?${params}`;
-    var authRedirectUrl: string | undefined;
-
-    if (authorizationContext) {
-      const redirectSchema = new URL(redirectUri).protocol.replace(":", "");
-      authRedirectUrl = await authorizationContext
-        .authorize(authUrl, redirectSchema)
-        .catch((e) => {
-          throw new AuthorizationError(e.message);
-        });
-    } else {
-      // handler for redirectUri
-      const urlEventListener = Linking.addEventListener("url", ({ url }) => {
-        if (url.includes(redirectUri)) {
-          authRedirectUrl = url;
-        }
-      });
-
-      const operationIsAborted = signal
-        ? createAbortPromiseFromSignal(signal)
-        : undefined;
-      await Linking.openURL(authUrl);
-
-      /*
-       * Waits for 120 seconds for the identificationRedirectUrl variable to be set
-       * by the custom url handler. If the timeout is exceeded, throw an exception
-       */
-      const unitAuthRedirectIsNotUndefined = until(
-        () => authRedirectUrl !== undefined,
-        120
-      );
-
-      /**
-       * Simultaneously listen for the abort signal (when provided) and the redirect url.
-       * The first event that occurs will resolve the promise.
-       * This is useful to properly cleanup when the caller aborts this operation.
-       */
-      const winner = await Promise.race(
-        [operationIsAborted?.listen(), unitAuthRedirectIsNotUndefined].filter(
-          isDefined
-        )
-      ).finally(() => {
-        urlEventListener.remove();
-        operationIsAborted?.remove();
-      });
-
-      if (winner === "OPERATION_ABORTED") {
-        throw new OperationAbortedError("DefaultQueryModeAuthorization");
-      }
-
-      if (authRedirectUrl === undefined) {
-        throw new AuthorizationError("Invalid authentication redirect url");
-      }
-    }
-
+  async (authRedirectUrl) => {
     const query = parseUrl(authRedirectUrl).query;
-    return parseAuthroizationResponse(query);
+
+    return parseAuthorizationResponse(query);
   };
 
 /**
@@ -183,16 +122,16 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
       `${authzRequestEndpoint}?${params.toString()}`,
       { method: "GET" }
     )
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then((jws) => decode(jws))
       .then((reqObj) => RequestObject.safeParse(reqObj.payload));
 
     if (!requestObject.success) {
-      throw new ValidationFailed(
-        "Request Object validation failed",
-        requestObject.error.message
-      );
+      throw new ValidationFailed({
+        message: "Request Object validation failed",
+        reason: requestObject.error.message,
+      });
     }
     return requestObject.data;
   };
@@ -300,22 +239,22 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       },
       body,
     })
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((reqUri) => reqUri.json());
 
     const responseUri = ResponseUriResultShape.safeParse(resUriRes);
     if (!responseUri.success) {
-      throw new ValidationFailed(
-        "Response Uri validation failed",
-        responseUri.error.message
-      );
+      throw new ValidationFailed({
+        message: "Response Uri validation failed",
+        reason: responseUri.error.message,
+      });
     }
 
     return await appFetch(responseUri.data.redirect_uri)
-      .then(hasStatus(200))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then(getJwtFromFormPost)
-      .then((cbRes) => parseAuthroizationResponse(cbRes.decodedJwt.payload));
+      .then((cbRes) => parseAuthorizationResponse(cbRes.decodedJwt.payload));
   };
 
 /**
@@ -325,7 +264,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
  * @param authRes the authorization response to be parsed
  * @returns the authorization result which contains code, state and iss
  */
-export const parseAuthroizationResponse = (
+export const parseAuthorizationResponse = (
   authRes: unknown
 ): AuthorizationResult => {
   const authResParsed = AuthorizationResultShape.safeParse(authRes);

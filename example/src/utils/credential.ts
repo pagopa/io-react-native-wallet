@@ -2,7 +2,6 @@ import {
   Credential,
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
-import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
@@ -13,6 +12,7 @@ import type {
   PidResult,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
+import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
 
 /**
  * Implements a flow to obtain a PID credential.
@@ -24,7 +24,7 @@ import type {
  * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
  * @returns The obtained credential result
  */
-export const getPid = async ({
+export const getPidCieID = async ({
   pidIssuerUrl,
   redirectUri,
   idpHint,
@@ -39,12 +39,6 @@ export const getPid = async ({
   wiaCryptoContext: CryptoContext;
   credentialType: "PersonIdentificationData";
 }): Promise<PidResult> => {
-  // Create identification context only for SPID
-  const authorizationContext = idpHint.includes("servizicie")
-    ? undefined
-    : {
-        authorize: openAuthenticationSession,
-      };
   /*
    * Create credential crypto context for the PID
    * WARNING: The eID keytag must be persisted and later used when requesting a credential which requires a eID presentation
@@ -81,15 +75,24 @@ export const getPid = async ({
       }
     );
 
-  // Complete the authroization process with query mode with the authorizationContext which opens the browser
+  // Obtain the Authorization URL
+  const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+    issuerRequestUri,
+    clientId,
+    issuerConf,
+    idpHint
+  );
+
+  // Open the authorization URL and listen for the redirect
+  const { authRedirectUrl } = await openUrlAndListenForAuthRedirect(
+    redirectUri,
+    authUrl
+  );
+
+  // Complete the authroization process with query mode
   const { code } =
     await Credential.Issuance.completeUserAuthorizationWithQueryMode(
-      issuerRequestUri,
-      clientId,
-      issuerConf,
-      idpHint,
-      redirectUri,
-      authorizationContext
+      authRedirectUrl
     );
 
   // Create DPoP context which will be used for the whole issuance flow
