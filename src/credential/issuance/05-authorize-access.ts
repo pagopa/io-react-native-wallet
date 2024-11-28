@@ -40,6 +40,7 @@ export type AuthorizeAccess = (
  * @param context.dPopCryptoContext The DPoP crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {ValidationFailed} if an error occurs while parsing the token response
+ * @throws {IssuerResponseError} with a specific code for more context
  * @return The token response containing the access token along with the token request signed with DPoP which has to be used in the {@link obtainCredential} step.
  */
 export const authorizeAccess: AuthorizeAccess = async (

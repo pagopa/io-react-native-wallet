@@ -1,9 +1,8 @@
 import { Linking } from "react-native";
 import { createAbortPromiseFromSignal, isDefined, until } from "./misc";
-import {
-  AuthorizationError,
-  OperationAbortedError,
-} from "../../../src/credential/issuance/errors";
+import { AuthorizationError } from "../../../src/credential/issuance/errors";
+
+export class OperationAbortedError extends Error {}
 
 export type OpenUrlAndListenForAuthRedirect = (
   redirectUri: string,
