@@ -72,8 +72,7 @@ export async function getAttestationRequest(
  * @param params.appFetch (optional) Http client
  * @param walletProviderBaseUrl Base url for the Wallet Provider
  * @returns The retrieved Wallet Instance Attestation token
- * @throws {WalletInstanceRevokedError} The Wallet Instance was revoked
- * @throws {WalletInstanceNotFoundError} The Wallet Instance does not exist
+ * @throws {WalletProviderResponseError} with a specific code for more context
  */
 export const getAttestation = async ({
   wiaCryptoContext,
