@@ -27,18 +27,3 @@ export class AuthorizationIdpError extends IoWalletError {
     this.errorDescription = errorDescription;
   }
 }
-
-/**
- * Error subclass thrown when an operation has been aborted.
- */
-export class OperationAbortedError extends IoWalletError {
-  code = "ERR_IO_WALLET_OPERATION_ABORTED";
-
-  /** The aborted operation */
-  operation: string;
-
-  constructor(operation: string) {
-    super(serializeAttrs({ operation }));
-    this.operation = operation;
-  }
-}
