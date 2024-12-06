@@ -151,14 +151,15 @@ export const WebViewComponent = (params: CIEParams) => {
         handleOnError(onError)(new Error(eventTitle));
       }
 
-      /* At the end of loading the page, if the card has already been read
+      /**
+       * At the end of loading the page, if the card has already been read
        * then the WebView has loaded the page to ask the user for consent,
-       * so send the completed event
-       * */
+       * so send the completed event.
+       * The ref here prevents the "read completed" event being fired multiple times
+       * when the webview finishes loading the second url.
+       */
       if (isCardReadingFinished && !cieCompletedEventEmitted.current) {
         onCieEvent(CieEvent.completed);
-        // This ref prevents the "CIE read completed" event being fired multiple times
-        // when the webview finishes loading the second url.
         cieCompletedEventEmitted.current = true;
       }
     };
