@@ -532,7 +532,7 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - React-RCTImage
-  - RNSVG (15.5.0):
+  - RNSVG (15.6.0):
     - React-Core
   - SocketRocket (0.6.1)
   - SwiftCBOR (0.4.7)
@@ -807,7 +807,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: e115bb12d05ced2aba090123e2690978507811ca
   RNReanimated: 1896df448c213a64e98cf3f796e4105bbfab41a2
   RNScreens: 284fcee9d8d4648851fdb85dd0e200daebedcc14
-  RNSVG: b986585e367f4a49d8aa43065066cc9c290b3d9b
+  RNSVG: 5da7a24f31968ec74f0b091e3440080f347e279b
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   SwiftCBOR: 465775bed0e8bac7bfb8160bcf7b95d7f75971e4
   Yoga: c32e0be1a17f8f1f0e633a3122f7666441f52c82

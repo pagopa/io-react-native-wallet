@@ -5,9 +5,7 @@ Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs)
 
 ## Dependencies
 
-- [@pagopa/io-react-native-jwt](https://github.com/pagopa/io-react-native-jwt) is used to manage JWT tokens;
-- [@pagopa/react-native-cie](https://github.com/pagopa/io-cie-sdk) is used to manage CIE authentication;
-- [react-native-webview](https://github.com/react-native-webview/react-native-webview) is used to manage the webview for the CIE authentication flow.
+- [@pagopa/io-react-native-jwt](https://github.com/pagopa/io-react-native-jwt) is used to manage JWT tokens.
 
 ## Installation
 

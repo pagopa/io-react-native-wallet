@@ -1,4 +1,3 @@
-import { Cie } from "@pagopa/io-react-native-wallet";
 import React, { useCallback, useEffect } from "react";
 import {
   View,
@@ -20,6 +19,7 @@ import {
 } from "@pagopa/io-app-design-system";
 import { selectPidFlowParams } from "../store/reducers/pid";
 import { preparePidFlowParamsThunk } from "../thunks/pid";
+import { CieEvent, WebViewComponent, type CieError } from "./cie";
 
 export type TestCieL3ScenarioProps = {
   title: string;
@@ -63,26 +63,26 @@ export default function TestCieL3Scenario({
     dispatch(continuePidFlowThunk({ authRedirectUrl: url }));
   };
 
-  const handleOnError = (error: Cie.CieError) => {
+  const handleOnError = (error: CieError) => {
     dispatch(pidCiel3FlowReset());
     setModalVisible(false);
     Alert.alert(`❌ ${JSON.stringify(error)}`);
   };
 
-  const handleOnEvent = (event: Cie.CieEvent) => {
+  const handleOnEvent = (event: CieEvent) => {
     switch (event) {
-      case Cie.CieEvent.waiting_card: {
+      case CieEvent.waiting_card: {
         setModalText(
           "Waiting for CIE card. Bring it closer to the NFC reader."
         );
         break;
       }
-      case Cie.CieEvent.completed: {
+      case CieEvent.completed: {
         setModalText("Continue to the webview");
         setHidden(false);
         break;
       }
-      case Cie.CieEvent.reading: {
+      case CieEvent.reading: {
         setModalText("I'm reading the CIE. Do not remove it from the device");
         break;
       }
@@ -208,7 +208,7 @@ export default function TestCieL3Scenario({
               >
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
-              <Cie.WebViewComponent
+              <WebViewComponent
                 useUat={isCieUat}
                 authUrl={flowParams.authUrl}
                 onSuccess={handleOnSuccess}
