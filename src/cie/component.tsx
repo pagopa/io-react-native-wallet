@@ -97,6 +97,7 @@ const webView = createRef<WebView>();
 export const WebViewComponent = (params: CIEParams) => {
   const [webViewUrl, setWebViewUrl] = React.useState(params.authUrl);
   const [isCardReadingFinished, setCardReadingFinished] = React.useState(false);
+  const cieCompletedEventEmitted = React.useRef(false);
 
   /*
    * Once the reading of the card with NFC is finished, it is necessary
@@ -150,12 +151,16 @@ export const WebViewComponent = (params: CIEParams) => {
         handleOnError(onError)(new Error(eventTitle));
       }
 
-      /* At the end of loading the page, if the card has already been read
+      /**
+       * At the end of loading the page, if the card has already been read
        * then the WebView has loaded the page to ask the user for consent,
-       * so send the completed event
-       * */
-      if (isCardReadingFinished) {
+       * so send the completed event.
+       * The ref here prevents the "read completed" event being fired multiple times
+       * when the webview finishes loading the second url.
+       */
+      if (isCardReadingFinished && !cieCompletedEventEmitted.current) {
         onCieEvent(CieEvent.completed);
+        cieCompletedEventEmitted.current = true;
       }
     };
 
