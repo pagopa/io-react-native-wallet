@@ -10,7 +10,7 @@ import {
 import { JWK } from "../utils/jwk";
 import { IoWalletError } from "../utils/errors";
 import * as z from "zod";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
+import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/src/types";
 import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
 
 type ParsedToken = {

@@ -1,5 +1,5 @@
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
+import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/src/types";
 import { ValidationFailed } from "./errors";
 
 /*
@@ -17,7 +17,7 @@ import { ValidationFailed } from "./errors";
                 <strong>Note:</strong> Since your browser does not support JavaScript, you must press the Continue button once to proceed.
             </p>
         </noscript>
-            <form action="iowalletexample//cb" method="post">       
+            <form action="iowalletexample//cb" method="post">
                 <div>
                     <input type="hidden" name="response" value="somevalue" />
                 </div>
