@@ -55,6 +55,7 @@
     "@react-native/typescript-config": "0.75.4",
     "@types/url-parse": "^1.4.11",
     "babel-plugin-module-resolver": "^5.0.0",
+    "metro-react-native-babel-preset": "^0.77.0",
     "react-native-dotenv": "^3.4.11",
     "react-native-url-polyfill": "^2.0.0"
   },
