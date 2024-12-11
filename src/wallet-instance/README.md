@@ -6,7 +6,8 @@ The suggested way to implement this service is to use [io-react-native-integrity
 
 The following methods are available:
 - `createWalletInstance` creates a new wallet instance;
-- `revokeCurrentWalletInstance` revokes the currently valid wallet instance of the user who made the request.
+- `revokeWalletInstance` revokes a wallet instance by ID;
+- `getWalletInstanceStatus` fetches the status of a wallet instance by ID without the need to require an attestation.
 
 Examples are provided as follows:
 
@@ -35,12 +36,29 @@ return integrityKeyTag;
 
 The returned `integrityKeyTag` is supposed to be stored and used to verify the integrity of the device in the future when using an `IntegrityContext` object. It must be regenerated if another wallet instance is created.
 
-### Wallet instance revocation
+### Wallet Instance revocation
+
+Revoke a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
 
 ```ts
 const { WALLET_PROVIDER_BASE_URL } = env;
 
-await WalletInstance.revokeCurrentWalletInstance({
+await WalletInstance.revokeWalletInstance({
+  id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
+  walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+  appFetch,
+});
+
+```
+### Wallet Instance status
+
+Get the status of a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
+
+```ts
+const { WALLET_PROVIDER_BASE_URL } = env;
+
+const status = await WalletInstance.getWalletInstanceStatus({
+  id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
 });
@@ -48,6 +66,9 @@ await WalletInstance.revokeCurrentWalletInstance({
 
 ## Mapped results
 
-### 409 Conflict (WalletInstanceCreationIntegrityError)
+The following errors are mapped to a `WalletProviderResponseError` with specific codes.
 
-A `409 Conflict` response is returned by the wallet provider when an integrity check fails.
+|HTTP Status|Error Code|Description|
+|-----------|----------|-----------|
+|`409 Conflict`|`ERR_IO_WALLET_INSTANCE_INTEGRITY_FAILED`|This response is returned by the wallet provider when an integrity check fails.|
+|`*`|`ERR_IO_WALLET_PROVIDER_GENERIC_ERROR`|This is a generic error code to map unexpected errors that occurred when interacting with the Wallet Provider.|

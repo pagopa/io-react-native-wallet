@@ -1,11 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
-import { getPidThunk } from "../../thunks/pid";
 import {
-  continueCieL3FlowThunk,
-  prepareCieL3FlowParamsThunk,
-  type PrepareCieL3FlowParamsThunkOutput,
-} from "../../thunks/pidCieL3";
+  continuePidFlowThunk,
+  preparePidFlowParamsThunk,
+} from "../../thunks/pid";
+
 import { createSecureStorage } from "../storage";
 import type {
   AsyncStatus,
@@ -16,18 +15,20 @@ import type {
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./sesssion";
+import type { PreparePidFlowParamsThunkOutput } from "example/src/thunks/pid";
+import { getPidCieIDThunk } from "../../thunks/pidCieID";
 
 /**
  * State type definition for the PID slice.
  * It contains:
  * - pid: the obtained PID which is persisted
  * - pidAsyncStatus: the state of the async operation to get the PID for each supported authentication method, namely spid, CiE L2 and CiE L3
- * - pidCiel3FlowParams: the parameters for the CiE L3 flow
+ * - pidFlowParams: the parameters for the PID flow
  */
 type PidState = {
   pid: PidResult | undefined;
   pidAsyncStatus: Record<PidAuthMethods, AsyncStatus>;
-  pidCiel3FlowParams: PrepareCieL3FlowParamsThunkOutput | undefined;
+  pidFlowParams: PreparePidFlowParamsThunkOutput | undefined;
 };
 
 // Initial state for the pid slice
@@ -38,7 +39,7 @@ const initialState: PidState = {
     cieL2: asyncStatusInitial,
     cieL3: asyncStatusInitial,
   },
-  pidCiel3FlowParams: undefined,
+  pidFlowParams: undefined,
 };
 
 /**
@@ -51,7 +52,7 @@ const pidSlice = createSlice({
     pidReset: () => initialState,
     pidCiel3FlowReset: (state) => ({
       ...state,
-      pidCiel3FlowParams: initialState.pidCiel3FlowParams,
+      pidFlowParams: initialState.pidFlowParams,
       pidAsyncStatus: {
         ...state.pidAsyncStatus,
         cieL3: asyncStatusInitial,
@@ -60,14 +61,14 @@ const pidSlice = createSlice({
   },
   extraReducers: (builder) => {
     /**
-     * Credential Thunk
+     * PID CieID Thunk
      */
 
     /*
      * Dispatched when a get pid async thunk resolves.
      * Sets the obtained pid and its state to isDone.
      */
-    builder.addCase(getPidThunk.fulfilled, (state, action) => {
+    builder.addCase(getPidCieIDThunk.fulfilled, (state, action) => {
       const authMethod = action.meta.arg.authMethod;
       // Set the credential
       state.pid = action.payload;
@@ -82,7 +83,7 @@ const pidSlice = createSlice({
      * Dispatched when a get pid async thunk is pending.
      * Sets the pid state to isLoading while resetting isDone and hasError.
      */
-    builder.addCase(getPidThunk.pending, (state, action) => {
+    builder.addCase(getPidCieIDThunk.pending, (state, action) => {
       const authMethod = action.meta.arg.authMethod;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
@@ -94,7 +95,7 @@ const pidSlice = createSlice({
      * Dispatched when a get pid async thunk rejected.
      * Sets the pid state to hasError while resetting isLoading and hasError.
      */
-    builder.addCase(getPidThunk.rejected, (state, action) => {
+    builder.addCase(getPidCieIDThunk.rejected, (state, action) => {
       const authMethod = action.meta.arg.authMethod;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
@@ -103,75 +104,84 @@ const pidSlice = createSlice({
     });
 
     /**
-     * CiE L3 Flow Params Thunk
+     * PID flow Params Thunk
      */
 
-    /* Dispatched when a prepare CiE L3 flow params async thunk resolves.
+    /* Dispatched when a prepare PID flow params async thunk resolves.
      *  Sets the obtained params and its state to isDone while resetting isLoading and hasError
      * for the PID.
      */
-    builder.addCase(prepareCieL3FlowParamsThunk.fulfilled, (state, action) => {
-      state.pidCiel3FlowParams = action.payload;
+    builder.addCase(preparePidFlowParamsThunk.fulfilled, (state, action) => {
+      state.pidFlowParams = action.payload;
       // The flow must be continued after this so we do not set isLoading for the credential state to true yet.
     });
 
     /*
-     * Dispatched when a prepare CiE L3 flow params async thunk is pending.
+     * Dispatched when a prepare PID flow params async thunk is pending.
      * Sets the flow params and the credential state to isLoading
      * for the PID.
      */
-    builder.addCase(prepareCieL3FlowParamsThunk.pending, (state) => {
-      state.pidAsyncStatus.cieL3 = {
+    builder.addCase(preparePidFlowParamsThunk.pending, (state, action) => {
+      const authMethod = action.meta.arg.authMethod;
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isLoading: true,
       };
     });
 
-    /* Dispatched when a prepare CiE L3 flow params async thunk rejected.
+    /* Dispatched when a prepare PID flow params async thunk is rejected.
      * Resets the flow params and sets the credential state to hasError while resetting isLoading and hasError
      * for the requested credential.
      */
-    builder.addCase(prepareCieL3FlowParamsThunk.rejected, (state, action) => {
-      state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
-      state.pidAsyncStatus.cieL3 = {
+    builder.addCase(preparePidFlowParamsThunk.rejected, (state, action) => {
+      state.pidFlowParams = initialState.pidFlowParams;
+      const authMethod = action.meta.arg.authMethod;
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
       };
     });
 
-    /* Dispatched when a continue CiE L3 flow async thunk resolves.
-     * Resets the flow params and sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
+    /* Dispatched when a continue PID flow async thunk resolves.
+     * Sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
      * for the requested credential.
      */
-    builder.addCase(continueCieL3FlowThunk.fulfilled, (state, action) => {
-      state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
+    builder.addCase(continuePidFlowThunk.fulfilled, (state, action) => {
+      state.pidFlowParams = initialState.pidFlowParams;
+      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
+      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
       state.pid = action.payload;
-      state.pidAsyncStatus.cieL3 = {
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isDone: true,
       };
     });
 
-    /* Dispatched when a continue CiE L3 flow async thunk is pending.
-     * Sets the credential state to isLoading while resetting isDone and hasError
+    /* Dispatched when a continue PID flow async thunk resolves.
+     * Sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
      * for the requested credential.
      */
-    builder.addCase(continueCieL3FlowThunk.pending, (state) => {
-      // Redundant as already set by prepareCieL3FlowParams but we want to be explicit and set the loading state
-      state.pidAsyncStatus.cieL3 = {
+    builder.addCase(continuePidFlowThunk.pending, (state) => {
+      // Redundant as already set by preparePidFlowParams but we want to be explicit and set the loading state
+      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
+      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isLoading: true,
       };
     });
 
-    /* Dispatched when a continue CiE L3 flow async thunk rejected.
-     * Resets the flow params and sets the credential state to hasError while resetting isLoading and hasError
+    /* Dispatched when a continue PID flow async thunk resolves.
+     * Sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
      * for the requested credential.
      */
-    builder.addCase(continueCieL3FlowThunk.rejected, (state, action) => {
+    builder.addCase(continuePidFlowThunk.rejected, (state, action) => {
       // Reset the flow params if an error occurs, you must start from scratch
-      state.pidCiel3FlowParams = initialState.pidCiel3FlowParams;
-      state.pidAsyncStatus.cieL3 = {
+      state.pidFlowParams = initialState.pidFlowParams;
+      const authMethod = action.meta.arg.authRedirectUrl.includes("cie")
+        ? "cieL3"
+        : "spid";
+      state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
       };
@@ -226,6 +236,6 @@ export const selectPidAsyncStatus =
  * @param state - The root state of the Redux store
  * @returns the CiE L3 flow params
  */
-export const selectPidCieL3FlowParams = (state: RootState) => {
-  return state.pid.pidCiel3FlowParams;
+export const selectPidFlowParams = (state: RootState) => {
+  return state.pid.pidFlowParams;
 };

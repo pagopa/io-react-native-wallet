@@ -6,33 +6,41 @@ import IdpsGrid from "../../components/IdpsGrid";
 import { useIOToast, VSpacer } from "@pagopa/io-app-design-system";
 import { selectEnv } from "../../store/reducers/environment";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
-import { getPidThunk } from "../../thunks/pid";
+import { preparePidFlowParamsThunk } from "../../thunks/pid";
 
-type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidLogin">;
+type Props = NativeStackScreenProps<
+  MainStackNavParamList,
+  "PidSpidIdpSelection"
+>;
 
 /**
  * IDP selection for the PID authentication flow. This screen dinamically renders the IDPs list based on the environment.
  * After selecting an IDP, the user is redirected back to the PID screen with the different scenarios where the authentication flow happens.
  */
-export default function PidSpidLoginScreen({ navigation }: Props) {
+export default function PidSpidIdpSelectionScreen({ navigation }: Props) {
   const toast = useIOToast();
   const dispatch = useAppDispatch();
   const env = useAppSelector(selectEnv);
   const idpsList = env === "pre" ? testIdps : idps; // Use test IDPs if the login is for PID auth in the pre environment, otherwise use the standard IDPs list
 
-  const handleIdpSelection = (idp: Idp) => {
+  const handleIdpSelection = async (idp: Idp) => {
     navigation.goBack();
     const idpHint = getSpidIdpHint(idp.id);
     if (!idpHint) {
       toast.error("IDP hint not found");
     } else {
-      dispatch(
-        getPidThunk({
-          credentialType: "PersonIdentificationData",
-          idpHint,
-          authMethod: "spid",
-        })
-      );
+      try {
+        const { authUrl, redirectUri } = await dispatch(
+          preparePidFlowParamsThunk({
+            idpHint,
+            authMethod: "spid",
+            credentialType: "PersonIdentificationData",
+          })
+        ).unwrap();
+        navigation.navigate("PidSpidLogin", { authUrl, redirectUri });
+      } catch (error) {
+        toast.error("Error during authentication");
+      }
     }
   };
 

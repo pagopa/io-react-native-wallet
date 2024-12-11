@@ -47,7 +47,7 @@ export const getJwtFromFormPost = async (
     }
   }
 
-  throw new ValidationFailed(
-    `Unable to obtain JWT from form_post.jwt. Form data: ${formData}`
-  );
+  throw new ValidationFailed({
+    message: `Unable to obtain JWT from form_post.jwt. Form data: ${formData}`,
+  });
 };

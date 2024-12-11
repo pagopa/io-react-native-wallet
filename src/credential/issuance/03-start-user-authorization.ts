@@ -79,7 +79,7 @@ const selectResponseMode = (
 
 /**
  * WARNING: This function must be called after {@link evaluateIssuerTrust} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
- * Creates and sends a PAR request to the /as/par endpoint of the authroization server.
+ * Creates and sends a PAR request to the /as/par endpoint of the authorization server.
  * This starts the authentication flow to obtain an access token.
  * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer.
  * This is an HTTP POST request containing the Wallet Instance identifier (client id), the code challenge and challenge method as specified by PKCE according to RFC 9126
@@ -88,7 +88,7 @@ const selectResponseMode = (
  * the application session identifier on the Wallet Instance side (state),
  * the method (query or form_post.jwt) by which the Authorization Server
  * should transmit the Authorization Response containing the authorization code issued upon the end user's authentication (response_mode)
- * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirect_uri of the Wallet Instance where the Authorization Response
+ * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirectUri of the Wallet Instance where the Authorization Response
  * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
  * @param issuerConf The issuer configuration
  * @param credentialType The type of the credential to be requested returned by {@link selectCredentialDefinition}

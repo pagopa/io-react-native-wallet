@@ -1,19 +1,16 @@
 import {
   getCredentialHashWithouDiscloures,
-  hasStatus,
-  safeJsonParse,
+  hasStatusOrThrow,
   type Out,
 } from "../../utils/misc";
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
-import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
+import { StatusAttestationResponse } from "./types";
 import {
-  InvalidStatusAttestationResponse,
-  StatusAttestationResponse,
-} from "./types";
-import {
-  StatusAttestationError,
-  CredentialInvalidStatusError,
+  IssuerResponseError,
+  IssuerResponseErrorCodes,
+  ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
 
@@ -33,8 +30,7 @@ export type StatusAttestation = (
  * @param credential - The credential to be verified
  * @param credentialCryptoContext - The credential's crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {@link CredentialInvalidStatusError} if the status attestation is invalid and thus the credential is not valid
- * @throws {@link StatusAttestationError} if an error occurs during the status attestation
+ * @throws {IssuerResponseError} with a specific code for more context
  * @returns The credential status attestation
  */
 export const statusAttestation: StatusAttestation = async (
@@ -74,7 +70,7 @@ export const statusAttestation: StatusAttestation = async (
     },
     body: JSON.stringify(body),
   })
-    .then(hasStatus(201))
+    .then(hasStatusOrThrow(201))
     .then((raw) => raw.json())
     .then((json) => StatusAttestationResponse.parse(json))
     .catch(handleStatusAttestationError);
@@ -86,27 +82,21 @@ export const statusAttestation: StatusAttestation = async (
  * Handle the status attestation error by mapping it to a custom exception.
  * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
  * @param e - The error to be handled
- * @throws {@link StatusAttestationError} if the status code is different from 404
- * @throws {@link CredentialInvalidStatusError} if the status code is 404 (meaning the credential is invalid)
+ * @throws {IssuerResponseError} with a specific code for more context
  */
 const handleStatusAttestationError = (e: unknown) => {
   if (!(e instanceof UnexpectedStatusCodeError)) {
     throw e;
   }
 
-  if (e.statusCode === 404) {
-    const maybeError = InvalidStatusAttestationResponse.safeParse(
-      safeJsonParse(e.responseBody)
-    );
-    throw new CredentialInvalidStatusError(
-      "Invalid status found for the given credential",
-      maybeError.success ? maybeError.data.error : "unknown",
-      e.message
-    );
-  }
-
-  throw new StatusAttestationError(
-    `Unable to obtain the status attestation for the given credential [response status code: ${e.statusCode}]`,
-    e.message
-  );
+  throw new ResponseErrorBuilder(IssuerResponseError)
+    .handle(404, {
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      message: "Invalid status found for the given credential",
+    })
+    .handle("*", {
+      code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
+      message: `Unable to obtain the status attestation for the given credential`,
+    })
+    .buildFrom(e);
 };

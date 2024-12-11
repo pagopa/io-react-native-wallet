@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { decodeBase64 } from "@pagopa/io-react-native-jwt";
-import { AuthRequestDecodeError } from "../../utils/errors";
+import { AuthRequestDecodeError } from "./errors";
 
 const QRCodePayload = z.object({
   protocol: z.string(),

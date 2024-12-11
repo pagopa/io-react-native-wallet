@@ -1,21 +1,20 @@
 import {
+  type CryptoContext,
   sha256ToBase64,
   SignJWT,
-  type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { hasStatus, safeJsonParse, type Out } from "../../utils/misc";
+import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
-  CredentialInvalidStatusError,
-  CredentialIssuingNotSynchronousError,
-  CredentialRequestError,
+  IssuerResponseError,
+  IssuerResponseErrorCodes,
+  ResponseErrorBuilder,
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialIssuanceFailureResponse, CredentialResponse } from "./types";
-
+import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 
@@ -97,7 +96,7 @@ export const obtainCredential: ObtainCredential = async (
   );
 
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
-  const constainsCredentialDefinition = accessToken.authorization_details.some(
+  const containsCredentialDefinition = accessToken.authorization_details.some(
     (c) =>
       c.credential_configuration_id ===
         credentialDefinition.credential_configuration_id &&
@@ -105,10 +104,11 @@ export const obtainCredential: ObtainCredential = async (
       c.type === credentialDefinition.type
   );
 
-  if (!constainsCredentialDefinition) {
-    throw new ValidationFailed(
-      "The access token response does not contain the requested credential"
-    );
+  if (!containsCredentialDefinition) {
+    throw new ValidationFailed({
+      message:
+        "The access token response does not contain the requested credential",
+    });
   }
 
   /** The credential request body */
@@ -123,7 +123,7 @@ export const obtainCredential: ObtainCredential = async (
     },
   };
 
-  const tokenRequestSignedDPop = await await createDPopToken(
+  const tokenRequestSignedDPop = await createDPopToken(
     {
       htm: "POST",
       htu: credentialUrl,
@@ -141,13 +141,16 @@ export const obtainCredential: ObtainCredential = async (
     },
     body: JSON.stringify(credentialRequestFormBody),
   })
-    .then(hasStatus(200))
+    .then(hasStatusOrThrow(200))
     .then((res) => res.json())
     .then((body) => CredentialResponse.safeParse(body))
     .catch(handleObtainCredentialError);
 
   if (!credentialRes.success) {
-    throw new ValidationFailed(credentialRes.error.message);
+    throw new ValidationFailed({
+      message: "Credential Response validation failed",
+      reason: credentialRes.error.message,
+    });
   }
 
   return credentialRes.data;
@@ -157,36 +160,32 @@ export const obtainCredential: ObtainCredential = async (
  * Handle the credential error by mapping it to a custom exception.
  * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
  * @param e - The error to be handled
- * @throws {@link CredentialRequestError} if the status code is different from 404
- * @throws {@link CredentialInvalidStatusError} if the status code is 404 (meaning the credential is invalid)
+ * @throws {IssuerResponseError} with a specific code for more context
  */
 const handleObtainCredentialError = (e: unknown) => {
   if (!(e instanceof UnexpectedStatusCodeError)) {
     throw e;
   }
 
-  // Although it is technically not an error, we handle it as such to avoid
-  // changing the return type of `obtainCredential` and introduce a breaking change.
-  if (e.statusCode === 201) {
-    throw new CredentialIssuingNotSynchronousError(
-      "This credential cannot be issued synchronously. It will be available at a later time.",
-      e.message
-    );
-  }
-
-  if ([403, 404].includes(e.statusCode)) {
-    const maybeError = CredentialIssuanceFailureResponse.safeParse(
-      safeJsonParse(e.responseBody)
-    );
-    throw new CredentialInvalidStatusError(
-      "Invalid status found for the given credential",
-      maybeError.success ? maybeError.data.error : "unknown",
-      e.message
-    );
-  }
-
-  throw new CredentialRequestError(
-    `Unable to obtain the requested credential [response status code: ${e.statusCode}]`,
-    e.message
-  );
+  throw new ResponseErrorBuilder(IssuerResponseError)
+    .handle(201, {
+      // Although it is technically not an error, we handle it as such to avoid
+      // changing the return type of `obtainCredential` and introduce a breaking change.
+      code: IssuerResponseErrorCodes.CredentialIssuingNotSynchronous,
+      message:
+        "This credential cannot be issued synchronously. It will be available at a later time.",
+    })
+    .handle(403, {
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      message: "Invalid status found for the given credential",
+    })
+    .handle(404, {
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      message: "Invalid status found for the given credential",
+    })
+    .handle("*", {
+      code: IssuerResponseErrorCodes.CredentialRequestFailed,
+      message: "Unable to obtain the requested credential",
+    })
+    .buildFrom(e);
 };

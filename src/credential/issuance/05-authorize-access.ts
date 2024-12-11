@@ -1,4 +1,4 @@
-import { hasStatus, type Out } from "../../utils/misc";
+import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
@@ -8,7 +8,7 @@ import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
-import { ValidationFailed } from "../../utils/errors";
+import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
 
 export type AuthorizeAccess = (
@@ -40,6 +40,7 @@ export type AuthorizeAccess = (
  * @param context.dPopCryptoContext The DPoP crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {ValidationFailed} if an error occurs while parsing the token response
+ * @throws {IssuerResponseError} with a specific code for more context
  * @return The token response containing the access token along with the token request signed with DPoP which has to be used in the {@link obtainCredential} step.
  */
 export const authorizeAccess: AuthorizeAccess = async (
@@ -103,12 +104,15 @@ export const authorizeAccess: AuthorizeAccess = async (
     },
     body: authorizationRequestFormBody.toString(),
   })
-    .then(hasStatus(200))
+    .then(hasStatusOrThrow(200, IssuerResponseError))
     .then((res) => res.json())
     .then((body) => TokenResponse.safeParse(body));
 
   if (!tokenRes.success) {
-    throw new ValidationFailed(tokenRes.error.message);
+    throw new ValidationFailed({
+      message: "Token Response validation failed",
+      reason: tokenRes.error.message,
+    });
   }
 
   return { accessToken: tokenRes.data };

@@ -9,10 +9,10 @@ export const verifyDisclosure = async (
 ) => {
   let hash = await sha256ToBase64(encoded);
   if (!claims.includes(hash)) {
-    throw new ValidationFailed(
-      "Validation of disclosure failed",
-      `${decoded}`,
-      "Disclosure hash not found in claims"
-    );
+    throw new ValidationFailed({
+      message: "Validation of disclosure failed",
+      claim: `${decoded}`,
+      reason: "Disclosure hash not found in claims",
+    });
   }
 };

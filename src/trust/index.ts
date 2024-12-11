@@ -8,7 +8,7 @@ import {
   EntityStatement,
 } from "./types";
 import { validateTrustChain, renewTrustChain } from "./chain";
-import { hasStatus } from "../utils/misc";
+import { hasStatusOrThrow } from "../utils/misc";
 
 export type {
   WalletProviderEntityConfiguration,
@@ -70,7 +70,7 @@ export async function getSignedEntityConfiguration(
   return await appFetch(wellKnownUrl, {
     method: "GET",
   })
-    .then(hasStatus(200))
+    .then(hasStatusOrThrow(200))
     .then((res) => res.text());
 }
 
@@ -256,6 +256,6 @@ export async function getSignedEntityStatement(
   return await appFetch(url, {
     method: "GET",
   })
-    .then(hasStatus(200))
+    .then(hasStatusOrThrow(200))
     .then((res) => res.text());
 }

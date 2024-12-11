@@ -11,12 +11,14 @@ import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
 } from "./04-send-authorization-response";
+import * as Errors from "./errors";
 
 export {
   startFlowFromQR,
   evaluateRelyingPartyTrust,
   getRequestObject,
   sendAuthorizationResponse,
+  Errors,
 };
 export type {
   StartFlow,

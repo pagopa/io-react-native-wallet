@@ -5,9 +5,7 @@ Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs)
 
 ## Dependencies
 
-- [@pagopa/io-react-native-jwt](https://github.com/pagopa/io-react-native-jwt) is used to manage JWT tokens;
-- [@pagopa/react-native-cie](https://github.com/pagopa/io-cie-sdk) is used to manage CIE authentication;
-- [react-native-webview](https://github.com/react-native-webview/react-native-webview) is used to manage the webview for the CIE authentication flow.
+- [@pagopa/io-react-native-jwt](https://github.com/pagopa/io-react-native-jwt) is used to manage JWT tokens.
 
 ## Installation
 
@@ -71,36 +69,6 @@ The
 </details>
 
 <details>
-  <summary>AuthorizationContext (strong authentication handling)</summary>
-
-Whenever a strong authentication is required, the library asks the consumer application to provide a way to perform the user authentication. This is done by providing a AuthenticationContext object formed as follows:
-
-```ts
-/**
- * Context for authorization during the {@link 03-start-user-authorization.ts} phase.
- * It consists of a single method to identify the user which takes a URL and a redirect schema as input.
- * Once the authorization is completed and the URL calls the redirect schema, the method should return the redirect URL.
- */
-export interface AuthorizationContext {
-  authorize: (url: string, redirectSchema: string) => Promise<string>;
-}
-```
-
-The authorize function is called with the URL to be opened and the schema to be used to redirect the user back to the application. The function should return a promise that resolves with the URL that the user has been redirected to.
-The suggested library to manage authorizations is [io-react-native-login-utils](https://github.com/pagopa/io-react-native-login-utils), an example is shown below:
-
-```ts
-import { type AuthorizationContext } from "@pagopa/io-react-native-wallet";
-import { openAuthenticationSession } from "@pagopa/io-react-native-login-utils";
-
-const authorizationContext: AuthorizationContext = {
-  authorize: openAuthenticationSession,
-};
-```
-
-</details>
-
-<details>
   <summary>IntegrityToken (device integrity)</summary>
 
 In order to ensure the integrity of the device, the library asks the consumer application to provide a way to generate a token that can be used to verify the device integrity. This is done by providing an IntegrityToken object formed as follows:
@@ -146,6 +114,7 @@ Different flows are provided to perform common operations. Each flow is a set of
   - [Issuance](./src/credential/issuance/README.md)
   - [Presentation](./src/credential/presentation/README.md) (TODO)
   - [Status](./src/credential/status/README.md)
+  - [Trustmark](./src/credential/trustmark/README.md)
 
 ### Example
 
@@ -158,7 +127,6 @@ Below there's a list of the libraries and a schema of how they interact with eac
 
 - [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Used to manage cryptographic keys and signatures
 - [@pagopa/io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity) - Used to manage and verify the integrity of the device
-- [@pagopa/io-react-native-login-utils](https://github.com/pagopa/io-react-native-login-utils) - Used to manage strong authentication flows securely
 - [@pagopa/io-react-native-secure-storage](https://github.com/pagopa/io-react-native-secure-storage) - Used to store data securely on the device
 
 ```mermaid
@@ -167,7 +135,6 @@ graph TD;
     iornw[io-react-native-wallet]
     iornc[io-react-native-crypto]
     iorni[io-react-native-integrity]
-    iornlu[io-react-native-login-utils]
     iornss[io-react-native-secure-storage]
     iornjwt[io-react-native-jwt]
     rncie[react-native-cie]
