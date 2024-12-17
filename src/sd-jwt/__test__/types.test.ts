@@ -26,6 +26,8 @@ describe("SdJwt4VC", () => {
         sub: "216f8946-9ecb-4819-9309-c076f34a7e11",
         _sd_alg: "sha-256",
         vct: "PersonIdentificationData",
+        "vct#integrity":
+          "c5f73e250fe869f24d15118acce286c9bb56b63a443dc85af653cd73f6078b1f",
         iss: "https://pidprovider.example.com",
         cnf: {
           jwk: {

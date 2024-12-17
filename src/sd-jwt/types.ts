@@ -33,6 +33,24 @@ export type DisclosureWithEncoded = {
   encoded: string;
 };
 
+const VerificationEvidence = z.object({
+  type: z.string(),
+  record: z.object({
+    type: z.string(),
+    source: z.object({
+      organization_name: z.string(),
+      organization_id: z.string(),
+      country_code: z.string(),
+    }),
+  }),
+});
+export type Verification = z.infer<typeof Verification>;
+export const Verification = z.object({
+  trustFramework: z.literal("eidas"),
+  assuranceLevel: z.string(),
+  evidence: z.array(VerificationEvidence),
+});
+
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
@@ -58,6 +76,8 @@ export const SdJwt4VC = z.object({
         jwk: JWK,
       }),
       vct: z.string(),
+      "vct#integrity": z.string().optional(),
+      verification: Verification.optional(),
     }),
     ObfuscatedDisclosures
   ),
