@@ -39,6 +39,8 @@ export const SdJwt4VC = z.object({
     typ: z.literal("vc+sd-jwt"),
     alg: z.string(),
     kid: z.string().optional(),
+    x5c: z.string().optional(),
+    vctm: z.array(z.string()).optional(),
   }),
   payload: z.intersection(
     z.object({

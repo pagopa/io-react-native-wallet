@@ -8,6 +8,11 @@ describe("SdJwt4VC", () => {
         typ: "vc+sd-jwt",
         alg: "RS512",
         kid: "dB67gL7ck3TFiIAf7N6_7SHvqk0MDYMEQcoGGlkUAAw",
+        x5c: "MIIDXTCCAkWgAwIBAgIJAL7VZC9iW+IhMA0GCSqGSIb3DQEBCwUAMEUxCzA..safsafEWFsd=",
+        vctm: [
+          "eyJ0eXBlIjoiQ29udHJhY3QiLCJkZXNjcmlwdGlvbiI6IkEgYmFzZSBjb250cmFjdCBmb3IgaWRlbn",
+          "RpdHkgdmFsaWRhdGlvbi4iLCJ2ZXJzaW9uIjoxLCJleHRlbnNpb25zIjp7InN1Ym1pdHRlciI6eyJ1",
+        ],
       },
       payload: {
         _sd: [
