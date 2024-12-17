@@ -38,8 +38,7 @@ export const makeParRequest =
     responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
-    authorizationDetails: AuthorizationDetails,
-    assertionType: string
+    authorizationDetails: AuthorizationDetails
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
@@ -85,8 +84,6 @@ export const makeParRequest =
         code_challenge_method: codeChallengeMethod,
         authorization_details: authorizationDetails,
         redirect_uri: redirectUri,
-        client_assertion_type: assertionType,
-        client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
       })
       .setIssuedAt() //iat is set to now
       .setExpirationTime("5min")
@@ -94,19 +91,16 @@ export const makeParRequest =
 
     /** The request body for the Pushed Authorization Request */
     var formBody = new URLSearchParams({
-      response_type: "code",
       client_id: clientId,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
       request: signedJwtForPar,
-      client_assertion_type: assertionType,
-      client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
     });
 
     return await appFetch(parEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        "OAuth-Client-Attestation": walletInstanceAttestation,
+        "OAuth-Client-Attestation-PoP": signedWiaPoP,
       },
       body: formBody.toString(),
     })
