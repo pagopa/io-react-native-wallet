@@ -6,7 +6,6 @@ import {
   selectAttestation,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
-import { selectEnv } from "../store/reducers/environment";
 import type {
   CredentialResult,
   SupportedCredentialsWithoutPid,
@@ -16,11 +15,11 @@ import {
   getCredentialStatusAttestation,
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
-import { getEnv } from "../utils/environment";
 import { selectPid } from "../store/reducers/pid";
 import type { Out } from "src/utils/misc";
 import { createAppAsyncThunk } from "./utils";
 import { getAttestationThunk } from "./attestation";
+import { REDIRECT_URI, WALLET_EAA_PROVIDER_BASE_URL } from "@env";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -70,10 +69,6 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
-  // Get env URLs
-  const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
-
   const { credentialType } = args;
 
   // Get the PID from the store
@@ -101,14 +96,11 @@ export const getCredentialThunk = createAppAsyncThunk<
 export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
   GetCredentialStatusAttestationThunkOutput,
   GetCredentialStatusAttestationThunkInput
->("credential/statusAttestationGet", async (args, { getState }) => {
+>("credential/statusAttestationGet", async (args) => {
   const { credential, keyTag, credentialType } = args;
 
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
-
-  const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL } = getEnv(env);
 
   return await getCredentialStatusAttestation(
     WALLET_EAA_PROVIDER_BASE_URL,

@@ -75,11 +75,6 @@ export type PidResult = CredentialResultBase & {
 };
 
 /**
- * Authentication methods for the PID authentication flow.
- */
-export type PidAuthMethods = "spid" | "cieL2" | "cieL3";
-
-/**
  * Possible environments in the store.
  */
 export type EnvType = "pre" | "prod";

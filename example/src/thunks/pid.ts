@@ -2,7 +2,6 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import {
   createCryptoContextFor,
   Credential,
-  WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
 import uuid from "react-native-uuid";
 import {
@@ -10,62 +9,23 @@ import {
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
-import { selectEnv } from "../store/reducers/environment";
-import { selectPidFlowParams } from "../store/reducers/pid";
-import type {
-  PidAuthMethods,
-  PidResult,
-  SupportedCredentials,
-} from "../store/types";
+import type { PidResult, SupportedCredentials } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
-import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import { getAttestationThunk } from "./attestation";
 import { createAppAsyncThunk } from "./utils";
-
-// This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
-// PUT ME IN UTILS OR ENV
-export const CIE_L3_REDIRECT_URI = "https://cie.callback";
+import {
+  openAuthenticationSession,
+  supportsInAppBrowser,
+} from "@pagopa/io-react-native-login-utils";
+import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
 
 /**
  * Type definition for the input of the {@link preparePidFlowParamsThunk}.
  */
 type PreparePidFlowParamsThunkInput = {
   idpHint: string;
-  authMethod: PidAuthMethods;
   credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
-  ciePin?: string;
-};
-
-/**
- * Type definition for the input of the {@link ContinuePidFlowThunkInput}.
- */
-type ContinuePidFlowThunkInput = {
-  authRedirectUrl: string;
-};
-
-/**
- * Type definition for the output of the {@link preparePidFlowParamsThunk}.
- */
-export type PreparePidFlowParamsThunkOutput = {
-  authUrl: string;
-  issuerConf: Awaited<
-    ReturnType<typeof Credential.Issuance.evaluateIssuerTrust>
-  >["issuerConf"];
-  clientId: Awaited<
-    ReturnType<typeof Credential.Issuance.startUserAuthorization>
-  >["clientId"];
-  codeVerifier: Awaited<
-    ReturnType<typeof Credential.Issuance.startUserAuthorization>
-  >["codeVerifier"];
-  walletInstanceAttestation: Awaited<
-    ReturnType<typeof WalletInstanceAttestation.getAttestation>
-  >;
-  credentialDefinition: Awaited<
-    ReturnType<typeof Credential.Issuance.startUserAuthorization>
-  >["credentialDefinition"];
-  redirectUri: string;
-  ciePin?: string;
 };
 
 /**
@@ -80,7 +40,7 @@ export type PreparePidFlowParamsThunkOutput = {
  * @returns The needed parameters to continue the issuance flow.
  */
 export const preparePidFlowParamsThunk = createAppAsyncThunk<
-  PreparePidFlowParamsThunkOutput,
+  PidResult,
   PreparePidFlowParamsThunkInput
 >("pid/flowParamsPrepare", async (args, { getState, dispatch }) => {
   // Checks if the wallet instance attestation needs to be reuqested
@@ -96,17 +56,9 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-  const { idpHint, ciePin } = args;
-
-  const isCie = args.idpHint.includes("servizicie") ? true : false;
+  const { idpHint } = args;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
-  // Get env
-  const env = selectEnv(getState());
-  const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
-
-  const redirectUri = isCie ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
@@ -129,7 +81,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
       credentialType,
       {
         walletInstanceAttestation,
-        redirectUri: redirectUri,
+        redirectUri: REDIRECT_URI,
         wiaCryptoContext,
         appFetch,
       }
@@ -143,55 +95,23 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     idpHint
   );
 
-  return {
-    authUrl,
-    issuerConf,
-    clientId,
-    codeVerifier,
-    walletInstanceAttestation,
-    credentialDefinition,
-    redirectUri,
-    ciePin,
-  };
-});
-
-/**
- * Thunk to continue the CIE L3 issuance flow. Follows {@link preparePidFlowParamsThunk}.
- * It performs the last steps of the issuance flow, obtaining the credential and parsing it.
- * @param args.authRedirectUrl The URL of the webview after the user authorization which contains the authorization code.
- * @return The credetial result.
- */
-export const continuePidFlowThunk = createAppAsyncThunk<
-  PidResult,
-  ContinuePidFlowThunkInput
->("pid/flowContinue", async (args, { getState }) => {
-  const { authRedirectUrl } = args;
-
-  const flowParams = selectPidFlowParams(getState());
-
-  if (!flowParams) {
-    throw new Error("Flow params not found");
+  const supportsCustomTabs = await supportsInAppBrowser();
+  if (!supportsCustomTabs) {
+    throw new Error("Custom tabs are not supported");
   }
 
-  const {
-    issuerConf,
-    clientId,
-    codeVerifier,
-    walletInstanceAttestation,
-    credentialDefinition,
-    redirectUri,
-  } = flowParams;
+  const baseRedirectUri = new URL(REDIRECT_URI).protocol.replace(":", "");
+
+  // Open the authorization URL in the custom tab
+  const authRedirectUrl = await openAuthenticationSession(
+    authUrl,
+    baseRedirectUri
+  );
 
   const { code } =
     await Credential.Issuance.completeUserAuthorizationWithQueryMode(
       authRedirectUrl
     );
-
-  /*
-   * Create wia crypto context, we are using the same keytag used in {@link prepareCieL3FlowParamsThunk},
-   * hoping it has not been deleted in the meanwhile. This can be improved later.
-   */
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   // Create credential crypto context
   const credentialKeyTag = uuid.v4().toString();
@@ -206,7 +126,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     issuerConf,
     code,
     clientId,
-    redirectUri,
+    REDIRECT_URI,
     codeVerifier,
     {
       walletInstanceAttestation,

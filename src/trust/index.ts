@@ -65,7 +65,7 @@ export async function getSignedEntityConfiguration(
     appFetch?: GlobalFetch["fetch"];
   } = {}
 ): Promise<string> {
-  const wellKnownUrl = `${entityBaseUrl}/.well-known/openid-federation`;
+  const wellKnownUrl = `${entityBaseUrl}/.well-known/openid_credential_issuer`;
 
   return await appFetch(wellKnownUrl, {
     method: "GET",
