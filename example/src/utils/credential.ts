@@ -57,10 +57,9 @@ export const getPidCieID = async ({
   const { issuerUrl } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-    issuerUrl,
-    { appFetch }
-  );
+  const { issuerConf } = await Credential.Issuance.getIssuerConfig(issuerUrl, {
+    appFetch,
+  });
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -185,9 +184,7 @@ export const getCredential = async ({
   const { issuerUrl } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-    issuerUrl
-  );
+  const { issuerConf } = await Credential.Issuance.getIssuerConfig(issuerUrl);
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -289,7 +286,7 @@ export const getCredentialStatusAttestation = async (
   const { issuerUrl } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+  const { issuerConf } = await Credential.Status.getIssuerConfig(issuerUrl);
 
   const statusAttestation = await Credential.Status.statusAttestation(
     issuerConf,

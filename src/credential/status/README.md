@@ -16,14 +16,13 @@ graph TD;
     1 --> 2
 ```
 
-
 ## Mapped results
 
 The following errors are mapped to a `IssuerResponseError` with specific codes.
 
-|HTTP Status|Error Code|Description|
-|-----------|----------|-----------|
-|`404 Not Found`|`ERR_CREDENTIAL_INVALID_STATUS`|This response is returned by the credential issuer when the status attestation is invalid. It might contain more details in the `reason` property.|
+| HTTP Status     | Error Code                      | Description                                                                                                                                        |
+| --------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `404 Not Found` | `ERR_CREDENTIAL_INVALID_STATUS` | This response is returned by the credential issuer when the status attestation is invalid. It might contain more details in the `reason` property. |
 
 ## Example
 
@@ -40,7 +39,7 @@ const startFlow: Credential.Status.StartFlow = () => ({
 const { issuerUrl } = startFlow();
 
 // Evaluate issuer trust
-const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+const { issuerConf } = await Credential.Status.getIssuerConfig(issuerUrl);
 
 // Get the credential attestation
 const res = await Credential.Status.statusAttestation(

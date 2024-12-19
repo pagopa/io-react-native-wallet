@@ -43,123 +43,130 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   PidResult,
   PreparePidFlowParamsThunkInput
 >("pid/flowParamsPrepare", async (args, { getState, dispatch }) => {
-  // Checks if the wallet instance attestation needs to be reuqested
-  if (shouldRequestAttestationSelector(getState())) {
-    await dispatch(getAttestationThunk());
-  }
+  try {
+    // Checks if the wallet instance attestation needs to be reuqested
+    if (shouldRequestAttestationSelector(getState())) {
+      await dispatch(getAttestationThunk());
+    }
 
-  // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestation(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
+    // Gets the Wallet Instance Attestation from the persisted store
+    const walletInstanceAttestation = selectAttestation(getState());
+    if (!walletInstanceAttestation) {
+      throw new Error("Wallet Instance Attestation not found");
+    }
 
-  // Reset the credential state before obtaining a new PID
-  dispatch(credentialReset());
-  const { idpHint } = args;
+    // Reset the credential state before obtaining a new PID
+    dispatch(credentialReset());
+    const { idpHint } = args;
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+    const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
-  // Start the issuance flow
-  const startFlow: Credential.Issuance.StartFlow = () => ({
-    issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-    credentialType: "PersonIdentificationData",
-  });
+    // Start the issuance flow
+    const startFlow: Credential.Issuance.StartFlow = () => ({
+      issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
+      credentialType: "PersonIdentificationData",
+    });
 
-  const { issuerUrl, credentialType } = startFlow();
+    const { issuerUrl, credentialType } = startFlow();
 
-  // Evaluate issuer trust
-  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-    issuerUrl,
-    { appFetch }
-  );
+    // Evaluate issuer trust
+    const { issuerConf } = await Credential.Issuance.getIssuerConfig(
+      issuerUrl,
+      { appFetch }
+    );
 
-  // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-    await Credential.Issuance.startUserAuthorization(
+    console.log(JSON.stringify(issuerConf));
+
+    // Start user authorization
+    const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
+      await Credential.Issuance.startUserAuthorization(
+        issuerConf,
+        credentialType,
+        {
+          walletInstanceAttestation,
+          redirectUri: REDIRECT_URI,
+          wiaCryptoContext,
+          appFetch,
+        }
+      );
+
+    // Obtain the Authorization URL
+    const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+      issuerRequestUri,
+      clientId,
       issuerConf,
-      credentialType,
+      idpHint
+    );
+
+    const supportsCustomTabs = await supportsInAppBrowser();
+    if (!supportsCustomTabs) {
+      throw new Error("Custom tabs are not supported");
+    }
+
+    const baseRedirectUri = new URL(REDIRECT_URI).protocol.replace(":", "");
+
+    // Open the authorization URL in the custom tab
+    const authRedirectUrl = await openAuthenticationSession(
+      authUrl,
+      baseRedirectUri
+    );
+
+    const { code } =
+      await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+        authRedirectUrl
+      );
+
+    // Create credential crypto context
+    const credentialKeyTag = uuid.v4().toString();
+    await generate(credentialKeyTag);
+    const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+
+    // Create DPoP context for the whole issuance flow
+    await regenerateCryptoKey(DPOP_KEYTAG);
+    const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+
+    const { accessToken } = await Credential.Issuance.authorizeAccess(
+      issuerConf,
+      code,
+      clientId,
+      REDIRECT_URI,
+      codeVerifier,
       {
         walletInstanceAttestation,
-        redirectUri: REDIRECT_URI,
         wiaCryptoContext,
+        dPopCryptoContext,
         appFetch,
       }
     );
 
-  // Obtain the Authorization URL
-  const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
-    issuerRequestUri,
-    clientId,
-    issuerConf,
-    idpHint
-  );
-
-  const supportsCustomTabs = await supportsInAppBrowser();
-  if (!supportsCustomTabs) {
-    throw new Error("Custom tabs are not supported");
-  }
-
-  const baseRedirectUri = new URL(REDIRECT_URI).protocol.replace(":", "");
-
-  // Open the authorization URL in the custom tab
-  const authRedirectUrl = await openAuthenticationSession(
-    authUrl,
-    baseRedirectUri
-  );
-
-  const { code } =
-    await Credential.Issuance.completeUserAuthorizationWithQueryMode(
-      authRedirectUrl
-    );
-
-  // Create credential crypto context
-  const credentialKeyTag = uuid.v4().toString();
-  await generate(credentialKeyTag);
-  const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
-
-  // Create DPoP context for the whole issuance flow
-  await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
-
-  const { accessToken } = await Credential.Issuance.authorizeAccess(
-    issuerConf,
-    code,
-    clientId,
-    REDIRECT_URI,
-    codeVerifier,
-    {
-      walletInstanceAttestation,
-      wiaCryptoContext,
-      dPopCryptoContext,
-      appFetch,
-    }
-  );
-
-  const { credential, format } = await Credential.Issuance.obtainCredential(
-    issuerConf,
-    accessToken,
-    clientId,
-    credentialDefinition,
-    {
-      credentialCryptoContext,
-      dPopCryptoContext,
-      appFetch,
-    }
-  );
-
-  const { parsedCredential } =
-    await Credential.Issuance.verifyAndParseCredential(
+    const { credential, format } = await Credential.Issuance.obtainCredential(
       issuerConf,
-      credential,
-      format,
-      { credentialCryptoContext }
+      accessToken,
+      clientId,
+      credentialDefinition,
+      {
+        credentialCryptoContext,
+        dPopCryptoContext,
+        appFetch,
+      }
     );
 
-  return {
-    parsedCredential,
-    credential,
-    keyTag: credentialKeyTag,
-    credentialType: "PersonIdentificationData",
-  };
+    const { parsedCredential } =
+      await Credential.Issuance.verifyAndParseCredential(
+        issuerConf,
+        credential,
+        format,
+        { credentialCryptoContext }
+      );
+
+    return {
+      parsedCredential,
+      credential,
+      keyTag: credentialKeyTag,
+      credentialType: "PersonIdentificationData",
+    };
+  } catch (e) {
+    console.log(e);
+    console.log(JSON.stringify(e));
+  }
 });

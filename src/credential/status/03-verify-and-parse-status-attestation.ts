@@ -1,12 +1,12 @@
 import type { Out } from "../../utils/misc";
 import { IoWalletError } from "../../utils/errors";
 import { verify, type CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { EvaluateIssuerTrust, StatusAttestation } from "../status";
+import type { GetIssuerConfig, StatusAttestation } from "../status";
 import { ParsedStatusAttestation } from "./types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 
 export type VerifyAndParseStatusAttestation = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   statusAttestation: Out<StatusAttestation>,
   context: {
     credentialCryptoContext: CryptoContext;
@@ -18,7 +18,7 @@ export type VerifyAndParseStatusAttestation = (
  * - It's in the supported format;
  * - The attestation is correctly signed;
  * - It's bound to the given key.
- * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The Issuer configuration returned by {@link getIssuerConfig}
  * @param statusAttestation The encoded status attestation returned by {@link statusAttestation}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
  * @returns A parsed status attestation

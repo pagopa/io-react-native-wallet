@@ -3,7 +3,7 @@ import { CredentialIssuerEntityConfiguration } from "../../trust/types";
 import type { StartFlow } from "./01-start-flow";
 import type { Out } from "../../utils/misc";
 
-export type EvaluateIssuerTrust = (
+export type GetIssuerConfig = (
   issuerUrl: Out<StartFlow>["issuerUrl"],
   context?: {
     appFetch?: GlobalFetch["fetch"];
@@ -21,7 +21,7 @@ export type EvaluateIssuerTrust = (
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The Issuer's configuration
  */
-export const evaluateIssuerTrust: EvaluateIssuerTrust = async (
+export const getIssuerConfig: GetIssuerConfig = async (
   issuerUrl,
   context = {}
 ) => {

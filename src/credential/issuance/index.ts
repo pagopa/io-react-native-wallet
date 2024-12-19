@@ -1,7 +1,7 @@
 import { type StartFlow } from "./01-start-flow";
 import {
-  evaluateIssuerTrust,
-  type EvaluateIssuerTrust,
+  getIssuerConfig,
+  type GetIssuerConfig,
 } from "./02-evaluate-issuer-trust";
 import {
   startUserAuthorization,
@@ -30,7 +30,7 @@ import {
 import * as Errors from "./errors";
 
 export {
-  evaluateIssuerTrust,
+  getIssuerConfig,
   startUserAuthorization,
   buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
@@ -44,7 +44,7 @@ export {
 };
 export type {
   StartFlow,
-  EvaluateIssuerTrust,
+  GetIssuerConfig,
   StartUserAuthorization,
   BuildAuthorizationUrl,
   CompleteUserAuthorizationWithQueryMode,

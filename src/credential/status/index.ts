@@ -3,20 +3,16 @@ import {
   statusAttestation,
   type StatusAttestation,
 } from "./02-status-attestation";
-import { evaluateIssuerTrust, type EvaluateIssuerTrust } from "../issuance";
+import { getIssuerConfig, type GetIssuerConfig } from "../issuance";
 import {
   verifyAndParseStatusAttestation,
   type VerifyAndParseStatusAttestation,
 } from "./03-verify-and-parse-status-attestation";
 
-export {
-  evaluateIssuerTrust,
-  statusAttestation,
-  verifyAndParseStatusAttestation,
-};
+export { getIssuerConfig, statusAttestation, verifyAndParseStatusAttestation };
 export type {
   StartFlow,
-  EvaluateIssuerTrust,
+  GetIssuerConfig,
   StatusAttestation,
   VerifyAndParseStatusAttestation,
 };

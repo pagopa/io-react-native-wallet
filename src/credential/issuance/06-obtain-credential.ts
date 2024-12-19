@@ -4,7 +4,7 @@ import {
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
@@ -19,7 +19,7 @@ import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 
 export type ObtainCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
   credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
@@ -58,7 +58,7 @@ export const createNonceProof = async (
  * of the Credential Issuer to request the issuance of a credential linked to the public key contained in the JWT proof.
  * The Openid4vci proof JWT incapsulates the nonce extracted from the token response from the {@link authorizeAccess} step.
  * The credential request is sent to the Credential Endpoint of the Credential Issuer via HTTP POST with the type of the credential, its format, the access token and the JWT proof.
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param accessToken The access token response returned by {@link authorizeAccess}
  * @param clientId The client id returned by {@link startUserAuthorization}
  * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link startUserAuthorization}

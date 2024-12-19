@@ -1,12 +1,12 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { ResponseMode } from "./types";
 import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 
 export type StartUserAuthorization = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"],
   context: {
     wiaCryptoContext: CryptoContext;
@@ -24,7 +24,7 @@ export type StartUserAuthorization = (
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
  * issuer configuration.
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param credentialType The type of the credential to be requested returned by {@link startFlow}
  * @param context.wiaCryptoContext The Wallet Instance's crypto context
  * @param context.walletInstanceAttestation The Wallet Instance's attestation
@@ -33,7 +33,7 @@ export type StartUserAuthorization = (
  * @returns The credential definition to be used in the request which includes the format and the type and its type
  */
 const selectCredentialDefinition = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): AuthorizationDetail => {
   const credential_configurations_supported =
@@ -60,7 +60,7 @@ const selectCredentialDefinition = (
  * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
  */
 const selectResponseMode = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): ResponseMode => {
   const responseModeSupported =
@@ -77,7 +77,7 @@ const selectResponseMode = (
 };
 
 /**
- * WARNING: This function must be called after {@link evaluateIssuerTrust} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
+ * WARNING: This function must be called after {@link getIssuerConfig} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
  * Creates and sends a PAR request to the /as/par endpoint of the authorization server.
  * This starts the authentication flow to obtain an access token.
  * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer.

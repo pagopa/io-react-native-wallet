@@ -1,6 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { Out } from "../../utils/misc";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
@@ -9,7 +9,7 @@ import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
 
 export type VerifyAndParseCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
   context: {
@@ -54,7 +54,7 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 
 const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
-  credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
+  credentials_supported: Out<GetIssuerConfig>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
@@ -225,7 +225,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 
 /**
  * Verify and parse an encoded credential.
- * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The Issuer configuration returned by {@link getIssuerConfig}
  * @param credential The encoded credential returned by {@link obtainCredential}
  * @param format The format of the credentual returned by {@link obtainCredential}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}

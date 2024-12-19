@@ -1,5 +1,5 @@
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
@@ -11,7 +11,7 @@ import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
 
 export type AuthorizeAccess = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   code: Out<CompleteUserAuthorizationWithQueryMode>["code"],
   redirectUri: string,
   clientId: Out<StartUserAuthorization>["clientId"],
@@ -29,7 +29,7 @@ export type AuthorizeAccess = (
  * for requesting the issuance of an access token bound to the public key of the Wallet Instance contained within the DPoP.
  * This enables the Wallet Instance to request a digital credential.
  * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param code The authorization code returned by {@link completeUserAuthorizationWithQueryMode} or {@link completeUserAuthorizationWithFormPost}
  * @param redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
  * @param clientId The client id returned by {@link startUserAuthorization}
@@ -64,7 +64,7 @@ export const authorizeAccess: AuthorizeAccess = async (
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
-  const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
+  const tokenUrl = issuerConf.openid_credential_issuer.token_endpoint;
 
   const tokenRequestSignedDPop = await createDPopToken(
     {

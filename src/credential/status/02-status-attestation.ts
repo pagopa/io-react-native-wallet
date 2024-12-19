@@ -3,7 +3,7 @@ import {
   hasStatusOrThrow,
   type Out,
 } from "../../utils/misc";
-import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
+import type { GetIssuerConfig, ObtainCredential } from "../issuance";
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import { StatusAttestationResponse } from "./types";
@@ -15,7 +15,7 @@ import {
 } from "../../utils/errors";
 
 export type StatusAttestation = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   credentialCryptoContext: CryptoContext,
   appFetch?: GlobalFetch["fetch"]

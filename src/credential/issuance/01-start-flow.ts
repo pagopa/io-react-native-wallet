@@ -1,5 +1,5 @@
 /**
- * WARNING: This is the first function to be called in the issuing flow. The next function to be called is {@link evaluateIssuerTrust}.
+ * WARNING: This is the first function to be called in the issuing flow. The next function to be called is {@link getIssuerConfig}.
  * The beginning of the issuing flow.
  * To be implemented accordind to the user touchpoint
  *
