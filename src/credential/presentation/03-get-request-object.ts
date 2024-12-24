@@ -8,14 +8,14 @@ import {
 
 import { createDPopToken } from "../../utils/dpop";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
-import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
+import type { FetchJwks } from "./02-retrieve-jwks";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import { RequestObject } from "./types";
 
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestURI"],
-  rpConf: Out<EvaluateRelyingPartyTrust>["rpConf"],
+  jwkKeys: Out<FetchJwks>["keys"],
   context: {
     wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
@@ -36,7 +36,7 @@ export type GetRequestObject = (
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  rpConf,
+  jwkKeys,
   { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation }
 ) => {
   const signedWalletInstanceDPoP = await createDPopToken(
@@ -65,7 +65,7 @@ export const getRequestObject: GetRequestObject = async (
   // verify token signature according to RP's entity configuration
   // to ensure the request object is authentic
   {
-    const pubKey = rpConf.wallet_relying_party.jwks.keys.find(
+    const pubKey = jwkKeys.find(
       ({ kid }) => kid === responseJwt.protectedHeader.kid
     );
     if (!pubKey) {
