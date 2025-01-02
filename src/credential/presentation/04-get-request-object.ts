@@ -8,7 +8,7 @@ import {
 
 import { createDPopToken } from "../../utils/dpop";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
-import type { FetchJwks } from "./02-retrieve-jwks";
+import type { FetchJwks } from "./03-retrieve-jwks";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import { RequestObject } from "./types";

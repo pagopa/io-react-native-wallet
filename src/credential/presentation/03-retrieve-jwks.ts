@@ -51,7 +51,7 @@ async function retrieveJwks(
     appFetch?: GlobalFetch["fetch"];
   } = {}
 ): Promise<JWKS> {
-  const wellKnownUrl = `${entityBaseUrl}/.well-known/${jwksEndpointPath}`;
+  const wellKnownUrl = `${entityBaseUrl}/.well-known${jwksEndpointPath}`;
 
   return await appFetch(wellKnownUrl, {
     method: "GET",
@@ -73,7 +73,7 @@ export const fetchJwksFromConfig: FetchJwks<
 > = async (rpConfig) => {
   const parsedConfig = RelyingPartyEntityConfiguration.safeParse(rpConfig);
   if (!parsedConfig.success) {
-    throw new Error("Ivalid Relying Party configuration.");
+    throw new Error("Invalid Relying Party configuration.");
   }
 
   const jwks = parsedConfig.data.payload.metadata.wallet_relying_party.jwks;
