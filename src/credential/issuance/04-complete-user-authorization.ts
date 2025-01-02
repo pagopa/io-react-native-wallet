@@ -15,7 +15,7 @@ import {
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { RequestObject } from "../presentation/types";
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from 'uuid';
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
@@ -169,7 +169,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       })
       .setPayload({
         vp: walletInstanceAttestation,
-        jti: uuid.v4().toString(),
+        jti: uuidv4().toString(),
         nonce: requestObject.nonce,
       })
       .setIssuedAt()
@@ -184,7 +184,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       })
       .setPayload({
         vp: pid,
-        jti: uuid.v4().toString(),
+        jti: uuidv4().toString(),
         nonce: requestObject.nonce,
       })
       .setIssuedAt()
@@ -196,8 +196,8 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
      * is cointaned in the `vp` property of the signed jwt token payload
      */
     const presentationSubmission = {
-      definition_id: `${uuid.v4()}`,
-      id: `${uuid.v4()}`,
+      definition_id: `${uuidv4()}`,
+      id: `${uuidv4()}`,
       descriptor_map: [
         {
           id: "PersonIdentificationData",

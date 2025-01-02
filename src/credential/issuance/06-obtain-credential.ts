@@ -16,7 +16,7 @@ import {
 } from "../../utils/errors";
 import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from 'uuid';
 
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -127,7 +127,7 @@ export const obtainCredential: ObtainCredential = async (
     {
       htm: "POST",
       htu: credentialUrl,
-      jti: `${uuid.v4()}`,
+      jti: `${uuidv4()}`,
       ath: await sha256ToBase64(accessToken.access_token),
     },
     dPopCryptoContext

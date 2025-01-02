@@ -3,7 +3,7 @@ import {
   type CryptoContext,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from 'uuid';
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
@@ -51,7 +51,7 @@ export const makeParRequest =
 
     const signedWiaPoP = await createPopToken(
       {
-        jti: `${uuid.v4()}`,
+        jti: `${uuidv4()}`,
         aud,
         iss,
       },
@@ -74,7 +74,7 @@ export const makeParRequest =
         kid: wiaPublicKey.kid,
       })
       .setPayload({
-        jti: `${uuid.v4()}`,
+        jti: `${uuidv4()}`,
         aud,
         response_type: "code",
         response_mode: responseMode,
