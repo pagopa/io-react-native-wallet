@@ -6,7 +6,7 @@ import {
 import {
   getRequestObject,
   type GetRequestObject,
-} from "./03-get-request-object";
+} from "./04-get-request-object";
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,

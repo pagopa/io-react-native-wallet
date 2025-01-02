@@ -4,7 +4,7 @@ import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { GetRequestObject } from "./03-get-request-object";
+import type { GetRequestObject } from "./04-get-request-object";
 import { disclose } from "../../sd-jwt";
 import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
 import { type Presentation } from "./types";
