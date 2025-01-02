@@ -10,7 +10,7 @@ import {
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
-} from "./04-send-authorization-response";
+} from "./05-send-authorization-response-scope";
 import * as Errors from "./errors";
 
 export {
