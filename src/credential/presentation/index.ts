@@ -15,7 +15,7 @@ import {
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
-} from "./05-send-authorization-response-scope";
+} from "./05-send-authorization-response";
 import * as Errors from "./errors";
 
 export {
