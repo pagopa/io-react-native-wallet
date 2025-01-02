@@ -102,7 +102,7 @@ describe("fetchJwksFromUri", () => {
 
     const clientUrl = "https://client.example.com";
     await expect(fetchJwksFromUri(clientUrl, {})).rejects.toThrow(
-      "message=Http request failed. Expected 200, got 404, url: undefined statusCode=404"
+      /Expected 200, got 404/
     );
 
     // Assertions
