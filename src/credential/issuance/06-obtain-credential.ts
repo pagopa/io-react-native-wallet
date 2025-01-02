@@ -16,7 +16,7 @@ import {
 } from "../../utils/errors";
 import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],

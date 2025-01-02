@@ -4,7 +4,7 @@ import {
   generate,
   deleteKey,
 } from "@pagopa/io-react-native-crypto";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey } from "./jwk";
 

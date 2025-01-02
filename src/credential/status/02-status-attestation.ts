@@ -5,7 +5,7 @@ import {
 } from "../../utils/misc";
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { StatusAttestationResponse } from "./types";
 import {
   IssuerResponseError,

@@ -1,5 +1,5 @@
 import { EncryptJwe, SignJWT } from "@pagopa/io-react-native-jwt";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";

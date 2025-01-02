@@ -2,7 +2,7 @@ import {
   Credential,
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
