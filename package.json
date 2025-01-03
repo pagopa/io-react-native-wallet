@@ -90,6 +90,12 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(jest-)?@react-native|react-native|uuid)"
+    ],
+    "setupFiles": [
+      "<rootDir>/jestSetup.js"
     ]
   },
   "react-native-builder-bob": {
