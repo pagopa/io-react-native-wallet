@@ -55,20 +55,16 @@ const walletInstanceAttestation =
   });
 
 // Start the issuance flow
-const startFlow: Credential.Presentation.StartFlow = () => ({
-  qrcode,
-});
-
-const { requestURI, clientId } = startFlow();
+const { requestURI, clientId } = Credential.Presentation.startFlowFromQR(qrcode);
 
 // If use trust federation: Evaluate issuer trust
 const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clientId);
 
 // If use trust federation: Fetch Jwks from rpConf
-const { jwks } = await Credential.Presentation.fetchJwksFromConfig(rpConf);
+const jwks = await Credential.Presentation.fetchJwksFromConfig(rpConf);
 
 // If not use trust: Fetch Jwks from well-know
-const { jwks } = await Credential.Presentation.fetchJwksFromUri(
+const jwks = await Credential.Presentation.fetchJwksFromUri(
   requestURI,
   appFetch,
 );
