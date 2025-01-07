@@ -15,12 +15,12 @@ import { RequestObject } from "./types";
 
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestURI"],
-  jwkKeys: Out<FetchJwks>["keys"],
   context: {
     wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
     walletInstanceAttestation: string;
-  }
+  },
+  jwkKeys?: Out<FetchJwks>["keys"]
 ) => Promise<{ requestObject: RequestObject }>;
 
 /**
@@ -36,8 +36,8 @@ export type GetRequestObject = (
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  jwkKeys,
-  { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation }
+  { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation },
+  jwkKeys
 ) => {
   const signedWalletInstanceDPoP = await createDPopToken(
     {
