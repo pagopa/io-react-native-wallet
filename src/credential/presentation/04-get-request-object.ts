@@ -62,9 +62,23 @@ export const getRequestObject: GetRequestObject = async (
 
   const responseJwt = decodeJwt(responseEncodedJwt);
 
-  // verify token signature according to RP's entity configuration
-  // to ensure the request object is authentic
-  {
+  await verifyTokenSignature(jwkKeys, responseJwt);
+
+  // Ensure that the request object conforms to the expected specification.
+  const requestObject = RequestObject.parse(responseJwt.payload);
+
+  return {
+    requestObject,
+  };
+};
+
+const verifyTokenSignature = async (
+  jwkKeys?: Out<FetchJwks>["keys"],
+  responseJwt?: any
+): Promise<void> => {
+  // verify token signature to ensure the request object is authentic
+  // 1. according to entity configuration if present
+  if (jwkKeys) {
     const pubKey = jwkKeys.find(
       ({ kid }) => kid === responseJwt.protectedHeader.kid
     );
@@ -73,13 +87,16 @@ export const getRequestObject: GetRequestObject = async (
         "Request Object signature verification"
       );
     }
-    await verify(responseEncodedJwt, pubKey);
+    await verify(responseJwt, pubKey);
+    return;
   }
 
-  // Ensure that the request object conforms to the expected specification.
-  const requestObject = RequestObject.parse(responseJwt.payload);
+  // 2. If jwk is not retrieved from entity config, check if the token contains the 'jwk' attribute
+  if (responseJwt.protectedHeader?.jwk) {
+    const pubKey = responseJwt.protectedHeader.jwk;
+    await verify(responseJwt, pubKey);
+    return;
+  }
 
-  return {
-    requestObject,
-  };
+  // No verification condition matched: skipping signature verification.
 };
