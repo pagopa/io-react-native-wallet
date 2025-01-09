@@ -1,17 +1,15 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { Out } from "../../utils/misc";
-import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import type { SupportedCredentialMetadata } from "../../entity/mixed/types";
-import { SupportedCredentialMetadata as SupportedCredentialMetadataSchema } from "../../entity/mixed/types";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 
 export type VerifyAndParseCredential = (
-  issuerConf: Out<GetIssuerConfig>["issuerConf"],
+  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
   context: {
@@ -54,13 +52,14 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
   sdJwt: SdJwt4VC;
 };
 
-const parseCredentialSdJwtWithMixedIssuerConf = (
-  credentialSupported: SupportedCredentialMetadata,
+const parseCredentialSdJwt = (
+  // the list of supported credentials, as defined in the issuer configuration
+  credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentialSupported[sdJwt.payload.vct];
+  const credentialSubject = credentials_supported[sdJwt.payload.vct];
 
   if (!credentialSubject) {
     throw new IoWalletError("Credential type not supported by the issuer");
@@ -143,18 +142,6 @@ const parseCredentialSdJwtWithMixedIssuerConf = (
   return definedValues;
 };
 
-const parseCredentialSdJwt = (
-  // the list of supported credentials, as defined in the issuer configuration
-  credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
-  { sdJwt, disclosures }: DecodedSdJwtCredential,
-  ignoreMissingAttributes: boolean = false,
-  includeUndefinedAttributes: boolean = false
-): ParsedCredential => {
-  const credentialSupported = SupportedCredentialMetadataSchema.safeParse(
-    credentials_supported
-  );
-};
-
 /**
  * Given a credential, verify it's in the supported format
  * and the credential is correctly signed
@@ -213,12 +200,12 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
-    issuerConf.keys,
+    issuerConf.openid_credential_issuer.jwks.keys,
     credentialCryptoContext
   );
 
   const parsedCredential = parseCredentialSdJwt(
-    issuerConf.credential_configurations_supported,
+    issuerConf.openid_credential_issuer.credential_configurations_supported,
     decoded,
     ignoreMissingAttributes,
     includeUndefinedAttributes
@@ -238,7 +225,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 
 /**
  * Verify and parse an encoded credential.
- * @param issuerConf The Issuer configuration returned by {@link getIssuerConfig}
+ * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
  * @param credential The encoded credential returned by {@link obtainCredential}
  * @param format The format of the credentual returned by {@link obtainCredential}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}

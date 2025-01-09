@@ -1,6 +1,23 @@
 import { JWK } from "src/utils/jwk";
 import * as z from "zod";
-import { CredentialDisplayMetadata } from "../mixed/types";
+
+// Display metadata for a credential, used by the issuer to
+// instruct the Wallet Solution on how to render the credential correctly
+export type OpenConnectCredentialDisplay = z.infer<
+  typeof OpenConnectCredentialDisplay
+>;
+export const OpenConnectCredentialDisplay = z.object({
+  name: z.string(),
+  locale: z.string(),
+  logo: z
+    .object({
+      url: z.string(),
+      alt_text: z.string(),
+    })
+    .optional(), // TODO [SIW-1268]: should not be optional
+  background_color: z.string().optional(), // TODO [SIW-1268]: should not be optional
+  text_color: z.string().optional(), // TODO [SIW-1268]: should not be optional
+});
 
 const OpenConnectCredentialFormat = z.union([
   z.literal("vc+sd-jwt"),
@@ -33,7 +50,7 @@ const OpenConnectCredentialSdJwt = z.object({
   claims: OpenConnectCredentialSdJwtClaims,
   credential_signing_alg_values_supported: z.array(z.string()),
   cryptographic_binding_methods_supported: z.array(z.string()),
-  display: CredentialDisplayMetadata,
+  display: OpenConnectCredentialDisplay,
   format: OpenConnectCredentialFormat,
   proof_types_supported: OpenConnectCredentialProofTypes.optional(),
   scope: z.string(),
@@ -46,7 +63,7 @@ const OpenConnectCredentialMdoc = z.object({
   credential_crv_values_supported: z.array(z.number()),
   credential_signing_alg_values_supported: z.array(z.string()),
   cryptographic_binding_methods_supported: z.array(z.string()),
-  display: z.array(CredentialDisplayMetadata),
+  display: z.array(OpenConnectCredentialDisplay),
   doctype: z.string(),
   format: OpenConnectCredentialFormat,
   policy: z.object({
@@ -83,7 +100,7 @@ export const OpenConnectCredentialIssuer = z.object({
     .optional(),
   credential_identifiers_supported: z.boolean().optional(),
   signed_metadata: z.string().optional(),
-  display: z.array(CredentialDisplayMetadata),
+  display: z.array(OpenConnectCredentialDisplay),
   credential_configurations_supported:
     OpenConnectCredentialConfigurationsSupported,
 });

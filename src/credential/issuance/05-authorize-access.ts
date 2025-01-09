@@ -14,7 +14,6 @@ export type AuthorizeAccess = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   code: Out<CompleteUserAuthorizationWithQueryMode>["code"],
   redirectUri: string,
-  clientId: Out<StartUserAuthorization>["clientId"],
   codeVerifier: Out<StartUserAuthorization>["codeVerifier"],
   context: {
     walletInstanceAttestation: string;
@@ -45,7 +44,6 @@ export type AuthorizeAccess = (
 export const authorizeAccess: AuthorizeAccess = async (
   issuerConf,
   code,
-  clientId,
   redirectUri,
   codeVerifier,
   context

@@ -39,20 +39,17 @@ const selectCredentialDefinition = (
   const credential_configurations_supported =
     issuerConf.credential_configurations_supported;
 
-  const [result] = credential_configurations_supported
-    .filter((e) => e.credential_definition.type.includes(credentialType))
-    .map((e) => ({
-      credential_configuration_id: credentialType,
-      format: e.format,
-      type: "openid_credential" as const,
-    }));
-
-  console.log(JSON.stringify(result));
+  const result = credential_configurations_supported[credentialType];
 
   if (!result) {
     throw new Error(`No credential support the type '${credentialType}'`);
   }
-  return result;
+
+  return {
+    credential_configuration_id: credentialType,
+    format: result.format,
+    type: "openid_credential" as const,
+  };
 };
 
 /**

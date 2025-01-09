@@ -40,16 +40,13 @@ export type CompleteUserAuthorizationWithFormPostJwtMode = (
 
 export type GetRequestedCredentialToBePresented = (
   issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   appFetch?: GlobalFetch["fetch"]
 ) => Promise<RequestObject>;
 
 export type BuildAuthorizationUrl = (
   issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
-  issuerConf: Out<GetIssuerConfig>["issuerConf"],
-  idpHint: string
+  issuerConf: Out<GetIssuerConfig>["issuerConf"]
 ) => Promise<{
   authUrl: string;
 }>;
@@ -58,21 +55,16 @@ export type BuildAuthorizationUrl = (
  * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
  * Builds the authorization URL to which the end user should be redirected to continue the authentication flow.
  * @param issuerRequestUri the URI of the issuer where the request is sent
- * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
  * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
- * @param idpHint Unique identifier of the IDP selected by the user
  * @returns An object containing the authorization URL
  */
 export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
   issuerRequestUri,
-  clientId,
-  issuerConf,
-  idpHint
+  issuerConf
 ) => {
   const authzRequestEndpoint = issuerConf.authorization_endpoint;
 
   const params = new URLSearchParams({
-    client_id: clientId,
     request_uri: issuerRequestUri,
   });
 
@@ -108,10 +100,9 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
  * @returns the request object which contains the credential to be presented in order to obtain the requested credential
  */
 export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePresented =
-  async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
+  async (issuerRequestUri, issuerConf, appFetch = fetch) => {
     const authzRequestEndpoint = issuerConf.authorization_endpoint;
     const params = new URLSearchParams({
-      client_id: clientId,
       request_uri: issuerRequestUri,
     });
 
