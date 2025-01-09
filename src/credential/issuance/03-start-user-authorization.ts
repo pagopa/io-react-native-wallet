@@ -109,7 +109,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+    issuerConf.openid_credential_issuer.pushed_authorization_request_endpoint;
   const credentialDefinition = selectCredentialDefinition(
     issuerConf,
     credentialType

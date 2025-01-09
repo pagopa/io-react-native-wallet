@@ -58,7 +58,7 @@ export const authorizeAccess: AuthorizeAccess = async (
   } = context;
 
   const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+    issuerConf.openid_credential_issuer.pushed_authorization_request_endpoint;
   const parUrl = new URL(parEndpoint);
   const aud = `${parUrl.protocol}//${parUrl.hostname}`;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)

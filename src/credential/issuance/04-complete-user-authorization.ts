@@ -70,7 +70,7 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
   idpHint
 ) => {
   const authzRequestEndpoint =
-    issuerConf.oauth_authorization_server.authorization_endpoint;
+    issuerConf.openid_credential_issuer.authorization_endpoint;
 
   const params = new URLSearchParams({
     client_id: clientId,
