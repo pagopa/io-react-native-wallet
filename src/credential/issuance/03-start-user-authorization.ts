@@ -39,13 +39,15 @@ const selectCredentialDefinition = (
   const credential_configurations_supported =
     issuerConf.openid_credential_issuer.credential_configurations_supported;
 
-  const [result] = Object.keys(credential_configurations_supported)
-    .filter((e) => e.includes(credentialType))
+  const [result] = credential_configurations_supported
+    .filter((e) => e.credential_definition.type.includes(credentialType))
     .map((e) => ({
       credential_configuration_id: credentialType,
-      format: credential_configurations_supported[e]!.format,
+      format: e.format,
       type: "openid_credential" as const,
     }));
+
+  console.log(JSON.stringify(result));
 
   if (!result) {
     throw new Error(`No credential support the type '${credentialType}'`);
@@ -106,7 +108,9 @@ export const startUserAuthorization: StartUserAuthorization = async (
     issuerConf,
     credentialType
   );
-  const responseMode = selectResponseMode(issuerConf, credentialType);
+  const responseMode = selectResponseMode(credentialType);
+
+  console.log(responseMode);
 
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(
