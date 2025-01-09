@@ -27,39 +27,24 @@ export const fetchJwksFromUri: FetchJwks<
   [string, { context?: { appFetch?: GlobalFetch["fetch"] } }]
 > = async (clientUrl, { context = {} } = {}) => {
   const { appFetch = fetch } = context;
-  const jwks = await retrieveJwks(clientUrl, "/jar-issuer/jwk", { appFetch });
-  return {
-    keys: jwks.keys,
-  };
-};
 
-/**
- * Fetches the JWKS from a specific endpoint of the entity's well-known configuration.
- *
- * @param entityBaseUrl - The base URL of the entity.
- * @param jwksEndpointPath - The relative path to the JWKS endpoint within the well-known configuration.
- * @param options - Optional parameters including a custom fetch implementation.
- * @param options.appFetch - Optional custom fetch function to use instead of the global `fetch`.
- * @returns A promise resolving to the JWKS object.
- */
-async function retrieveJwks(
-  entityBaseUrl: string,
-  jwksEndpointPath: string,
-  {
-    appFetch = fetch,
-  }: {
-    appFetch?: GlobalFetch["fetch"];
-  } = {}
-): Promise<JWKS> {
-  const wellKnownUrl = `${entityBaseUrl}/.well-known${jwksEndpointPath}`;
+  const wellKnownUrl = new URL(
+    "/.well-known/jar-issuer/jwk",
+    clientUrl
+  ).toString();
 
-  return await appFetch(wellKnownUrl, {
+  // Fetches the JWKS from a specific endpoint of the entity's well-known configuration
+  const jwks = await appFetch(wellKnownUrl, {
     method: "GET",
   })
     .then(hasStatusOrThrow(200))
     .then((raw) => raw.json())
     .then((json) => JWKS.parse(json));
-}
+
+  return {
+    keys: jwks.keys,
+  };
+};
 
 /**
  * Retrieves the JSON Web Key Set (JWKS) from a Relying Party's entity configuration.
