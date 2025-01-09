@@ -60,18 +60,10 @@ const selectCredentialDefinition = (
  * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
  */
 const selectResponseMode = (
-  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): ResponseMode => {
-  const responseModeSupported =
-    issuerConf.oauth_authorization_server.response_modes_supported;
-
   const responseMode =
     credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
-
-  if (!responseModeSupported.includes(responseMode)) {
-    throw new Error(`No response mode support the type '${credentialType}'`);
-  }
 
   return responseMode;
 };
