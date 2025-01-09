@@ -1,7 +1,7 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { ResponseMode } from "./types";
 import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
-import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 
@@ -37,15 +37,17 @@ const selectCredentialDefinition = (
   credentialType: Out<StartFlow>["credentialType"]
 ): AuthorizationDetail => {
   const credential_configurations_supported =
-    issuerConf.openid_credential_issuer.credential_configurations_supported;
+    issuerConf.credential_configurations_supported;
 
-  const [result] = Object.keys(credential_configurations_supported)
-    .filter((e) => e.includes(credentialType))
+  const [result] = credential_configurations_supported
+    .filter((e) => e.credential_definition.type.includes(credentialType))
     .map((e) => ({
       credential_configuration_id: credentialType,
-      format: credential_configurations_supported[e]!.format,
+      format: e.format,
       type: "openid_credential" as const,
     }));
+
+  console.log(JSON.stringify(result));
 
   if (!result) {
     throw new Error(`No credential support the type '${credentialType}'`);
@@ -60,18 +62,10 @@ const selectCredentialDefinition = (
  * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
  */
 const selectResponseMode = (
-  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): ResponseMode => {
-  const responseModeSupported =
-    issuerConf.oauth_authorization_server.response_modes_supported;
-
   const responseMode =
     credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
-
-  if (!responseModeSupported.includes(responseMode)) {
-    throw new Error(`No response mode support the type '${credentialType}'`);
-  }
 
   return responseMode;
 };
@@ -105,16 +99,16 @@ export const startUserAuthorization: StartUserAuthorization = async (
     redirectUri,
     appFetch = fetch,
   } = ctx;
+  console.log(JSON.stringify(issuerConf));
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
-  const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+  const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
   const credentialDefinition = selectCredentialDefinition(
     issuerConf,
     credentialType
   );
-  const responseMode = selectResponseMode(issuerConf, credentialType);
+  const responseMode = selectResponseMode(credentialType);
 
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(

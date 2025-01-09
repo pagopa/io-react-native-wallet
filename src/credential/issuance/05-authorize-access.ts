@@ -1,5 +1,5 @@
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
@@ -57,14 +57,13 @@ export const authorizeAccess: AuthorizeAccess = async (
     dPopCryptoContext,
   } = context;
 
-  const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+  const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
   const parUrl = new URL(parEndpoint);
   const aud = `${parUrl.protocol}//${parUrl.hostname}`;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
-  const tokenUrl = issuerConf.openid_credential_issuer.token_endpoint;
+  const tokenUrl = issuerConf.token_endpoint;
 
   const tokenRequestSignedDPop = await createDPopToken(
     {

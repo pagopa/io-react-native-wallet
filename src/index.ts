@@ -9,7 +9,7 @@ import * as PID from "./pid";
 import * as SdJwt from "./sd-jwt";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
-import * as Trust from "./trust";
+import * as Trust from "./entity/mixed";
 import * as WalletInstance from "./wallet-instance";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";

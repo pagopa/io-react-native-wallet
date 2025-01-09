@@ -1,12 +1,14 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { Out } from "../../utils/misc";
-import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
+import type { SupportedCredentialMetadata } from "../../entity/mixed/types";
+import { SupportedCredentialMetadata as SupportedCredentialMetadataSchema } from "../../entity/mixed/types";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
@@ -52,14 +54,13 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
   sdJwt: SdJwt4VC;
 };
 
-const parseCredentialSdJwt = (
-  // the list of supported credentials, as defined in the issuer configuration
-  credentials_supported: Out<GetIssuerConfig>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
+const parseCredentialSdJwtWithMixedIssuerConf = (
+  credentialSupported: SupportedCredentialMetadata,
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentials_supported[sdJwt.payload.vct];
+  const credentialSubject = credentialSupported[sdJwt.payload.vct];
 
   if (!credentialSubject) {
     throw new IoWalletError("Credential type not supported by the issuer");
@@ -142,6 +143,18 @@ const parseCredentialSdJwt = (
   return definedValues;
 };
 
+const parseCredentialSdJwt = (
+  // the list of supported credentials, as defined in the issuer configuration
+  credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
+  { sdJwt, disclosures }: DecodedSdJwtCredential,
+  ignoreMissingAttributes: boolean = false,
+  includeUndefinedAttributes: boolean = false
+): ParsedCredential => {
+  const credentialSupported = SupportedCredentialMetadataSchema.safeParse(
+    credentials_supported
+  );
+};
+
 /**
  * Given a credential, verify it's in the supported format
  * and the credential is correctly signed
@@ -200,12 +213,12 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
-    issuerConf.openid_credential_issuer.jwks.keys,
+    issuerConf.keys,
     credentialCryptoContext
   );
 
   const parsedCredential = parseCredentialSdJwt(
-    issuerConf.openid_credential_issuer.credential_configurations_supported,
+    issuerConf.credential_configurations_supported,
     decoded,
     ignoreMissingAttributes,
     includeUndefinedAttributes

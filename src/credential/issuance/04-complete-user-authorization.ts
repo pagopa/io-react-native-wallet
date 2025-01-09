@@ -7,7 +7,7 @@ import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
-import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import {
   decode,
   encodeBase64,
@@ -69,13 +69,11 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
   issuerConf,
   idpHint
 ) => {
-  const authzRequestEndpoint =
-    issuerConf.oauth_authorization_server.authorization_endpoint;
+  const authzRequestEndpoint = issuerConf.authorization_endpoint;
 
   const params = new URLSearchParams({
     client_id: clientId,
     request_uri: issuerRequestUri,
-    idphint: idpHint,
   });
 
   const authUrl = `${authzRequestEndpoint}?${params}`;
@@ -111,8 +109,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
  */
 export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePresented =
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
-    const authzRequestEndpoint =
-      issuerConf.openid_credential_issuer.authorization_endpoint;
+    const authzRequestEndpoint = issuerConf.authorization_endpoint;
     const params = new URLSearchParams({
       client_id: clientId,
       request_uri: issuerRequestUri,

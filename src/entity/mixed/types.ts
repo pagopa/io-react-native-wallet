@@ -1,23 +1,13 @@
-import { UnixTime } from "../sd-jwt/types";
-import { JWK } from "../utils/jwk";
+import { UnixTime } from "../../sd-jwt/types";
+import { JWK } from "../../utils/jwk";
 import * as z from "zod";
-
-export const TrustMark = z.object({ id: z.string(), trust_mark: z.string() });
-export type TrustMark = z.infer<typeof TrustMark>;
-
-const RelyingPartyMetadata = z.object({
-  application_type: z.string().optional(),
-  client_id: z.string().optional(),
-  client_name: z.string().optional(),
-  jwks: z.object({ keys: z.array(JWK) }),
-  contacts: z.array(z.string()).optional(),
-});
-//.passthrough();
 
 // Display metadata for a credential, used by the issuer to
 // instruct the Wallet Solution on how to render the credential correctly
-type CredentialDisplayMetadata = z.infer<typeof CredentialDisplayMetadata>;
-const CredentialDisplayMetadata = z.object({
+export type CredentialDisplayMetadata = z.infer<
+  typeof CredentialDisplayMetadata
+>;
+export const CredentialDisplayMetadata = z.object({
   name: z.string(),
   locale: z.string(),
   logo: z
@@ -39,18 +29,22 @@ const ClaimsMetadata = z.record(
 );
 
 // Metadata for a credentia which is supported by a Issuer
-type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
-const SupportedCredentialMetadata = z.object({
-  cryptographic_suites_supported: z.array(z.string()),
-  cryptographic_binding_methods_supported: z.array(z.string()),
-  display: z.array(CredentialDisplayMetadata),
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
-  credential_definition: z.object({
-    credentialSubject: ClaimsMetadata,
-    type: z.array(z.string()),
-  }),
-  id: z.string(),
-});
+export type SupportedCredentialMetadata = z.infer<
+  typeof SupportedCredentialMetadata
+>;
+export const SupportedCredentialMetadata = z.array(
+  z.object({
+    cryptographic_suites_supported: z.array(z.string()),
+    cryptographic_binding_methods_supported: z.array(z.string()),
+    display: z.array(CredentialDisplayMetadata),
+    format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
+    credential_definition: z.object({
+      credentialSubject: ClaimsMetadata,
+      type: z.array(z.string()),
+    }),
+    id: z.string(),
+  })
+);
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
 export const EntityStatement = z.object({
@@ -63,7 +57,6 @@ export const EntityStatement = z.object({
     iss: z.string(),
     sub: z.string(),
     jwks: z.object({ keys: z.array(JWK) }),
-    trust_marks: z.array(TrustMark),
     iat: z.number(),
     exp: z.number(),
   }),
@@ -77,24 +70,6 @@ export const EntityConfigurationHeader = z.object({
   alg: z.string(),
   kid: z.string(),
 });
-
-/**
- * @see https://openid.net/specs/openid-connect-federation-1_0-29.html#name-federation-entity
- */
-const FederationEntityMetadata = z
-  .object({
-    federation_fetch_endpoint: z.string().optional(),
-    federation_list_endpoint: z.string().optional(),
-    federation_resolve_endpoint: z.string().optional(),
-    federation_trust_mark_status_endpoint: z.string().optional(),
-    federation_trust_mark_list_endpoint: z.string().optional(),
-    organization_name: z.string().optional(),
-    homepage_uri: z.string().optional(),
-    policy_uri: z.string().optional(),
-    logo_uri: z.string().optional(),
-    contacts: z.array(z.string()).optional(),
-  })
-  .passthrough();
 
 // Structuire common to every Entity Configuration document
 const BaseEntityConfiguration = z.object({
@@ -113,12 +88,6 @@ const BaseEntityConfiguration = z.object({
     .passthrough(),
 });
 
-// Entity configuration for a Trust Anchor (it has no specific metadata section)
-export type TrustAnchorEntityConfiguration = z.infer<
-  typeof TrustAnchorEntityConfiguration
->;
-export const TrustAnchorEntityConfiguration = BaseEntityConfiguration;
-
 // Entity configuration for a Credential Issuer
 export type CredentialIssuerEntityConfiguration = z.infer<
   typeof CredentialIssuerEntityConfiguration
@@ -133,9 +102,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           dpop_signing_alg_values_supported: z.array(z.string()),
           jwks: z.object({ keys: z.array(JWK) }),
           credential_issuer: z.string(),
-          credential_configurations_supported: z.array(
-            SupportedCredentialMetadata
-          ),
+          credential_configurations_supported: SupportedCredentialMetadata,
           authorization_endpoint: z.string(),
           token_endpoint: z.string(),
           credential_endpoint: z.string(),
@@ -145,20 +112,6 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
       // iss: z.string().url(),
       // exp: UnixTime,
       // iat: UnixTime,
-    }),
-  })
-);
-
-// Entity configuration for a Relying Party
-export type RelyingPartyEntityConfiguration = z.infer<
-  typeof RelyingPartyEntityConfiguration
->;
-export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
-  z.object({
-    payload: z.object({
-      metadata: z.object({
-        wallet_relying_party: RelyingPartyMetadata,
-      }),
     }),
   })
 );
@@ -191,12 +144,7 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
 // Maps any entity configuration by the union of every possible shapes
 export type EntityConfiguration = z.infer<typeof EntityConfiguration>;
 export const EntityConfiguration = z.union(
-  [
-    WalletProviderEntityConfiguration,
-    CredentialIssuerEntityConfiguration,
-    TrustAnchorEntityConfiguration,
-    RelyingPartyEntityConfiguration,
-  ],
+  [WalletProviderEntityConfiguration, CredentialIssuerEntityConfiguration],
   {
     description: "Any kind of Entity Configuration allowed in the ecosystem",
   }
