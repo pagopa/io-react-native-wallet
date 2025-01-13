@@ -98,5 +98,6 @@ const verifyTokenSignature = async (
     return;
   }
 
-  // No verification condition matched: skipping signature verification.
+  // No verification condition matched: skipping signature verification for now.
+  // TODO: [EUDIW-215] Remove skipping signature verification
 };
