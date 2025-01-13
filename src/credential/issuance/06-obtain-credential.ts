@@ -4,7 +4,7 @@ import {
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
-import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
@@ -81,7 +81,7 @@ export const obtainCredential: ObtainCredential = async (
     dPopCryptoContext,
   } = context;
 
-  const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+  const credentialUrl = issuerConf.credential_endpoint;
 
   /**
    * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential

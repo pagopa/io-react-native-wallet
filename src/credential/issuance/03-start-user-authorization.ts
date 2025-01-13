@@ -1,9 +1,9 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { ResponseMode } from "./types";
 import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
-import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 
 export type StartUserAuthorization = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
@@ -37,7 +37,7 @@ const selectCredentialDefinition = (
   credentialType: Out<StartFlow>["credentialType"]
 ): AuthorizationDetail => {
   const credential_configurations_supported =
-    issuerConf.openid_credential_issuer.credential_configurations_supported;
+    issuerConf.credential_configurations_supported;
 
   const [result] = credential_configurations_supported
     .filter((e) => e.credential_definition.type.includes(credentialType))
@@ -102,8 +102,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
-  const parEndpoint =
-    issuerConf.openid_credential_issuer.pushed_authorization_request_endpoint;
+  const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
   const credentialDefinition = selectCredentialDefinition(
     issuerConf,
     credentialType

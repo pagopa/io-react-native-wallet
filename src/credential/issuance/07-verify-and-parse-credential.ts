@@ -1,6 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { Out } from "../../utils/misc";
-import type { GetIssuerConfig } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
@@ -54,7 +54,7 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 
 const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
-  credentials_supported: Out<GetIssuerConfig>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
+  credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
@@ -200,12 +200,12 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
-    issuerConf.openid_credential_issuer.jwks.keys,
+    issuerConf.keys,
     credentialCryptoContext
   );
 
   const parsedCredential = parseCredentialSdJwt(
-    issuerConf.openid_credential_issuer.credential_configurations_supported,
+    issuerConf.credential_configurations_supported,
     decoded,
     ignoreMissingAttributes,
     includeUndefinedAttributes
