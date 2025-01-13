@@ -188,7 +188,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       id: `${uuid.v4()}`,
       descriptor_map: [
         {
-          id: "PersonIdentificationData",
+          id: "eu.europa.ec.eudi.pid_jwt_vc_json",
           path: "$.vp_token[0].vp",
           format: "vc+sd-jwt",
         },

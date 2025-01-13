@@ -7,9 +7,10 @@ import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
+import { OpenConnectCredentialSdJwt } from "../../entity/connect-discovery/types";
 
 export type VerifyAndParseCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
   context: {
@@ -59,23 +60,29 @@ const parseCredentialSdJwt = (
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentials_supported[sdJwt.payload.vct];
+  const credentialConfigParseResult = OpenConnectCredentialSdJwt.safeParse(
+    credentials_supported
+  );
 
-  if (!credentialSubject) {
-    throw new IoWalletError("Credential type not supported by the issuer");
+  if (!credentialConfigParseResult.success) {
+    throw new IoWalletError(
+      "Error parsing credential configuration for SD-JWT format"
+    );
   }
 
-  if (credentialSubject.format !== sdJwt.header.typ) {
+  const { claims, format } = credentialConfigParseResult.data;
+
+  if (format !== sdJwt.header.typ) {
     throw new IoWalletError(
-      `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}', `
+      `Received credential is of an unknwown type. Expected one of [${format}], received '${sdJwt.header.typ}', `
     );
   }
 
   // transfrom a record { key: value } in an iterable of pairs [key, value]
-  if (!credentialSubject.claims) {
+  if (!claims) {
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
-  const attrDefinitions = Object.entries(credentialSubject.claims);
+  const attrDefinitions = Object.entries(claims);
 
   // the key of the attribute defintion must match the disclosure's name
   const attrsNotInDisclosures = attrDefinitions.filter(
@@ -200,12 +207,12 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
-    issuerConf.openid_credential_issuer.jwks.keys,
+    issuerConf.keys,
     credentialCryptoContext
   );
 
   const parsedCredential = parseCredentialSdJwt(
-    issuerConf.openid_credential_issuer.credential_configurations_supported,
+    issuerConf.credential_configurations_supported,
     decoded,
     ignoreMissingAttributes,
     includeUndefinedAttributes

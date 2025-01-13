@@ -26,7 +26,7 @@ async function fetchOpenIdCredentialIssuerMetadata(
     method: "GET",
   })
     .then(hasStatusOrThrow(200))
-    .then((res) => res.text())
+    .then((res) => res.json())
     .then(OpenConnectCredentialIssuer.parse);
 }
 
@@ -44,7 +44,7 @@ async function fetchOpenIdCredentialIssuerConfiguration(
     method: "GET",
   })
     .then(hasStatusOrThrow(200))
-    .then((res) => res.text())
+    .then((res) => res.json())
     .then(OpenConnectCredentialIssuerConfiguration.parse);
 }
 
@@ -60,7 +60,7 @@ async function fetchOpenIdCredentialConfigurationkeys(
     method: "GET",
   })
     .then(hasStatusOrThrow(200))
-    .then((res) => res.text())
+    .then((res) => res.json())
     .then(OpenConnectCredentialIssuerKeys.parse);
 }
 
@@ -96,5 +96,6 @@ export const getOpenIdCredentialIssuerMetadata = async (
       appFetch,
     }
   );
+
   return { issuerMetadata, issuerConf, issuerKeys };
 };

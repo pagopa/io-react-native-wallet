@@ -5,7 +5,20 @@ export const UnixTime = z.number().min(0).max(2147483647000);
 export type UnixTime = z.infer<typeof UnixTime>;
 
 export type ObfuscatedDisclosures = z.infer<typeof ObfuscatedDisclosures>;
-export const ObfuscatedDisclosures = z.object({ _sd: z.array(z.string()) });
+export const ObfuscatedDisclosures = z.object({
+  verified_claims: z.object({
+    verification: z.object({
+      _sd: z.array(z.string()),
+      trust_framework: z.string(),
+      assurance_level: z.string(),
+    }),
+    claims: z.record(
+      z.object({
+        _sd: z.array(z.string()),
+      })
+    ),
+  }),
+});
 
 /**
  * A triple of values in the form of {salt, claim name, claim value} that represent a parsed disclosure.
@@ -54,7 +67,7 @@ export const Verification = z.object({
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
-    typ: z.literal("vc+sd-jwt"),
+    typ: z.union([z.literal("vc+sd-jwt"), z.literal("example+sd-jwt")]),
     alg: z.string(),
     kid: z.string().optional(),
     x5c: z.string().optional(),
@@ -63,19 +76,15 @@ export const SdJwt4VC = z.object({
   payload: z.intersection(
     z.object({
       iss: z.string(),
-      sub: z.string(),
+      sub: z.string().optional(),
       iat: UnixTime.optional(),
       exp: UnixTime,
       _sd_alg: z.literal("sha-256"),
-      status: z.object({
-        status_attestation: z.object({
-          credential_hash_alg: z.literal("sha-256"),
-        }),
-      }),
+      status: z.string(),
       cnf: z.object({
         jwk: JWK,
       }),
-      vct: z.string(),
+      vct: z.string().optional(),
       "vct#integrity": z.string().optional(),
       verification: Verification.optional(),
     }),

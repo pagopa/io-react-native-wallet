@@ -63,36 +63,18 @@ export const makeParRequest =
     const codeChallengeMethod = "S256";
     const codeChallenge = await sha256ToBase64(codeVerifier);
 
-    /** The PAR request token is signed used the Wallet Instance Attestation key.
-        The signature can be verified by reading the public key from the key set shippet
-        with the it will ship the Wallet Instance Attestation.
-        The key is matched by its kid */
-    const signedJwtForPar = await new SignJWT(wiaCryptoContext)
-      .setProtectedHeader({
-        typ: "jwk",
-        kid: wiaPublicKey.kid,
-      })
-      .setPayload({
-        jti: `${uuid.v4()}`,
-        aud,
-        response_type: "code",
-        response_mode: responseMode,
-        client_id: clientId,
-        iss,
-        state: generateRandomAlphaNumericString(32),
-        code_challenge: codeChallenge,
-        code_challenge_method: codeChallengeMethod,
-        authorization_details: authorizationDetails,
-        redirect_uri: redirectUri,
-      })
-      .setIssuedAt() //iat is set to now
-      .setExpirationTime("5min")
-      .sign();
-
     /** The request body for the Pushed Authorization Request */
     var formBody = new URLSearchParams({
       client_id: clientId,
-      request: signedJwtForPar,
+      jti: `${uuid.v4()}`,
+      aud,
+      response_type: "code",
+      iss,
+      state: generateRandomAlphaNumericString(32),
+      code_challenge: codeChallenge,
+      code_challenge_method: codeChallengeMethod,
+      authorization_details: JSON.stringify(authorizationDetails),
+      redirect_uri: redirectUri,
     });
 
     return await appFetch(parEndpoint, {
@@ -104,7 +86,7 @@ export const makeParRequest =
       },
       body: formBody.toString(),
     })
-      .then(hasStatusOrThrow(201, IssuerResponseError))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.json())
       .then((result) => result.request_uri);
   };

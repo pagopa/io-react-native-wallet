@@ -251,7 +251,7 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 // Start the issuance flow
 const startFlow: Credential.Issuance.StartFlow = () => ({
   issuerUrl: WALLET_EID_PROVIDER_BASE_URL,
-  credentialType: "PersonIdentificationData",
+  credentialType: "eu.europa.ec.eudi.pid_jwt_vc_json",
   appFetch,
 });
 

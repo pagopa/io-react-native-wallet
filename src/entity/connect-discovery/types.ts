@@ -1,4 +1,4 @@
-import { JWK } from "src/utils/jwk";
+import { JWK } from "../../utils/jwk";
 import * as z from "zod";
 
 // Display metadata for a credential, used by the issuer to
@@ -19,7 +19,7 @@ export const OpenConnectCredentialDisplay = z.object({
   text_color: z.string().optional(), // TODO [SIW-1268]: should not be optional
 });
 
-const OpenConnectCredentialFormat = z.union([
+export const OpenConnectCredentialFormat = z.union([
   z.literal("vc+sd-jwt"),
   z.literal("mso_mdoc"),
 ]);
@@ -33,7 +33,7 @@ const OpenConnectProofType = z.object({
 const OpenConnectCredentialProofTypes = z.object({
   jwt: OpenConnectProofType,
   cwt: OpenConnectProofType,
-  ldp_vp: OpenConnectProofType,
+  ldp_vp: OpenConnectProofType.optional(),
 });
 
 type OpenConnectCredentialSdJwtClaims = z.infer<
@@ -46,11 +46,25 @@ const OpenConnectCredentialSdJwtClaims = z.record(
   })
 );
 
-const OpenConnectCredentialSdJwt = z.object({
+type OpenConnectCredentialCborClaims = z.infer<
+  typeof OpenConnectCredentialCborClaims
+>;
+const OpenConnectCredentialCborClaims = z.record(
+  z.record(
+    z.object({
+      mandatory: z.boolean().default(false).optional(),
+      source: z.string().optional(),
+      value_type: z.string().optional(),
+      display: z.array(z.object({ name: z.string(), locale: z.string() })),
+    })
+  )
+);
+
+export const OpenConnectCredentialSdJwt = z.object({
   claims: OpenConnectCredentialSdJwtClaims,
   credential_signing_alg_values_supported: z.array(z.string()),
   cryptographic_binding_methods_supported: z.array(z.string()),
-  display: OpenConnectCredentialDisplay,
+  display: z.array(OpenConnectCredentialDisplay),
   format: OpenConnectCredentialFormat,
   proof_types_supported: OpenConnectCredentialProofTypes.optional(),
   scope: z.string(),
@@ -58,18 +72,20 @@ const OpenConnectCredentialSdJwt = z.object({
 });
 
 const OpenConnectCredentialMdoc = z.object({
-  claims: z.string(),
-  credential_alg_values_supported: z.array(z.number()),
-  credential_crv_values_supported: z.array(z.number()),
+  claims: OpenConnectCredentialCborClaims,
+  credential_alg_values_supported: z.array(z.number()).optional(),
+  credential_crv_values_supported: z.array(z.number()).optional(),
   credential_signing_alg_values_supported: z.array(z.string()),
   cryptographic_binding_methods_supported: z.array(z.string()),
   display: z.array(OpenConnectCredentialDisplay),
   doctype: z.string(),
   format: OpenConnectCredentialFormat,
-  policy: z.object({
-    batch_size: z.number(),
-    one_time_use: z.boolean(),
-  }),
+  policy: z
+    .object({
+      batch_size: z.number(),
+      one_time_use: z.boolean(),
+    })
+    .optional(),
   proof_types_supported: OpenConnectCredentialProofTypes.optional(),
   scope: z.string(),
 });
@@ -78,7 +94,7 @@ export type OpenConnectCredentialConfigurationsSupported = z.infer<
   typeof OpenConnectCredentialConfigurationsSupported
 >;
 export const OpenConnectCredentialConfigurationsSupported = z.record(
-  z.union([OpenConnectCredentialSdJwt, OpenConnectCredentialMdoc])
+  z.union([OpenConnectCredentialMdoc, OpenConnectCredentialSdJwt])
 );
 
 export type OpenConnectCredentialIssuer = z.infer<
@@ -100,7 +116,7 @@ export const OpenConnectCredentialIssuer = z.object({
     .optional(),
   credential_identifiers_supported: z.boolean().optional(),
   signed_metadata: z.string().optional(),
-  display: z.array(OpenConnectCredentialDisplay),
+  display: z.array(OpenConnectCredentialDisplay).optional(),
   credential_configurations_supported:
     OpenConnectCredentialConfigurationsSupported,
 });
@@ -134,7 +150,7 @@ export const OpenConnectCredentialIssuerConfiguration = z.object({
   scopes_supported: z.array(z.string()),
   subject_types_supported: z.array(z.string()),
   token_endpoint: z.string(),
-  token_endpoint_auth_methods_supported: z.string(z.string()),
+  token_endpoint_auth_methods_supported: z.array(z.string()),
   userinfo_endpoint: z.string(),
   userinfo_signing_alg_values_supported: z.array(z.string()),
   version: z.string(),

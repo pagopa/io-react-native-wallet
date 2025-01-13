@@ -1,6 +1,6 @@
 import type { StartFlow } from "./01-start-flow";
 import type { Out } from "../../utils/misc";
-import { getOpenIdCredentialIssuerMetadata } from "src/entity/connect-discovery";
+import { getOpenIdCredentialIssuerMetadata } from "../..//entity/connect-discovery";
 import type { JWK } from "src/utils/jwk";
 import type { OpenConnectCredentialConfigurationsSupported } from "src/entity/connect-discovery/types";
 

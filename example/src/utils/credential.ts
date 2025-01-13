@@ -27,7 +27,6 @@ import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
 export const getPidCieID = async ({
   pidIssuerUrl,
   redirectUri,
-  idpHint,
   walletInstanceAttestation,
   credentialType,
   wiaCryptoContext,
@@ -37,7 +36,7 @@ export const getPidCieID = async ({
   idpHint: string;
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
-  credentialType: "PersonIdentificationData";
+  credentialType: "eu.europa.ec.eudi.pid_jwt_vc_json";
 }): Promise<PidResult> => {
   /*
    * Create credential crypto context for the PID
@@ -50,7 +49,7 @@ export const getPidCieID = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: pidIssuerUrl,
-    credentialType: "PersonIdentificationData",
+    credentialType: "eu.europa.ec.eudi.pid_jwt_vc_json",
     appFetch,
   });
 
@@ -77,9 +76,7 @@ export const getPidCieID = async ({
   // Obtain the Authorization URL
   const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
     issuerRequestUri,
-    clientId,
-    issuerConf,
-    idpHint
+    issuerConf
   );
 
   // Open the authorization URL and listen for the redirect
@@ -101,7 +98,6 @@ export const getPidCieID = async ({
   const { accessToken } = await Credential.Issuance.authorizeAccess(
     issuerConf,
     code,
-    clientId,
     redirectUri,
     codeVerifier,
     {
@@ -202,7 +198,6 @@ export const getCredential = async ({
   const requestObject =
     await Credential.Issuance.getRequestedCredentialToBePresented(
       issuerRequestUri,
-      clientId,
       issuerConf,
       appFetch
     );
@@ -223,7 +218,6 @@ export const getCredential = async ({
   const { accessToken } = await Credential.Issuance.authorizeAccess(
     issuerConf,
     code,
-    clientId,
     redirectUri,
     codeVerifier,
     {

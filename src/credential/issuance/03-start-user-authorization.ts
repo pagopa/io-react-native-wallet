@@ -62,7 +62,9 @@ const selectResponseMode = (
   credentialType: Out<StartFlow>["credentialType"]
 ): ResponseMode => {
   const responseMode =
-    credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
+    credentialType === "eu.europa.ec.eudi.pid_jwt_vc_json"
+      ? "query"
+      : "form_post.jwt";
 
   return responseMode;
 };
@@ -96,7 +98,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     redirectUri,
     appFetch = fetch,
   } = ctx;
-  console.log(JSON.stringify(issuerConf));
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);

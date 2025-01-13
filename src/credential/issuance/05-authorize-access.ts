@@ -15,6 +15,7 @@ export type AuthorizeAccess = (
   code: Out<CompleteUserAuthorizationWithQueryMode>["code"],
   redirectUri: string,
   codeVerifier: Out<StartUserAuthorization>["codeVerifier"],
+  clientId: Out<StartUserAuthorization>["clientId"],
   context: {
     walletInstanceAttestation: string;
     appFetch?: GlobalFetch["fetch"];
@@ -46,6 +47,7 @@ export const authorizeAccess: AuthorizeAccess = async (
   code,
   redirectUri,
   codeVerifier,
+  clientId,
   context
 ) => {
   const {
@@ -86,6 +88,7 @@ export const authorizeAccess: AuthorizeAccess = async (
     code,
     redirect_uri: redirectUri,
     code_verifier: codeVerifier,
+    client_id: clientId,
   };
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);

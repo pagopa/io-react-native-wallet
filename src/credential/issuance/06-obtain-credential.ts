@@ -1,8 +1,4 @@
-import {
-  type CryptoContext,
-  sha256ToBase64,
-  SignJWT,
-} from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
@@ -15,8 +11,7 @@ import {
   ValidationFailed,
 } from "../../utils/errors";
 import { CredentialResponse } from "./types";
-import { createDPopToken } from "../../utils/dpop";
-import uuid from "react-native-uuid";
+import { OpenConnectCredentialSdJwt } from "../../entity/connect-discovery/types";
 
 export type ObtainCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
@@ -24,14 +19,13 @@ export type ObtainCredential = (
   clientId: Out<StartUserAuthorization>["clientId"],
   credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
   context: {
-    dPopCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<CredentialResponse>;
 
 export const createNonceProof = async (
-  nonce: string,
+  nonce: string | undefined,
   issuer: string,
   audience: string,
   ctx: CryptoContext
@@ -75,13 +69,9 @@ export const obtainCredential: ObtainCredential = async (
   credentialDefinition,
   context
 ) => {
-  const {
-    credentialCryptoContext,
-    appFetch = fetch,
-    dPopCryptoContext,
-  } = context;
+  const { credentialCryptoContext, appFetch = fetch } = context;
 
-  const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+  const credentialUrl = issuerConf.credential_endpoint;
 
   /**
    * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
@@ -111,8 +101,10 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  /** The credential request body */
+  const vct = getVtcParam(issuerConf, credentialDefinition);
+
   const credentialRequestFormBody = {
+    ...vct,
     credential_definition: {
       type: [credentialDefinition.credential_configuration_id],
     },
@@ -123,28 +115,19 @@ export const obtainCredential: ObtainCredential = async (
     },
   };
 
-  const tokenRequestSignedDPop = await createDPopToken(
-    {
-      htm: "POST",
-      htu: credentialUrl,
-      jti: `${uuid.v4()}`,
-      ath: await sha256ToBase64(accessToken.access_token),
-    },
-    dPopCryptoContext
-  );
+  /** The credential request body */
+
   const credentialRes = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      DPoP: tokenRequestSignedDPop,
       Authorization: `${accessToken.token_type} ${accessToken.access_token}`,
     },
     body: JSON.stringify(credentialRequestFormBody),
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
-    .then((body) => CredentialResponse.safeParse(body))
-    .catch(handleObtainCredentialError);
+    .then((body) => CredentialResponse.safeParse(body));
 
   if (!credentialRes.success) {
     throw new ValidationFailed({
@@ -156,36 +139,22 @@ export const obtainCredential: ObtainCredential = async (
   return credentialRes.data;
 };
 
-/**
- * Handle the credential error by mapping it to a custom exception.
- * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
- * @param e - The error to be handled
- * @throws {IssuerResponseError} with a specific code for more context
- */
-const handleObtainCredentialError = (e: unknown) => {
-  if (!(e instanceof UnexpectedStatusCodeError)) {
-    throw e;
-  }
+const getVtcParam = (
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
+  credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"]
+) => {
+  if (credentialDefinition.format === "vc+sd-jwt") {
+    // If this throws then there's something wrong with the credential configuration
+    const vct = OpenConnectCredentialSdJwt.parse(
+      issuerConf.credential_configurations_supported[
+        credentialDefinition.credential_configuration_id
+      ]
+    ).vct;
 
-  throw new ResponseErrorBuilder(IssuerResponseError)
-    .handle(201, {
-      // Although it is technically not an error, we handle it as such to avoid
-      // changing the return type of `obtainCredential` and introduce a breaking change.
-      code: IssuerResponseErrorCodes.CredentialIssuingNotSynchronous,
-      message:
-        "This credential cannot be issued synchronously. It will be available at a later time.",
-    })
-    .handle(403, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
-    .handle(404, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
-    .handle("*", {
-      code: IssuerResponseErrorCodes.CredentialRequestFailed,
-      message: "Unable to obtain the requested credential",
-    })
-    .buildFrom(e);
+    return {
+      vct,
+    };
+  } else {
+    return {};
+  }
 };

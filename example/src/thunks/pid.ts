@@ -25,7 +25,10 @@ import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
  */
 type PreparePidFlowParamsThunkInput = {
   idpHint: string;
-  credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
+  credentialType: Extract<
+    SupportedCredentials,
+    "eu.europa.ec.eudi.pid_jwt_vc_json"
+  >;
 };
 
 /**
@@ -57,14 +60,13 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
     // Reset the credential state before obtaining a new PID
     dispatch(credentialReset());
-    const { idpHint } = args;
 
     const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
     // Start the issuance flow
     const startFlow: Credential.Issuance.StartFlow = () => ({
       issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-      credentialType: "PersonIdentificationData",
+      credentialType: "eu.europa.ec.eudi.pid_jwt_vc_json",
     });
 
     const { issuerUrl, credentialType } = startFlow();
@@ -74,8 +76,6 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
       issuerUrl,
       { appFetch }
     );
-
-    console.log(JSON.stringify(issuerConf));
 
     // Start user authorization
     const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -93,9 +93,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     // Obtain the Authorization URL
     const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
       issuerRequestUri,
-      clientId,
-      issuerConf,
-      idpHint
+      issuerConf
     );
 
     const supportsCustomTabs = await supportsInAppBrowser();
@@ -128,9 +126,9 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     const { accessToken } = await Credential.Issuance.authorizeAccess(
       issuerConf,
       code,
-      clientId,
       REDIRECT_URI,
       codeVerifier,
+      clientId,
       {
         walletInstanceAttestation,
         wiaCryptoContext,
@@ -139,31 +137,34 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
       }
     );
 
-    const { credential, format } = await Credential.Issuance.obtainCredential(
+    const { credential } = await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
       clientId,
       credentialDefinition,
       {
         credentialCryptoContext,
-        dPopCryptoContext,
         appFetch,
       }
     );
+
+    console.log(credential);
 
     const { parsedCredential } =
       await Credential.Issuance.verifyAndParseCredential(
         issuerConf,
         credential,
-        format,
+        credentialDefinition.format,
         { credentialCryptoContext }
       );
+
+    console.log(parsedCredential);
 
     return {
       parsedCredential,
       credential,
       keyTag: credentialKeyTag,
-      credentialType: "PersonIdentificationData",
+      credentialType: "eu.europa.ec.eudi.pid_jwt_vc_json",
     };
   } catch (e) {
     console.log(e);

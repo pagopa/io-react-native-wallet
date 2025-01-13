@@ -33,7 +33,7 @@ export const PidScreen = () => {
         onPress: () =>
           dispatch(
             preparePidFlowParamsThunk({
-              credentialType: "PersonIdentificationData",
+              credentialType: "eu.europa.ec.eudi.pid_jwt_vc_json",
               idpHint: SPID_DEMO_IDPHINT,
             })
           ),
