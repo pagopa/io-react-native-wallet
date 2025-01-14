@@ -84,6 +84,7 @@ export const authorizeAccess: AuthorizeAccess = async (
   );
 
   const requestBody = {
+    client_id: clientId,
     grant_type: "authorization_code",
     code,
     redirect_uri: redirectUri,

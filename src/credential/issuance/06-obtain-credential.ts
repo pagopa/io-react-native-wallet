@@ -95,14 +95,22 @@ export const obtainCredential: ObtainCredential = async (
     credentialCryptoContext
   );
 
-  // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
-  const containsCredentialDefinition = accessToken.authorization_details.some(
-    (c) =>
-      c.credential_configuration_id ===
-        credentialDefinition.credential_configuration_id &&
-      c.format === credentialDefinition.format &&
-      c.type === credentialDefinition.type
-  );
+  const containsCredentialDefinition =
+    accessToken.authorization_details.credential_configuration_id ===
+      credentialDefinition.credential_configuration_id &&
+    accessToken.authorization_details.type === credentialDefinition.type;
+
+  const format =
+    issuerConf.credential_configurations_supported[
+      credentialDefinition.credential_configuration_id
+    ]![0]!.format;
+
+  if (!format) {
+    throw new ValidationFailed({
+      message:
+        "The access token response does not contain the requested credential",
+    });
+  }
 
   if (!containsCredentialDefinition) {
     throw new ValidationFailed({
@@ -113,10 +121,8 @@ export const obtainCredential: ObtainCredential = async (
 
   /** The credential request body */
   const credentialRequestFormBody = {
-    credential_definition: {
-      type: [credentialDefinition.credential_configuration_id],
-    },
-    format: credentialDefinition.format,
+    vct: credentialDefinition.credential_configuration_id,
+    format,
     proof: {
       jwt: signedNonceProof,
       proof_type: "jwt",

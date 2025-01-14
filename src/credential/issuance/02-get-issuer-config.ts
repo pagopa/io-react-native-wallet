@@ -2,7 +2,7 @@ import type { StartFlow } from "./01-start-flow";
 import type { Out } from "../../utils/misc";
 import type { JWK } from "src/utils/jwk";
 import { getCredentialIssuerMetadata } from "../../entity/issuer";
-import type { CredentialSupported } from "../../entity/issuer/types";
+import type { CredentialConfigurationSupported } from "../../entity/issuer/types";
 
 export type GetIssuerConfig = (
   issuerUrl: Out<StartFlow>["issuerUrl"],
@@ -12,12 +12,11 @@ export type GetIssuerConfig = (
 ) => Promise<{ issuerConf: IssuerConfig }>;
 
 export type IssuerConfig = {
-  credential_configurations_supported: CredentialSupported;
+  credential_configurations_supported: CredentialConfigurationSupported;
   pushed_authorization_request_endpoint: string;
   authorization_endpoint: string;
   token_endpoint: string;
   credential_endpoint: string;
-  response_modes: Array<string>;
   keys: Array<JWK>;
 };
 
@@ -46,13 +45,13 @@ const credentialIssuerRationalization = (
 ): Awaited<ReturnType<GetIssuerConfig>> => {
   return {
     issuerConf: {
-      credential_configurations_supported: issuerMetadata.credentials_supported,
+      credential_configurations_supported:
+        issuerMetadata.credential_configurations_supported,
       pushed_authorization_request_endpoint:
         issuerMetadata.pushed_authorization_request_endpoint,
       authorization_endpoint: issuerMetadata.authorization_endpoint,
       token_endpoint: issuerMetadata.token_endpoint,
       credential_endpoint: issuerMetadata.credential_endpoint,
-      response_modes: 
       keys: issuerMetadata.jwks.keys,
     },
   };

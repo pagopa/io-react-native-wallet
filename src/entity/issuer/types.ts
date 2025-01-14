@@ -24,26 +24,28 @@ export const CredentialClaimDisplay = z.object({
 
 export const CredentialFormat = z.literal("vc+sd-jwt");
 
-const CredentialSdJwtClaims = z.object({
-  mandatory: z.boolean(),
-  display: z.array(CredentialClaimDisplay),
-});
-
-const CredentialDefinition = z.object({
-  credentialSubject: z.record(CredentialSdJwtClaims),
-  type: z.array(z.string()),
-});
-
-export type CredentialSupported = z.infer<typeof CredentialSupported>;
-export const CredentialSupported = z.array(
+const CredentialSdJwtClaims = z.record(
   z.object({
-    cryptographic_suites_supported: z.array(z.string()),
-    cryptographic_binding_methods_supported: z.array(z.string()),
-    display: z.array(CredentialDisplay),
-    format: CredentialFormat,
-    credential_definition: CredentialDefinition,
-    id: z.string(),
+    mandatory: z.boolean(),
+    display: z.array(CredentialClaimDisplay),
   })
+);
+
+export type CredentialConfigurationSupported = z.infer<
+  typeof CredentialConfigurationSupported
+>;
+export const CredentialConfigurationSupported = z.record(
+  z.array(
+    z.object({
+      cryptographic_suites_supported: z.array(z.string()),
+      vct: z.string(),
+      scope: z.string(),
+      cryptographic_binding_methods_supported: z.array(z.string()),
+      display: z.array(CredentialDisplay),
+      format: CredentialFormat,
+      claims: CredentialSdJwtClaims,
+    })
+  )
 );
 
 export type CredentialIssuerKeys = z.infer<typeof CredentialIssuerKeys>;
@@ -55,7 +57,7 @@ export type CredentialIssuerConfiguration = z.infer<
   typeof CredentialIssuerConfiguration
 >;
 export const CredentialIssuerConfiguration = z.object({
-  credentials_supported: CredentialSupported,
+  credential_configurations_supported: CredentialConfigurationSupported,
   pushed_authorization_request_endpoint: z.string(),
   dpop_signing_alg_values_supported: z.array(z.string()),
   jwks: CredentialIssuerKeys,
