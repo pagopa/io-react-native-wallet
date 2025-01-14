@@ -13,6 +13,10 @@ import {
   type GetRequestObject,
 } from "./04-get-request-object";
 import {
+  fetchPresentDefinition,
+  type FetchPresentationDefinition,
+} from "./05-fetch-presentation-definition";
+import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
 } from "./05-send-authorization-response";
@@ -24,6 +28,7 @@ export {
   fetchJwksFromUri,
   fetchJwksFromConfig,
   getRequestObject,
+  fetchPresentDefinition,
   sendAuthorizationResponse,
   Errors,
 };
@@ -32,5 +37,6 @@ export type {
   EvaluateRelyingPartyTrust,
   FetchJwks,
   GetRequestObject,
+  FetchPresentationDefinition,
   SendAuthorizationResponse,
 };
