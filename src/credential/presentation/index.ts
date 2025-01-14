@@ -4,18 +4,25 @@ import {
   type EvaluateRelyingPartyTrust,
 } from "./02-evaluate-rp-trust";
 import {
+  fetchJwksFromUri,
+  fetchJwksFromConfig,
+  type FetchJwks,
+} from "./03-retrieve-jwks";
+import {
   getRequestObject,
   type GetRequestObject,
-} from "./03-get-request-object";
+} from "./04-get-request-object";
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
-} from "./04-send-authorization-response";
+} from "./05-send-authorization-response";
 import * as Errors from "./errors";
 
 export {
   startFlowFromQR,
   evaluateRelyingPartyTrust,
+  fetchJwksFromUri,
+  fetchJwksFromConfig,
   getRequestObject,
   sendAuthorizationResponse,
   Errors,
@@ -23,6 +30,7 @@ export {
 export type {
   StartFlow,
   EvaluateRelyingPartyTrust,
+  FetchJwks,
   GetRequestObject,
   SendAuthorizationResponse,
 };

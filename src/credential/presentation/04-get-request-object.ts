@@ -8,19 +8,19 @@ import {
 
 import { createDPopToken } from "../../utils/dpop";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
-import type { EvaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
+import type { FetchJwks } from "./03-retrieve-jwks";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import { RequestObject } from "./types";
 
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestURI"],
-  rpConf: Out<EvaluateRelyingPartyTrust>["rpConf"],
   context: {
     wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
     walletInstanceAttestation: string;
-  }
+  },
+  jwkKeys?: Out<FetchJwks>["keys"]
 ) => Promise<{ requestObject: RequestObject }>;
 
 /**
@@ -36,8 +36,8 @@ export type GetRequestObject = (
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  rpConf,
-  { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation }
+  { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation },
+  jwkKeys
 ) => {
   const signedWalletInstanceDPoP = await createDPopToken(
     {
@@ -62,19 +62,7 @@ export const getRequestObject: GetRequestObject = async (
 
   const responseJwt = decodeJwt(responseEncodedJwt);
 
-  // verify token signature according to RP's entity configuration
-  // to ensure the request object is authentic
-  {
-    const pubKey = rpConf.wallet_relying_party.jwks.keys.find(
-      ({ kid }) => kid === responseJwt.protectedHeader.kid
-    );
-    if (!pubKey) {
-      throw new NoSuitableKeysFoundInEntityConfiguration(
-        "Request Object signature verification"
-      );
-    }
-    await verify(responseEncodedJwt, pubKey);
-  }
+  await verifyTokenSignature(jwkKeys, responseJwt);
 
   // Ensure that the request object conforms to the expected specification.
   const requestObject = RequestObject.parse(responseJwt.payload);
@@ -82,4 +70,34 @@ export const getRequestObject: GetRequestObject = async (
   return {
     requestObject,
   };
+};
+
+const verifyTokenSignature = async (
+  jwkKeys?: Out<FetchJwks>["keys"],
+  responseJwt?: any
+): Promise<void> => {
+  // verify token signature to ensure the request object is authentic
+  // 1. according to entity configuration if present
+  if (jwkKeys) {
+    const pubKey = jwkKeys.find(
+      ({ kid }) => kid === responseJwt.protectedHeader.kid
+    );
+    if (!pubKey) {
+      throw new NoSuitableKeysFoundInEntityConfiguration(
+        "Request Object signature verification"
+      );
+    }
+    await verify(responseJwt, pubKey);
+    return;
+  }
+
+  // 2. If jwk is not retrieved from entity config, check if the token contains the 'jwk' attribute
+  if (responseJwt.protectedHeader?.jwk) {
+    const pubKey = responseJwt.protectedHeader.jwk;
+    await verify(responseJwt, pubKey);
+    return;
+  }
+
+  // No verification condition matched: skipping signature verification for now.
+  // TODO: [EUDIW-215] Remove skipping signature verification
 };

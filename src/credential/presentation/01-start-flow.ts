@@ -29,8 +29,14 @@ export type StartFlow<T extends Array<unknown> = []> = (...args: T) => {
  * @throws If the provided qr code fails to be decoded
  */
 export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
-  const decoded = decodeBase64(qrcode);
-  const decodedUrl = new URL(decoded);
+  let decodedUrl: URL;
+  try {
+    const decoded = decodeBase64(qrcode);
+    decodedUrl = new URL(decoded);
+  } catch (error) {
+    throw new AuthRequestDecodeError("Failed to decode QR code: ", qrcode);
+  }
+
   const protocol = decodedUrl.protocol;
   const resource = decodedUrl.hostname;
   const requestURI = decodedUrl.searchParams.get("request_uri");
