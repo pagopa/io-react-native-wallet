@@ -1,25 +1,34 @@
-import { AuthorizationDetail } from "../../utils/par";
 import * as z from "zod";
 import { SupportedCredentialFormat } from "./const";
+import { OpenConnectCredentialFormat } from "../../entity/connect-discovery/types";
 
 export type TokenResponse = z.infer<typeof TokenResponse>;
 
 export const TokenResponse = z.object({
+  token_type: z.literal("Bearer"),
   access_token: z.string(),
-  authorization_details: z.array(AuthorizationDetail),
-  c_nonce: z.string(),
-  c_nonce_expires_in: z.number(),
   expires_in: z.number(),
-  token_type: z.string(),
+  refresh_token: z.string().optional(),
+  id_token: z.string().optional(),
+  authorization_details: z.array(
+    z.object({
+      credential_configuration_id: z.string(),
+      format: OpenConnectCredentialFormat,
+      type: z.literal("openid_credential"),
+      credential_identifiers: z.array(z.string()).optional(),
+    })
+  ),
+  c_nonce: z.string().optional(),
+  c_nonce_expires_in: z.string().optional(),
 });
 
 export type CredentialResponse = z.infer<typeof CredentialResponse>;
 
 export const CredentialResponse = z.object({
-  c_nonce: z.string(),
-  c_nonce_expires_in: z.number(),
-  credential: z.string(),
-  format: SupportedCredentialFormat,
+  c_nonce: z.string().optional(),
+  c_nonce_expires_in: z.number().optional(),
+  credential: z.string().optional(),
+  notification_id: z.string().optional(), // this must not be present if the credential is deferred
 });
 
 /**

@@ -115,9 +115,6 @@ dependencies {
 
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
 
-    implementation project(':react-native-cie')
-    implementation ("com.squareup.okhttp3:okhttp:4.9.2")
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.2'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

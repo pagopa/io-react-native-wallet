@@ -7,8 +7,7 @@ import { createAppAsyncThunk } from "./utils";
 import { getIntegrityContext } from "../utils/integrity";
 import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { selectEnv } from "../store/reducers/environment";
-import { getEnv } from "../utils/environment";
+import { WALLET_PROVIDER_BASE_URL } from "@env";
 
 /**
  * Thunk to obtain a new Wallet Instance Attestation.
@@ -27,10 +26,6 @@ export const getAttestationThunk = createAppAsyncThunk(
     // ensure the key esists befor starting the issuing process
     await regenerateCryptoKey(WIA_KEYTAG);
     const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
-    // Get env URLs
-    const env = selectEnv(getState());
-    const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
 
     /**
      * Obtains a new Wallet Instance Attestation.

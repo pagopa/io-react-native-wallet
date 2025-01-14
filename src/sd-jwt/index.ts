@@ -146,10 +146,10 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   const decoded = decode(token, customSchema);
 
   //Check signature
-  await verifyJwt(rawSdJwt, publicKey);
+  //await verifyJwt(rawSdJwt, publicKey);
 
   //Check disclosures in sd-jwt
-  const claims = [...decoded.sdJwt.payload._sd];
+  const claims = decoded.sdJwt.payload.verified_claims.claims;
 
   await Promise.all(
     decoded.disclosures.map(

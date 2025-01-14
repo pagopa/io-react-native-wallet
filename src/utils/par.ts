@@ -13,7 +13,7 @@ import { IssuerResponseError } from "./errors";
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
   credential_configuration_id: z.string(),
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
+  format: z.union([z.literal("vc+sd-jwt"), z.literal("mso_mdoc")]),
   type: z.literal("openid_credential"),
 });
 
@@ -38,8 +38,7 @@ export const makeParRequest =
     responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
-    authorizationDetails: AuthorizationDetails,
-    assertionType: string
+    authorizationDetails: AuthorizationDetails
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
@@ -64,53 +63,30 @@ export const makeParRequest =
     const codeChallengeMethod = "S256";
     const codeChallenge = await sha256ToBase64(codeVerifier);
 
-    /** The PAR request token is signed used the Wallet Instance Attestation key.
-        The signature can be verified by reading the public key from the key set shippet
-        with the it will ship the Wallet Instance Attestation.
-        The key is matched by its kid */
-    const signedJwtForPar = await new SignJWT(wiaCryptoContext)
-      .setProtectedHeader({
-        typ: "jwk",
-        kid: wiaPublicKey.kid,
-      })
-      .setPayload({
-        jti: `${uuid.v4()}`,
-        aud,
-        response_type: "code",
-        response_mode: responseMode,
-        client_id: clientId,
-        iss,
-        state: generateRandomAlphaNumericString(32),
-        code_challenge: codeChallenge,
-        code_challenge_method: codeChallengeMethod,
-        authorization_details: authorizationDetails,
-        redirect_uri: redirectUri,
-        client_assertion_type: assertionType,
-        client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
-      })
-      .setIssuedAt() //iat is set to now
-      .setExpirationTime("5min")
-      .sign();
-
     /** The request body for the Pushed Authorization Request */
     var formBody = new URLSearchParams({
-      response_type: "code",
       client_id: clientId,
+      jti: `${uuid.v4()}`,
+      aud,
+      response_type: "code",
+      iss,
+      state: generateRandomAlphaNumericString(32),
       code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-      request: signedJwtForPar,
-      client_assertion_type: assertionType,
-      client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
+      code_challenge_method: codeChallengeMethod,
+      authorization_details: JSON.stringify(authorizationDetails),
+      redirect_uri: redirectUri,
     });
 
     return await appFetch(parEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        "OAuth-Client-Attestation": walletInstanceAttestation,
+        "OAuth-Client-Attestation-PoP": signedWiaPoP,
       },
       body: formBody.toString(),
     })
-      .then(hasStatusOrThrow(201, IssuerResponseError))
+      .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.json())
       .then((result) => result.request_uri);
   };

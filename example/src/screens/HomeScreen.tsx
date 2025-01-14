@@ -9,11 +9,10 @@ import type { ComponentProps } from "react";
 import React, { useMemo } from "react";
 import { Alert, FlatList, SafeAreaView } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectPid } from "../store/reducers/pid";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
+
 import { useAppSelector } from "../store/utils";
+import { selectSesssionId } from "../store/reducers/sesssion";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 
@@ -24,18 +23,11 @@ type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 const HomeScreen = () => {
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
-  const pid = useAppSelector(selectPid);
-  const session = useAppSelector(selectIoAuthToken);
-  const credentials = useAppSelector(selectCredentials);
+  const session = useAppSelector(selectSesssionId);
 
   useDebugInfo({
     session,
   });
-
-  const hasSomeCredential = React.useMemo(
-    () => Object.values(credentials).filter((_) => !!_).length > 0,
-    [credentials]
-  );
 
   const sections: Array<ModuleSummaryProps> = useMemo(
     () => [
@@ -47,40 +39,31 @@ const HomeScreen = () => {
       },
       {
         label: "PID",
-        description: "Obtain a PID with SPID or CIE",
+        description: "Obtain a PID",
         icon: "chevronRight",
         onPress: () =>
           hasIntegrityKeyTag
             ? navigation.navigate("Pid")
             : Alert.alert("Create a wallet instance first"),
       },
-      {
-        label: "Credentials",
-        description: "Obtain a credential with PID authentication",
-        icon: "chevronRight",
-        onPress: () =>
-          pid && hasIntegrityKeyTag
-            ? navigation.navigate("Credentials")
-            : Alert.alert("Register a wallet instance and obtain a PID first"),
-      },
-      {
-        label: "Status Attestation",
-        description: "Obtain the status attestation of a credential",
-        icon: "chevronRight",
-        onPress: () =>
-          credentials.MDL
-            ? navigation.navigate("StatusAttestation")
-            : Alert.alert("Obtain a MDL first"),
-      },
-      {
-        label: "Trustmark",
-        description: "Obtain the trustmark of a credential",
-        icon: "chevronRight",
-        onPress: () =>
-          hasSomeCredential
-            ? navigation.navigate("Trustmark")
-            : Alert.alert("Obtain a credential first"),
-      },
+      // {
+      //   label: "Credentials",
+      //   description: "Obtain a credential with PID authentication",
+      //   icon: "chevronRight",
+      //   onPress: () =>
+      //     pid && hasIntegrityKeyTag
+      //       ? navigation.navigate("Credentials")
+      //       : Alert.alert("Register a wallet instance and obtain a PID first"),
+      // },
+      // {
+      //   label: "Status Attestation",
+      //   description: "Obtain the status attestation of a credential",
+      //   icon: "chevronRight",
+      //   onPress: () =>
+      //     credentials.MDL
+      //       ? navigation.navigate("StatusAttestation")
+      //       : Alert.alert("Obtain a MDL first"),
+      // },
       {
         label: "Settings",
         description: "Change the environment and logout",
@@ -88,7 +71,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, credentials, hasSomeCredential]
+    [hasIntegrityKeyTag, navigation]
   );
 
   return (

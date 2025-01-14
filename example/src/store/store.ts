@@ -13,7 +13,6 @@ import { instanceReducer } from "./reducers/instance";
 import { attestationReducer } from "./reducers/attestation";
 import { credentialReducer } from "./reducers/credential";
 import { debugSlice } from "./reducers/debug";
-import { environmentReducer } from "./reducers/environment";
 import { pidReducer } from "./reducers/pid";
 
 /**
@@ -21,7 +20,6 @@ import { pidReducer } from "./reducers/pid";
  */
 export const store = configureStore({
   reducer: {
-    environment: environmentReducer,
     debug: debugSlice.reducer,
     session: sessionReducer,
     instance: instanceReducer,

@@ -1,22 +1,21 @@
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 import { createPopToken } from "../../utils/pop";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
 
 export type AuthorizeAccess = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   code: Out<CompleteUserAuthorizationWithQueryMode>["code"],
   redirectUri: string,
-  clientId: Out<StartUserAuthorization>["clientId"],
   codeVerifier: Out<StartUserAuthorization>["codeVerifier"],
+  clientId: Out<StartUserAuthorization>["clientId"],
   context: {
     walletInstanceAttestation: string;
     appFetch?: GlobalFetch["fetch"];
@@ -30,7 +29,7 @@ export type AuthorizeAccess = (
  * for requesting the issuance of an access token bound to the public key of the Wallet Instance contained within the DPoP.
  * This enables the Wallet Instance to request a digital credential.
  * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param code The authorization code returned by {@link completeUserAuthorizationWithQueryMode} or {@link completeUserAuthorizationWithFormPost}
  * @param redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
  * @param clientId The client id returned by {@link startUserAuthorization}
@@ -46,9 +45,9 @@ export type AuthorizeAccess = (
 export const authorizeAccess: AuthorizeAccess = async (
   issuerConf,
   code,
-  clientId,
   redirectUri,
   codeVerifier,
+  clientId,
   context
 ) => {
   const {
@@ -58,14 +57,13 @@ export const authorizeAccess: AuthorizeAccess = async (
     dPopCryptoContext,
   } = context;
 
-  const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+  const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
   const parUrl = new URL(parEndpoint);
   const aud = `${parUrl.protocol}//${parUrl.hostname}`;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
-  const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;
+  const tokenUrl = issuerConf.token_endpoint;
 
   const tokenRequestSignedDPop = await createDPopToken(
     {
@@ -87,12 +85,10 @@ export const authorizeAccess: AuthorizeAccess = async (
 
   const requestBody = {
     grant_type: "authorization_code",
-    client_id: clientId,
     code,
     redirect_uri: redirectUri,
     code_verifier: codeVerifier,
-    client_assertion_type: ASSERTION_TYPE,
-    client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
+    client_id: clientId,
   };
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);
@@ -101,6 +97,8 @@ export const authorizeAccess: AuthorizeAccess = async (
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       DPoP: tokenRequestSignedDPop,
+      "OAuth-Client-Attestation": walletInstanceAttestation,
+      "OAuth-Client-Attestation-PoP": signedWiaPoP,
     },
     body: authorizationRequestFormBody.toString(),
   })

@@ -1,5 +1,4 @@
 import type { ProblemDetail } from "../client/generated/wallet-provider";
-import type { CredentialIssuerEntityConfiguration } from "../trust";
 import {
   IssuerResponseErrorCodes,
   WalletProviderResponseErrorCodes,
@@ -147,56 +146,6 @@ export class WalletProviderResponseError extends UnexpectedStatusCodeError {
       params.code ??
       WalletProviderResponseErrorCodes.WalletProviderGenericError;
   }
-}
-
-type LocalizedIssuanceError = {
-  [locale: string]: {
-    title: string;
-    description: string;
-  };
-};
-
-/**
- * Function to extract the error message from the Entity Configuration's supported error codes.
- * @param errorCode The error code to map to a meaningful message
- * @param issuerConf The entity configuration for credentials
- * @param credentialType The type of credential the error belongs to
- * @returns A localized error {@link LocalizedIssuanceError} or undefined
- * @throws {IoWalletError} When no credential config is found
- */
-export function extractErrorMessageFromIssuerConf(
-  errorCode: string,
-  {
-    issuerConf,
-    credentialType,
-  }: {
-    issuerConf: CredentialIssuerEntityConfiguration["payload"]["metadata"];
-    credentialType: string;
-  }
-): LocalizedIssuanceError | undefined {
-  const credentialConfiguration =
-    issuerConf.openid_credential_issuer.credential_configurations_supported[
-      credentialType
-    ];
-
-  if (!credentialConfiguration) {
-    throw new IoWalletError(
-      `No configuration found for ${credentialType} in the provided EC`
-    );
-  }
-
-  const { issuance_errors_supported } = credentialConfiguration;
-
-  if (!issuance_errors_supported?.[errorCode]) {
-    return undefined;
-  }
-
-  const localesList = issuance_errors_supported[errorCode]!.display;
-
-  return localesList.reduce(
-    (acc, { locale, ...rest }) => ({ ...acc, [locale]: rest }),
-    {} as LocalizedIssuanceError
-  );
 }
 
 /**

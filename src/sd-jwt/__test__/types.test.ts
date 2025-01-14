@@ -8,6 +8,11 @@ describe("SdJwt4VC", () => {
         typ: "vc+sd-jwt",
         alg: "RS512",
         kid: "dB67gL7ck3TFiIAf7N6_7SHvqk0MDYMEQcoGGlkUAAw",
+        x5c: "MIIDXTCCAkWgAwIBAgIJAL7VZC9iW+IhMA0GCSqGSIb3DQEBCwUAMEUxCzA..safsafEWFsd=",
+        vctm: [
+          "eyJ0eXBlIjoiQ29udHJhY3QiLCJkZXNjcmlwdGlvbiI6IkEgYmFzZSBjb250cmFjdCBmb3IgaWRlbn",
+          "RpdHkgdmFsaWRhdGlvbi4iLCJ2ZXJzaW9uIjoxLCJleHRlbnNpb25zIjp7InN1Ym1pdHRlciI6eyJ1",
+        ],
       },
       payload: {
         _sd: [
@@ -21,6 +26,8 @@ describe("SdJwt4VC", () => {
         sub: "216f8946-9ecb-4819-9309-c076f34a7e11",
         _sd_alg: "sha-256",
         vct: "PersonIdentificationData",
+        "vct#integrity":
+          "c5f73e250fe869f24d15118acce286c9bb56b63a443dc85af653cd73f6078b1f",
         iss: "https://pidprovider.example.com",
         cnf: {
           jwk: {

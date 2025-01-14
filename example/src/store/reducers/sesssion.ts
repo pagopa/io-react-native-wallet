@@ -1,13 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistReducer, type PersistConfig } from "redux-persist";
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../types";
+import uuid from "react-native-uuid";
 
-// State type definition for the session slice
-type SessionState = { ioAuthToken: string | undefined };
+/* State type definition for the session slice
+ * essionId - Randomly generated session id which identifies a wallet when creating a wallet instance. It gets resetted when the onboarding
+ */
+type SessionState = { sessionId: string };
 
 // Initial state for the session slice
-const initialState: SessionState = { ioAuthToken: undefined };
+const initialState: SessionState = { sessionId: uuid.v4().toString() };
 
 /**
  * Redux slice for the session state. It contains the IO auth token.
@@ -16,10 +19,6 @@ export const sessionSlice = createSlice({
   name: "session",
   initialState,
   reducers: {
-    // Sets the IO auth token
-    sessionSet: (state, action: PayloadAction<string>) => {
-      state.ioAuthToken = action.payload;
-    },
     // Resets the session state when logging out
     sessionReset: () => initialState,
   },
@@ -28,7 +27,7 @@ export const sessionSlice = createSlice({
 /**
  * Exports the actions for the session slice.
  */
-export const { sessionSet, sessionReset } = sessionSlice.actions;
+export const { sessionReset } = sessionSlice.actions;
 
 /**
  * Redux persist configuration for the session slice.
@@ -52,5 +51,4 @@ export const sessionReducer = persistReducer(
  * @param state - The root state of the Redux store
  * @returns The IO auth token
  */
-export const selectIoAuthToken = (state: RootState) =>
-  state.session.ioAuthToken;
+export const selectSesssionId = (state: RootState) => state.session.sessionId;

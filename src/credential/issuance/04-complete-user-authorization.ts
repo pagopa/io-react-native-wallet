@@ -7,7 +7,7 @@ import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import {
   decode,
   encodeBase64,
@@ -40,16 +40,13 @@ export type CompleteUserAuthorizationWithFormPostJwtMode = (
 
 export type GetRequestedCredentialToBePresented = (
   issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   appFetch?: GlobalFetch["fetch"]
 ) => Promise<RequestObject>;
 
 export type BuildAuthorizationUrl = (
   issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  idpHint: string
+  issuerConf: Out<GetIssuerConfig>["issuerConf"]
 ) => Promise<{
   authUrl: string;
 }>;
@@ -58,24 +55,17 @@ export type BuildAuthorizationUrl = (
  * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
  * Builds the authorization URL to which the end user should be redirected to continue the authentication flow.
  * @param issuerRequestUri the URI of the issuer where the request is sent
- * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param idpHint Unique identifier of the IDP selected by the user
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @returns An object containing the authorization URL
  */
 export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
   issuerRequestUri,
-  clientId,
-  issuerConf,
-  idpHint
+  issuerConf
 ) => {
-  const authzRequestEndpoint =
-    issuerConf.oauth_authorization_server.authorization_endpoint;
+  const authzRequestEndpoint = issuerConf.authorization_endpoint;
 
   const params = new URLSearchParams({
-    client_id: clientId,
     request_uri: issuerRequestUri,
-    idphint: idpHint,
   });
 
   const authUrl = `${authzRequestEndpoint}?${params}`;
@@ -104,17 +94,15 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
  * The information is obtained by performing a GET request to the authorization endpoint with request_uri and client_id parameters.
  * @param issuerRequestUri the URI of the issuer where the request is sent
  * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {ValidationFailed} if an error while validating the response
  * @returns the request object which contains the credential to be presented in order to obtain the requested credential
  */
 export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePresented =
-  async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
-    const authzRequestEndpoint =
-      issuerConf.oauth_authorization_server.authorization_endpoint;
+  async (issuerRequestUri, issuerConf, appFetch = fetch) => {
+    const authzRequestEndpoint = issuerConf.authorization_endpoint;
     const params = new URLSearchParams({
-      client_id: clientId,
       request_uri: issuerRequestUri,
     });
 
@@ -143,7 +131,7 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
  * The information is obtained by performing a GET request to the authorization endpoint with request_uri and client_id parameters.
  * @param issuerRequestUri the URI of the issuer where the request is sent
  * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param context.walletInstanceAccestation the Wallet Instance's attestation to be presented
  * @param context.pid the PID to be presented
  * @param context.wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
@@ -200,7 +188,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       id: `${uuid.v4()}`,
       descriptor_map: [
         {
-          id: "PersonIdentificationData",
+          id: "eu.europa.ec.eudi.pid_jwt_vc_json",
           path: "$.vp_token[0].vp",
           format: "vc+sd-jwt",
         },
