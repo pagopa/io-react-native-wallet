@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
-import { preparePidFlowParamsThunk } from "../../thunks/pid";
+import { getPidThunk } from "../../thunks/pid";
 
 import { createSecureStorage } from "../storage";
 import type { AsyncStatus, PidResult, RootState } from "../types";
@@ -40,32 +40,32 @@ const pidSlice = createSlice({
      * PID flow Params Thunk
      */
 
-    /* Dispatched when a prepare PID flow params async thunk resolves.
-     *  Sets the obtained params and its state to isDone while resetting isLoading and hasError
-     * for the PID.
+    /* Dispatched when a get PID flow async thunk resolves.
+     *  Sets the obtained pid and
      */
-    builder.addCase(preparePidFlowParamsThunk.fulfilled, (state, action) => {
+    builder.addCase(getPidThunk.fulfilled, (state, action) => {
       state.pid = action.payload;
+      state.pidAsyncStatus = {
+        ...asyncStatusInitial,
+        isDone: true,
+      };
       // The flow must be continued after this so we do not set isLoading for the credential state to true yet.
     });
 
     /*
-     * Dispatched when a prepare PID flow params async thunk is pending.
-     * Sets the flow params and the credential state to isLoading
-     * for the PID.
+     * Dispatched when a get PID flow params async thunk is pending.
      */
-    builder.addCase(preparePidFlowParamsThunk.pending, (state) => {
+    builder.addCase(getPidThunk.pending, (state) => {
       state.pidAsyncStatus = {
         ...asyncStatusInitial,
         isLoading: true,
       };
     });
 
-    /* Dispatched when a prepare PID flow params async thunk is rejected.
+    /* Dispatched when a get PID thunk is rejected.
      * Resets the flow params and sets the credential state to hasError while resetting isLoading and hasError
-     * for the requested credential.
      */
-    builder.addCase(preparePidFlowParamsThunk.rejected, (state, action) => {
+    builder.addCase(getPidThunk.rejected, (state, action) => {
       state.pidAsyncStatus = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },

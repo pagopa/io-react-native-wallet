@@ -7,7 +7,7 @@ import { FlatList } from "react-native";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
-import { preparePidFlowParamsThunk } from "../thunks/pid";
+import { getPidThunk } from "../thunks/pid";
 import { SPID_DEMO_IDPHINT } from "../utils/environment";
 
 /**
@@ -32,7 +32,7 @@ export const PidScreen = () => {
         isCieL3: false,
         onPress: () =>
           dispatch(
-            preparePidFlowParamsThunk({
+            getPidThunk({
               credentialType: "urn:eu.europa.ec.eudi:pid:1",
               idpHint: SPID_DEMO_IDPHINT,
             })
