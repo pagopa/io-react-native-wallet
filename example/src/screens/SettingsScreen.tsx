@@ -1,12 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from "react";
-import { SafeAreaView, ScrollView } from "react-native";
+import { Alert, SafeAreaView, ScrollView } from "react-native";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import {
-  H1,
-  IOVisualCostants,
-  ListItemAction,
-} from "@pagopa/io-app-design-system";
+import { ButtonSolid, IOVisualCostants } from "@pagopa/io-app-design-system";
 import { selectSesssionId, sessionReset } from "../store/reducers/sesssion";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 
@@ -26,12 +22,22 @@ const HomeScreen = () => {
       style={{ flex: 1, margin: IOVisualCostants.appMarginDefault }}
     >
       <ScrollView>
-        <H1>Session</H1>
-        <ListItemAction
-          variant="danger"
-          icon="logout"
-          label={"Reset"}
-          onPress={() => dispatch(sessionReset())}
+        <ButtonSolid
+          fullWidth
+          label="Reset App"
+          onPress={() =>
+            Alert.alert(
+              "Reset App",
+              "This will reset the app state to default",
+              [
+                {
+                  text: "Cancel",
+                  style: "cancel",
+                },
+                { text: "OK", onPress: () => dispatch(sessionReset()) },
+              ]
+            )
+          }
         />
       </ScrollView>
     </SafeAreaView>
