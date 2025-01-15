@@ -1,21 +1,9 @@
 export const IssuerResponseErrorCodes = {
   IssuerGenericError: "ERR_ISSUER_GENERIC_ERROR",
   /**
-   * Error code thrown when a credential cannot be issued immediately because it follows the async flow.
-   */
-  CredentialIssuingNotSynchronous: "ERR_CREDENTIAL_ISSUING_NOT_SYNCHRONOUS",
-  /**
    * Error code thrown when an error occurs while requesting a credential.
    */
   CredentialRequestFailed: "ERR_CREDENTIAL_REQUEST_FAILED",
-  /**
-   * Error code thrown when a credential status is invalid, either during issuance or when requesting a status attestation.
-   */
-  CredentialInvalidStatus: "ERR_CREDENTIAL_INVALID_STATUS",
-  /**
-   * Error code thrown when an error occurs while obtaining a status attestation for a credential.
-   */
-  StatusAttestationRequestFailed: "ERR_STATUS_ATTESTATION_REQUEST_FAILED",
 } as const;
 
 export const WalletProviderResponseErrorCodes = {

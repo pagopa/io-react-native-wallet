@@ -1,3 +1,4 @@
+import { CredentialFormat } from "../entity/issuer/types";
 import { JWK } from "../utils/jwk";
 import { z } from "zod";
 
@@ -45,7 +46,7 @@ export const Verification = z.object({
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
-    typ: z.literal("vc+sd-jwt"),
+    typ: CredentialFormat,
     alg: z.string(),
     kid: z.string().optional(),
     x5c: z.string().optional(),

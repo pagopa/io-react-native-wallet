@@ -21,7 +21,7 @@ import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
  * @param idpHint - The hint for the Identity Provider to use
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
- * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @param credentialType - The type of the credential to obtain, which must be `urn:eu.europa.ec.eudi:pid:1`
  * @returns The obtained credential result
  */
 export const getPidCieID = async ({
@@ -37,7 +37,7 @@ export const getPidCieID = async ({
   idpHint: string;
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
-  credentialType: "PersonIdentificationData";
+  credentialType: "urn:eu.europa.ec.eudi:pid:1";
 }): Promise<PidResult> => {
   /*
    * Create credential crypto context for the PID
@@ -50,7 +50,7 @@ export const getPidCieID = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: pidIssuerUrl,
-    credentialType: "PersonIdentificationData",
+    credentialType: "urn:eu.europa.ec.eudi:pid:1",
     appFetch,
   });
 
@@ -146,7 +146,7 @@ export const getPidCieID = async ({
  * Implements a flow to obtain a generic credential.
  * @param credentialIssuerUrl - The credential issuer URL
  * @param redirectUri - The redirect URI for the authorization flow
- * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @param credentialType - The type of the credential to obtain, which must be `urn:eu.europa.ec.eudi:pid:1`
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
  * @param pid - The PID credential

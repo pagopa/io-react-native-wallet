@@ -185,3 +185,15 @@ export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
     return originalError;
   }
 }
+
+type ErrorCodeMap<T> = T extends typeof IssuerResponseError
+  ? IssuerResponseErrorCode
+  : T extends typeof WalletProviderResponseError
+  ? WalletProviderResponseErrorCode
+  : never;
+
+type ErrorCase<T> = {
+  code: ErrorCodeMap<T>;
+  message: string;
+  reason?: GenericErrorReason;
+};

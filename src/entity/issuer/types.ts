@@ -22,8 +22,10 @@ export const CredentialClaimDisplay = z.object({
   locale: z.string(),
 });
 
-export const CredentialFormat = z.literal("vc+sd-jwt");
-
+export const CredentialFormat = z.union([
+  z.literal("vc+sd-jwt"),
+  z.literal("example+sd-jwt"),
+]);
 const CredentialSdJwtClaims = z.record(
   z.object({
     mandatory: z.boolean(),

@@ -60,13 +60,15 @@ const selectCredentialDefinition = (
  * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
  * @param issuerConf The issuer configuration
  * @param credentialType The type of the credential to be requested
- * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
+ * @returns The response mode to be used in the request, "query" for urn:eu.europa.ec.eudi:pid:1 and "form_post.jwt" for all other types.
  */
 const selectResponseMode = (
   credentialType: Out<StartFlow>["credentialType"]
 ): ResponseMode => {
   const responseMode =
-    credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
+    credentialType === "urn:eu.europa.ec.eudi:pid:1"
+      ? "query"
+      : "form_post.jwt";
 
   return responseMode;
 };

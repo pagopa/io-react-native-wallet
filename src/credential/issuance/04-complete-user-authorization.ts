@@ -21,7 +21,7 @@ import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
 
 /**
- * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
+ * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a urn:eu.europa.ec.eudi:pid:1.
  */
 export type CompleteUserAuthorizationWithQueryMode = (
   authRedirectUrl: string
@@ -84,7 +84,7 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
 
 /**
  * WARNING: This function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID.
- * Complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
+ * Complete User authorization via strong identification when the response mode is "query" and the request credential is a urn:eu.europa.ec.eudi:pid:1.
  * This function parses the authorization redirect URL to extract the authorization response.
  * @param authRedirectUrl The URL to which the end user should be redirected to start the authentication flow
  * @returns the authorization response which contains code, state and iss
@@ -198,7 +198,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       id: `${uuid.v4()}`,
       descriptor_map: [
         {
-          id: "PersonIdentificationData",
+          id: "urn:eu.europa.ec.eudi:pid:1",
           path: "$.vp_token[0].vp",
           format: "vc+sd-jwt",
         },
