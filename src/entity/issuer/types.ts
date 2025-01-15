@@ -35,17 +35,15 @@ export type CredentialConfigurationSupported = z.infer<
   typeof CredentialConfigurationSupported
 >;
 export const CredentialConfigurationSupported = z.record(
-  z.array(
-    z.object({
-      cryptographic_suites_supported: z.array(z.string()),
-      vct: z.string(),
-      scope: z.string(),
-      cryptographic_binding_methods_supported: z.array(z.string()),
-      display: z.array(CredentialDisplay),
-      format: CredentialFormat,
-      claims: CredentialSdJwtClaims,
-    })
-  )
+  z.object({
+    cryptographic_suites_supported: z.array(z.string()),
+    vct: z.string(),
+    scope: z.string(),
+    cryptographic_binding_methods_supported: z.array(z.string()),
+    display: z.array(CredentialDisplay),
+    format: CredentialFormat,
+    claims: CredentialSdJwtClaims,
+  })
 );
 
 export type CredentialIssuerKeys = z.infer<typeof CredentialIssuerKeys>;

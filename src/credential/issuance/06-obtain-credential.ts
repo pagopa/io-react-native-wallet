@@ -100,22 +100,32 @@ export const obtainCredential: ObtainCredential = async (
       credentialDefinition.credential_configuration_id &&
     accessToken.authorization_details.type === credentialDefinition.type;
 
-  const format =
-    issuerConf.credential_configurations_supported[
-      credentialDefinition.credential_configuration_id
-    ]![0]!.format;
-
-  if (!format) {
+  if (!containsCredentialDefinition) {
     throw new ValidationFailed({
       message:
         "The access token response does not contain the requested credential",
     });
   }
 
-  if (!containsCredentialDefinition) {
+  const credential =
+    issuerConf.credential_configurations_supported[
+      credentialDefinition.credential_configuration_id
+    ];
+
+  if (!credential) {
+    throw new ValidationFailed({
+      message: "The credential configuration is not supported by the issuer",
+    });
+  }
+
+  console.log(JSON.stringify(credential));
+
+  const format = credential.format;
+
+  if (!format) {
     throw new ValidationFailed({
       message:
-        "The access token response does not contain the requested credential",
+        "The credential doesn't contain the format required by the issuer",
     });
   }
 

@@ -47,7 +47,7 @@ const selectCredentialDefinition = (
 
   const result = {
     credential_configuration_id: credentialType,
-    format: credential[0]!.format,
+    format: credential.format,
     type: "openid_credential" as const,
   };
 

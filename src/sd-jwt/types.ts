@@ -33,22 +33,13 @@ export type DisclosureWithEncoded = {
   encoded: string;
 };
 
-const VerificationEvidence = z.object({
-  type: z.string(),
-  record: z.object({
-    type: z.string(),
-    source: z.object({
-      organization_name: z.string(),
-      organization_id: z.string(),
-      country_code: z.string(),
-    }),
-  }),
-});
 export type Verification = z.infer<typeof Verification>;
 export const Verification = z.object({
-  trustFramework: z.literal("eidas"),
-  assuranceLevel: z.string(),
-  evidence: z.array(VerificationEvidence),
+  trust_framework: z.literal("eidas"),
+  assurance_level: z.string(),
+  evidence: z.object({
+    method: z.string(),
+  }),
 });
 
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
@@ -68,7 +59,7 @@ export const SdJwt4VC = z.object({
       exp: UnixTime,
       _sd_alg: z.literal("sha-256"),
       status: z.object({
-        status_attestation: z.object({
+        status_assertion: z.object({
           credential_hash_alg: z.literal("sha-256"),
         }),
       }),
