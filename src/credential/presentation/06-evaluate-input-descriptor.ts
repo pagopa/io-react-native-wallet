@@ -41,7 +41,7 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
       // For Potential profile, selectively disclosed claims will always be built as an individual object property, by using a name-value pair.
       // Hence that selective claim for array element and recursive disclosures are not supported by Potential for the first iteration of Piloting.
       // We need to check inside payload or inside disclosures. Example path: "$.given_name"
-      // We user slice to remove "$.", for future field.path can point deeper (e.g., $.some.deep.key), we may need more robust!!
+      // We use slice to remove "$.", for future field.path can point deeper (e.g., $.some.deep.key), we may need more robust!!
       let matchedPath = field.path.find((singlePath) =>
         disclosures.find((item) => item.decoded[1] === singlePath.slice(2))
       );

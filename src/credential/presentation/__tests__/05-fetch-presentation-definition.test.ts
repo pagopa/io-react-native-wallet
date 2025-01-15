@@ -86,7 +86,7 @@ describe("fetchPresentDefinition", () => {
 
   it("returns the pre-configured presentationDefinition if 'scope' exists and no URI is provided", async () => {
     const mockRequestObject = {
-      scope: ["openid", "some-other-scope"],
+      scope: "openid",
     } as unknown as RequestObject;
 
     const mockRpConf: RelyingPartyEntityConfiguration["payload"]["metadata"] = {

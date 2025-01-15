@@ -94,7 +94,7 @@ const presentationDefinition = await Credential.Presentation.retrieveOrFetchPres
 // After confirm disclosures in app
   const authResponse = Credential.Presentation.sendAuthorizationResponse(
     requestObject,
-    jwks
+    jwks,
     [credential, disclosuresRequested, { appFetch: appFetch }]
   );
 
