@@ -84,6 +84,13 @@ const presentationDefinition = await Credential.Presentation.retrieveOrFetchPres
   rpConf // If trust federation is used
 );
 
+// For each credential, find it and evaluate input descriptor and disclosures
+  const disclosuresMatched = Credential.Presentation.evaluateInputDescriptionForSdJwt4VC(
+    inputDescriptor,
+    credential.payload,
+    disclosures // If trust federation is used
+  );
+
 
 ```
 
