@@ -5,42 +5,45 @@ describe("SdJwt4VC", () => {
     // example provided at https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html
     const token = {
       header: {
+        kid: "eNN-g5i6CnLKcltQBp6abbioGMbzM6muW3vuxw6uh88",
         typ: "vc+sd-jwt",
-        alg: "RS512",
-        kid: "dB67gL7ck3TFiIAf7N6_7SHvqk0MDYMEQcoGGlkUAAw",
-        x5c: "MIIDXTCCAkWgAwIBAgIJAL7VZC9iW+IhMA0GCSqGSIb3DQEBCwUAMEUxCzA..safsafEWFsd=",
-        vctm: [
-          "eyJ0eXBlIjoiQ29udHJhY3QiLCJkZXNjcmlwdGlvbiI6IkEgYmFzZSBjb250cmFjdCBmb3IgaWRlbn",
-          "RpdHkgdmFsaWRhdGlvbi4iLCJ2ZXJzaW9uIjoxLCJleHRlbnNpb25zIjp7InN1Ym1pdHRlciI6eyJ1",
-        ],
+        alg: "RS256",
       },
       payload: {
+        sub: "sj1OpYiiLTVYANnBGNwSK2krMwqpWaz2iHmN1t0_Esg",
         _sd: [
-          "0q1D5Jmav6pQaEh_J_Fcv_uNNMQIgCyhQOxqlY4l3qU",
-          "KCJ-AVNv88d-xj6sUIAOJxFnbUh3rHXDKkIH1lFqbRs",
-          "M9lo9YxDNIXrAq2qWeiCA40zpJ_zYfFdR_4AEALcRtU",
-          "czgjUk0nqRCswShChCjdS6A1-v47d_qTCSFIvIHhMoI",
-          "nGnQr7clm3tfTp8yjL_uHrDSOtzR2PVb8S7GeLdAqBQ",
-          "xNIVwlpSsaZ8CJSf0gz5x_75VRWWc6V1mlpejdCrqUs",
+          "1UmtISsdd7udbFaFy-ViZ8dZFherbOGD2N3HlX4PIC8",
+          "Fmjs4qzc5vkeOAY5G20_ZPvU-1q-oXaV7Ax516CCMFk",
+          "Q3bagNzMeQh6EgwPBSHimbgQplmY_6v9SW4go2XAkgA",
+          "QVwkn71B4pWfCOzzlQl9HnxFSVdEHuW35zdTQQdFQGc",
+          "VVdR41A2KOOVzxYagZCGbVang7sSkegCeiuWf3DOtjs",
+          "vO2dvncmzlv37MQkmWudSDIHDE9YHd0EFB8xBTDVjz0",
         ],
-        sub: "216f8946-9ecb-4819-9309-c076f34a7e11",
-        _sd_alg: "sha-256",
-        vct: "PersonIdentificationData",
         "vct#integrity":
-          "c5f73e250fe869f24d15118acce286c9bb56b63a443dc85af653cd73f6078b1f",
-        iss: "https://pidprovider.example.com",
+          "242302d97d38da2714a257f2a253bf2fa30aae5c109fe9581bfcda3b1d797c97",
+        _sd_alg: "sha-256",
+        vct: "urn:eu.europa.ec.eudi:pid:1",
+        iss: "https://api.potential-wallet-it-pid-provider.it",
         cnf: {
           jwk: {
             kty: "EC",
             crv: "P-256",
-            kid: "zEv_qGSL5r0_F67j2dwEgUJmBgbMNSEJ5K_iH1PYc7A",
-            x: "0Pj7v_afNp9ETJx11JbYgkI7yQpd0rtiYuo5feuAN2o",
-            y: "XB62Um02vHqedkOzSfJ5hdtjPz-zmV9jmWh4sKgdD9o",
+            kid: "LegnFQ8lvhA6qyPutYv48nWWpSnO5tHigavywyds5S0",
+            x: "czZrN9lcNuc0q69X40n27c5jKpii0A-aYX_Pbo9pqBQ",
+            y: "YGKGaCJNWfTiKiz3JmAG9ky7h4twPuUfzYOgy1bzLv8",
           },
         },
-        exp: 1751107255,
+        exp: 1768490196,
+        iat: 1736954196,
+        verification: {
+          evidence: {
+            method: "cie",
+          },
+          trust_framework: "eidas",
+          assurance_level: "high",
+        },
         status: {
-          status_attestation: {
+          status_assertion: {
             credential_hash_alg: "sha-256",
           },
         },

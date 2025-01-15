@@ -1,7 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import {
-  getCredentialStatusAttestationThunk,
   getCredentialThunk,
   type GetCredentialStatusAttestationThunkOutput,
 } from "../../thunks/credential";
@@ -117,58 +116,6 @@ const credentialSlice = createSlice({
         hasError: { status: true, error: action.error },
       };
     });
-
-    /**
-     * Status Attestation Thunk
-     */
-
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk resolves.
-     * Sets the status attestation and its state to isDone for the requested credential while resetting isLoading and hasError
-     * for the requested credential.
-     */
-    builder.addCase(
-      getCredentialStatusAttestationThunk.fulfilled,
-      (state, action) => {
-        const credentialType = action.payload.credentialType;
-        // Set the credential
-        state.statusAttestation[credentialType] = action.payload;
-        // Set the status
-        state.statusAttAsyncStatus[credentialType] = {
-          ...asyncStatusInitial,
-          isDone: true,
-        };
-      }
-    );
-
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk is pending.
-     * Sets the status attestation state to isLoading while resetting isDone and hasError
-     * for the requested credential.
-     */
-    builder.addCase(
-      getCredentialStatusAttestationThunk.pending,
-      (state, action) => {
-        const credentialType = action.meta.arg.credentialType;
-        state.statusAttAsyncStatus[credentialType] = {
-          ...asyncStatusInitial,
-          isLoading: true,
-        };
-      }
-    );
-
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk rejected.
-     * Sets the status attestation state to hasError while resetting isLoading and hasError
-     * for the requested credential.
-     */
-    builder.addCase(
-      getCredentialStatusAttestationThunk.rejected,
-      (state, action) => {
-        const credentialType = action.meta.arg.credentialType;
-        state.statusAttAsyncStatus[credentialType] = {
-          ...asyncStatusInitial,
-          hasError: { status: true, error: action.error },
-        };
-      }
-    );
 
     // Reset the credential state when the instance is reset.
     builder.addCase(instanceReset, () => initialState);

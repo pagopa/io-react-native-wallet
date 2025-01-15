@@ -10,7 +10,6 @@ import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
 import { PidScreen } from "../screens/PidScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { useAppDispatch } from "../store/utils";
@@ -83,11 +82,6 @@ export const MainStackNavigator = () => {
             name="Credentials"
             component={CredentialScreen}
             options={{ title: "Test credentials issuance" }}
-          />
-          <Stack.Screen
-            name="StatusAttestation"
-            component={StatusAttestationScreen}
-            options={{ title: "Test credentials attestations" }}
           />
           <Stack.Screen
             name="Settings"

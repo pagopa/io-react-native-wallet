@@ -184,21 +184,6 @@ const handleObtainCredentialError = (e: unknown) => {
   }
 
   throw new ResponseErrorBuilder(IssuerResponseError)
-    .handle(201, {
-      // Although it is technically not an error, we handle it as such to avoid
-      // changing the return type of `obtainCredential` and introduce a breaking change.
-      code: IssuerResponseErrorCodes.CredentialIssuingNotSynchronous,
-      message:
-        "This credential cannot be issued synchronously. It will be available at a later time.",
-    })
-    .handle(403, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
-    .handle(404, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
     .handle("*", {
       code: IssuerResponseErrorCodes.CredentialRequestFailed,
       message: "Unable to obtain the requested credential",
