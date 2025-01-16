@@ -1,6 +1,6 @@
 // fetchJwks.test.ts
 
-import { fetchJwksFromUri, fetchJwksFromConfig } from "../03-retrieve-jwks";
+import { fetchJwksFromUri, fetchJwksFromConfig } from "../04-retrieve-rp-jwks";
 
 import { JWKS } from "../../../utils/jwk";
 import { RelyingPartyEntityConfiguration } from "../../../trust/types";
@@ -40,12 +40,13 @@ describe("fetchJwksFromUri", () => {
       json: jest.fn().mockResolvedValue(mockJwksResponse),
     });
 
-    const clientUrl = "https://client.example.com";
-    const result = await fetchJwksFromUri(clientUrl, {});
+    const issUrl = new URL("https://client.example.com");
+    const issUrlJwk = new URL("/jwk", issUrl.toString());
+    const result = await fetchJwksFromUri(issUrlJwk, {});
 
     // Assertions
     expect(global.fetch).toHaveBeenCalledWith(
-      `${clientUrl}/.well-known/jar-issuer/jwk`,
+      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
       { method: "GET" }
     );
     expect(mockedJWKSParse).toHaveBeenCalledWith(mockJwksResponse);
@@ -61,14 +62,15 @@ describe("fetchJwksFromUri", () => {
 
     mockedJWKSParse.mockReturnValue(mockJwksResponse);
 
-    const clientUrl = "https://client.example.com";
-    const result = await fetchJwksFromUri(clientUrl, {
+    const issUrl = new URL("https://client.example.com");
+    const issUrlJwk = new URL("/jwk", issUrl.toString());
+    const result = await fetchJwksFromUri(issUrlJwk, {
       context: { appFetch: customFetch },
     });
 
     // Assertions
     expect(customFetch).toHaveBeenCalledWith(
-      `${clientUrl}/.well-known/jar-issuer/jwk`,
+      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
       { method: "GET" }
     );
     expect(mockedJWKSParse).toHaveBeenCalledWith(mockJwksResponse);
@@ -78,14 +80,15 @@ describe("fetchJwksFromUri", () => {
   it("should throw an error if the fetch fails", async () => {
     const customFetch = jest.fn().mockRejectedValue(new Error("Network error"));
 
-    const clientUrl = "https://client.example.com";
+    const issUrl = new URL("https://client.example.com");
+    const issUrlJwk = new URL("/jwk", issUrl.toString());
     await expect(
-      fetchJwksFromUri(clientUrl, { context: { appFetch: customFetch } })
+      fetchJwksFromUri(issUrlJwk, { context: { appFetch: customFetch } })
     ).rejects.toThrow("Network error");
 
     // Assertions
     expect(customFetch).toHaveBeenCalledWith(
-      `${clientUrl}/.well-known/jar-issuer/jwk`,
+      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
       { method: "GET" }
     );
   });
@@ -100,14 +103,15 @@ describe("fetchJwksFromUri", () => {
       text: jest.fn(),
     });
 
-    const clientUrl = "https://client.example.com";
-    await expect(fetchJwksFromUri(clientUrl, {})).rejects.toThrow(
+    const issUrl = new URL("https://client.example.com");
+    const issUrlJwk = new URL("/jwk", issUrl.toString());
+    await expect(fetchJwksFromUri(issUrlJwk, {})).rejects.toThrow(
       /Expected 200, got 404/
     );
 
     // Assertions
     expect(global.fetch).toHaveBeenCalledWith(
-      `${clientUrl}/.well-known/jar-issuer/jwk`,
+      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
       { method: "GET" }
     );
   });

@@ -15,8 +15,9 @@ export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => Promise<{
 
 /**
  * Retrieves the JSON Web Key Set (JWKS) from the specified client's well-known endpoint.
+ * It is formed using `{issUrl.base}/.well-known/jar-issuer${issUrl.pah}` as explained in SD-JWT VC issuer metadata section
  *
- * @param clientUrl - The base URL of the client entity from which to retrieve the JWKS.
+ * @param issUrl - The iss URL value which is contained inside Request Obkect which to retrieve the JWKS.
  * @param options - Optional context containing a custom fetch implementation.
  * @param options.context - Optional context object.
  * @param options.context.appFetch - Optional custom fetch function to use instead of the global `fetch`.
@@ -24,13 +25,13 @@ export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => Promise<{
  * @throws Will throw an error if the JWKS retrieval fails.
  */
 export const fetchJwksFromUri: FetchJwks<
-  [string, { context?: { appFetch?: GlobalFetch["fetch"] } }]
-> = async (clientUrl, { context = {} } = {}) => {
+  [URL, { context?: { appFetch?: GlobalFetch["fetch"] } }]
+> = async (issUrl, { context = {} } = {}) => {
   const { appFetch = fetch } = context;
 
   const wellKnownUrl = new URL(
-    "/.well-known/jar-issuer/jwk",
-    clientUrl
+    `/.well-known/jar-issuer${issUrl.pathname}`,
+    `${issUrl.protocol}//${issUrl.host}`
   ).toString();
 
   // Fetches the JWKS from a specific endpoint of the entity's well-known configuration
