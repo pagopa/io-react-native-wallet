@@ -1,17 +1,12 @@
 import uuid from "react-native-uuid";
 import {
-  decode as decodeJwt,
   sha256ToBase64,
-  verify,
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 
 import { createDPopToken } from "../../utils/dpop";
-import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
-import type { FetchJwks } from "./03-retrieve-jwks";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
-import { RequestObject } from "./types";
 
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestURI"],
@@ -19,9 +14,8 @@ export type GetRequestObject = (
     wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
     walletInstanceAttestation: string;
-  },
-  jwkKeys?: Out<FetchJwks>["keys"]
-) => Promise<{ requestObject: RequestObject }>;
+  }
+) => Promise<{ requestObjectEncodedJwt: string }>;
 
 /**
  * Obtain the Request Object for RP authentication
@@ -36,8 +30,7 @@ export type GetRequestObject = (
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation },
-  jwkKeys
+  { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation }
 ) => {
   const signedWalletInstanceDPoP = await createDPopToken(
     {
@@ -49,7 +42,7 @@ export const getRequestObject: GetRequestObject = async (
     wiaCryptoContext
   );
 
-  const responseEncodedJwt = await appFetch(requestUri, {
+  const requestObjectEncodedJwt = await appFetch(requestUri, {
     method: "GET",
     headers: {
       Authorization: `DPoP ${walletInstanceAttestation}`,
@@ -60,44 +53,7 @@ export const getRequestObject: GetRequestObject = async (
     .then((res) => res.json())
     .then((responseJson) => responseJson.response);
 
-  const responseJwt = decodeJwt(responseEncodedJwt);
-
-  await verifyTokenSignature(jwkKeys, responseJwt);
-
-  // Ensure that the request object conforms to the expected specification.
-  const requestObject = RequestObject.parse(responseJwt.payload);
-
   return {
-    requestObject,
+    requestObjectEncodedJwt,
   };
-};
-
-const verifyTokenSignature = async (
-  jwkKeys?: Out<FetchJwks>["keys"],
-  responseJwt?: any
-): Promise<void> => {
-  // verify token signature to ensure the request object is authentic
-  // 1. according to entity configuration if present
-  if (jwkKeys) {
-    const pubKey = jwkKeys.find(
-      ({ kid }) => kid === responseJwt.protectedHeader.kid
-    );
-    if (!pubKey) {
-      throw new NoSuitableKeysFoundInEntityConfiguration(
-        "Request Object signature verification"
-      );
-    }
-    await verify(responseJwt, pubKey);
-    return;
-  }
-
-  // 2. If jwk is not retrieved from entity config, check if the token contains the 'jwk' attribute
-  if (responseJwt.protectedHeader?.jwk) {
-    const pubKey = responseJwt.protectedHeader.jwk;
-    await verify(responseJwt, pubKey);
-    return;
-  }
-
-  // No verification condition matched: skipping signature verification for now.
-  // TODO: [EUDIW-215] Remove skipping signature verification
 };

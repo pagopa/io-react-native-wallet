@@ -57,17 +57,10 @@ const walletInstanceAttestation =
 // Start the issuance flow
 const { requestURI, clientId } = Credential.Presentation.startFlowFromQR(qrcode);
 
-// If use trust federation: Evaluate issuer trust and Fetch Jwks from rpConf
+// If use trust federation: Evaluate issuer trust
 const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clientId);
-const jwks = await Credential.Presentation.fetchJwksFromConfig(rpConf);
 
-// If not use trust: Fetch Jwks from well-know
-const jwks = await Credential.Presentation.fetchJwksFromUri(
-  requestURI,
-  appFetch,
-);
-
-const requestObject = await Credential.Presentation.getRequestObject(
+const requestObjectEncodedJwt = await Credential.Presentation.getRequestObject(
   requestURI,
   {
     wiaCryptoContext: wiaCryptoContext,
@@ -75,6 +68,25 @@ const requestObject = await Credential.Presentation.getRequestObject(
     walletInstanceAttestation: walletInstanceAttestation,
   }
 );
+
+// Retrieve RP JWK
+// If use trust federation: Fetch Jwks from rpConf
+const jwks = await Credential.Presentation.fetchJwksFromConfig(rpConf);
+
+// If not use trust: Fetch Jwks from well-know
+const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
+
+const jwks = await Credential.Presentation.fetchJwksFromUri(
+  requestObjectJwt.protectedHeader?.iss,
+  appFetch,
+);
+
+// Verify signature Request Object
+const requestObject = await Credential.Presentation.verifyRequestObjectSignature(
+  requestObjectEncodedJwt,
+  jwks
+);
+
 
 const presentationDefinition = await Credential.Presentation.retrieveOrFetchPresentDefinition(
   requestObject,

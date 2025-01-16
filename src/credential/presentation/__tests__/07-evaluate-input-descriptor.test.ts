@@ -1,6 +1,6 @@
 // __tests__/evaluateInputDescriptionForSdJwt4VC.test.ts
 
-import { evaluateInputDescriptionForSdJwt4VC } from "../06-evaluate-input-descriptor";
+import { evaluateInputDescriptionForSdJwt4VC } from "../07-evaluate-input-descriptor";
 import { InputDescriptor } from "../types";
 import {
   type SdJwt4VC,

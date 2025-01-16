@@ -4,7 +4,7 @@ import {
   buildBodyByDirectPost,
   buildBodyByDirectPostJwt,
   sendAuthorizationResponse,
-} from "../07-send-authorization-response";
+} from "../08-send-authorization-response";
 import { NoSuitableKeysFoundInEntityConfiguration } from "../errors";
 
 // Mocks for external modules

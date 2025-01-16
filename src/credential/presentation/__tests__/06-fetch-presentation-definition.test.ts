@@ -1,4 +1,4 @@
-import { fetchPresentDefinition } from "../05-fetch-presentation-definition";
+import { fetchPresentDefinition } from "../06-fetch-presentation-definition";
 import { PresentationDefinition, RequestObject } from "../types";
 import { RelyingPartyEntityConfiguration } from "../../../trust/types";
 

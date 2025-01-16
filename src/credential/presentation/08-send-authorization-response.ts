@@ -4,7 +4,7 @@ import type { FetchJwks } from "./03-retrieve-jwks";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { GetRequestObject } from "./04-get-request-object";
+import type { GetRequestObject } from "./03-get-request-object";
 import { disclose } from "../../sd-jwt";
 import { type Presentation } from "./types";
 import * as z from "zod";
