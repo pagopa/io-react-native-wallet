@@ -1,10 +1,10 @@
 import { EncryptJwe, SignJWT } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
-import type { FetchJwks } from "./03-retrieve-jwks";
+import type { FetchJwks } from "./04-retrieve-rp-jwks";
+import type { VerifyRequestObjectSignature } from "./05-verify-request-object";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { GetRequestObject } from "./03-get-request-object";
 import { disclose } from "../../sd-jwt";
 import { type Presentation } from "./types";
 import * as z from "zod";
@@ -65,7 +65,7 @@ export const chooseRSAPublicKeyToEncrypt = (
  * @todo [SIW-353] Support multiple verifiable credentials in a single request.
  */
 export const prepareVpToken = async (
-  requestObject: Out<GetRequestObject>["requestObject"],
+  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   [verifiableCredential, requestedClaims, cryptoContext]: Presentation
 ): Promise<{
   vp_token: string;
@@ -120,7 +120,7 @@ export const prepareVpToken = async (
  * @returns A string suitable for use as the body in a `application/x-www-form-urlencoded` POST request.
  */
 export const buildBodyByDirectPost = async (
-  requestObject: Out<GetRequestObject>["requestObject"],
+  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   vpToken: string,
   presentationSubmission: Record<string, unknown>
 ): Promise<string> => {
@@ -146,7 +146,7 @@ export const buildBodyByDirectPost = async (
  */
 export const buildBodyByDirectPostJwt = async (
   rpJwkKeys: Out<FetchJwks>["keys"],
-  requestObject: Out<GetRequestObject>["requestObject"],
+  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   vpToken: string,
   presentationSubmission: Record<string, unknown>
 ): Promise<string> => {
@@ -178,7 +178,7 @@ export const buildBodyByDirectPostJwt = async (
  * to the Relying Party, completing the presentation flow.
  */
 export type SendAuthorizationResponse = (
-  requestObject: Out<GetRequestObject>["requestObject"],
+  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   jwkKeys: Out<FetchJwks>["keys"],
   presentation: Presentation, // TODO: [SIW-353] support multiple presentations
   context: {
