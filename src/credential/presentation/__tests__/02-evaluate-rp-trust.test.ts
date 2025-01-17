@@ -1,8 +1,8 @@
 // __tests__/evaluateRelyingPartyTrust.test.ts
 
 import { evaluateRelyingPartyTrust } from "../02-evaluate-rp-trust";
-import { getRelyingPartyEntityConfiguration } from "../../../trust";
-import { RelyingPartyEntityConfiguration } from "../../../trust/types";
+import { getRelyingPartyEntityConfiguration } from "../../../entity/trust";
+import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 
 // Mock the getRelyingPartyEntityConfiguration module
 jest.mock("../../../trust", () => ({

@@ -1,4 +1,4 @@
-import { hasStatusOrThrow } from "../../utils/misc";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import { CredentialIssuerConfiguration } from "./types";
 
 /**

@@ -3,7 +3,7 @@
 import { fetchJwksFromUri, fetchJwksFromConfig } from "../03-retrieve-jwks";
 
 import { JWKS } from "../../../utils/jwk";
-import { RelyingPartyEntityConfiguration } from "../../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 
 // Mock the JWKS and JWK utilities
 jest.mock("../../../utils/jwk", () => ({

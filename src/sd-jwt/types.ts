@@ -1,4 +1,4 @@
-import { CredentialFormat } from "../entity/issuer/types";
+import { CredentialFormat } from "../entity/openid-connect/issuer/types";
 import { JWK } from "../utils/jwk";
 import { z } from "zod";
 

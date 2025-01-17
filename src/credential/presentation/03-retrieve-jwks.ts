@@ -1,6 +1,6 @@
 import { JWKS, JWK } from "../../utils/jwk";
 import { hasStatusOrThrow } from "../../utils/misc";
-import { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../entity/trust/types";
 
 /**
  * Defines the signature for a function that retrieves JSON Web Key Sets (JWKS) from a client.

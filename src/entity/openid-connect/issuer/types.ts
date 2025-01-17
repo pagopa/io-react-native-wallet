@@ -1,4 +1,4 @@
-import { JWK } from "../../utils/jwk";
+import { JWK } from "../../../utils/jwk";
 import * as z from "zod";
 
 // Display metadata for a credential, used by the issuer to
