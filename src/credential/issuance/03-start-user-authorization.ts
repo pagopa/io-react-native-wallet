@@ -51,8 +51,6 @@ const selectCredentialDefinition = (
     type: "openid_credential" as const,
   };
 
-  console.log(JSON.stringify(result));
-
   return result;
 };
 
@@ -111,8 +109,6 @@ export const startUserAuthorization: StartUserAuthorization = async (
     credentialType
   );
   const responseMode = selectResponseMode(credentialType);
-
-  console.log(responseMode);
 
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(

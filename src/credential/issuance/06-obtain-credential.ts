@@ -118,8 +118,6 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  console.log(JSON.stringify(credential));
-
   const format = credential.format;
 
   if (!format) {
