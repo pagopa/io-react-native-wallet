@@ -1,7 +1,6 @@
 // fetchJwks.test.ts
 
 import { fetchJwksFromUri, fetchJwksFromConfig } from "../03-retrieve-jwks";
-
 import { JWKS } from "../../../utils/jwk";
 import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 
@@ -13,7 +12,7 @@ jest.mock("../../../utils/jwk", () => ({
 }));
 
 // Mock the RelyingPartyEntityConfiguration
-jest.mock("../../../trust/types", () => ({
+jest.mock("../../../entity/trust/types", () => ({
   RelyingPartyEntityConfiguration: {
     safeParse: jest.fn(),
   },
