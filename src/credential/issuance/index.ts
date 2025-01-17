@@ -12,7 +12,7 @@ import {
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
   type GetRequestedCredentialToBePresented,
-  type BuildAuthorizationUrl,
+type BuildAuthorizationUrl,
   getRequestedCredentialToBePresented,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
