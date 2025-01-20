@@ -11,6 +11,11 @@ export type GetIssuerConfig = (
   }
 ) => Promise<{ issuerConf: IssuerConfig }>;
 
+/**
+ * Common configuration for the issuer.
+ * This is needed to have a common configuration for the issuer to be used in our flows.
+ * It allows to support multiple issuers with different configurations, defining a common interface to interact with them.
+ */
 export type IssuerConfig = {
   credential_configurations_supported: CredentialConfigurationSupported;
   pushed_authorization_request_endpoint: string;
@@ -22,9 +27,8 @@ export type IssuerConfig = {
 
 /**
  * WARNING: This function must be called after {@link startFlow}. The next function to be called is {@link startUserAuthorization}.
- * The Issuer trust evaluation phase.
- * Fetch the Issuer's configuration and verify trust.
- *
+ * Get the Issuer's configuration from the Issuer's metadata.
+ * Currently it only supports a mixed configuration based on OpenID Connect partial implementation.
  * @param issuerUrl The base url of the Issuer returned by {@link startFlow}
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The Issuer's configuration
@@ -36,10 +40,15 @@ export const getIssuerConfig: GetIssuerConfig = async (
   const res = await getCredentialIssuerMetadata(issuerUrl, {
     appFetch: context.appFetch,
   });
-  const issuerConf = credentialIssuerRationalization(res);
-  return issuerConf;
+
+  return credentialIssuerRationalization(res);
 };
 
+/**
+ * Rationalize the issuer's metadata to the issuer's configuration which is then used in our flows to interact with the issuer.
+ * @param issuerMetadata - The issuer's metadata
+ * @returns the isssuer configuration to be used later in our flows
+ */
 const credentialIssuerRationalization = (
   issuerMetadata: Awaited<ReturnType<typeof getCredentialIssuerMetadata>>
 ): Awaited<ReturnType<GetIssuerConfig>> => {
