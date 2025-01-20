@@ -5,7 +5,7 @@ import { getRelyingPartyEntityConfiguration } from "../../../entity/trust";
 import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 
 // Mock the getRelyingPartyEntityConfiguration module
-jest.mock("../../../entity/trust/types", () => ({
+jest.mock("../../../entity/trust", () => ({
   getRelyingPartyEntityConfiguration: jest.fn(),
 }));
 
