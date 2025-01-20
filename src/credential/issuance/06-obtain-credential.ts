@@ -4,7 +4,7 @@ import {
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
@@ -19,7 +19,7 @@ import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 
 export type ObtainCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
   credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
@@ -58,7 +58,7 @@ export const createNonceProof = async (
  * of the Credential Issuer to request the issuance of a credential linked to the public key contained in the JWT proof.
  * The Openid4vci proof JWT incapsulates the nonce extracted from the token response from the {@link authorizeAccess} step.
  * The credential request is sent to the Credential Endpoint of the Credential Issuer via HTTP POST with the type of the credential, its format, the access token and the JWT proof.
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param accessToken The access token response returned by {@link authorizeAccess}
  * @param clientId The client id returned by {@link startUserAuthorization}
  * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link startUserAuthorization}
@@ -81,7 +81,7 @@ export const obtainCredential: ObtainCredential = async (
     dPopCryptoContext,
   } = context;
 
-  const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+  const credentialUrl = issuerConf.credential_endpoint;
 
   /**
    * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
@@ -95,14 +95,10 @@ export const obtainCredential: ObtainCredential = async (
     credentialCryptoContext
   );
 
-  // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
-  const containsCredentialDefinition = accessToken.authorization_details.some(
-    (c) =>
-      c.credential_configuration_id ===
-        credentialDefinition.credential_configuration_id &&
-      c.format === credentialDefinition.format &&
-      c.type === credentialDefinition.type
-  );
+  const containsCredentialDefinition =
+    accessToken.authorization_details.credential_configuration_id ===
+      credentialDefinition.credential_configuration_id &&
+    accessToken.authorization_details.type === credentialDefinition.type;
 
   if (!containsCredentialDefinition) {
     throw new ValidationFailed({
@@ -111,12 +107,30 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
+  const credential =
+    issuerConf.credential_configurations_supported[
+      credentialDefinition.credential_configuration_id
+    ];
+
+  if (!credential) {
+    throw new ValidationFailed({
+      message: "The credential configuration is not supported by the issuer",
+    });
+  }
+
+  const format = credential.format;
+
+  if (!format) {
+    throw new ValidationFailed({
+      message:
+        "The credential doesn't contain the format required by the issuer",
+    });
+  }
+
   /** The credential request body */
   const credentialRequestFormBody = {
-    credential_definition: {
-      type: [credentialDefinition.credential_configuration_id],
-    },
-    format: credentialDefinition.format,
+    vct: credentialDefinition.credential_configuration_id,
+    format,
     proof: {
       jwt: signedNonceProof,
       proof_type: "jwt",
@@ -168,21 +182,6 @@ const handleObtainCredentialError = (e: unknown) => {
   }
 
   throw new ResponseErrorBuilder(IssuerResponseError)
-    .handle(201, {
-      // Although it is technically not an error, we handle it as such to avoid
-      // changing the return type of `obtainCredential` and introduce a breaking change.
-      code: IssuerResponseErrorCodes.CredentialIssuingNotSynchronous,
-      message:
-        "This credential cannot be issued synchronously. It will be available at a later time.",
-    })
-    .handle(403, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
-    .handle(404, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
     .handle("*", {
       code: IssuerResponseErrorCodes.CredentialRequestFailed,
       message: "Unable to obtain the requested credential",

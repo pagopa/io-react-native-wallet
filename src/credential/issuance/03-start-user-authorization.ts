@@ -1,13 +1,12 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { ResponseMode } from "./types";
 import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
-import { ASSERTION_TYPE } from "./const";
+import type { GetIssuerConfig } from "./02-get-issuer-config";
 
 export type StartUserAuthorization = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"],
   context: {
     wiaCryptoContext: CryptoContext;
@@ -25,7 +24,7 @@ export type StartUserAuthorization = (
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
  * issuer configuration.
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
  * @param credentialType The type of the credential to be requested returned by {@link startFlow}
  * @param context.wiaCryptoContext The Wallet Instance's crypto context
  * @param context.walletInstanceAttestation The Wallet Instance's attestation
@@ -34,23 +33,24 @@ export type StartUserAuthorization = (
  * @returns The credential definition to be used in the request which includes the format and the type and its type
  */
 const selectCredentialDefinition = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): AuthorizationDetail => {
   const credential_configurations_supported =
-    issuerConf.openid_credential_issuer.credential_configurations_supported;
+    issuerConf.credential_configurations_supported;
 
-  const [result] = Object.keys(credential_configurations_supported)
-    .filter((e) => e.includes(credentialType))
-    .map((e) => ({
-      credential_configuration_id: credentialType,
-      format: credential_configurations_supported[e]!.format,
-      type: "openid_credential" as const,
-    }));
+  const credential = credential_configurations_supported[credentialType];
 
-  if (!result) {
+  if (!credential) {
     throw new Error(`No credential support the type '${credentialType}'`);
   }
+
+  const result = {
+    credential_configuration_id: credentialType,
+    format: credential.format,
+    type: "openid_credential" as const,
+  };
+
   return result;
 };
 
@@ -58,27 +58,21 @@ const selectCredentialDefinition = (
  * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
  * @param issuerConf The issuer configuration
  * @param credentialType The type of the credential to be requested
- * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
+ * @returns The response mode to be used in the request, "query" for urn:eu.europa.ec.eudi:pid:1 and "form_post.jwt" for all other types.
  */
 const selectResponseMode = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"]
 ): ResponseMode => {
-  const responseModeSupported =
-    issuerConf.oauth_authorization_server.response_modes_supported;
-
   const responseMode =
-    credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
-
-  if (!responseModeSupported.includes(responseMode)) {
-    throw new Error(`No response mode support the type '${credentialType}'`);
-  }
+    credentialType === "urn:eu.europa.ec.eudi:pid:1"
+      ? "query"
+      : "form_post.jwt";
 
   return responseMode;
 };
 
 /**
- * WARNING: This function must be called after {@link evaluateIssuerTrust} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
+ * WARNING: This function must be called after {@link getIssuerConfig} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
  * Creates and sends a PAR request to the /as/par endpoint of the authorization server.
  * This starts the authentication flow to obtain an access token.
  * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer.
@@ -109,13 +103,12 @@ export const startUserAuthorization: StartUserAuthorization = async (
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   const codeVerifier = generateRandomAlphaNumericString(64);
-  const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+  const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
   const credentialDefinition = selectCredentialDefinition(
     issuerConf,
     credentialType
   );
-  const responseMode = selectResponseMode(issuerConf, credentialType);
+  const responseMode = selectResponseMode(credentialType);
 
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(
@@ -125,8 +118,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
     responseMode,
     parEndpoint,
     walletInstanceAttestation,
-    [credentialDefinition],
-    ASSERTION_TYPE
+    [credentialDefinition]
   );
 
   return { issuerRequestUri, clientId, codeVerifier, credentialDefinition };

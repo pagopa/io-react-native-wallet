@@ -1,3 +1,4 @@
+import { CredentialFormat } from "../entity/openid-connect/issuer/types";
 import { JWK } from "../utils/jwk";
 import { z } from "zod";
 
@@ -33,12 +34,23 @@ export type DisclosureWithEncoded = {
   encoded: string;
 };
 
+export type Verification = z.infer<typeof Verification>;
+export const Verification = z.object({
+  trust_framework: z.literal("eidas"),
+  assurance_level: z.string(),
+  evidence: z.object({
+    method: z.string(),
+  }),
+});
+
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
-    typ: z.literal("vc+sd-jwt"),
+    typ: CredentialFormat,
     alg: z.string(),
     kid: z.string().optional(),
+    x5c: z.string().optional(),
+    vctm: z.array(z.string()).optional(),
   }),
   payload: z.intersection(
     z.object({
@@ -48,7 +60,7 @@ export const SdJwt4VC = z.object({
       exp: UnixTime,
       _sd_alg: z.literal("sha-256"),
       status: z.object({
-        status_attestation: z.object({
+        status_assertion: z.object({
           credential_hash_alg: z.literal("sha-256"),
         }),
       }),
@@ -56,6 +68,8 @@ export const SdJwt4VC = z.object({
         jwk: JWK,
       }),
       vct: z.string(),
+      "vct#integrity": z.string().optional(),
+      verification: Verification.optional(),
     }),
     ObfuscatedDisclosures
   ),

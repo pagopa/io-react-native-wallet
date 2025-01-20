@@ -1,26 +1,18 @@
-import {
-  createCryptoContextFor,
-  Credential,
-} from "@pagopa/io-react-native-wallet";
+import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
 import {
   selectAttestation,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
-import { selectEnv } from "../store/reducers/environment";
 import type {
   CredentialResult,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
-import {
-  getCredential,
-  getCredentialStatusAttestation,
-} from "../utils/credential";
+import { getCredential } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
-import { getEnv } from "../utils/environment";
 import { selectPid } from "../store/reducers/pid";
-import type { Out } from "src/utils/misc";
 import { createAppAsyncThunk } from "./utils";
 import { getAttestationThunk } from "./attestation";
+import { REDIRECT_URI, WALLET_EAA_PROVIDER_BASE_URL } from "@env";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -30,26 +22,15 @@ type GetCredentialThunkInput = {
 };
 
 /**
- * Type definition for the input of the {@link getCredentialStatusAttestationThunk}.
- */
-type GetCredentialStatusAttestationThunkInput = {
-  credentialType: SupportedCredentialsWithoutPid;
-  credential: Out<Credential.Issuance.ObtainCredential>["credential"];
-  keyTag: string;
-};
-
-/**
  * Type definition for the output of the {@link getCredentialStatusAttestationThunk}.
  */
 export type GetCredentialStatusAttestationThunkOutput = {
-  statusAttestation: Out<Credential.Status.StatusAttestation>["statusAttestation"];
-  parsedStatusAttestation: Out<Credential.Status.VerifyAndParseStatusAttestation>["parsedStatusAttestation"];
   credentialType: SupportedCredentialsWithoutPid;
 };
 
 /**
  * Thunk to obtain a new credential.
- * @param args.idPhint- The idPhint for the Identity Provider to use if the requested credential is a `PersonIdentificationData`
+ * @param args.idPhint- The idPhint for the Identity Provider to use if the requested credential is a `urn:eu.europa.ec.eudi:pid:1`
  * @param args.credentialType - The type of the requested credential to obtain
  * @returns The obtained credential result
  */
@@ -70,10 +51,6 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
-  // Get env URLs
-  const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
-
   const { credentialType } = args;
 
   // Get the PID from the store
@@ -91,29 +68,4 @@ export const getCredentialThunk = createAppAsyncThunk<
     pid: pid.credential,
     pidCryptoContext,
   });
-});
-
-/**
- * Thunk to obtain a credential status attestation.
- * @param args.credentialType - TThe type of credential for which you want to obtain the status attestation.
- * @returns The obtained credential result
- */
-export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
-  GetCredentialStatusAttestationThunkOutput,
-  GetCredentialStatusAttestationThunkInput
->("credential/statusAttestationGet", async (args, { getState }) => {
-  const { credential, keyTag, credentialType } = args;
-
-  // Create credential crypto context
-  const credentialCryptoContext = createCryptoContextFor(keyTag);
-
-  const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL } = getEnv(env);
-
-  return await getCredentialStatusAttestation(
-    WALLET_EAA_PROVIDER_BASE_URL,
-    credential,
-    credentialCryptoContext,
-    credentialType
-  );
 });

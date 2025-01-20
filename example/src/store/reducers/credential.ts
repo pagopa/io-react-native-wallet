@@ -1,11 +1,6 @@
-import {
-  createSelector,
-  createSlice,
-  type PayloadAction,
-} from "@reduxjs/toolkit";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import {
-  getCredentialStatusAttestationThunk,
   getCredentialThunk,
   type GetCredentialStatusAttestationThunkOutput,
 } from "../../thunks/credential";
@@ -19,10 +14,6 @@ import { asyncStatusInitial } from "../utils";
 import { sessionReset } from "./sesssion";
 import { instanceReset } from "./instance";
 import { createSecureStorage } from "../storage";
-import {
-  getTrustmarkThunk,
-  type GetTrustmarkThunkOutput,
-} from "../../thunks/trustmark";
 
 /**
  * State type definition for the credential slice.
@@ -43,11 +34,6 @@ type CredentialState = {
     GetCredentialStatusAttestationThunkOutput | undefined
   >;
   statusAttAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-  trustmark: Record<
-    SupportedCredentialsWithoutPid,
-    GetTrustmarkThunkOutput | undefined
-  >;
-  trustmarkAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
 };
 
 // Initial state for the credential slice
@@ -72,16 +58,6 @@ const initialState: CredentialState = {
     EuropeanDisabilityCard: asyncStatusInitial,
     EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
-  trustmark: {
-    MDL: undefined,
-    EuropeanDisabilityCard: undefined,
-    EuropeanHealthInsuranceCard: undefined,
-  },
-  trustmarkAsyncStatus: {
-    MDL: asyncStatusInitial,
-    EuropeanDisabilityCard: asyncStatusInitial,
-    EuropeanHealthInsuranceCard: asyncStatusInitial,
-  },
 };
 
 /**
@@ -93,20 +69,6 @@ const credentialSlice = createSlice({
   initialState,
   reducers: {
     credentialReset: () => initialState,
-
-    /**
-     * Removes a trustmark from the store given a credential type
-     */
-    trustmarkReset: (
-      state,
-      action: PayloadAction<SupportedCredentialsWithoutPid>
-    ) => ({
-      ...state,
-      trustmark: {
-        ...state.trustmark,
-        [action.payload]: undefined,
-      },
-    }),
   },
   extraReducers: (builder) => {
     /**
@@ -155,101 +117,6 @@ const credentialSlice = createSlice({
       };
     });
 
-    /**
-     * Status Attestation Thunk
-     */
-
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk resolves.
-     * Sets the status attestation and its state to isDone for the requested credential while resetting isLoading and hasError
-     * for the requested credential.
-     */
-    builder.addCase(
-      getCredentialStatusAttestationThunk.fulfilled,
-      (state, action) => {
-        const credentialType = action.payload.credentialType;
-        // Set the credential
-        state.statusAttestation[credentialType] = action.payload;
-        // Set the status
-        state.statusAttAsyncStatus[credentialType] = {
-          ...asyncStatusInitial,
-          isDone: true,
-        };
-      }
-    );
-
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk is pending.
-     * Sets the status attestation state to isLoading while resetting isDone and hasError
-     * for the requested credential.
-     */
-    builder.addCase(
-      getCredentialStatusAttestationThunk.pending,
-      (state, action) => {
-        const credentialType = action.meta.arg.credentialType;
-        state.statusAttAsyncStatus[credentialType] = {
-          ...asyncStatusInitial,
-          isLoading: true,
-        };
-      }
-    );
-
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk rejected.
-     * Sets the status attestation state to hasError while resetting isLoading and hasError
-     * for the requested credential.
-     */
-    builder.addCase(
-      getCredentialStatusAttestationThunk.rejected,
-      (state, action) => {
-        const credentialType = action.meta.arg.credentialType;
-        state.statusAttAsyncStatus[credentialType] = {
-          ...asyncStatusInitial,
-          hasError: { status: true, error: action.error },
-        };
-      }
-    );
-
-    /**
-     * Trustmark thunk
-     */
-
-    /*
-     * Dispatched when a get trustmark async thunk resolves.
-     * Sets the obtained trustmark and the state to isDone.
-     */
-    builder.addCase(getTrustmarkThunk.fulfilled, (state, action) => {
-      const credentialType = action.payload.credentialType;
-      // Set the trustmark
-      state.trustmark[credentialType] = action.payload;
-      // Set the status
-      state.trustmarkAsyncStatus[credentialType] = {
-        ...asyncStatusInitial,
-        isDone: true,
-      };
-    });
-
-    /*
-     * Dispatched when a get trustmark async thunk is pending.
-     * Sets the trustmark state to isLoading while resetting isDone and hasError.
-     */
-    builder.addCase(getTrustmarkThunk.pending, (state, action) => {
-      const credentialType = action.meta.arg.credentialType;
-      state.trustmarkAsyncStatus[credentialType] = {
-        ...asyncStatusInitial,
-        isLoading: true,
-      };
-    });
-
-    /*
-     * Dispatched when a get trustmark async thunk rejected.
-     * Sets the trustmark state to hasError while resetting isLoading and hasError.
-     */
-    builder.addCase(getTrustmarkThunk.rejected, (state, action) => {
-      const credentialType = action.meta.arg.credentialType;
-      state.trustmarkAsyncStatus[credentialType] = {
-        ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
-      };
-    });
-
     // Reset the credential state when the instance is reset.
     builder.addCase(instanceReset, () => initialState);
 
@@ -261,7 +128,7 @@ const credentialSlice = createSlice({
 /**
  * Exports the actions for the credential slice.
  */
-export const { credentialReset, trustmarkReset } = credentialSlice.actions;
+export const { credentialReset } = credentialSlice.actions;
 
 /**
  * Persist configuration for the credential slice.
@@ -327,19 +194,3 @@ export const selectStatusAttestation =
 export const selectStatusAttestationAsyncStatus =
   (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
     state.credential.statusAttAsyncStatus[credentialType];
-
-/**
- * Selects the trustmark signed JWT from the trustmark state.
- * @returns the trustmark signed JWT
- */
-export const selectTrustmark =
-  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
-    state.credential.trustmark[credentialType];
-
-/**
- * Selects the state of the async operation of the trustmark.
- * @returns the state of the async operation for the trustmark as {@link AsyncStatus}
- */
-export const selectTrustmarkAsyncStatus =
-  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
-    state.credential.trustmarkAsyncStatus[credentialType];
