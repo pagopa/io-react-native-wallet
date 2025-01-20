@@ -1,5 +1,5 @@
-import { UnixTime } from "../sd-jwt/types";
-import { JWK } from "../utils/jwk";
+import { UnixTime } from "../../sd-jwt/types";
+import { JWK } from "../../utils/jwk";
 import * as z from "zod";
 import { PresentationDefinition } from "../credential/presentation/types";
 

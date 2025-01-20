@@ -1,5 +1,5 @@
-import { getRelyingPartyEntityConfiguration } from "../../trust";
-import { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { getRelyingPartyEntityConfiguration } from "../../entity/trust/index";
+import { RelyingPartyEntityConfiguration } from "../../entity/trust/types";
 import type { StartFlow } from "../issuance/01-start-flow";
 import type { Out } from "../../utils/misc";
 

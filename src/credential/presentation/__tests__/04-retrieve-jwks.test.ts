@@ -3,7 +3,7 @@
 import { fetchJwksFromUri, fetchJwksFromConfig } from "../04-retrieve-rp-jwks";
 
 import { JWKS } from "../../../utils/jwk";
-import { RelyingPartyEntityConfiguration } from "../../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 
 // Mock the JWKS and JWK utilities
 jest.mock("../../../utils/jwk", () => ({
@@ -13,7 +13,7 @@ jest.mock("../../../utils/jwk", () => ({
 }));
 
 // Mock the RelyingPartyEntityConfiguration
-jest.mock("../../../trust/types", () => ({
+jest.mock("../../../entity/trust/types", () => ({
   RelyingPartyEntityConfiguration: {
     safeParse: jest.fn(),
   },

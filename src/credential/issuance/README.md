@@ -6,7 +6,7 @@ There's a fork in the flow which is based on the type of the credential that is 
 This is due to the fact that eID credentials require a different authorization flow than other credentials, which is accomplished by a strong authentication method like SPID or CIE.
 Credentials instead require a simpler authorization flow and they require other credentials to be presented in order to be issued.
 
-The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step.
+The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `getIssuerConfig` step.
 
 ## Sequence Diagram
 
@@ -14,7 +14,7 @@ The supported credentials are defined in the entity configuration of the issuer 
 graph TD;
     0[WalletInstanceAttestation.getAttestation]
     1[startFlow]
-    2[evaluateIssuerTrust]
+    2[getIssuerConfig]
     3[startUserAuthorization]
     C4[getRequestedCredentialToBePresented]
     C4.1[completeUserAuthorizationWithFormPostJwtMode]
@@ -41,12 +41,9 @@ graph TD;
 
 The following errors are mapped to a `IssuerResponseError` with specific codes.
 
-|HTTP Status|Error Code|Description|
-|-----------|----------|-----------|
-|`201 Created`|`ERR_CREDENTIAL_ISSUING_NOT_SYNCHRONOUS`| This response is returned by the credential issuer when the request has been queued because the credential cannot be issued synchronously. The consumer should try to obtain the credential at a later time. Although `201 Created` is not considered an error, it is mapped as an error in this context in order to handle the case where the credential issuance is not synchronous. This allows keeping the flow consistent and handle the case where the credential is not immediately available.|
-|`403 Forbidden`|`ERR_CREDENTIAL_INVALID_STATUS`|This response is returned by the credential issuer when the requested credential has an invalid status. It might contain more details in the `reason` property.|
-|`404 Not Found`|`ERR_CREDENTIAL_INVALID_STATUS`| This response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential. It might contain more details in the `reason` property.|
-|`*`|`ERR_ISSUER_GENERIC_ERROR`|This is a generic error code to map unexpected errors that occurred when interacting with the Issuer.|
+| HTTP Status | Error Code                 | Description                                                                                           |
+| ----------- | -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `*`         | `ERR_ISSUER_GENERIC_ERROR` | This is a generic error code to map unexpected errors that occurred when interacting with the Issuer. |
 
 ## Strong authentication for eID issuance (Query Mode)
 
@@ -121,7 +118,7 @@ const startFlow: Credential.Issuance.StartFlow = () => ({
 const { issuerUrl } = startFlow();
 
 // Evaluate issuer trust
-const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
+const { issuerConf } = await Credential.Issuance.getIssuerConfig(issuerUrl);
 
 // Start user authorization
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -251,17 +248,16 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 // Start the issuance flow
 const startFlow: Credential.Issuance.StartFlow = () => ({
   issuerUrl: WALLET_EID_PROVIDER_BASE_URL,
-  credentialType: "PersonIdentificationData",
+  credentialType: "urn:eu.europa.ec.eudi:pid:1",
   appFetch,
 });
 
 const { issuerUrl } = startFlow();
 
 // Evaluate issuer trust
-const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-  issuerUrl,
-  { appFetch }
-);
+const { issuerConf } = await Credential.Issuance.getIssuerConfig(issuerUrl, {
+  appFetch,
+});
 
 // Start user authorization
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -315,12 +311,13 @@ const { credential, format } = await Credential.Issuance.obtainCredential(
 );
 
 // Parse and verify the eID credential
-const { parsedCredential, issuedAt, expiration } = await Credential.Issuance.verifyAndParseCredential(
-  issuerConf,
-  credential,
-  format,
-  { credentialCryptoContext }
-);
+const { parsedCredential, issuedAt, expiration } =
+  await Credential.Issuance.verifyAndParseCredential(
+    issuerConf,
+    credential,
+    format,
+    { credentialCryptoContext }
+  );
 
 return {
   parsedCredential,
@@ -328,7 +325,7 @@ return {
   keyTag: credentialKeyTag,
   credentialType,
   issuedAt,
-  expiration
+  expiration,
 };
 ```
 

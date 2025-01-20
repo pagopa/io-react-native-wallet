@@ -8,7 +8,7 @@ import {
   EntityStatement,
 } from "./types";
 import { validateTrustChain, renewTrustChain } from "./chain";
-import { hasStatusOrThrow } from "../utils/misc";
+import { hasStatusOrThrow } from "../../utils/misc";
 
 export type {
   WalletProviderEntityConfiguration,

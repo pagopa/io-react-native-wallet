@@ -21,7 +21,7 @@ import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
  * @param idpHint - The hint for the Identity Provider to use
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
- * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @param credentialType - The type of the credential to obtain, which must be `urn:eu.europa.ec.eudi:pid:1`
  * @returns The obtained credential result
  */
 export const getPidCieID = async ({
@@ -37,7 +37,7 @@ export const getPidCieID = async ({
   idpHint: string;
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
-  credentialType: "PersonIdentificationData";
+  credentialType: "urn:eu.europa.ec.eudi:pid:1";
 }): Promise<PidResult> => {
   /*
    * Create credential crypto context for the PID
@@ -50,17 +50,16 @@ export const getPidCieID = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: pidIssuerUrl,
-    credentialType: "PersonIdentificationData",
+    credentialType: "urn:eu.europa.ec.eudi:pid:1",
     appFetch,
   });
 
   const { issuerUrl } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-    issuerUrl,
-    { appFetch }
-  );
+  const { issuerConf } = await Credential.Issuance.getIssuerConfig(issuerUrl, {
+    appFetch,
+  });
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -147,7 +146,7 @@ export const getPidCieID = async ({
  * Implements a flow to obtain a generic credential.
  * @param credentialIssuerUrl - The credential issuer URL
  * @param redirectUri - The redirect URI for the authorization flow
- * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @param credentialType - The type of the credential to obtain, which must be `urn:eu.europa.ec.eudi:pid:1`
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
  * @param pid - The PID credential
@@ -185,9 +184,7 @@ export const getCredential = async ({
   const { issuerUrl } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-    issuerUrl
-  );
+  const { issuerConf } = await Credential.Issuance.getIssuerConfig(issuerUrl);
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -263,52 +260,6 @@ export const getCredential = async ({
     parsedCredential,
     credential,
     keyTag: credentialKeyTag,
-    credentialType,
-  };
-};
-
-/**
- * Implements a flow to obtain a credential status attestation.
- * @param credentialIssuerUrl - The credential issuer URL
- * @param credential - The credential to obtain the status attestation for
- * @param credentialCryptoContext - The credential crypto context associated with the credential
- * @param credentialType - The type of the credential
- * @returns The credential status attestation
- */
-export const getCredentialStatusAttestation = async (
-  credentialIssuerUrl: string,
-  credential: string,
-  credentialCryptoContext: CryptoContext,
-  credentialType: SupportedCredentialsWithoutPid
-) => {
-  // Start the issuance flow
-  const startFlow: Credential.Status.StartFlow = () => ({
-    issuerUrl: credentialIssuerUrl,
-  });
-
-  const { issuerUrl } = startFlow();
-
-  // Evaluate issuer trust
-  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
-
-  const statusAttestation = await Credential.Status.statusAttestation(
-    issuerConf,
-    credential,
-    credentialCryptoContext
-  );
-
-  const parsedStatusAttestation =
-    await Credential.Status.verifyAndParseStatusAttestation(
-      issuerConf,
-      statusAttestation,
-      {
-        credentialCryptoContext,
-      }
-    );
-
-  return {
-    ...statusAttestation,
-    ...parsedStatusAttestation,
     credentialType,
   };
 };
