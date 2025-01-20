@@ -31,8 +31,14 @@ export type StartFlow<T extends Array<unknown> = []> = (...args: T) => {
 export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
   let decodedUrl: URL;
   try {
-    const decoded = decodeBase64(qrcode);
-    decodedUrl = new URL(decoded);
+    // custom link or universal link
+    const originalProtocol = qrcode.split("://")[0];
+    const replacedQrcode = qrcode.replace(
+      `${originalProtocol}://`,
+      "https://wallet.example/"
+    );
+
+    decodedUrl = new URL(replacedQrcode);
   } catch (error) {
     throw new AuthRequestDecodeError("Failed to decode QR code: ", qrcode);
   }
