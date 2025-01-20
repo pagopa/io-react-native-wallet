@@ -50,8 +50,7 @@ export const getRequestObject: GetRequestObject = async (
     },
   })
     .then(hasStatusOrThrow(200))
-    .then((res) => res.json())
-    .then((responseJson) => responseJson.response);
+    .then((res) => res.text());
 
   return {
     requestObjectEncodedJwt,
