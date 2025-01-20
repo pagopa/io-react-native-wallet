@@ -55,14 +55,9 @@ export const fetchJwksFromUri: FetchJwks<
  * @throws Will throw an error if the configuration is invalid or if JWKS is not found.
  */
 export const fetchJwksFromConfig: FetchJwks<
-  [RelyingPartyEntityConfiguration]
+  [RelyingPartyEntityConfiguration["payload"]["metadata"]]
 > = async (rpConfig) => {
-  const parsedConfig = RelyingPartyEntityConfiguration.safeParse(rpConfig);
-  if (!parsedConfig.success) {
-    throw new Error("Invalid Relying Party configuration.");
-  }
-
-  const jwks = parsedConfig.data.payload.metadata.wallet_relying_party.jwks;
+  const jwks = rpConfig.wallet_relying_party.jwks;
 
   if (!jwks || !Array.isArray(jwks.keys)) {
     throw new Error("JWKS not found in Relying Party configuration.");
