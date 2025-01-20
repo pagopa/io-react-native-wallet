@@ -1,7 +1,7 @@
 import { UnixTime } from "../../sd-jwt/types";
 import { JWK } from "../../utils/jwk";
 import * as z from "zod";
-import { PresentationDefinition } from "../credential/presentation/types";
+import { PresentationDefinition } from "../../credential/presentation/types";
 
 export const TrustMark = z.object({ id: z.string(), trust_mark: z.string() });
 export type TrustMark = z.infer<typeof TrustMark>;
