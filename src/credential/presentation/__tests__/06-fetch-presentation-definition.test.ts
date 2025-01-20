@@ -1,6 +1,6 @@
 import { fetchPresentDefinition } from "../06-fetch-presentation-definition";
 import { PresentationDefinition, RequestObject } from "../types";
-import { RelyingPartyEntityConfiguration } from "../../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 
 describe("fetchPresentDefinition", () => {
   let originalFetch: typeof global.fetch;

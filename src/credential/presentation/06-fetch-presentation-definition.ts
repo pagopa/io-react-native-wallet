@@ -1,5 +1,5 @@
 import { PresentationDefinition, RequestObject } from "./types";
-import { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../entity/trust/types";
 import { hasStatusOrThrow } from "../../utils/misc";
 
 export type FetchPresentationDefinition = (

@@ -21,7 +21,6 @@ jest.mock("../../../entity/trust/types", () => ({
 
 // Type assertion for mocked functions
 const mockedJWKSParse = JWKS.parse as jest.Mock;
-const mockedSafeParse = RelyingPartyEntityConfiguration.safeParse as jest.Mock;
 
 describe("fetchJwksFromUri", () => {
   beforeEach(() => {
@@ -124,106 +123,46 @@ describe("fetchJwksFromConfig", () => {
 
   it("should return JWKS from a valid configuration", async () => {
     const mockConfig = {
-      payload: {
-        metadata: {
-          wallet_relying_party: {
-            jwks: { keys: [{ kid: "key1" }, { kid: "key2" }] },
-          },
-        },
+      wallet_relying_party: {
+        jwks: { keys: [{ kid: "key1" }, { kid: "key2" }] },
       },
     };
 
-    mockedSafeParse.mockReturnValue({
-      success: true,
-      data: mockConfig,
-    });
-
     const result = await fetchJwksFromConfig(
-      mockConfig as unknown as RelyingPartyEntityConfiguration
+      mockConfig as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
     );
 
     // Assertions
-    expect(RelyingPartyEntityConfiguration.safeParse).toHaveBeenCalledWith(
-      mockConfig
-    );
     expect(result).toEqual({
-      keys: mockConfig.payload.metadata.wallet_relying_party.jwks.keys,
+      keys: mockConfig.wallet_relying_party.jwks.keys,
     });
-  });
-
-  it("should throw an error if the configuration is invalid", async () => {
-    const mockInvalidConfig = { invalid: "config" };
-
-    mockedSafeParse.mockReturnValue({
-      success: false,
-      error: new Error("Invalid configuration"),
-    });
-
-    await expect(
-      fetchJwksFromConfig(
-        mockInvalidConfig as unknown as RelyingPartyEntityConfiguration
-      )
-    ).rejects.toThrow("Invalid Relying Party configuration.");
-
-    // Assertions
-    expect(RelyingPartyEntityConfiguration.safeParse).toHaveBeenCalledWith(
-      mockInvalidConfig
-    );
   });
 
   it("should throw an error if JWKS is not found in the configuration", async () => {
     const mockConfigMissingJWKS = {
-      payload: {
-        metadata: {
-          wallet_relying_party: {
-            // JWKS is missing here
-          },
-        },
+      wallet_relying_party: {
+        // JWKS is missing here
       },
     };
 
-    mockedSafeParse.mockReturnValue({
-      success: true,
-      data: mockConfigMissingJWKS,
-    });
-
     await expect(
       fetchJwksFromConfig(
-        mockConfigMissingJWKS as unknown as RelyingPartyEntityConfiguration
+        mockConfigMissingJWKS as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
       )
     ).rejects.toThrow("JWKS not found in Relying Party configuration.");
-
-    // Assertions
-    expect(RelyingPartyEntityConfiguration.safeParse).toHaveBeenCalledWith(
-      mockConfigMissingJWKS
-    );
   });
 
   it("should throw an error if JWKS.keys is not an array", async () => {
     const mockConfigInvalidJWKS = {
-      payload: {
-        metadata: {
-          wallet_relying_party: {
-            jwks: { keys: "not-an-array" },
-          },
-        },
+      wallet_relying_party: {
+        jwks: { keys: "not-an-array" },
       },
     };
 
-    mockedSafeParse.mockReturnValue({
-      success: true,
-      data: mockConfigInvalidJWKS,
-    });
-
     await expect(
       fetchJwksFromConfig(
-        mockConfigInvalidJWKS as unknown as RelyingPartyEntityConfiguration
+        mockConfigInvalidJWKS as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
       )
     ).rejects.toThrow("JWKS not found in Relying Party configuration.");
-
-    // Assertions
-    expect(RelyingPartyEntityConfiguration.safeParse).toHaveBeenCalledWith(
-      mockConfigInvalidJWKS
-    );
   });
 });
