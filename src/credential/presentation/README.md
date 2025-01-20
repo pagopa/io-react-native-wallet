@@ -60,14 +60,12 @@ const { requestURI, clientId } = Credential.Presentation.startFlowFromQR(qrcode)
 // If use trust federation: Evaluate issuer trust
 const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clientId);
 
-const requestObjectEncodedJwt = await Credential.Presentation.getRequestObject(
-  requestURI,
-  {
-    wiaCryptoContext: wiaCryptoContext,
-    appFetch: appFetch,
-    walletInstanceAttestation: walletInstanceAttestation,
-  }
-);
+const { requestObjectEncodedJwt } =
+    await Credential.Presentation.getRequestObject(requestURI, {
+      wiaCryptoContext: wiaCryptoContext,
+      appFetch: appFetch,
+      walletInstanceAttestation: walletInstanceAttestation,
+    });
 
 // Retrieve RP JWK
 // If use trust federation: Fetch Jwks from rpConf
@@ -82,13 +80,14 @@ const jwks = await Credential.Presentation.fetchJwksFromUri(
 );
 
 // Verify signature Request Object
-const requestObject = await Credential.Presentation.verifyRequestObjectSignature(
-  requestObjectEncodedJwt,
-  jwks
-);
+const { requestObject } =
+    await Credential.Presentation.verifyRequestObjectSignature(
+      requestObjectEncodedJwt,
+      jwks.keys
+    );
 
 
-const presentationDefinition = await Credential.Presentation.retrieveOrFetchPresentDefinition(
+const { presentationDefinition } = await Credential.Presentation.retrieveOrFetchPresentDefinition(
   requestObject,
   {
     appFetch: appFetch,
