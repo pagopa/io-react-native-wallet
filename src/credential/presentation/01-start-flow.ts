@@ -31,12 +31,11 @@ export type StartFlow<T extends Array<unknown> = []> = (...args: T) => {
 export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
   let decodedUrl: URL;
   try {
-    // custom link or universal link
-    const originalProtocol = qrcode.split("://")[0];
-    const replacedQrcode = qrcode.replace(
-      `${originalProtocol}://`,
-      "https://wallet.example/"
-    );
+    // splitting qrcode to identify which is link format
+    const originalQrCode = qrcode.split("://");
+    const replacedQrcode = originalQrCode[1]?.startsWith("?")
+      ? qrcode.replace(`${originalQrCode[0]}://`, "https://wallet.example/")
+      : qrcode;
 
     decodedUrl = new URL(replacedQrcode);
   } catch (error) {

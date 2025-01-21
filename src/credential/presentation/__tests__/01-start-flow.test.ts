@@ -4,7 +4,9 @@ import { AuthRequestDecodeError } from "../errors";
 
 describe("startFlowFromQR", () => {
   const validQRCode =
-    "aHR0cHM6Ly9leGFtcGxlLmNvbS9wYXRoP3JlcXVlc3RfdXJpPWh0dHBzJTNBJTJGJTJGcmVxdWVzdC51cmkmY2xpZW50X2lkPWNsaWVudDEyMw==";
+    "https://example.com/path?request_uri=https%3A%2F%2Frequest.uri&client_id=client123";
+  const haipQRCode =
+    "haip://?request_uri=https%3A%2F%2Frequest.uri&client_id=client123";
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -16,6 +18,17 @@ describe("startFlowFromQR", () => {
     expect(result).toEqual({
       protocol: "https:",
       resource: "example.com",
+      requestURI: "https://request.uri",
+      clientId: "client123",
+    });
+  });
+
+  it("should successfully decode a valid haip QR code", () => {
+    const result = startFlowFromQR(haipQRCode);
+
+    expect(result).toEqual({
+      protocol: "https:",
+      resource: "wallet.example",
       requestURI: "https://request.uri",
       clientId: "client123",
     });
