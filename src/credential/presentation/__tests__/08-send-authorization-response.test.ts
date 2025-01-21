@@ -1,8 +1,8 @@
 import {
   chooseRSAPublicKeyToEncrypt,
   prepareVpToken,
-  buildBodyByDirectPost,
-  buildBodyByDirectPostJwt,
+  buildDirectPostBody,
+  buildDirectPostJwtBody,
   sendAuthorizationResponse,
 } from "../08-send-authorization-response";
 import { NoSuitableKeysFoundInEntityConfiguration } from "../errors";
@@ -10,7 +10,7 @@ import { NoSuitableKeysFoundInEntityConfiguration } from "../errors";
 // Mocks for external modules
 import { disclose } from "../../../sd-jwt";
 import { hasStatusOrThrow } from "../../../utils/misc";
-import type { RequestObject } from "../types";
+import type { PresentationDefinition, RequestObject } from "../types";
 // We’ll use Jest’s mocking utilities here.
 // Adjust to your project’s actual structure.
 
@@ -80,6 +80,13 @@ describe("prepareVpToken", () => {
     },
   } as unknown as RequestObject;
 
+  const mockPresentationDefinition = {
+    id: "mock_presentation_definition_id",
+    input_descriptors: {
+      id: "mock_input_descriptor_id",
+    },
+  } as unknown as PresentationDefinition;
+
   const mockPresentation: any = [
     { vc: "mock_vc" }, // Simplified; actual code expects [vc, claims, cryptCtx]
     { claims: "mock_claims" },
@@ -93,7 +100,11 @@ describe("prepareVpToken", () => {
   });
 
   it("should return a vp_token and presentation_submission", async () => {
-    const result = await prepareVpToken(mockRequestObject, mockPresentation);
+    const result = await prepareVpToken(
+      mockRequestObject,
+      mockPresentationDefinition,
+      mockPresentation
+    );
 
     expect(disclose).toHaveBeenCalledWith(
       mockPresentation[0],
@@ -115,7 +126,7 @@ describe("prepareVpToken", () => {
   });
 });
 
-describe("buildBodyByDirectPost", () => {
+describe("buildDirectPostBody", () => {
   it("should build the correct formBody string", async () => {
     const mockRequestObject = {
       state: "mock_state",
@@ -125,15 +136,14 @@ describe("buildBodyByDirectPost", () => {
     const mockVpToken = "mock_vp_token";
     const mockPresentationSubmission = { foo: "bar" };
 
-    const result = await buildBodyByDirectPost(
+    const result = await buildDirectPostBody(
       mockRequestObject as any,
       mockVpToken,
       mockPresentationSubmission
     );
 
-    // URLSearchParams output should be 'state=mock_state&presentation_submission={"foo":"bar"}&nonce=mock_nonce&vp_token=mock_vp_token'
+    // URLSearchParams output should be 'state=mock_state&presentation_submission={"foo":"bar"}&vp_token=mock_vp_token'
     expect(result).toContain("state=mock_state");
-    expect(result).toContain("nonce=mock_nonce");
     expect(result).toContain("vp_token=mock_vp_token");
 
     // Because JSON.stringify is used, check approximate structure:
@@ -143,7 +153,7 @@ describe("buildBodyByDirectPost", () => {
   });
 });
 
-describe("buildBodyByDirectPostJwt", () => {
+describe("buildDirectPostJwtBody", () => {
   const mockRpJwKeys: any = [
     { kid: "rsa-key-1", use: "enc", kty: "RSA" },
     { kid: "something-else", use: "sig", kty: "EC" },
@@ -158,7 +168,7 @@ describe("buildBodyByDirectPostJwt", () => {
     const mockVpToken = "mock_vp_token";
     const mockPresentationSubmission = { foo: "bar" };
 
-    const result = await buildBodyByDirectPostJwt(
+    const result = await buildDirectPostJwtBody(
       mockRpJwKeys,
       mockRequestObject as any,
       mockVpToken,
@@ -183,6 +193,12 @@ describe("sendAuthorizationResponse", () => {
       input_descriptors: [{ id: "mock_descriptor_id" }],
     },
   };
+  const mockPresentationDefinition = {
+    id: "mock_presentation_definition_id",
+    input_descriptors: {
+      id: "mock_input_descriptor_id",
+    },
+  } as unknown as PresentationDefinition;
   const mockRpJwKeys: any = [{ kid: "rsa-key-enc", use: "enc", kty: "RSA" }];
   const mockPresentation: any = [
     "mock_vc",
@@ -200,9 +216,10 @@ describe("sendAuthorizationResponse", () => {
     });
   });
 
-  it("should use buildBodyByDirectPost when response_mode is direct_post", async () => {
+  it("should use buildDirectPostBody when response_mode is direct_post", async () => {
     const res = await sendAuthorizationResponse(
       mockRequestObject as any,
+      mockPresentationDefinition,
       mockRpJwKeys,
       mockPresentation,
       { appFetch: mockFetch }
@@ -217,7 +234,7 @@ describe("sendAuthorizationResponse", () => {
     });
   });
 
-  it("should use buildBodyByDirectPostJwt when response_mode is direct_post.jwt", async () => {
+  it("should use buildDirectPostJwtBody when response_mode is direct_post.jwt", async () => {
     const directPostJwtRequest = {
       ...mockRequestObject,
       response_mode: "direct_post.jwt",
@@ -225,6 +242,7 @@ describe("sendAuthorizationResponse", () => {
 
     await sendAuthorizationResponse(
       directPostJwtRequest as any,
+      mockPresentationDefinition,
       mockRpJwKeys,
       mockPresentation,
       { appFetch: mockFetch }

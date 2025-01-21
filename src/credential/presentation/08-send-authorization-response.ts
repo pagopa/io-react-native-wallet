@@ -6,7 +6,7 @@ import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import { disclose } from "../../sd-jwt";
-import { type Presentation } from "./types";
+import { PresentationDefinition, type Presentation } from "./types";
 import * as z from "zod";
 import { sha256 } from "js-sha256";
 
@@ -55,6 +55,14 @@ export const chooseRSAPublicKeyToEncrypt = (
  * @param presentationTuple - A tuple containing a verifiable credential, the claims to disclose,
  *                            and a cryptographic context for signing.
  * @returns An object containing the signed VP token (`vp_token`) and a `presentation_submission` object.
+ * @param presentationDefinition - Definition outlining presentation requirements.
+ * @param presentationTuple - Tuple containing:
+ *    - A verifiable credential.
+ *    - Claims that should be disclosed.
+ *    - Cryptographic context for signing.
+ * @returns An object with:
+ *    - `vp_token`: The signed VP token.
+ *    - `presentation_submission`: Object mapping disclosed credentials to the request.
  *
  * @remarks
  *  1. The `disclose()` function is used to produce a token with only the requested claims.
@@ -66,6 +74,7 @@ export const chooseRSAPublicKeyToEncrypt = (
  */
 export const prepareVpToken = async (
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  presentationDefinition: PresentationDefinition,
   [verifiableCredential, requestedClaims, cryptoContext]: Presentation
 ): Promise<{
   vp_token: string;
@@ -92,13 +101,13 @@ export const prepareVpToken = async (
   // <Issuer-signed JWT>~<Disclosure 1>~...~<Disclosure N>~<KB-JWT>
   const vp_token = [vp, kbJwt].join("~");
 
-  // Build the presentation_submission structure to map the credential
+  // Determine the descriptor ID to use for mapping. Fallback to first input descriptor ID if not specified
+  // We support only one credential for now, so we get first input_descriptor and create just one descriptor_map
   const descriptorMapId =
-    requestObject.scope ||
-    requestObject.presentation_definition?.input_descriptors[0]?.id;
+    requestObject.scope || presentationDefinition?.input_descriptors[0]?.id;
   const presentation_submission = {
     id: uuid.v4(),
-    definition_id: requestObject.presentation_definition?.id,
+    definition_id: presentationDefinition.id,
     descriptor_map: [
       {
         id: descriptorMapId,
@@ -112,40 +121,39 @@ export const prepareVpToken = async (
 };
 
 /**
- * Constructs a form-urlencoded body for direct POST response mode (without encryption).
+ * Builds a URL-encoded form body for a direct POST response without encryption.
  *
- * @param requestObject - The request object containing relevant information such as state and nonce.
- * @param vpToken - The signed VP token to include in the POST body.
- * @param presentationSubmission - The presentation submission object describing the credential mapping.
- * @returns A string suitable for use as the body in a `application/x-www-form-urlencoded` POST request.
+ * @param requestObject - Contains state, nonce, and other relevant info.
+ * @param vpToken - The signed VP token to include.
+ * @param presentationSubmission - Object mapping credential disclosures.
+ * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
  */
-export const buildBodyByDirectPost = async (
+export const buildDirectPostBody = async (
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   vpToken: string,
   presentationSubmission: Record<string, unknown>
 ): Promise<string> => {
-  const formBody = new URLSearchParams({
+  const formUrlEncodedBody = new URLSearchParams({
     state: requestObject.state,
     presentation_submission: JSON.stringify(presentationSubmission),
-    nonce: requestObject.nonce,
     vp_token: vpToken,
   });
 
-  return formBody.toString();
+  return formUrlEncodedBody.toString();
 };
 
 /**
- * Constructs a form-urlencoded body for direct POST response mode with JWT encryption (`direct_post.jwt`).
+ * Builds a URL-encoded form body for a direct POST response using JWT encryption.
  *
- * @param rpJwkKeys - The array of JWKs offered by the Relying Party for encryption.
- * @param requestObject - The request object containing relevant information such as state and nonce.
+ * @param jwkKeys - Array of JWKs from the Relying Party for encryption.
+ * @param requestObject - Contains state, nonce, and other relevant info.
  * @param vpToken - The signed VP token to encrypt.
- * @param presentationSubmission - The presentation submission object describing the credential mapping.
- * @returns A string suitable for use as the body in a `application/x-www-form-urlencoded` POST request,
- *          where `response` is an encrypted JWE containing the authorization data.
+ * @param presentationSubmission - Object mapping credential disclosures.
+ * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body,
+ *          where `response` contains the encrypted JWE.
  */
-export const buildBodyByDirectPostJwt = async (
-  rpJwkKeys: Out<FetchJwks>["keys"],
+export const buildDirectPostJwtBody = async (
+  jwkKeys: Out<FetchJwks>["keys"],
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   vpToken: string,
   presentationSubmission: Record<string, unknown>
@@ -154,12 +162,11 @@ export const buildBodyByDirectPostJwt = async (
   const authzResponsePayload = JSON.stringify({
     state: requestObject.state,
     presentation_submission: presentationSubmission,
-    nonce: requestObject.nonce,
     vp_token: vpToken,
   });
 
   // Choose a suitable RSA public key for encryption
-  const rsaPublicJwk = chooseRSAPublicKeyToEncrypt(rpJwkKeys);
+  const rsaPublicJwk = chooseRSAPublicKeyToEncrypt(jwkKeys);
 
   // Encrypt the authorization payload
   const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
@@ -179,6 +186,7 @@ export const buildBodyByDirectPostJwt = async (
  */
 export type SendAuthorizationResponse = (
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  presentationDefinition: PresentationDefinition,
   jwkKeys: Out<FetchJwks>["keys"],
   presentation: Presentation, // TODO: [SIW-353] support multiple presentations
   context: {
@@ -190,42 +198,45 @@ export type SendAuthorizationResponse = (
  * Sends the authorization response to the Relying Party (RP) using the specified `response_mode`.
  * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
  *
- * @param requestObject - The request object describing the presentation requirements.
- * @param rpJwKeys - The array of JWKs offered by the Relying Party for optional encryption (`direct_post.jwt`).
- * @param presentation - A tuple containing the verifiable credential, the claims to disclose, and the cryptographic context.
- * @param context - An object containing the wallet instance attestation token and an optional fetch implementation.
- * @returns The parsed authorization response from the RP, validated by `AuthorizationResponse`.
+ * @param requestObject - The request details, including presentation requirements.
+ * @param presentationDefinition - The definition of the expected presentation.
+ * @param jwkKeys - Array of JWKs from the Relying Party for optional encryption.
+ * @param presentation - Tuple with verifiable credential, claims, and crypto context.
+ * @param context - Contains optional custom fetch implementation.
+ * @returns Parsed and validated authorization response from the Relying Party.
  */
 export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   requestObject,
-  rpJwKeys,
+  presentationDefinition,
+  jwkKeys,
   presentation,
   { appFetch = fetch }
 ): Promise<AuthorizationResponse> => {
-  // 1. Prepare the VP token and the presentation_submission object.
+  // 1. Create the VP token and associated submission mapping
   const { vp_token, presentation_submission } = await prepareVpToken(
     requestObject,
+    presentationDefinition,
     presentation
   );
 
-  // 2. Decide how to build the body based on the requested response mode.
+  // 2. Choose the appropriate request body builder based on response mode
   let requestBody: string;
   if (requestObject.response_mode === "direct_post.jwt") {
-    requestBody = await buildBodyByDirectPostJwt(
-      rpJwKeys,
+    requestBody = await buildDirectPostJwtBody(
+      jwkKeys,
       requestObject,
       vp_token,
       presentation_submission
     );
   } else {
-    requestBody = await buildBodyByDirectPost(
+    requestBody = await buildDirectPostBody(
       requestObject,
       vp_token,
       presentation_submission
     );
   }
 
-  // 3. Send the final authorization response via POST and validate the status and payload.
+  // 3. Send the authorization response via HTTP POST and validate the response
   return appFetch(requestObject.response_uri, {
     method: "POST",
     headers: {
