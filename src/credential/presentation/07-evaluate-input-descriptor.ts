@@ -3,7 +3,7 @@ import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
 import { JSONPath } from "jsonpath-plus";
 import { IoWalletError } from "../../utils/errors";
 import Ajv from "ajv";
-const ajv = new Ajv();
+const ajv = new Ajv({ allErrors: true });
 
 export type EvaluateInputDescriptorSdJwt4VC = (
   inputDescriptor: InputDescriptor,
