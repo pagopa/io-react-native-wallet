@@ -54,7 +54,7 @@ describe("fetchJwksFromRequestObject", () => {
       payload: { iss: fakeIss },
     });
 
-    const fakeJwksResponse = { keys: [sampleJwk] };
+    const fakeJwksResponse = { jwks: { keys: [sampleJwk] } };
     const fakeFetch = jest.fn().mockResolvedValue({
       status: 200,
       json: async () => fakeJwksResponse,
