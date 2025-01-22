@@ -71,11 +71,9 @@ const { requestObjectEncodedJwt } =
 // If use trust federation: Fetch Jwks from rpConf
 const jwks = await Credential.Presentation.fetchJwksFromConfig(rpConf);
 
-// If not use trust: Fetch Jwks from well-know
-const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
-
-const jwks = await Credential.Presentation.fetchJwksFromUri(
-  requestObjectJwt.payload?.iss,
+// If not use trust: Fetch Jwks from request object
+const jwks = await Credential.Presentation.fetchJwksFromRequestObject(
+  requestObjectEncodedJwt,
   { context: { appFetch } }
 );
 
@@ -87,7 +85,7 @@ const { requestObject } =
     );
 
 
-const { presentationDefinition } = await Credential.Presentation.retrieveOrFetchPresentDefinition(
+const { presentationDefinition } = await Credential.Presentation.fetchPresentDefinition(
   requestObject,
   {
     appFetch: appFetch,
@@ -96,7 +94,7 @@ const { presentationDefinition } = await Credential.Presentation.retrieveOrFetch
 );
 
 // For each credential, find it and evaluate input descriptor and disclosures
-  const disclosuresRequested = Credential.Presentation.evaluateInputDescriptionForSdJwt4VC(
+  const { requiredDisclosures } = Credential.Presentation.evaluateInputDescriptionForSdJwt4VC(
     inputDescriptor,
     credential.payload,
     disclosures
@@ -105,6 +103,7 @@ const { presentationDefinition } = await Credential.Presentation.retrieveOrFetch
 // After confirm disclosures in app
   const authResponse = Credential.Presentation.sendAuthorizationResponse(
     requestObject,
+    presentationDefinition,
     jwks,
     [credential, disclosuresRequested, { appFetch: appFetch }]
   );
