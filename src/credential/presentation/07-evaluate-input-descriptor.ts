@@ -5,11 +5,62 @@ import { MissingDataError } from "./errors";
 import Ajv from "ajv";
 const ajv = new Ajv({ allErrors: true });
 
+export type EvaluatedDisclosures = {
+  requiredDisclosures: DisclosureWithEncoded[];
+  optionalDisclosures: DisclosureWithEncoded[];
+};
+
 export type EvaluateInputDescriptorSdJwt4VC = (
   inputDescriptor: InputDescriptor,
   payloadCredential: SdJwt4VC["payload"],
   disclosures: DisclosureWithEncoded[]
-) => DisclosureWithEncoded[];
+) => EvaluatedDisclosures;
+
+/**
+ * Transforms an array of DisclosureWithEncoded objects into a key-value map.
+ * @param disclosures - An array of DisclosureWithEncoded, each containing a decoded property with [?, claimName, claimValue].
+ * @returns An object mapping claim names to their corresponding values.
+ */
+const mapDisclosuresToObject = (
+  disclosures: DisclosureWithEncoded[]
+): Record<string, unknown> => {
+  return disclosures.reduce((obj, { decoded }) => {
+    const [, claimName, claimValue] = decoded;
+    obj[claimName] = claimValue;
+    return obj;
+  }, {} as Record<string, unknown>);
+};
+
+/**
+ * Finds a claim within the payload based on provided JSONPath expressions.
+ * @param paths - An array of JSONPath expressions to search for in the payload.
+ * @param payload - The object to search within using JSONPath.
+ * @returns A tuple with the first matched JSONPath and its corresponding value, or [undefined, undefined] if not found.
+ */
+const findMatchedClaim = (
+  paths: string[],
+  payload: any
+): [string?, string?] => {
+  let matchedPath;
+  let matchedValue;
+  paths.some((singlePath) => {
+    try {
+      const result = JSONPath({ path: singlePath, json: payload });
+      if (result.length > 0) {
+        matchedPath = singlePath;
+        matchedValue = result[0];
+        return true;
+      }
+    } catch (error) {
+      throw new MissingDataError(
+        `JSONPath for "${singlePath}" does not match the provided payload.`
+      );
+    }
+    return false;
+  });
+
+  return [matchedPath, matchedValue];
+};
 
 /**
  * Evaluates an InputDescriptor for an SD-JWT-based verifiable credential.
@@ -32,49 +83,38 @@ export type EvaluateInputDescriptorSdJwt4VC = (
 export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC =
   (inputDescriptor, payloadCredential, disclosures) => {
     if (!inputDescriptor?.constraints?.fields) {
-      return disclosures; // No validation
+      // No validation, all field are optional
+      return {
+        requiredDisclosures: [],
+        optionalDisclosures: disclosures,
+      };
     }
+    let claimRequireRequested: DisclosureWithEncoded[] = [];
+    let claimOptionalRequested: DisclosureWithEncoded[] = [];
+
+    const disclosuresAsPayload = mapDisclosuresToObject(disclosures);
 
     // For each field, we need at least one matching path
     // If we succeed, we push the matched disclosure in matchedDisclosures and stop checking further paths
     const allFieldsValid = inputDescriptor.constraints.fields.every((field) => {
       // For Potential profile, selectively disclosed claims will always be built as an individual object property, by using a name-value pair.
       // Hence that selective claim for array element and recursive disclosures are not supported by Potential for the first iteration of Piloting.
-      // We need to check inside payload or inside disclosures. Example path: "$.given_name"
-      // We use slice to remove "$.", for future field.path can point deeper (e.g., $.some.deep.key), we may need more robust!!
-      let matchedPath = field.path.find((singlePath) =>
-        disclosures.find((item) => item.decoded[1] === singlePath.slice(2))
+      // We need to check inside disclosures or inside payload. Example path: "$.given_name"
+      let [matchedPath, matchedValue] = findMatchedClaim(
+        field.path,
+        disclosuresAsPayload
       );
-      let matchedValue = matchedPath
-        ? disclosures.find((item) => item.decoded[1] === matchedPath?.slice(2))
-            ?.decoded[2]
-        : undefined;
 
       if (!matchedPath) {
-        matchedPath = field.path.find((singlePath) => {
-          try {
-            return (
-              JSONPath({
-                path: singlePath,
-                json: payloadCredential,
-              }).length > 0
-            );
-          } catch (error) {
-            throw new MissingDataError(
-              `JSONPath for "${singlePath}" does not match the provided payload.`
-            );
-          }
-        });
+        [matchedPath, matchedValue] = findMatchedClaim(
+          field.path,
+          payloadCredential
+        );
 
         if (!matchedPath) {
           // Path should be optional, no need to validate! continue to next field
           return field?.optional;
         }
-
-        matchedValue = JSONPath({
-          path: matchedPath,
-          json: payloadCredential,
-        })[0];
       }
 
       // FILTER validation
@@ -99,19 +139,35 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
 
     if (!allFieldsValid) {
       throw new MissingDataError(
-        "Credential must not match the input descriptor!!"
+        "Credential does not match the input descriptor!!"
       );
     }
 
+    // We use slice to remove "$.", for future field.path can point deeper (e.g., $.some.deep.key), we may need more robust!!
     // If limit_disclosure set to "required", ensure that data is limited to the entries specified in the fields
     if (inputDescriptor.constraints.limit_disclosure === "required") {
       const allPaths = inputDescriptor.constraints.fields.flatMap((field) =>
         field.path.flatMap((path) => path.slice(2))
       );
 
-      return disclosures.filter((item) => allPaths.includes(item.decoded[1]));
+      claimRequireRequested = disclosures.filter((item) =>
+        allPaths.includes(item.decoded[1])
+      );
+    } else {
+      const requiredPath = inputDescriptor.constraints.fields
+        .filter((field) => !field.optional)
+        .flatMap((field) => field.path.flatMap((path) => path.slice(2)));
+
+      claimRequireRequested = disclosures.filter((item) =>
+        requiredPath.includes(item.decoded[1])
+      );
+      claimOptionalRequested = disclosures.filter(
+        (item) => !requiredPath.includes(item.decoded[1])
+      );
     }
 
-    // Otherwise return the array of all disclosures
-    return disclosures;
+    return {
+      requiredDisclosures: claimRequireRequested,
+      optionalDisclosures: claimOptionalRequested,
+    };
   };

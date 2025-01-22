@@ -33,12 +33,12 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const result = evaluateInputDescriptionForSdJwt4VC(
+    const { optionalDisclosures } = evaluateInputDescriptionForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
     );
-    expect(result).toEqual(disclosures);
+    expect(optionalDisclosures).toEqual(disclosures);
   });
 
   it("should throw an error if a required field path does not exist", () => {
@@ -104,13 +104,13 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const result = evaluateInputDescriptionForSdJwt4VC(
+    const { optionalDisclosures } = evaluateInputDescriptionForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
     );
     // Because the field is optional, we keep the original disclosures
-    expect(result).toEqual(disclosures);
+    expect(optionalDisclosures).toEqual(disclosures);
   });
 
   it("should throw an error if filter (JSON Schema) validation fails", () => {
@@ -186,13 +186,13 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const result = evaluateInputDescriptionForSdJwt4VC(
+    const { requiredDisclosures } = evaluateInputDescriptionForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
     );
 
-    expect(result).toStrictEqual(disclosures);
+    expect(requiredDisclosures).toStrictEqual(disclosures);
   });
 
   it("should limit disclosures if limit_disclosure is 'required'", () => {
@@ -204,7 +204,6 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
         fields: [
           {
             path: ["$.given_name"],
-            optional: false,
           },
         ],
       },
@@ -227,7 +226,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const result = evaluateInputDescriptionForSdJwt4VC(
+    const { requiredDisclosures } = evaluateInputDescriptionForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
@@ -241,7 +240,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    expect(result).toStrictEqual(expected);
+    expect(requiredDisclosures).toStrictEqual(expected);
   });
 
   it("should return all disclosures if limit_disclosure is not set or not 'required'", () => {
@@ -276,11 +275,13 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
     ];
 
     // limit_disclosure is undefined or not "required", so we return all disclosures
-    const result = evaluateInputDescriptionForSdJwt4VC(
-      inputDescriptor,
-      payloadCredential,
-      disclosures
-    );
-    expect(result).toEqual(disclosures);
+    const { requiredDisclosures, optionalDisclosures } =
+      evaluateInputDescriptionForSdJwt4VC(
+        inputDescriptor,
+        payloadCredential,
+        disclosures
+      );
+    expect(requiredDisclosures).toEqual([disclosures[0]]);
+    expect(optionalDisclosures).toEqual([disclosures[1]]);
   });
 });
