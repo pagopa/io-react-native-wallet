@@ -23,9 +23,16 @@ export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
     }
 
     if (!pubKey) {
-      throw new UnverifiedEntityError("Request Object signature verification");
+      throw new UnverifiedEntityError("Request Object signature verification!");
     }
     await verify(requestObjectEncodedJwt, pubKey);
 
-    return { requestObject: RequestObject.parse(requestObjectJwt.payload) };
+    const requestObject = RequestObject.parse(requestObjectJwt.payload);
+    // Check if exp exists and is expired
+    // exp is typically in seconds since epoch, Get current time in seconds
+    if (requestObject.exp && requestObject.exp <= Date.now() / 1000) {
+      throw new UnverifiedEntityError("Request Object is expired!");
+    }
+
+    return { requestObject };
   };
