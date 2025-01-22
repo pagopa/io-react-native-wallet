@@ -54,7 +54,7 @@ export const fetchJwksFromRequestObject: FetchJwks<
     })
       .then(hasStatusOrThrow(200))
       .then((raw) => raw.json())
-      .then((json) => JWKS.parse(json));
+      .then((json) => JWKS.parse(json.jwks));
 
     return {
       keys: jwks.keys,
