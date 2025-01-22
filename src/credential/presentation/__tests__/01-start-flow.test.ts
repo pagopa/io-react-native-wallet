@@ -1,6 +1,6 @@
 // startFlow.test.ts
 import { startFlowFromQR } from "../01-start-flow";
-import { AuthRequestDecodeError } from "../errors";
+import { InvalidQRCodeError } from "../errors";
 
 describe("startFlowFromQR", () => {
   const validQRCode =
@@ -35,17 +35,13 @@ describe("startFlowFromQR", () => {
   });
 
   it("should throw AuthRequestDecodeError for invalid Base64", () => {
-    expect(() => startFlowFromQR("invalidBase64")).toThrow(
-      AuthRequestDecodeError
-    );
+    expect(() => startFlowFromQR("invalidBase64")).toThrow(InvalidQRCodeError);
   });
 
   it("should throw AuthRequestDecodeError when required query parameters are missing", () => {
     const incompleteURL =
       "aHR0cHM6Ly9leGFtcGxlLmNvbS9wYXRoP2NsaWVudF9pZD1jbGllbnQxMjM="; // Missing request_uri
 
-    expect(() => startFlowFromQR(incompleteURL)).toThrow(
-      AuthRequestDecodeError
-    );
+    expect(() => startFlowFromQR(incompleteURL)).toThrow(InvalidQRCodeError);
   });
 });

@@ -1,4 +1,4 @@
-import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
+import { UnverifiedEntityError } from "./errors";
 
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { RequestObject } from "./types";
@@ -23,9 +23,7 @@ export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
     }
 
     if (!pubKey) {
-      throw new NoSuitableKeysFoundInEntityConfiguration(
-        "Request Object signature verification"
-      );
+      throw new UnverifiedEntityError("Request Object signature verification");
     }
     await verify(requestObjectEncodedJwt, pubKey);
 

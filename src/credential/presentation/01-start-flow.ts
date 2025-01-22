@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { AuthRequestDecodeError } from "./errors";
+import { InvalidQRCodeError } from "./errors";
 
 const QRCodePayload = z.object({
   protocol: z.string(),
@@ -38,7 +38,7 @@ export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
 
     decodedUrl = new URL(replacedQrcode);
   } catch (error) {
-    throw new AuthRequestDecodeError("Failed to decode QR code: ", qrcode);
+    throw new InvalidQRCodeError(`Failed to decode QR code:  ${qrcode}`);
   }
 
   const protocol = decodedUrl.protocol;
@@ -56,6 +56,6 @@ export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new AuthRequestDecodeError(result.error.message, `${decodedUrl}`);
+    throw new InvalidQRCodeError(`${result.error.message}, ${decodedUrl}`);
   }
 };

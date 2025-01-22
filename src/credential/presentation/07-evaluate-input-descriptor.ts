@@ -1,7 +1,7 @@
 import { InputDescriptor } from "./types";
 import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
 import { JSONPath } from "jsonpath-plus";
-import { IoWalletError } from "../../utils/errors";
+import { MissingDataError } from "./errors";
 import Ajv from "ajv";
 const ajv = new Ajv({ allErrors: true });
 
@@ -60,7 +60,7 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
               }).length > 0
             );
           } catch (error) {
-            throw new IoWalletError(
+            throw new MissingDataError(
               `JSONPath for "${singlePath}" does not match the provided payload.`
             );
           }
@@ -80,14 +80,17 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
       // FILTER validation
       // If this field has a "filter" (JSON Schema), validate the claimValue
       if (field.filter) {
-        const validateSchema = ajv.compile(field.filter);
-        if (!validateSchema(matchedValue)) {
-          throw new IoWalletError(
-            `Claim value "${matchedValue}" for path "${matchedPath}" does not match the provided JSON Schema.`
-          );
+        try {
+          const validateSchema = ajv.compile(field.filter);
+          if (!validateSchema(matchedValue)) {
+            throw new MissingDataError(
+              `Claim value "${matchedValue}" for path "${matchedPath}" does not match the provided JSON Schema.`
+            );
+          }
+        } catch (error) {
+          return false;
         }
       }
-
       // Submission Requirements validation
       // TODO: [EUDIW-216] Read rule value if “all” o “pick” and validate
 
@@ -95,7 +98,7 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
     });
 
     if (!allFieldsValid) {
-      throw new IoWalletError(
+      throw new MissingDataError(
         "Credential must not match the input descriptor!!"
       );
     }
