@@ -75,8 +75,8 @@ const jwks = await Credential.Presentation.fetchJwksFromConfig(rpConf);
 const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
 const jwks = await Credential.Presentation.fetchJwksFromUri(
-  requestObjectJwt.protectedHeader?.iss,
-  appFetch,
+  requestObjectJwt.payload?.iss,
+  { context: { appFetch } }
 );
 
 // Verify signature Request Object

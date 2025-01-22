@@ -1,13 +1,21 @@
 // fetchJwks.test.ts
 
-import { fetchJwksFromUri, fetchJwksFromConfig } from "../04-retrieve-rp-jwks";
+import {
+  fetchJwksFromRequestObject,
+  fetchJwksFromConfig,
+} from "../04-retrieve-rp-jwks";
 
-import { JWKS } from "../../../utils/jwk";
+import { JWKS, JWK } from "../../../utils/jwk";
 import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { NoSuitableKeysFoundInEntityConfiguration } from "../errors";
 
 // Mock the JWKS and JWK utilities
 jest.mock("../../../utils/jwk", () => ({
   JWKS: {
+    parse: jest.fn(),
+  },
+  JWK: {
     parse: jest.fn(),
   },
 }));
@@ -19,99 +27,56 @@ jest.mock("../../../entity/trust/types", () => ({
   },
 }));
 
-// Type assertion for mocked functions
-const mockedJWKSParse = JWKS.parse as jest.Mock;
+jest.mock("@pagopa/io-react-native-jwt", () => ({ decode: jest.fn() }));
 
-describe("fetchJwksFromUri", () => {
+describe("fetchJwksFromRequestObject", () => {
   beforeEach(() => {
-    jest.resetAllMocks();
-    // Mock the global fetch
-    global.fetch = jest.fn();
+    jest.clearAllMocks();
   });
 
-  it("should successfully fetch JWKS using the global fetch", async () => {
-    const mockJwksResponse = { keys: [{ kid: "key1" }] } as JWKS;
+  it("returns keys from protected header when JWT contains jwk attribute", async () => {
+    const sampleJwk = { kty: "RSA", kid: "abc" };
+    (decodeJwt as jest.Mock).mockReturnValue({
+      protectedHeader: { jwk: sampleJwk },
+      payload: {},
+    });
+    (JWK.parse as jest.Mock).mockImplementation((key) => key);
 
-    mockedJWKSParse.mockReturnValue(mockJwksResponse);
+    const result = await fetchJwksFromRequestObject("dummyJwt", {});
+    expect(result.keys).toEqual([sampleJwk]);
+  });
 
-    (global.fetch as jest.Mock).mockResolvedValue({
+  it("retrieves keys from well-known URL when iss claim is present", async () => {
+    const fakeIss = "https://example.com/path";
+    const sampleJwk = { kty: "EC", kid: "xyz" };
+    (decodeJwt as jest.Mock).mockReturnValue({
+      protectedHeader: {},
+      payload: { iss: fakeIss },
+    });
+
+    const fakeJwksResponse = { keys: [sampleJwk] };
+    const fakeFetch = jest.fn().mockResolvedValue({
       status: 200,
-      json: jest.fn().mockResolvedValue(mockJwksResponse),
+      json: async () => fakeJwksResponse,
     });
 
-    const issUrl = new URL("https://client.example.com");
-    const issUrlJwk = new URL("/jwk", issUrl.toString());
-    const result = await fetchJwksFromUri(issUrlJwk, {});
+    (JWKS.parse as jest.Mock).mockImplementation((json) => json);
 
-    // Assertions
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
-      { method: "GET" }
-    );
-    expect(mockedJWKSParse).toHaveBeenCalledWith(mockJwksResponse);
-    expect(result).toEqual({ keys: mockJwksResponse.keys });
+    const context = { appFetch: fakeFetch };
+    const result = await fetchJwksFromRequestObject("dummyJwt", { context });
+
+    expect(fakeFetch).toHaveBeenCalled();
+    expect(result.keys).toEqual([sampleJwk]);
   });
 
-  it("should use a custom fetch function if provided", async () => {
-    const mockJwksResponse = { keys: [{ kid: "key2" }] } as JWKS;
-    const customFetch = jest.fn().mockResolvedValue({
-      status: 200,
-      json: jest.fn().mockResolvedValue(mockJwksResponse),
+  it("throws NoSuitableKeysFoundInEntityConfiguration error when no jwk and no iss found", async () => {
+    (decodeJwt as jest.Mock).mockReturnValue({
+      protectedHeader: {},
+      payload: {},
     });
 
-    mockedJWKSParse.mockReturnValue(mockJwksResponse);
-
-    const issUrl = new URL("https://client.example.com");
-    const issUrlJwk = new URL("/jwk", issUrl.toString());
-    const result = await fetchJwksFromUri(issUrlJwk, {
-      context: { appFetch: customFetch },
-    });
-
-    // Assertions
-    expect(customFetch).toHaveBeenCalledWith(
-      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
-      { method: "GET" }
-    );
-    expect(mockedJWKSParse).toHaveBeenCalledWith(mockJwksResponse);
-    expect(result).toEqual({ keys: mockJwksResponse.keys });
-  });
-
-  it("should throw an error if the fetch fails", async () => {
-    const customFetch = jest.fn().mockRejectedValue(new Error("Network error"));
-
-    const issUrl = new URL("https://client.example.com");
-    const issUrlJwk = new URL("/jwk", issUrl.toString());
-    await expect(
-      fetchJwksFromUri(issUrlJwk, { context: { appFetch: customFetch } })
-    ).rejects.toThrow("Network error");
-
-    // Assertions
-    expect(customFetch).toHaveBeenCalledWith(
-      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
-      { method: "GET" }
-    );
-  });
-
-  it("should throw an error if the response status is not 200", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      status: 404,
-      json: jest.fn(),
-      headers: {
-        get: jest.fn(),
-      },
-      text: jest.fn(),
-    });
-
-    const issUrl = new URL("https://client.example.com");
-    const issUrlJwk = new URL("/jwk", issUrl.toString());
-    await expect(fetchJwksFromUri(issUrlJwk, {})).rejects.toThrow(
-      /Expected 200, got 404/
-    );
-
-    // Assertions
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${issUrl.toString()}.well-known/jar-issuer/jwk`,
-      { method: "GET" }
+    await expect(fetchJwksFromRequestObject("dummyJwt", {})).rejects.toThrow(
+      NoSuitableKeysFoundInEntityConfiguration
     );
   });
 });

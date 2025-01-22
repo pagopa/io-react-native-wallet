@@ -16,16 +16,10 @@ export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
     let pubKey;
 
     // verify token signature to ensure the request object is authentic
-    // 1. according to entity configuration if present
     if (jwkKeys) {
       pubKey = jwkKeys.find(
         ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
       );
-    }
-
-    // 2. If jwk is not retrieved from entity config, check if the token contains the 'jwk' attribute
-    if (requestObjectJwt.protectedHeader?.jwk) {
-      pubKey = requestObjectJwt.protectedHeader.jwk;
     }
 
     if (!pubKey) {
