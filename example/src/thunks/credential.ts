@@ -30,7 +30,6 @@ export type GetCredentialStatusAttestationThunkOutput = {
 
 /**
  * Thunk to obtain a new credential.
- * @param args.idPhint- The idPhint for the Identity Provider to use if the requested credential is a `urn:eu.europa.ec.eudi:pid:1`
  * @param args.credentialType - The type of the requested credential to obtain
  * @returns The obtained credential result
  */

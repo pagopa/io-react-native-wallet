@@ -49,7 +49,7 @@ export type BuildAuthorizationUrl = (
   issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
   clientId: Out<StartUserAuthorization>["clientId"],
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
-  idpHint: string
+  idpHint?: string
 ) => Promise<{
   authUrl: string;
 }>;
@@ -74,7 +74,7 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
   const params = new URLSearchParams({
     client_id: clientId,
     request_uri: issuerRequestUri,
-    idphint: idpHint,
+    ...(idpHint && { idphint: idpHint }),
   });
 
   const authUrl = `${authzRequestEndpoint}?${params}`;
