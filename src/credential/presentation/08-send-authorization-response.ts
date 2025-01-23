@@ -15,7 +15,7 @@ import * as z from "zod";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
-  status: z.string(),
+  status: z.string().optional(),
   response_code: z
     .string() /**
       FIXME: [SIW-627] we expect this value from every RP implementation
@@ -23,6 +23,7 @@ export const AuthorizationResponse = z.object({
       We make it optional to not break the flow.
     */
     .optional(),
+  redirect_uri: z.string().optional(),
 });
 
 /**
