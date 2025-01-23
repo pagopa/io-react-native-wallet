@@ -154,8 +154,8 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
         optionalDisclosures: disclosures,
       };
     }
-    let requiredClaimNames: string[] = [];
-    let optionalClaimNames: string[] = [];
+    const requiredClaimNames: string[] = [];
+    const optionalClaimNames: string[] = [];
 
     // Transform disclosures to find claim using JSONPath
     const disclosuresAsPayload = mapDisclosuresToObject(disclosures);

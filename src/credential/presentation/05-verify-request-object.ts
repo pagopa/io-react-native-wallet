@@ -13,14 +13,11 @@ export type VerifyRequestObjectSignature = (
 export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
   async (requestObjectEncodedJwt, jwkKeys) => {
     const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
-    let pubKey;
 
     // verify token signature to ensure the request object is authentic
-    if (jwkKeys) {
-      pubKey = jwkKeys.find(
-        ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
-      );
-    }
+    const pubKey = jwkKeys?.find(
+      ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
+    );
 
     if (!pubKey) {
       throw new UnverifiedEntityError("Request Object signature verification!");

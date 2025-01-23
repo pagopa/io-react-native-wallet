@@ -223,21 +223,19 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   );
 
   // 2. Choose the appropriate request body builder based on response mode
-  let requestBody: string;
-  if (requestObject.response_mode === "direct_post.jwt") {
-    requestBody = await buildDirectPostJwtBody(
-      jwkKeys,
-      requestObject,
-      vp_token,
-      presentation_submission
-    );
-  } else {
-    requestBody = await buildDirectPostBody(
-      requestObject,
-      vp_token,
-      presentation_submission
-    );
-  }
+  const requestBody =
+    requestObject.response_mode === "direct_post.jwt"
+      ? await buildDirectPostJwtBody(
+          jwkKeys,
+          requestObject,
+          vp_token,
+          presentation_submission
+        )
+      : await buildDirectPostBody(
+          requestObject,
+          vp_token,
+          presentation_submission
+        );
 
   // 3. Send the authorization response via HTTP POST and validate the response
   return await appFetch(requestObject.response_uri, {
