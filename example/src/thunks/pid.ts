@@ -24,7 +24,6 @@ import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
  * Type definition for the input of the {@link getPidThunk}.
  */
 type getPidThunkInput = {
-  idpHint: string;
   credentialType: Extract<SupportedCredentials, "urn:eu.europa.ec.eudi:pid:1">;
 };
 
@@ -33,7 +32,6 @@ type getPidThunkInput = {
  * It performs a partial issuance flow, starting from the issuance request to the user authorization.
  * This is needed to obtain the needed parameters to continue the flow in the webview in {@link TestCieL3Scenario} or in {@link PidSpidLoginScreen}.
  * The flow can be managed using either SPID or CIE L3 as the authentication method.
- * @param args.idpHint The identity provider hint to use in the issuance flow.
  * @param args.authMethod The authentication method to use, either SPID or CIE L3.
  * @param args.credentialType The type of credential to be issued.
  * @param args.ciePin The CIE PIN to use in the issuance flow (optional, only for CIE L3).
@@ -41,7 +39,7 @@ type getPidThunkInput = {
  */
 export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
   "pid/flowParamsPrepare",
-  async (args, { getState, dispatch }) => {
+  async (_, { getState, dispatch }) => {
     // Checks if the wallet instance attestation needs to be reuqested
     if (shouldRequestAttestationSelector(getState())) {
       await dispatch(getAttestationThunk());
@@ -55,7 +53,6 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
 
     // Reset the credential state before obtaining a new PID
     dispatch(credentialReset());
-    const { idpHint } = args;
 
     const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
@@ -92,8 +89,7 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
     const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
       issuerRequestUri,
       clientId,
-      issuerConf,
-      idpHint
+      issuerConf
     );
 
     const supportsCustomTabs = await supportsInAppBrowser();
