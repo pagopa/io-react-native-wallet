@@ -21,7 +21,7 @@ import {
   type FetchPresentationDefinition,
 } from "./06-fetch-presentation-definition";
 import {
-  evaluateInputDescriptionForSdJwt4VC,
+  evaluateInputDescriptorForSdJwt4VC,
   type EvaluateInputDescriptorSdJwt4VC,
 } from "./07-evaluate-input-descriptor";
 import {
@@ -38,7 +38,7 @@ export {
   fetchJwksFromConfig,
   verifyRequestObjectSignature,
   fetchPresentDefinition,
-  evaluateInputDescriptionForSdJwt4VC,
+  evaluateInputDescriptorForSdJwt4VC,
   sendAuthorizationResponse,
   Errors,
 };
