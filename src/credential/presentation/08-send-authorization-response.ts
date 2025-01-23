@@ -1,4 +1,8 @@
-import { EncryptJwe, SignJWT } from "@pagopa/io-react-native-jwt";
+import {
+  EncryptJwe,
+  SignJWT,
+  sha256ToBase64,
+} from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import type { FetchJwks } from "./04-retrieve-rp-jwks";
 import type { VerifyRequestObjectSignature } from "./05-verify-request-object";
@@ -8,7 +12,6 @@ import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import { disclose } from "../../sd-jwt";
 import { PresentationDefinition, type Presentation } from "./types";
 import * as z from "zod";
-import { sha256 } from "js-sha256";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -83,7 +86,8 @@ export const prepareVpToken = async (
   // Produce a VP token with only requested claims from the verifiable credential
   const { token: vp } = await disclose(verifiableCredential, requestedClaims);
 
-  const sd_hash = sha256(vp);
+  // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
+  const sd_hash = await sha256ToBase64(`${vp}~`);
 
   const kbJwt = await new SignJWT(cryptoContext)
     .setProtectedHeader({
@@ -94,7 +98,7 @@ export const prepareVpToken = async (
       sd_hash,
       nonce: requestObject.nonce,
     })
-    .setAudience(requestObject.response_uri)
+    .setAudience(requestObject.client_id)
     .setIssuedAt()
     .sign();
 
@@ -103,14 +107,12 @@ export const prepareVpToken = async (
 
   // Determine the descriptor ID to use for mapping. Fallback to first input descriptor ID if not specified
   // We support only one credential for now, so we get first input_descriptor and create just one descriptor_map
-  const descriptorMapId =
-    requestObject.scope || presentationDefinition?.input_descriptors[0]?.id;
   const presentation_submission = {
     id: uuid.v4(),
     definition_id: presentationDefinition.id,
     descriptor_map: [
       {
-        id: descriptorMapId,
+        id: presentationDefinition?.input_descriptors[0]?.id,
         path: `$`,
         format: "vc+sd-jwt",
       },
@@ -237,7 +239,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   }
 
   // 3. Send the authorization response via HTTP POST and validate the response
-  return appFetch(requestObject.response_uri, {
+  return await appFetch(requestObject.response_uri, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",

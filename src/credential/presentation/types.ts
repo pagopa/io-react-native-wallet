@@ -69,7 +69,7 @@ export const PresentationDefinition = z.object({
 export type RequestObject = z.infer<typeof RequestObject>;
 export const RequestObject = z.object({
   iss: z.string().optional(), //optional by RFC 7519, mandatory for Potential
-  iat: UnixTime,
+  iat: UnixTime.optional(),
   exp: UnixTime.optional(),
   state: z.string(),
   nonce: z.string(),

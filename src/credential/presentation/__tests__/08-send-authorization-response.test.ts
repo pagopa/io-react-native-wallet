@@ -42,6 +42,7 @@ jest.mock("@pagopa/io-react-native-jwt", () => {
       setExpirationTime: jest.fn().mockReturnThis(),
       sign: jest.fn().mockResolvedValue("mock_signed_kbjwt"),
     })),
+    sha256ToBase64: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
   };
 });
 
