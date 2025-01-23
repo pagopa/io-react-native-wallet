@@ -63,6 +63,71 @@ const findMatchedClaim = (
 };
 
 /**
+ * Extracts the claim name from a path that can be in one of the following formats:
+ * 1. $.propertyName
+ * 2. $["propertyName"] or $['propertyName']
+ *
+ * @param path - The path string containing the claim reference.
+ * @returns The extracted claim name if matched; otherwise, throws an exception.
+ */
+const extractClaimName = (path: string): string | undefined => {
+  // Define a regular expression that matches both formats:
+  // 1. $.propertyName
+  // 2. $["propertyName"] or $['propertyName']
+  const regex = /^\$\.(\w+)$|^\$\[(?:'|")(\w+)(?:'|")\]$/;
+
+  const match = path.match(regex);
+  if (match) {
+    // match[1] corresponds to the first capture group (\w+) after $.
+    // match[2] corresponds to the second capture group (\w+) inside [""] or ['']
+    return match[1] || match[2];
+  }
+
+  // If the input doesn't match any of the expected formats, return null
+
+  throw new Error(
+    `Invalid input format: "${path}". Expected formats are "$.propertyName", "$['propertyName']", or '$["propertyName"]'.`
+  );
+};
+
+/**
+ * Categorizes disclosures into required and optional based on claim names and disclosure constraints.
+ *
+ * @param disclosures - An array of DisclosureWithEncoded objects representing the disclosures to categorize.
+ * @param requiredClaimNames - An array of claim names that are marked as required in the input descriptor.
+ * @param optionalClaimNames - An array of claim names that are marked as optional in the input descriptor.
+ * @param isNotLimitDisclosureRequired - A boolean flag indicating whether `limit_disclosure` is not set to "required".
+ *                                      - If `true`, all disclosures are included as optional.
+ *                                      - If `false`, only disclosures matching the required or optional claim names are included.
+ * @returns An object containing two arrays:
+ *          - `requiredDisclosures`: Disclosures that match the required claim names.
+ *          - `optionalDisclosures`: Disclosures that match the optional claim names or all disclosures
+ *                                     if `limit_disclosure` is not required.
+ */
+const categorizeDisclosures = (
+  disclosures: DisclosureWithEncoded[],
+  requiredClaimNames: string[],
+  optionalClaimNames: string[],
+  isNotLimitDisclosure: boolean
+): EvaluatedDisclosures => {
+  const requiredDisclosures: DisclosureWithEncoded[] = [];
+  const optionalDisclosures: DisclosureWithEncoded[] = [];
+
+  disclosures.forEach((disclosure) => {
+    if (requiredClaimNames.includes(disclosure.decoded[1]))
+      requiredDisclosures.push(disclosure);
+    else if (optionalClaimNames.includes(disclosure.decoded[1]))
+      optionalDisclosures.push(disclosure);
+    else if (isNotLimitDisclosure) optionalDisclosures.push(disclosure);
+  });
+
+  return {
+    requiredDisclosures,
+    optionalDisclosures,
+  };
+};
+
+/**
  * Evaluates an InputDescriptor for an SD-JWT-based verifiable credential.
  *
  * - Checks each field in the InputDescriptor against the provided `payloadCredential`
@@ -80,7 +145,7 @@ const findMatchedClaim = (
  * @returns A filtered list of disclosures satisfying the descriptor constraints, or throws an error if not.
  * @throws Will throw an error if any required constraint fails or if JSONPath lookups are invalid.
  */
-export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC =
+export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC =
   (inputDescriptor, payloadCredential, disclosures) => {
     if (!inputDescriptor?.constraints?.fields) {
       // No validation, all field are optional
@@ -89,9 +154,10 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
         optionalDisclosures: disclosures,
       };
     }
-    let claimRequireRequested: DisclosureWithEncoded[] = [];
-    let claimOptionalRequested: DisclosureWithEncoded[] = [];
+    let requiredClaimNames: string[] = [];
+    let optionalClaimNames: string[] = [];
 
+    // Transform disclosures to find claim using JSONPath
     const disclosuresAsPayload = mapDisclosuresToObject(disclosures);
 
     // For each field, we need at least one matching path
@@ -99,7 +165,7 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
     const allFieldsValid = inputDescriptor.constraints.fields.every((field) => {
       // For Potential profile, selectively disclosed claims will always be built as an individual object property, by using a name-value pair.
       // Hence that selective claim for array element and recursive disclosures are not supported by Potential for the first iteration of Piloting.
-      // We need to check inside disclosures or inside payload. Example path: "$.given_name"
+      // We need to check inside disclosures or inside credential payload. Example path: "$.given_name"
       let [matchedPath, matchedValue] = findMatchedClaim(
         field.path,
         disclosuresAsPayload
@@ -112,8 +178,16 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
         );
 
         if (!matchedPath) {
-          // Path should be optional, no need to validate! continue to next field
+          // Path could be optional, in this case no need to validate! continue to next field
           return field?.optional;
+        }
+      } else {
+        // if match a disclouse we save which is required or optional
+        const claimName = extractClaimName(matchedPath);
+        if (claimName) {
+          (field?.optional ? optionalClaimNames : requiredClaimNames).push(
+            claimName
+          );
         }
       }
 
@@ -139,35 +213,23 @@ export const evaluateInputDescriptionForSdJwt4VC: EvaluateInputDescriptorSdJwt4V
 
     if (!allFieldsValid) {
       throw new MissingDataError(
-        "Credential does not match the input descriptor!!"
+        "Credential validation failed: Required fields are missing or do not match the input descriptor."
       );
     }
 
-    // We use slice to remove "$.", for future field.path can point deeper (e.g., $.some.deep.key), we may need more robust!!
-    // If limit_disclosure set to "required", ensure that data is limited to the entries specified in the fields
-    if (inputDescriptor.constraints.limit_disclosure === "required") {
-      const allPaths = inputDescriptor.constraints.fields.flatMap((field) =>
-        field.path.flatMap((path) => path.slice(2))
-      );
+    const isNotLimitDisclosure = !(
+      inputDescriptor.constraints.limit_disclosure === "required"
+    );
 
-      claimRequireRequested = disclosures.filter((item) =>
-        allPaths.includes(item.decoded[1])
-      );
-    } else {
-      const requiredPath = inputDescriptor.constraints.fields
-        .filter((field) => !field.optional)
-        .flatMap((field) => field.path.flatMap((path) => path.slice(2)));
-
-      claimRequireRequested = disclosures.filter((item) =>
-        requiredPath.includes(item.decoded[1])
-      );
-      claimOptionalRequested = disclosures.filter(
-        (item) => !requiredPath.includes(item.decoded[1])
-      );
-    }
+    const { requiredDisclosures, optionalDisclosures } = categorizeDisclosures(
+      disclosures,
+      requiredClaimNames,
+      optionalClaimNames,
+      isNotLimitDisclosure
+    );
 
     return {
-      requiredDisclosures: claimRequireRequested,
-      optionalDisclosures: claimOptionalRequested,
+      requiredDisclosures,
+      optionalDisclosures,
     };
   };

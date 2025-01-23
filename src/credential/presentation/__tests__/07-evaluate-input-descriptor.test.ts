@@ -1,13 +1,13 @@
-// __tests__/evaluateInputDescriptionForSdJwt4VC.test.ts
+// __tests__/evaluateInputDescriptorForSdJwt4VC.test.ts
 
-import { evaluateInputDescriptionForSdJwt4VC } from "../07-evaluate-input-descriptor";
+import { evaluateInputDescriptorForSdJwt4VC } from "../07-evaluate-input-descriptor";
 import { InputDescriptor } from "../types";
 import {
   type SdJwt4VC,
   type DisclosureWithEncoded,
 } from "../../../sd-jwt/types";
 
-describe("evaluateInputDescriptionForSdJwt4VC", () => {
+describe("evaluateInputDescriptorForSdJwt4VC", () => {
   it("should return all disclosures if constraints.fields is not present", () => {
     const inputDescriptor: InputDescriptor = {
       // constraints is undefined or empty
@@ -33,7 +33,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const { optionalDisclosures } = evaluateInputDescriptionForSdJwt4VC(
+    const { optionalDisclosures } = evaluateInputDescriptorForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
@@ -69,7 +69,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
     ];
 
     expect(() =>
-      evaluateInputDescriptionForSdJwt4VC(
+      evaluateInputDescriptorForSdJwt4VC(
         inputDescriptor,
         payloadCredential,
         disclosures
@@ -104,7 +104,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const { optionalDisclosures } = evaluateInputDescriptionForSdJwt4VC(
+    const { optionalDisclosures } = evaluateInputDescriptorForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
@@ -146,7 +146,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
     ];
 
     expect(() =>
-      evaluateInputDescriptionForSdJwt4VC(
+      evaluateInputDescriptorForSdJwt4VC(
         inputDescriptor,
         payloadCredential,
         disclosures
@@ -186,7 +186,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const { requiredDisclosures } = evaluateInputDescriptionForSdJwt4VC(
+    const { requiredDisclosures } = evaluateInputDescriptorForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
@@ -226,7 +226,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
       },
     ];
 
-    const { requiredDisclosures } = evaluateInputDescriptionForSdJwt4VC(
+    const { requiredDisclosures } = evaluateInputDescriptorForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
@@ -276,7 +276,7 @@ describe("evaluateInputDescriptionForSdJwt4VC", () => {
 
     // limit_disclosure is undefined or not "required", so we return all disclosures
     const { requiredDisclosures, optionalDisclosures } =
-      evaluateInputDescriptionForSdJwt4VC(
+      evaluateInputDescriptorForSdJwt4VC(
         inputDescriptor,
         payloadCredential,
         disclosures
