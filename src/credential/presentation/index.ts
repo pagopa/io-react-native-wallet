@@ -4,33 +4,51 @@ import {
   type EvaluateRelyingPartyTrust,
 } from "./02-evaluate-rp-trust";
 import {
-  fetchJwksFromUri,
-  fetchJwksFromConfig,
-  type FetchJwks,
-} from "./03-retrieve-jwks";
-import {
   getRequestObject,
   type GetRequestObject,
-} from "./04-get-request-object";
+} from "./03-get-request-object";
+import {
+  fetchJwksFromRequestObject,
+  fetchJwksFromConfig,
+  type FetchJwks,
+} from "./04-retrieve-rp-jwks";
+import {
+  verifyRequestObjectSignature,
+  type VerifyRequestObjectSignature,
+} from "./05-verify-request-object";
+import {
+  fetchPresentDefinition,
+  type FetchPresentationDefinition,
+} from "./06-fetch-presentation-definition";
+import {
+  evaluateInputDescriptorForSdJwt4VC,
+  type EvaluateInputDescriptorSdJwt4VC,
+} from "./07-evaluate-input-descriptor";
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
-} from "./05-send-authorization-response";
+} from "./08-send-authorization-response";
 import * as Errors from "./errors";
 
 export {
   startFlowFromQR,
   evaluateRelyingPartyTrust,
-  fetchJwksFromUri,
-  fetchJwksFromConfig,
   getRequestObject,
+  fetchJwksFromRequestObject,
+  fetchJwksFromConfig,
+  verifyRequestObjectSignature,
+  fetchPresentDefinition,
+  evaluateInputDescriptorForSdJwt4VC,
   sendAuthorizationResponse,
   Errors,
 };
 export type {
   StartFlow,
   EvaluateRelyingPartyTrust,
-  FetchJwks,
   GetRequestObject,
+  FetchJwks,
+  VerifyRequestObjectSignature,
+  FetchPresentationDefinition,
+  EvaluateInputDescriptorSdJwt4VC,
   SendAuthorizationResponse,
 };

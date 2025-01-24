@@ -60,14 +60,53 @@ const { requestURI, clientId } = Credential.Presentation.startFlowFromQR(qrcode)
 // If use trust federation: Evaluate issuer trust
 const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clientId);
 
+const { requestObjectEncodedJwt } =
+    await Credential.Presentation.getRequestObject(requestURI, {
+      wiaCryptoContext: wiaCryptoContext,
+      appFetch: appFetch,
+      walletInstanceAttestation: walletInstanceAttestation,
+    });
+
+// Retrieve RP JWK
 // If use trust federation: Fetch Jwks from rpConf
 const jwks = await Credential.Presentation.fetchJwksFromConfig(rpConf);
 
-// If not use trust: Fetch Jwks from well-know
-const jwks = await Credential.Presentation.fetchJwksFromUri(
-  requestURI,
-  appFetch,
+// If not use trust: Fetch Jwks from request object
+const jwks = await Credential.Presentation.fetchJwksFromRequestObject(
+  requestObjectEncodedJwt,
+  { context: { appFetch } }
 );
+
+// Verify signature Request Object
+const { requestObject } =
+    await Credential.Presentation.verifyRequestObjectSignature(
+      requestObjectEncodedJwt,
+      jwks.keys
+    );
+
+
+const { presentationDefinition } = await Credential.Presentation.fetchPresentDefinition(
+  requestObject,
+  {
+    appFetch: appFetch,
+  },
+  rpConf // If trust federation is used
+);
+
+// For each credential, find it and evaluate input descriptor and disclosures
+  const { requiredDisclosures } = Credential.Presentation.evaluateInputDescriptionForSdJwt4VC(
+    inputDescriptor,
+    credential.payload,
+    disclosures
+  );
+
+// After confirm disclosures in app
+  const authResponse = Credential.Presentation.sendAuthorizationResponse(
+    requestObject,
+    presentationDefinition,
+    jwks,
+    [credential, disclosuresRequested, { appFetch: appFetch }]
+  );
 
 
 ```

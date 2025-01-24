@@ -1,6 +1,5 @@
 import * as z from "zod";
-import { decodeBase64 } from "@pagopa/io-react-native-jwt";
-import { AuthRequestDecodeError } from "./errors";
+import { InvalidQRCodeError } from "./errors";
 
 const QRCodePayload = z.object({
   protocol: z.string(),
@@ -31,10 +30,15 @@ export type StartFlow<T extends Array<unknown> = []> = (...args: T) => {
 export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
   let decodedUrl: URL;
   try {
-    const decoded = decodeBase64(qrcode);
-    decodedUrl = new URL(decoded);
+    // splitting qrcode to identify which is link format
+    const originalQrCode = qrcode.split("://");
+    const replacedQrcode = originalQrCode[1]?.startsWith("?")
+      ? qrcode.replace(`${originalQrCode[0]}://`, "https://wallet.example/")
+      : qrcode;
+
+    decodedUrl = new URL(replacedQrcode);
   } catch (error) {
-    throw new AuthRequestDecodeError("Failed to decode QR code: ", qrcode);
+    throw new InvalidQRCodeError(`Failed to decode QR code:  ${qrcode}`);
   }
 
   const protocol = decodedUrl.protocol;
@@ -52,6 +56,6 @@ export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new AuthRequestDecodeError(result.error.message, `${decodedUrl}`);
+    throw new InvalidQRCodeError(`${result.error.message}, ${decodedUrl}`);
   }
 };
