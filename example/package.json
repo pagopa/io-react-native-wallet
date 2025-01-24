@@ -6,9 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "pods": "pod-install --quiet",
-    "cie-ios:prod": "mv node_modules/@pagopa/react-native-cie/.ios node_modules/@pagopa/react-native-cie/ios && mv node_modules/@pagopa/react-native-cie/.react-native-cie.podspec node_modules/@pagopa/react-native-cie/react-native-cie.podspec && cd ios && bundler exec pod install",
-    "cie-ios:dev": "mv node_modules/@pagopa/react-native-cie/ios node_modules/@pagopa/react-native-cie/.ios && mv node_modules/@pagopa/react-native-cie/react-native-cie.podspec node_modules/@pagopa/react-native-cie/.react-native-cie.podspec && cd ios && rm -rf Pods && bundler exec pod install"
+    "pods": "pod-install --quiet"
   },
   "dependencies": {
     "@pagopa/io-app-design-system": "^1.43.0",
@@ -27,8 +25,8 @@
     "io-react-native-secure-storage": "^0.1.1",
     "io-ts": "^2.2.21",
     "lodash": "^4.17.21",
-    "react": "18.2.0",
-    "react-native": "0.72.14",
+    "react": "18.3.1",
+    "react-native": "0.75.4",
     "react-native-gesture-handler": "^2.18.1",
     "react-native-haptic-feedback": "^2.3.1",
     "react-native-reanimated": "^3.15.1",
@@ -45,8 +43,8 @@
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
-    "@react-native/eslint-config": "^0.72.2",
-    "@react-native/metro-config": "^0.72.12",
+    "@react-native/eslint-config": "0.75.4",
+    "@react-native/metro-config": "0.75.4",
     "@types/url-parse": "^1.4.11",
     "babel-plugin-module-resolver": "^5.0.0",
     "metro-react-native-babel-preset": "^0.76.9",
@@ -54,6 +52,7 @@
     "react-native-url-polyfill": "^2.0.0"
   },
   "engines": {
-    "node": ">=16"
-  }
+    "node": ">=18"
+  },
+  "packageManager": "yarn@3.6.4"
 }
