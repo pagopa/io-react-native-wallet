@@ -4,6 +4,7 @@ import { JSONPath } from "jsonpath-plus";
 import { MissingDataError } from "./errors";
 import Ajv from "ajv";
 const ajv = new Ajv({ allErrors: true });
+const INDEX_CLAIM_NAME = 1;
 
 export type EvaluatedDisclosures = {
   requiredDisclosures: DisclosureWithEncoded[];
@@ -88,43 +89,6 @@ const extractClaimName = (path: string): string | undefined => {
   throw new Error(
     `Invalid input format: "${path}". Expected formats are "$.propertyName", "$['propertyName']", or '$["propertyName"]'.`
   );
-};
-
-/**
- * Categorizes disclosures into required and optional based on claim names and disclosure constraints.
- *
- * @param disclosures - An array of DisclosureWithEncoded objects representing the disclosures to categorize.
- * @param requiredClaimNames - An array of claim names that are marked as required in the input descriptor.
- * @param optionalClaimNames - An array of claim names that are marked as optional in the input descriptor.
- * @param isNotLimitDisclosureRequired - A boolean flag indicating whether `limit_disclosure` is not set to "required".
- *                                      - If `true`, all disclosures are included as optional.
- *                                      - If `false`, only disclosures matching the required or optional claim names are included.
- * @returns An object containing two arrays:
- *          - `requiredDisclosures`: Disclosures that match the required claim names.
- *          - `optionalDisclosures`: Disclosures that match the optional claim names or all disclosures
- *                                     if `limit_disclosure` is not required.
- */
-const categorizeDisclosures = (
-  disclosures: DisclosureWithEncoded[],
-  requiredClaimNames: string[],
-  optionalClaimNames: string[],
-  isNotLimitDisclosure: boolean
-): EvaluatedDisclosures => {
-  const requiredDisclosures: DisclosureWithEncoded[] = [];
-  const optionalDisclosures: DisclosureWithEncoded[] = [];
-
-  disclosures.forEach((disclosure) => {
-    if (requiredClaimNames.includes(disclosure.decoded[1]))
-      requiredDisclosures.push(disclosure);
-    else if (optionalClaimNames.includes(disclosure.decoded[1]))
-      optionalDisclosures.push(disclosure);
-    else if (isNotLimitDisclosure) optionalDisclosures.push(disclosure);
-  });
-
-  return {
-    requiredDisclosures,
-    optionalDisclosures,
-  };
 };
 
 /**
@@ -217,15 +181,20 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       );
     }
 
+    // Categorizes disclosures into required and optional based on claim names and disclosure constraints.
     const isNotLimitDisclosure = !(
       inputDescriptor.constraints.limit_disclosure === "required"
     );
 
-    const { requiredDisclosures, optionalDisclosures } = categorizeDisclosures(
-      disclosures,
-      requiredClaimNames,
-      optionalClaimNames,
-      isNotLimitDisclosure
+    const requiredDisclosures = disclosures.filter((disclosure) =>
+      requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
+    );
+
+    const optionalDisclosures = disclosures.filter(
+      (disclosure) =>
+        optionalClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME]) ||
+        (isNotLimitDisclosure &&
+          !requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME]))
     );
 
     return {
