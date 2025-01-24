@@ -70,6 +70,12 @@ const HomeScreen = () => {
         icon: "chevronRight",
         onPress: () => navigation.navigate("Settings"),
       },
+      {
+        label: "Presentations",
+        description: "Present credential",
+        icon: "chevronRight",
+        onPress: () => navigation.navigate("Presentations"),
+      },
     ],
     [hasIntegrityKeyTag, navigation]
   );
