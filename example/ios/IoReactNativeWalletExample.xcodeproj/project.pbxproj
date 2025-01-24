@@ -616,7 +616,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = it.pagopa.app.io.poc.itwallet;
 				PRODUCT_NAME = IoReactNativeWalletExample;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.2;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -643,7 +643,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = it.pagopa.app.io.poc.itwallet;
 				PRODUCT_NAME = IoReactNativeWalletExample;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.2;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
