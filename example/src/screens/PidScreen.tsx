@@ -8,7 +8,6 @@ import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
 import { getPidThunk } from "../thunks/pid";
-import { SPID_DEMO_IDPHINT } from "../utils/environment";
 
 /**
  * Component (screen in a future PR) to test the PID functionalities.
@@ -34,7 +33,6 @@ export const PidScreen = () => {
           dispatch(
             getPidThunk({
               credentialType: "urn:eu.europa.ec.eudi:pid:1",
-              idpHint: SPID_DEMO_IDPHINT,
             })
           ),
         title: "Get PID (SPID)",
