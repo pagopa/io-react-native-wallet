@@ -10,7 +10,7 @@ import {
   requestIntegrityToken,
 } from "@pagopa/io-react-native-integrity";
 import { Platform } from "react-native";
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from "uuid";
 import { addPadding, removePadding } from "@pagopa/io-react-native-jwt";
 import { sha256 } from "js-sha256";
 import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
@@ -63,7 +63,7 @@ const generateIntegrityHardwareKeyTag = () =>
       return removePadding(key);
     },
     android: async () => {
-      const keyTag = uuid.v4().toString();
+      const keyTag = uuidv4().toString();
       await generate(keyTag);
       return keyTag;
     },

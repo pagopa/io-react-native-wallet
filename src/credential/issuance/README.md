@@ -108,7 +108,7 @@ const eid = {
 const eidCryptoContext = createCryptoContextFor(eid.keyTag);
 
 // Create credential crypto context
-const credentialKeyTag = uuid.v4().toString();
+const credentialKeyTag = uuidv4().toString();
 await generate(credentialKeyTag); // Let's assume this function generates a new hardware-backed key pair
 const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
@@ -244,7 +244,7 @@ const authorizationContext = idpHint.includes("servizicie")
  * Create credential crypto context for the PID
  * WARNING: The eID keytag must be persisted and later used when requesting a credential which requires a eID presentation
  */
-const credentialKeyTag = uuid.v4().toString();
+const credentialKeyTag = uuidv4().toString();
 await generate(credentialKeyTag);
 const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 

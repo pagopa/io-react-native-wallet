@@ -1,5 +1,5 @@
 import { EncryptJwe, SignJWT } from "@pagopa/io-react-native-jwt";
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from "uuid";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
@@ -79,7 +79,7 @@ const prepareVpToken = async (
     })
     .setPayload({
       vp: vp,
-      jti: `${uuid.v4()}`,
+      jti: `${uuidv4()}`,
       iss,
       nonce: requestObject.nonce,
     })
@@ -90,8 +90,8 @@ const prepareVpToken = async (
 
   const vc_scope = requestObject.scope;
   const presentation_submission = {
-    definition_id: `${uuid.v4()}`,
-    id: `${uuid.v4()}`,
+    definition_id: `${uuidv4()}`,
+    id: `${uuidv4()}`,
     descriptor_map: paths.map((p) => ({
       id: vc_scope,
       path: `$.vp_token.${p.path}`,

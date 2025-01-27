@@ -1,4 +1,4 @@
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from "uuid";
 import {
   decode as decodeJwt,
   sha256ToBase64,
@@ -41,7 +41,7 @@ export const getRequestObject: GetRequestObject = async (
 ) => {
   const signedWalletInstanceDPoP = await createDPopToken(
     {
-      jti: `${uuid.v4()}`,
+      jti: `${uuidv4()}`,
       htm: "GET",
       htu: requestUri,
       ath: await sha256ToBase64(walletInstanceAttestation),
