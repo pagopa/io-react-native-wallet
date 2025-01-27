@@ -32,7 +32,7 @@ import type { JWTDecodeResult } from "../sd-jwt/types";
  */
 export const getJwtFromFormPost = async (
   formData: string
-): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => { 
+): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => {
   const formPostRegex = /<input[^>]*name="response"[^>]*value="([^"]*)"/i;
   const lineExpressionRegex = /\r\n|\n\r|\n|\r|\s+/g;
 
