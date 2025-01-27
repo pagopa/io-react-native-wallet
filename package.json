@@ -90,6 +90,12 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(jest-)?@react-native|react-native|uuid)"
+    ],
+    "setupFiles": [
+      "<rootDir>/jestSetup.js"
     ]
   },
   "react-native-builder-bob": {
@@ -111,7 +117,7 @@
     "js-sha256": "^0.9.0",
     "parse-url": "^9.2.0",
     "react-native-url-polyfill": "^2.0.0",
-    "react-native-uuid": "^2.0.1",
+    "uuid": "^11.0.3",
     "zod": "^3.21.4"
   }
 }
