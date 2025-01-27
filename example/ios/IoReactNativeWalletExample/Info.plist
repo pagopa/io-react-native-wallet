@@ -37,18 +37,12 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NFCReaderUsageDescription</key>
-	<string>Read CIE</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string/>
@@ -66,14 +60,6 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
-	<array>
-		<string>com.apple.developer.nfc.readersession.iso7816.select-identifiers</string>
-		<string>A0000000308000000009816001</string>
-		<string>A00000000039</string>
-		<string>A0000002471001</string>
-		<string>00000000000000</string>
-	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>TitilliumSansPro-Black.otf</string>
@@ -97,5 +83,7 @@
 		<string>RobotoMono-Regular.ttf</string>
 		<string>RobotoMono-RegularItalic.ttf</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
 </dict>
 </plist>
