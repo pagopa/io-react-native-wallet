@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": ".",
+    "baseUrl": "./",
     "paths": {
       "@pagopa/io-react-native-wallet": ["./src/index"]
     },
