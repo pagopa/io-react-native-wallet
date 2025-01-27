@@ -1,5 +1,5 @@
 module.exports = {
   root: true,
-  extends: ["@react-native", "prettier"],
+  extends: ["@react-native"],
   plugins: ["jest"],
 };
