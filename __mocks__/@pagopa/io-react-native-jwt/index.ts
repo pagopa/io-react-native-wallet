@@ -1,6 +1,6 @@
 import { Base64 as mockBase64 } from "js-base64";
 import { sha256 as mockSha256 } from "js-sha256";
-import type { JWK } from "src/utils/jwk";
+import type { JWK } from "../../../src/utils/jwk";
 
 export { SignJWT } from "@pagopa/io-react-native-jwt";
 

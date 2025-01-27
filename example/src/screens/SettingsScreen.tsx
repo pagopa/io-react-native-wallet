@@ -1,5 +1,4 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from "react";
 import { Alert, SafeAreaView, ScrollView } from "react-native";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { ButtonSolid, IOVisualCostants } from "@pagopa/io-app-design-system";

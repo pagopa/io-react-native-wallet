@@ -102,6 +102,9 @@ export const startUserAuthorization: StartUserAuthorization = async (
   } = ctx;
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
+  if (!clientId) {
+    throw new Error("Couldn't get the public key");
+  }
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
   const credentialDefinition = selectCredentialDefinition(

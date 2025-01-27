@@ -1,4 +1,3 @@
-import React from "react";
 import "react-native-url-polyfill/auto";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";

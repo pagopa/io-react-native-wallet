@@ -6,7 +6,7 @@ import {
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import type { ComponentProps } from "react";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Alert, FlatList, SafeAreaView } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";

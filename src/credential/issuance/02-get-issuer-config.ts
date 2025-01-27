@@ -1,6 +1,6 @@
 import type { StartFlow } from "./01-start-flow";
 import type { Out } from "../../utils/misc";
-import type { JWK } from "src/utils/jwk";
+import type { JWK } from "../../../src/utils/jwk";
 import { getCredentialIssuerMetadata } from "../../entity/openid-connect/issuer";
 import type { CredentialConfigurationSupported } from "../../entity/openid-connect/issuer/types";
 

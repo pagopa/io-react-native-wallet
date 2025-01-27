@@ -1,5 +1,4 @@
 import { useAppDispatch, useAppSelector } from "../../store/utils";
-import React from "react";
 import {
   ScrollView,
   StyleSheet,

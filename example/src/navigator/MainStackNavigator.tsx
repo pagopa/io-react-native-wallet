@@ -5,7 +5,7 @@ import {
   type Theme,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
 import { PidScreen } from "../screens/PidScreen";
