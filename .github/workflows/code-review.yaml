@@ -34,7 +34,7 @@ jobs:
         run: yarn
 
       - name: Install example dependencies
-        run: yarn install-example
+        run: cd example && yarn install && cd ..
 
       - name: "Code review"
         run: yarn run code-review
