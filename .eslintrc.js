@@ -12,5 +12,8 @@ module.exports = {
         useTabs: false,
       },
     ],
+    // Can be disabled when using React 17
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off",
   },
 };

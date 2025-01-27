@@ -32,8 +32,7 @@
     "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx",
     "prepack": "bob build",
     "release": "release-it",
-    "example": "yarn --cwd example",
-    "bootstrap": "yarn example && yarn install",
+    "install-example": "cd example && yarn && cd ..",
     "code-review": "yarn generate && yarn lint && yarn tsc && yarn test",
     "generate-wallet-provider-client": "typed-openapi openapi/wallet-provider.yaml -o src/client/generated/wallet-provider.ts -r zod",
     "generate": "yarn generate-wallet-provider-client"
@@ -88,7 +87,7 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@4.6.0",
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
