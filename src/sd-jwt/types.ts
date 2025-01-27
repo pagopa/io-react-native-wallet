@@ -1,6 +1,9 @@
+import type { decode } from "@pagopa/io-react-native-jwt";
 import { CredentialFormat } from "../entity/openid-connect/issuer/types";
 import { JWK } from "../utils/jwk";
 import { z } from "zod";
+
+export type JWTDecodeResult = ReturnType<typeof decode>;
 
 export const UnixTime = z.number().min(0).max(2147483647000);
 export type UnixTime = z.infer<typeof UnixTime>;

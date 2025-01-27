@@ -10,8 +10,8 @@ import {
 import { JWK } from "../../utils/jwk";
 import { IoWalletError } from "../../utils/errors";
 import * as z from "zod";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
+import type { JWTDecodeResult } from "../../sd-jwt/types";
 
 type ParsedToken = {
   header: JWTDecodeResult["protectedHeader"];

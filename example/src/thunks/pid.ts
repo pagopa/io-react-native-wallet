@@ -14,11 +14,11 @@ import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import appFetch from "../utils/fetch";
 import { getAttestationThunk } from "./attestation";
 import { createAppAsyncThunk } from "./utils";
-import {
-  openAuthenticationSession,
-  supportsInAppBrowser,
-} from "@pagopa/io-react-native-login-utils";
 import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
+import {
+  supportsInAppBrowser,
+  openAuthenticationSession,
+} from "@pagopa/io-react-native-login-utils";
 
 /**
  * Type definition for the input of the {@link getPidThunk}.

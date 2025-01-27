@@ -1,6 +1,6 @@
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { ValidationFailed } from "./errors";
+import type { JWTDecodeResult } from "../sd-jwt/types";
 
 /*
  * Decode a form_post.jwt and return the final JWT.
@@ -32,7 +32,7 @@ import { ValidationFailed } from "./errors";
  */
 export const getJwtFromFormPost = async (
   formData: string
-): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => {
+): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => { 
   const formPostRegex = /<input[^>]*name="response"[^>]*value="([^"]*)"/i;
   const lineExpressionRegex = /\r\n|\n\r|\n|\r|\s+/g;
 
