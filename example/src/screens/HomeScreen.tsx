@@ -13,6 +13,7 @@ import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 
 import { useAppSelector } from "../store/utils";
 import { selectSesssionId } from "../store/reducers/sesssion";
+import { selectPid } from "../store/reducers/pid";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 
@@ -24,6 +25,8 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
   const session = useAppSelector(selectSesssionId);
+  const pid = useAppSelector(selectPid);
+  console.log(pid);
 
   useDebugInfo({
     session,
@@ -74,10 +77,13 @@ const HomeScreen = () => {
         label: "Presentations",
         description: "Present credential",
         icon: "chevronRight",
-        onPress: () => navigation.navigate("Presentations"),
+        onPress: () =>
+          pid
+            ? navigation.navigate("Presentations")
+            : Alert.alert("Obtain a PID first"),
       },
     ],
-    [hasIntegrityKeyTag, navigation]
+    [hasIntegrityKeyTag, navigation, pid]
   );
 
   return (

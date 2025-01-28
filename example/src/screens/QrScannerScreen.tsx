@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Text, View, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Text, View, Alert, StyleSheet } from "react-native";
 import {
   Camera,
   useCameraDevice,
@@ -13,6 +13,7 @@ import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
 export const QrScannerScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
+  const [hasPermission, setHasPermission] = useState(false);
 
   const device = useCameraDevice("back");
 
@@ -20,7 +21,9 @@ export const QrScannerScreen = () => {
   useEffect(() => {
     (async () => {
       const cameraPermission = await Camera.requestCameraPermission();
-      if (cameraPermission.toString() !== "granted") {
+      if (cameraPermission.toString() === "granted") {
+        setHasPermission(true);
+      } else {
         Alert.alert("Error", "Camera permission not granted!");
       }
     })();
@@ -47,13 +50,24 @@ export const QrScannerScreen = () => {
 
   return (
     <View>
-      <Camera
-        style={{ width: 500, height: 500 }}
-        device={device}
-        isActive={true} // optionally disable camera after scanning
-        codeScanner={codeScanner}
-        audio={false}
-      />
+      {hasPermission ? (
+        <Camera
+          style={style.camera}
+          device={device}
+          isActive={true} // optionally disable camera after scanning
+          codeScanner={codeScanner}
+          audio={false}
+        />
+      ) : (
+        <Text>Camera permission not granted!</Text>
+      )}
     </View>
   );
 };
+
+const style = StyleSheet.create({
+  camera: {
+    width: 500,
+    height: 500,
+  },
+});
