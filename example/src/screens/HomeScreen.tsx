@@ -26,7 +26,6 @@ const HomeScreen = () => {
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
   const session = useAppSelector(selectSesssionId);
   const pid = useAppSelector(selectPid);
-  console.log(pid);
 
   useDebugInfo({
     session,

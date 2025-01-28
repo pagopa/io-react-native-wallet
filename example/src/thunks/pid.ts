@@ -97,18 +97,13 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
       throw new Error("Custom tabs are not supported");
     }
 
-    console.log(REDIRECT_URI);
     const baseRedirectUri = new URL(REDIRECT_URI).protocol.replace(":", "");
-
-    console.log("calling");
 
     // Open the authorization URL in the custom tab
     const authRedirectUrl = await openAuthenticationSession(
       authUrl,
       baseRedirectUri
     );
-
-    console.log("here");
 
     const { code } =
       await Credential.Issuance.completeUserAuthorizationWithQueryMode(
