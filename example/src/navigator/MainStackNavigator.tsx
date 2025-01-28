@@ -13,6 +13,8 @@ import SettingsScreen from "../screens/SettingsScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { useAppDispatch } from "../store/utils";
+import { PresentationScreen } from "../screens/PresentationScreen";
+import { QrScannerScreen } from "../screens/QrScannerScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -28,6 +30,8 @@ export type MainStackNavParamList = {
     authUrl: string;
     redirectUri: string;
   };
+  Presentations: undefined;
+  QrScanner: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -87,6 +91,16 @@ export const MainStackNavigator = () => {
             name="Settings"
             component={SettingsScreen}
             options={{ title: "Settings" }}
+          />
+          <Stack.Screen
+            name="Presentations"
+            component={PresentationScreen}
+            options={{ title: "Presentation" }}
+          />
+          <Stack.Screen
+            name="QrScanner"
+            component={QrScannerScreen}
+            options={{ title: "Scan QR" }}
           />
         </Stack.Group>
       </Stack.Navigator>
