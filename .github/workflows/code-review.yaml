@@ -21,11 +21,14 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+      - id: enable-corepack
+        shell: bash
+        run: corepack enable
+
+      - id: setup-node
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
         with:
-          cache: "yarn"
-          registry-url: "https://registry.npmjs.org/"
+          node-version-file: ".node-version"
 
       - name: Install dependencies
         run: yarn
