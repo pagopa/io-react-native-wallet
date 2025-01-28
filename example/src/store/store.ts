@@ -15,6 +15,7 @@ import { credentialReducer } from "./reducers/credential";
 import { debugSlice } from "./reducers/debug";
 import { environmentReducer } from "./reducers/environment";
 import { pidReducer } from "./reducers/pid";
+import { presentationReducer } from "./reducers/presentation";
 
 /**
  * Redux store configuration.
@@ -28,6 +29,7 @@ export const store = configureStore({
     attestation: attestationReducer,
     credential: credentialReducer,
     pid: pidReducer,
+    presentation: presentationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
