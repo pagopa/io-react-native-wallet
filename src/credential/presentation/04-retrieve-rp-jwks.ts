@@ -158,7 +158,7 @@ const constructWellKnownJwksUrl = (issuer: string): string => {
  * @throws {NoSuitableKeysFoundInEntityConfiguration} Throws an error if JWKS retrieval or key extraction fails.
  */
 export const fetchJwksFromRequestObject: FetchJwks<
-  [string, { context?: { appFetch?: GlobalFetch["fetch"] } }]
+  [string, { context?: { appFetch?: GlobalFetch["fetch"] } }?]
 > = async (requestObjectEncodedJwt, { context = {} } = {}) => {
   const { appFetch = fetch } = context;
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
