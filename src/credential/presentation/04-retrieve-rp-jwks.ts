@@ -140,15 +140,22 @@ const constructWellKnownJwksUrl = (issuer: string): string => {
 };
 
 /**
- * Retrieves the JSON Web Key Set (JWKS) from the specified client's well-known endpoint.
- * It is formed using `{issUrl.base}/.well-known/jar-issuer${issUrl.pah}` as explained in SD-JWT VC issuer metadata section
+ * Fetches the JSON Web Key Set (JWKS) based on the provided Request Object encoded as a JWT.
+ * The retrieval process follows these steps in order:
  *
- * @param requestObjectEncodedJwt - Request Object in JWT format.
- * @param options - Optional context containing a custom fetch implementation.
- * @param options.context - Optional context object.
- * @param options.context.appFetch - Optional custom fetch function to use instead of the global `fetch`.
- * @returns A promise resolving to an object containing an array of JWKs.
- * @throws Will throw an error if the JWKS retrieval fails.
+ * 1. **Direct JWK Retrieval**: If the JWT's protected header contains a `jwk` attribute, it uses this key directly.
+ * 2. **X.509 Certificate Retrieval**: If the protected header includes an `x5c` attribute, it extracts the JWKs from the provided X.509 certificate chain.
+ * 3. **Issuer's Well-Known Endpoint**: If neither `jwk` nor `x5c` are present, it constructs the JWKS URL using the issuer (`iss`) claim and fetches the keys from the issuer's well-known JWKS endpoint.
+ *
+ * The JWKS URL is constructed in the format `{issUrl.base}/.well-known/jar-issuer${issUrl.path}`,
+ * as detailed in the SD-JWT VC issuer metadata specification.
+ *
+ * @param requestObjectEncodedJwt - The Request Object encoded as a JWT.
+ * @param options - Optional parameters for fetching the JWKS.
+ * @param options.context - Optional context providing a custom fetch implementation.
+ * @param options.context.appFetch - A custom fetch function to replace the global `fetch` if provided.
+ * @returns A promise that resolves to an object containing an array of JSON Web Keys (JWKs).
+ * @throws {NoSuitableKeysFoundInEntityConfiguration} Throws an error if JWKS retrieval or key extraction fails.
  */
 export const fetchJwksFromRequestObject: FetchJwks<
   [string, { context?: { appFetch?: GlobalFetch["fetch"] } }]
