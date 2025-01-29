@@ -192,7 +192,7 @@ export type SendAuthorizationResponse = (
   presentationDefinition: PresentationDefinition,
   jwkKeys: Out<FetchJwks>["keys"],
   presentation: Presentation, // TODO: [SIW-353] support multiple presentations
-  context: {
+  context?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<AuthorizationResponse>;
@@ -213,7 +213,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   presentationDefinition,
   jwkKeys,
   presentation,
-  { appFetch = fetch }
+  { appFetch = fetch } = {}
 ): Promise<AuthorizationResponse> => {
   // 1. Create the VP token and associated submission mapping
   const { vp_token, presentation_submission } = await prepareVpToken(
