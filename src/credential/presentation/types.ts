@@ -25,3 +25,29 @@ export const RequestObject = z.object({
   client_id_scheme: z.literal("entity_id"),
   scope: z.string(),
 });
+
+export type WalletMetadata = z.infer<typeof WalletMetadata>;
+export const WalletMetadata = z.object({
+  presentation_definition_uri_supported: z.boolean().optional(),
+  client_id_schemes_supported: z.array(z.string()).optional(),
+  request_object_signing_alg_values_supported: z.array(z.string()).optional(),
+  vp_formats_supported: z.record(
+    z.string(), // TODO: use explicit credential format?
+    z.object({
+      "sd-jwt_alg_values": z.array(z.string()).optional(), // alg_values_supported?
+    })
+  ),
+  // TODO: include other metadata?
+});
+
+/**
+ * Wallet capabilities that must be submitted to get the Request Object
+ * via POST request when the `request_uri_method` is `post`.
+ */
+export type RequestObjectWalletCapabilities = z.infer<
+  typeof RequestObjectWalletCapabilities
+>;
+export const RequestObjectWalletCapabilities = z.object({
+  wallet_metadata: WalletMetadata,
+  wallet_nonce: z.string().optional(),
+});

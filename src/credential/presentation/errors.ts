@@ -39,3 +39,35 @@ export class NoSuitableKeysFoundInEntityConfiguration extends IoWalletError {
     super(message);
   }
 }
+
+/**
+ * When a QR code is not valid.
+ *
+ */
+export class InvalidQRCodeError extends IoWalletError {
+  code = "ERR_INVALID_QR_CODE";
+
+  /**
+   * @param detail A description of why the QR code is considered invalid.
+   */
+  constructor(detail: string) {
+    const message = `QR code is not valid: ${detail}.`;
+    super(message);
+  }
+}
+
+/**
+ * When the entity is unverified because the Relying Party is not trusted.
+ *
+ */
+export class UnverifiedEntityError extends IoWalletError {
+  code = "ERR_UNVERIFIED_RP_ENTITY";
+
+  /**
+   * @param reason A description of why the entity cannot be verified.
+   */
+  constructor(reason: string) {
+    const message = `Unverified entity: ${reason}.`;
+    super(message);
+  }
+}
