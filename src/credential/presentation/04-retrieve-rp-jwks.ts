@@ -112,7 +112,7 @@ const getJwksFromX509Cert = async (
 
   if (client_metadata?.jwks_uri) {
     const fetchedJwks = await fetchJwksFromUri(
-      client_metadata.jwks_uri,
+      new URL(client_metadata.jwks_uri).toString(),
       appFetch
     );
     jwks.push(...fetchedJwks);
