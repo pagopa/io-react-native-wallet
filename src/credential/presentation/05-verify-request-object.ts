@@ -16,7 +16,8 @@ export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
 
     // verify token signature to ensure the request object is authentic
     const pubKey = jwkKeys?.find(
-      ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
+      ({ kid, use }) =>
+        kid === requestObjectJwt.protectedHeader.kid || use === "sig"
     );
 
     if (!pubKey) {
