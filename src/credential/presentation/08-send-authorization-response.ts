@@ -192,7 +192,7 @@ export type SendAuthorizationResponse = (
   presentationDefinition: PresentationDefinition,
   jwkKeys: Out<FetchJwks>["keys"],
   presentation: Presentation, // TODO: [SIW-353] support multiple presentations
-  context: {
+  context?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<AuthorizationResponse>;
