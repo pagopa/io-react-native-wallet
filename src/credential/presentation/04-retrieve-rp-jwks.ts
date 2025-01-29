@@ -2,7 +2,10 @@ import { JWKS, JWK } from "../../utils/jwk";
 import { hasStatusOrThrow } from "../../utils/misc";
 import { RelyingPartyEntityConfiguration } from "../../entity/trust/types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
+import { RequestObject } from "./types";
+import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
 
 /**
  * Defines the signature for a function that retrieves JSON Web Key Sets (JWKS) from a client.
@@ -14,6 +17,127 @@ import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => Promise<{
   keys: JWK[];
 }>;
+
+/**
+ * Converts a certificate string to PEM format.
+ *
+ * @param certificate - The certificate string.
+ * @returns The PEM-formatted certificate.
+ */
+const convertCertToPem = (certificate: string): string =>
+  `-----BEGIN CERTIFICATE-----\n${certificate}\n-----END CERTIFICATE-----`;
+
+/**
+ * Parses the public key from a PEM-formatted certificate.
+ *
+ * @param pemCert - The PEM-formatted certificate.
+ * @returns The public key object.
+ * @throws Will throw an error if the public key is unsupported.
+ */
+const parsePublicKey = (pemCert: string): RSAKey | KJUR.crypto.ECDSA => {
+  const x509 = new X509();
+  x509.readCertPEM(pemCert);
+  const publicKey = x509.getPublicKey();
+
+  if (publicKey instanceof RSAKey || publicKey instanceof KJUR.crypto.ECDSA) {
+    return publicKey;
+  }
+
+  throw new NoSuitableKeysFoundInEntityConfiguration(
+    "Unsupported public key type."
+  );
+};
+
+/**
+ * Retrieves the signing JWK from the public key.
+ *
+ * @param publicKey - The public key object.
+ * @returns The signing JWK.
+ */
+const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
+  ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
+  use: "sig",
+});
+
+/**
+ * Fetches and parses JWKS from a given URI.
+ *
+ * @param jwksUri - The JWKS URI.
+ * @param fetchFn - The fetch function to use.
+ * @returns An array of JWKs.
+ */
+const fetchJwksFromUri = async (
+  jwksUri: string,
+  appFetch: GlobalFetch["fetch"]
+): Promise<JWK[]> => {
+  const jwks = await appFetch(jwksUri, {
+    method: "GET",
+  })
+    .then(hasStatusOrThrow(200))
+    .then((raw) => raw.json())
+    .then((json) => (json.jwks ? JWKS.parse(json.jwks) : JWKS.parse(json)));
+  return jwks.keys;
+};
+
+/**
+ * Retrieves JWKS when the client ID scheme includes x509 SAN DNS.
+ *
+ * @param decodedJwt - The decoded JWT.
+ * @param fetchFn - The fetch function to use.
+ * @returns An array of JWKs.
+ * @throws Will throw an error if no suitable keys are found.
+ */
+const getJwksFromX509Cert = async (
+  decodedJwt: JWTDecodeResult,
+  appFetch: GlobalFetch["fetch"]
+): Promise<JWK[]> => {
+  const requestObject = RequestObject.parse(decodedJwt.payload);
+  const jwks: JWK[] = [];
+
+  const certChain = decodedJwt.protectedHeader.x5c;
+
+  if (!Array.isArray(certChain) || certChain.length === 0 || !certChain[0]) {
+    throw new NoSuitableKeysFoundInEntityConfiguration(
+      "No RP encrypt key found!"
+    );
+  }
+
+  const pemCert = convertCertToPem(certChain[0]);
+  const publicKey = parsePublicKey(pemCert);
+  const signingJwk = getSigningJwk(publicKey);
+
+  jwks.push(signingJwk);
+
+  const { client_metadata } = requestObject;
+
+  if (client_metadata?.jwks_uri) {
+    const fetchedJwks = await fetchJwksFromUri(
+      client_metadata.jwks_uri,
+      appFetch
+    );
+    jwks.push(...fetchedJwks);
+  }
+
+  if (client_metadata?.jwks) {
+    jwks.push(...client_metadata.jwks.keys);
+  }
+
+  return jwks;
+};
+
+/**
+ * Constructs the well-known JWKS URL based on the issuer claim.
+ *
+ * @param issuer - The issuer URL.
+ * @returns The well-known JWKS URL.
+ */
+const constructWellKnownJwksUrl = (issuer: string): string => {
+  const issuerUrl = new URL(issuer);
+  return new URL(
+    `/.well-known/jar-issuer${issuerUrl.pathname}`,
+    `${issuerUrl.protocol}//${issuerUrl.host}`
+  ).toString();
+};
 
 /**
  * Retrieves the JSON Web Key Set (JWKS) from the specified client's well-known endpoint.
@@ -39,26 +163,20 @@ export const fetchJwksFromRequestObject: FetchJwks<
     };
   }
 
-  // 2. According to Potential profile, retrieve from RP endpoint using iss claim
-  const issClaimValue = requestObjectJwt.payload?.iss as string;
-  if (issClaimValue) {
-    const issUrl = new URL(issClaimValue);
-    const wellKnownUrl = new URL(
-      `/.well-known/jar-issuer${issUrl.pathname}`,
-      `${issUrl.protocol}//${issUrl.host}`
-    ).toString();
-
-    // Fetches the JWKS from a specific endpoint of the entity's well-known configuration
-    const jwks = await appFetch(wellKnownUrl, {
-      method: "GET",
-    })
-      .then(hasStatusOrThrow(200))
-      .then((raw) => raw.json())
-      .then((json) => JWKS.parse(json.jwks));
-
+  // 2. check if request object jwt contains the 'x5c' attribute
+  if (requestObjectJwt.protectedHeader.x5c) {
+    const keys = await getJwksFromX509Cert(requestObjectJwt, appFetch);
     return {
-      keys: jwks.keys,
+      keys,
     };
+  }
+
+  // 3. According to Potential profile, retrieve from RP endpoint using iss claim
+  const issuer = requestObjectJwt.payload?.iss;
+  if (typeof issuer === "string") {
+    const wellKnownJwksUrl = constructWellKnownJwksUrl(issuer);
+    const jwksKeys = await fetchJwksFromUri(wellKnownJwksUrl, appFetch);
+    return { keys: jwksKeys };
   }
 
   throw new NoSuitableKeysFoundInEntityConfiguration(

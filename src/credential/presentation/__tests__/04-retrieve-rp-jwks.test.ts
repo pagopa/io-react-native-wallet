@@ -10,15 +10,10 @@ import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { NoSuitableKeysFoundInEntityConfiguration } from "../errors";
 
-// Mock the JWKS and JWK utilities
-jest.mock("../../../utils/jwk", () => ({
-  JWKS: {
-    parse: jest.fn(),
-  },
-  JWK: {
-    parse: jest.fn(),
-  },
-}));
+beforeEach(() => {
+  jest.spyOn(JWKS, "parse").mockImplementation(jest.fn());
+  jest.spyOn(JWK, "parse").mockImplementation(jest.fn());
+});
 
 // Mock the RelyingPartyEntityConfiguration
 jest.mock("../../../entity/trust/types", () => ({
