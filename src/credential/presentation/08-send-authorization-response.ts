@@ -213,7 +213,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   presentationDefinition,
   jwkKeys,
   presentation,
-  { appFetch = fetch }
+  { appFetch = fetch } = {}
 ): Promise<AuthorizationResponse> => {
   // 1. Create the VP token and associated submission mapping
   const { vp_token, presentation_submission } = await prepareVpToken(
