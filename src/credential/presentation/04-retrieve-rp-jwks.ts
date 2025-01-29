@@ -27,7 +27,7 @@ export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => Promise<{
  * @throws Will throw an error if the JWKS retrieval fails.
  */
 export const fetchJwksFromRequestObject: FetchJwks<
-  [string, { context?: { appFetch?: GlobalFetch["fetch"] } }]
+  [string, { context?: { appFetch?: GlobalFetch["fetch"] } }?]
 > = async (requestObjectEncodedJwt, { context = {} } = {}) => {
   const { appFetch = fetch } = context;
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);

@@ -48,9 +48,9 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(requestURI, {
-      wiaCryptoContext: wiaCryptoContext,
-      appFetch: appFetch,
-      walletInstanceAttestation: walletInstanceAttestation,
+      wiaCryptoContext,
+      appFetch,
+      walletInstanceAttestation,
     });
 
   const jwks = await Credential.Presentation.fetchJwksFromRequestObject(
