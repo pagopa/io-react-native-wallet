@@ -1,6 +1,7 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { UnixTime } from "../../sd-jwt/types";
 import * as z from "zod";
+import { JWKS } from "../../utils/jwk";
 
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
@@ -77,7 +78,13 @@ export const RequestObject = z.object({
   response_type: z.literal("vp_token"),
   response_mode: z.enum(["direct_post.jwt", "direct_post"]),
   client_id: z.string(),
-  client_id_scheme: z.string(), // previous z.literal("entity_id"),
+  client_id_scheme: z.string().optional(), // previous z.literal("entity_id"),
+  client_metadata: z
+    .object({
+      jwks_uri: z.string().optional(),
+      jwks: JWKS.optional(),
+    })
+    .optional(), // previous z.literal("entity_id"),
   scope: z.string().optional(),
   presentation_definition: PresentationDefinition.optional(),
 });
