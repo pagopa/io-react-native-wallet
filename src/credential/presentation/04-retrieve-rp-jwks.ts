@@ -2,7 +2,6 @@ import { JWKS, JWK } from "../../utils/jwk";
 import { hasStatusOrThrow } from "../../utils/misc";
 import { RelyingPartyEntityConfiguration } from "../../entity/trust/types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { RequestObject } from "./types";
 import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
@@ -87,15 +86,7 @@ const fetchJwksFromUri = async (
  * @returns An array of JWKs.
  * @throws Will throw an error if no suitable keys are found.
  */
-const getJwksFromX509Cert = async (
-  decodedJwt: JWTDecodeResult,
-  appFetch: GlobalFetch["fetch"]
-): Promise<JWK[]> => {
-  const requestObject = RequestObject.parse(decodedJwt.payload);
-  const jwks: JWK[] = [];
-
-  const certChain = decodedJwt.protectedHeader.x5c;
-
+const getJwksFromX509Cert = async (certChain: string[]): Promise<JWK[]> => {
   if (!Array.isArray(certChain) || certChain.length === 0 || !certChain[0]) {
     throw new NoSuitableKeysFoundInEntityConfiguration(
       "No RP encrypt key found!"
@@ -106,23 +97,7 @@ const getJwksFromX509Cert = async (
   const publicKey = parsePublicKey(pemCert);
   const signingJwk = getSigningJwk(publicKey);
 
-  jwks.push(signingJwk);
-
-  const { client_metadata } = requestObject;
-
-  if (client_metadata?.jwks_uri) {
-    const fetchedJwks = await fetchJwksFromUri(
-      new URL(client_metadata.jwks_uri).toString(),
-      appFetch
-    );
-    jwks.push(...fetchedJwks);
-  }
-
-  if (client_metadata?.jwks) {
-    jwks.push(...client_metadata.jwks.keys);
-  }
-
-  return jwks;
+  return [signingJwk];
 };
 
 /**
@@ -162,33 +137,53 @@ export const fetchJwksFromRequestObject: FetchJwks<
 > = async (requestObjectEncodedJwt, { context = {} } = {}) => {
   const { appFetch = fetch } = context;
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
+  const jwks: JWK[] = [];
 
   // 1. check if request object jwt contains the 'jwk' attribute
   if (requestObjectJwt.protectedHeader?.jwk) {
-    return {
-      keys: [JWK.parse(requestObjectJwt.protectedHeader.jwk)],
-    };
+    const keys = [JWK.parse(requestObjectJwt.protectedHeader.jwk)];
+    jwks.push(...keys);
   }
 
   // 2. check if request object jwt contains the 'x5c' attribute
   if (requestObjectJwt.protectedHeader.x5c) {
-    const keys = await getJwksFromX509Cert(requestObjectJwt, appFetch);
-    return {
-      keys,
-    };
+    const keys = await getJwksFromX509Cert(
+      requestObjectJwt.protectedHeader.x5c
+    );
+    jwks.push(...keys);
+  }
+
+  // 3. check if client_metadata contains the 'jwks' or 'jwks_uri' attribute
+  const requestObject = RequestObject.parse(requestObjectJwt.payload);
+  const { client_metadata } = requestObject;
+
+  if (client_metadata?.jwks_uri) {
+    const fetchedJwks = await fetchJwksFromUri(
+      new URL(client_metadata.jwks_uri).toString(),
+      appFetch
+    );
+    jwks.push(...fetchedJwks);
+  }
+
+  if (client_metadata?.jwks) {
+    jwks.push(...client_metadata.jwks.keys);
   }
 
   // 3. According to Potential profile, retrieve from RP endpoint using iss claim
   const issuer = requestObjectJwt.payload?.iss;
-  if (typeof issuer === "string") {
+  if (jwks.length === 0 && typeof issuer === "string") {
     const wellKnownJwksUrl = constructWellKnownJwksUrl(issuer);
     const jwksKeys = await fetchJwksFromUri(wellKnownJwksUrl, appFetch);
-    return { keys: jwksKeys };
+    jwks.push(...jwksKeys);
   }
 
-  throw new NoSuitableKeysFoundInEntityConfiguration(
-    "Request Object signature verification"
-  );
+  if (jwks.length === 0) {
+    throw new NoSuitableKeysFoundInEntityConfiguration(
+      "Request Object signature verification"
+    );
+  }
+
+  return { keys: jwks };
 };
 
 /**
