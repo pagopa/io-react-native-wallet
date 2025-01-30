@@ -7,6 +7,9 @@ import {
 import uuid from "react-native-uuid";
 import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey } from "./jwk";
+import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
+import { JWK } from "./jwk";
+import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 
 /**
  * Create a CryptoContext bound to a key pair.
@@ -63,3 +66,44 @@ export const withEphemeralKey = async <R>(
   const ephemeralContext = createCryptoContextFor(keytag);
   return fn(ephemeralContext).finally(() => deleteKey(keytag));
 };
+
+/**
+ * Converts a certificate string to PEM format.
+ *
+ * @param certificate - The certificate string.
+ * @returns The PEM-formatted certificate.
+ */
+export const convertCertToPem = (certificate: string): string =>
+  `-----BEGIN CERTIFICATE-----\n${certificate}\n-----END CERTIFICATE-----`;
+
+/**
+ * Parses the public key from a PEM-formatted certificate.
+ *
+ * @param pemCert - The PEM-formatted certificate.
+ * @returns The public key object.
+ * @throws Will throw an error if the public key is unsupported.
+ */
+export const parsePublicKey = (
+  pemCert: string
+): RSAKey | KJUR.crypto.ECDSA | undefined => {
+  const x509 = new X509();
+  x509.readCertPEM(pemCert);
+  const publicKey = x509.getPublicKey();
+
+  if (publicKey instanceof RSAKey || publicKey instanceof KJUR.crypto.ECDSA) {
+    return publicKey;
+  }
+
+  return undefined;
+};
+
+/**
+ * Retrieves the signing JWK from the public key.
+ *
+ * @param publicKey - The public key object.
+ * @returns The signing JWK.
+ */
+export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
+  ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
+  use: "sig",
+});

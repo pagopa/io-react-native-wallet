@@ -4,7 +4,11 @@ import { RelyingPartyEntityConfiguration } from "../../entity/trust/types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { RequestObject } from "./types";
-import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
+import {
+  convertCertToPem,
+  parsePublicKey,
+  getSigningJwk,
+} from "../../utils/crypto";
 
 /**
  * Defines the signature for a function that retrieves JSON Web Key Sets (JWKS) from a client.
@@ -16,47 +20,6 @@ import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
 export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => Promise<{
   keys: JWK[];
 }>;
-
-/**
- * Converts a certificate string to PEM format.
- *
- * @param certificate - The certificate string.
- * @returns The PEM-formatted certificate.
- */
-const convertCertToPem = (certificate: string): string =>
-  `-----BEGIN CERTIFICATE-----\n${certificate}\n-----END CERTIFICATE-----`;
-
-/**
- * Parses the public key from a PEM-formatted certificate.
- *
- * @param pemCert - The PEM-formatted certificate.
- * @returns The public key object.
- * @throws Will throw an error if the public key is unsupported.
- */
-const parsePublicKey = (pemCert: string): RSAKey | KJUR.crypto.ECDSA => {
-  const x509 = new X509();
-  x509.readCertPEM(pemCert);
-  const publicKey = x509.getPublicKey();
-
-  if (publicKey instanceof RSAKey || publicKey instanceof KJUR.crypto.ECDSA) {
-    return publicKey;
-  }
-
-  throw new NoSuitableKeysFoundInEntityConfiguration(
-    "Unsupported public key type."
-  );
-};
-
-/**
- * Retrieves the signing JWK from the public key.
- *
- * @param publicKey - The public key object.
- * @returns The signing JWK.
- */
-const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
-  ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
-  use: "sig",
-});
 
 /**
  * Fetches and parses JWKS from a given URI.
@@ -95,6 +58,11 @@ const getJwksFromX509Cert = async (certChain: string[]): Promise<JWK[]> => {
 
   const pemCert = convertCertToPem(certChain[0]);
   const publicKey = parsePublicKey(pemCert);
+  if (!publicKey) {
+    throw new NoSuitableKeysFoundInEntityConfiguration(
+      "Unsupported public key type."
+    );
+  }
   const signingJwk = getSigningJwk(publicKey);
 
   return [signingJwk];
