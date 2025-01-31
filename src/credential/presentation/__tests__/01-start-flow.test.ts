@@ -1,47 +1,29 @@
 // startFlow.test.ts
+import { ValidationFailed } from "../../../utils/errors";
 import { startFlowFromQR } from "../01-start-flow";
-import { InvalidQRCodeError } from "../errors";
 
 describe("startFlowFromQR", () => {
-  const validQRCode =
-    "https://example.com/path?request_uri=https%3A%2F%2Frequest.uri&client_id=client123";
-  const haipQRCode =
-    "haip://?request_uri=https%3A%2F%2Frequest.uri&client_id=client123";
+  const request_uri = "https://request.uri";
+  const client_id = "client123";
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it("should successfully decode a valid QR code", () => {
-    const result = startFlowFromQR(validQRCode);
+    const result = startFlowFromQR(request_uri, client_id);
 
     expect(result).toEqual({
-      protocol: "https:",
-      resource: "example.com",
-      requestURI: "https://request.uri",
-      clientId: "client123",
+      requestUri: request_uri,
+      clientId: client_id,
     });
   });
 
-  it("should successfully decode a valid haip QR code", () => {
-    const result = startFlowFromQR(haipQRCode);
-
-    expect(result).toEqual({
-      protocol: "https:",
-      resource: "wallet.example",
-      requestURI: "https://request.uri",
-      clientId: "client123",
-    });
+  it("should throw InvalidQRCodeError for invalid request_uri ", () => {
+    expect(() => startFlowFromQR("test", client_id)).toThrow(ValidationFailed);
   });
 
-  it("should throw AuthRequestDecodeError for invalid Base64", () => {
-    expect(() => startFlowFromQR("invalidBase64")).toThrow(InvalidQRCodeError);
-  });
-
-  it("should throw AuthRequestDecodeError when required query parameters are missing", () => {
-    const incompleteURL =
-      "aHR0cHM6Ly9leGFtcGxlLmNvbS9wYXRoP2NsaWVudF9pZD1jbGllbnQxMjM="; // Missing request_uri
-
-    expect(() => startFlowFromQR(incompleteURL)).toThrow(InvalidQRCodeError);
+  it("should throw InvalidQRCodeError for invalid client_id", () => {
+    expect(() => startFlowFromQR(request_uri, "")).toThrow(ValidationFailed);
   });
 });
