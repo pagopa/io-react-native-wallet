@@ -13,6 +13,7 @@ import { selectPid } from "../store/reducers/pid";
 import { getAttestationThunk } from "./attestation";
 import { SdJwt } from "@pagopa/io-react-native-wallet";
 import type { InputDescriptor } from "src/credential/presentation/types";
+
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
 };
@@ -42,23 +43,23 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   }
   const qrcode = args.qrcode;
 
-  const { requestURI } = Credential.Presentation.startFlowFromQR(qrcode);
+  const { requestURI, clientId } =
+    Credential.Presentation.startFlowFromQR(qrcode);
+
+  const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(
+    clientId
+  );
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(requestURI, {
-      wiaCryptoContext: wiaCryptoContext,
-      appFetch: appFetch,
-      walletInstanceAttestation: walletInstanceAttestation,
+      wiaCryptoContext,
+      appFetch,
+      walletInstanceAttestation,
     });
 
-  const jwks = await Credential.Presentation.fetchJwksFromRequestObject(
-    requestObjectEncodedJwt,
-    {
-      context: { appFetch },
-    }
-  );
+  const jwks = await Credential.Presentation.fetchJwksFromConfig(rpConf);
 
   const { requestObject } =
     await Credential.Presentation.verifyRequestObjectSignature(
@@ -66,9 +67,13 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       jwks.keys
     );
 
+  if (requestObject.client_id !== clientId) {
+    throw new Error("client_id does not match");
+  }
+
   const { presentationDefinition } =
     await Credential.Presentation.fetchPresentDefinition(requestObject, {
-      appFetch: appFetch,
+      appFetch,
     });
 
   // We suppose that request is about PID
@@ -90,7 +95,6 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       pidCredentialJwt.sdJwt.payload,
       pidCredentialJwt.disclosures
     );
-
   const disclosuresRequestedClaimName = [
     ...requiredDisclosures.map((item) => item.decoded[1]),
   ];

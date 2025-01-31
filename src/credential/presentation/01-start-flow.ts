@@ -6,7 +6,7 @@ const QRCodePayload = z.object({
   resource: z.string(), // TODO: refine to known paths using literals
   clientId: z.string(),
   requestURI: z.string(),
-  requestURIMethod: z.enum(["get", "post"]).optional(),
+  requestURIMethod: z.enum(["get", "post"]),
   state: z.string().optional(),
 });
 
@@ -48,9 +48,10 @@ export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
   const protocol = decodedUrl.protocol;
   const resource = decodedUrl.hostname;
   const requestURI = decodedUrl.searchParams.get("request_uri");
-  const requestURIMethod = decodedUrl.searchParams.get("request_uri_method");
+  const requestURIMethod =
+    decodedUrl.searchParams.get("request_uri_method") ?? "get";
   const clientId = decodedUrl.searchParams.get("client_id");
-  const state = decodedUrl.searchParams.get("state");
+  const state = decodedUrl.searchParams.get("state") ?? undefined;
 
   const result = QRCodePayload.safeParse({
     protocol,
