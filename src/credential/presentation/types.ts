@@ -81,6 +81,8 @@ export const RequestObject = z.object({
   client_id_scheme: z.string().optional(), // previous z.literal("entity_id"),
   client_metadata: z
     .object({
+      authorization_encrypted_response_alg: z.string().optional(),
+      authorization_encrypted_response_enc: z.string().optional(),
       jwks_uri: z.string().optional(),
       jwks: JWKS.optional(),
     })

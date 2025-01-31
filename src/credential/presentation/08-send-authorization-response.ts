@@ -27,27 +27,25 @@ export const AuthorizationResponse = z.object({
 });
 
 /**
- * Selects an RSA public key (with `use = enc` and `kty = RSA`) from the set of JWK keys
+ * Selects a public key (with `use = enc`) from the set of JWK keys
  * offered by the Relying Party (RP) for encryption.
  *
  * @param rpJwkKeys - The array of JWKs retrieved from the RP entity configuration.
- * @returns The first suitable RSA public key found in the list.
- * @throws {NoSuitableKeysFoundInEntityConfiguration} If no suitable RSA encryption key is found.
+ * @returns The first suitable public key found in the list.
+ * @throws {NoSuitableKeysFoundInEntityConfiguration} If no suitable encryption key is found.
  */
-export const chooseRSAPublicKeyToEncrypt = (
+export const choosePublicKeyToEncrypt = (
   rpJwkKeys: Out<FetchJwks>["keys"]
 ): JWK => {
-  const [rsaEncKey] = rpJwkKeys.filter(
-    (jwk) => jwk.use === "enc" && jwk.kty === "RSA"
-  );
+  const [encKey] = rpJwkKeys.filter((jwk) => jwk.use === "enc");
 
-  if (rsaEncKey) {
-    return rsaEncKey;
+  if (encKey) {
+    return encKey;
   }
 
   // No suitable key found
   throw new NoSuitableKeysFoundInEntityConfiguration(
-    "No suitable RSA public key found for encryption."
+    "No suitable public key found for encryption."
   );
 };
 
@@ -169,14 +167,21 @@ export const buildDirectPostJwtBody = async (
   });
 
   // Choose a suitable RSA public key for encryption
-  const rsaPublicJwk = chooseRSAPublicKeyToEncrypt(jwkKeys);
+  const encPublicJwk = choosePublicKeyToEncrypt(jwkKeys);
 
   // Encrypt the authorization payload
+  const { client_metadata } = requestObject;
   const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
-    alg: "RSA-OAEP-256",
-    enc: "A256CBC-HS512",
-    kid: rsaPublicJwk.kid,
-  }).encrypt(rsaPublicJwk);
+    alg:
+      (client_metadata?.authorization_encrypted_response_alg as
+        | "RSA-OAEP-256"
+        | "RSA-OAEP") || "RSA-OAEP-256",
+    enc:
+      (client_metadata?.authorization_encrypted_response_enc as
+        | "A256CBC-HS512"
+        | "A128CBC-HS256") || "A256CBC-HS512",
+    kid: encPublicJwk.kid,
+  }).encrypt(encPublicJwk);
 
   // Build the x-www-form-urlencoded form body
   const formBody = new URLSearchParams({ response: encryptedResponse });
