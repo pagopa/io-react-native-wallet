@@ -9,7 +9,7 @@ import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 
 export type GetRequestObject = (
-  requestUri: Out<StartFlow>["requestURI"],
+  requestUri: Out<StartFlow>["requestUri"],
   context: {
     wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];

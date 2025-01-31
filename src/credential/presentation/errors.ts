@@ -41,22 +41,6 @@ export class NoSuitableKeysFoundInEntityConfiguration extends IoWalletError {
 }
 
 /**
- * When a QR code is not valid.
- *
- */
-export class InvalidQRCodeError extends IoWalletError {
-  code = "ERR_INVALID_QR_CODE";
-
-  /**
-   * @param detail A description of why the QR code is considered invalid.
-   */
-  constructor(detail: string) {
-    const message = `QR code is not valid: ${detail}.`;
-    super(message);
-  }
-}
-
-/**
  * When the entity is unverified because the Relying Party is not trusted.
  *
  */
