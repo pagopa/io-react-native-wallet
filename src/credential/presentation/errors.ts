@@ -71,3 +71,19 @@ export class UnverifiedEntityError extends IoWalletError {
     super(message);
   }
 }
+
+/**
+ * When some required data is missing to continue because certain attributes are not contained inside the wallet.
+ *
+ */
+export class MissingDataError extends IoWalletError {
+  code = "ERR_MISSING_DATA";
+
+  /**
+   * @param missingAttributes An array or description of the attributes that are missing.
+   */
+  constructor(missingAttributes: string) {
+    const message = `Some required data is missing: ${missingAttributes}.`;
+    super(message);
+  }
+}

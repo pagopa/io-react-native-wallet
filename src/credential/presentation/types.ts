@@ -11,49 +11,59 @@ export type Presentation = [
   /* the context for the key associated to the credential */ CryptoContext
 ];
 
-// Credential Format with a JSON-based claims structure
-const DcqlJsonClaim = z.object({
-  id: z.string(),
-  path: z.array(z.string()),
-  values: z.array(z.any()).optional(),
+const Fields = z.object({
+  path: z.array(z.string().min(1)), // Array of JSONPath string expressions
+  id: z.string().optional(), // Unique string ID
+  purpose: z.string().optional(), // Purpose of the field
+  name: z.string().optional(), // Human-friendly name
+  filter: z.any().optional(), // JSON Schema descriptor for filtering
+  optional: z.boolean().optional(), // Boolean indicating if the field is optional
+  intent_to_retain: z.boolean().optional(), // Boolean indicating that the Verifier intends to retain the Claim's data being requested
 });
 
-// Credential Format based on mdoc format defined in ISO 18013-5
-const DcqlMdocClaim = z.object({
-  id: z.string(),
-  namespace: z.string(),
-  claim_name: z.string(),
-  values: z.array(z.any()).optional(),
+// Define the Constraints Object Schema
+const Constraints = z.object({
+  fields: z.array(Fields).optional(), // Array of Field Objects
+  limit_disclosure: z.enum(["required", "preferred"]).optional(), // Limit disclosure property
 });
 
-const DcqlCredential = z.object({
+// Define the Input Descriptor Object Schema
+export type InputDescriptor = z.infer<typeof InputDescriptor>;
+export const InputDescriptor = z.object({
   id: z.string().min(1), // Mandatory unique string ID
-  format: z.string(), // TODO: use explicit Credential Format Identifiers?
-  claims: z.array(DcqlJsonClaim).optional(), // TODO: ignore mdoc for now...
-  claim_sets: z.array(z.array(z.string())).optional(), // Which combination of claims are requested by the verifier
-  meta: z
-    .object({
-      vct_values: z.array(z.string()).optional(),
-      doctype_value: z.string().optional(),
-    })
+  name: z.string().optional(), // Human-friendly name
+  purpose: z.string().optional(), // Purpose of the schema
+  format: z.record(z.string(), z.any()).optional(), // Object with Claim Format Designations
+  constraints: Constraints, // Constraints Object (mandatory)
+  group: z.string().optional(), // Match one of the grouping strings listed in the "from" values of a Submission Requirement Rule
+});
+
+const SubmissionRequirement = z.object({
+  name: z.string().optional(),
+  purpose: z.string().optional(),
+  rule: z.string(), // "all": all group's rules must be present, or "pick": at least group's "count" rules must be present
+  from: z.string().optional(), // MUST contain either a "from" or "from_nested" property
+  from_nested: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        purpose: z.string().optional(),
+        rule: z.string(),
+        from: z.string(),
+      })
+    )
     .optional(),
+  count: z.number().optional(),
+  //"count", "min", and "max" may be present with a "pick" rule
 });
 
-const DcqlCredentialSet = z.object({
-  options: z.array(z.array(z.string())),
-  required: z.boolean(),
-  purpose: z
-    .union([z.string(), z.number(), z.record(z.string(), z.any())])
-    .optional(), // Describe the purpose of the query
-});
-
-/**
- * Structure of a DCQL query (Digital Credential Query Language).
- */
-export type DcqlQuery = z.infer<typeof DcqlQuery>;
-export const DcqlQuery = z.object({
-  credentials: z.array(DcqlCredential),
-  credential_sets: z.array(DcqlCredentialSet).optional(),
+export type PresentationDefinition = z.infer<typeof PresentationDefinition>;
+export const PresentationDefinition = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  purpose: z.string().optional(),
+  input_descriptors: z.array(InputDescriptor),
+  submission_requirements: z.array(SubmissionRequirement).optional(),
 });
 
 export type RequestObject = z.infer<typeof RequestObject>;
@@ -70,7 +80,7 @@ export const RequestObject = z.object({
   client_id: z.string(),
   client_id_scheme: z.string(), // previous z.literal("entity_id"),
   scope: z.string().optional(),
-  dcql_query: DcqlQuery,
+  presentation_definition: PresentationDefinition.optional(),
 });
 
 export type WalletMetadata = z.infer<typeof WalletMetadata>;

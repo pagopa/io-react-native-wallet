@@ -27,7 +27,7 @@ export type GetRequestObject = (
  * @param rpConf The Relying Party's configuration
  * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
  * @param context.walletInstanceAttestation The Wallet Instance Attestation token
- * @param context.walletCapabilities (optional) An object containing the wallet technical capabilities
+ * @param context.walletCapabilities (optional) An object containing the wallet technical capabilities that will be sent with a POST request
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The Request Object that describes the presentation
  */
