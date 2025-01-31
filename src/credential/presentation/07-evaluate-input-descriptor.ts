@@ -9,7 +9,7 @@ const INDEX_CLAIM_NAME = 1;
 export type EvaluatedDisclosures = {
   requiredDisclosures: DisclosureWithEncoded[];
   optionalDisclosures: DisclosureWithEncoded[];
-  unrequiredDisclosures: DisclosureWithEncoded[];
+  unrequestedDisclosures: DisclosureWithEncoded[];
 };
 
 export type EvaluateInputDescriptorSdJwt4VC = (
@@ -101,7 +101,7 @@ const extractClaimName = (path: string): string | undefined => {
  *   and match any specified JSONPath.
  * - If a field includes a JSON Schema filter, validates the claim value against that schema.
  * - Enforces `limit_disclosure` rules by returning only disclosures, required and optional, matching the specified fields
- *   if set to "required". Otherwise also return the array unrequiredDisclosures with disclosures which can be passed for a particular use case.
+ *   if set to "required". Otherwise also return the array unrequestedDisclosures with disclosures which can be passed for a particular use case.
  * - Throws an error if a required field is invalid or missing.
  *
  * @param inputDescriptor - Describes constraints (fields, filters, etc.) that must be satisfied.
@@ -117,7 +117,7 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       return {
         requiredDisclosures: [],
         optionalDisclosures: [],
-        unrequiredDisclosures: disclosures,
+        unrequestedDisclosures: disclosures,
       };
     }
     const requiredClaimNames: string[] = [];
@@ -200,7 +200,7 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       inputDescriptor.constraints.limit_disclosure === "required"
     );
 
-    const unrequiredDisclosures = isNotLimitDisclosure
+    const unrequestedDisclosures = isNotLimitDisclosure
       ? disclosures.filter(
           (disclosure) =>
             !optionalClaimNames.includes(
@@ -213,6 +213,6 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
     return {
       requiredDisclosures,
       optionalDisclosures,
-      unrequiredDisclosures,
+      unrequestedDisclosures,
     };
   };

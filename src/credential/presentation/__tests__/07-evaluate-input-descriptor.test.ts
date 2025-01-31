@@ -33,12 +33,12 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
       },
     ];
 
-    const { unrequiredDisclosures } = evaluateInputDescriptorForSdJwt4VC(
+    const { unrequestedDisclosures } = evaluateInputDescriptorForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
     );
-    expect(unrequiredDisclosures).toEqual(disclosures);
+    expect(unrequestedDisclosures).toEqual(disclosures);
   });
 
   it("should throw an error if a required field path does not exist", () => {
@@ -104,13 +104,13 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
       },
     ];
 
-    const { unrequiredDisclosures } = evaluateInputDescriptorForSdJwt4VC(
+    const { unrequestedDisclosures } = evaluateInputDescriptorForSdJwt4VC(
       inputDescriptor,
       payloadCredential,
       disclosures
     );
     // Because the field is optional, we keep the original disclosures
-    expect(unrequiredDisclosures).toEqual(disclosures);
+    expect(unrequestedDisclosures).toEqual(disclosures);
   });
 
   it("should throw an error if filter (JSON Schema) validation fails", () => {
@@ -226,7 +226,7 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
       },
     ];
 
-    const { requiredDisclosures, unrequiredDisclosures } =
+    const { requiredDisclosures, unrequestedDisclosures } =
       evaluateInputDescriptorForSdJwt4VC(
         inputDescriptor,
         payloadCredential,
@@ -242,7 +242,7 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
     ];
 
     expect(requiredDisclosures).toStrictEqual(expected);
-    expect(unrequiredDisclosures).toStrictEqual([]);
+    expect(unrequestedDisclosures).toStrictEqual([]);
   });
 
   it("should return all disclosures if limit_disclosure is not set or not 'required'", () => {
@@ -277,13 +277,13 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
     ];
 
     // limit_disclosure is undefined or not "required", so we return all disclosures
-    const { requiredDisclosures, unrequiredDisclosures } =
+    const { requiredDisclosures, unrequestedDisclosures } =
       evaluateInputDescriptorForSdJwt4VC(
         inputDescriptor,
         payloadCredential,
         disclosures
       );
     expect(requiredDisclosures).toEqual([disclosures[0]]);
-    expect(unrequiredDisclosures).toEqual([disclosures[1]]);
+    expect(unrequestedDisclosures).toEqual([disclosures[1]]);
   });
 });
