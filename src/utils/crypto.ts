@@ -9,7 +9,6 @@ import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey } from "./jwk";
 import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
 import { JWK } from "./jwk";
-import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 
 /**
  * Create a CryptoContext bound to a key pair.
