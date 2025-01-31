@@ -9,6 +9,7 @@ const INDEX_CLAIM_NAME = 1;
 export type EvaluatedDisclosures = {
   requiredDisclosures: DisclosureWithEncoded[];
   optionalDisclosures: DisclosureWithEncoded[];
+  unrequiredDisclosures: DisclosureWithEncoded[];
 };
 
 export type EvaluateInputDescriptorSdJwt4VC = (
@@ -99,8 +100,8 @@ const extractClaimName = (path: string): string | undefined => {
  * - Validates whether required fields are present (unless marked optional)
  *   and match any specified JSONPath.
  * - If a field includes a JSON Schema filter, validates the claim value against that schema.
- * - Enforces `limit_disclosure` rules by returning only disclosures matching the specified fields
- *   if set to "required". Otherwise return the array of all disclosures.
+ * - Enforces `limit_disclosure` rules by returning only disclosures, required and optional, matching the specified fields
+ *   if set to "required". Otherwise also return the array unrequiredDisclosures with disclosures which can be passed for a particular use case.
  * - Throws an error if a required field is invalid or missing.
  *
  * @param inputDescriptor - Describes constraints (fields, filters, etc.) that must be satisfied.
@@ -115,7 +116,8 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       // No validation, all field are optional
       return {
         requiredDisclosures: [],
-        optionalDisclosures: disclosures,
+        optionalDisclosures: [],
+        unrequiredDisclosures: disclosures,
       };
     }
     const requiredClaimNames: string[] = [];
@@ -182,9 +184,6 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
     }
 
     // Categorizes disclosures into required and optional based on claim names and disclosure constraints.
-    const isNotLimitDisclosure = !(
-      inputDescriptor.constraints.limit_disclosure === "required"
-    );
 
     const requiredDisclosures = disclosures.filter((disclosure) =>
       requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
@@ -197,8 +196,23 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
           !requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME]))
     );
 
+    const isNotLimitDisclosure = !(
+      inputDescriptor.constraints.limit_disclosure === "required"
+    );
+
+    const unrequiredDisclosures = isNotLimitDisclosure
+      ? disclosures.filter(
+          (disclosure) =>
+            !optionalClaimNames.includes(
+              disclosure.decoded[INDEX_CLAIM_NAME]
+            ) &&
+            !requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
+        )
+      : [];
+
     return {
       requiredDisclosures,
       optionalDisclosures,
+      unrequiredDisclosures,
     };
   };
