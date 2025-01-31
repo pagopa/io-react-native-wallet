@@ -9,16 +9,13 @@ import { JWKS, JWK } from "../../../utils/jwk";
 import { RelyingPartyEntityConfiguration } from "../../../entity/trust/types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { NoSuitableKeysFoundInEntityConfiguration } from "../errors";
+import { RequestObject } from "../types";
 
-// Mock the JWKS and JWK utilities
-jest.mock("../../../utils/jwk", () => ({
-  JWKS: {
-    parse: jest.fn(),
-  },
-  JWK: {
-    parse: jest.fn(),
-  },
-}));
+beforeEach(() => {
+  jest.spyOn(JWKS, "parse").mockImplementation(jest.fn());
+  jest.spyOn(JWK, "parse").mockImplementation(jest.fn());
+  jest.spyOn(RequestObject, "parse").mockImplementation(jest.fn());
+});
 
 // Mock the RelyingPartyEntityConfiguration
 jest.mock("../../../entity/trust/types", () => ({
@@ -30,8 +27,14 @@ jest.mock("../../../entity/trust/types", () => ({
 jest.mock("@pagopa/io-react-native-jwt", () => ({ decode: jest.fn() }));
 
 describe("fetchJwksFromRequestObject", () => {
+  const mockRequestObject = {} as unknown as RequestObject;
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (RequestObject.parse as jest.Mock).mockImplementation(
+      (_) => mockRequestObject
+    );
   });
 
   it("returns keys from protected header when JWT contains jwk attribute", async () => {

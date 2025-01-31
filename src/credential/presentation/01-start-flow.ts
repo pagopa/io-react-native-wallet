@@ -1,11 +1,9 @@
 import * as z from "zod";
-import { InvalidQRCodeError } from "./errors";
+import { ValidationFailed } from "../../utils/errors";
 
-const QRCodePayload = z.object({
-  protocol: z.string(),
-  resource: z.string(), // TODO: refine to known paths using literals
-  clientId: z.string(),
-  requestURI: z.string(),
+const PresentationParams = z.object({
+  clientId: z.string().nonempty(),
+  requestUri: z.string().url(),
 });
 
 /**
@@ -16,46 +14,32 @@ const QRCodePayload = z.object({
  * @returns The url for the Relying Party to connect with
  */
 export type StartFlow<T extends Array<unknown> = []> = (...args: T) => {
-  requestURI: string;
+  requestUri: string;
   clientId: string;
 };
 
 /**
- * Start a presentation flow by decoding an incoming QR-code
+ * Start a presentation flow by decoding the parameters needed to start the presentation flow.
  *
  * @param qrcode The encoded QR-code content
  * @returns The url for the Relying Party to connect with
  * @throws If the provided qr code fails to be decoded
  */
-export const startFlowFromQR: StartFlow<[string]> = (qrcode) => {
-  let decodedUrl: URL;
-  try {
-    // splitting qrcode to identify which is link format
-    const originalQrCode = qrcode.split("://");
-    const replacedQrcode = originalQrCode[1]?.startsWith("?")
-      ? qrcode.replace(`${originalQrCode[0]}://`, "https://wallet.example/")
-      : qrcode;
-
-    decodedUrl = new URL(replacedQrcode);
-  } catch (error) {
-    throw new InvalidQRCodeError(`Failed to decode QR code:  ${qrcode}`);
-  }
-
-  const protocol = decodedUrl.protocol;
-  const resource = decodedUrl.hostname;
-  const requestURI = decodedUrl.searchParams.get("request_uri");
-  const clientId = decodedUrl.searchParams.get("client_id");
-
-  const result = QRCodePayload.safeParse({
-    protocol,
-    resource,
-    requestURI,
+export const startFlowFromQR: StartFlow<[string, string]> = (
+  requestUri: string,
+  clientId: string
+) => {
+  const result = PresentationParams.safeParse({
+    requestUri,
     clientId,
   });
 
   if (result.success) {
     return result.data;
   } else {
-    throw new InvalidQRCodeError(`${result.error.message}, ${decodedUrl}`);
+    throw new ValidationFailed({
+      message: "Invalid parameters provided",
+      reason: result.error.message,
+    });
   }
 };
