@@ -29,8 +29,8 @@ sequenceDiagram
   <summary>Remote Presentation flow</summary>
 
 ```ts
-// Scan e retrive qr-code
-const qrcode = ...
+// Scan e retrive qr-code, decode it and get its parameters
+const {requestUri, clientId} = ...
 
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the key tag used to create the wallet instance
@@ -55,7 +55,7 @@ const walletInstanceAttestation =
   });
 
 // Start the issuance flow
-const { requestURI, clientId } = Credential.Presentation.startFlowFromQR(qrcode);
+const { requestURI, clientId } = Credential.Presentation.startFlowFromQR(requestUri, clientId);
 
 // If use trust federation: Evaluate issuer trust
 const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clientId);

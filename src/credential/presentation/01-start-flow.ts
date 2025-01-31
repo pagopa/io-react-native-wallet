@@ -19,7 +19,7 @@ export type StartFlow<T extends Array<unknown> = []> = (...args: T) => {
 };
 
 /**
- * Start a presentation flow by decoding an incoming QR-code
+ * Start a presentation flow by decoding the parameters needed to start the presentation flow.
  *
  * @param qrcode The encoded QR-code content
  * @returns The url for the Relying Party to connect with
