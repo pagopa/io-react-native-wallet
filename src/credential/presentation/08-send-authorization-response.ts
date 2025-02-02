@@ -184,7 +184,10 @@ export const buildDirectPostJwtBody = async (
   }).encrypt(encPublicJwk);
 
   // Build the x-www-form-urlencoded form body
-  const formBody = new URLSearchParams({ response: encryptedResponse });
+  const formBody = new URLSearchParams({
+    response: encryptedResponse,
+    state: requestObject.state,
+  });
   return formBody.toString();
 };
 
