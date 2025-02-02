@@ -6,12 +6,12 @@ import {
 import uuid from "react-native-uuid";
 import type { FetchJwks } from "./04-retrieve-rp-jwks";
 import type { VerifyRequestObjectSignature } from "./05-verify-request-object";
-import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import { disclose } from "../../sd-jwt";
 import { PresentationDefinition, type Presentation } from "./types";
 import * as z from "zod";
+import type { JWK } from "../../utils/jwk";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
