@@ -24,11 +24,6 @@ export type RemoteCrossDevicePresentationThunkOutput = {
 };
 
 /**
- * Presentation recognized link
- */
-export const PRESENTATION_INTERNAL_LINK = "haip://";
-
-/**
  * Thunk to present credential.
  */
 export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
@@ -47,9 +42,6 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   }
   const qrcode = args.qrcode;
   const url = new URL(qrcode);
-  if (url.protocol !== PRESENTATION_INTERNAL_LINK) {
-    throw new Error("Invalid presentation link");
-  }
   const request_uri = url.searchParams.get("request_uri");
   const client_id = url.searchParams.get("client_id");
   if (!request_uri || !client_id) {

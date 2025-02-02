@@ -1,11 +1,10 @@
 import {
-  chooseRSAPublicKeyToEncrypt,
+  choosePublicKeyToEncrypt,
   prepareVpToken,
   buildDirectPostBody,
   buildDirectPostJwtBody,
   sendAuthorizationResponse,
 } from "../08-send-authorization-response";
-import { NoSuitableKeysFoundInEntityConfiguration } from "../errors";
 
 // Mocks for external modules
 import { disclose } from "../../../sd-jwt";
@@ -54,19 +53,8 @@ describe("chooseRSAPublicKeyToEncrypt", () => {
       { kid: "rsa-key-2", use: "enc", kty: "RSA" },
     ];
 
-    const chosenKey = chooseRSAPublicKeyToEncrypt(mockKeys as any);
+    const chosenKey = choosePublicKeyToEncrypt(mockKeys as any);
     expect(chosenKey).toEqual(mockKeys[1]);
-  });
-
-  it("should throw NoSuitableKeysFoundInEntityConfiguration if no RSA 'enc' key is found", () => {
-    const mockKeys = [
-      { kid: "key-1", use: "sig", kty: "EC" },
-      { kid: "key-2", use: "enc", kty: "EC" },
-    ];
-
-    expect(() => chooseRSAPublicKeyToEncrypt(mockKeys as any)).toThrow(
-      NoSuitableKeysFoundInEntityConfiguration
-    );
   });
 });
 
@@ -177,7 +165,7 @@ describe("buildDirectPostJwtBody", () => {
     );
 
     // Should call chooseRSAPublicKeyToEncrypt and produce a "response=mock_encrypted_jwe"
-    expect(result).toBe("response=mock_encrypted_jwe");
+    expect(result).toBe("response=mock_encrypted_jwe&state=mock_state");
   });
 });
 
