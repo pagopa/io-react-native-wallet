@@ -62,9 +62,7 @@ const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clien
 
 const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(requestURI, {
-      wiaCryptoContext: wiaCryptoContext,
-      appFetch: appFetch,
-      walletInstanceAttestation: walletInstanceAttestation,
+      appFetch: appFetch
     });
 
 // Retrieve RP JWK
