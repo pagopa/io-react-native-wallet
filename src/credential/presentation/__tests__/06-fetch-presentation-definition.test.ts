@@ -32,18 +32,6 @@ describe("fetchPresentDefinition", () => {
     expect(result.presentationDefinition.id).toBe("test-direct");
   });
 
-  it("returns the presentationDefinition from the request object more detailed", async () => {
-    const mockRequestObject = {
-      presentation_definition: {
-        id: "test-direct",
-      } as unknown as PresentationDefinition,
-    } as unknown as RequestObject;
-
-    const result = await fetchPresentDefinition(mockRequestObject);
-
-    expect(result.presentationDefinition.id).toBe("test-direct");
-  });
-
   it("fetches the presentationDefinition from the provided URI if present", async () => {
     // Mock a valid response from the fetch call
     (global.fetch as jest.Mock).mockResolvedValue({
