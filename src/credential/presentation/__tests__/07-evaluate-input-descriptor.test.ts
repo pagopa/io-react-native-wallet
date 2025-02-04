@@ -113,6 +113,52 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
     expect(unrequestedDisclosures).toEqual(disclosures);
   });
 
+  it("should pass if a field path required and another is optional", () => {
+    const inputDescriptor: InputDescriptor = {
+      id: "testDescriptor",
+      name: "test",
+      constraints: {
+        fields: [
+          {
+            path: ["$.given_name"],
+            optional: true,
+          },
+          {
+            path: ["$.family_name"],
+          },
+        ],
+      },
+    };
+
+    const payloadCredential: SdJwt4VC["payload"] = {
+      sub: "1234567890",
+      iss: "issuer",
+      iat: 1609459200,
+    } as unknown as SdJwt4VC["payload"];
+
+    const disclosures: DisclosureWithEncoded[] = [
+      {
+        decoded: ["1", "given_name", "John"],
+        encoded: "encoded1",
+      },
+      {
+        decoded: ["2", "family_name", "Smith"],
+        encoded: "encoded2",
+      },
+    ];
+
+    const { requiredDisclosures, optionalDisclosures, unrequestedDisclosures } =
+      evaluateInputDescriptorForSdJwt4VC(
+        inputDescriptor,
+        payloadCredential,
+        disclosures
+      );
+    // Because the field is optional, we keep the original disclosures
+    expect(requiredDisclosures).toEqual([disclosures[1]]);
+    expect(optionalDisclosures).toEqual([disclosures[0]]);
+    expect(unrequestedDisclosures).toEqual([]);
+  });
+
   it("should throw an error if filter (JSON Schema) validation fails", () => {
     const inputDescriptor: InputDescriptor = {
       id: "testDescriptor",

@@ -189,11 +189,8 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
     );
 
-    const optionalDisclosures = disclosures.filter(
-      (disclosure) =>
-        optionalClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME]) ||
-        (isNotLimitDisclosure &&
-          !requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME]))
+    const optionalDisclosures = disclosures.filter((disclosure) =>
+      optionalClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
     );
 
     const isNotLimitDisclosure = !(
