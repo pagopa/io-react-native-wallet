@@ -1,6 +1,5 @@
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
-import { WIA_KEYTAG } from "../utils/crypto";
 import {
   createCryptoContextFor,
   Credential,
@@ -53,13 +52,9 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     client_id
   );
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(requestUri, {
-      wiaCryptoContext,
       appFetch,
-      walletInstanceAttestation,
     });
 
   const jwks = await Credential.Presentation.fetchJwksFromRequestObject(

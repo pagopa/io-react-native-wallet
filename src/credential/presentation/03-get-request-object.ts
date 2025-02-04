@@ -1,19 +1,10 @@
-import uuid from "react-native-uuid";
-import {
-  sha256ToBase64,
-  type CryptoContext,
-} from "@pagopa/io-react-native-jwt";
-
-import { createDPopToken } from "../../utils/dpop";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestUri"],
   context: {
-    wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
-    walletInstanceAttestation: string;
   }
 ) => Promise<{ requestObjectEncodedJwt: string }>;
 
@@ -30,24 +21,10 @@ export type GetRequestObject = (
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  { wiaCryptoContext, appFetch = fetch, walletInstanceAttestation }
+  { appFetch = fetch }
 ) => {
-  const signedWalletInstanceDPoP = await createDPopToken(
-    {
-      jti: `${uuid.v4()}`,
-      htm: "GET",
-      htu: requestUri,
-      ath: await sha256ToBase64(walletInstanceAttestation),
-    },
-    wiaCryptoContext
-  );
-
   const requestObjectEncodedJwt = await appFetch(requestUri, {
     method: "GET",
-    headers: {
-      Authorization: `DPoP ${walletInstanceAttestation}`,
-      DPoP: signedWalletInstanceDPoP,
-    },
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.text());
