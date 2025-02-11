@@ -1,10 +1,3 @@
-import uuid from "react-native-uuid";
-import {
-  sha256ToBase64,
-  type CryptoContext,
-} from "@pagopa/io-react-native-jwt";
-
-import { createDPopToken } from "../../utils/dpop";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
 import { RequestObjectWalletCapabilities } from "./types";
@@ -12,7 +5,6 @@ import { RequestObjectWalletCapabilities } from "./types";
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestURI"],
   context: {
-    wiaCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
     walletInstanceAttestation: string;
     walletCapabilities?: RequestObjectWalletCapabilities;
@@ -24,37 +16,15 @@ export type GetRequestObject = (
  * @see https://italia.github.io/eudi-wallet-it-docs/versione-corrente/en/relying-party-solution.html
  *
  * @param requestUri The url for the Relying Party to connect with
- * @param rpConf The Relying Party's configuration
- * @param context.wiaCryptoContext The context to access the key associated with the Wallet Instance Attestation
- * @param context.walletInstanceAttestation The Wallet Instance Attestation token
+ * @param rpConf The Relying Party's configuration * @param context.walletInstanceAttestation The Wallet Instance Attestation token
  * @param context.walletCapabilities (optional) An object containing the wallet technical capabilities that will be sent with a POST request
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The Request Object that describes the presentation
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  {
-    wiaCryptoContext,
-    appFetch = fetch,
-    walletInstanceAttestation,
-    walletCapabilities,
-  }
+  { appFetch = fetch, walletCapabilities }
 ) => {
-  const signedWalletInstanceDPoP = await createDPopToken(
-    {
-      jti: `${uuid.v4()}`,
-      htm: "GET",
-      htu: requestUri,
-      ath: await sha256ToBase64(walletInstanceAttestation),
-    },
-    wiaCryptoContext
-  );
-
-  const authorizationHeaders = {
-    Authorization: `DPoP ${walletInstanceAttestation}`,
-    DPoP: signedWalletInstanceDPoP,
-  } as const;
-
   if (walletCapabilities) {
     // Validate external input
     const { wallet_metadata, wallet_nonce } =
@@ -69,7 +39,6 @@ export const getRequestObject: GetRequestObject = async (
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        ...authorizationHeaders,
       },
       body: formUrlEncodedBody.toString(),
     })
@@ -83,7 +52,6 @@ export const getRequestObject: GetRequestObject = async (
 
   const requestObjectEncodedJwt = await appFetch(requestUri, {
     method: "GET",
-    headers: authorizationHeaders,
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.text());
