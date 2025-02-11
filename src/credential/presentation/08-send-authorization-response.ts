@@ -9,7 +9,11 @@ import type { VerifyRequestObjectSignature } from "./05-verify-request-object";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import { disclose } from "../../sd-jwt";
-import { PresentationDefinition, type Presentation } from "./types";
+import {
+  ErrorResponse,
+  PresentationDefinition,
+  type Presentation,
+} from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
 
@@ -191,6 +195,17 @@ export const buildDirectPostJwtBody = async (
   return formBody.toString();
 };
 
+const buildAuthorizationErrorResponseBody = async (
+  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  error: ErrorResponse
+): Promise<string> => {
+  const urlEncodedBody = new URLSearchParams({
+    ...error,
+    state: requestObject.state,
+  });
+  return urlEncodedBody.toString();
+};
+
 /**
  * Type definition for the function that sends the authorization response
  * to the Relying Party, completing the presentation flow.
@@ -257,3 +272,43 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
     .then((res) => res.json())
     .then(AuthorizationResponse.parse);
 };
+
+/**
+ * Type definition for the function that sends the authorization response
+ * to the Relying Party, completing the presentation flow.
+ */
+export type SendAuthorizationErrorResponse = (
+  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  error: ErrorResponse,
+  context?: {
+    appFetch?: GlobalFetch["fetch"];
+  }
+) => Promise<AuthorizationResponse>;
+
+/**
+ * Sends the authorization error response to the Relying Party (RP) using the specified `response_mode`.
+ * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
+ *
+ * @param requestObject - The request details, including presentation requirements.
+ * @param error - The response error value
+ * @param context - Contains optional custom fetch implementation.
+ * @returns Parsed and validated authorization response from the Relying Party.
+ */
+export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
+  async (
+    requestObject,
+    error,
+    { appFetch = fetch } = {}
+  ): Promise<AuthorizationResponse> => {
+    // 1. Send the authorization error response via HTTP POST and validate the response
+    return await appFetch(requestObject.response_uri, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: await buildAuthorizationErrorResponseBody(requestObject, error),
+    })
+      .then(hasStatusOrThrow(200))
+      .then((res) => res.json())
+      .then(AuthorizationResponse.parse);
+  };

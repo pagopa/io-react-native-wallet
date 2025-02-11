@@ -90,3 +90,13 @@ export const RequestObject = z.object({
   scope: z.string().optional(),
   presentation_definition: PresentationDefinition.optional(),
 });
+
+export type ErrorResponse = z.infer<typeof ErrorResponse>;
+export const ErrorResponse = z.object({
+  error: z.enum([
+    "invalid_scope",
+    "invalid_request",
+    "invalid_client",
+    "access_denied",
+  ]),
+});

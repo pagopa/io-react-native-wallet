@@ -9,13 +9,24 @@ import { useAppDispatch } from "../store/utils";
 import { useNavigation } from "@react-navigation/native";
 // Thunk or action you want to dispatch
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
+import type { RemotePresentationBehavior } from "../thunks/types";
 
-export const QrScannerScreen = () => {
+export type QrScannerScreenParams = {
+  presentationAllowedBehavior: RemotePresentationBehavior;
+};
+
+type Props = NativeStackScreenProps<MainStackNavParamList, "QrScanner">;
+
+export const QrScannerScreen = ({ route }: Props) => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState(false);
 
   const device = useCameraDevice("back");
+
+  const presentationAllowedBehavior = route.params.presentationAllowedBehavior;
 
   // 3. Ask for camera permission on mount
   useEffect(() => {
@@ -33,7 +44,10 @@ export const QrScannerScreen = () => {
     codeTypes: ["qr", "ean-13"],
     onCodeScanned: (codes) => {
       dispatch(
-        remoteCrossDevicePresentationThunk({ qrcode: codes[0]?.value || "" })
+        remoteCrossDevicePresentationThunk({
+          qrcode: codes[0]?.value || "",
+          allowed: presentationAllowedBehavior,
+        })
       );
 
       navigation.goBack();

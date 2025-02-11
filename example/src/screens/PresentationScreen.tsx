@@ -22,7 +22,21 @@ export const PresentationScreen = () => {
     () => [
       {
         title: "PID Remote Cross-Device",
-        onPress: () => navigation.navigate("QrScanner"),
+        onPress: () =>
+          navigation.navigate("QrScanner", {
+            presentationAllowedBehavior: "ACCEPT",
+          }),
+        isLoading: presentationState.isLoading,
+        hasError: presentationState.hasError,
+        isDone: presentationState.isDone,
+        icon: "device",
+      },
+      {
+        title: "PID Remote Cross-Device (Refuse)",
+        onPress: () =>
+          navigation.navigate("QrScanner", {
+            presentationAllowedBehavior: "REFUSE",
+          }),
         isLoading: presentationState.isLoading,
         hasError: presentationState.hasError,
         isDone: presentationState.isDone,

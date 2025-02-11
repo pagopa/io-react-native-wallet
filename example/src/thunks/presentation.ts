@@ -12,8 +12,11 @@ import { selectPid } from "../store/reducers/pid";
 import { getAttestationThunk } from "./attestation";
 import { SdJwt } from "@pagopa/io-react-native-wallet";
 import type { InputDescriptor } from "src/credential/presentation/types";
+import type { RemotePresentationBehavior } from "./types";
+
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
+  allowed: RemotePresentationBehavior;
 };
 
 export type RemoteCrossDevicePresentationThunkOutput = {
@@ -101,13 +104,23 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const credentialCryptoContext = createCryptoContextFor(pid.keyTag);
 
-  const authResponse = await Credential.Presentation.sendAuthorizationResponse(
-    requestObject,
-    presentationDefinition,
-    jwks.keys,
-    [pid.credential, disclosuresRequestedClaimName, credentialCryptoContext],
-    { appFetch: appFetch }
-  );
+  let authResponse;
+
+  if (args.allowed === "ACCEPT") {
+    authResponse = await Credential.Presentation.sendAuthorizationResponse(
+      requestObject,
+      presentationDefinition,
+      jwks.keys,
+      [pid.credential, disclosuresRequestedClaimName, credentialCryptoContext],
+      { appFetch: appFetch }
+    );
+  } else {
+    authResponse = await Credential.Presentation.sendAuthorizationErrorResponse(
+      requestObject,
+      { error: "access_denied" },
+      { appFetch: appFetch }
+    );
+  }
 
   return { result: authResponse };
 });
