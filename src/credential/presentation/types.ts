@@ -76,9 +76,9 @@ export const RequestObject = z.object({
   response_uri: z.string(),
   response_uri_method: z.string().optional(),
   response_type: z.literal("vp_token"),
-  response_mode: z.enum(["direct_post.jwt", "direct_post"]),
+  response_mode: z.literal("direct_post.jwt"),
   client_id: z.string(),
-  client_id_scheme: z.string(), // previous z.literal("entity_id"),
+  dcql_query: z.record(z.string(), z.any()).optional(), // Validation happens within the `dcql` library, no need to duplicate it here
   scope: z.string().optional(),
   presentation_definition: PresentationDefinition.optional(),
 });
