@@ -4,6 +4,7 @@ import {
   buildDirectPostBody,
   buildDirectPostJwtBody,
   sendAuthorizationResponse,
+  sendAuthorizationErrorResponse,
 } from "../08-send-authorization-response";
 
 // Mocks for external modules
@@ -240,5 +241,46 @@ describe("sendAuthorizationResponse", () => {
     // Expect that the returned body is "response=mock_encrypted_jwe"
     const [[, { body }]] = mockFetch.mock.calls;
     expect(body).toContain("response=mock_encrypted_jwe");
+  });
+});
+
+describe("sendAuthorizationErrorResponse", () => {
+  let mockFetch: jest.Mock;
+  const mockRequestObject = {
+    nonce: "mock_nonce",
+    response_uri: "https://mock.rp/response",
+    scope: "mock_scope",
+    state: "mock_state",
+    response_mode: "direct_post",
+    presentation_definition: {
+      id: "mock_presentation_definition_id",
+      input_descriptors: [{ id: "mock_descriptor_id" }],
+    },
+  };
+
+  beforeEach(() => {
+    mockFetch = jest.fn();
+    (hasStatusOrThrow as jest.Mock).mockReturnValue(
+      (res: Response) => Promise.resolve(res) // pass-through
+    );
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({ status: "ok", response_code: "200" }),
+    });
+  });
+
+  it("should send an error code and get a 200 OK response", async () => {
+    const res = await sendAuthorizationErrorResponse(
+      mockRequestObject as any,
+      { error: "access_denied" },
+      { appFetch: mockFetch }
+    );
+
+    expect(res).toEqual({ status: "ok", response_code: "200" });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith("https://mock.rp/response", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `error=access_denied&state=mock_state`,
+    });
   });
 });
