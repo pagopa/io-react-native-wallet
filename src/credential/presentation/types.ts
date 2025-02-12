@@ -91,6 +91,10 @@ export const RequestObject = z.object({
   presentation_definition: PresentationDefinition.optional(),
 });
 
+/**
+ * This type models the possible error responses the OpenID4VP protocol allows for a presentation of a credential.
+ * See https://openid.github.io/OpenID4VP/openid-4-verifiable-presentations-wg-draft.html#name-error-response for more information.
+ */
 export type ErrorResponse = z.infer<typeof ErrorResponse>;
 export const ErrorResponse = z.object({
   error: z.enum([

@@ -195,17 +195,6 @@ export const buildDirectPostJwtBody = async (
   return formBody.toString();
 };
 
-const buildAuthorizationErrorResponseBody = async (
-  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
-  error: ErrorResponse
-): Promise<string> => {
-  const urlEncodedBody = new URLSearchParams({
-    ...error,
-    state: requestObject.state,
-  });
-  return urlEncodedBody.toString();
-};
-
 /**
  * Type definition for the function that sends the authorization response
  * to the Relying Party, completing the presentation flow.
@@ -300,13 +289,18 @@ export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
     error,
     { appFetch = fetch } = {}
   ): Promise<AuthorizationResponse> => {
-    // 1. Send the authorization error response via HTTP POST and validate the response
+    // 1. Build the URLSearch Params for the error response
+    const urlEncodedBody = new URLSearchParams({
+      ...error,
+      state: requestObject.state,
+    });
+    // 2. Send the authorization error response via HTTP POST and validate the response
     return await appFetch(requestObject.response_uri, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: await buildAuthorizationErrorResponseBody(requestObject, error),
+      body: urlEncodedBody.toString(),
     })
       .then(hasStatusOrThrow(200))
       .then((res) => res.json())
