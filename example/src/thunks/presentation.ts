@@ -104,23 +104,24 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const credentialCryptoContext = createCryptoContextFor(pid.keyTag);
 
-  let authResponse;
-
-  if (args.allowed === "acceptanceState") {
-    authResponse = await Credential.Presentation.sendAuthorizationResponse(
-      requestObject,
-      presentationDefinition,
-      jwks.keys,
-      [pid.credential, disclosuresRequestedClaimName, credentialCryptoContext],
-      { appFetch: appFetch }
-    );
-  } else {
-    authResponse = await Credential.Presentation.sendAuthorizationErrorResponse(
-      requestObject,
-      { error: "access_denied" },
-      { appFetch: appFetch }
-    );
-  }
+  const authResponse =
+    args.allowed === "acceptanceState"
+      ? await Credential.Presentation.sendAuthorizationResponse(
+          requestObject,
+          presentationDefinition,
+          jwks.keys,
+          [
+            pid.credential,
+            disclosuresRequestedClaimName,
+            credentialCryptoContext,
+          ],
+          { appFetch: appFetch }
+        )
+      : await Credential.Presentation.sendAuthorizationErrorResponse(
+          requestObject,
+          { error: "access_denied" },
+          { appFetch: appFetch }
+        );
 
   return { result: authResponse };
 });
