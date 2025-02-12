@@ -11,10 +11,10 @@ import { useNavigation } from "@react-navigation/native";
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
-import type { RemotePresentationBehavior } from "../thunks/types";
+import type { PresentationStateKeys } from "../store/reducers/presentation";
 
 export type QrScannerScreenParams = {
-  presentationAllowedBehavior: RemotePresentationBehavior;
+  presentationBehavior: PresentationStateKeys;
 };
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "QrScanner">;
@@ -26,7 +26,7 @@ export const QrScannerScreen = ({ route }: Props) => {
 
   const device = useCameraDevice("back");
 
-  const presentationAllowedBehavior = route.params.presentationAllowedBehavior;
+  const presentationBehavior = route.params.presentationBehavior;
 
   // 3. Ask for camera permission on mount
   useEffect(() => {
@@ -46,7 +46,7 @@ export const QrScannerScreen = ({ route }: Props) => {
       dispatch(
         remoteCrossDevicePresentationThunk({
           qrcode: codes[0]?.value || "",
-          allowed: presentationAllowedBehavior,
+          allowed: presentationBehavior,
         })
       );
 

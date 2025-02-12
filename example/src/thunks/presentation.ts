@@ -12,11 +12,11 @@ import { selectPid } from "../store/reducers/pid";
 import { getAttestationThunk } from "./attestation";
 import { SdJwt } from "@pagopa/io-react-native-wallet";
 import type { InputDescriptor } from "src/credential/presentation/types";
-import type { RemotePresentationBehavior } from "./types";
+import type { PresentationStateKeys } from "../store/reducers/presentation";
 
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
-  allowed: RemotePresentationBehavior;
+  allowed: PresentationStateKeys;
 };
 
 export type RemoteCrossDevicePresentationThunkOutput = {
@@ -106,7 +106,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   let authResponse;
 
-  if (args.allowed === "ACCEPT") {
+  if (args.allowed === "acceptanceState") {
     authResponse = await Credential.Presentation.sendAuthorizationResponse(
       requestObject,
       presentationDefinition,
