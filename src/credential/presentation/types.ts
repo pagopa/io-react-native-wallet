@@ -96,14 +96,12 @@ export const RequestObject = z.object({
  * See https://openid.github.io/OpenID4VP/openid-4-verifiable-presentations-wg-draft.html#name-error-response for more information.
  */
 export type ErrorResponse = z.infer<typeof ErrorResponse>;
-export const ErrorResponse = z.object({
-  error: z.enum([
-    "invalid_scope",
-    "invalid_request",
-    "invalid_client",
-    "access_denied",
-  ]),
-});
+export const ErrorResponse = z.enum([
+  "invalid_scope",
+  "invalid_request",
+  "invalid_client",
+  "access_denied",
+]);
 
 /**
  * Type that defines the possible payload formats accepted by {@link buildDirectPostJwtBody} and {@link buildDirectPostBody}
@@ -116,5 +114,5 @@ export const DirectAuthorizationBodyPayload = z.union([
     vp_token: z.string(),
     presentation_submission: z.record(z.string(), z.unknown()),
   }),
-  ErrorResponse,
+  z.object({ error: ErrorResponse }),
 ]);

@@ -291,8 +291,8 @@ export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
     // 2. Choose the appropriate request body builder based on response mode
     const requestBody =
       requestObject.response_mode === "direct_post.jwt"
-        ? await buildDirectPostJwtBody(jwkKeys, requestObject, error)
-        : await buildDirectPostBody(requestObject, error);
+        ? await buildDirectPostJwtBody(jwkKeys, requestObject, { error })
+        : await buildDirectPostBody(requestObject, { error });
     // 3. Send the authorization error response via HTTP POST and validate the response
     return await appFetch(requestObject.response_uri, {
       method: "POST",

@@ -119,7 +119,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
         )
       : await Credential.Presentation.sendAuthorizationErrorResponse(
           requestObject,
-          { error: "access_denied" },
+          "access_denied",
           jwks.keys,
           { appFetch: appFetch }
         );

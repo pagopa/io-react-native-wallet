@@ -274,7 +274,7 @@ describe("sendAuthorizationErrorResponse", () => {
   it("should send an error code building the body using buildDirectPostBody", async () => {
     const res = await sendAuthorizationErrorResponse(
       mockRequestObject as any,
-      { error: "access_denied" },
+      "access_denied",
       mockRpJwKeys,
       { appFetch: mockFetch }
     );
@@ -307,7 +307,7 @@ describe("sendAuthorizationErrorResponse", () => {
     };
     const res = await sendAuthorizationErrorResponse(
       jwtPostRequest as any,
-      { error: "access_denied" },
+      "access_denied",
       mockRpJwKeys,
       { appFetch: mockFetch }
     );
