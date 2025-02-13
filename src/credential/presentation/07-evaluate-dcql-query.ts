@@ -1,11 +1,6 @@
-import {
-  DcqlQuery,
-  DcqlPresentationResult,
-  DcqlError,
-  DcqlCredentialSetError,
-} from "dcql";
-import { decode } from "../../sd-jwt";
+import { DcqlQuery, DcqlError, DcqlCredentialSetError } from "dcql";
 import { ValiError } from "valibot";
+import { decode } from "../../sd-jwt";
 import type { Disclosure } from "../../sd-jwt/types";
 
 const mapCredentialToObject = (jwt: string) => {
@@ -27,28 +22,20 @@ export const evaluateDcqlQuery = (
   credentialJwts: string[],
   query: DcqlQuery.Input
 ) => {
-  const credentialsMap = credentialJwts
-    .map(mapCredentialToObject)
-    .reduce(
-      (acc, credential) => ({ ...acc, [credential.vct]: credential }),
-      {} as Record<string, ReturnType<typeof mapCredentialToObject>>
-    );
+  const credentials = credentialJwts.map(mapCredentialToObject);
 
   try {
     // Validate the query
     const parsedQuery = DcqlQuery.parse(query);
     DcqlQuery.validate(parsedQuery);
 
-    const presentationQueryResult = DcqlPresentationResult.fromDcqlPresentation(
-      credentialsMap,
-      { dcqlQuery: parsedQuery }
-    );
+    const queryResult = DcqlQuery.query(parsedQuery, credentials);
 
-    if (!presentationQueryResult.canBeSatisfied) {
+    if (!queryResult.canBeSatisfied) {
       // TODO: handle query that cannot be satisfied, e.g. missing claims
     }
 
-    return presentationQueryResult;
+    return queryResult;
   } catch (error) {
     console.error(error);
     if (error instanceof ValiError) {

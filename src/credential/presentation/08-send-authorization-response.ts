@@ -9,7 +9,7 @@ import type { VerifyRequestObjectSignature } from "./05-verify-request-object";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import { disclose } from "../../sd-jwt";
+import { decode, disclose } from "../../sd-jwt";
 import { PresentationDefinition, type Presentation } from "./types";
 import * as z from "zod";
 
@@ -223,19 +223,12 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   );
 
   // 2. Choose the appropriate request body builder based on response mode
-  const requestBody =
-    requestObject.response_mode === "direct_post.jwt"
-      ? await buildDirectPostJwtBody(
-          jwkKeys,
-          requestObject,
-          vp_token,
-          presentation_submission
-        )
-      : await buildDirectPostBody(
-          requestObject,
-          vp_token,
-          presentation_submission
-        );
+  const requestBody = await buildDirectPostJwtBody(
+    jwkKeys,
+    requestObject,
+    vp_token,
+    presentation_submission
+  );
 
   // 3. Send the authorization response via HTTP POST and validate the response
   return await appFetch(requestObject.response_uri, {
@@ -244,6 +237,75 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: requestBody,
+  })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.json())
+    .then(AuthorizationResponse.parse);
+};
+
+// TODO: refactor to make it more modular
+export const sendDcqlAuthorizationResponse = async (
+  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  presentation: Presentation, // TODO: [SIW-353] support multiple presentations
+  context: {
+    jwkKeys: Out<FetchJwks>["keys"];
+    walletInstanceAttestation: string;
+    appFetch?: GlobalFetch["fetch"];
+  }
+) => {
+  const { jwkKeys, walletInstanceAttestation, appFetch = fetch } = context;
+  const [verifiableCredential, requestedClaims, cryptoContext] = presentation;
+
+  // 1. Create the VP token
+  const { token: vp } = await disclose(verifiableCredential, requestedClaims);
+
+  // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
+  const sd_hash = await sha256ToBase64(`${vp}~`);
+
+  const kbJwt = await new SignJWT(cryptoContext)
+    .setProtectedHeader({
+      typ: "kb+jwt",
+      alg: "ES256",
+    })
+    .setPayload({
+      sd_hash,
+      nonce: requestObject.nonce,
+    })
+    .setAudience(requestObject.client_id)
+    .setIssuedAt()
+    .sign();
+
+  // <Issuer-signed JWT>~<Disclosure 1>~...~<Disclosure N>~<KB-JWT>
+  const vp_token = [vp, kbJwt].join("~");
+  const { sdJwt } = decode(verifiableCredential);
+
+  const authzResponsePayload = JSON.stringify({
+    state: requestObject.state,
+    vp_token: {
+      [sdJwt.payload.vct]: vp_token,
+      walletInstanceAttestation,
+    },
+  });
+
+  // Choose a suitable RSA public key for encryption
+  const rsaPublicJwk = chooseRSAPublicKeyToEncrypt(jwkKeys);
+
+  // Encrypt the authorization payload
+  const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
+    alg: "RSA-OAEP-256",
+    enc: "A256CBC-HS512",
+    kid: rsaPublicJwk.kid,
+  }).encrypt(rsaPublicJwk);
+
+  // Build the x-www-form-urlencoded form body
+  const formBody = new URLSearchParams({ response: encryptedResponse });
+
+  return await appFetch(requestObject.response_uri, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: formBody.toString(),
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
