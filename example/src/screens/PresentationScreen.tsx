@@ -4,7 +4,10 @@ import { useAppSelector } from "../store/utils";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
-import { selectPresentationAsyncStatus } from "../store/reducers/presentation";
+import {
+  selectPresentationAcceptanceAsyncStatus,
+  selectPresentationRefusalAsyncStatus,
+} from "../store/reducers/presentation";
 
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
@@ -12,28 +15,51 @@ import { FlatList } from "react-native";
 
 export const PresentationScreen = () => {
   const navigation = useNavigation();
-  const presentationState = useAppSelector(selectPresentationAsyncStatus);
+  const acceptancePresentationState = useAppSelector(
+    selectPresentationAcceptanceAsyncStatus
+  );
+  const refusalPresentationState = useAppSelector(
+    selectPresentationRefusalAsyncStatus
+  );
 
   useDebugInfo({
-    presentationState,
+    acceptancePresentationState,
+    refusalPresentationState,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
         title: "PID Remote Cross-Device",
-        onPress: () => navigation.navigate("QrScanner"),
-        isLoading: presentationState.isLoading,
-        hasError: presentationState.hasError,
-        isDone: presentationState.isDone,
+        onPress: () =>
+          navigation.navigate("QrScanner", {
+            presentationBehavior: "acceptanceState",
+          }),
+        isLoading: acceptancePresentationState.isLoading,
+        hasError: acceptancePresentationState.hasError,
+        isDone: acceptancePresentationState.isDone,
+        icon: "device",
+      },
+      {
+        title: "PID Remote Cross-Device (Refuse)",
+        onPress: () =>
+          navigation.navigate("QrScanner", {
+            presentationBehavior: "refusalState",
+          }),
+        isLoading: refusalPresentationState.isLoading,
+        hasError: refusalPresentationState.hasError,
+        isDone: refusalPresentationState.isDone,
         icon: "device",
       },
     ],
     [
       navigation,
-      presentationState.hasError,
-      presentationState.isDone,
-      presentationState.isLoading,
+      acceptancePresentationState.hasError,
+      acceptancePresentationState.isDone,
+      acceptancePresentationState.isLoading,
+      refusalPresentationState.hasError,
+      refusalPresentationState.isDone,
+      refusalPresentationState.isLoading,
     ]
   );
 

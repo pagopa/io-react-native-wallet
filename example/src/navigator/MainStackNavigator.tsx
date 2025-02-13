@@ -14,7 +14,10 @@ import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { useAppDispatch } from "../store/utils";
 import { PresentationScreen } from "../screens/PresentationScreen";
-import { QrScannerScreen } from "../screens/QrScannerScreen";
+import {
+  QrScannerScreen,
+  type QrScannerScreenParams,
+} from "../screens/QrScannerScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -31,7 +34,7 @@ export type MainStackNavParamList = {
     redirectUri: string;
   };
   Presentations: undefined;
-  QrScanner: undefined;
+  QrScanner: QrScannerScreenParams;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
