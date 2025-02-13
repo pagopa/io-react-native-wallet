@@ -95,10 +95,12 @@ export const obtainCredential: ObtainCredential = async (
     credentialCryptoContext
   );
 
-  const containsCredentialDefinition =
-    accessToken.authorization_details.credential_configuration_id ===
-      credentialDefinition.credential_configuration_id &&
-    accessToken.authorization_details.type === credentialDefinition.type;
+  const containsCredentialDefinition = accessToken.authorization_details.some(
+    (detail) =>
+      detail.credential_configuration_id ===
+        credentialDefinition.credential_configuration_id &&
+      detail.type === credentialDefinition.type
+  );
 
   if (!containsCredentialDefinition) {
     throw new ValidationFailed({
