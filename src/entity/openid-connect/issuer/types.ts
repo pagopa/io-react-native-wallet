@@ -24,7 +24,7 @@ export const CredentialClaimDisplay = z.object({
 
 export const CredentialFormat = z.union([
   z.literal("vc+sd-jwt"),
-  z.literal("example+sd-jwt"),
+  z.literal("mso_mdoc"),
 ]);
 const CredentialSdJwtClaims = z.record(
   z.object({
