@@ -12,7 +12,6 @@ import { disclose } from "../../sd-jwt";
 import {
   DirectAuthorizationBodyPayload,
   ErrorResponse,
-  JwtDirectAuthorizationBodyPayload,
   PresentationDefinition,
   type Presentation,
 } from "./types";
@@ -140,7 +139,11 @@ export const buildDirectPostBody = async (
 ): Promise<string> => {
   const formUrlEncodedBody = new URLSearchParams({
     state: requestObject.state,
-    ...payload,
+    ...Object.fromEntries(
+      Object.entries(payload).map(([key, value]) => {
+        return [key, typeof value === "object" ? JSON.stringify(value) : value];
+      })
+    ),
   });
 
   return formUrlEncodedBody.toString();
@@ -158,7 +161,7 @@ export const buildDirectPostBody = async (
 export const buildDirectPostJwtBody = async (
   jwkKeys: Out<FetchJwks>["keys"],
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
-  payload: JwtDirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload
 ): Promise<string> => {
   // Prepare the authorization response payload to be encrypted
   const authzResponsePayload = JSON.stringify({
@@ -239,7 +242,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
         })
       : await buildDirectPostBody(requestObject, {
           vp_token,
-          presentation_submission: JSON.stringify(presentation_submission),
+          presentation_submission: presentation_submission,
         });
 
   // 3. Send the authorization response via HTTP POST and validate the response

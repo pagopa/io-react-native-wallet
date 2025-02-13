@@ -129,7 +129,7 @@ describe("buildDirectPostBody", () => {
 
     const result = await buildDirectPostBody(mockRequestObject as any, {
       vp_token: mockVpToken,
-      presentation_submission: JSON.stringify(mockPresentationSubmission),
+      presentation_submission: mockPresentationSubmission,
     });
 
     // URLSearchParams output should be 'state=mock_state&presentation_submission={"foo":"bar"}&vp_token=mock_vp_token'
