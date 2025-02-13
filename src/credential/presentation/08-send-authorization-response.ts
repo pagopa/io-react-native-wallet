@@ -10,7 +10,9 @@ import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import { disclose } from "../../sd-jwt";
 import {
+  DirectAuthorizationBodyPayload,
   ErrorResponse,
+  JwtDirectAuthorizationBodyPayload,
   PresentationDefinition,
   type Presentation,
 } from "./types";
@@ -129,19 +131,16 @@ export const prepareVpToken = async (
  * Builds a URL-encoded form body for a direct POST response without encryption.
  *
  * @param requestObject - Contains state, nonce, and other relevant info.
- * @param vpToken - The signed VP token to include.
- * @param presentationSubmission - Object mapping credential disclosures.
+ * @param payload - Object that contains either the VP token to encrypt and the stringified mapping of the credential disclosures or the error code
  * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
  */
 export const buildDirectPostBody = async (
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
-  vpToken: string,
-  presentationSubmission: Record<string, unknown>
+  payload: DirectAuthorizationBodyPayload
 ): Promise<string> => {
   const formUrlEncodedBody = new URLSearchParams({
     state: requestObject.state,
-    presentation_submission: JSON.stringify(presentationSubmission),
-    vp_token: vpToken,
+    ...payload,
   });
 
   return formUrlEncodedBody.toString();
@@ -152,22 +151,19 @@ export const buildDirectPostBody = async (
  *
  * @param jwkKeys - Array of JWKs from the Relying Party for encryption.
  * @param requestObject - Contains state, nonce, and other relevant info.
- * @param vpToken - The signed VP token to encrypt.
- * @param presentationSubmission - Object mapping credential disclosures.
+ * @param payload - Object that contains either the VP token to encrypt and the mapping of the credential disclosures or the error code
  * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body,
  *          where `response` contains the encrypted JWE.
  */
 export const buildDirectPostJwtBody = async (
   jwkKeys: Out<FetchJwks>["keys"],
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
-  vpToken: string,
-  presentationSubmission: Record<string, unknown>
+  payload: JwtDirectAuthorizationBodyPayload
 ): Promise<string> => {
   // Prepare the authorization response payload to be encrypted
   const authzResponsePayload = JSON.stringify({
     state: requestObject.state,
-    presentation_submission: presentationSubmission,
-    vp_token: vpToken,
+    ...payload,
   });
 
   // Choose a suitable RSA public key for encryption
@@ -237,17 +233,14 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   // 2. Choose the appropriate request body builder based on response mode
   const requestBody =
     requestObject.response_mode === "direct_post.jwt"
-      ? await buildDirectPostJwtBody(
-          jwkKeys,
-          requestObject,
+      ? await buildDirectPostJwtBody(jwkKeys, requestObject, {
           vp_token,
-          presentation_submission
-        )
-      : await buildDirectPostBody(
-          requestObject,
+          presentation_submission,
+        })
+      : await buildDirectPostBody(requestObject, {
           vp_token,
-          presentation_submission
-        );
+          presentation_submission: JSON.stringify(presentation_submission),
+        });
 
   // 3. Send the authorization response via HTTP POST and validate the response
   return await appFetch(requestObject.response_uri, {
@@ -269,6 +262,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
 export type SendAuthorizationErrorResponse = (
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   error: ErrorResponse,
+  jwkKeys: Out<FetchJwks>["keys"],
   context?: {
     appFetch?: GlobalFetch["fetch"];
   }
@@ -280,6 +274,7 @@ export type SendAuthorizationErrorResponse = (
  *
  * @param requestObject - The request details, including presentation requirements.
  * @param error - The response error value
+ * @param jwkKeys - Array of JWKs from the Relying Party for optional encryption.
  * @param context - Contains optional custom fetch implementation.
  * @returns Parsed and validated authorization response from the Relying Party.
  */
@@ -287,20 +282,21 @@ export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
   async (
     requestObject,
     error,
+    jwkKeys,
     { appFetch = fetch } = {}
   ): Promise<AuthorizationResponse> => {
-    // 1. Build the URLSearch Params for the error response
-    const urlEncodedBody = new URLSearchParams({
-      ...error,
-      state: requestObject.state,
-    });
-    // 2. Send the authorization error response via HTTP POST and validate the response
+    // 2. Choose the appropriate request body builder based on response mode
+    const requestBody =
+      requestObject.response_mode === "direct_post.jwt"
+        ? await buildDirectPostJwtBody(jwkKeys, requestObject, error)
+        : await buildDirectPostBody(requestObject, error);
+    // 3. Send the authorization error response via HTTP POST and validate the response
     return await appFetch(requestObject.response_uri, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: urlEncodedBody.toString(),
+      body: requestBody,
     })
       .then(hasStatusOrThrow(200))
       .then((res) => res.json())

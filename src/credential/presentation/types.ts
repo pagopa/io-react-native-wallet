@@ -104,3 +104,31 @@ export const ErrorResponse = z.object({
     "access_denied",
   ]),
 });
+
+/**
+ * Type that defines the possible payload formats accepted by {@link buildDirectPostBody}
+ */
+export type DirectAuthorizationBodyPayload = z.infer<
+  typeof DirectAuthorizationBodyPayload
+>;
+export const DirectAuthorizationBodyPayload = z.union([
+  z.object({
+    vp_token: z.string(),
+    presentation_submission: z.string(),
+  }),
+  ErrorResponse,
+]);
+
+/**
+ * Type that defines the possible payload formats accepted by {@link buildDirectPostJwtBody}
+ */
+export type JwtDirectAuthorizationBodyPayload = z.infer<
+  typeof JwtDirectAuthorizationBodyPayload
+>;
+export const JwtDirectAuthorizationBodyPayload = z.union([
+  z.object({
+    vp_token: z.string(),
+    presentation_submission: z.record(z.string(), z.unknown()),
+  }),
+  ErrorResponse,
+]);
