@@ -27,6 +27,8 @@ import {
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
+  sendAuthorizationErrorResponse,
+  type SendAuthorizationErrorResponse,
 } from "./08-send-authorization-response";
 import * as Errors from "./errors";
 
@@ -40,6 +42,7 @@ export {
   fetchPresentDefinition,
   evaluateInputDescriptorForSdJwt4VC,
   sendAuthorizationResponse,
+  sendAuthorizationErrorResponse,
   Errors,
 };
 export type {
@@ -51,4 +54,5 @@ export type {
   FetchPresentationDefinition,
   EvaluateInputDescriptorSdJwt4VC,
   SendAuthorizationResponse,
+  SendAuthorizationErrorResponse,
 };
