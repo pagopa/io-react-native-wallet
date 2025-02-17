@@ -73,8 +73,11 @@ export const getCredential = async ({
       }
     );
 
-  /** Temporary comments to permit issuing of mDL without PID presentation 
-      Replace with block code below which redirects to the issuer's authorization URL **/
+  /**
+   * Temporary comments to permit issuing of mDL without PID presentation
+   * Replace with block code below which redirects to the issuer's authorization URL
+   * FIXME: [WLEO-267]
+   **/
 
   // const requestObject =
   //   await Credential.Issuance.getRequestedCredentialToBePresented(

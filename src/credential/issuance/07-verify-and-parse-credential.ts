@@ -250,6 +250,17 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
       context
     );
   }
+  if (format === "mso_mdoc") {
+    /**
+     * The current implementation for the "mso_mdoc" format is temporary and returns a placeholder response.
+     * [WLEO-266] This will be replaced with the real implementation once the verifyAndParseCredentialMdoc function is available.
+     **/
+    return {
+      parsedCredential: {} as unknown as ParsedCredential,
+      expiration: new Date(),
+      issuedAt: new Date(),
+    };
+  }
 
   throw new IoWalletError(`Unsupported credential format: ${format}`);
 };
