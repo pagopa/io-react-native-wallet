@@ -8,7 +8,7 @@ import {
 
 // Mocks for external modules
 import { hasStatusOrThrow } from "../../../utils/misc";
-import type { PresentationDefinition, RemotePresentation } from "../types";
+import type { RemotePresentation } from "../types";
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
 // We’ll use Jest’s mocking utilities here.
 // Adjust to your project’s actual structure.
@@ -122,12 +122,7 @@ describe("sendAuthorizationResponse", () => {
       input_descriptors: [{ id: "mock_descriptor_id" }],
     },
   };
-  const mockPresentationDefinition = {
-    id: "mock_presentation_definition_id",
-    input_descriptors: {
-      id: "mock_input_descriptor_id",
-    },
-  } as unknown as PresentationDefinition;
+  const mockPresentationDefinitionId = "mock_presentation_definition_id";
   const mockRemotePresentations = [
     {
       inputDescriptor: { id: "descriptor1", format: "jwt" },
@@ -149,7 +144,7 @@ describe("sendAuthorizationResponse", () => {
   it("should use buildDirectPostBody when response_mode is direct_post", async () => {
     const res = await sendAuthorizationResponse(
       mockRequestObject as any,
-      mockPresentationDefinition,
+      mockPresentationDefinitionId,
       mockRpJwKeys,
       mockRemotePresentations,
       { appFetch: mockFetch }
@@ -179,7 +174,7 @@ describe("sendAuthorizationResponse", () => {
 
     await sendAuthorizationResponse(
       directPostJwtRequest as any,
-      mockPresentationDefinition,
+      mockPresentationDefinitionId,
       mockRpJwKeys,
       multipleRemotePresentations,
       { appFetch: mockFetch }
@@ -205,7 +200,7 @@ describe("sendAuthorizationResponse", () => {
 
     await sendAuthorizationResponse(
       directPostJwtRequest as any,
-      mockPresentationDefinition,
+      mockPresentationDefinitionId,
       mockRpJwKeys,
       multipleRemotePresentations,
       { appFetch: mockFetch }
