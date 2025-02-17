@@ -7,6 +7,7 @@ import { verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
+import { CredentialSdJwtClaims } from "../../entity/openid-connect/issuer/types";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
@@ -75,7 +76,8 @@ const parseCredentialSdJwt = (
   if (!credentialSubject.claims) {
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
-  const attrDefinitions = Object.entries(credentialSubject.claims);
+  const claims = credentialSubject.claims as CredentialSdJwtClaims;
+  const attrDefinitions = Object.entries(claims);
 
   // the key of the attribute defintion must match the disclosure's name
   const attrsNotInDisclosures = attrDefinitions.filter(

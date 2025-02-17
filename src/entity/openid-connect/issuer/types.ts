@@ -26,7 +26,9 @@ export const CredentialFormat = z.union([
   z.literal("vc+sd-jwt"),
   z.literal("mso_mdoc"),
 ]);
-const CredentialSdJwtClaims = z.record(
+
+export type CredentialSdJwtClaims = z.infer<typeof CredentialSdJwtClaims>;
+export const CredentialSdJwtClaims = z.record(
   z.object({
     mandatory: z.boolean(),
     display: z.array(CredentialClaimDisplay),
