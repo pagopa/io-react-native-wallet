@@ -76,7 +76,7 @@ export const fetchJwksFromRequestObject: FetchJwks<
 export const fetchJwksFromConfig: FetchJwks<
   [RelyingPartyEntityConfiguration["payload"]["metadata"]]
 > = async (rpConfig) => {
-  const jwks = rpConfig.wallet_relying_party.jwks;
+  const jwks = rpConfig.openid_credential_verifier.jwks;
 
   if (!jwks || !Array.isArray(jwks.keys)) {
     throw new Error("JWKS not found in Relying Party configuration.");

@@ -46,7 +46,7 @@ describe("fetchPresentDefinition", () => {
     const mockRequestObject = {} as unknown as RequestObject;
 
     const mockRpConf = {
-      wallet_relying_party: {
+      openid_credential_verifier: {
         presentation_definition_uri:
           "https://example.com/presentation-definition.json",
       },
@@ -73,7 +73,7 @@ describe("fetchPresentDefinition", () => {
     const mockRequestObject = {} as unknown as RequestObject;
 
     const mockRpConf = {
-      wallet_relying_party: {
+      openid_credential_verifier: {
         presentation_definition_uri:
           "https://example.com/presentation-definition.json",
       },
@@ -90,7 +90,7 @@ describe("fetchPresentDefinition", () => {
     } as unknown as RequestObject;
 
     const mockRpConf: RelyingPartyEntityConfiguration["payload"]["metadata"] = {
-      wallet_relying_party: {
+      openid_credential_verifier: {
         presentation_definition: {
           id: "test-preconfigured",
         } as unknown as PresentationDefinition,

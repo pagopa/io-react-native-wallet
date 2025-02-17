@@ -177,7 +177,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
         /** Credential Issuers act as Relying Party
             when they require the presentation of other credentials.
             This does not apply for PID issuance, which requires CIE authz. */
-        wallet_relying_party: RelyingPartyMetadata.optional(),
+        openid_credential_verifier: RelyingPartyMetadata.optional(),
       }),
     }),
   })
@@ -191,7 +191,7 @@ export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
   z.object({
     payload: z.object({
       metadata: z.object({
-        wallet_relying_party: RelyingPartyMetadata,
+        openid_credential_verifier: RelyingPartyMetadata,
       }),
     }),
   })

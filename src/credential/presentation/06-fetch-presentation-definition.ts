@@ -42,11 +42,12 @@ export const fetchPresentDefinition: FetchPresentationDefinition = async (
   }
 
   // Check if `presentation_definition_uri` is provided in the relying party configuration
-  if (rpConf?.wallet_relying_party?.presentation_definition_uri) {
+  // TODO: still valid for 0.9.0?
+  if (rpConf?.openid_credential_verifier?.presentation_definition_uri) {
     try {
       // Fetch the presentation definition from the provided URI
       const presentationDefinition = await appFetch(
-        rpConf?.wallet_relying_party.presentation_definition_uri,
+        rpConf?.openid_credential_verifier.presentation_definition_uri,
         {
           method: "GET",
         }
@@ -66,11 +67,11 @@ export const fetchPresentDefinition: FetchPresentationDefinition = async (
   // Check if `scope` is present in the request object and a pre-configured presentation definition exists
   if (
     requestObject.scope &&
-    rpConf?.wallet_relying_party?.presentation_definition
+    rpConf?.openid_credential_verifier?.presentation_definition
   ) {
     return {
       presentationDefinition:
-        rpConf.wallet_relying_party.presentation_definition,
+        rpConf.openid_credential_verifier.presentation_definition,
     };
   }
 

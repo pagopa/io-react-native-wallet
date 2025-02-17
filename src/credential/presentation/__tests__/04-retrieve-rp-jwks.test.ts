@@ -91,7 +91,7 @@ describe("fetchJwksFromConfig", () => {
 
   it("should return JWKS from a valid configuration", async () => {
     const mockConfig = {
-      wallet_relying_party: {
+      openid_credential_verifier: {
         jwks: { keys: [{ kid: "key1" }, { kid: "key2" }] },
       },
     };
@@ -102,13 +102,13 @@ describe("fetchJwksFromConfig", () => {
 
     // Assertions
     expect(result).toEqual({
-      keys: mockConfig.wallet_relying_party.jwks.keys,
+      keys: mockConfig.openid_credential_verifier.jwks.keys,
     });
   });
 
   it("should throw an error if JWKS is not found in the configuration", async () => {
     const mockConfigMissingJWKS = {
-      wallet_relying_party: {
+      openid_credential_verifier: {
         // JWKS is missing here
       },
     };
@@ -122,7 +122,7 @@ describe("fetchJwksFromConfig", () => {
 
   it("should throw an error if JWKS.keys is not an array", async () => {
     const mockConfigInvalidJWKS = {
-      wallet_relying_party: {
+      openid_credential_verifier: {
         jwks: { keys: "not-an-array" },
       },
     };
