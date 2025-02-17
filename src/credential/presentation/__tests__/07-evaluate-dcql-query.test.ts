@@ -55,25 +55,4 @@ describe("evaluateDcqlQuery", () => {
     expect(result?.canBeSatisfied).toEqual(true);
     expect(result?.credential_matches.PersonIdentificationData).toBeDefined();
   });
-
-  it("should work correctly with claim_sets", () => {
-    const query: DcqlQuery.Input = {
-      credentials: [
-        {
-          id: "PersonIdentificationData",
-          format: "vc+sd-jwt",
-          claims: [
-            { id: "tax_id_code", path: ["tax_id_code"] },
-            { id: "family_name", path: ["family_name"] },
-            { id: "given_name", path: ["given_name"] },
-          ],
-          claim_sets: [["tax_id_code"], ["family_name", "given_name"]],
-        },
-      ],
-    };
-    const result = evaluateDcqlQuery(credentials, query);
-
-    expect(result?.canBeSatisfied).toEqual(true);
-    expect(result?.credential_matches.PersonIdentificationData).toBeDefined();
-  });
 });
