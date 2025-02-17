@@ -87,15 +87,6 @@ const HomeScreen = () => {
         icon: "chevronRight",
         onPress: () => navigation.navigate("Settings"),
       },
-      {
-        label: "Presentations",
-        description: "Present credential",
-        icon: "chevronRight",
-        onPress: () =>
-          pid
-            ? navigation.navigate("Presentations")
-            : Alert.alert("Obtain a PID first"),
-      },
     ],
     [hasIntegrityKeyTag, navigation, pid, credentials, hasSomeCredential]
   );
