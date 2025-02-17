@@ -39,8 +39,6 @@
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>Read CIE</string>
-	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
