@@ -3,7 +3,7 @@ import type { StartFlow } from "./01-start-flow";
 
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestUri"],
-  context: {
+  context?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<{ requestObjectEncodedJwt: string }>;
@@ -21,8 +21,9 @@ export type GetRequestObject = (
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  { appFetch = fetch }
+  context = {}
 ) => {
+  const { appFetch = fetch } = context;
   const requestObjectEncodedJwt = await appFetch(requestUri, {
     method: "GET",
   })
