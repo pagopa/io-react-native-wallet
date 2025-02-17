@@ -153,7 +153,6 @@ export const getCredential = async ({
       appFetch,
     }
   );
-  console.log(credential);
 
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
   const { parsedCredential } =
