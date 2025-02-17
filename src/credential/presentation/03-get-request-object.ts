@@ -3,7 +3,7 @@ import type { StartFlow } from "./01-start-flow";
 import { RequestObjectWalletCapabilities } from "./types";
 
 export type GetRequestObject = (
-  requestUri: Out<StartFlow>["requestURI"],
+  requestUri: Out<StartFlow>["requestUri"],
   context: {
     appFetch?: GlobalFetch["fetch"];
     walletInstanceAttestation: string;

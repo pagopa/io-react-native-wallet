@@ -1,7 +1,8 @@
 import { DcqlQuery, DcqlError, DcqlCredentialSetError } from "dcql";
-import { ValiError } from "valibot";
+import { isValiError } from "valibot";
 import { decode } from "../../sd-jwt";
 import type { Disclosure } from "../../sd-jwt/types";
+import { ValidationFailed } from "../../utils/errors";
 
 const mapCredentialToObject = (jwt: string) => {
   const { sdJwt, disclosures } = decode(jwt);
@@ -37,15 +38,20 @@ export const evaluateDcqlQuery = (
 
     return queryResult;
   } catch (error) {
-    console.error(error);
-    if (error instanceof ValiError) {
-      // TODO: handle invalid DQCL query JSON structure
+    // Invalid DCQL query structure
+    if (isValiError(error)) {
+      throw new ValidationFailed({
+        message: "Invalid DCQL query",
+        reason: error.issues.map((issue) => issue.message).join(", "),
+      });
     }
+
     if (error instanceof DcqlError) {
-      // TODO handle invalid DQCL query
+      // TODO handle invalid DQCL query or let the error propagate
     }
     if (error instanceof DcqlCredentialSetError) {
-      // TODO handle missing credentials
+      // TODO handle missing credentials or let the error propagate
     }
+    throw error;
   }
 };

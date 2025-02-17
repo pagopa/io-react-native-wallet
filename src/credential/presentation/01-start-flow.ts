@@ -2,12 +2,12 @@ import * as z from "zod";
 import { ValidationFailed } from "../../utils/errors";
 
 const PresentationParams = z.object({
-  clientId: z.string(),
-  requestURI: z.string(),
-  requestURIMethod: z.enum(["get", "post"]),
+  clientId: z.string().nonempty(),
+  requestUri: z.string().url(),
+  requestUriMethod: z.enum(["get", "post"]),
   state: z.string().optional(),
 });
-type PresentationParams = z.infer<typeof PresentationParams>;
+export type PresentationParams = z.infer<typeof PresentationParams>;
 
 /**
  * The beginning of the presentation flow.
@@ -17,9 +17,9 @@ type PresentationParams = z.infer<typeof PresentationParams>;
  * @returns The url for the Relying Party to connect with
  */
 export type StartFlow = (params: PresentationParams) => {
-  requestURI: string;
+  requestUri: string;
   clientId: string;
-  requestURIMethod?: "get" | "post";
+  requestUriMethod?: "get" | "post";
   state?: string;
 };
 
