@@ -97,6 +97,10 @@ export const getCredential = async ({
   //   );
   // Start user authorization
 
+  if (!pid || !pidCryptoContext) {
+    throw new Error("PID must not be empty!");
+  }
+
   // Obtain the Authorization URL
   const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
     issuerRequestUri,
