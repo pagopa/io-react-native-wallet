@@ -76,9 +76,14 @@ PODS:
   - io-react-native-secure-storage (0.1.1):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+  - IOWalletCBOR (0.0.4)
   - JOSESwift (3.0.0)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
+  - pagopa-io-react-native-cbor (1.0.0):
+    - IOWalletCBOR (~> 0.0.4)
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
   - pagopa-io-react-native-crypto (0.2.3):
     - React-Core
   - pagopa-io-react-native-jwt (2.0.0):
@@ -570,6 +575,7 @@ DEPENDENCIES:
   - io-react-native-secure-storage (from `../node_modules/io-react-native-secure-storage`)
   - libevent (~> 2.1.12)
   - OpenSSL-Universal (= 1.1.1100)
+  - "pagopa-io-react-native-cbor (from `../node_modules/@pagopa/io-react-native-cbor`)"
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
   - "pagopa-io-react-native-login-utils (from `../node_modules/@pagopa/io-react-native-login-utils`)"
@@ -630,6 +636,7 @@ SPEC REPOS:
     - Flipper-PeerTalk
     - FlipperKit
     - fmt
+    - IOWalletCBOR
     - JOSESwift
     - libevent
     - OpenSSL-Universal
@@ -651,6 +658,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
   io-react-native-secure-storage:
     :path: "../node_modules/io-react-native-secure-storage"
+  pagopa-io-react-native-cbor:
+    :path: "../node_modules/@pagopa/io-react-native-cbor"
   pagopa-io-react-native-crypto:
     :path: "../node_modules/@pagopa/io-react-native-crypto"
   pagopa-io-react-native-jwt:
@@ -760,9 +769,11 @@ SPEC CHECKSUMS:
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: b213bace5f31766ad1434d2d9b2cbf04cf92a2b6
   io-react-native-secure-storage: 5e6f84d27ead13de84f2014ecc767bffdc3e97e9
+  IOWalletCBOR: 63f4fc24673b7aedaef1a211a8440b5a6b28f1d8
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
+  pagopa-io-react-native-cbor: 69242a61868fec2748f2038dffe2d48891ab0eda
   pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
   pagopa-io-react-native-jwt: 2d94855b98b4a7077cd44441822fee9206232049
   pagopa-io-react-native-login-utils: 090a98354cdbbf176059a1aa4163120468ee4356
@@ -811,6 +822,6 @@ SPEC CHECKSUMS:
   Yoga: c32e0be1a17f8f1f0e633a3122f7666441f52c82
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 819b4a3f14056a5ce6f274f6887a39a331ae53e7
+PODFILE CHECKSUM: f95f0fa17aaff4384e3e2bf0b585f5b512e3c6b4
 
 COCOAPODS: 1.15.2
