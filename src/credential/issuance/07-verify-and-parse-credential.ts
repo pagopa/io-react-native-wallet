@@ -158,7 +158,6 @@ const parseCredentialMDoc = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
   { mDoc }: DecodedMDocCredential,
-  ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
   const credentialSubject = credentials_supported[mDoc.docType];
@@ -382,11 +381,7 @@ const verifyAndParseCredentialMDoc: WithFormat<"mso_mdoc"> = async (
   issuerConf,
   credential,
   _,
-  {
-    credentialCryptoContext,
-    ignoreMissingAttributes,
-    includeUndefinedAttributes,
-  }
+  { credentialCryptoContext, ignoreMissingAttributes }
 ) => {
   const decoded = await verifyCredentialMDoc(
     credential,
@@ -397,8 +392,7 @@ const verifyAndParseCredentialMDoc: WithFormat<"mso_mdoc"> = async (
   const parsedCredential = parseCredentialMDoc(
     issuerConf.credential_configurations_supported,
     decoded,
-    ignoreMissingAttributes,
-    includeUndefinedAttributes
+    ignoreMissingAttributes
   );
 
   const expirationDate = extractElementValueAsDate(
