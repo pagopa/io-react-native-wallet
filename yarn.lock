@@ -2203,6 +2203,13 @@
     eslint-plugin-sonarjs "^0.13.0"
     prettier "^2.6.2"
 
+"@pagopa/io-react-native-cbor@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cbor/-/io-react-native-cbor-1.0.0.tgz#838f0cacd2a170af1509fea063228271c76acaec"
+  integrity sha512-CsbhJ4QnG1oc29o+042g30EmSba5pmAwx2Z3MdhaZTccic/jArabAxHj2qC/OHH4sTJwzNsuM4u/XIE9LyZyJA==
+  dependencies:
+    zod "^3.24.1"
+
 "@pagopa/io-react-native-crypto@^0.2.3":
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
@@ -9053,3 +9060,8 @@ zod@^3.22.4:
   version "3.23.8"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
+
+zod@^3.24.1:
+  version "3.24.2"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.2.tgz#8efa74126287c675e92f46871cfc8d15c34372b3"
+  integrity sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==
