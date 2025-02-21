@@ -24,14 +24,17 @@ export const CredentialClaimDisplay = z.object({
 
 export const CredentialFormat = z.union([
   z.literal("vc+sd-jwt"),
-  z.literal("example+sd-jwt"),
+  z.literal("mso_mdoc"),
 ]);
-const CredentialSdJwtClaims = z.record(
-  z.object({
-    mandatory: z.boolean(),
-    display: z.array(CredentialClaimDisplay),
-  })
-);
+
+export type CredentialClaim = z.infer<typeof CredentialClaim>;
+export const CredentialClaim = z.object({
+  mandatory: z.boolean(),
+  display: z.array(CredentialClaimDisplay),
+});
+
+export type CredentialSdJwtClaims = z.infer<typeof CredentialSdJwtClaims>;
+export const CredentialSdJwtClaims = z.record(CredentialClaim);
 
 export type CredentialConfigurationSupported = z.infer<
   typeof CredentialConfigurationSupported
@@ -39,12 +42,17 @@ export type CredentialConfigurationSupported = z.infer<
 export const CredentialConfigurationSupported = z.record(
   z.object({
     cryptographic_suites_supported: z.array(z.string()),
-    vct: z.string(),
-    scope: z.string(),
+    vct: z.string().optional(),
+    scope: z.string().optional(),
     cryptographic_binding_methods_supported: z.array(z.string()),
     display: z.array(CredentialDisplay),
     format: CredentialFormat,
-    claims: CredentialSdJwtClaims,
+    claims: z
+      .union([
+        CredentialSdJwtClaims,
+        z.record(z.string(), CredentialSdJwtClaims),
+      ])
+      .optional(),
   })
 );
 
