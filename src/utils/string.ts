@@ -1,5 +1,3 @@
-import { Buffer } from "buffer";
-
 /**
  * Randomly obfuscates characters in a string by replacing them with a specified character.
  *
