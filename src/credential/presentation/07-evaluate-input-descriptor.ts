@@ -5,7 +5,7 @@ import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
 import { MissingDataError, CredentialNotFoundError } from "./errors";
 import Ajv from "ajv";
-import { byteStringToBase64Url } from "../../utils/string";
+import { base64ToBase64Url } from "../../utils/string";
 const ajv = new Ajv({ allErrors: true });
 const INDEX_CLAIM_NAME = 1;
 
@@ -391,7 +391,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         return {
           requestedClaims: item.requestedClaims,
           inputDescriptor: descriptor,
-          vpToken: byteStringToBase64Url(item.credential),
+          vpToken: base64ToBase64Url(item.credential),
           format: "mso_mdoc",
         };
       }

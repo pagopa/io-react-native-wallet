@@ -5,7 +5,7 @@ import {
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { selectPid } from "../store/reducers/pid";
-// import { selectCredentials } from "../store/reducers/credential";
+import { selectCredentials } from "../store/reducers/credential";
 import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 
@@ -75,11 +75,11 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   }
   credentialsSdJwt.push([pid.keyTag, pid.credential]);
 
-  // const credentials = selectCredentials(getState());
-  // const mDL = credentials["org.iso.18013.5.1.mDL"];
-  // if (mDL?.credential) {
-  //   credentialsMdoc.push([mDL.keyTag, mDL.credential]);
-  // }
+  const credentials = selectCredentials(getState());
+  const mDL = credentials["org.iso.18013.5.1.mDL"];
+  if (mDL?.credential) {
+    credentialsMdoc.push([mDL.keyTag, mDL.credential]);
+  }
 
   const evaluateInputDescriptors =
     await Credential.Presentation.evaluateInputDescriptors(
@@ -118,8 +118,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
           requestObject,
           presentationDefinition.id,
           jwks.keys,
-          remotePresentations,
-          { appFetch: appFetch }
+          remotePresentations
         )
       : await Credential.Presentation.sendAuthorizationErrorResponse(
           requestObject,

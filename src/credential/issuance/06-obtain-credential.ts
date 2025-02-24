@@ -171,12 +171,7 @@ export const obtainCredential: ObtainCredential = async (
   }
 
   /* temporary base64 parsing for the "mso_mdoc" format until the credential submission with this format is fixed. */
-  return format === "mso_mdoc"
-    ? {
-        ...credentialRes.data,
-        credential: byteStringToBase64Url(credentialRes.data.credential),
-      }
-    : credentialRes.data;
+  return credentialRes.data;
 };
 
 /**
