@@ -76,9 +76,14 @@ PODS:
   - io-react-native-secure-storage (0.1.1):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+  - IOWalletCBOR (0.0.4)
   - JOSESwift (3.0.0)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
+  - pagopa-io-react-native-cbor (1.0.0):
+    - IOWalletCBOR (~> 0.0.4)
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
   - pagopa-io-react-native-crypto (0.2.3):
     - React-Core
   - pagopa-io-react-native-jwt (2.1.0):
@@ -527,14 +532,14 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - React-RCTImage
-  - RNSVG (15.10.1):
+  - RNSVG (15.5.0):
     - React-Core
   - SocketRocket (0.6.1)
-  - VisionCamera (4.6.3):
-    - VisionCamera/Core (= 4.6.3)
-    - VisionCamera/React (= 4.6.3)
-  - VisionCamera/Core (4.6.3)
-  - VisionCamera/React (4.6.3):
+  - VisionCamera (4.3.1):
+    - VisionCamera/Core (= 4.3.1)
+    - VisionCamera/React (= 4.3.1)
+  - VisionCamera/Core (4.3.1)
+  - VisionCamera/React (4.3.1):
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -570,6 +575,7 @@ DEPENDENCIES:
   - io-react-native-secure-storage (from `../node_modules/io-react-native-secure-storage`)
   - libevent (~> 2.1.12)
   - OpenSSL-Universal (= 1.1.1100)
+  - "pagopa-io-react-native-cbor (from `../node_modules/@pagopa/io-react-native-cbor`)"
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
   - "pagopa-io-react-native-login-utils (from `../node_modules/@pagopa/io-react-native-login-utils`)"
@@ -630,6 +636,7 @@ SPEC REPOS:
     - Flipper-PeerTalk
     - FlipperKit
     - fmt
+    - IOWalletCBOR
     - JOSESwift
     - libevent
     - OpenSSL-Universal
@@ -651,6 +658,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
   io-react-native-secure-storage:
     :path: "../node_modules/io-react-native-secure-storage"
+  pagopa-io-react-native-cbor:
+    :path: "../node_modules/@pagopa/io-react-native-cbor"
   pagopa-io-react-native-crypto:
     :path: "../node_modules/@pagopa/io-react-native-crypto"
   pagopa-io-react-native-jwt:
@@ -760,9 +769,11 @@ SPEC CHECKSUMS:
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: b213bace5f31766ad1434d2d9b2cbf04cf92a2b6
   io-react-native-secure-storage: 5e6f84d27ead13de84f2014ecc767bffdc3e97e9
+  IOWalletCBOR: 63f4fc24673b7aedaef1a211a8440b5a6b28f1d8
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
+  pagopa-io-react-native-cbor: 69242a61868fec2748f2038dffe2d48891ab0eda
   pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
   pagopa-io-react-native-jwt: 26011f3326116ecfef9c0f1c6664c22d35c3f6e6
   pagopa-io-react-native-login-utils: 090a98354cdbbf176059a1aa4163120468ee4356
@@ -805,12 +816,12 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: e115bb12d05ced2aba090123e2690978507811ca
   RNReanimated: 1896df448c213a64e98cf3f796e4105bbfab41a2
   RNScreens: 284fcee9d8d4648851fdb85dd0e200daebedcc14
-  RNSVG: 7ff26379b2d1871b8571e6f9bc9630de6baf9bdf
+  RNSVG: b986585e367f4a49d8aa43065066cc9c290b3d9b
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  VisionCamera: 598ab83c6bf4d65f5c32ec54361eed866505d388
+  VisionCamera: 58d2120e6e23c155b25f4702b7912dc2b1e5e8c2
   Yoga: c32e0be1a17f8f1f0e633a3122f7666441f52c82
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 819b4a3f14056a5ce6f274f6887a39a331ae53e7
+PODFILE CHECKSUM: 5366645f6dbf247b66361029552cfd91e3bc07a2
 
 COCOAPODS: 1.15.2

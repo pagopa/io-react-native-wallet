@@ -1,4 +1,3 @@
-import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
 import { Credential } from "@pagopa/io-react-native-wallet";
 import {
@@ -52,15 +51,10 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   );
 
   const { requestObjectEncodedJwt } =
-    await Credential.Presentation.getRequestObject(requestUri, {
-      appFetch,
-    });
+    await Credential.Presentation.getRequestObject(requestUri);
 
   const jwks = await Credential.Presentation.fetchJwksFromRequestObject(
-    requestObjectEncodedJwt,
-    {
-      context: { appFetch },
-    }
+    requestObjectEncodedJwt
   );
 
   const { requestObject } =
@@ -70,9 +64,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     );
 
   const { presentationDefinition } =
-    await Credential.Presentation.fetchPresentDefinition(requestObject, {
-      appFetch: appFetch,
-    });
+    await Credential.Presentation.fetchPresentDefinition(requestObject);
 
   const credentialsSdJwt: [string, string][] = [];
   const credentialsMdoc: [string, string][] = [];
@@ -132,8 +124,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       : await Credential.Presentation.sendAuthorizationErrorResponse(
           requestObject,
           "access_denied",
-          jwks.keys,
-          { appFetch: appFetch }
+          jwks.keys
         );
 
   return { result: authResponse };
