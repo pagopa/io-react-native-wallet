@@ -1,5 +1,3 @@
-import { Buffer } from "buffer";
-
 /**
  * Randomly obfuscates characters in a string by replacing them with a specified character.
  *
@@ -52,6 +50,6 @@ export const obfuscateString = (
  * @param byteString - The input string in hexadecimal format.
  * @returns The Base64 URL-encoded string.
  */
-export const byteStringToBase64Url = (byteString: string): string => {
-  return Buffer.from(byteString, "hex").toString("base64");
+export const base64ToBase64Url = (byteString: string): string => {
+  return byteString.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 };

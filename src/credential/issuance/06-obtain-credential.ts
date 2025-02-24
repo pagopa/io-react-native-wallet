@@ -17,7 +17,6 @@ import {
 import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
-import { byteStringToBase64Url } from "../../utils/string";
 
 export type ObtainCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
@@ -171,12 +170,7 @@ export const obtainCredential: ObtainCredential = async (
   }
 
   /* temporary base64 parsing for the "mso_mdoc" format until the credential submission with this format is fixed. */
-  return format === "mso_mdoc"
-    ? {
-        ...credentialRes.data,
-        credential: byteStringToBase64Url(credentialRes.data.credential),
-      }
-    : credentialRes.data;
+  return credentialRes.data;
 };
 
 /**
