@@ -6,6 +6,7 @@ import { JSONPath } from "jsonpath-plus";
 import { MissingDataError, CredentialNotFoundError } from "./errors";
 import Ajv from "ajv";
 import { base64ToBase64Url } from "../../utils/string";
+import { CBOR } from "@pagopa/io-react-native-cbor";
 const ajv = new Ajv({ allErrors: true });
 const INDEX_CLAIM_NAME = 1;
 
@@ -25,12 +26,14 @@ export type EvaluateInputDescriptors = (
   descriptors: InputDescriptor[],
   credentialsSdJwt: [string /* keyTag */, string /* credential */][],
   credentialsMdoc: [string /* keyTag */, string /* credential */][]
-) => {
-  evaluatedDisclosure: EvaluatedDisclosures;
-  inputDescriptor: InputDescriptor;
-  credential: string;
-  keyTag: string;
-}[];
+) => Promise<
+  {
+    evaluatedDisclosure: EvaluatedDisclosures;
+    inputDescriptor: InputDescriptor;
+    credential: string;
+    keyTag: string;
+  }[]
+>;
 
 export type PrepareRemotePresentations = (
   credentialAndDescriptors: {
@@ -245,7 +248,6 @@ type DecodedCredentialSdJwt = {
   sdJwt: SdJwt4VC;
   disclosures: DisclosureWithEncoded[];
 };
-
 /**
  * Finds the first credential that satisfies the input descriptor constraints.
  * @param inputDescriptor The input descriptor to evaluate.
@@ -304,7 +306,7 @@ export const findCredentialSdJwt = (
  *          the input descriptor, the credential, and the keyTag.
  * @throws {CredentialNotFoundError} When the credential format is unsupported.
  */
-export const evaluateInputDescriptors: EvaluateInputDescriptors = (
+export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
   inputDescriptors,
   credentialsSdJwt,
   credentialsMdoc
@@ -316,52 +318,75 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = (
       return { keyTag, credential, sdJwt, disclosures };
     }) || [];
 
-  return inputDescriptors.map((descriptor) => {
-    if (descriptor.format?.mso_mdoc) {
-      if (!credentialsMdoc || !credentialsMdoc[0]) {
-        throw new CredentialNotFoundError(
-          "mso_mdoc credential is not supported."
-        );
+  const results = Promise.all(
+    inputDescriptors.map(async (descriptor) => {
+      if (descriptor.format?.mso_mdoc) {
+        if (!credentialsMdoc || !credentialsMdoc[0]) {
+          throw new CredentialNotFoundError(
+            "mso_mdoc credential is not supported."
+          );
+        }
+        /**
+         * The current implementation for the "mso_mdoc" format is temporary and always returns the first credential (mDL).
+         * [WLEO-266] This will be replaced with the real implementation once the evaluateInputDescriptorForMdoc function is available.
+         **/
+        const [keyTag, credential] = credentialsMdoc[0];
+        const mdoc = await CBOR.decodeDocuments(credential);
+        if (!mdoc || !mdoc.documents || !mdoc.documents[0]) {
+          throw new CredentialNotFoundError(
+            "mso_mdoc credential is not present."
+          );
+        }
+        const document = mdoc.documents[0];
+        // We set requiredDisclosures to all the elements in the document, as we don't have a real implementation for this yet.
+        return {
+          evaluatedDisclosure: {
+            requiredDisclosures: Object.entries(
+              document.issuerSigned.nameSpaces
+            ).flatMap(([, elements]) =>
+              elements.map((element) => ({
+                encoded: "",
+                decoded: [
+                  "",
+                  element.elementIdentifier,
+                  element.elementValue,
+                ] as [string, string, unknown],
+              }))
+            ),
+            optionalDisclosures: [],
+            unrequestedDisclosures: [],
+          },
+          inputDescriptor: descriptor,
+          credential,
+          keyTag,
+        };
       }
-      /**
-       * The current implementation for the "mso_mdoc" format is temporary and always returns the first credential (mDL).
-       * [WLEO-266] This will be replaced with the real implementation once the evaluateInputDescriptorForMdoc function is available.
-       **/
-      const [keyTag, credential] = credentialsMdoc[0];
-      return {
-        evaluatedDisclosure: {
-          requiredDisclosures: [],
-          optionalDisclosures: [],
-          unrequestedDisclosures: [],
-        },
-        inputDescriptor: descriptor,
-        credential,
-        keyTag,
-      };
-    }
 
-    if (descriptor.format?.["vc+sd-jwt"]) {
-      if (!decodedSdJwtCredentials.length) {
-        throw new CredentialNotFoundError(
-          "vc+sd-jwt credential is not supported."
-        );
+      if (descriptor.format?.["vc+sd-jwt"]) {
+        if (!decodedSdJwtCredentials.length) {
+          throw new CredentialNotFoundError(
+            "vc+sd-jwt credential is not supported."
+          );
+        }
+
+        const { matchedEvaluation, matchedKeyTag, matchedCredential } =
+          findCredentialSdJwt(descriptor, decodedSdJwtCredentials);
+
+        return {
+          evaluatedDisclosure: matchedEvaluation,
+          inputDescriptor: descriptor,
+          credential: matchedCredential,
+          keyTag: matchedKeyTag,
+        };
       }
 
-      const { matchedEvaluation, matchedKeyTag, matchedCredential } =
-        findCredentialSdJwt(descriptor, decodedSdJwtCredentials);
+      throw new CredentialNotFoundError(
+        `${descriptor.format} format is not supported.`
+      );
+    })
+  );
 
-      return {
-        evaluatedDisclosure: matchedEvaluation,
-        inputDescriptor: descriptor,
-        credential: matchedCredential,
-        keyTag: matchedKeyTag,
-      };
-    }
-
-    throw new CredentialNotFoundError(
-      `${descriptor.format} format is not supported.`
-    );
-  });
+  return results;
 };
 
 /**
