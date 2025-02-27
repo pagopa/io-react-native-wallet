@@ -263,75 +263,121 @@ export async function getSignedEntityStatement(
 }
 
 /**
+ * Fetch the federation list document from a given endpoint.
+ *
+ * @param federationListEndpoint The URL of the federation list endpoint.
+ * @param appFetch An optional instance of the http client to be used.
+ * @returns The federation list as an array of strings.
+ * @throws {IoWalletError} If the HTTP request fails or the response cannot be parsed.
+ */
+export async function getFederationList(
+  federationListEndpoint: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+): Promise<string[]> {
+  return await appFetch(federationListEndpoint, {
+    method: "GET",
+  })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.text())
+    .then((text) => {
+      try {
+        return JSON.parse(text) as string[];
+      } catch (err) {
+        throw new IoWalletError(
+          "Invalid federation list format received from Trust Anchor."
+        );
+      }
+    });
+}
+
+/**
  * Build a not-verified trust chain for a given Relying Party (RP) entity.
- * @param rpEntityBaseUrl The base URL of the RP entity
+ *
+ * @param relyingPartyEntityBaseUrl The base URL of the RP entity
  * @param appFetch (optional) fetch api implementation
  * @returns A list of signed tokens that represent the trust chain, in the order of the chain (from the RP to the Trust Anchor)
  * @throws {IoWalletError} When an element of the chain fails to parse
  * The result of this function can be used to validate the trust chain with {@link verifyTrustChain}
  */
 export async function buildTrustChain(
-  rpEntityBaseUrl: string,
+  relyingPartyEntityBaseUrl: string,
   appFetch: GlobalFetch["fetch"] = fetch
 ): Promise<string[]> {
-  const chain: string[] = [];
+  const trustChain: string[] = [];
 
-  // 1. Fetch and validate the RP's Entity Configuration (EC)
-  let currentECJwt = await getSignedEntityConfiguration(rpEntityBaseUrl, {
-    appFetch,
-  });
-  chain.push(currentECJwt);
-  let currentEC = EntityConfiguration.parse(decodeJwt(currentECJwt));
+  // Fetch and validate the Relying Party's Entity Configuration (EC)
+  let currentEntityJwt = await getSignedEntityConfiguration(
+    relyingPartyEntityBaseUrl,
+    { appFetch }
+  );
+  trustChain.push(currentEntityJwt);
+  let currentEntityConfig = EntityConfiguration.parse(
+    decodeJwt(currentEntityJwt)
+  );
 
-  // 2. Loop until we reach a self-signed EC (i.e. trust anchor: iss === sub)
-  while (currentEC.payload.iss !== currentEC.payload.sub) {
-    // Use authority_hints to identify the parent's base URL.
-    if (
-      !currentEC.payload.authority_hints ||
-      currentEC.payload.authority_hints.length === 0
-    ) {
-      throw new IoWalletError(
-        "Missing authority_hints in current entity configuration."
-      );
-    }
-    const parentBaseUrl = currentEC.payload.authority_hints?.[0];
-    if (!parentBaseUrl) {
-      throw new IoWalletError(
-        "Missing authority_hints in current entity configuration."
-      );
-    }
+  // Build the chain while the current entity is subordinate (has authority_hints)
+  while (currentEntityConfig.payload.authority_hints?.length) {
+    // Use the first authority hint as the parent's base URL.
+    const parentEntityBaseUrl = currentEntityConfig.payload.authority_hints[0]!;
 
     // Fetch and validate the parent's Entity Configuration (EC)
-    const parentECJwt = await getSignedEntityConfiguration(parentBaseUrl, {
-      appFetch,
-    });
-    const parentEC = EntityConfiguration.parse(decodeJwt(parentECJwt));
+    const parentEntityJwt = await getSignedEntityConfiguration(
+      parentEntityBaseUrl,
+      { appFetch }
+    );
+    const parentEntityConfig = EntityConfiguration.parse(
+      decodeJwt(parentEntityJwt)
+    );
 
-    // Validate that the parent's configuration provides the federation_fetch_endpoint
+    // Ensure the parent's configuration provides the federation_fetch_endpoint.
     const federationFetchEndpoint =
-      parentEC.payload.metadata.federation_entity.federation_fetch_endpoint;
+      parentEntityConfig.payload.metadata.federation_entity
+        .federation_fetch_endpoint;
     if (!federationFetchEndpoint) {
       throw new IoWalletError(
         "Missing federation_fetch_endpoint in parent's configuration."
       );
     }
 
-    // Use the signed function to fetch and validate the Entity Statement (ES)
-    const esJwt = await getSignedEntityStatement(
-      federationFetchEndpoint,
-      currentEC.payload.sub,
+    // Fetch and validate the Entity Statement (ES) for the subordinate entity.
+    const entityStatementJwt = await getSignedEntityStatement(
+      parentEntityBaseUrl,
+      currentEntityConfig.payload.sub,
       { appFetch }
     );
-    EntityStatement.parse(decodeJwt(esJwt)); // Will throw if ES is invalid
 
-    // Append the ES and then the parent's EC to the trust chain
-    chain.push(esJwt);
-    chain.push(parentECJwt);
+    // Append the ES and then the parent's EC to the trust chain.
+    trustChain.push(entityStatementJwt);
+    trustChain.push(parentEntityJwt);
 
-    // Prepare for the next iteration: the parent becomes the new current entity.
-    currentECJwt = parentECJwt;
-    currentEC = EntityConfiguration.parse(decodeJwt(currentECJwt));
+    // Move up the chain: the parent becomes the new current entity.
+    currentEntityJwt = parentEntityJwt;
+    currentEntityConfig = parentEntityConfig;
   }
 
-  return chain;
+  // At this point, currentEntityConfig represents the Trust Anchor.
+  // If a federation_list_endpoint is provided, fetch and verify the federation list.
+  const federationListEndpoint =
+    currentEntityConfig.payload.metadata.federation_entity
+      .federation_list_endpoint;
+  if (federationListEndpoint) {
+    const federationList = await getFederationList(federationListEndpoint, {
+      appFetch,
+    });
+    if (!federationList.includes(relyingPartyEntityBaseUrl)) {
+      throw new IoWalletError(
+        "Relying Party entity base URL is not authorized by the Trust Anchor's federation list."
+      );
+    }
+  } else {
+    throw new IoWalletError(
+      "Missing federation_list_endpoint in Trust Anchor's configuration."
+    );
+  }
+
+  return trustChain;
 }
