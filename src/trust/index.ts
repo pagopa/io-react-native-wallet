@@ -1,4 +1,4 @@
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import {
   CredentialIssuerEntityConfiguration,
   EntityConfiguration,
@@ -10,6 +10,7 @@ import {
 import { renewTrustChain, validateTrustChain } from "./chain";
 import { hasStatusOrThrow } from "../utils/misc";
 import { IoWalletError } from "../utils/errors";
+import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 
 export type {
   WalletProviderEntityConfiguration,
@@ -298,6 +299,7 @@ export async function getFederationList(
  * Build a not-verified trust chain for a given Relying Party (RP) entity.
  *
  * @param relyingPartyEntityBaseUrl The base URL of the RP entity
+ * @param taPubKey The public key of the Trust Anchor (TA) entity
  * @param appFetch (optional) fetch api implementation
  * @returns A list of signed tokens that represent the trust chain, in the order of the chain (from the RP to the Trust Anchor)
  * @throws {IoWalletError} When an element of the chain fails to parse
@@ -305,11 +307,12 @@ export async function getFederationList(
  */
 export async function buildTrustChain(
   relyingPartyEntityBaseUrl: string,
+  taPubKey: JWK,
   appFetch: GlobalFetch["fetch"] = fetch
 ): Promise<string[]> {
   const trustChain: string[] = [];
 
-  // Fetch and validate the Relying Party's Entity Configuration (EC)
+  // 1. Fetch and validate the Relying Party's Entity Configuration (EC)
   let currentEntityJwt = await getSignedEntityConfiguration(
     relyingPartyEntityBaseUrl,
     { appFetch }
@@ -319,7 +322,7 @@ export async function buildTrustChain(
     decodeJwt(currentEntityJwt)
   );
 
-  // Build the chain while the current entity is subordinate (has authority_hints)
+  // 2. Build the chain while the current entity is subordinate (i.e. has authority hints)
   while (currentEntityConfig.payload.authority_hints?.length) {
     // Use the first authority hint as the parent's base URL.
     const parentEntityBaseUrl = currentEntityConfig.payload.authority_hints[0]!;
@@ -349,6 +352,7 @@ export async function buildTrustChain(
       currentEntityConfig.payload.sub,
       { appFetch }
     );
+    EntityStatement.parse(decodeJwt(entityStatementJwt)); // Validate the ES; throws if invalid.
 
     // Append the ES and then the parent's EC to the trust chain.
     trustChain.push(entityStatementJwt);
@@ -359,7 +363,18 @@ export async function buildTrustChain(
     currentEntityConfig = parentEntityConfig;
   }
 
-  // At this point, currentEntityConfig represents the Trust Anchor.
+  // 3. At this point, currentEntityConfig represents the Trust Anchor.
+  // Verify that the Trust Anchor's EC is signed with the stored TA key.
+  const { protectedHeader } = decodeJwt(currentEntityJwt);
+  if (protectedHeader.kid !== taPubKey.kid) {
+    throw new IoWalletError(
+      "Trust Anchor EC not signed with expected TA key (kid mismatch)."
+    );
+  }
+  verify(currentEntityJwt, taPubKey).catch(() => {
+    throw new IoWalletError("Trust Anchor EC signature verification failed.");
+  });
+
   // If a federation_list_endpoint is provided, fetch and verify the federation list.
   const federationListEndpoint =
     currentEntityConfig.payload.metadata.federation_entity
@@ -373,10 +388,6 @@ export async function buildTrustChain(
         "Relying Party entity base URL is not authorized by the Trust Anchor's federation list."
       );
     }
-  } else {
-    throw new IoWalletError(
-      "Missing federation_list_endpoint in Trust Anchor's configuration."
-    );
   }
 
   return trustChain;
