@@ -234,3 +234,5 @@ export const EntityConfiguration = z.union(
     description: "Any kind of Entity Configuration allowed in the ecosystem",
   }
 );
+
+export const FederationListResponse = z.array(z.string());

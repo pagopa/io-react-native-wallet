@@ -4,6 +4,7 @@ import {
   CredentialIssuerEntityConfiguration,
   EntityConfiguration,
   EntityStatement,
+  FederationListResponse,
   RelyingPartyEntityConfiguration,
   TrustAnchorEntityConfiguration,
   WalletProviderEntityConfiguration,
@@ -283,15 +284,15 @@ export async function getFederationList(
     method: "GET",
   })
     .then(hasStatusOrThrow(200))
-    .then((res) => res.text())
-    .then((text) => {
-      try {
-        return JSON.parse(text) as string[];
-      } catch (err) {
+    .then((res) => res.json())
+    .then((json) => {
+      const result = FederationListResponse.safeParse(json);
+      if (!result.success) {
         throw new IoWalletError(
-          "Invalid federation list format received from Trust Anchor."
+          `Invalid federation list format received from Trust Anchor: ${result.error.message}`
         );
       }
+      return result.data;
     });
 }
 
