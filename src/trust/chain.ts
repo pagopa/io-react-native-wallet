@@ -1,8 +1,4 @@
 import {
-  decode as decodeJwt,
-  verify as verifyJwt,
-} from "@pagopa/io-react-native-jwt";
-import {
   EntityConfiguration,
   EntityStatement,
   TrustAnchorEntityConfiguration,
@@ -10,33 +6,8 @@ import {
 import { JWK } from "../utils/jwk";
 import { IoWalletError } from "../utils/errors";
 import * as z from "zod";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
-
-type ParsedToken = {
-  header: JWTDecodeResult["protectedHeader"];
-  payload: JWTDecodeResult["payload"];
-};
-
-// Verify a token signature
-// The kid is extracted from the token header
-const verify = async (
-  token: string,
-  kid: string,
-  jwks: JWK[]
-): Promise<ParsedToken> => {
-  const jwk = jwks.find((k) => k.kid === kid);
-  if (!jwk) {
-    throw new Error(`Invalid kid: ${kid}, token: ${token}`);
-  }
-  const { protectedHeader: header, payload } = await verifyJwt(token, jwk);
-  return { header, payload };
-};
-
-const decode = (token: string) => {
-  const { protectedHeader: header, payload } = decodeJwt(token);
-  return { header, payload };
-};
+import { decode, type ParsedToken, verify } from "./utils";
 
 // The first element of the chain is supposed to be the Entity Configuration for the document issuer
 const FirstElementShape = EntityConfiguration;
@@ -117,35 +88,48 @@ export async function validateTrustChain(
  * @returns A list of signed token that represent the trust chain, in the same order of the provided chain
  * @throws IoWalletError When an element of the chain fails to parse
  */
-export function renewTrustChain(
+export async function renewTrustChain(
   chain: string[],
   appFetch: GlobalFetch["fetch"] = fetch
-) {
+): Promise<string[]> {
   return Promise.all(
-    chain
-      // Decode each item to determine its shape
-      .map(decode)
-      .map(
-        (e) =>
-          [
-            EntityStatement.safeParse(e),
-            EntityConfiguration.safeParse(e),
-          ] as const
-      )
-      // fetch the element according to its shape
-      .map(([es, ec], i) =>
-        ec.success
-          ? getSignedEntityConfiguration(ec.data.payload.iss, { appFetch })
-          : es.success
-          ? getSignedEntityStatement(es.data.payload.iss, es.data.payload.sub, {
-              appFetch,
-            })
-          : // if the element fail to parse in both EntityStatement and EntityConfiguration, raise an error
-            Promise.reject(
-              new IoWalletError(
-                `Cannot renew trust chain because the element #${i} failed to be parsed.`
-              )
-            )
-      )
+    chain.map(async (token, index) => {
+      const decoded = decode(token);
+
+      const entityStatementResult = EntityStatement.safeParse(decoded);
+      const entityConfigurationResult = EntityConfiguration.safeParse(decoded);
+
+      if (entityConfigurationResult.success) {
+        return getSignedEntityConfiguration(
+          entityConfigurationResult.data.payload.iss,
+          { appFetch }
+        );
+      } else if (entityStatementResult.success) {
+        const entityStatement = entityStatementResult.data;
+
+        const parentBaseUrl = entityStatement.payload.iss;
+        const parentECJwt = await getSignedEntityConfiguration(parentBaseUrl, {
+          appFetch,
+        });
+        const parentEC = EntityConfiguration.parse(decode(parentECJwt));
+
+        const federationFetchEndpoint =
+          parentEC.payload.metadata.federation_entity.federation_fetch_endpoint;
+        if (!federationFetchEndpoint) {
+          throw new IoWalletError(
+            `Parent EC at ${parentBaseUrl} is missing federation_fetch_endpoint`
+          );
+        }
+        return getSignedEntityStatement(
+          federationFetchEndpoint,
+          entityStatement.payload.sub,
+          { appFetch }
+        );
+      } else {
+        throw new IoWalletError(
+          `Cannot renew trust chain because element #${index} failed to parse.`
+        );
+      }
+    })
   );
 }
