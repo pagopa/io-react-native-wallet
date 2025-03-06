@@ -1,35 +1,52 @@
-import { UnverifiedEntityError } from "./errors";
-
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
+import { type Out } from "../../utils/misc";
+import type { RelyingPartyEntityConfiguration } from "../../trust";
+import { UnverifiedEntityError } from "./errors";
 import { RequestObject } from "./types";
 import type { FetchJwks } from "./04-retrieve-rp-jwks";
-import { type Out } from "../../utils/misc";
 
-export type VerifyRequestObjectSignature = (
+export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
-  jwkKeys?: Out<FetchJwks>["keys"]
+  context: {
+    clientId: string;
+    jwkKeys: Out<FetchJwks>["keys"];
+    rpConf: RelyingPartyEntityConfiguration["payload"];
+  }
 ) => Promise<{ requestObject: RequestObject }>;
 
-export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
-  async (requestObjectEncodedJwt, jwkKeys) => {
-    const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
+/**
+ * Function to verify the Request Object's signature and the client ID.
+ * @param requestObjectEncodedJwt The Request Object in JWT format
+ * @param context.clientId The client ID to verify
+ * @param context.jwkKeys The set of keys to verify the signature
+ * @param context.rpConf The Entity Configuration of the Relying Party
+ * @returns The verified Request Object
+ */
+export const verifyRequestObject: VerifyRequestObject = async (
+  requestObjectEncodedJwt,
+  { clientId, jwkKeys, rpConf }
+) => {
+  const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
-    // verify token signature to ensure the request object is authentic
-    const pubKey = jwkKeys?.find(
-      ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
+  // Verify token signature to ensure the request object is authentic
+  const pubKey = jwkKeys?.find(
+    ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
+  );
+
+  if (!pubKey) {
+    throw new UnverifiedEntityError("Request Object signature verification!");
+  }
+
+  // Standard claims are verified within `verify`
+  await verify(requestObjectEncodedJwt, pubKey, { issuer: clientId });
+
+  const requestObject = RequestObject.parse(requestObjectJwt.payload);
+
+  if (!(clientId === requestObject.client_id && clientId === rpConf.sub)) {
+    throw new UnverifiedEntityError(
+      "Client ID does not match Request Object or Entity Configuration"
     );
+  }
 
-    if (!pubKey) {
-      throw new UnverifiedEntityError("Request Object signature verification!");
-    }
-    await verify(requestObjectEncodedJwt, pubKey);
-
-    const requestObject = RequestObject.parse(requestObjectJwt.payload);
-    // Check if exp exists and is expired
-    // exp is typically in seconds since epoch, Get current time in seconds
-    if (requestObject.exp && requestObject.exp <= Date.now() / 1000) {
-      throw new UnverifiedEntityError("Request Object is expired!");
-    }
-
-    return { requestObject };
-  };
+  return { requestObject };
+};
