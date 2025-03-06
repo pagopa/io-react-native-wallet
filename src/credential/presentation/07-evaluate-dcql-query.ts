@@ -4,11 +4,22 @@ import { decode } from "../../sd-jwt";
 import type { Disclosure } from "../../sd-jwt/types";
 import { ValidationFailed } from "../../utils/errors";
 
+/**
+ * Convert a credential in JWT format to an object with claims
+ * for correct parsing by the `dcql` library.
+ */
 const mapCredentialToObject = (jwt: string) => {
   const { sdJwt, disclosures } = decode(jwt);
+  const credentialFormat = sdJwt.header.typ;
+
+  // TODO [SIW-2082]: support MDOC credentials
+  if (credentialFormat !== "vc+sd-jwt") {
+    throw new Error(`Unsupported credential format: ${credentialFormat}`);
+  }
+
   return {
     vct: sdJwt.payload.vct,
-    credential_format: sdJwt.header.typ, // TODO: handle mso_mdoc?
+    credential_format: credentialFormat,
     claims: disclosures.reduce(
       (acc, disclosure) => ({
         ...acc,
