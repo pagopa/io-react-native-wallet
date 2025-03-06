@@ -7,11 +7,7 @@ import {
   getRequestObject,
   type GetRequestObject,
 } from "./03-get-request-object";
-import {
-  fetchJwksFromRequestObject,
-  fetchJwksFromConfig,
-  type FetchJwks,
-} from "./04-retrieve-rp-jwks";
+import { fetchJwksFromConfig, type FetchJwks } from "./04-retrieve-rp-jwks";
 import {
   verifyRequestObject,
   type VerifyRequestObject,
@@ -34,7 +30,6 @@ export {
   startFlowFromQR,
   evaluateRelyingPartyTrust,
   getRequestObject,
-  fetchJwksFromRequestObject,
   fetchJwksFromConfig,
   verifyRequestObject,
   fetchPresentDefinition,
