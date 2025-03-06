@@ -13,8 +13,8 @@ import {
   type FetchJwks,
 } from "./04-retrieve-rp-jwks";
 import {
-  verifyRequestObjectSignature,
-  type VerifyRequestObjectSignature,
+  verifyRequestObject,
+  type VerifyRequestObject,
 } from "./05-verify-request-object";
 import {
   fetchPresentDefinition,
@@ -36,7 +36,7 @@ export {
   getRequestObject,
   fetchJwksFromRequestObject,
   fetchJwksFromConfig,
-  verifyRequestObjectSignature,
+  verifyRequestObject,
   fetchPresentDefinition,
   evaluateInputDescriptorForSdJwt4VC,
   sendAuthorizationResponse,
@@ -47,7 +47,7 @@ export type {
   EvaluateRelyingPartyTrust,
   GetRequestObject,
   FetchJwks,
-  VerifyRequestObjectSignature,
+  VerifyRequestObject,
   FetchPresentationDefinition,
   EvaluateInputDescriptorSdJwt4VC,
   SendAuthorizationResponse,

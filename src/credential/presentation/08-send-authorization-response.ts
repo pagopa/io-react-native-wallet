@@ -5,7 +5,7 @@ import {
 } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
 import type { FetchJwks } from "./04-retrieve-rp-jwks";
-import type { VerifyRequestObjectSignature } from "./05-verify-request-object";
+import type { VerifyRequestObject } from "./05-verify-request-object";
 import type { JWK } from "@pagopa/io-react-native-jwt/lib/typescript/types";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
@@ -77,7 +77,7 @@ export const chooseRSAPublicKeyToEncrypt = (
  * @todo [SIW-353] Support multiple verifiable credentials in a single request.
  */
 export const prepareVpToken = async (
-  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  requestObject: Out<VerifyRequestObject>["requestObject"],
   presentationDefinition: PresentationDefinition,
   [verifiableCredential, requestedClaims, cryptoContext]: Presentation
 ): Promise<{
@@ -132,7 +132,7 @@ export const prepareVpToken = async (
  * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
  */
 export const buildDirectPostBody = async (
-  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  requestObject: Out<VerifyRequestObject>["requestObject"],
   vpToken: string,
   presentationSubmission: Record<string, unknown>
 ): Promise<string> => {
@@ -157,7 +157,7 @@ export const buildDirectPostBody = async (
  */
 export const buildDirectPostJwtBody = async (
   jwkKeys: Out<FetchJwks>["keys"],
-  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  requestObject: Out<VerifyRequestObject>["requestObject"],
   vpToken: string,
   presentationSubmission: Record<string, unknown>
 ): Promise<string> => {
@@ -188,7 +188,7 @@ export const buildDirectPostJwtBody = async (
  * to the Relying Party, completing the presentation flow.
  */
 export type SendAuthorizationResponse = (
-  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  requestObject: Out<VerifyRequestObject>["requestObject"],
   presentationDefinition: PresentationDefinition,
   jwkKeys: Out<FetchJwks>["keys"],
   presentation: Presentation, // TODO: [SIW-353] support multiple presentations
@@ -245,7 +245,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
 
 // TODO: refactor to make it more modular
 export const sendDcqlAuthorizationResponse = async (
-  requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
+  requestObject: Out<VerifyRequestObject>["requestObject"],
   presentation: Presentation, // TODO: [SIW-353] support multiple presentations
   context: {
     jwkKeys: Out<FetchJwks>["keys"];
