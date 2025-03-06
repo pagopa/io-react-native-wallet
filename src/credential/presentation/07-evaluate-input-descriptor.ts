@@ -1,8 +1,11 @@
-import { InputDescriptor } from "./types";
+import { InputDescriptor, type RemotePresentation } from "./types";
 import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
+import { prepareVpToken } from "../../sd-jwt";
+import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
-import { MissingDataError } from "./errors";
+import { CredentialNotFoundError, MissingDataError } from "./errors";
 import Ajv from "ajv";
+
 const ajv = new Ajv({ allErrors: true });
 const INDEX_CLAIM_NAME = 1;
 
@@ -17,6 +20,17 @@ export type EvaluateInputDescriptorSdJwt4VC = (
   payloadCredential: SdJwt4VC["payload"],
   disclosures: DisclosureWithEncoded[]
 ) => EvaluatedDisclosures;
+
+export type PrepareRemotePresentations = (
+  credentialAndDescriptors: {
+    requestedClaims: string[];
+    inputDescriptor: InputDescriptor;
+    credential: string;
+    keyTag: string;
+  }[],
+  nonce: string,
+  client_id: string
+) => Promise<RemotePresentation[]>;
 
 /**
  * Transforms an array of DisclosureWithEncoded objects into a key-value map.
@@ -213,3 +227,83 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       unrequestedDisclosures,
     };
   };
+
+type DecodedCredentialSdJwt = {
+  keyTag: string;
+  credential: string;
+  sdJwt: SdJwt4VC;
+  disclosures: DisclosureWithEncoded[];
+};
+/**
+ * Finds the first credential that satisfies the input descriptor constraints.
+ * @param inputDescriptor The input descriptor to evaluate.
+ * @param decodedSdJwtCredentials An array of decoded SD-JWT credentials.
+ * @returns An object containing the matched evaluation, keyTag, and credential.
+ */
+export const findCredentialSdJwt = (
+  inputDescriptor: InputDescriptor,
+  decodedSdJwtCredentials: DecodedCredentialSdJwt[]
+): {
+  matchedEvaluation: EvaluatedDisclosures;
+  matchedKeyTag: string;
+  matchedCredential: string;
+} => {
+  for (const {
+    keyTag,
+    credential,
+    sdJwt,
+    disclosures,
+  } of decodedSdJwtCredentials) {
+    try {
+      const evaluatedDisclosure = evaluateInputDescriptorForSdJwt4VC(
+        inputDescriptor,
+        sdJwt.payload,
+        disclosures
+      );
+
+      return {
+        matchedEvaluation: evaluatedDisclosure,
+        matchedKeyTag: keyTag,
+        matchedCredential: credential,
+      };
+    } catch {
+      // skip to next credential
+      continue;
+    }
+  }
+
+  throw new CredentialNotFoundError(
+    "None of the vc+sd-jwt credentials satisfy the requirements."
+  );
+};
+
+export const prepareRemotePresentations: PrepareRemotePresentations = async (
+  credentialAndDescriptors,
+  nonce,
+  client_id
+) => {
+  return Promise.all(
+    credentialAndDescriptors.map(async (item) => {
+      const descriptor = item.inputDescriptor;
+
+      if (descriptor.format?.["vc+sd-jwt"]) {
+        const { vp_token } = await prepareVpToken(nonce, client_id, [
+          item.credential,
+          item.requestedClaims,
+          createCryptoContextFor(item.keyTag),
+        ]);
+
+        return {
+          requestedClaims: item.requestedClaims,
+          inputDescriptor: descriptor,
+          vpToken: vp_token,
+          format: "vc+sd-jwt",
+        };
+      }
+
+      throw new CredentialNotFoundError(
+        `${descriptor.format} format is not supported.`
+      );
+    })
+  );
+};

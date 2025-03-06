@@ -1,15 +1,14 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import { type Out } from "../../utils/misc";
 import type { RelyingPartyEntityConfiguration } from "../../trust";
 import { UnverifiedEntityError } from "./errors";
 import { RequestObject } from "./types";
-import type { FetchJwks } from "./04-retrieve-rp-jwks";
+import { getJwksFromConfig } from "./04-retrieve-rp-jwks";
 
 export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
   context: {
     clientId: string;
-    jwkKeys: Out<FetchJwks>["keys"];
+    // jwkKeys: Out<FetchJwks>["keys"];
     rpConf: RelyingPartyEntityConfiguration["payload"];
   }
 ) => Promise<{ requestObject: RequestObject }>;
@@ -24,12 +23,13 @@ export type VerifyRequestObject = (
  */
 export const verifyRequestObject: VerifyRequestObject = async (
   requestObjectEncodedJwt,
-  { clientId, jwkKeys, rpConf }
+  { clientId, rpConf }
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
+  const { keys } = getJwksFromConfig(rpConf.metadata);
 
   // Verify token signature to ensure the request object is authentic
-  const pubKey = jwkKeys?.find(
+  const pubKey = keys?.find(
     ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
   );
 

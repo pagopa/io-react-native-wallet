@@ -11,6 +11,16 @@ export type Presentation = [
   /* the context for the key associated to the credential */ CryptoContext
 ];
 
+/**
+ * A object that associate the information needed to multiple remote presentation
+ */
+export type RemotePresentation = {
+  requestedClaims: string[];
+  inputDescriptor: InputDescriptor;
+  format: string;
+  vpToken: string;
+};
+
 const Fields = z.object({
   path: z.array(z.string().min(1)), // Array of JSONPath string expressions
   id: z.string().optional(), // Unique string ID
@@ -107,4 +117,15 @@ export type RequestObjectWalletCapabilities = z.infer<
 export const RequestObjectWalletCapabilities = z.object({
   wallet_metadata: WalletMetadata,
   wallet_nonce: z.string().optional(),
+});
+
+/**
+ * Type that defines the possible payload formats accepted by {@link buildDirectPostJwtBody} and {@link buildDirectPostBody}
+ */
+export type DirectAuthorizationBodyPayload = z.infer<
+  typeof DirectAuthorizationBodyPayload
+>;
+export const DirectAuthorizationBodyPayload = z.object({
+  vp_token: z.union([z.string(), z.array(z.string())]).optional(),
+  presentation_submission: z.record(z.string(), z.unknown()),
 });

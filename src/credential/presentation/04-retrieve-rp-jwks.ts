@@ -8,9 +8,9 @@ import { RelyingPartyEntityConfiguration } from "../../trust/types";
  * @param args - The arguments passed to the function.
  * @returns A promise resolving to an object containing an array of JWKs.
  */
-export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => Promise<{
+export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => {
   keys: JWK[];
-}>;
+};
 
 /**
  * Retrieves the JSON Web Key Set (JWKS) from a Relying Party's entity configuration.
@@ -19,9 +19,9 @@ export type FetchJwks<T extends Array<unknown> = []> = (...args: T) => Promise<{
  * @returns An object containing an array of JWKs.
  * @throws Will throw an error if the configuration is invalid or if JWKS is not found.
  */
-export const fetchJwksFromConfig: FetchJwks<
+export const getJwksFromConfig: FetchJwks<
   [RelyingPartyEntityConfiguration["payload"]["metadata"]]
-> = async (rpConfig) => {
+> = (rpConfig) => {
   const jwks = rpConfig.openid_credential_verifier.jwks;
 
   if (!jwks || !Array.isArray(jwks.keys)) {

@@ -1,6 +1,6 @@
 // fetchJwks.test.ts
 
-import { fetchJwksFromConfig } from "../04-retrieve-rp-jwks";
+import { getJwksFromConfig } from "../04-retrieve-rp-jwks";
 import { RelyingPartyEntityConfiguration } from "../../../trust/types";
 
 // Mock the RelyingPartyEntityConfiguration
@@ -17,14 +17,14 @@ describe("fetchJwksFromConfig", () => {
     jest.resetAllMocks();
   });
 
-  it("should return JWKS from a valid configuration", async () => {
+  it("should return JWKS from a valid configuration", () => {
     const mockConfig = {
       openid_credential_verifier: {
         jwks: { keys: [{ kid: "key1" }, { kid: "key2" }] },
       },
     };
 
-    const result = await fetchJwksFromConfig(
+    const result = getJwksFromConfig(
       mockConfig as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
     );
 
@@ -34,18 +34,18 @@ describe("fetchJwksFromConfig", () => {
     });
   });
 
-  it("should throw an error if JWKS is not found in the configuration", async () => {
+  it("should throw an error if JWKS is not found in the configuration", () => {
     const mockConfigMissingJWKS = {
       openid_credential_verifier: {
         // JWKS is missing here
       },
     };
 
-    await expect(
-      fetchJwksFromConfig(
+    expect(() =>
+      getJwksFromConfig(
         mockConfigMissingJWKS as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
       )
-    ).rejects.toThrow("JWKS not found in Relying Party configuration.");
+    ).toThrow("JWKS not found in Relying Party configuration.");
   });
 
   it("should throw an error if JWKS.keys is not an array", async () => {
@@ -55,10 +55,10 @@ describe("fetchJwksFromConfig", () => {
       },
     };
 
-    await expect(
-      fetchJwksFromConfig(
+    expect(() =>
+      getJwksFromConfig(
         mockConfigInvalidJWKS as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
       )
-    ).rejects.toThrow("JWKS not found in Relying Party configuration.");
+    ).toThrow("JWKS not found in Relying Party configuration.");
   });
 });

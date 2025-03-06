@@ -13,7 +13,10 @@ const RelyingPartyMetadata = z.object({
   jwks: z.object({ keys: z.array(JWK) }),
   contacts: z.array(z.string()).optional(),
   presentation_definition: PresentationDefinition.optional(),
-  presentation_definition_uri: z.string().optional(),
+  request_uris: z.array(z.string()),
+  authorization_signed_response_alg: z.string().optional(),
+  authorization_encrypted_response_alg: z.string().optional(),
+  authorization_encrypted_response_enc: z.string().optional(),
 });
 //.passthrough();
 
