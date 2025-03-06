@@ -104,7 +104,8 @@ export async function renewTrustChain(
           entityConfigurationResult.data.payload.iss,
           { appFetch }
         );
-      } else if (entityStatementResult.success) {
+      }
+      if (entityStatementResult.success) {
         const entityStatement = entityStatementResult.data;
 
         const parentBaseUrl = entityStatement.payload.iss;
@@ -125,11 +126,10 @@ export async function renewTrustChain(
           entityStatement.payload.sub,
           { appFetch }
         );
-      } else {
-        throw new IoWalletError(
-          `Cannot renew trust chain because element #${index} failed to parse.`
-        );
       }
+      throw new IoWalletError(
+        `Cannot renew trust chain because element #${index} failed to parse.`
+      );
     })
   );
 }
