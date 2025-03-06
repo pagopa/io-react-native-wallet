@@ -32,58 +32,6 @@ describe("fetchPresentDefinition", () => {
     expect(result.presentationDefinition.id).toBe("test-direct");
   });
 
-  it("fetches the presentationDefinition from the provided URI if present", async () => {
-    // Mock a valid response from the fetch call
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        id: "test-fetched",
-        input_descriptors: [{ id: "id", constraints: {} }],
-      }),
-    } as Response);
-
-    const mockRequestObject = {} as unknown as RequestObject;
-
-    const mockRpConf = {
-      openid_credential_verifier: {
-        presentation_definition_uri:
-          "https://example.com/presentation-definition.json",
-      },
-    } as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"];
-
-    const result = await fetchPresentDefinition(
-      mockRequestObject,
-      {},
-      mockRpConf
-    );
-
-    // Ensure the fetch was called with the correct URI
-    expect(global.fetch).toHaveBeenCalledWith(
-      "https://example.com/presentation-definition.json",
-      { method: "GET" }
-    );
-    expect(result.presentationDefinition.id).toBe("test-fetched");
-  });
-
-  it("throws an error when fetch fails for the provided URI", async () => {
-    // Mock a failed response
-    (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
-
-    const mockRequestObject = {} as unknown as RequestObject;
-
-    const mockRpConf = {
-      openid_credential_verifier: {
-        presentation_definition_uri:
-          "https://example.com/presentation-definition.json",
-      },
-    } as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"];
-
-    await expect(
-      fetchPresentDefinition(mockRequestObject, {}, mockRpConf)
-    ).rejects.toThrow();
-  });
-
   it("returns the pre-configured presentationDefinition if 'scope' exists and no URI is provided", async () => {
     const mockRequestObject = {
       scope: "openid",
@@ -97,11 +45,7 @@ describe("fetchPresentDefinition", () => {
       },
     } as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"];
 
-    const result = await fetchPresentDefinition(
-      mockRequestObject,
-      {},
-      mockRpConf
-    );
+    const result = await fetchPresentDefinition(mockRequestObject, mockRpConf);
 
     expect(result.presentationDefinition.id).toBe("test-preconfigured");
   });
