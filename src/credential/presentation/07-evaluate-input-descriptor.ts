@@ -142,27 +142,25 @@ const findMatchedClaim = (
  * Extracts the claim name from a path that can be in one of the following formats:
  * 1. $.propertyName
  * 2. $["propertyName"] or $['propertyName']
- * 3. $['nameSpaces']["propertyName"] or $[nameSpaces']['propertyName']
  *
  * @param path - The path string containing the claim reference.
  * @returns The extracted claim name if matched; otherwise, throws an exception.
  */
 const extractClaimName = (path: string): string | undefined => {
-  // The regex now supports:
-  // - Option 1: $.propertyName        -> captured in group 1
-  // - Option 2: $["propertyName"] or $['propertyName']  -> captured in group 2
-  // - Option 3: $['nameSpaces']["propertyName"] or $[nameSpaces']['propertyName']
-  //             The claim name (propertyName) is captured in group 3.
-  const regex =
-    /^\$(?:\.(\w+)|\[(?:'|")(\w+)(?:'|")\]|\[(?:'|")?[^'"\]]+(?:'|")?\]\[(?:'|")(\w+)(?:'|")\])$/;
+  // Define a regular expression that matches both formats:
+  // 1. $.propertyName
+  // 2. $["propertyName"] or $['propertyName']
+  const regex = /^\$\.(\w+)$|^\$\[(?:'|")(\w+)(?:'|")\]$/;
 
   const match = path.match(regex);
   if (match) {
-    return match[1] || match[2] || match[3];
+    // match[1] corresponds to the first capture group (\w+) after $.
+    // match[2] corresponds to the second capture group (\w+) inside [""] or ['']
+    return match[1] || match[2];
   }
 
   throw new Error(
-    `Invalid input format: "${path}". Expected formats are "$.propertyName", "$['propertyName']", '$["propertyName"]', or "$['nameSpaces']['propertyName']".`
+    `Invalid input format: "${path}". Expected formats are "$.propertyName", "$['propertyName']", or '$["propertyName"]'.`
   );
 };
 
