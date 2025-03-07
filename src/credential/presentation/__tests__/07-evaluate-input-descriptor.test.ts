@@ -162,12 +162,16 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
         disclosures
       );
     // Because the field is optional, we keep the original disclosures
-    expect(requiredDisclosures).toEqual([
-      disclosureWithEncodedToEvaluatedDisclosure(disclosures[1]),
-    ]);
-    expect(optionalDisclosures).toEqual([
-      disclosureWithEncodedToEvaluatedDisclosure(disclosures[0]),
-    ]);
+    expect(requiredDisclosures).toEqual(
+      disclosures[1]
+        ? [disclosureWithEncodedToEvaluatedDisclosure(disclosures[1])]
+        : []
+    );
+    expect(optionalDisclosures).toEqual(
+      disclosures[0]
+        ? [disclosureWithEncodedToEvaluatedDisclosure(disclosures[0])]
+        : []
+    );
   });
 
   it("should throw an error if filter (JSON Schema) validation fails", () => {

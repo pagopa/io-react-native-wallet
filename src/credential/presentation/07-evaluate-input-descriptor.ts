@@ -93,6 +93,14 @@ const mapDisclosuresToObject = (
   }, {} as Record<string, unknown>);
 };
 
+/**
+ * Transforms the issuer's namespaces from a CBOR structure into a plain JavaScript object.
+ *
+ * @param namespaces - The CBOR-based namespaces object where each key corresponds to a namespace,
+ *                     and each value is an array of elements containing identifiers and values.
+ * @returns A record (plain object) where each key is a namespace, and its value is another object
+ *          mapping element identifiers to their corresponding element values.
+ */
 const mapNamespacesToObject = (
   namespaces: CBOR.IssuerSigned["nameSpaces"]
 ): Record<string, unknown> => {
@@ -220,7 +228,7 @@ export const evaluateInputDescriptorForMdoc: EvaluateInputDescriptorMdoc = (
     );
 
     // If no matching claim is found, the field is valid only if it's marked as optional.
-    if (!matchedValue || !matchedPath) {
+    if (matchedValue === undefined || !matchedPath) {
       return field?.optional;
     } else {
       // Extract the namespace and property name from the matched path.
