@@ -354,69 +354,73 @@ export async function buildTrustChain(
 
 /**
  * Recursively gather the trust chain for an entity and all its superiors.
- * @param subordinateBaseUrl The base URL of the entity for which to gather the chain.
+ * @param entityBaseUrl The base URL of the entity for which to gather the chain.
  * @param appFetch An optional instance of the http client to be used.
+ * @param isLeaf Whether the current entity is the leaf of the chain.
  * @returns A full ordered list of JWTs (ECs and ESs) forming the trust chain.
  */
 async function gatherTrustChain(
-  subordinateBaseUrl: string,
-  appFetch: GlobalFetch["fetch"]
+  entityBaseUrl: string,
+  appFetch: GlobalFetch["fetch"],
+  isLeaf: boolean = true
 ): Promise<string[]> {
   const chain: string[] = [];
 
-  // Fetch and validate the subordinate's Entity Configuration (EC)
-  const subordinateECJwt = await getSignedEntityConfiguration(
-    subordinateBaseUrl,
-    { appFetch }
-  );
-  const subordinateEC = EntityConfiguration.parse(decodeJwt(subordinateECJwt));
+  // Fetch self-signed EC (only needed for the leaf)
+  const entityECJwt = await getSignedEntityConfiguration(entityBaseUrl, {
+    appFetch,
+  });
+  const entityEC = EntityConfiguration.parse(decode(entityECJwt));
 
-  // Always push the subordinate EC first (this could be the RP or any intermediate)
-  chain.push(subordinateECJwt);
+  if (isLeaf) {
+    // Only push EC for the leaf
+    chain.push(entityECJwt);
+  }
 
-  const authorityHints = subordinateEC.payload.authority_hints ?? [];
-
+  // Find authority_hints (parent, if any)
+  const authorityHints = entityEC.payload.authority_hints ?? [];
   if (authorityHints.length === 0) {
-    // Reached the Trust Anchor
+    // This is the Trust Anchor (no parent)
+    if (!isLeaf) {
+      chain.push(entityECJwt);
+    }
     return chain;
   }
 
   const parentEntityBaseUrl = authorityHints[0]!;
 
-  // Fetch and validate the parent's Entity Configuration (EC)
-  const parentEntityJwt = await getSignedEntityConfiguration(
-    parentEntityBaseUrl,
-    { appFetch }
-  );
-  const parentEntityConfig = EntityConfiguration.parse(
-    decodeJwt(parentEntityJwt)
-  );
+  // Fetch parent EC
+  const parentECJwt = await getSignedEntityConfiguration(parentEntityBaseUrl, {
+    appFetch,
+  });
+  const parentEC = EntityConfiguration.parse(decode(parentECJwt));
 
-  // Ensure the parent provides the federation_fetch_endpoint
+  // Fetch ES
   const federationFetchEndpoint =
-    parentEntityConfig.payload.metadata.federation_entity
-      .federation_fetch_endpoint;
+    parentEC.payload.metadata.federation_entity.federation_fetch_endpoint;
   if (!federationFetchEndpoint) {
     throw new IoWalletError(
       "Missing federation_fetch_endpoint in parent's configuration."
     );
   }
 
-  // Fetch and validate the Entity Statement (ES) that the parent issues about the subordinate
   const entityStatementJwt = await getSignedEntityStatement(
     federationFetchEndpoint,
-    subordinateBaseUrl,
+    entityBaseUrl,
     { appFetch }
   );
-
   // Validate the ES
-  EntityStatement.parse(decodeJwt(entityStatementJwt));
+  EntityStatement.parse(decode(entityStatementJwt));
 
-  // Append the ES and the parent EC to the chain
-  chain.push(entityStatementJwt, parentEntityJwt);
+  // Push this ES into the chain
+  chain.push(entityStatementJwt);
 
-  // Recursively gather the rest of the chain up to the Trust Anchor
-  const parentChain = await gatherTrustChain(parentEntityBaseUrl, appFetch);
+  // Recurse into the parent
+  const parentChain = await gatherTrustChain(
+    parentEntityBaseUrl,
+    appFetch,
+    false
+  );
 
   return chain.concat(parentChain);
 }
