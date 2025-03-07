@@ -8,18 +8,27 @@ import Ajv from "ajv";
 import { base64ToBase64Url } from "../../utils/string";
 import { CBOR } from "@pagopa/io-react-native-cbor";
 const ajv = new Ajv({ allErrors: true });
-const INDEX_CLAIM_NAME = 1;
 
 type EvaluatedDisclosures = {
-  requiredDisclosures: DisclosureWithEncoded[];
-  optionalDisclosures: DisclosureWithEncoded[];
-  unrequestedDisclosures: DisclosureWithEncoded[];
+  requiredDisclosures: EvaluatedDisclosure[];
+  optionalDisclosures: EvaluatedDisclosure[];
+};
+
+export type EvaluatedDisclosure = {
+  namespace?: string;
+  name: string;
+  value: unknown;
 };
 
 type EvaluateInputDescriptorSdJwt4VC = (
   inputDescriptor: InputDescriptor,
   payloadCredential: SdJwt4VC["payload"],
   disclosures: DisclosureWithEncoded[]
+) => EvaluatedDisclosures;
+
+type EvaluateInputDescriptorMdoc = (
+  inputDescriptor: InputDescriptor,
+  issuerSigned: CBOR.IssuerSigned
 ) => EvaluatedDisclosures;
 
 export type EvaluateInputDescriptors = (
@@ -46,6 +55,29 @@ export type PrepareRemotePresentations = (
   client_id: string
 ) => Promise<RemotePresentation[]>;
 
+export const disclosureWithEncodedToEvaluatedDisclosure = (
+  disclosure: DisclosureWithEncoded
+): EvaluatedDisclosure => {
+  const [, claimName, claimValue] = disclosure.decoded;
+  return {
+    name: claimName,
+    value: claimValue,
+  };
+};
+
+type DecodedCredentialMdoc = {
+  keyTag: string;
+  credential: string;
+  mdoc: CBOR.MDOC;
+};
+
+type DecodedCredentialSdJwt = {
+  keyTag: string;
+  credential: string;
+  sdJwt: SdJwt4VC;
+  disclosures: DisclosureWithEncoded[];
+};
+
 /**
  * Transforms an array of DisclosureWithEncoded objects into a key-value map.
  * @param disclosures - An array of DisclosureWithEncoded, each containing a decoded property with [?, claimName, claimValue].
@@ -57,6 +89,20 @@ const mapDisclosuresToObject = (
   return disclosures.reduce((obj, { decoded }) => {
     const [, claimName, claimValue] = decoded;
     obj[claimName] = claimValue;
+    return obj;
+  }, {} as Record<string, unknown>);
+};
+
+const mapNamespacesToObject = (
+  namespaces: CBOR.IssuerSigned["nameSpaces"]
+): Record<string, unknown> => {
+  return Object.entries(namespaces).reduce((obj, [namespace, elements]) => {
+    obj[namespace] = Object.fromEntries(
+      elements.map((element) => [
+        element.elementIdentifier,
+        element.elementValue,
+      ])
+    );
     return obj;
   }, {} as Record<string, unknown>);
 };
@@ -96,28 +142,127 @@ const findMatchedClaim = (
  * Extracts the claim name from a path that can be in one of the following formats:
  * 1. $.propertyName
  * 2. $["propertyName"] or $['propertyName']
+ * 3. $['nameSpaces']["propertyName"] or $[nameSpaces']['propertyName']
  *
  * @param path - The path string containing the claim reference.
  * @returns The extracted claim name if matched; otherwise, throws an exception.
  */
 const extractClaimName = (path: string): string | undefined => {
-  // Define a regular expression that matches both formats:
-  // 1. $.propertyName
-  // 2. $["propertyName"] or $['propertyName']
-  const regex = /^\$\.(\w+)$|^\$\[(?:'|")(\w+)(?:'|")\]$/;
+  // The regex now supports:
+  // - Option 1: $.propertyName        -> captured in group 1
+  // - Option 2: $["propertyName"] or $['propertyName']  -> captured in group 2
+  // - Option 3: $['nameSpaces']["propertyName"] or $[nameSpaces']['propertyName']
+  //             The claim name (propertyName) is captured in group 3.
+  const regex =
+    /^\$(?:\.(\w+)|\[(?:'|")(\w+)(?:'|")\]|\[(?:'|")?[^'"\]]+(?:'|")?\]\[(?:'|")(\w+)(?:'|")\])$/;
 
   const match = path.match(regex);
   if (match) {
-    // match[1] corresponds to the first capture group (\w+) after $.
-    // match[2] corresponds to the second capture group (\w+) inside [""] or ['']
-    return match[1] || match[2];
+    return match[1] || match[2] || match[3];
   }
 
-  // If the input doesn't match any of the expected formats, return null
+  throw new Error(
+    `Invalid input format: "${path}". Expected formats are "$.propertyName", "$['propertyName']", '$["propertyName"]', or "$['nameSpaces']['propertyName']".`
+  );
+};
+
+/**
+ * Extracts the namespace and claim name from a path in the following format:
+ * $['nameSpace']['propertyName']
+ *
+ * @param path - The path string containing the claim reference.
+ * @returns An object with the extracted namespace and claim name.
+ * @throws An error if the input format is invalid.
+ */
+const extractNamespaceAndClaimName = (
+  path: string
+): { nameSpace?: string; propertyName?: string } => {
+  const regex = /^\$\[(?:'|")([^'"\]]+)(?:'|")\]\[(?:'|")([^'"\]]+)(?:'|")\]$/;
+  const match = path.match(regex);
+  if (match) {
+    return { nameSpace: match[1], propertyName: match[2] };
+  }
 
   throw new Error(
-    `Invalid input format: "${path}". Expected formats are "$.propertyName", "$['propertyName']", or '$["propertyName"]'.`
+    `Invalid input format: "${path}". Expected format is "$['nameSpace']['propertyName']".`
   );
+};
+/**
+ * Evaluates the input descriptor for an mDoc by verifying that the issuerSigned claims meet
+ * the constraints defined in the input descriptor. It categorizes disclosures as either required
+ * or optional based on the field definitions.
+ *
+ * @param inputDescriptor - Contains constraints and field definitions specifying required/optional claims.
+ * @param issuerSigned - Contains the issuerSigned with namespaces and their associated claims.
+ * @returns An object with two arrays: one for required disclosures and one for optional disclosures.
+ * @throws MissingDataError - If a required field is missing or if a claim fails JSON Schema validation.
+ */
+export const evaluateInputDescriptorForMdoc: EvaluateInputDescriptorMdoc = (
+  inputDescriptor,
+  issuerSigned
+) => {
+  if (!inputDescriptor?.constraints?.fields) {
+    // No validation, no field are required
+    return {
+      requiredDisclosures: [],
+      optionalDisclosures: [],
+    };
+  }
+
+  const requiredDisclosures: EvaluatedDisclosure[] = [];
+  const optionalDisclosures: EvaluatedDisclosure[] = [];
+
+  // Convert issuer's namespaces into an object for easier lookup of claim values.
+  const namespacesAsPayload = mapNamespacesToObject(issuerSigned.nameSpaces);
+
+  const allFieldsValid = inputDescriptor.constraints.fields.every((field) => {
+    const [matchedPath, matchedValue] = findMatchedClaim(
+      field.path,
+      namespacesAsPayload
+    );
+
+    // If no matching claim is found, the field is valid only if it's marked as optional.
+    if (!matchedValue || !matchedPath) {
+      return field?.optional;
+    } else {
+      // Extract the namespace and property name from the matched path.
+      const { nameSpace, propertyName } =
+        extractNamespaceAndClaimName(matchedPath);
+      if (nameSpace && propertyName) {
+        (field?.optional ? optionalDisclosures : requiredDisclosures).push({
+          namespace: nameSpace,
+          name: propertyName,
+          value: matchedValue,
+        });
+      }
+    }
+
+    if (field.filter) {
+      try {
+        const validateSchema = ajv.compile(field.filter);
+        if (!validateSchema(matchedValue)) {
+          throw new MissingDataError(
+            `Claim value "${matchedValue}" for path "${matchedPath}" does not match the provided JSON Schema.`
+          );
+        }
+      } catch (error) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  if (!allFieldsValid) {
+    throw new MissingDataError(
+      "Credential validation failed: Required fields are missing or do not match the input descriptor."
+    );
+  }
+
+  return {
+    requiredDisclosures,
+    optionalDisclosures,
+  };
 };
 
 /**
@@ -128,14 +273,12 @@ const extractClaimName = (path: string): string | undefined => {
  * - Validates whether required fields are present (unless marked optional)
  *   and match any specified JSONPath.
  * - If a field includes a JSON Schema filter, validates the claim value against that schema.
- * - Enforces `limit_disclosure` rules by returning only disclosures, required and optional, matching the specified fields
- *   if set to "required". Otherwise also return the array unrequestedDisclosures with disclosures which can be passed for a particular use case.
  * - Throws an error if a required field is invalid or missing.
  *
  * @param inputDescriptor - Describes constraints (fields, filters, etc.) that must be satisfied.
  * @param payloadCredential - The credential payload to check against.
  * @param disclosures - An array of DisclosureWithEncoded objects representing selective disclosures.
- * @returns A filtered list of disclosures satisfying the descriptor constraints, or throws an error if not.
+ * @returns An object with two arrays: one for required disclosures and one for optional disclosures.
  * @throws Will throw an error if any required constraint fails or if JSONPath lookups are invalid.
  */
 export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC =
@@ -145,13 +288,12 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       return {
         requiredDisclosures: [],
         optionalDisclosures: [],
-        unrequestedDisclosures: disclosures,
       };
     }
-    const requiredClaimNames: string[] = [];
-    const optionalClaimNames: string[] = [];
+    const requiredDisclosures: EvaluatedDisclosure[] = [];
+    const optionalDisclosures: EvaluatedDisclosure[] = [];
 
-    // Transform disclosures to find claim using JSONPath
+    // Transform disclosures into an object for easier lookup of claim values.
     const disclosuresAsPayload = mapDisclosuresToObject(disclosures);
 
     // For each field, we need at least one matching path
@@ -179,9 +321,10 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
         // if match a disclouse we save which is required or optional
         const claimName = extractClaimName(matchedPath);
         if (claimName) {
-          (field?.optional ? optionalClaimNames : requiredClaimNames).push(
-            claimName
-          );
+          (field?.optional ? optionalDisclosures : requiredDisclosures).push({
+            value: matchedValue,
+            name: claimName,
+          });
         }
       }
 
@@ -211,43 +354,12 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
       );
     }
 
-    // Categorizes disclosures into required and optional based on claim names and disclosure constraints.
-
-    const requiredDisclosures = disclosures.filter((disclosure) =>
-      requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
-    );
-
-    const optionalDisclosures = disclosures.filter((disclosure) =>
-      optionalClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
-    );
-
-    const isNotLimitDisclosure = !(
-      inputDescriptor.constraints.limit_disclosure === "required"
-    );
-
-    const unrequestedDisclosures = isNotLimitDisclosure
-      ? disclosures.filter(
-          (disclosure) =>
-            !optionalClaimNames.includes(
-              disclosure.decoded[INDEX_CLAIM_NAME]
-            ) &&
-            !requiredClaimNames.includes(disclosure.decoded[INDEX_CLAIM_NAME])
-        )
-      : [];
-
     return {
       requiredDisclosures,
       optionalDisclosures,
-      unrequestedDisclosures,
     };
   };
 
-type DecodedCredentialSdJwt = {
-  keyTag: string;
-  credential: string;
-  sdJwt: SdJwt4VC;
-  disclosures: DisclosureWithEncoded[];
-};
 /**
  * Finds the first credential that satisfies the input descriptor constraints.
  * @param inputDescriptor The input descriptor to evaluate.
@@ -292,6 +404,43 @@ export const findCredentialSdJwt = (
 };
 
 /**
+ * Finds the first credential that satisfies the input descriptor constraints.
+ * @param inputDescriptor The input descriptor to evaluate.
+ * @param decodedMdocCredentials An array of decoded MDOC credentials.
+ * @returns An object containing the matched evaluation, keyTag, and credential.
+ */
+export const findCredentialMDoc = (
+  inputDescriptor: InputDescriptor,
+  decodedMDocCredentials: DecodedCredentialMdoc[]
+): {
+  matchedEvaluation: EvaluatedDisclosures;
+  matchedKeyTag: string;
+  matchedCredential: string;
+} => {
+  for (const { keyTag, credential, mdoc } of decodedMDocCredentials) {
+    try {
+      const evaluatedDisclosure = evaluateInputDescriptorForMdoc(
+        inputDescriptor,
+        mdoc.issuerSigned
+      );
+
+      return {
+        matchedEvaluation: evaluatedDisclosure,
+        matchedKeyTag: keyTag,
+        matchedCredential: credential,
+      };
+    } catch {
+      // skip to next credential
+      continue;
+    }
+  }
+
+  throw new CredentialNotFoundError(
+    "None of the mso_mdoc credentials satisfy the requirements."
+  );
+};
+
+/**
  * Evaluates multiple input descriptors against provided SD-JWT and MDOC credentials.
  *
  * For each input descriptor, this function:
@@ -318,47 +467,37 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
       return { keyTag, credential, sdJwt, disclosures };
     }) || [];
 
-  const results = Promise.all(
-    inputDescriptors.map(async (descriptor) => {
-      if (descriptor.format?.mso_mdoc) {
-        if (!credentialsMdoc || !credentialsMdoc[0]) {
-          throw new CredentialNotFoundError(
-            "mso_mdoc credential is not supported."
-          );
-        }
-        /**
-         * The current implementation for the "mso_mdoc" format is temporary and always returns the first credential (mDL).
-         * [WLEO-266] This will be replaced with the real implementation once the evaluateInputDescriptorForMdoc function is available.
-         **/
-        const [keyTag, credential] = credentialsMdoc[0];
-        const mdoc = await CBOR.decodeDocuments(credential);
-        if (!mdoc || !mdoc.documents || !mdoc.documents[0]) {
+  // We need decode Mdoc credentials for evaluation
+  const decodedMdocCredentials =
+    (await Promise.all(
+      credentialsMdoc?.map(async ([keyTag, credential]) => {
+        const cbor = await CBOR.decodeDocuments(credential);
+        if (!cbor || !cbor.documents || !cbor.documents[0]) {
           throw new CredentialNotFoundError(
             "mso_mdoc credential is not present."
           );
         }
-        const document = mdoc.documents[0];
-        // We set requiredDisclosures to all the elements in the document, as we don't have a real implementation for this yet.
+        return { keyTag, credential, mdoc: cbor.documents[0] };
+      })
+    )) || [];
+
+  const results = Promise.all(
+    inputDescriptors.map(async (descriptor) => {
+      if (descriptor.format?.mso_mdoc) {
+        if (!credentialsMdoc.length) {
+          throw new CredentialNotFoundError(
+            "mso_mdoc credential is not supported."
+          );
+        }
+
+        const { matchedEvaluation, matchedKeyTag, matchedCredential } =
+          findCredentialMDoc(descriptor, decodedMdocCredentials);
+
         return {
-          evaluatedDisclosure: {
-            requiredDisclosures: Object.entries(
-              document.issuerSigned.nameSpaces
-            ).flatMap(([, elements]) =>
-              elements.map((element) => ({
-                encoded: "",
-                decoded: [
-                  "",
-                  element.elementIdentifier,
-                  element.elementValue,
-                ] as [string, string, unknown],
-              }))
-            ),
-            optionalDisclosures: [],
-            unrequestedDisclosures: [],
-          },
+          evaluatedDisclosure: matchedEvaluation,
           inputDescriptor: descriptor,
-          credential,
-          keyTag,
+          credential: matchedCredential,
+          keyTag: matchedKeyTag,
         };
       }
 
