@@ -16,6 +16,7 @@ type EvaluateDcqlQuery = (
   requiredDisclosures: DisclosureWithEncoded[];
   credential: string;
   keyTag: string;
+  isOptional?: boolean;
 }[];
 
 type DcqlMatchSuccess = Extract<
@@ -86,16 +87,25 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
       if (match.output.credential_format !== "vc+sd-jwt") {
         throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
       }
+      const { vct, claims } = match.output;
 
-      const [keyTag, credential] = credentialsSdJwtByVct[match.output.vct]!;
+      // Find a matching credential set to see whether the credential is optional
+      // If no credential set is found, then the credential is required by default
+      // NOTE: This is an extra, it might not be necessary
+      const credentialSet = queryResult.credential_sets?.find((set) =>
+        set.matching_options?.flat().includes(vct)
+      );
+      const isOptional = credentialSet ? !credentialSet.required : false;
+
+      const [keyTag, credential] = credentialsSdJwtByVct[vct]!;
       const requiredDisclosures = Object.values(
-        match.output.claims
+        claims
       ) as DisclosureWithEncoded[];
-
       return {
         id,
         keyTag,
         credential,
+        isOptional,
         requiredDisclosures,
       };
     });

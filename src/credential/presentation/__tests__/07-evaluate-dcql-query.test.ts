@@ -68,6 +68,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
+        isOptional: false,
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
           ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
@@ -79,7 +80,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with optional credentials", () => {
+  it("should work correctly with missing optional credentials", () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -111,9 +112,62 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
+        isOptional: false,
         requiredDisclosures: [
           ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
           ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+        ],
+      },
+    ];
+
+    expect(result).toEqual(expected);
+  });
+
+  it("should work correctly with available optional credentials", () => {
+    const query: DcqlQuery.Input = {
+      credentials: [
+        {
+          id: "PID",
+          format: "vc+sd-jwt",
+          meta: {
+            vct_values: ["PersonIdentificationData"],
+          },
+          claims: [{ path: ["given_name"] }, { path: ["family_name"] }],
+        },
+        {
+          id: "MDL",
+          format: "vc+sd-jwt",
+          meta: {
+            vct_values: ["MDL"],
+          },
+          claims: [{ id: "document_number", path: ["document_number"] }],
+        },
+      ],
+      credential_sets: [
+        { options: [["PID"]], purpose: "Identification", required: true },
+        { options: [["MDL"]], purpose: "Extra services", required: false },
+      ],
+    };
+
+    const result = evaluateDcqlQuery(credentials, query);
+    const expected = [
+      {
+        id: "PID",
+        keyTag: pidKeyTag,
+        credential: pidSdJwt,
+        isOptional: false,
+        requiredDisclosures: [
+          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
+          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+        ],
+      },
+      {
+        id: "MDL",
+        keyTag: mdlKeyTag,
+        credential: mdlSdJwt,
+        isOptional: true,
+        requiredDisclosures: [
+          ["4d10ba615ed63a12", "document_number", "123456789"],
         ],
       },
     ];
@@ -181,6 +235,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
+        isOptional: false,
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
           ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
@@ -191,6 +246,7 @@ describe("evaluateDcqlQuery", () => {
         id: "MDL",
         keyTag: mdlKeyTag,
         credential: mdlSdJwt,
+        isOptional: false,
         requiredDisclosures: [
           ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
           ["4d10ba615ed63a12", "document_number", "123456789"],
