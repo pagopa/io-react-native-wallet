@@ -1,6 +1,6 @@
 import { InputDescriptor, type RemotePresentation } from "./types";
 import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
-import { prepareVpToken } from "../../sd-jwt";
+import { decode, prepareVpToken } from "../../sd-jwt";
 import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
 import { CredentialNotFoundError, MissingDataError } from "./errors";
@@ -20,6 +20,18 @@ export type EvaluateInputDescriptorSdJwt4VC = (
   payloadCredential: SdJwt4VC["payload"],
   disclosures: DisclosureWithEncoded[]
 ) => EvaluatedDisclosures;
+
+export type EvaluateInputDescriptors = (
+  descriptors: InputDescriptor[],
+  credentialsSdJwt: [string /* keyTag */, string /* credential */][]
+) => Promise<
+  {
+    evaluatedDisclosure: EvaluatedDisclosures;
+    inputDescriptor: InputDescriptor;
+    credential: string;
+    keyTag: string;
+  }[]
+>;
 
 export type PrepareRemotePresentations = (
   credentialAndDescriptors: {
@@ -234,6 +246,7 @@ type DecodedCredentialSdJwt = {
   sdJwt: SdJwt4VC;
   disclosures: DisclosureWithEncoded[];
 };
+
 /**
  * Finds the first credential that satisfies the input descriptor constraints.
  * @param inputDescriptor The input descriptor to evaluate.
@@ -277,6 +290,72 @@ export const findCredentialSdJwt = (
   );
 };
 
+/**
+ * Evaluates multiple input descriptors against provided SD-JWT and MDOC credentials.
+ *
+ * For each input descriptor, this function:
+ * - Checks the credential format.
+ * - Decodes the credential.
+ * - Evaluates the descriptor using the associated disclosures.
+ *
+ * @param inputDescriptors - An array of input descriptors.
+ * @param credentialsSdJwt - An array of tuples containing keyTag and SD-JWT credential.
+ * @returns An array of objects, each containing the evaluated disclosures,
+ *          the input descriptor, the credential, and the keyTag.
+ * @throws {CredentialNotFoundError} When the credential format is unsupported.
+ */
+export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
+  inputDescriptors,
+  credentialsSdJwt
+) => {
+  // We need decode SD-JWT credentials for evaluation
+  const decodedSdJwtCredentials =
+    credentialsSdJwt?.map(([keyTag, credential]) => {
+      const { sdJwt, disclosures } = decode(credential);
+      return { keyTag, credential, sdJwt, disclosures };
+    }) || [];
+
+  return Promise.all(
+    inputDescriptors.map(async (descriptor) => {
+      if (descriptor.format?.["vc+sd-jwt"]) {
+        if (!decodedSdJwtCredentials.length) {
+          throw new CredentialNotFoundError(
+            "vc+sd-jwt credential is not supported."
+          );
+        }
+
+        const { matchedEvaluation, matchedKeyTag, matchedCredential } =
+          findCredentialSdJwt(descriptor, decodedSdJwtCredentials);
+
+        return {
+          evaluatedDisclosure: matchedEvaluation,
+          inputDescriptor: descriptor,
+          credential: matchedCredential,
+          keyTag: matchedKeyTag,
+        };
+      }
+
+      throw new CredentialNotFoundError(
+        `${descriptor.format} format is not supported.`
+      );
+    })
+  );
+};
+
+/**
+ * Prepares remote presentations for a set of credentials based on input descriptors.
+ *
+ * For each credential and its corresponding input descriptor, this function:
+ * - Validates the credential format.
+ * - Generates a verifiable presentation token (vpToken) using the provided nonce and client identifier.
+ *
+ * @param credentialAndDescriptors - An array containing objects with requested claims,
+ *                                   input descriptor, credential, and keyTag.
+ * @param nonce - A unique nonce for the verifiable presentation token.
+ * @param client_id - The client identifier.
+ * @returns A promise that resolves to an array of RemotePresentation objects.
+ * @throws {CredentialNotFoundError} When the credential format is unsupported.
+ */
 export const prepareRemotePresentations: PrepareRemotePresentations = async (
   credentialAndDescriptors,
   nonce,

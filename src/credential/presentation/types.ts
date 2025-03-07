@@ -120,12 +120,22 @@ export const RequestObjectWalletCapabilities = z.object({
 });
 
 /**
- * Type that defines the possible payload formats accepted by {@link buildDirectPostJwtBody} and {@link buildDirectPostBody}
+ * Authorization Response payload when using `presentation_definition`.
  */
-export type DirectAuthorizationBodyPayload = z.infer<
-  typeof DirectAuthorizationBodyPayload
+export type PresentationDefinitionAuthorizationResponse = z.infer<
+  typeof PresentationDefinitionAuthorizationResponse
 >;
-export const DirectAuthorizationBodyPayload = z.object({
+export const PresentationDefinitionAuthorizationResponse = z.object({
   vp_token: z.union([z.string(), z.array(z.string())]).optional(),
   presentation_submission: z.record(z.string(), z.unknown()),
+});
+
+/**
+ * Authorization Response payload when using DCQL queries.
+ */
+export type DcqlAuthorizationResponse = z.infer<
+  typeof DcqlAuthorizationResponse
+>;
+export const DcqlAuthorizationResponse = z.object({
+  vp_token: z.record(z.string(), z.string()),
 });

@@ -5,7 +5,8 @@ import type { VerifyRequestObject } from "./05-verify-request-object";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import {
-  DirectAuthorizationBodyPayload,
+  PresentationDefinitionAuthorizationResponse,
+  DcqlAuthorizationResponse,
   type RemotePresentation,
 } from "./types";
 import * as z from "zod";
@@ -53,14 +54,15 @@ export const choosePublicKeyToEncrypt = (
  *
  * @param jwkKeys - Array of JWKs from the Relying Party for encryption.
  * @param requestObject - Contains state, nonce, and other relevant info.
- * @param payload - Object that contains either the VP token to encrypt and the mapping of the credential disclosures or the error code
- * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body,
- *          where `response` contains the encrypted JWE.
+ * @param payload - Object that contains the VP token to encrypt and the mapping of the credential disclosures
+ * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body, where `response` contains the encrypted JWE.
  */
 export const buildDirectPostJwtBody = async (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   rpConf: RelyingPartyEntityConfiguration["payload"],
-  payload: DirectAuthorizationBodyPayload
+  payload:
+    | PresentationDefinitionAuthorizationResponse
+    | DcqlAuthorizationResponse
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
