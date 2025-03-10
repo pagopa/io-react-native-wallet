@@ -9,7 +9,7 @@ export type VerifyRequestObject = (
   context: {
     clientId: string;
     // jwkKeys: Out<FetchJwks>["keys"];
-    rpConf: RelyingPartyEntityConfiguration["payload"];
+    rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"];
   }
 ) => Promise<{ requestObject: RequestObject }>;
 
@@ -26,7 +26,7 @@ export const verifyRequestObject: VerifyRequestObject = async (
   { clientId, rpConf }
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
-  const { keys } = getJwksFromConfig(rpConf.metadata);
+  const { keys } = getJwksFromConfig(rpConf);
 
   // Verify token signature to ensure the request object is authentic
   const pubKey = keys?.find(

@@ -37,11 +37,41 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   }
   const qrcode = args.qrcode;
   const url = new URL(qrcode);
-  const request_uri = url.searchParams.get("request_uri");
-  const client_id = url.searchParams.get("client_id");
-  if (!request_uri || !client_id) {
+
+  const requestUri = url.searchParams.get("request_uri");
+  const clientId = url.searchParams.get("client_id");
+  const state = url.searchParams.get("state");
+  const requestUriMethod = (url.searchParams.get("request_uri_method") ??
+    "get") as "get" | "post";
+
+  if (!requestUri || !clientId || !state) {
     throw new Error("Invalid presentation link");
   }
-  // TODO: implement
+
+  const qrParams = Credential.Presentation.startFlowFromQR({
+    requestUri,
+    clientId,
+    state,
+    requestUriMethod,
+  });
+
+  const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(
+    qrParams.clientId
+  );
+
+  const { requestObjectEncodedJwt } =
+    await Credential.Presentation.getRequestObject(qrParams.requestUri);
+
+  const { requestObject } = await Credential.Presentation.verifyRequestObject(
+    requestObjectEncodedJwt,
+    { clientId: qrParams.clientId, rpConf }
+  );
+
+  // Presentation definition flow
+  const { presentationDefinition } =
+    await Credential.Presentation.fetchPresentDefinition(requestObject);
+
+  // DCQL flow
+
   return {};
 });
