@@ -8,7 +8,7 @@ import { isValiError } from "valibot";
 import { decode, prepareVpToken } from "../../sd-jwt";
 import type { Disclosure, DisclosureWithEncoded } from "../../sd-jwt/types";
 import { ValidationFailed } from "../../utils/errors";
-import { createCryptoContextFor } from "src/utils/crypto";
+import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
 
 type EvaluateDcqlQuery = (
