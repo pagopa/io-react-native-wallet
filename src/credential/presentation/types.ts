@@ -13,10 +13,23 @@ export type Presentation = [
 
 /**
  * A object that associate the information needed to multiple remote presentation
+ * Used with `presentation_definition`
+ * @deprecated Use `RemotePresentation`
+ */
+export type LegacyRemotePresentation = {
+  requestedClaims: string[];
+  inputDescriptor: InputDescriptor;
+  format: string;
+  vpToken: string;
+};
+
+/**
+ * A object that associate the information needed to multiple remote presentation
+ * Used with DCQL queries
  */
 export type RemotePresentation = {
   requestedClaims: string[];
-  inputDescriptor: InputDescriptor;
+  credentialId: string;
   format: string;
   vpToken: string;
 };
@@ -121,11 +134,15 @@ export const RequestObjectWalletCapabilities = z.object({
 
 /**
  * Authorization Response payload when using `presentation_definition`.
+ * @deprecated Use `DirectAuthorizationBodyPayload`
  */
-export type PresentationDefinitionAuthorizationResponse = z.infer<
-  typeof PresentationDefinitionAuthorizationResponse
+export type LegacyDirectAuthorizationBodyPayload = z.infer<
+  typeof LegacyDirectAuthorizationBodyPayload
 >;
-export const PresentationDefinitionAuthorizationResponse = z.object({
+/**
+ * @deprecated Use `DirectAuthorizationBodyPayload`
+ */
+export const LegacyDirectAuthorizationBodyPayload = z.object({
   vp_token: z.union([z.string(), z.array(z.string())]).optional(),
   presentation_submission: z.record(z.string(), z.unknown()),
 });
@@ -133,9 +150,9 @@ export const PresentationDefinitionAuthorizationResponse = z.object({
 /**
  * Authorization Response payload when using DCQL queries.
  */
-export type DcqlAuthorizationResponse = z.infer<
-  typeof DcqlAuthorizationResponse
+export type DirectAuthorizationBodyPayload = z.infer<
+  typeof DirectAuthorizationBodyPayload
 >;
-export const DcqlAuthorizationResponse = z.object({
+export const DirectAuthorizationBodyPayload = z.object({
   vp_token: z.record(z.string(), z.string()),
 });

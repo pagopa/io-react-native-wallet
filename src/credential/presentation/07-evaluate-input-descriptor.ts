@@ -1,4 +1,4 @@
-import { InputDescriptor, type RemotePresentation } from "./types";
+import { InputDescriptor, type LegacyRemotePresentation } from "./types";
 import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
 import { decode, prepareVpToken } from "../../sd-jwt";
 import { createCryptoContextFor } from "../../utils/crypto";
@@ -42,7 +42,7 @@ export type PrepareRemotePresentations = (
   }[],
   nonce: string,
   client_id: string
-) => Promise<RemotePresentation[]>;
+) => Promise<LegacyRemotePresentation[]>;
 
 /**
  * Transforms an array of DisclosureWithEncoded objects into a key-value map.

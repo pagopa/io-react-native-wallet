@@ -5,19 +5,33 @@ import {
   DcqlQueryResult,
 } from "dcql";
 import { isValiError } from "valibot";
-import { decode } from "../../sd-jwt";
+import { decode, prepareVpToken } from "../../sd-jwt";
 import type { Disclosure, DisclosureWithEncoded } from "../../sd-jwt/types";
 import { ValidationFailed } from "../../utils/errors";
+import { createCryptoContextFor } from "src/utils/crypto";
+import type { RemotePresentation } from "./types";
 
 type EvaluateDcqlQuery = (
   credentialsSdJwt: [string /* keyTag */, string /* credential */][],
   query: DcqlQuery.Input
 ) => {
-  requiredDisclosures: DisclosureWithEncoded[];
+  id: string;
   credential: string;
   keyTag: string;
+  requiredDisclosures: DisclosureWithEncoded[];
   isOptional?: boolean;
 }[];
+
+type PrepareRemotePresentations = (
+  credentials: {
+    id: string;
+    credential: string;
+    keyTag: string;
+    requestedClaims: string[];
+  }[],
+  nonce: string,
+  clientId: string
+) => Promise<RemotePresentation[]>;
 
 type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
@@ -126,4 +140,27 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     }
     throw error;
   }
+};
+
+export const prepareRemotePresentations: PrepareRemotePresentations = async (
+  credentials,
+  nonce,
+  clientId
+) => {
+  return Promise.all(
+    credentials.map(async (item) => {
+      const { vp_token } = await prepareVpToken(nonce, clientId, [
+        item.credential,
+        item.requestedClaims,
+        createCryptoContextFor(item.keyTag),
+      ]);
+
+      return {
+        credentialId: item.id,
+        requestedClaims: item.requestedClaims,
+        vpToken: vp_token,
+        format: "vc+sd-jwt",
+      };
+    })
+  );
 };

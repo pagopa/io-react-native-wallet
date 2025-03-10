@@ -5,9 +5,10 @@ import type { VerifyRequestObject } from "./05-verify-request-object";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import {
-  PresentationDefinitionAuthorizationResponse,
-  DcqlAuthorizationResponse,
   type RemotePresentation,
+  DirectAuthorizationBodyPayload,
+  type LegacyRemotePresentation,
+  LegacyDirectAuthorizationBodyPayload,
 } from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
@@ -60,9 +61,7 @@ export const choosePublicKeyToEncrypt = (
 export const buildDirectPostJwtBody = async (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   rpConf: RelyingPartyEntityConfiguration["payload"],
-  payload:
-    | PresentationDefinitionAuthorizationResponse
-    | DcqlAuthorizationResponse
+  payload: DirectAuthorizationBodyPayload | LegacyDirectAuthorizationBodyPayload
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
@@ -100,11 +99,13 @@ export const buildDirectPostJwtBody = async (
 /**
  * Type definition for the function that sends the authorization response
  * to the Relying Party, completing the presentation flow.
+ * Use with `presentation_definition`.
+ * @deprecated Use `sendAuthorizationResponse`
  */
-export type SendAuthorizationResponse = (
+export type SendLegacyAuthorizationResponse = (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   presentationDefinitionId: string,
-  remotePresentations: RemotePresentation[],
+  remotePresentations: LegacyRemotePresentation[],
   rpConf: RelyingPartyEntityConfiguration["payload"],
   context?: {
     appFetch?: GlobalFetch["fetch"];
@@ -122,45 +123,90 @@ export type SendAuthorizationResponse = (
  * @param context - Contains optional custom fetch implementation.
  * @returns Parsed and validated authorization response from the Relying Party.
  */
+export const sendLegacyAuthorizationResponse: SendLegacyAuthorizationResponse =
+  async (
+    requestObject,
+    presentationDefinitionId,
+    remotePresentations,
+    rpConf,
+    { appFetch = fetch } = {}
+  ): Promise<AuthorizationResponse> => {
+    /**
+     * 1. Prepare the VP token and presentation submission
+     * If there is only one credential, `vpToken` is a single string.
+     * If there are multiple credential, `vpToken` is an array of string.
+     **/
+    const vp_token =
+      remotePresentations?.length === 1
+        ? remotePresentations[0]?.vpToken
+        : remotePresentations.map(
+            (remotePresentation) => remotePresentation.vpToken
+          );
+
+    const descriptor_map = remotePresentations.map(
+      (remotePresentation, index) => ({
+        id: remotePresentation.inputDescriptor.id,
+        path: remotePresentations.length === 1 ? `$` : `$[${index}]`,
+        format: remotePresentation.format,
+      })
+    );
+
+    const presentation_submission = {
+      id: uuid.v4(),
+      definition_id: presentationDefinitionId,
+      descriptor_map,
+    };
+
+    const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
+      vp_token,
+      presentation_submission,
+    });
+
+    // 3. Send the authorization response via HTTP POST and validate the response
+    return await appFetch(requestObject.response_uri, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: requestBody,
+    })
+      .then(hasStatusOrThrow(200))
+      .then((res) => res.json())
+      .then(AuthorizationResponse.parse);
+  };
+
+/**
+ * Type definition for the function that sends the authorization response
+ * to the Relying Party, completing the presentation flow.
+ * Use with DCQL queries.
+ */
+export type SendAuthorizationResponse = (
+  requestObject: Out<VerifyRequestObject>["requestObject"],
+  remotePresentations: RemotePresentation[],
+  rpConf: RelyingPartyEntityConfiguration["payload"],
+  context?: {
+    appFetch?: GlobalFetch["fetch"];
+  }
+) => Promise<AuthorizationResponse>;
+
 export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   requestObject,
-  presentationDefinitionId,
   remotePresentations,
   rpConf,
   { appFetch = fetch } = {}
 ): Promise<AuthorizationResponse> => {
-  /**
-   * 1. Prepare the VP token and presentation submission
-   * If there is only one credential, `vpToken` is a single string.
-   * If there are multiple credential, `vpToken` is an array of string.
-   **/
-  const vp_token =
-    remotePresentations?.length === 1
-      ? remotePresentations[0]?.vpToken
-      : remotePresentations.map(
-          (remotePresentation) => remotePresentation.vpToken
-        );
-
-  const descriptor_map = remotePresentations.map(
-    (remotePresentation, index) => ({
-      id: remotePresentation.inputDescriptor.id,
-      path: remotePresentations.length === 1 ? `$` : `$[${index}]`,
-      format: remotePresentation.format,
-    })
-  );
-
-  const presentation_submission = {
-    id: uuid.v4(),
-    definition_id: presentationDefinitionId,
-    descriptor_map,
-  };
-
+  // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
   const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-    vp_token,
-    presentation_submission,
+    vp_token: remotePresentations.reduce(
+      (acc, presentation) => ({
+        ...acc,
+        [presentation.credentialId]: presentation.vpToken,
+      }),
+      {} as Record<string, string>
+    ),
   });
 
-  // 3. Send the authorization response via HTTP POST and validate the response
+  // 2. Send the authorization response via HTTP POST and validate the response
   return await appFetch(requestObject.response_uri, {
     method: "POST",
     headers: {
