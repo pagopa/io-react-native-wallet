@@ -1,4 +1,4 @@
-import { removePadding } from "@pagopa/io-react-native-jwt";
+import { decode, removePadding } from "@pagopa/io-react-native-jwt";
 import { z } from "zod";
 
 export type JWK = z.infer<typeof JWK>;
@@ -63,3 +63,5 @@ export type JWKS = z.infer<typeof JWKS>;
 export const JWKS = z.object({
   keys: z.array(JWK),
 });
+
+export type JWTDecodeResult = ReturnType<typeof decode>;
