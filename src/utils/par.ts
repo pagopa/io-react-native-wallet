@@ -13,12 +13,18 @@ import { IssuerResponseError } from "./errors";
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
   credential_configuration_id: z.string(),
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
+  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]), // TODO: add dc+sd-jwt?
   type: z.literal("openid_credential"),
 });
 
 export type AuthorizationDetails = z.infer<typeof AuthorizationDetails>;
 export const AuthorizationDetails = z.array(AuthorizationDetail);
+
+export type ParResponse = z.infer<typeof ParResponse>;
+export const ParResponse = z.object({
+  request_uri: z.string(),
+  expires_in: z.number(),
+});
 
 /**
  * Make a PAR request to the issuer and return the response url
@@ -70,7 +76,7 @@ export const makeParRequest =
         The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
-        typ: "jwk",
+        typ: "jwt",
         kid: wiaPublicKey.kid,
       })
       .setPayload({
@@ -111,6 +117,6 @@ export const makeParRequest =
       body: formBody.toString(),
     })
       .then(hasStatusOrThrow(201, IssuerResponseError))
-      .then((res) => res.json())
+      .then((res) => ParResponse.parse(res.json()))
       .then((result) => result.request_uri);
   };
