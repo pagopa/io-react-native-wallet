@@ -13,18 +13,12 @@ import { IssuerResponseError } from "./errors";
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
   credential_configuration_id: z.string(),
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]), // TODO: add dc+sd-jwt?
+  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   type: z.literal("openid_credential"),
 });
 
 export type AuthorizationDetails = z.infer<typeof AuthorizationDetails>;
 export const AuthorizationDetails = z.array(AuthorizationDetail);
-
-export type ParResponse = z.infer<typeof ParResponse>;
-export const ParResponse = z.object({
-  request_uri: z.string(),
-  expires_in: z.number(),
-});
 
 /**
  * Make a PAR request to the issuer and return the response url
@@ -44,7 +38,8 @@ export const makeParRequest =
     responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
-    authorizationDetails: AuthorizationDetails
+    authorizationDetails: AuthorizationDetails,
+    assertionType: string
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
@@ -75,7 +70,7 @@ export const makeParRequest =
         The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
-        typ: "jwt",
+        typ: "jwk",
         kid: wiaPublicKey.kid,
       })
       .setPayload({
@@ -90,9 +85,10 @@ export const makeParRequest =
         code_challenge_method: codeChallengeMethod,
         authorization_details: authorizationDetails,
         redirect_uri: redirectUri,
-        scope: "TODO", // https://italia.github.io/eudi-wallet-it-docs/v0.9.1/en/pid-eaa-issuance.html#pushed-authorization-request-par-request
+        client_assertion_type: assertionType,
+        client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
       })
-      .setIssuedAt() // iat is set to now
+      .setIssuedAt() //iat is set to now
       .setExpirationTime("5min")
       .sign();
 
@@ -103,18 +99,18 @@ export const makeParRequest =
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       request: signedJwtForPar,
+      client_assertion_type: assertionType,
+      client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
     });
 
     return await appFetch(parEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "OAuth-Client-Attestation": walletInstanceAttestation,
-        "OAuth-Client-Attestation-PoP": signedWiaPoP,
       },
       body: formBody.toString(),
     })
       .then(hasStatusOrThrow(201, IssuerResponseError))
-      .then((res) => ParResponse.parse(res.json()))
-      .then((res) => res.request_uri);
+      .then((res) => res.json())
+      .then((result) => result.request_uri);
   };
