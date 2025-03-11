@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../utils/pop";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
@@ -91,8 +90,6 @@ export const authorizeAccess: AuthorizeAccess = async (
     code,
     redirect_uri: redirectUri,
     code_verifier: codeVerifier,
-    client_assertion_type: ASSERTION_TYPE,
-    client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
   };
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);
@@ -101,6 +98,8 @@ export const authorizeAccess: AuthorizeAccess = async (
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       DPoP: tokenRequestSignedDPop,
+      "OAuth-Client-Attestation": walletInstanceAttestation,
+      "OAuth-Client-Attestation-PoP": signedWiaPoP,
     },
     body: authorizationRequestFormBody.toString(),
   })
