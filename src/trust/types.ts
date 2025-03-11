@@ -34,7 +34,7 @@ const CredentialIssuerDisplayMetadata = z.object({
 type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
 const ClaimsMetadata = z.record(
   z.object({
-    value_type: z.string(),
+    path: z.array(z.string()),
     display: z.array(z.object({ name: z.string(), locale: z.string() })),
   })
 );
@@ -53,10 +53,15 @@ const IssuanceErrorSupported = z.object({
 // Metadata for a credentia which is supported by a Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
+  format: z.union([
+    z.literal("vc+sd-jwt"), // Credentials 0.7.1
+    z.literal("dc+sd-jwt"), // Credentials 0.9.x
+    z.literal("vc+mdoc-cbor"),
+  ]),
+  vct: z.string(),
   scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
-  claims: ClaimsMetadata,
+  claims: z.array(ClaimsMetadata),
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
   authentic_source: z.string().optional(),
@@ -147,6 +152,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
         openid_credential_issuer: z.object({
           credential_issuer: z.string(),
           credential_endpoint: z.string(),
+          nonce_endpoint: z.string(),
           revocation_endpoint: z.string(),
           status_attestation_endpoint: z.string(),
           display: z.array(CredentialIssuerDisplayMetadata),
@@ -154,6 +160,8 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
             SupportedCredentialMetadata
           ),
           jwks: z.object({ keys: z.array(JWK) }),
+          trust_frameworks_supported: z.array(z.string()),
+          evidence_supported: z.array(z.string()),
         }),
         oauth_authorization_server: z.object({
           authorization_endpoint: z.string(),
@@ -174,7 +182,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
         /** Credential Issuers act as Relying Party
             when they require the presentation of other credentials.
             This does not apply for PID issuance, which requires CIE authz. */
-        wallet_relying_party: RelyingPartyMetadata.optional(),
+        openid_credential_verifier: RelyingPartyMetadata.optional(),
       }),
     }),
   })
@@ -188,7 +196,7 @@ export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
   z.object({
     payload: z.object({
       metadata: z.object({
-        wallet_relying_party: RelyingPartyMetadata,
+        openid_credential_verifier: RelyingPartyMetadata,
       }),
     }),
   })
