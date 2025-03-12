@@ -2,7 +2,7 @@ import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 import { createPopToken } from "../../utils/pop";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";

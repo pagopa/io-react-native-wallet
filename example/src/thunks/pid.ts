@@ -3,7 +3,7 @@ import {
   createCryptoContextFor,
   Credential,
 } from "@pagopa/io-react-native-wallet";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 import {
   selectAttestation,
   shouldRequestAttestationSelector,

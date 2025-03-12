@@ -16,7 +16,7 @@ import {
 } from "../../utils/errors";
 import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 
 export type ObtainCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],

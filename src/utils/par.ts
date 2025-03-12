@@ -3,7 +3,7 @@ import {
   type CryptoContext,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 import * as z from "zod";
 import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";

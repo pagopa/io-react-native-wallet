@@ -15,7 +15,7 @@ import {
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { RequestObject } from "../presentation/types";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
