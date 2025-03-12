@@ -94,7 +94,7 @@ export const RequestObject = z.object({
   iss: z.string(),
   iat: UnixTime,
   exp: UnixTime,
-  state: z.string(),
+  state: z.string().optional(),
   nonce: z.string(),
   response_uri: z.string(),
   response_uri_method: z.string().optional(),

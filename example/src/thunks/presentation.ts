@@ -6,6 +6,7 @@ import {
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
+import { selectPid } from "../store/reducers/pid";
 
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
@@ -44,15 +45,15 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const requestUriMethod = (url.searchParams.get("request_uri_method") ??
     "get") as "get" | "post";
 
-  if (!requestUri || !clientId || !state) {
+  if (!requestUri || !clientId) {
     throw new Error("Invalid presentation link");
   }
 
   const qrParams = Credential.Presentation.startFlowFromQR({
     requestUri,
     clientId,
-    state,
     requestUriMethod,
+    ...(state && { state }),
   });
 
   const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(
@@ -67,11 +68,23 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     { clientId: qrParams.clientId, rpConf }
   );
 
-  // Presentation definition flow
+  /* ---------- Presentation definition flow ---------- */
   const { presentationDefinition } =
     await Credential.Presentation.fetchPresentDefinition(requestObject);
 
-  // DCQL flow
+  const pid = selectPid(getState());
+  if (!pid) {
+    throw new Error("PID not found");
+  }
+  const credentialsSdJwt: [string, string][] = [[pid.keyTag, pid.credential]];
+
+  const evaluateInputDescriptors =
+    await Credential.Presentation.evaluateInputDescriptors(
+      presentationDefinition.input_descriptors,
+      credentialsSdJwt
+    );
+
+  /* ---------- DCQL flow ---------- */
 
   return {};
 });

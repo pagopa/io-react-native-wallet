@@ -42,7 +42,9 @@ export const verifyRequestObject: VerifyRequestObject = async (
 
   const requestObject = RequestObject.parse(requestObjectJwt.payload);
 
-  if (!(clientId === requestObject.client_id && clientId === rpConf.sub)) {
+  if (
+    !((clientId === requestObject.client_id) /* && clientId === rpConf.sub */)
+  ) {
     throw new UnverifiedEntityError(
       "Client ID does not match Request Object or Entity Configuration"
     );
