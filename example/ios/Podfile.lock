@@ -7,7 +7,7 @@ PODS:
   - hermes-engine (0.75.5):
     - hermes-engine/Pre-built (= 0.75.5)
   - hermes-engine/Pre-built (0.75.5)
-  - JOSESwift (2.4.0)
+  - JOSESwift (3.0.0)
   - pagopa-io-react-native-crypto (0.2.3):
     - React-Core
   - pagopa-io-react-native-integrity (0.3.1):
@@ -32,11 +32,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SwiftCBOR
     - Yoga
-  - pagopa-io-react-native-jwt (1.2.0):
+  - pagopa-io-react-native-jwt (2.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
-    - JOSESwift (~> 2.3)
+    - JOSESwift (~> 3.0)
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
@@ -1307,7 +1307,7 @@ PODS:
     - Yoga
   - react-native-get-random-values (1.11.0):
     - React-Core
-  - react-native-safe-area-context (4.10.8):
+  - react-native-safe-area-context (5.3.0):
     - React-Core
   - react-native-webview (13.10.5):
     - DoubleConversion
@@ -1590,11 +1590,11 @@ PODS:
     - React-logger (= 0.75.5)
     - React-perflogger (= 0.75.5)
     - React-utils (= 0.75.5)
-  - RNCAsyncStorage (1.24.0):
+  - RNCAsyncStorage (2.1.2):
     - React-Core
   - RNCClipboard (1.14.1):
     - React-Core
-  - RNGestureHandler (2.18.1):
+  - RNGestureHandler (2.24.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1701,7 +1701,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.34.0):
+  - RNScreens (4.9.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1977,10 +1977,10 @@ SPEC CHECKSUMS:
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
   hermes-engine: c9fe5870af65876125fdbbf833071b6f329db30d
-  JOSESwift: 7ff178bb9173ff42c6e990929a9f2fa702a34f69
+  JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
   pagopa-io-react-native-integrity: 489054e32ac5954af864bbe7336107ebda9ebece
-  pagopa-io-react-native-jwt: 7011e1526da2b9f81caf7d2f9716256dfce582ce
+  pagopa-io-react-native-jwt: 849b368d5d110849a4a8cc30480e6fc8eceb0cc2
   pagopa-io-react-native-secure-storage: 9a5975f66be58c8639b4188ab9b571651950d131
   RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: 3abf1129f54dbf292986302277f62ad01f7af1b2
@@ -2012,7 +2012,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 5785862c3ba3c1222162b6a14b05478a6908e4ac
   React-microtasksnativemodule: 2fa1c780087238662ed009d44fe71d19c085fa8b
   react-native-get-random-values: 21325b2244dfa6b58878f51f9aa42821e7ba3d06
-  react-native-safe-area-context: b7daa1a8df36095a032dff095a1ea8963cb48371
+  react-native-safe-area-context: f6fd1adb0c0dfb0a528f561c7c6f9297f3391af3
   react-native-webview: 524ef56d1a0e66371657fa756a9c16fd5c914c42
   React-nativeconfig: 237c862aab56a7426301fcbbb8dd6988745231e0
   React-NativeModulesApple: 205d3251b2e7fc625b7e6232153d4393bc2d30fe
@@ -2040,12 +2040,12 @@ SPEC CHECKSUMS:
   React-utils: 40f04d50cc917b80d5f829e48635a273a7e5a0c1
   ReactCodegen: c672218d62eee3026615eeec882d862395e61cd8
   ReactCommon: c5f4dfc5a41d58a8013df370cf733de9782c7659
-  RNCAsyncStorage: ec53e44dc3e75b44aa2a9f37618a49c3bc080a7a
+  RNCAsyncStorage: addfc2cb6511dbe199c56c6b26ede383b6c38919
   RNCClipboard: 0a720adef5ec193aa0e3de24c3977222c7e52a37
-  RNGestureHandler: 939f21fabf5d45a725c0bf175eb819dd25cf2e70
+  RNGestureHandler: 2e4971181218718ab9c5871ea5ef855ec5c389fe
   RNReactNativeHapticFeedback: 2bdbd63bcdbb52c4ae81a7b0c48ab1f00c06980a
   RNReanimated: b0912c8ba12f6c03db07c851c4de71c3eed6c83c
-  RNScreens: 19719a9c326e925498ac3b2d35c4e50fe87afc06
+  RNScreens: d25db6fa46bf5edb5e3241b089346e56af331091
   RNSVG: 5da7a24f31968ec74f0b091e3440080f347e279b
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   SwiftCBOR: aa87349b4ccddd19f861aa544f7c27d43dee5772
