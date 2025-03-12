@@ -22,6 +22,5 @@ export const RequestObject = z.object({
   response_type: z.literal("vp_token"),
   response_mode: z.literal("direct_post.jwt"),
   client_id: z.string(),
-  client_id_scheme: z.literal("entity_id"),
-  scope: z.string(),
+  dcql_query: z.record(z.string(), z.any()),
 });
