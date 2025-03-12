@@ -45,7 +45,7 @@ export const getCredential = async ({
   pidCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   // Create credential crypto context
-  const credentialKeyTag = uuidv4().toString();
+  const credentialKeyTag = uuid.v4().toString();
   await generate(credentialKeyTag);
   const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 

@@ -143,7 +143,7 @@ export const obtainCredential: ObtainCredential = async (
     {
       htm: "POST",
       htu: credentialUrl,
-      jti: `${uuidv4()}`,
+      jti: `${uuid.v4()}`,
       ath: await sha256ToBase64(accessToken.access_token),
     },
     dPopCryptoContext

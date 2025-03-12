@@ -69,14 +69,14 @@ export const authorizeAccess: AuthorizeAccess = async (
     {
       htm: "POST",
       htu: tokenUrl,
-      jti: `${uuidv4()}`,
+      jti: `${uuid.v4()}`,
     },
     dPopCryptoContext
   );
 
   const signedWiaPoP = await createPopToken(
     {
-      jti: `${uuidv4()}`,
+      jti: `${uuid.v4()}`,
       aud,
       iss,
     },

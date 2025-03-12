@@ -184,7 +184,7 @@ const parseCredentialMDoc = (
         [namespace, claimNameKey, definition] as [
           string,
           string,
-          CredentialClaim
+          CredentialClaim,
         ]
     )
   );
@@ -201,7 +201,7 @@ const parseCredentialMDoc = (
         [namespace, v.elementIdentifier, v.elementValue] as [
           string,
           string,
-          string
+          string,
         ]
     )
   );

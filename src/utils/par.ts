@@ -49,7 +49,7 @@ export const makeParRequest =
 
     const signedWiaPoP = await createPopToken(
       {
-        jti: `${uuidv4()}`,
+        jti: `${uuid.v4()}`,
         aud,
         iss,
       },
@@ -72,7 +72,7 @@ export const makeParRequest =
         kid: wiaPublicKey.kid,
       })
       .setPayload({
-        jti: `${uuidv4()}`,
+        jti: `${uuid.v4()}`,
         aud,
         response_type: "code",
         response_mode: responseMode,

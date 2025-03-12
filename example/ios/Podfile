@@ -5,9 +5,8 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-# min_ios_version_supported removed due to SwiftCBOR, we can't upgrade RN at the moment which is stuck at 12.4 for RN 0.72
-# TODO: can be removed after upgrading RN version [WLEO-170]
-platform :ios, '13.0'
+# TODO: can be removed after upgrading io-react-native-cbor [WLEO-308]
+platform :ios, '16.0'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']

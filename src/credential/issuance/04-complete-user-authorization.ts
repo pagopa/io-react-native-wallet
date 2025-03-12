@@ -167,7 +167,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       })
       .setPayload({
         vp: walletInstanceAttestation,
-        jti: uuidv4().toString(),
+        jti: uuid.v4().toString(),
         nonce: requestObject.nonce,
       })
       .setIssuedAt()
@@ -182,7 +182,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       })
       .setPayload({
         vp: pid,
-        jti: uuidv4().toString(),
+        jti: uuid.v4().toString(),
         nonce: requestObject.nonce,
       })
       .setIssuedAt()
@@ -194,8 +194,8 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
      * is cointaned in the `vp` property of the signed jwt token payload
      */
     const presentationSubmission = {
-      definition_id: `${uuidv4()}`,
-      id: `${uuidv4()}`,
+      definition_id: `${uuid.v4()}`,
+      id: `${uuid.v4()}`,
       descriptor_map: [
         {
           id: "urn:eu.europa.ec.eudi:pid:1",

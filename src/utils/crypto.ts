@@ -60,7 +60,7 @@ export const withEphemeralKey = async <R>(
   fn: (ephemeralContext: CryptoContext) => Promise<R>
 ): Promise<R> => {
   // Use an ephemeral key to be destroyed after use
-  const keytag = `ephemeral-${uuidv4()}`;
+  const keytag = `ephemeral-${uuid.v4()}`;
   await generate(keytag);
   const ephemeralContext = createCryptoContextFor(keytag);
   return fn(ephemeralContext).finally(() => deleteKey(keytag));

@@ -12,9 +12,10 @@
   },
   "dependencies": {
     "@pagopa/io-app-design-system": "^1.43.0",
-    "@pagopa/io-react-native-crypto": "^0.2.3",
     "@pagopa/io-react-native-cbor": "^1.0.0",
+    "@pagopa/io-react-native-crypto": "^0.2.3",
     "@pagopa/io-react-native-jwt": "^2.1.0",
+    "@pagopa/io-react-native-login-utils": "^1.0.8",
     "@pagopa/io-react-native-secure-storage": "^0.2.0",
     "@pagopa/react-native-cie": "^1.4.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
@@ -60,8 +61,8 @@
     "jest": "^29.6.3",
     "prettier": "2.8.8",
     "react-native-dotenv": "^3.4.11",
-    "react-test-renderer": "18.3.1",
-    "react-native-url-polyfill": "^2.0.0"
+    "react-native-url-polyfill": "^2.0.0",
+    "react-test-renderer": "18.3.1"
   },
   "engines": {
     "node": ">=18"
