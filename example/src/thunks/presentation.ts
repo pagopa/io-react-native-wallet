@@ -84,6 +84,32 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       credentialsSdJwt
     );
 
+  const credentialAndInputDescriptor = evaluateInputDescriptors.map(
+    (evaluateInputDescriptor) => {
+      // Present only the mandatory claims
+      const requestedClaims = [
+        ...evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures.map(
+          (item) => item.decoded[1]
+        ),
+      ];
+      return {
+        requestedClaims,
+        inputDescriptor: evaluateInputDescriptor.inputDescriptor,
+        credential: evaluateInputDescriptor.credential,
+        keyTag: evaluateInputDescriptor.keyTag,
+      };
+    }
+  );
+
+  const remotePresentations =
+    await Credential.Presentation.prepareRemotePresentations(
+      credentialAndInputDescriptor,
+      requestObject.nonce,
+      requestObject.client_id
+    );
+
+  console.log(remotePresentations);
+
   /* ---------- DCQL flow ---------- */
 
   return {};

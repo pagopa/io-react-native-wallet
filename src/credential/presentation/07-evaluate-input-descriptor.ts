@@ -317,27 +317,27 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
 
   return Promise.all(
     inputDescriptors.map(async (descriptor) => {
-      if (descriptor.format?.["vc+sd-jwt"]) {
-        if (!decodedSdJwtCredentials.length) {
-          throw new CredentialNotFoundError(
-            "vc+sd-jwt credential is not supported."
-          );
-        }
-
-        const { matchedEvaluation, matchedKeyTag, matchedCredential } =
-          findCredentialSdJwt(descriptor, decodedSdJwtCredentials);
-
-        return {
-          evaluatedDisclosure: matchedEvaluation,
-          inputDescriptor: descriptor,
-          credential: matchedCredential,
-          keyTag: matchedKeyTag,
-        };
+      // if (descriptor.format?.["vc+sd-jwt"]) {
+      if (!decodedSdJwtCredentials.length) {
+        throw new CredentialNotFoundError(
+          "vc+sd-jwt credential is not supported."
+        );
       }
+
+      const { matchedEvaluation, matchedKeyTag, matchedCredential } =
+        findCredentialSdJwt(descriptor, decodedSdJwtCredentials);
+
+      return {
+        evaluatedDisclosure: matchedEvaluation,
+        inputDescriptor: descriptor,
+        credential: matchedCredential,
+        keyTag: matchedKeyTag,
+      };
+      /*  }
 
       throw new CredentialNotFoundError(
         `${descriptor.format} format is not supported.`
-      );
+      ); */
     })
   );
 };
@@ -365,24 +365,24 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
     credentialAndDescriptors.map(async (item) => {
       const descriptor = item.inputDescriptor;
 
-      if (descriptor.format?.["vc+sd-jwt"]) {
-        const { vp_token } = await prepareVpToken(nonce, client_id, [
-          item.credential,
-          item.requestedClaims,
-          createCryptoContextFor(item.keyTag),
-        ]);
+      // if (descriptor.format?.["vc+sd-jwt"]) {
+      const { vp_token } = await prepareVpToken(nonce, client_id, [
+        item.credential,
+        item.requestedClaims,
+        createCryptoContextFor(item.keyTag),
+      ]);
 
-        return {
-          requestedClaims: item.requestedClaims,
-          inputDescriptor: descriptor,
-          vpToken: vp_token,
-          format: "vc+sd-jwt",
-        };
-      }
+      return {
+        requestedClaims: item.requestedClaims,
+        inputDescriptor: descriptor,
+        vpToken: vp_token,
+        format: "vc+sd-jwt",
+      };
+      /*   }
 
       throw new CredentialNotFoundError(
         `${descriptor.format} format is not supported.`
-      );
+      ); */
     })
   );
 };
