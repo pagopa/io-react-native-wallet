@@ -94,9 +94,6 @@
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?@react-native|react-native|uuid)"
-    ],
-    "setupFiles": [
-      "<rootDir>/jestSetup.js"
     ]
   },
   "react-native-builder-bob": {
