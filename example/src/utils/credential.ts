@@ -2,7 +2,7 @@ import {
   Credential,
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
@@ -45,7 +45,7 @@ export const getCredential = async ({
   pidCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   // Create credential crypto context
-  const credentialKeyTag = uuid.v4().toString();
+  const credentialKeyTag = uuidv4().toString();
   await generate(credentialKeyTag);
   const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 

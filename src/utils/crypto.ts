@@ -4,7 +4,7 @@ import {
   generate,
   deleteKey,
 } from "@pagopa/io-react-native-crypto";
-import uuid from "react-native-uuid";
+import { v4 as uuidv4 } from "uuid";
 import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey } from "./jwk";
 import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
@@ -60,7 +60,7 @@ export const withEphemeralKey = async <R>(
   fn: (ephemeralContext: CryptoContext) => Promise<R>
 ): Promise<R> => {
   // Use an ephemeral key to be destroyed after use
-  const keytag = `ephemeral-${uuid.v4()}`;
+  const keytag = `ephemeral-${uuidv4()}`;
   await generate(keytag);
   const ephemeralContext = createCryptoContextFor(keytag);
   return fn(ephemeralContext).finally(() => deleteKey(keytag));
