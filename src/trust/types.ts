@@ -186,8 +186,17 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
         openid_credential_verifier: RelyingPartyMetadata.optional(),
         /**
          * @deprecated use `openid_credential_verifier`
+         * TODO [SIW-2111]: remove after migrating to 0.9.x
          */
-        wallet_relying_party: RelyingPartyMetadata.optional(), // TODO [SIW-2111]: remove after migrating to 0.9.x
+        wallet_relying_party: z
+          .object({
+            application_type: z.string().optional(),
+            client_id: z.string().optional(),
+            client_name: z.string().optional(),
+            jwks: z.object({ keys: z.array(JWK) }),
+            contacts: z.array(z.string()).optional(),
+          })
+          .optional(),
       }),
     }),
   })
