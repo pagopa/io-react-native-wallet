@@ -25,6 +25,8 @@ import {
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
+  sendLegacyAuthorizationResponse,
+  type SendLegacyAuthorizationResponse,
 } from "./08-send-authorization-response";
 import * as Errors from "./errors";
 
@@ -38,6 +40,7 @@ export {
   evaluateInputDescriptors,
   prepareRemotePresentations,
   sendAuthorizationResponse,
+  sendLegacyAuthorizationResponse,
   Errors,
 };
 export type {
@@ -50,4 +53,5 @@ export type {
   EvaluateInputDescriptors,
   PrepareRemotePresentations,
   SendAuthorizationResponse,
+  SendLegacyAuthorizationResponse,
 };

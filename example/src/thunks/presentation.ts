@@ -87,11 +87,11 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const credentialAndInputDescriptor = evaluateInputDescriptors.map(
     (evaluateInputDescriptor) => {
       // Present only the mandatory claims
-      const requestedClaims = [
-        ...evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures.map(
+      const requestedClaims =
+        evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures.map(
           (item) => item.decoded[1]
-        ),
-      ];
+        );
+
       return {
         requestedClaims,
         inputDescriptor: evaluateInputDescriptor.inputDescriptor,
@@ -108,7 +108,13 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       requestObject.client_id
     );
 
-  console.log(remotePresentations);
+  const authResponse =
+    await Credential.Presentation.sendLegacyAuthorizationResponse(
+      requestObject,
+      presentationDefinition.id,
+      remotePresentations,
+      rpConf
+    );
 
   /* ---------- DCQL flow ---------- */
 

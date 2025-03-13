@@ -38,7 +38,7 @@ export const AuthorizationResponse = z.object({
 export const choosePublicKeyToEncrypt = (
   rpJwkKeys: Out<FetchJwks>["keys"]
 ): JWK => {
-  const encKey = rpJwkKeys.find((jwk) => jwk.use === "enc");
+  const encKey = rpJwkKeys.at(0); // rpJwkKeys.find((jwk) => jwk.use === "enc"); // TODO: temporary fix
 
   if (encKey) {
     return encKey;
@@ -60,7 +60,7 @@ export const choosePublicKeyToEncrypt = (
  */
 export const buildDirectPostJwtBody = async (
   requestObject: Out<VerifyRequestObject>["requestObject"],
-  rpConf: RelyingPartyEntityConfiguration["payload"],
+  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
   payload: DirectAuthorizationBodyPayload | LegacyDirectAuthorizationBodyPayload
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
@@ -72,17 +72,20 @@ export const buildDirectPostJwtBody = async (
   });
 
   // Choose a suitable public key for encryption
-  const { keys } = getJwksFromConfig(rpConf.metadata);
+  const { keys } = getJwksFromConfig(rpConf);
   const encPublicJwk = choosePublicKeyToEncrypt(keys);
 
   // Encrypt the authorization payload
   const {
     authorization_encrypted_response_alg,
     authorization_encrypted_response_enc,
-  } = rpConf.metadata.openid_credential_verifier;
+  } = rpConf.openid_credential_verifier;
+
+  const defaultAlg: Jwe["alg"] =
+    encPublicJwk.kty === "EC" ? "ECDH-ES" : "RSA-OAEP-256";
 
   const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
-    alg: (authorization_encrypted_response_alg as Jwe["alg"]) || "RSA-OAEP-256",
+    alg: (authorization_encrypted_response_alg as Jwe["alg"]) || defaultAlg,
     enc:
       (authorization_encrypted_response_enc as Jwe["enc"]) || "A256CBC-HS512",
     kid: encPublicJwk.kid,
@@ -106,7 +109,7 @@ export type SendLegacyAuthorizationResponse = (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   presentationDefinitionId: string,
   remotePresentations: LegacyRemotePresentation[],
-  rpConf: RelyingPartyEntityConfiguration["payload"],
+  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
   context?: {
     appFetch?: GlobalFetch["fetch"];
   }
@@ -183,7 +186,7 @@ export const sendLegacyAuthorizationResponse: SendLegacyAuthorizationResponse =
 export type SendAuthorizationResponse = (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   remotePresentations: RemotePresentation[],
-  rpConf: RelyingPartyEntityConfiguration["payload"],
+  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
   context?: {
     appFetch?: GlobalFetch["fetch"];
   }
