@@ -3,7 +3,7 @@ import {
   EntityStatement,
   TrustAnchorEntityConfiguration,
 } from "./types";
-import { JWK, type JWTDecodeResult } from "../utils/jwk";
+import { JWK } from "../utils/jwk";
 import { IoWalletError } from "../utils/errors";
 import * as z from "zod";
 import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
