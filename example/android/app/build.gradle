@@ -117,3 +117,15 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+/**
+This is required to fix the issue with the bouncycastle library caused by io-react-native-cbor and io-react-native-proximity libraries.
+*/
+configurations.all {
+    c -> c.resolutionStrategy.eachDependency {
+        DependencyResolveDetails dependency ->
+             if (dependency.requested.group == 'org.bouncycastle') {
+                dependency.useTarget 'org.bouncycastle:bcprov-jdk18on:1.77'
+            }
+    }
+}
