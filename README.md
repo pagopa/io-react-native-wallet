@@ -45,7 +45,7 @@ export interface CryptoContext {
   getPublicKey: () => Promise<JWK>;
   /**
    * Produce a cryptographic signature for a given value.
-   * The signature MUST be produced using the private key paired with the public retrieved by test()
+   * The signature MUST be produced using the private key paired with the public retrieved by getPublicKey()
    * @param value The value to be signed
    * @returns The signature
    * @throws If no keys are found
