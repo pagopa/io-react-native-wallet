@@ -1655,12 +1655,12 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.3.1.tgz#4dc23b221452b4101ea7a5bf35aedbe2e5a3a5fe"
   integrity sha512-ZQP58OSLSus8LbFRa8jHtGo2BoR2Jn8lY1SirhBCfk9qo2qLcwRwanZ5T/tzO9inFOaTxPCvPu7uMdSdi8uRUQ==
 
-"@pagopa/io-react-native-jwt@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.npmjs.org/@pagopa/io-react-native-jwt/-/io-react-native-jwt-1.2.0.tgz"
-  integrity sha512-Az+zBHAM+6dx0xGmnaigQnU9910V6irQ+tzz5i9s6C6k86HaFmeAJFl+bHNE4oyUROA2wUTSrH1JGCFNf/Hw+w==
+"@pagopa/io-react-native-jwt@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-2.1.0.tgz#a25efcf58d4efddb48db05053321d2ed79b69a74"
+  integrity sha512-KLesesGbDmQorBiqx6rMTh0gRMfTNv6JT8yHOIU89maESWkR0bjt/s0eBKyz45uWoBuPY2NmAq/Aubk/aEjHsQ==
   dependencies:
-    abab "^2.0.6"
+    js-base64 "^3.7.7"
     zod "^3.22.4"
 
 "@pagopa/io-react-native-secure-storage@^0.2.0":
@@ -2237,11 +2237,6 @@
   dependencies:
     "@typescript-eslint/types" "5.62.0"
     eslint-visitor-keys "^3.3.0"
-
-abab@^2.0.6:
-  version "2.0.6"
-  resolved "https://registry.npmjs.org/abab/-/abab-2.0.6.tgz"
-  integrity sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==
 
 abort-controller@^3.0.0:
   version "3.0.0"
@@ -4291,6 +4286,11 @@ jose@^4.15.5:
   version "4.15.9"
   resolved "https://registry.yarnpkg.com/jose/-/jose-4.15.9.tgz#9b68eda29e9a0614c042fa29387196c7dd800100"
   integrity sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==
+
+js-base64@^3.7.7:
+  version "3.7.7"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.7.7.tgz#e51b84bf78fbf5702b9541e2cb7bfcb893b43e79"
+  integrity sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==
 
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
