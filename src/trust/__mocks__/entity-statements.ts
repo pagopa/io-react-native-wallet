@@ -44,6 +44,8 @@ export const trustAnchorEntityConfiguration = {
         policy_uri: "https://trustanchor.example",
         logo_uri: "https://trustanchor.example",
         contacts: ["https://trustanchor.example"],
+        federation_fetch_endpoint: "https://trustanchor.example/fetch",
+        federation_list_endpoint: "https://trustanchor.example/list",
       },
     },
     authority_hints: [],
@@ -72,6 +74,38 @@ export const intermediateEntityStatement = {
       ],
     },
     trust_marks: [{ id: "fsgvsffsd", trust_mark: "ghjadsf" }],
+    iat: timestamp(),
+    exp: timestamp(60),
+  },
+};
+
+export const intermediateEntityConfiguration = {
+  header: {
+    typ: "entity-statement+jwt" as const,
+    alg: "RS256",
+    kid: intermediateEntityStatement.header.kid,
+  },
+  payload: {
+    iss: "https://intermediate.example",
+    sub: "https://intermediate.example",
+    jwks: {
+      keys: [
+        {
+          kty: "RSA" as const,
+          e: "AQAB",
+          use: "sig",
+          kid: intermediateEntityStatement.header.kid || "int-key",
+          alg: "RS256",
+          n: "dummyIntermediateModulus",
+        },
+      ],
+    },
+    metadata: {
+      federation_entity: {
+        federation_fetch_endpoint: "https://intermediate.example/fetch",
+      },
+    },
+    authority_hints: ["https://trustanchor.example"],
     iat: timestamp(),
     exp: timestamp(60),
   },
@@ -134,7 +168,7 @@ export const leafEntityConfiguration = {
         contacts: ["https://leaf.example"],
       },
     },
-    authority_hints: [],
+    authority_hints: ["https://intermediate.example"],
     iat: timestamp(),
     exp: timestamp(60),
   },
