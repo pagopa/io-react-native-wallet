@@ -112,12 +112,12 @@ export const WalletMetadata = z.object({
   client_id_schemes_supported: z.array(z.string()).optional(),
   request_object_signing_alg_values_supported: z.array(z.string()).optional(),
   vp_formats_supported: z.record(
-    z.string(), // TODO: use explicit credential format?
+    z.string(), // TODO [SIW-2110]: use explicit credential format?
     z.object({
       "sd-jwt_alg_values": z.array(z.string()).optional(), // alg_values_supported?
     })
   ),
-  // TODO: include other metadata?
+  // TODO [SIW-2110]: include other metadata?
 });
 
 /**

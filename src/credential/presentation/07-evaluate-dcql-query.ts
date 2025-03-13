@@ -133,10 +133,10 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     }
 
     if (error instanceof DcqlError) {
-      // TODO handle invalid DQCL query or let the error propagate
+      // TODO [SIW-2110]: handle invalid DQCL query or let the error propagate
     }
     if (error instanceof DcqlCredentialSetError) {
-      // TODO handle missing credentials or let the error propagate
+      // TODO [SIW-2110]: handle missing credentials or let the error propagate
     }
     throw error;
   }
