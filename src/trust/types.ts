@@ -13,7 +13,7 @@ const RelyingPartyMetadata = z.object({
   jwks: z.object({ keys: z.array(JWK) }),
   contacts: z.array(z.string()).optional(),
   presentation_definition: PresentationDefinition.optional(),
-  request_uris: z.array(z.string()),
+  request_uris: z.array(z.string()).optional(),
   authorization_signed_response_alg: z.string().optional(),
   authorization_encrypted_response_alg: z.string().optional(),
   authorization_encrypted_response_enc: z.string().optional(),
@@ -179,10 +179,15 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           token_endpoint_auth_signing_alg_values_supported: z.array(z.string()),
           request_object_signing_alg_values_supported: z.array(z.string()),
         }),
-        /** Credential Issuers act as Relying Party
-            when they require the presentation of other credentials.
-            This does not apply for PID issuance, which requires CIE authz. */
+        /**
+         * Credential Issuers act as Relying Party when they require the presentation of other credentials.
+         * This does not apply for PID issuance, which requires CIE authz.
+         */
         openid_credential_verifier: RelyingPartyMetadata.optional(),
+        /**
+         * @deprecated use `openid_credential_verifier`
+         */
+        wallet_relying_party: RelyingPartyMetadata.optional(), // TODO [SIW-2111]: remove after migrating to 0.9.x
       }),
     }),
   })
