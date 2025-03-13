@@ -42,8 +42,8 @@ export async function validateTrustChain(
     elementIndex === 0
       ? FirstElementShape
       : elementIndex === chain.length - 1
-      ? LastElementShape
-      : MiddleElementShape;
+        ? LastElementShape
+        : MiddleElementShape;
 
   // select the kid from the current index
   const selectKid = (currentIndex: number): string => {

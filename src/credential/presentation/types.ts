@@ -8,7 +8,7 @@ import * as z from "zod";
 export type Presentation = [
   /* verified credential token */ string,
   /* claims */ string[],
-  /* the context for the key associated to the credential */ CryptoContext
+  /* the context for the key associated to the credential */ CryptoContext,
 ];
 
 export type RequestObject = z.infer<typeof RequestObject>;
