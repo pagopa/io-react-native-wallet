@@ -189,8 +189,8 @@ export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
 type ErrorCodeMap<T> = T extends typeof IssuerResponseError
   ? IssuerResponseErrorCode
   : T extends typeof WalletProviderResponseError
-  ? WalletProviderResponseErrorCode
-  : never;
+    ? WalletProviderResponseErrorCode
+    : never;
 
 type ErrorCase<T> = {
   code: ErrorCodeMap<T>;

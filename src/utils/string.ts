@@ -51,5 +51,8 @@ export const obfuscateString = (
  * @returns The Base64 URL-encoded string.
  */
 export const base64ToBase64Url = (byteString: string): string => {
-  return byteString.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return byteString
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/[=]+$/, "");
 };

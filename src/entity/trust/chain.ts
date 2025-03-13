@@ -70,8 +70,8 @@ export async function validateTrustChain(
     elementIndex === 0
       ? FirstElementShape
       : elementIndex === chain.length - 1
-      ? LastElementShape
-      : MiddleElementShape;
+        ? LastElementShape
+        : MiddleElementShape;
 
   // select the kid from the current index
   const selectKid = (currentIndex: number): string => {
@@ -136,15 +136,19 @@ export function renewTrustChain(
         ec.success
           ? getSignedEntityConfiguration(ec.data.payload.iss, { appFetch })
           : es.success
-          ? getSignedEntityStatement(es.data.payload.iss, es.data.payload.sub, {
-              appFetch,
-            })
-          : // if the element fail to parse in both EntityStatement and EntityConfiguration, raise an error
-            Promise.reject(
-              new IoWalletError(
-                `Cannot renew trust chain because the element #${i} failed to be parsed.`
+            ? getSignedEntityStatement(
+                es.data.payload.iss,
+                es.data.payload.sub,
+                {
+                  appFetch,
+                }
               )
-            )
+            : // if the element fail to parse in both EntityStatement and EntityConfiguration, raise an error
+              Promise.reject(
+                new IoWalletError(
+                  `Cannot renew trust chain because the element #${i} failed to be parsed.`
+                )
+              )
       )
   );
 }
