@@ -8,6 +8,24 @@ import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 
+type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[1];
+type RequestObject = Awaited<
+  ReturnType<Credential.Presentation.VerifyRequestObject>
+>["requestObject"];
+type RpConf = Awaited<
+  ReturnType<Credential.Presentation.EvaluateRelyingPartyTrust>
+>["rpConf"];
+
+/**
+ * Type of the function to process the presentation request,
+ * either when it uses DCQL queries or the legacy `presentation_definition`.
+ */
+type ProcessPresentation = (
+  requestObject: RequestObject,
+  rpConf: RpConf,
+  credentialsSdJwt: [string, string][]
+) => Promise<RemoteCrossDevicePresentationThunkOutput>;
+
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
   allowed: PresentationStateKeys;
@@ -68,15 +86,31 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     { clientId: qrParams.clientId, rpConf }
   );
 
-  /* ---------- Presentation definition flow ---------- */
-  const { presentationDefinition } =
-    await Credential.Presentation.fetchPresentDefinition(requestObject);
-
   const pid = selectPid(getState());
   if (!pid) {
     throw new Error("PID not found");
   }
   const credentialsSdJwt: [string, string][] = [[pid.keyTag, pid.credential]];
+
+  if (requestObject.dcql_query) {
+    return processPresentation(requestObject, rpConf, credentialsSdJwt);
+  }
+
+  if (requestObject.presentation_definition) {
+    return processLegacyPresentation(requestObject, rpConf, credentialsSdJwt);
+  }
+
+  throw new Error("Invalid request object");
+});
+
+// Presentation definition flow
+const processLegacyPresentation: ProcessPresentation = async (
+  requestObject,
+  rpConf,
+  credentialsSdJwt
+) => {
+  const { presentationDefinition } =
+    await Credential.Presentation.fetchPresentDefinition(requestObject);
 
   const evaluateInputDescriptors =
     await Credential.Presentation.evaluateInputDescriptors(
@@ -102,7 +136,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   );
 
   const remotePresentations =
-    await Credential.Presentation.prepareRemotePresentations(
+    await Credential.Presentation.prepareLegacyRemotePresentations(
       credentialAndInputDescriptor,
       requestObject.nonce,
       requestObject.client_id
@@ -116,7 +150,35 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       rpConf
     );
 
-  /* ---------- DCQL flow ---------- */
+  return { result: authResponse };
+};
 
-  return {};
-});
+// DCQL flow
+const processPresentation: ProcessPresentation = async (
+  requestObject,
+  rpConf,
+  credentialsSdJwt
+) => {
+  const result = Credential.Presentation.evaluateDcqlQuery(
+    credentialsSdJwt,
+    requestObject.dcql_query as DcqlQuery
+  );
+
+  const credentialsToPresent = result.map(
+    ({ requiredDisclosures, ...rest }) => ({
+      ...rest,
+      requestedClaims: requiredDisclosures.map((item) => item.decoded[1]),
+    })
+  );
+
+  const remotePresentations =
+    await Credential.Presentation.prepareRemotePresentations(
+      credentialsToPresent,
+      requestObject.nonce,
+      requestObject.client_id
+    );
+
+  return {
+    result: {},
+  };
+};

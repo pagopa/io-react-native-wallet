@@ -11,7 +11,7 @@ import { ValidationFailed } from "../../utils/errors";
 import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
 
-type EvaluateDcqlQuery = (
+export type EvaluateDcqlQuery = (
   credentialsSdJwt: [string /* keyTag */, string /* credential */][],
   query: DcqlQuery.Input
 ) => {
@@ -22,7 +22,7 @@ type EvaluateDcqlQuery = (
   isOptional?: boolean;
 }[];
 
-type PrepareRemotePresentations = (
+export type PrepareRemotePresentations = (
   credentials: {
     id: string;
     credential: string;

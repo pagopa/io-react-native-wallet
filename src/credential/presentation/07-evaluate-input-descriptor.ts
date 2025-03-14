@@ -33,7 +33,10 @@ export type EvaluateInputDescriptors = (
   }[]
 >;
 
-export type PrepareRemotePresentations = (
+/**
+ * @deprecated Use `prepareRemotePresentations` from DCQL
+ */
+export type PrepareLegacyRemotePresentations = (
   credentialAndDescriptors: {
     requestedClaims: string[];
     inputDescriptor: InputDescriptor;
@@ -349,6 +352,8 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
  * - Validates the credential format.
  * - Generates a verifiable presentation token (vpToken) using the provided nonce and client identifier.
  *
+ * @deprecated Use `prepareRemotePresentations` from DCQL
+ *
  * @param credentialAndDescriptors - An array containing objects with requested claims,
  *                                   input descriptor, credential, and keyTag.
  * @param nonce - A unique nonce for the verifiable presentation token.
@@ -356,33 +361,30 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
  * @returns A promise that resolves to an array of RemotePresentation objects.
  * @throws {CredentialNotFoundError} When the credential format is unsupported.
  */
-export const prepareRemotePresentations: PrepareRemotePresentations = async (
-  credentialAndDescriptors,
-  nonce,
-  client_id
-) => {
-  return Promise.all(
-    credentialAndDescriptors.map(async (item) => {
-      const descriptor = item.inputDescriptor;
+export const prepareLegacyRemotePresentations: PrepareLegacyRemotePresentations =
+  async (credentialAndDescriptors, nonce, client_id) => {
+    return Promise.all(
+      credentialAndDescriptors.map(async (item) => {
+        const descriptor = item.inputDescriptor;
 
-      // if (descriptor.format?.["vc+sd-jwt"]) {
-      const { vp_token } = await prepareVpToken(nonce, client_id, [
-        item.credential,
-        item.requestedClaims,
-        createCryptoContextFor(item.keyTag),
-      ]);
+        // if (descriptor.format?.["vc+sd-jwt"]) {
+        const { vp_token } = await prepareVpToken(nonce, client_id, [
+          item.credential,
+          item.requestedClaims,
+          createCryptoContextFor(item.keyTag),
+        ]);
 
-      return {
-        requestedClaims: item.requestedClaims,
-        inputDescriptor: descriptor,
-        vpToken: vp_token,
-        format: "vc+sd-jwt",
-      };
-      /*   }
+        return {
+          requestedClaims: item.requestedClaims,
+          inputDescriptor: descriptor,
+          vpToken: vp_token,
+          format: "vc+sd-jwt",
+        };
+        /*   }
 
       throw new CredentialNotFoundError(
         `${descriptor.format} format is not supported.`
       ); */
-    })
-  );
-};
+      })
+    );
+  };

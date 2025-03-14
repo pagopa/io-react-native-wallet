@@ -18,10 +18,16 @@ import {
 } from "./06-fetch-presentation-definition";
 import {
   evaluateInputDescriptors,
-  prepareRemotePresentations,
+  prepareLegacyRemotePresentations,
   type EvaluateInputDescriptors,
-  type PrepareRemotePresentations,
+  type PrepareLegacyRemotePresentations,
 } from "./07-evaluate-input-descriptor";
+import {
+  evaluateDcqlQuery,
+  prepareRemotePresentations,
+  type EvaluateDcqlQuery,
+  type PrepareRemotePresentations,
+} from "./07-evaluate-dcql-query";
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
@@ -38,6 +44,8 @@ export {
   verifyRequestObject,
   fetchPresentDefinition,
   evaluateInputDescriptors,
+  evaluateDcqlQuery,
+  prepareLegacyRemotePresentations,
   prepareRemotePresentations,
   sendAuthorizationResponse,
   sendLegacyAuthorizationResponse,
@@ -51,6 +59,8 @@ export type {
   VerifyRequestObject,
   FetchPresentationDefinition,
   EvaluateInputDescriptors,
+  EvaluateDcqlQuery,
+  PrepareLegacyRemotePresentations,
   PrepareRemotePresentations,
   SendAuthorizationResponse,
   SendLegacyAuthorizationResponse,
