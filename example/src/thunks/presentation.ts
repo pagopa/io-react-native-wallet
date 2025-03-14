@@ -7,6 +7,8 @@ import {
 import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
+import { selectCredentials } from "../store/reducers/credential";
+import { isDefined } from "../utils/misc";
 
 type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[1];
 type RequestObject = Awaited<
@@ -44,7 +46,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   RemoteCrossDevicePresentationThunkOutput,
   RemoteCrossDevicePresentationThunkInput
 >("presentation/remote", async (args, { getState, dispatch }) => {
-  // Checks if the wallet instance attestation needs to be reuqested
+  // Checks if the wallet instance attestation needs to be requested
   if (shouldRequestAttestationSelector(getState())) {
     await dispatch(getAttestationThunk());
   }
@@ -90,7 +92,14 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   if (!pid) {
     throw new Error("PID not found");
   }
-  const credentialsSdJwt: [string, string][] = [[pid.keyTag, pid.credential]];
+
+  const credentials = selectCredentials(getState());
+  const credentialsSdJwt = [
+    [pid.keyTag, pid.credential],
+    ...Object.values(credentials)
+      .filter(isDefined)
+      .map((c) => [c.keyTag, c.credential]),
+  ] as [string, string][];
 
   if (requestObject.dcql_query) {
     return processPresentation(requestObject, rpConf, credentialsSdJwt);
