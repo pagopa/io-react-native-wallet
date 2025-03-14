@@ -38,7 +38,7 @@ export const AuthorizationResponse = z.object({
 export const choosePublicKeyToEncrypt = (
   rpJwkKeys: Out<FetchJwks>["keys"]
 ): JWK => {
-  const encKey = rpJwkKeys.at(0); // rpJwkKeys.find((jwk) => jwk.use === "enc"); // TODO: temporary fix
+  const encKey = rpJwkKeys.find((jwk) => jwk.use === "enc");
 
   if (encKey) {
     return encKey;
@@ -70,7 +70,6 @@ export const buildDirectPostJwtBody = async (
     state: requestObject.state,
     ...payload,
   });
-
   // Choose a suitable public key for encryption
   const { keys } = getJwksFromConfig(rpConf);
   const encPublicJwk = choosePublicKeyToEncrypt(keys);
