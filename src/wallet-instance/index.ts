@@ -87,3 +87,16 @@ export async function getWalletInstanceStatus(context: {
     path: { id: context.id },
   });
 }
+
+/**
+ * Get the status of the current Wallet Instance.
+ * @returns Details on the status of the current Wallet Instance
+ */
+export async function getCurrentWalletInstanceStatus(context: {
+  walletProviderBaseUrl: string;
+  appFetch?: GlobalFetch["fetch"];
+}): Promise<WalletInstanceData> {
+  const api = getWalletProviderClient(context);
+
+  return api.get("/wallet-instances/current/status");
+}
