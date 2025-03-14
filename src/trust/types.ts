@@ -13,6 +13,20 @@ const RelyingPartyMetadata = z.object({
   contacts: z.array(z.string()).optional(),
 });
 
+// Metadata policy types for federation
+export type MetadataPolicy = z.infer<typeof MetadataPolicy>;
+export const MetadataPolicy = z.object({
+  value: z.unknown().optional(),
+  add: z.array(z.unknown()).optional(),
+  default: z.unknown().optional(),
+  subset_of: z.array(z.unknown()).optional(),
+  one_of: z.array(z.unknown()).optional(),
+  superset_of: z.array(z.unknown()).optional(),
+});
+
+export type MetadataPolicyMap = z.infer<typeof MetadataPolicyMap>;
+export const MetadataPolicyMap = z.record(MetadataPolicy);
+
 // Display metadata for a credential, used by the issuer to
 // instruct the Wallet Solution on how to render the credential correctly
 type CredentialDisplayMetadata = z.infer<typeof CredentialDisplayMetadata>;
@@ -62,6 +76,7 @@ const SupportedCredentialMetadata = z.object({
   issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
 });
 
+// EntityStatement
 export type EntityStatement = z.infer<typeof EntityStatement>;
 export const EntityStatement = z.object({
   header: z.object({
@@ -74,6 +89,7 @@ export const EntityStatement = z.object({
     sub: z.string(),
     jwks: z.object({ keys: z.array(JWK) }),
     trust_marks: z.array(TrustMark).optional(),
+    metadata_policy: MetadataPolicyMap.optional(),
     iat: z.number(),
     exp: z.number(),
   }),

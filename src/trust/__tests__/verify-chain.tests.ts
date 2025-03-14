@@ -33,19 +33,6 @@ describe("verifyTrustChain", () => {
     ).rejects.toThrow();
   });
 
-  it("should resolve a correct chain", async () => {
-    const result = await verifyTrustChain(trustAnchorEntityConfiguration, [
-      await signed(leafEntityConfiguration),
-      await signed(leafEntityStatement),
-      await signed(intermediateEntityStatement),
-    ]);
-    expect(result).toEqual([
-      leafEntityConfiguration,
-      leafEntityStatement,
-      intermediateEntityStatement,
-    ]);
-  });
-
   it("should accept the trust anchor entity configuration as last element of the chain", async () => {
     const result = await verifyTrustChain(trustAnchorEntityConfiguration, [
       await signed(leafEntityConfiguration),

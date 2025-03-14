@@ -1,5 +1,7 @@
-import { decode, verify } from "./utils";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { hasStatusOrThrow } from "../utils/misc";
+import { IoWalletError } from "../utils/errors";
+
 import {
   CredentialIssuerEntityConfiguration,
   EntityConfiguration,
@@ -9,19 +11,8 @@ import {
   TrustAnchorEntityConfiguration,
   WalletProviderEntityConfiguration,
 } from "./types";
-import { renewTrustChain, validateTrustChain } from "./chain";
-import { hasStatusOrThrow } from "../utils/misc";
-import { IoWalletError } from "../utils/errors";
-import type { JWK } from "../utils/jwk";
 
-export type {
-  WalletProviderEntityConfiguration,
-  TrustAnchorEntityConfiguration,
-  CredentialIssuerEntityConfiguration,
-  RelyingPartyEntityConfiguration,
-  EntityConfiguration,
-  EntityStatement,
-};
+import { renewTrustChain, validateTrustChain } from "./chain";
 
 /**
  * Verify a given trust chain is actually valid.
@@ -297,130 +288,37 @@ export async function getFederationList(
 }
 
 /**
- * Build a not-verified trust chain for a given Relying Party (RP) entity.
+ * Get all Credential Issuer entities from the Trust Anchor's subordinate list endpoint.
  *
- * @param relyingPartyEntityBaseUrl The base URL of the RP entity
- * @param trustAnchorKey The public key of the Trust Anchor (TA) entity
- * @param appFetch An optional instance of the http client to be used.
- * @returns A list of signed tokens that represent the trust chain, in the order of the chain (from the RP to the Trust Anchor)
- * @throws {IoWalletError} When an element of the chain fails to parse
- * The result of this function can be used to validate the trust chain with {@link verifyTrustChain}
+ * @param trustAnchorUrl The URL of the Trust Anchor
+ * @param appFetch Optional fetch implementation
+ * @returns Array of Credential Issuer entity identifiers
+ * @throws {IoWalletError} If the request fails or the response is invalid
  */
-export async function buildTrustChain(
-  relyingPartyEntityBaseUrl: string,
-  trustAnchorKey: JWK,
-  appFetch: GlobalFetch["fetch"] = fetch
+export async function getCredentialIssuerEntities(
+  trustAnchorUrl: string,
+  {
+    appFetch = fetch,
+  }: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
 ): Promise<string[]> {
-  // 1: Recursively gather the trust chain from the RP up to the Trust Anchor
-  const trustChain = await gatherTrustChain(
-    relyingPartyEntityBaseUrl,
-    appFetch
-  );
-
-  // 2: Trust Anchor signature verification
-  const trustAnchorJwt = trustChain[trustChain.length - 1];
-  if (!trustAnchorJwt) {
-    throw new IoWalletError(
-      "Cannot verify trust anchor: missing entity configuration."
-    );
-  }
-
-  if (!trustAnchorKey.kid) {
-    throw new IoWalletError("Missing 'kid' in provided Trust Anchor key.");
-  }
-
-  await verify(trustAnchorJwt, trustAnchorKey.kid, [trustAnchorKey]);
-
-  // 3: Check the federation list
-  const trustAnchorConfig = EntityConfiguration.parse(decode(trustAnchorJwt));
-  const federationListEndpoint =
-    trustAnchorConfig.payload.metadata.federation_entity
-      .federation_list_endpoint;
-
-  if (federationListEndpoint) {
-    const federationList = await getFederationList(federationListEndpoint, {
-      appFetch,
-    });
-
-    if (!federationList.includes(relyingPartyEntityBaseUrl)) {
-      throw new IoWalletError(
-        "Relying Party entity base URL is not authorized by the Trust Anchor's federation list."
-      );
-    }
-  }
-
-  return trustChain;
-}
-
-/**
- * Recursively gather the trust chain for an entity and all its superiors.
- * @param entityBaseUrl The base URL of the entity for which to gather the chain.
- * @param appFetch An optional instance of the http client to be used.
- * @param isLeaf Whether the current entity is the leaf of the chain.
- * @returns A full ordered list of JWTs (ECs and ESs) forming the trust chain.
- */
-async function gatherTrustChain(
-  entityBaseUrl: string,
-  appFetch: GlobalFetch["fetch"],
-  isLeaf: boolean = true
-): Promise<string[]> {
-  const chain: string[] = [];
-
-  // Fetch self-signed EC (only needed for the leaf)
-  const entityECJwt = await getSignedEntityConfiguration(entityBaseUrl, {
-    appFetch,
-  });
-  const entityEC = EntityConfiguration.parse(decode(entityECJwt));
-
-  if (isLeaf) {
-    // Only push EC for the leaf
-    chain.push(entityECJwt);
-  }
-
-  // Find authority_hints (parent, if any)
-  const authorityHints = entityEC.payload.authority_hints ?? [];
-  if (authorityHints.length === 0) {
-    // This is the Trust Anchor (no parent)
-    if (!isLeaf) {
-      chain.push(entityECJwt);
-    }
-    return chain;
-  }
-
-  const parentEntityBaseUrl = authorityHints[0]!;
-
-  // Fetch parent EC
-  const parentECJwt = await getSignedEntityConfiguration(parentEntityBaseUrl, {
-    appFetch,
-  });
-  const parentEC = EntityConfiguration.parse(decode(parentECJwt));
-
-  // Fetch ES
-  const federationFetchEndpoint =
-    parentEC.payload.metadata.federation_entity.federation_fetch_endpoint;
-  if (!federationFetchEndpoint) {
-    throw new IoWalletError(
-      "Missing federation_fetch_endpoint in parent's configuration."
-    );
-  }
-
-  const entityStatementJwt = await getSignedEntityStatement(
-    federationFetchEndpoint,
-    entityBaseUrl,
+  // Get Trust Anchor's entity configuration
+  const trustAnchorConfig = await getTrustAnchorEntityConfiguration(
+    trustAnchorUrl,
     { appFetch }
   );
-  // Validate the ES
-  EntityStatement.parse(decode(entityStatementJwt));
 
-  // Push this ES into the chain
-  chain.push(entityStatementJwt);
+  // Get the subordinate list endpoint
+  const subordinateListEndpoint =
+    trustAnchorConfig.payload.metadata.federation_entity
+      .federation_list_endpoint;
+  if (!subordinateListEndpoint) {
+    throw new IoWalletError(
+      "Missing federation_list_endpoint in Trust Anchor configuration"
+    );
+  }
 
-  // Recurse into the parent
-  const parentChain = await gatherTrustChain(
-    parentEntityBaseUrl,
-    appFetch,
-    false
-  );
-
-  return chain.concat(parentChain);
+  // Fetch and parse the list of subordinate entities
+  return getFederationList(subordinateListEndpoint, { appFetch });
 }
