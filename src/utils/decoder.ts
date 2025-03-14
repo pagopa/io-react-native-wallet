@@ -1,5 +1,5 @@
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
+import type { JWTDecodeResult } from "./jwk";
 import { ValidationFailed } from "./errors";
 
 /*

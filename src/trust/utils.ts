@@ -3,8 +3,7 @@ import {
   verify as verifyJwt,
 } from "@pagopa/io-react-native-jwt";
 
-import type { JWK } from "../utils/jwk";
-import type { JWTDecodeResult } from "@pagopa/io-react-native-jwt/lib/typescript/types";
+import type { JWK, JWTDecodeResult } from "../utils/jwk";
 
 export type ParsedToken = {
   header: JWTDecodeResult["protectedHeader"];
