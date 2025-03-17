@@ -1,6 +1,7 @@
 import { UnixTime } from "../sd-jwt/types";
 import { JWK } from "../utils/jwk";
 import * as z from "zod";
+import { PresentationDefinition } from "../credential/presentation/types";
 
 export const TrustMark = z.object({ id: z.string(), trust_mark: z.string() });
 export type TrustMark = z.infer<typeof TrustMark>;
@@ -11,6 +12,11 @@ const RelyingPartyMetadata = z.object({
   client_name: z.string().optional(),
   jwks: z.object({ keys: z.array(JWK) }),
   contacts: z.array(z.string()).optional(),
+  presentation_definition: PresentationDefinition.optional(),
+  request_uris: z.array(z.string()).optional(),
+  authorization_signed_response_alg: z.string().optional(),
+  authorization_encrypted_response_alg: z.string().optional(),
+  authorization_encrypted_response_enc: z.string().optional(),
 });
 
 // Display metadata for a credential, used by the issuer to
@@ -180,10 +186,24 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           token_endpoint_auth_signing_alg_values_supported: z.array(z.string()),
           request_object_signing_alg_values_supported: z.array(z.string()),
         }),
-        /** Credential Issuers act as Relying Party
-            when they require the presentation of other credentials.
-            This does not apply for PID issuance, which requires CIE authz. */
+        /**
+         * Credential Issuers act as Relying Party when they require the presentation of other credentials.
+         * This does not apply for PID issuance, which requires CIE authz.
+         */
         openid_credential_verifier: RelyingPartyMetadata.optional(),
+        /**
+         * @deprecated use `openid_credential_verifier`
+         * TODO [SIW-2111]: remove after migrating to 0.9.x
+         */
+        wallet_relying_party: z
+          .object({
+            application_type: z.string().optional(),
+            client_id: z.string().optional(),
+            client_name: z.string().optional(),
+            jwks: z.object({ keys: z.array(JWK) }),
+            contacts: z.array(z.string()).optional(),
+          })
+          .optional(),
       }),
     }),
   })
