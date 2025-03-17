@@ -37,12 +37,10 @@ const CredentialIssuerDisplayMetadata = z.object({
 });
 
 type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
-const ClaimsMetadata = z.record(
-  z.object({
-    path: z.array(z.string()),
-    display: z.array(z.object({ name: z.string(), locale: z.string() })),
-  })
-);
+const ClaimsMetadata = z.object({
+  path: z.array(z.string()),
+  display: z.array(z.object({ name: z.string(), locale: z.string() })),
+});
 
 type IssuanceErrorSupported = z.infer<typeof IssuanceErrorSupported>;
 const IssuanceErrorSupported = z.object({
