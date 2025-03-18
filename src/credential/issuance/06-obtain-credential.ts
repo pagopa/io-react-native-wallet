@@ -16,6 +16,7 @@ import {
 } from "../../utils/errors";
 import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
+import { TypeMetadata } from "../../sd-jwt/types";
 import { v4 as uuidv4 } from "uuid";
 
 export type ObtainCredential = (
@@ -188,4 +189,23 @@ const handleObtainCredentialError = (e: unknown) => {
       message: "Unable to obtain the requested credential",
     })
     .buildFrom(e);
+};
+
+export const fetchTypeMetadata = (
+  vct: string,
+  vctIntegrity: string,
+  context: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+): Promise<TypeMetadata> => {
+  const { appFetch = fetch } = context;
+
+  return appFetch(vct, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(hasStatusOrThrow(200, IssuerResponseError))
+    .then((res) => TypeMetadata.parse(res.json()));
+  // TODO: verify integrity
 };

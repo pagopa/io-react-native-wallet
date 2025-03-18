@@ -61,3 +61,25 @@ export const SdJwt4VC = z.object({
     ObfuscatedDisclosures
   ),
 });
+
+/**
+ * Metadata for a digital credential. This information is retrieved from the URL defined in the `vct` claim.
+ *
+ * @see https://italia.github.io/eid-wallet-it-docs/v0.9.1/en/pid-eaa-data-model.html#digital-credential-metadata-type
+ */
+export type TypeMetadata = z.infer<typeof TypeMetadata>;
+export const TypeMetadata = z.object({
+  name: z.string(),
+  description: z.string(),
+  data_source: z.object({
+    trust_framework: z.string(),
+    authentic_source: z.object({
+      organization_name: z.string(),
+      organization_code: z.string(),
+      contacts: z.array(z.string()),
+      homepage_uri: z.string().url(),
+      logo_uri: z.string().url(),
+    }),
+  }),
+  // TODO: add more fields
+});
