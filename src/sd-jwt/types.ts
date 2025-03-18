@@ -36,7 +36,7 @@ export type DisclosureWithEncoded = {
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
-    typ: z.literal("vc+sd-jwt"),
+    typ: z.literal("dc+sd-jwt"),
     alg: z.string(),
     kid: z.string().optional(),
   }),
@@ -48,14 +48,15 @@ export const SdJwt4VC = z.object({
       exp: UnixTime,
       _sd_alg: z.literal("sha-256"),
       status: z.object({
-        status_attestation: z.object({
+        status_assertion: z.object({
           credential_hash_alg: z.literal("sha-256"),
         }),
       }),
       cnf: z.object({
         jwk: JWK,
       }),
-      vct: z.string(),
+      vct: z.string().url(),
+      "vct#integrity": z.string().optional(),
     }),
     ObfuscatedDisclosures
   ),
