@@ -187,7 +187,13 @@ const processPresentation: ProcessPresentation = async (
       requestObject.client_id
     );
 
+  const authResponse = await Credential.Presentation.sendAuthorizationResponse(
+    requestObject,
+    remotePresentations,
+    rpConf
+  );
+
   return {
-    result: {},
+    result: authResponse,
   };
 };
