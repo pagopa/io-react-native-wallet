@@ -176,7 +176,7 @@ const processPresentation: ProcessPresentation = async (
   const credentialsToPresent = result.map(
     ({ requiredDisclosures, ...rest }) => ({
       ...rest,
-      requestedClaims: requiredDisclosures.map((item) => item.decoded[1]),
+      requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
     })
   );
 
