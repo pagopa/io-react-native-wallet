@@ -37,11 +37,9 @@ export type RemoteCrossDevicePresentationThunkInput = {
 };
 
 export type RemoteCrossDevicePresentationThunkOutput = {
-  result: {
-    authResponse: AuthResponse;
-    requestObject: RequestObject;
-    requestedClaims: string[];
-  };
+  authResponse: AuthResponse;
+  requestObject: RequestObject;
+  requestedClaims: string[];
 };
 
 /**
@@ -165,13 +163,11 @@ const processLegacyPresentation: ProcessPresentation = async (
     );
 
   return {
-    result: {
-      authResponse,
-      requestObject,
-      requestedClaims: credentialAndInputDescriptor.flatMap(
-        (c) => c.requestedClaims
-      ),
-    },
+    authResponse,
+    requestObject,
+    requestedClaims: credentialAndInputDescriptor.flatMap(
+      (c) => c.requestedClaims
+    ),
   };
 };
 
@@ -207,10 +203,8 @@ const processPresentation: ProcessPresentation = async (
   );
 
   return {
-    result: {
-      authResponse,
-      requestObject,
-      requestedClaims: credentialsToPresent.flatMap((c) => c.requestedClaims),
-    },
+    authResponse,
+    requestObject,
+    requestedClaims: credentialsToPresent.flatMap((c) => c.requestedClaims),
   };
 };

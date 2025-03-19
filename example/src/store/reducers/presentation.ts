@@ -69,11 +69,11 @@ const presentationSlice = createSlice({
       remoteCrossDevicePresentationThunk.fulfilled,
       (state, action) => {
         state[action.meta.arg.allowed].redirectUri =
-          action.payload.result.authResponse.redirect_uri;
+          action.payload.authResponse.redirect_uri;
         state[action.meta.arg.allowed].requestObject =
-          action.payload.result.requestObject;
+          action.payload.requestObject;
         state[action.meta.arg.allowed].requestedClaims =
-          action.payload.result.requestedClaims;
+          action.payload.requestedClaims;
         state[action.meta.arg.allowed].asyncStatus.isDone = true;
         state[action.meta.arg.allowed].asyncStatus.isLoading =
           initialState[action.meta.arg.allowed].asyncStatus.isLoading;
