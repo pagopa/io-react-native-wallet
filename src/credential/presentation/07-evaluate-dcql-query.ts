@@ -6,23 +6,23 @@ import {
 } from "dcql";
 import { isValiError } from "valibot";
 import { decode, prepareVpToken } from "../../sd-jwt";
-import type { Disclosure, DisclosureWithEncoded } from "../../sd-jwt/types";
+import type { Disclosure } from "../../sd-jwt/types";
 import { ValidationFailed } from "../../utils/errors";
 import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
 
-type EvaluateDcqlQuery = (
+export type EvaluateDcqlQuery = (
   credentialsSdJwt: [string /* keyTag */, string /* credential */][],
   query: DcqlQuery.Input
 ) => {
   id: string;
   credential: string;
   keyTag: string;
-  requiredDisclosures: DisclosureWithEncoded[];
+  requiredDisclosures: Disclosure[];
   isOptional?: boolean;
 }[];
 
-type PrepareRemotePresentations = (
+export type PrepareRemotePresentations = (
   credentials: {
     id: string;
     credential: string;
@@ -112,9 +112,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
       const isOptional = credentialSet ? !credentialSet.required : false;
 
       const [keyTag, credential] = credentialsSdJwtByVct[vct]!;
-      const requiredDisclosures = Object.values(
-        claims
-      ) as DisclosureWithEncoded[];
+      const requiredDisclosures = Object.values(claims) as Disclosure[];
       return {
         id,
         keyTag,
