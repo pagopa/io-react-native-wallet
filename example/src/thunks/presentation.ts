@@ -10,13 +10,16 @@ import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
 
-type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[1];
-type RequestObject = Awaited<
+export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
 >["requestObject"];
+type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[1];
 type RpConf = Awaited<
   ReturnType<Credential.Presentation.EvaluateRelyingPartyTrust>
 >["rpConf"];
+type AuthResponse = Awaited<
+  ReturnType<Credential.Presentation.SendAuthorizationResponse>
+>;
 
 /**
  * Type of the function to process the presentation request,
@@ -34,9 +37,11 @@ export type RemoteCrossDevicePresentationThunkInput = {
 };
 
 export type RemoteCrossDevicePresentationThunkOutput = {
-  result: Awaited<
-    ReturnType<Credential.Presentation.SendAuthorizationResponse>
-  >;
+  result: {
+    authResponse: AuthResponse;
+    requestObject: RequestObject;
+    requestedClaims: string[];
+  };
 };
 
 /**
@@ -159,7 +164,15 @@ const processLegacyPresentation: ProcessPresentation = async (
       rpConf
     );
 
-  return { result: authResponse };
+  return {
+    result: {
+      authResponse,
+      requestObject,
+      requestedClaims: credentialAndInputDescriptor.flatMap(
+        (c) => c.requestedClaims
+      ),
+    },
+  };
 };
 
 // DCQL flow
@@ -194,6 +207,10 @@ const processPresentation: ProcessPresentation = async (
   );
 
   return {
-    result: authResponse,
+    result: {
+      authResponse,
+      requestObject,
+      requestedClaims: credentialsToPresent.flatMap((c) => c.requestedClaims),
+    },
   };
 };

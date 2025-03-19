@@ -5,8 +5,8 @@ import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import {
-  selectPresentationAcceptanceAsyncStatus,
-  selectPresentationRefusalAsyncStatus,
+  selectPresentationAcceptanceState,
+  selectPresentationRefusalState,
 } from "../store/reducers/presentation";
 
 import { useDebugInfo } from "../hooks/useDebugInfo";
@@ -15,16 +15,16 @@ import { FlatList } from "react-native";
 
 export const PresentationScreen = () => {
   const navigation = useNavigation();
-  const acceptancePresentationState = useAppSelector(
-    selectPresentationAcceptanceAsyncStatus
-  );
-  const refusalPresentationState = useAppSelector(
-    selectPresentationRefusalAsyncStatus
+  const { asyncStatus: acceptancePresentationState, ...presentationDetails } =
+    useAppSelector(selectPresentationAcceptanceState);
+  const { asyncStatus: refusalPresentationState } = useAppSelector(
+    selectPresentationRefusalState
   );
 
   useDebugInfo({
     acceptancePresentationState,
     refusalPresentationState,
+    presentationDetails,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -39,6 +39,8 @@ export const PresentationScreen = () => {
         hasError: acceptancePresentationState.hasError,
         isDone: acceptancePresentationState.isDone,
         icon: "qrCode",
+        isPresent: !!presentationDetails.redirectUri,
+        successMessage: "OK",
       },
     ],
     [
@@ -46,6 +48,7 @@ export const PresentationScreen = () => {
       acceptancePresentationState.hasError,
       acceptancePresentationState.isDone,
       acceptancePresentationState.isLoading,
+      presentationDetails.redirectUri,
     ]
   );
 
@@ -66,6 +69,7 @@ export const PresentationScreen = () => {
             isDone={item.isDone}
             icon={item.icon}
             isPresent={item.isPresent}
+            successMessage={item.successMessage}
           />
           <VSpacer />
         </>
