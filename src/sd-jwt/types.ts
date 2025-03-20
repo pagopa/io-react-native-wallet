@@ -57,6 +57,8 @@ export const SdJwt4VC = z.object({
       }),
       vct: z.string().url(),
       "vct#integrity": z.string().optional(),
+      issuing_authority: z.string(),
+      issuing_country: z.string(),
     }),
     ObfuscatedDisclosures
   ),

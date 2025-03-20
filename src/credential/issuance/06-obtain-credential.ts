@@ -8,6 +8,7 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
+  IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
@@ -219,7 +220,7 @@ export const fetchTypeMetadata = async (
   const [alg, hash] = vctIntegrity.split(/-(.*)/s);
 
   if (alg !== "sha256") {
-    throw new Error(`${alg} algorithm is not supported`);
+    throw new IoWalletError(`${alg} algorithm is not supported`);
   }
 
   // TODO: check if the hash is correctly calculated
