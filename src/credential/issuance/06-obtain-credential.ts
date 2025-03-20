@@ -191,7 +191,14 @@ const handleObtainCredentialError = (e: unknown) => {
     .buildFrom(e);
 };
 
-export const fetchTypeMetadata = (
+/**
+ * Retrieve the Type Metadata for a credential and verify its integrity.
+ * @param vct The VCT as a valid HTTPS url
+ * @param vctIntegrity The integrity hash
+ * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @returns The credential metadata {@link TypeMetadata}
+ */
+export const fetchTypeMetadata = async (
   vct: string,
   vctIntegrity: string,
   context: {
@@ -199,13 +206,31 @@ export const fetchTypeMetadata = (
   } = {}
 ): Promise<TypeMetadata> => {
   const { appFetch = fetch } = context;
+  const { origin, pathname } = new URL(vct);
 
-  return appFetch(vct, {
+  const metadata = await appFetch(`${origin}/.well-known/vct${pathname}`, {
     headers: {
       "Content-Type": "application/json",
     },
   })
     .then(hasStatusOrThrow(200, IssuerResponseError))
     .then((res) => TypeMetadata.parse(res.json()));
-  // TODO: verify integrity
+
+  const [alg, hash] = vctIntegrity.split(/-(.*)/s);
+
+  if (alg !== "sha256") {
+    throw new Error(`${alg} algorithm is not supported`);
+  }
+
+  // TODO: check if the hash is correctly calculated
+  const metadataHash = await sha256ToBase64(JSON.stringify(metadata));
+
+  if (metadataHash !== hash) {
+    throw new ValidationFailed({
+      message: "Unable to verify VCT integrity",
+      reason: "vct#integrity does not match the metadata hash",
+    });
+  }
+
+  return metadata;
 };
