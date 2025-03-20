@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.0.2
 info:
   title: IO Wallet
   version: 1.0.0
@@ -20,6 +20,8 @@ paths:
                 $ref: "#/components/schemas/NonceDetailView"
         "500":
           $ref: "#/components/responses/Unexpected"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 
   /wallet-instances:
     post:
@@ -44,50 +46,8 @@ paths:
           $ref: "#/components/responses/UnprocessableContent"
         "500":
           $ref: "#/components/responses/Unexpected"
-
-  /wallet-instances/{id}/status:
-    parameters:
-    - in: path
-      name: id
-      required: true
-      schema:
-        type: string
-    get:
-      summary: Retrieve a Wallet Instance status
-      operationId: getWalletInstanceStatus
-      responses:
-        "200":
-          description: Wallet Instance status successfully retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WalletInstanceData"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/Unexpected"
-
-    put:
-      summary: Revoke a Wallet Instance
-      operationId: setWalletInstanceStatus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SetWalletInstanceStatusBody"
-      responses:
-        "204":
-          description: Wallet Instance status successfully set
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/Unexpected"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 
   /token:
     description: This is a token endpoint (as defined in RFC 7523 section 4)
@@ -119,6 +79,79 @@ paths:
           $ref: "#/components/responses/UnprocessableContent"
         "500":
           $ref: "#/components/responses/Unexpected"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /wallet-instances/current/status:
+    get:
+      summary: Retrieve the current Wallet Instance status
+      operationId: getCurrentWalletInstanceStatus
+      responses:
+        "200":
+          description: Wallet Instance status successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletInstanceData"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableContent"
+        "500":
+          $ref: "#/components/responses/Unexpected"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /wallet-instances/{id}/status:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Retrieve a Wallet Instance status
+      operationId: getWalletInstanceStatus
+      responses:
+        "200":
+          description: Wallet Instance status successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletInstanceData"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/Unexpected"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+    put:
+      summary: Revoke a Wallet Instance
+      operationId: setWalletInstanceStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetWalletInstanceStatusBody"
+      responses:
+        "204":
+          description: Wallet Instance status successfully set
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/Unexpected"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 
 components:
   securitySchemes:
@@ -165,6 +198,13 @@ components:
 
     Unexpected:
       description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    ServiceUnavailable:
+      description: Service Unavailable
       content:
         application/json:
           schema:
@@ -223,6 +263,39 @@ components:
         - grant_type
         - assertion
 
+    SetWalletInstanceStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["REVOKED"]
+      required:
+        - status
+
+    WalletInstanceData:
+      description: |-
+        Describes the status of the wallet.
+      type: object
+      properties:
+        id:
+          type: string
+        is_revoked:
+          type: boolean
+        revocation_reason:
+          $ref: "#/components/schemas/RevocationReason"
+      required:
+        - id
+        - is_revoked
+
+    RevocationReason:
+      type: string
+      enum:
+        [
+          "CERTIFICATE_REVOKED_BY_ISSUER",
+          "NEW_WALLET_INSTANCE_CREATED",
+          "REVOKED_BY_USER",
+        ]
+
     ProblemDetail:
       type: object
       properties:
@@ -263,36 +336,3 @@ components:
             An absolute URI that identifies the specific occurrence of the
             problem. It may or may not yield further information if
             dereferenced.
-
-    SetWalletInstanceStatusBody:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: ["REVOKED"]
-      required:
-        - status
-
-    WalletInstanceData:
-      description: |-
-        Describes the status of the wallet.
-      type: object
-      properties:
-        id:
-          type: string
-        is_revoked:
-          type: boolean
-        revocation_reason:
-          $ref: "#/components/schemas/RevocationReason"
-      required:
-        - id
-        - is_revoked
-
-    RevocationReason:
-      type: string
-      enum:
-        [
-          "CERTIFICATE_REVOKED_BY_ISSUER",
-          "NEW_WALLET_INSTANCE_CREATED",
-          "REVOKED_BY_USER",
-        ]
