@@ -39,6 +39,8 @@ export const SdJwt4VC = z.object({
     typ: z.literal("dc+sd-jwt"),
     alg: z.string(),
     kid: z.string().optional(),
+    x5c: z.array(z.string()).optional(),
+    vctm: z.array(z.string()).optional(),
   }),
   payload: z.intersection(
     z.object({
@@ -59,10 +61,77 @@ export const SdJwt4VC = z.object({
       "vct#integrity": z.string().optional(),
       issuing_authority: z.string(),
       issuing_country: z.string(),
+      // TODO: verification ?
     }),
     ObfuscatedDisclosures
   ),
 });
+
+type Verification = z.infer<typeof Verification>;
+const Verification = z.object({
+  trust_framework: z.string(),
+  authentic_source: z.object({
+    organization_name: z.string(),
+    organization_code: z.string(),
+    contacts: z.array(z.string()),
+    homepage_uri: z.string().url(),
+    logo_uri: z.string().url(),
+  }),
+});
+
+type SvgTemplate = z.infer<typeof SvgTemplate>;
+const SvgTemplate = z.object({
+  uri: z.string().url(),
+  "uri#integrity": z.string(),
+  properties: z.object({
+    orientation: z.string().url().optional(),
+    color_scheme: z.string().optional(),
+    contrast: z.string().optional(),
+  }),
+});
+
+type SimpleRendering = z.infer<typeof SimpleRendering>;
+const SimpleRendering = z.object({
+  logo: z.object({
+    uri: z.string().url(),
+    "uri#integrity": z.string(),
+    alt_text: z.string().optional(),
+  }),
+  background_color: z.string().optional(),
+  text_color: z.string().optional(),
+});
+
+type Display = z.infer<typeof Display>;
+const Display = z.array(
+  z.object({
+    lang: z.string(),
+    name: z.string(),
+    description: z.string(),
+    rendering: z.object({
+      svg_template: z.array(SvgTemplate),
+      simple: SimpleRendering.optional(),
+    }),
+  })
+);
+
+type ClaimDisplay = z.infer<typeof ClaimDisplay>;
+const ClaimDisplay = z.array(
+  z.object({
+    lang: z.string(),
+    label: z.string(),
+    description: z.string(),
+  })
+);
+
+type Claims = z.infer<typeof Claims>;
+const Claims = z.array(
+  z.object({
+    path: z.array(z.string()),
+    display: ClaimDisplay,
+    sd: z.enum(["always", "never"]),
+    svg_id: z.string(),
+  })
+);
 
 /**
  * Metadata for a digital credential. This information is retrieved from the URL defined in the `vct` claim.
@@ -73,15 +142,14 @@ export type TypeMetadata = z.infer<typeof TypeMetadata>;
 export const TypeMetadata = z.object({
   name: z.string(),
   description: z.string(),
+  extends: z.string().url().optional(),
+  "extends#integrity": z.string().optional(),
+  schema: z.string().optional(),
+  schema_uri: z.string().url().optional(),
+  "schema_uri#integrity": z.string().optional(),
   data_source: z.object({
-    trust_framework: z.string(),
-    authentic_source: z.object({
-      organization_name: z.string(),
-      organization_code: z.string(),
-      contacts: z.array(z.string()),
-      homepage_uri: z.string().url(),
-      logo_uri: z.string().url(),
-    }),
+    verification: Verification,
   }),
-  // TODO: add more fields
+  display: Display,
+  claims: Claims,
 });
