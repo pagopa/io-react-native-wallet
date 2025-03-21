@@ -64,7 +64,7 @@ export const MainStackNavigator = () => {
 
   return (
     <NavigationContainer theme={lightTheme}>
-      <Stack.Navigator id="MainStackNavigator">
+      <Stack.Navigator>
         <Stack.Group
           screenOptions={{
             headerRight: headerRight,
