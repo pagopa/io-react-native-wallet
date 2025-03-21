@@ -30,7 +30,12 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
  */
 export default function PidSpidLoginScreen({ route, navigation }: Props) {
   const { authUrl, redirectUri } = route.params;
-  const originSchemasWhiteList = ["https://*", "http://*", redirectUri];
+  const originSchemasWhiteList = [
+    "https://*",
+    "http://*",
+    "intent://*",
+    redirectUri,
+  ];
   const dispatch = useAppDispatch();
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
