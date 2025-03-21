@@ -225,8 +225,8 @@ export const isWalletProviderResponseError = (
 type ErrorCodeMap<T> = T extends typeof IssuerResponseError
   ? IssuerResponseErrorCode
   : T extends typeof WalletProviderResponseError
-  ? WalletProviderResponseErrorCode
-  : never;
+    ? WalletProviderResponseErrorCode
+    : never;
 
 type ErrorCase<T> = {
   code: ErrorCodeMap<T>;
