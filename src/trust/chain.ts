@@ -7,7 +7,8 @@ import { JWK } from "../utils/jwk";
 import { IoWalletError } from "../utils/errors";
 import * as z from "zod";
 import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
-import { decode, type ParsedToken, verify } from "./utils";
+import { type ParsedToken, verify } from "./utils";
+import { decode } from "@pagopa/io-react-native-jwt";
 
 // The first element of the chain is supposed to be the Entity Configuration for the document issuer
 const FirstElementShape = EntityConfiguration;
