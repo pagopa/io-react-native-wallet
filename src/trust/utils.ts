@@ -25,6 +25,10 @@ export const verify = async (
   return { header, payload };
 };
 
+/**
+ * Return type for this function is necessary to avoid an issue during the bob build process.
+ * It seems like typescript can't correctly infer the return type of the function.
+ */
 export const decode = (token: string): ParsedToken => {
   const { protectedHeader: header, payload } = decodeJwt(token);
   return { header, payload };
