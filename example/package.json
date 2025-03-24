@@ -37,7 +37,7 @@
     "react-native-reanimated": "^3.15.1",
     "react-native-safe-area-context": "^5.3.0",
     "react-native-screens": "^4.9.1",
-    "react-native-svg": "15.5.0",
+    "react-native-svg": "^15.1.0",
     "react-native-vision-camera": "^4.6.4",
     "react-native-webview": "^13.10.5",
     "react-redux": "^9.1.2",
