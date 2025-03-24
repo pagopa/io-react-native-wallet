@@ -25,7 +25,7 @@ export const verify = async (
   return { header, payload };
 };
 
-export const decode = (token: string) => {
+export const decode = (token: string): ParsedToken => {
   const { protectedHeader: header, payload } = decodeJwt(token);
   return { header, payload };
 };
