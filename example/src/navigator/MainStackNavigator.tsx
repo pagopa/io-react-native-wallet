@@ -77,7 +77,7 @@ export const MainStackNavigator = () => {
 
   return (
     <NavigationContainer theme={lightTheme}>
-      <Stack.Navigator id="MainStackNavigator">
+      <Stack.Navigator>
         {ioAuthToken ? (
           /*
            * Protected routes via the ioAuthToken

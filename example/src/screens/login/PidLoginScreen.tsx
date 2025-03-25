@@ -9,13 +9,6 @@ import { continuePidFlowThunk } from "../../thunks/pid";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidLogin">;
 
-const originSchemasWhiteList = [
-  "https://*",
-  "intent://*",
-  "http://*",
-  "iologin://*",
-];
-
 export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   const intentProtocol = URLParse.extractProtocol(intentUrl);
   if (intentProtocol.protocol !== "intent:" || !intentProtocol.slashes) {
@@ -37,6 +30,12 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
  */
 export default function PidSpidLoginScreen({ route, navigation }: Props) {
   const { authUrl, redirectUri } = route.params;
+  const originSchemasWhiteList = [
+    "https://*",
+    "http://*",
+    "intent://*",
+    redirectUri,
+  ];
   const dispatch = useAppDispatch();
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
@@ -76,7 +75,7 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
         androidMicrophoneAccessDisabled={true}
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={true}
-        originWhitelist={originSchemasWhiteList}
+        originWhitelist={[...originSchemasWhiteList, redirectUri]}
         cacheEnabled={false}
         onShouldStartLoadWithRequest={handleShouldStartLoading}
         onNavigationStateChange={handleNavigationStateChange}

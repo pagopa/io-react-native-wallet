@@ -27,6 +27,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+**/.xcode.env.local
 project.xcworkspace
 
 # Android/IJ
@@ -42,7 +43,7 @@ android.iml
 
 # Cocoapods
 #
-example/ios/Pods
+**/Pods/
 
 # Ruby
 example/vendor/
@@ -80,3 +81,11 @@ src/client/generated/*.ts
 
 #Android bundle
 example/android/app/src/main/assets/index.android.bundle
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
