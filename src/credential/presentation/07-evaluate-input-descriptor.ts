@@ -55,11 +55,14 @@ export type PrepareLegacyRemotePresentations = (
 const mapDisclosuresToObject = (
   disclosures: DisclosureWithEncoded[]
 ): Record<string, unknown> => {
-  return disclosures.reduce((obj, { decoded }) => {
-    const [, claimName, claimValue] = decoded;
-    obj[claimName] = claimValue;
-    return obj;
-  }, {} as Record<string, unknown>);
+  return disclosures.reduce(
+    (obj, { decoded }) => {
+      const [, claimName, claimValue] = decoded;
+      obj[claimName] = claimValue;
+      return obj;
+    },
+    {} as Record<string, unknown>
+  );
 };
 
 /**
