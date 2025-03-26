@@ -159,6 +159,10 @@ Different flows are provided to perform common operations. Each flow is a set of
 
 An example app is provided in [example](./example) folder which demostrates how to implemente these flows. To run it, follow the instructions in the [README](./example/README.md).
 
+### Debug logging server
+
+A debug logging server can be used with the example app to receive logs from the app. To run it, follow the instructions in the [README](./debug-logging-server/README.md).
+
 ### Ecosystem
 
 `io-react-native-wallet` is designed to be used in [io-app](https://github.com/pagopa/io-app) and its ecosystem. There are a few libraries that can be used to implement the context required to implement the flows defined by this package.
