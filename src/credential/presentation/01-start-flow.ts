@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { ValidationFailed } from "../../utils/errors";
+import { InvalidQRCodeError } from "./errors";
 
 const PresentationParams = z.object({
   clientId: z.string().nonempty(),
@@ -16,12 +16,9 @@ export type PresentationParams = z.infer<typeof PresentationParams>;
  * @param params Presentation parameters, depending on the starting touchoint
  * @returns The url for the Relying Party to connect with
  */
-export type StartFlow = (params: PresentationParams) => {
-  requestUri: string;
-  clientId: string;
-  requestUriMethod?: "get" | "post";
-  state?: string;
-};
+export type StartFlow = (
+  params: Partial<PresentationParams>
+) => PresentationParams;
 
 /**
  * Start a presentation flow by decoding an incoming QR-code
@@ -31,14 +28,14 @@ export type StartFlow = (params: PresentationParams) => {
  * @throws If the provided qr code fails to be decoded
  */
 export const startFlowFromQR: StartFlow = (params) => {
-  const result = PresentationParams.safeParse(params);
+  const result = PresentationParams.safeParse({
+    ...params,
+    requestUriMethod: params.requestUriMethod ?? "get",
+  });
 
   if (result.success) {
     return result.data;
-  } else {
-    throw new ValidationFailed({
-      message: "Invalid parameters provided",
-      reason: result.error.message,
-    });
   }
+
+  throw new InvalidQRCodeError(result.error.message);
 };
