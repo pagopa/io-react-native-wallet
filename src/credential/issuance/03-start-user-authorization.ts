@@ -5,7 +5,7 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 import { ASSERTION_TYPE } from "./const";
-import { DebugLevel, Logger, type LoggingContext } from "../../utils/logging";
+import { DebugLevel, Logger } from "../../utils/logging";
 
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -15,7 +15,6 @@ export type StartUserAuthorization = (
     walletInstanceAttestation: string;
     redirectUri: string;
     appFetch?: GlobalFetch["fetch"];
-    loggingContext?: LoggingContext;
   }
 ) => Promise<{
   issuerRequestUri: string;

@@ -12,7 +12,7 @@ import {
   WalletProviderResponseErrorCodes,
 } from "../utils/errors";
 import { TokenResponse } from "./types";
-import { DebugLevel, Logger, type LoggingContext } from "../utils/logging";
+import { DebugLevel, Logger } from "../utils/logging";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -85,7 +85,6 @@ export const getAttestation = async ({
   integrityContext: IntegrityContext;
   walletProviderBaseUrl: string;
   appFetch?: GlobalFetch["fetch"];
-  loggingContext?: LoggingContext;
 }): Promise<string> => {
   const api = getWalletProviderClient({
     walletProviderBaseUrl,
