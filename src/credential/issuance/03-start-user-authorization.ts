@@ -5,6 +5,7 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
 import { ASSERTION_TYPE } from "./const";
+import { DebugLevel, Logger, type LoggingContext } from "../../utils/logging";
 
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -14,6 +15,7 @@ export type StartUserAuthorization = (
     walletInstanceAttestation: string;
     redirectUri: string;
     appFetch?: GlobalFetch["fetch"];
+    loggingContext?: LoggingContext;
   }
 ) => Promise<{
   issuerRequestUri: string;
@@ -49,6 +51,10 @@ const selectCredentialDefinition = (
     }));
 
   if (!result) {
+    Logger.log(
+      DebugLevel.ERROR,
+      `Requested credential type ${credentialType} is not supported by the issuer according to its configuration ${JSON.stringify(credential_configurations_supported)}`
+    );
     throw new Error(`No credential support the type '${credentialType}'`);
   }
   return result;
@@ -70,7 +76,16 @@ const selectResponseMode = (
   const responseMode =
     credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
 
+  Logger.log(
+    DebugLevel.DEBUG,
+    `Selected response mode ${responseMode} for credential type ${credentialType}`
+  );
+
   if (!responseModeSupported.includes(responseMode)) {
+    Logger.log(
+      DebugLevel.ERROR,
+      `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`
+    );
     throw new Error(`No response mode support the type '${credentialType}'`);
   }
 
@@ -109,6 +124,10 @@ export const startUserAuthorization: StartUserAuthorization = async (
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   if (!clientId) {
+    Logger.log(
+      DebugLevel.ERROR,
+      `Public key associated with kid ${clientId} not found in the device`
+    );
     throw new Error("No public key found");
   }
   const codeVerifier = generateRandomAlphaNumericString(64);

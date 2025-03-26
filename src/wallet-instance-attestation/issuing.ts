@@ -12,6 +12,7 @@ import {
   WalletProviderResponseErrorCodes,
 } from "../utils/errors";
 import { TokenResponse } from "./types";
+import { DebugLevel, Logger, type LoggingContext } from "../utils/logging";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -84,6 +85,7 @@ export const getAttestation = async ({
   integrityContext: IntegrityContext;
   walletProviderBaseUrl: string;
   appFetch?: GlobalFetch["fetch"];
+  loggingContext?: LoggingContext;
 }): Promise<string> => {
   const api = getWalletProviderClient({
     walletProviderBaseUrl,
@@ -92,6 +94,10 @@ export const getAttestation = async ({
 
   // 1. Get nonce from backend
   const challenge = await api.get("/nonce").then((response) => response.nonce);
+  Logger.log(
+    DebugLevel.DEBUG,
+    `Challenge ${challenge} obtained from ${walletProviderBaseUrl}`
+  );
 
   // 2. Get a signed attestation request
   const signedAttestationRequest = await getAttestationRequest(
@@ -100,9 +106,13 @@ export const getAttestation = async ({
     integrityContext,
     walletProviderBaseUrl
   );
+  Logger.log(
+    DebugLevel.DEBUG,
+    `Signed attestation request: ${signedAttestationRequest}`
+  );
 
   // 3. Request WIA
-  const tokenResponse = await api
+  const { wallet_attestation: walletAttestation } = await api
     .post("/token", {
       body: {
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
@@ -112,10 +122,20 @@ export const getAttestation = async ({
     .then((result) => TokenResponse.parse(result))
     .catch(handleAttestationCreationError);
 
-  return tokenResponse.wallet_attestation;
+  Logger.log(
+    DebugLevel.DEBUG,
+    `Obtained wallet attestation ${walletAttestation}`
+  );
+
+  return walletAttestation;
 };
 
 const handleAttestationCreationError = (e: unknown) => {
+  Logger.log(
+    DebugLevel.ERROR,
+    `An error occurred while calling /token endpoint: ${e}`
+  );
+
   if (!(e instanceof WalletProviderResponseError)) {
     throw e;
   }

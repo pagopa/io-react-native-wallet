@@ -6995,6 +6995,11 @@ react-native-linear-gradient@^2.5.6:
   resolved "https://registry.yarnpkg.com/react-native-linear-gradient/-/react-native-linear-gradient-2.8.3.tgz#9a116649f86d74747304ee13db325e20b21e564f"
   integrity sha512-KflAXZcEg54PXkLyflaSZQ3PJp4uC4whM7nT/Uot9m0e/qxFV3p6uor1983D1YOBJbJN7rrWdqIjq0T42jOJyA==
 
+react-native-logs@^5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-logs/-/react-native-logs-5.3.0.tgz#49ad1ec1fd37a5ef90280cc3e27e7233727fc921"
+  integrity sha512-tq4S0JFy06ggu1D/udYeV80qPy5koURNNcKrVJmv0Hf3x44akysctaE4ARybD5Pv7MnFD8fP1VFhycSLjqXHQw==
+
 react-native-qrcode-svg@^6.3.12:
   version "6.3.12"
   resolved "https://registry.yarnpkg.com/react-native-qrcode-svg/-/react-native-qrcode-svg-6.3.12.tgz#ee2c34c836c0c58f0a7f2d79304bcf12b9e151a9"

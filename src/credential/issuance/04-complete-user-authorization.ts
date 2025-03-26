@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
+import { DebugLevel, Logger } from "../../utils/logging";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -92,6 +93,10 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
  */
 export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWithQueryMode =
   async (authRedirectUrl) => {
+    Logger.log(
+      DebugLevel.DEBUG,
+      `The requeste credential is a PersonIdentificationData, completing the user authorization with query mode`
+    );
     const query = parseUrl(authRedirectUrl).query;
 
     return parseAuthorizationResponse(query);
@@ -111,12 +116,21 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
  */
 export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePresented =
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
+    Logger.log(
+      DebugLevel.DEBUG,
+      `The requeste credential is not a PersonIdentificationData, requesting the credential to be presented`
+    );
     const authzRequestEndpoint =
       issuerConf.oauth_authorization_server.authorization_endpoint;
     const params = new URLSearchParams({
       client_id: clientId,
       request_uri: issuerRequestUri,
     });
+
+    Logger.log(
+      DebugLevel.DEBUG,
+      `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`
+    );
 
     const requestObject = await appFetch(
       `${authzRequestEndpoint}?${params.toString()}`,
@@ -128,6 +142,10 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
       .then((reqObj) => RequestObject.safeParse(reqObj.payload));
 
     if (!requestObject.success) {
+      Logger.log(
+        DebugLevel.ERROR,
+        `Error while validating the response object: ${requestObject.error.message}`
+      );
       throw new ValidationFailed({
         message: "Request Object validation failed",
         reason: requestObject.error.message,
@@ -154,6 +172,11 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
  */
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
   async (requestObject, ctx) => {
+    Logger.log(
+      DebugLevel.DEBUG,
+      `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
+    );
+
     const {
       wiaCryptoContext,
       pidCryptoContext,
@@ -192,6 +215,11 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       .setAudience(requestObject.response_uri)
       .sign();
 
+    Logger.log(
+      DebugLevel.DEBUG,
+      `Wallet instance attestation JWT token: ${wiaWpToken}`
+    );
+
     /* The path parameter refers to the vp_token variable of the authzResponsePayload and must point to the plain credential which
      * is cointaned in the `vp` property of the signed jwt token payload
      */
@@ -212,12 +240,22 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       ],
     };
 
+    Logger.log(
+      DebugLevel.DEBUG,
+      `Presentation submission: ${JSON.stringify(presentationSubmission)}`
+    );
+
     const authzResponsePayload = encodeBase64(
       JSON.stringify({
         state: requestObject.state,
         presentation_submission: presentationSubmission,
         vp_token: [pidWpToken, wiaWpToken],
       })
+    );
+
+    Logger.log(
+      DebugLevel.DEBUG,
+      `Authz response payload: ${authzResponsePayload}`
     );
 
     // Note: according to the spec, the response should be encrypted with the public key of the RP however this is not implemented yet
@@ -232,6 +270,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     const body = new URLSearchParams({
       response: authzResponsePayload,
     }).toString();
+
     const resUriRes = await appFetch(requestObject.response_uri, {
       method: "POST",
       headers: {
@@ -244,6 +283,10 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
 
     const responseUri = ResponseUriResultShape.safeParse(resUriRes);
     if (!responseUri.success) {
+      Logger.log(
+        DebugLevel.ERROR,
+        `Error while validating the response uri: ${responseUri.error.message}`
+      );
       throw new ValidationFailed({
         message: "Response Uri validation failed",
         reason: responseUri.error.message,
@@ -271,8 +314,16 @@ export const parseAuthorizationResponse = (
   if (!authResParsed.success) {
     const authErr = AuthorizationErrorShape.safeParse(authRes);
     if (!authErr.success) {
+      Logger.log(
+        DebugLevel.ERROR,
+        `Error while parsing the authorization response: ${authResParsed.error.message}`
+      );
       throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
     }
+    Logger.log(
+      DebugLevel.ERROR,
+      `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+    );
     throw new AuthorizationIdpError(
       authErr.data.error,
       authErr.data.error_description
