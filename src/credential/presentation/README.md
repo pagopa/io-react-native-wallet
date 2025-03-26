@@ -27,31 +27,11 @@ sequenceDiagram
 <details>
   <summary>Remote Presentation flow</summary>
 
+**Note:** To successfully complete a remote presentation, the Wallet Instance must be in a valid state with a valid Wallet Instance Attestation.
+
 ```ts
-// Scan e retrive qr-code, decode it and get its parameters
+// Retrieve and scan the qr-code, decode it and get its parameters
 const qrCodeParams = decodeQrCode(qrCode)
-
-// Retrieve the integrity key tag from the store and create its context
-const integrityKeyTag = "example"; // Let's assume this is the key tag used to create the wallet instance
-const integrityContext = getIntegrityContext(integrityKeyTag);
-
-// Let's assume the key esists befor starting the presentation process
-const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
-// Let's assume these are the environment variables
-const { WALLET_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI } = env;
-
-/**
- * Obtains a new Wallet Instance Attestation.
- * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
- */
-const walletInstanceAttestation =
-  await WalletInstanceAttestation.getAttestation({
-    wiaCryptoContext,
-    integrityContext,
-    walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-    appFetch,
-  });
 
 // Start the issuance flow
 const {
@@ -61,7 +41,7 @@ const {
   state
 } = Credential.Presentation.startFlowFromQR(qrCodeParams);
 
-// Get Relying Party's Entity Configuration and evaluate trust
+// Get the Relying Party's Entity Configuration and evaluate trust
 const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clientId);
 
 // Get the Request Object from the RP
@@ -77,8 +57,8 @@ const { requestObject } = await Credential.Presentation.verifyRequestObject(
 // All the credentials that might be requested by the Relying Party
 const credentialsSdJwt = [
   ["credential1_keytag", "credential1_sd-jwt"],
-  ["credential2_keytag", "credential2_sd-jwt"],
-]
+  ["credential2_keytag", "credential2_sd-jwt"]
+];
 
 const result = Credential.Presentation.evaluateDcqlQuery(
   credentialsSdJwt,
