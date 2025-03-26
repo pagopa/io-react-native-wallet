@@ -112,7 +112,7 @@ export const getAttestation = async ({
   );
 
   // 3. Request WIA
-  const { wallet_attestation: walletAttestation } = await api
+  const tokenResponse = await api
     .post("/token", {
       body: {
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
@@ -122,12 +122,9 @@ export const getAttestation = async ({
     .then((result) => TokenResponse.parse(result))
     .catch(handleAttestationCreationError);
 
-  Logger.log(
-    DebugLevel.DEBUG,
-    `Obtained wallet attestation ${walletAttestation}`
-  );
+  Logger.log(DebugLevel.DEBUG, `Obtained wallet attestation ${tokenResponse}`);
 
-  return walletAttestation;
+  return tokenResponse.wallet_attestation;
 };
 
 const handleAttestationCreationError = (e: unknown) => {
