@@ -35,7 +35,7 @@ const qrCodeParams = decodeQrCode(qrCode)
 
 // Start the issuance flow
 const {
-  requestURI,
+  requestUri,
   clientId,
   requestUriMethod,
   state
@@ -56,8 +56,8 @@ const { requestObject } = await Credential.Presentation.verifyRequestObject(
 
 // All the credentials that might be requested by the Relying Party
 const credentialsSdJwt = [
-  ["credential1_keytag", "credential1_sd-jwt"],
-  ["credential2_keytag", "credential2_sd-jwt"]
+  ["credential1_keytag", "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2"],
+  ["credential2_keytag", "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KIC"]
 ];
 
 const result = Credential.Presentation.evaluateDcqlQuery(
