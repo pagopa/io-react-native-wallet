@@ -12,7 +12,6 @@ import {
   ToastProvider,
 } from "@pagopa/io-app-design-system";
 import { DebugDataOverlay } from "./components/debug/DebugDataOverlay";
-import "./utils/logging";
 
 export default function App() {
   return (
