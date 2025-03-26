@@ -1,5 +1,62 @@
-extends layout
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Live Log Viewer
+    style.
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      pre {
+        background-color: #f4f4f4;
+        padding: 10px;
+        border-radius: 5px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      h1 {
+        color: #333;
+      }
+      button {
+        background-color: rgb(21, 7, 6);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #d32f2f;
+      }
+  body
+    h1 Debug Log Viewer
+    pre#logs
+    button#clearLogsButton Clear Logs
+    script.
+      const logContainer = document.getElementById('logs');
+      const clearLogsButton = document.getElementById('clearLogsButton');
 
-block content
-  h1= title
-  p Welcome to #{title}
+      // Open a connection to the SSE endpoint
+      const eventSource = new EventSource('/logs');
+
+      // Listen for updates and update the UI
+      eventSource.onmessage = function(event) {
+        const logs = JSON.parse(event.data);
+        logContainer.textContent = JSON.stringify(logs, null, 2);
+      };
+
+      // Add an event listener to clear logs when the button is clicked
+      clearLogsButton.addEventListener('click', function() {
+        fetch('/clearLogs', {
+          method: 'POST'
+        })
+        .then(response => response.text())
+        .then(message => {
+          console.log(message); // Logs the response message
+          logContainer.textContent = ''; // Clear the logs on the client side
+        })
+        .catch(error => console.error('Error clearing logs:', error));
+      });
