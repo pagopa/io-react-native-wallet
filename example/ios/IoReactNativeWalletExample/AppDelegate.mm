@@ -16,6 +16,7 @@
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
+// Required for deep linking to work (CIE ID authentication)
 - (BOOL)application:(UIApplication *)application
    openURL:(NSURL *)url
    options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
