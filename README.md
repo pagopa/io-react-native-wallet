@@ -97,6 +97,45 @@ The suggested library to manage integrity is [io-react-native-integrity](https:/
 </details>
 
 <details>
+  <summary>LoggingContext (logging)</summary>
+
+In order to log useful information while implementing the flows, the library supports custom logging logic by providing a `loggingContext` to the static `Logger` class:
+
+```ts
+export interface LoggingContext {
+  logDebug: (msg: string) => void;
+  logInfo: (msg: string) => void;
+  logWarn: (msg: string) => void;
+  logError: (msg: string) => void;
+}
+```
+
+An example of a custom logging context:
+
+```ts
+import { Logging } from "@pagopa/io-react-native-wallet";
+
+const loggingContext: Logging.LoggingContext = {
+  logDebug(msg: string) {
+    console.log("debug", msg);
+  },
+  logInfo(msg: string) {
+    console.log("info", msg);
+  },
+  logWarn(msg: string) {
+    console.log("warn", msg);
+  },
+  logError(msg: string) {
+    console.log("error", msg);
+  },
+};
+
+Logging.Logger.getInstance().initLogging(loggingContext);
+```
+
+</details>
+
+<details>
   <summary>appFetch (making HTTP requests)</summary>
 
 This package is compatibile with any http client which implements [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Functions that makes http requests allow for an optional `appFetch` parameter to provide a custom http client implementation. If not provided, the built-in implementation on the runtime is used.

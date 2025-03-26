@@ -1,3 +1,6 @@
+/**
+ * Logger interface which can be provided to the Logger class as a custom implementation.
+ */
 export interface LoggingContext {
   logDebug: (msg: string) => void;
   logInfo: (msg: string) => void;
@@ -5,6 +8,9 @@ export interface LoggingContext {
   logError: (msg: string) => void;
 }
 
+/**
+ * Supported debug levels.
+ */
 export enum DebugLevel {
   DEBUG,
   INFO,
@@ -12,6 +18,14 @@ export enum DebugLevel {
   ERROR,
 }
 
+/**
+ * Logger singleton class which provides a simple logging interface with an init function to set the logging context and
+ * a static log function to log messages based on the debug level.
+ * This can be used as follows:
+ * const logger = Logger.getInstance();
+ * logger.initLogging(yourLoggingContext);
+ * logger.log(DebugLevel.DEBUG, "Debug message");
+ */
 export class Logger {
   private static instance: Logger | null = null;
   private static loggingContext?: LoggingContext;
@@ -32,7 +46,7 @@ export class Logger {
     Logger.loggingContext = loggingCtx;
   }
 
-  // Method to log based on the level
+  // Method to log based on the level which wraps the null check for the logging context
   public static log(level: DebugLevel, msg: string): void {
     if (Logger.loggingContext) {
       switch (level) {
