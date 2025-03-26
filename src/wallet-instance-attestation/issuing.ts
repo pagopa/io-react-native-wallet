@@ -12,7 +12,7 @@ import {
   WalletProviderResponseErrorCodes,
 } from "../utils/errors";
 import { TokenResponse } from "./types";
-import { DebugLevel, Logger } from "../utils/logging";
+import { LogLevel, Logger } from "../utils/logging";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -94,7 +94,7 @@ export const getAttestation = async ({
   // 1. Get nonce from backend
   const challenge = await api.get("/nonce").then((response) => response.nonce);
   Logger.log(
-    DebugLevel.DEBUG,
+    LogLevel.DEBUG,
     `Challenge ${challenge} obtained from ${walletProviderBaseUrl}`
   );
 
@@ -106,7 +106,7 @@ export const getAttestation = async ({
     walletProviderBaseUrl
   );
   Logger.log(
-    DebugLevel.DEBUG,
+    LogLevel.DEBUG,
     `Signed attestation request: ${signedAttestationRequest}`
   );
 
@@ -121,14 +121,14 @@ export const getAttestation = async ({
     .then((result) => TokenResponse.parse(result))
     .catch(handleAttestationCreationError);
 
-  Logger.log(DebugLevel.DEBUG, `Obtained wallet attestation ${tokenResponse}`);
+  Logger.log(LogLevel.DEBUG, `Obtained wallet attestation ${tokenResponse}`);
 
   return tokenResponse.wallet_attestation;
 };
 
 const handleAttestationCreationError = (e: unknown) => {
   Logger.log(
-    DebugLevel.ERROR,
+    LogLevel.ERROR,
     `An error occurred while calling /token endpoint: ${e}`
   );
 

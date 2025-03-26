@@ -9,7 +9,7 @@ import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
 import { IssuerResponseError } from "./errors";
-import { DebugLevel, Logger } from "./logging";
+import { LogLevel, Logger } from "./logging";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
@@ -105,7 +105,7 @@ export const makeParRequest =
     });
 
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `Sending ${formBody} to PAR endpoint ${parEndpoint}`
     );
 

@@ -19,7 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
-import { DebugLevel, Logger } from "../../utils/logging";
+import { LogLevel, Logger } from "../../utils/logging";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -94,7 +94,7 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
 export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWithQueryMode =
   async (authRedirectUrl) => {
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `The requeste credential is a PersonIdentificationData, completing the user authorization with query mode`
     );
     const query = parseUrl(authRedirectUrl).query;
@@ -117,7 +117,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
 export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePresented =
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, requesting the credential to be presented`
     );
     const authzRequestEndpoint =
@@ -128,7 +128,7 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
     });
 
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`
     );
 
@@ -143,7 +143,7 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
 
     if (!requestObject.success) {
       Logger.log(
-        DebugLevel.ERROR,
+        LogLevel.ERROR,
         `Error while validating the response object: ${requestObject.error.message}`
       );
       throw new ValidationFailed({
@@ -173,7 +173,7 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
   async (requestObject, ctx) => {
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
 
@@ -216,7 +216,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       .sign();
 
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `Wallet instance attestation JWT token: ${wiaWpToken}`
     );
 
@@ -241,7 +241,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     };
 
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `Presentation submission: ${JSON.stringify(presentationSubmission)}`
     );
 
@@ -254,7 +254,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     );
 
     Logger.log(
-      DebugLevel.DEBUG,
+      LogLevel.DEBUG,
       `Authz response payload: ${authzResponsePayload}`
     );
 
@@ -284,7 +284,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     const responseUri = ResponseUriResultShape.safeParse(resUriRes);
     if (!responseUri.success) {
       Logger.log(
-        DebugLevel.ERROR,
+        LogLevel.ERROR,
         `Error while validating the response uri: ${responseUri.error.message}`
       );
       throw new ValidationFailed({
@@ -315,13 +315,13 @@ export const parseAuthorizationResponse = (
     const authErr = AuthorizationErrorShape.safeParse(authRes);
     if (!authErr.success) {
       Logger.log(
-        DebugLevel.ERROR,
+        LogLevel.ERROR,
         `Error while parsing the authorization response: ${authResParsed.error.message}`
       );
       throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
     }
     Logger.log(
-      DebugLevel.ERROR,
+      LogLevel.ERROR,
       `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
     );
     throw new AuthorizationIdpError(

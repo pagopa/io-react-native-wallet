@@ -13,7 +13,7 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
-import { DebugLevel, Logger } from "../../utils/logging";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -65,7 +65,7 @@ export const statusAttestation: StatusAttestation = async (
   };
 
   Logger.log(
-    DebugLevel.DEBUG,
+    LogLevel.DEBUG,
     `Credential pop: ${JSON.stringify(credentialPop)}`
   );
 

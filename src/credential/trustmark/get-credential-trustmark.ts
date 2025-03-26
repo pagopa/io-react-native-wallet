@@ -7,7 +7,7 @@ import {
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import { IoWalletError } from "../../utils/errors";
 import { obfuscateString } from "../../utils/string";
-import { DebugLevel, Logger } from "../../utils/logging";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type GetCredentialTrustmarkJwt = (params: {
   /**
@@ -75,7 +75,7 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
   );
 
   Logger.log(
-    DebugLevel.DEBUG,
+    LogLevel.DEBUG,
     `Decoded wia ${JSON.stringify(decodedWia.payload)} with holder binding key ${JSON.stringify(holderBindingKey)}`
   );
 
@@ -84,7 +84,7 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
    */
   if (decodedWia.payload.exp * 1000 < Date.now()) {
     Logger.log(
-      DebugLevel.ERROR,
+      LogLevel.ERROR,
       `Wallet Instance Attestation expired with exp: ${decodedWia.payload.exp}`
     );
     throw new IoWalletError("Wallet Instance Attestation expired");
@@ -98,7 +98,7 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
 
   if (wiaThumbprint !== cryptoContextThumbprint) {
     Logger.log(
-      DebugLevel.ERROR,
+      LogLevel.ERROR,
       `Failed to verify holder binding for status attestation, expected thumbprint: ${cryptoContextThumbprint}, got: ${wiaThumbprint}`
     );
     throw new IoWalletError(
@@ -107,7 +107,7 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
   }
 
   Logger.log(
-    DebugLevel.DEBUG,
+    LogLevel.DEBUG,
     `Wia thumbprint: ${wiaThumbprint} CryptoContext thumbprint: ${cryptoContextThumbprint}`
   );
 

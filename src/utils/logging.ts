@@ -11,7 +11,7 @@ export interface LoggingContext {
 /**
  * Supported debug levels.
  */
-export enum DebugLevel {
+export enum LogLevel {
   DEBUG,
   INFO,
   WARN,
@@ -24,7 +24,7 @@ export enum DebugLevel {
  * This can be used as follows:
  * const logger = Logger.getInstance();
  * logger.initLogging(yourLoggingContext);
- * logger.log(DebugLevel.DEBUG, "Debug message");
+ * logger.log(LogLevel.DEBUG, "Debug message");
  */
 export class Logger {
   private static instance: Logger | null = null;
@@ -47,19 +47,19 @@ export class Logger {
   }
 
   // Method to log based on the level which wraps the null check for the logging context
-  public static log(level: DebugLevel, msg: string): void {
+  public static log(level: LogLevel, msg: string): void {
     if (Logger.loggingContext) {
       switch (level) {
-        case DebugLevel.DEBUG:
+        case LogLevel.DEBUG:
           Logger.loggingContext.logDebug(msg);
           break;
-        case DebugLevel.INFO:
+        case LogLevel.INFO:
           Logger.loggingContext.logInfo(msg);
           break;
-        case DebugLevel.WARN:
+        case LogLevel.WARN:
           Logger.loggingContext.logWarn(msg);
           break;
-        case DebugLevel.ERROR:
+        case LogLevel.ERROR:
           Logger.loggingContext.logError(msg);
           break;
       }
