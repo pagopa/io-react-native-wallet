@@ -11,6 +11,8 @@ import {
   PROD_WALLET_PID_PROVIDER_BASE_URL,
   PROD_WALLET_PROVIDER_BASE_URL,
   PROD_VERIFIER_BASE_URL,
+  PRE_LOGGING_SERVER,
+  PROD_LOGGING_SERVER,
 } from "@env";
 import type { EnvType } from "../store/types";
 
@@ -24,6 +26,7 @@ export type Env = {
   REDIRECT_URI: string;
   GOOGLE_CLOUD_PROJECT_NUMBER: string;
   VERIFIER_BASE_URL: string;
+  LOGGING_SERVER: string;
 };
 
 /**
@@ -41,6 +44,7 @@ export const getEnv = (env: EnvType): Env => {
         REDIRECT_URI: PRE_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
         VERIFIER_BASE_URL: PRE_VERIFIER_BASE_URL,
+        LOGGING_SERVER: PRE_LOGGING_SERVER,
       };
     case "prod":
       return {
@@ -50,6 +54,7 @@ export const getEnv = (env: EnvType): Env => {
         REDIRECT_URI: PROD_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PROD_GOOGLE_CLOUD_PROJECT_NUMBER,
         VERIFIER_BASE_URL: PROD_VERIFIER_BASE_URL,
+        LOGGING_SERVER: PROD_LOGGING_SERVER,
       };
   }
 };
