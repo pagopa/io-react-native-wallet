@@ -17,12 +17,22 @@ import {
   type FetchPresentationDefinition,
 } from "./06-fetch-presentation-definition";
 import {
-  evaluateInputDescriptorForSdJwt4VC,
-  type EvaluateInputDescriptorSdJwt4VC,
+  evaluateInputDescriptors,
+  prepareLegacyRemotePresentations,
+  type EvaluateInputDescriptors,
+  type PrepareLegacyRemotePresentations,
 } from "./07-evaluate-input-descriptor";
+import {
+  evaluateDcqlQuery,
+  prepareRemotePresentations,
+  type EvaluateDcqlQuery,
+  type PrepareRemotePresentations,
+} from "./07-evaluate-dcql-query";
 import {
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
+  sendLegacyAuthorizationResponse,
+  type SendLegacyAuthorizationResponse,
 } from "./08-send-authorization-response";
 import * as Errors from "./errors";
 
@@ -33,8 +43,12 @@ export {
   getJwksFromConfig,
   verifyRequestObject,
   fetchPresentDefinition,
-  evaluateInputDescriptorForSdJwt4VC,
+  evaluateInputDescriptors,
+  evaluateDcqlQuery,
+  prepareLegacyRemotePresentations,
+  prepareRemotePresentations,
   sendAuthorizationResponse,
+  sendLegacyAuthorizationResponse,
   Errors,
 };
 export type {
@@ -44,6 +58,10 @@ export type {
   FetchJwks,
   VerifyRequestObject,
   FetchPresentationDefinition,
-  EvaluateInputDescriptorSdJwt4VC,
+  EvaluateInputDescriptors,
+  EvaluateDcqlQuery,
+  PrepareLegacyRemotePresentations,
+  PrepareRemotePresentations,
   SendAuthorizationResponse,
+  SendLegacyAuthorizationResponse,
 };
