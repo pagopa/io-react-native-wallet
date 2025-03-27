@@ -37,8 +37,8 @@ export const parseRawHttpResponse = <T extends Record<string, unknown>>(
 export type Out<FN> = FN extends (...args: any[]) => Promise<any>
   ? Awaited<ReturnType<FN>>
   : FN extends (...args: any[]) => any
-  ? ReturnType<FN>
-  : never;
+    ? ReturnType<FN>
+    : never;
 
 /**
  * TODO [SIW-1310]: replace this function with a cryptographically secure one.
