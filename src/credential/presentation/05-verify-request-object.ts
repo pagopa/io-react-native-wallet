@@ -8,8 +8,9 @@ export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
   context: {
     clientId: string;
-    // jwkKeys: Out<FetchJwks>["keys"];
     rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"];
+    rpSubject: string;
+    state?: string;
   }
 ) => Promise<{ requestObject: RequestObject }>;
 
@@ -17,13 +18,13 @@ export type VerifyRequestObject = (
  * Function to verify the Request Object's signature and the client ID.
  * @param requestObjectEncodedJwt The Request Object in JWT format
  * @param context.clientId The client ID to verify
- * @param context.jwkKeys The set of keys to verify the signature
  * @param context.rpConf The Entity Configuration of the Relying Party
+ * @param context.state Optional state
  * @returns The verified Request Object
  */
 export const verifyRequestObject: VerifyRequestObject = async (
   requestObjectEncodedJwt,
-  { clientId, rpConf }
+  { clientId, rpConf, rpSubject, state }
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
   const { keys } = getJwksFromConfig(rpConf);
@@ -42,12 +43,20 @@ export const verifyRequestObject: VerifyRequestObject = async (
 
   const requestObject = RequestObject.parse(requestObjectJwt.payload);
 
-  if (
-    !((clientId === requestObject.client_id) /* && clientId === rpConf.sub */)
-  ) {
+  const isClientIdMatch =
+    clientId === requestObject.client_id && clientId === rpSubject;
+
+  if (!isClientIdMatch) {
     throw new UnverifiedEntityError(
       "Client ID does not match Request Object or Entity Configuration"
     );
+  }
+
+  const isStateMatch =
+    state && requestObject.state ? state === requestObject.state : true;
+
+  if (!isStateMatch) {
+    throw new UnverifiedEntityError("State does not match Request Object");
   }
 
   return { requestObject };
