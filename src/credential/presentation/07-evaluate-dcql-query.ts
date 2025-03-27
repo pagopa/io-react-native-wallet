@@ -11,9 +11,12 @@ import { ValidationFailed } from "../../utils/errors";
 import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
 
+/**
+ * The purpose for the credential request by the RP.
+ */
 type CredentialPurpose = {
-  description?: string;
   required: boolean;
+  description?: string;
 };
 
 export type EvaluateDcqlQuery = (
