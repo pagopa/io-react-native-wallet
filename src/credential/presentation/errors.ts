@@ -47,12 +47,12 @@ export class NoSuitableKeysFoundInEntityConfiguration extends IoWalletError {
 export class InvalidQRCodeError extends IoWalletError {
   code = "ERR_INVALID_QR_CODE";
 
-  /**
-   * @param detail A description of why the QR code is considered invalid.
-   */
-  constructor(detail: string) {
-    const message = `QR code is not valid: ${detail}.`;
-    super(message);
+  /** Detailed reason for the QR code validation failure. */
+  reason: string;
+
+  constructor(reason: string) {
+    super("Invalid QR code");
+    this.reason = reason;
   }
 }
 

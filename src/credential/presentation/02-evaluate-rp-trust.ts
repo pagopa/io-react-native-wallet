@@ -10,6 +10,7 @@ export type EvaluateRelyingPartyTrust = (
   }
 ) => Promise<{
   rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"];
+  subject: string;
 }>;
 
 /**
@@ -25,9 +26,9 @@ export const evaluateRelyingPartyTrust: EvaluateRelyingPartyTrust = async (
   { appFetch = fetch } = {}
 ) => {
   const {
-    payload: { metadata: rpConf },
+    payload: { metadata: rpConf, sub },
   } = await getRelyingPartyEntityConfiguration(rpUrl, {
     appFetch,
   });
-  return { rpConf };
+  return { rpConf, subject: sub };
 };

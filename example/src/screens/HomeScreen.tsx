@@ -64,6 +64,15 @@ const HomeScreen = () => {
             : Alert.alert("Register a wallet instance and obtain a PID first"),
       },
       {
+        label: "Presentations",
+        description: "Present credentials to a verifier",
+        icon: "chevronRight",
+        onPress: () =>
+          pid
+            ? navigation.navigate("Presentations")
+            : Alert.alert("Obtain a PID first"),
+      },
+      {
         label: "Status Attestation",
         description: "Obtain the status attestation of a credential",
         icon: "chevronRight",
@@ -99,6 +108,7 @@ const HomeScreen = () => {
         }}
         data={sections}
         keyExtractor={(item, index) => `${item.label}-${index}`}
+        ListFooterComponent={<VSpacer size={32} />}
         renderItem={({ item }) => (
           <>
             <ModuleSummary
