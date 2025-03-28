@@ -13,6 +13,7 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -62,6 +63,11 @@ export const statusAttestation: StatusAttestation = async (
   const body = {
     credential_pop: credentialPop,
   };
+
+  Logger.log(
+    LogLevel.DEBUG,
+    `Credential pop: ${JSON.stringify(credentialPop)}`
+  );
 
   const result = await appFetch(statusAttUrl, {
     method: "POST",

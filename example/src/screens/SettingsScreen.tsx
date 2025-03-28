@@ -3,18 +3,28 @@ import React, { useState } from "react";
 import { SafeAreaView, ScrollView } from "react-native";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
+  ButtonSolid,
   H1,
   IOVisualCostants,
   ListItemAction,
   RadioGroup,
+  TextInput,
   VSpacer,
   type RadioItem,
+  useIOToast,
 } from "@pagopa/io-app-design-system";
-import { envSet, selectEnv } from "../store/reducers/environment";
+import {
+  envSet,
+  loggingAddressSet,
+  selectEnv,
+  selectLoggingAddress,
+} from "../store/reducers/environment";
 import { selectIoAuthToken, sessionReset } from "../store/reducers/sesssion";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { instanceReset } from "../store/reducers/instance";
 import type { EnvType } from "../store/types";
+import { validateLoggingAddress } from "../utils/environment";
+import { initLogging } from "../utils/logging";
 
 /**
  * Settings screen component which allows to change the environment and manage the session.
@@ -23,12 +33,30 @@ const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const env = useAppSelector(selectEnv);
   const session = useAppSelector(selectIoAuthToken);
+  const currentDebugAddress = useAppSelector(selectLoggingAddress);
   const [selectedEnv, setSelectedEnv] = useState<EnvType>(env);
+  const [debugAddress, setDebugAddress] = useState<string>(
+    currentDebugAddress || ""
+  );
+  console.log(currentDebugAddress);
+  const toast = useIOToast();
 
   const toggleEnvionment = (selected: EnvType) => {
     dispatch(instanceReset()); // This resets the whole instance state beside the session
     dispatch(envSet(selected));
     setSelectedEnv(selected);
+  };
+
+  const setLoggingServer = () => {
+    try {
+      validateLoggingAddress(debugAddress);
+      dispatch(loggingAddressSet(debugAddress));
+      initLogging(debugAddress);
+      toast.success("Logging server set correctly");
+    } catch (e) {
+      console.log(e);
+      toast.error("Invalid logging server address");
+    }
   };
 
   const envRadioItems = (): ReadonlyArray<RadioItem<EnvType>> => [
@@ -63,6 +91,19 @@ const HomeScreen = () => {
           items={envRadioItems()}
           selectedItem={selectedEnv}
           onPress={toggleEnvionment}
+        />
+        <VSpacer />
+        <H1>Logging Server</H1>
+        <VSpacer size={8} />
+        <TextInput
+          value={debugAddress}
+          onChangeText={(test) => setDebugAddress(test)}
+          placeholder={"http://example.com:8080/sendLogs"}
+        />
+        <VSpacer size={8} />
+        <ButtonSolid
+          label="Set Logging Server"
+          onPress={() => setLoggingServer()}
         />
         <VSpacer />
         <H1>Session</H1>
