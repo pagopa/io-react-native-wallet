@@ -11,10 +11,9 @@ import {
   PROD_WALLET_PID_PROVIDER_BASE_URL,
   PROD_WALLET_PROVIDER_BASE_URL,
   PROD_VERIFIER_BASE_URL,
-  PRE_LOGGING_SERVER,
-  PROD_LOGGING_SERVER,
 } from "@env";
 import type { EnvType } from "../store/types";
+import * as z from "zod";
 
 /**
  * Environment type definition for both the pre and prod environments.
@@ -26,7 +25,6 @@ export type Env = {
   REDIRECT_URI: string;
   GOOGLE_CLOUD_PROJECT_NUMBER: string;
   VERIFIER_BASE_URL: string;
-  LOGGING_SERVER: string;
 };
 
 /**
@@ -44,7 +42,6 @@ export const getEnv = (env: EnvType): Env => {
         REDIRECT_URI: PRE_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
         VERIFIER_BASE_URL: PRE_VERIFIER_BASE_URL,
-        LOGGING_SERVER: PRE_LOGGING_SERVER,
       };
     case "prod":
       return {
@@ -54,7 +51,6 @@ export const getEnv = (env: EnvType): Env => {
         REDIRECT_URI: PROD_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PROD_GOOGLE_CLOUD_PROJECT_NUMBER,
         VERIFIER_BASE_URL: PROD_VERIFIER_BASE_URL,
-        LOGGING_SERVER: PROD_LOGGING_SERVER,
       };
   }
 };
@@ -72,6 +68,11 @@ export const CIE_UAT_IDPHINT =
   "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
 
 /**
+ * IDPHINT for SPID when using the PRE environment of the identity provider.
+ */
+export const SPID_DEMO_IDPHINT = "https://demo.spid.gov.it";
+
+/**
  * Utility function which returns the IDPHINT for CIE based on the selected environment.
  * @param env - The selected environment
  * @returns the IDPHINT for CIE based on the selected environment
@@ -79,7 +80,12 @@ export const CIE_UAT_IDPHINT =
 export const getCieIdpHint = (env: EnvType) =>
   env === "pre" ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT;
 
-/**
- * IDPHINT for SPID when using the PRE environment of the identity provider.
- */
-export const SPID_DEMO_IDPHINT = "https://demo.spid.gov.it";
+export const validateLoggingAddress = (address: string) =>
+  z
+    .string()
+    .regex(
+      new RegExp(
+        "^((https?:\\/\\/)|(www.))(?:([a-zA-Z]+)|(\\d+\\.\\d+\\.\\d+\\.\\d+)):\\d{4}\\/\\S*$"
+      )
+    )
+    .parse(address);

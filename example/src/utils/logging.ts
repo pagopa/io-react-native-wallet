@@ -4,21 +4,20 @@ import {
   logger,
   type transportFunctionType,
 } from "react-native-logs";
-import { getEnv } from "./environment";
-import type { EnvType } from "../store/types";
 
-export const initLogging = (env: EnvType) => {
-  const { LOGGING_SERVER } = getEnv(env);
-
+export const initLogging = (address: string) => {
   const customTransport: transportFunctionType<{}> = async (props) => {
-    await fetch(LOGGING_SERVER, {
+    console.log(address);
+    await fetch(address, {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ msg: props.msg, ...props.level }),
-    }).catch((_) => {});
+    }).catch((e) => {
+      console.log(e);
+    });
   };
 
   const reactNativeLogger = logger.createLogger({
