@@ -7,7 +7,6 @@ import {
 } from "react-native-vision-camera";
 import { useAppDispatch } from "../store/utils";
 import { useNavigation } from "@react-navigation/native";
-// Thunk or action you want to dispatch
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
@@ -24,7 +23,7 @@ export const QrScannerScreen = ({ route }: Props) => {
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState(false);
 
-  const device = useCameraDevice("back");
+  const backCameraDevice = useCameraDevice("back");
 
   const presentationBehavior = route.params.presentationBehavior;
 
@@ -54,7 +53,7 @@ export const QrScannerScreen = ({ route }: Props) => {
     },
   });
 
-  if (!device) {
+  if (!backCameraDevice) {
     return (
       <View>
         <Text>Camera not available!</Text>
@@ -67,7 +66,7 @@ export const QrScannerScreen = ({ route }: Props) => {
       {hasPermission ? (
         <Camera
           style={style.camera}
-          device={device}
+          device={backCameraDevice}
           isActive={true} // optionally disable camera after scanning
           codeScanner={codeScanner}
           audio={false}
