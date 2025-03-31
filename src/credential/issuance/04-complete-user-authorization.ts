@@ -31,9 +31,7 @@ export type CompleteUserAuthorizationWithFormPostJwtMode = (
     keyTag: string;
     requestedClaims: string[];
   }[],
-  context: {
-    appFetch?: GlobalFetch["fetch"];
-  }
+  appFetch?: GlobalFetch["fetch"]
 ) => Promise<AuthorizationResult>;
 
 export type GetRequestedCredentialToBePresented = (
@@ -166,13 +164,11 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
  * @returns the authorization response which contains code, state and iss
  */
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
-  async (requestObject, credentialsToPresent, ctx) => {
+  async (requestObject, credentialsToPresent, appFetch = fetch) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
-
-    const { appFetch = fetch } = ctx;
 
     const remotePresentations =
       await Credential.Presentation.prepareRemotePresentations(

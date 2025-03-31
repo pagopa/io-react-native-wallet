@@ -237,8 +237,7 @@ export const getCredential = async ({
   const { code } =
     await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
       requestObject,
-      credentialsToPresent,
-      {}
+      credentialsToPresent
     );
 
   // Generate the DPoP context which will be used for the whole issuance flow
