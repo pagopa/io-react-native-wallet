@@ -7,13 +7,13 @@ PODS:
   - hermes-engine (0.75.5):
     - hermes-engine/Pre-built (= 0.75.5)
   - hermes-engine/Pre-built (0.75.5)
-  - IOWalletCBOR (0.0.4)
+  - IOWalletCBOR (0.0.8)
   - JOSESwift (3.0.0)
-  - pagopa-io-react-native-cbor (1.0.0):
+  - pagopa-io-react-native-cbor (1.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
-    - IOWalletCBOR (~> 0.0.4)
+    - IOWalletCBOR (~> 0.0.8)
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
@@ -1706,11 +1706,11 @@ PODS:
   - RNSVG (15.5.0):
     - React-Core
   - SocketRocket (0.7.0)
-  - VisionCamera (4.3.1):
-    - VisionCamera/Core (= 4.3.1)
-    - VisionCamera/React (= 4.3.1)
-  - VisionCamera/Core (4.3.1)
-  - VisionCamera/React (4.3.1):
+  - VisionCamera (4.6.4):
+    - VisionCamera/Core (= 4.6.4)
+    - VisionCamera/React (= 4.6.4)
+  - VisionCamera/Core (4.6.4)
+  - VisionCamera/React (4.6.4):
     - React-Core
   - Yoga (0.0.0)
 
@@ -1962,9 +1962,9 @@ SPEC CHECKSUMS:
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
   hermes-engine: c9fe5870af65876125fdbbf833071b6f329db30d
-  IOWalletCBOR: 63f4fc24673b7aedaef1a211a8440b5a6b28f1d8
+  IOWalletCBOR: d2f114877d7c0f15e806efa252b45a20d588b685
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
-  pagopa-io-react-native-cbor: c3da2c12c0b18f1b0eb920c2c3d2516a553540c2
+  pagopa-io-react-native-cbor: 67deff69cba19d891a48879c8249fdd5afaffb3e
   pagopa-io-react-native-crypto: 93f984df8711eb72f3fb030eca51be6268fc96d6
   pagopa-io-react-native-jwt: 849b368d5d110849a4a8cc30480e6fc8eceb0cc2
   pagopa-io-react-native-login-utils: 090a98354cdbbf176059a1aa4163120468ee4356
@@ -2033,9 +2033,9 @@ SPEC CHECKSUMS:
   RNScreens: d25db6fa46bf5edb5e3241b089346e56af331091
   RNSVG: b986585e367f4a49d8aa43065066cc9c290b3d9b
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
-  VisionCamera: 58d2120e6e23c155b25f4702b7912dc2b1e5e8c2
+  VisionCamera: b5c2b3c45e641102902a5194af11dc532805221e
   Yoga: 1dd9dabb9df8fe08f12cd522eae04a2da0e252eb
 
-PODFILE CHECKSUM: e364da09830a3daaf75ba1529644cd1fade86fb6
+PODFILE CHECKSUM: 8f9bfdd456971d8cd071bc8c149e90de0318b28e
 
 COCOAPODS: 1.15.2
