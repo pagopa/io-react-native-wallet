@@ -118,20 +118,16 @@ export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
  * @param key2 The second key
  * @returns true if the keys are deep equal, false otherwise
  */
-export const deepCompareKeys = (key1 : PublicKey, key2 : PublicKey) => {
-  if (key1.kty === 'EC' && key2.kty === 'EC') {
-    return key1.crv === key2.crv &&
-      key1.x === key2.x &&
-      key1.y === key2.y
+export const deepCompareKeys = (key1: PublicKey, key2: PublicKey) => {
+  if (key1.kty === "EC" && key2.kty === "EC") {
+    return key1.crv === key2.crv && key1.x === key2.x && key1.y === key2.y;
   }
-  if (key1.kty === 'RSA' && key2.kty === 'RSA') {
-    return key1.alg === key2.alg &&
-      key1.e === key2.e &&
-      key1.n === key2.n
+  if (key1.kty === "RSA" && key2.kty === "RSA") {
+    return key1.alg === key2.alg && key1.e === key2.e && key1.n === key2.n;
   }
 
-  return false
-}
+  return false;
+};
 
 /**
  * This helper function converts a DEM certificate in PEM format by adding newlines and
@@ -141,19 +137,19 @@ export const deepCompareKeys = (key1 : PublicKey, key2 : PublicKey) => {
  */
 export const derToPem = (der: string | ArrayBuffer): string => {
   let base64: string;
-  
+
   // Se 'der' è un ArrayBuffer, convertiamolo in una stringa Base64
   if (der instanceof ArrayBuffer) {
     // Converte l'ArrayBuffer in una stringa Base64
-    base64 = Buffer.from(new Uint8Array(der)).toString('base64');
+    base64 = Buffer.from(new Uint8Array(der)).toString("base64");
   } else {
     // Se è già una stringa, assumiamo che sia in Base64
     base64 = der;
   }
-  
+
   // Inserisce interruzioni di linea ogni 64 caratteri, come richiesto dal formato PEM
-  const formatted = base64.replace(/(.{64})/g, '$1\n').trim();
-  
+  const formatted = base64.replace(/(.{64})/g, "$1\n").trim();
+
   // Costruisce il certificato PEM
   return `-----BEGIN CERTIFICATE-----\n${formatted}\n-----END CERTIFICATE-----`;
-}
+};

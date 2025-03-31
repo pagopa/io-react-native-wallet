@@ -19,7 +19,7 @@ export type VerifyAndParseCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
-  credentialType : string,
+  credentialType: string,
   context: {
     credentialCryptoContext: CryptoContext;
     /**
@@ -158,7 +158,7 @@ const parseCredentialSdJwt = (
 const parseCredentialMDoc = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
-  credential_type : string,
+  credential_type: string,
   { issuerSigned }: DecodedMDocCredential,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
@@ -316,7 +316,6 @@ async function verifyCredentialMDoc(
   issuerKeys: JWK[],
   holderBindingContext: CryptoContext
 ): Promise<DecodedMDocCredential> {
-  console.log(rawCredential)
   /**
    * For the moment, being that issues in the crypto key generation
    * have been found on Android, the check for the deviceKey inside
@@ -341,13 +340,12 @@ async function verifyCredentialMDoc(
   //const key = decodedCredential.mDoc.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
   //
   //if (!deepCompareKeys(key, holderBindingKey as PublicKey)) {
-  //  console.log(decodedCredential)
   //  throw new IoWalletError(
   //    `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
   //  );
   //}
 
-  return decodedCredential ;
+  return decodedCredential;
 }
 
 // utility type that specialize VerifyAndParseCredential for given format
