@@ -166,7 +166,7 @@ const credentialsToPresent = dcqlQueryResult.map(
 
 // The app here should ask the user to confirm the required data contained in the requestObject
 
-// Complete the user authorization via form_post.jwt modeconst { code } =
+// Complete the user authorization via form_post.jwt mode
 const { code } =
   await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
     requestObject,
