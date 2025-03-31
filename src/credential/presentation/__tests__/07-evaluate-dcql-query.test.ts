@@ -102,6 +102,7 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
         purposes: [{ required: true }],
@@ -146,6 +147,7 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
         purposes: [{ required: true }],
@@ -157,6 +159,7 @@ describe("evaluateDcqlQuery", () => {
       },
       {
         id: "DrivingLicense",
+        vct: "MDL",
         keyTag: mdlKeyTag,
         credential: mdlSdJwt,
         purposes: [{ required: true }],
@@ -199,6 +202,7 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
         purposes: [{ description: "Identification", required: true }],
@@ -242,6 +246,7 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
         purposes: [{ description: "Identification", required: true }],
@@ -252,6 +257,7 @@ describe("evaluateDcqlQuery", () => {
       },
       {
         id: "MDL",
+        vct: "MDL",
         keyTag: mdlKeyTag,
         credential: mdlSdJwt,
         purposes: [{ description: "Extra services", required: false }],
@@ -322,6 +328,7 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
         purposes: [{ description: "Identification", required: true }],
@@ -333,6 +340,7 @@ describe("evaluateDcqlQuery", () => {
       },
       {
         id: "MDL",
+        vct: "MDL",
         keyTag: mdlKeyTag,
         credential: mdlSdJwt,
         purposes: [{ description: "Identification", required: true }],
@@ -395,6 +403,7 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
         credential: pidSdJwt,
         purposes: [{ description: "Identification", required: true }],
@@ -406,6 +415,7 @@ describe("evaluateDcqlQuery", () => {
       },
       {
         id: "MDL",
+        vct: "MDL",
         keyTag: mdlKeyTag,
         credential: mdlSdJwt,
         purposes: [
