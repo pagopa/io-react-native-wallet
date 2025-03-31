@@ -79,16 +79,20 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     ...(state && { state }),
   });
 
-  const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(
-    qrParams.clientId
-  );
+  const { rpConf, subject } =
+    await Credential.Presentation.evaluateRelyingPartyTrust(qrParams.clientId);
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(qrParams.requestUri);
 
   const { requestObject } = await Credential.Presentation.verifyRequestObject(
     requestObjectEncodedJwt,
-    { clientId: qrParams.clientId, rpConf }
+    {
+      rpConf,
+      clientId: qrParams.clientId,
+      rpSubject: subject,
+      state: qrParams.state,
+    }
   );
 
   const pid = selectPid(getState());
