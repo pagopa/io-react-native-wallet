@@ -140,13 +140,37 @@ const requestObject =
     appFetch
   );
 
+// The credentials to be presented will always include the PID and WIA
+// in a credential issuance flow
+const credentialsSdJwt = [
+  [pid.keyTag, pid.credential],
+  [WIA_KEYTAG, walletInstanceAttestation],
+] as [string, string][];
+
+if (!requestObject.dcql_query) {
+  throw new Error("Invalid request object");
+}
+
+// Assuming that WIA is a SD-JWT
+const dcqlQueryResult = Credential.Presentation.evaluateDcqlQuery(
+  credentialsSdJwt,
+  requestObject.dcql_query as DcqlQuery
+);
+
+const credentialsToPresent = dcqlQueryResult.map(
+  ({ requiredDisclosures, ...rest }) => ({
+    ...rest,
+    requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
+  })
+);
+
 // The app here should ask the user to confirm the required data contained in the requestObject
 
-// Complete the user authorization via form_post.jwt mode
+// Complete the user authorization via form_post.jwt modeconst { code } =
 const { code } =
   await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
     requestObject,
-    { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
+    credentialsToPresent
   );
 
 // Generate the DPoP context which will be used for the whole issuance flow

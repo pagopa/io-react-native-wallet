@@ -30,9 +30,7 @@ export type CompleteUserAuthorizationWithFormPostJwtMode = (
     keyTag: string;
     requestedClaims: string[];
   }[],
-  context: {
-    appFetch?: GlobalFetch["fetch"];
-  }
+  appFetch?: GlobalFetch["fetch"]
 ) => Promise<AuthorizationResult>;
 
 export type GetRequestedCredentialToBePresented = (
@@ -145,8 +143,7 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
  * @returns the authorization response which contains code, state and iss
  */
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
-  async (requestObject, credentialsToPresent, ctx) => {
-    const { appFetch = fetch } = ctx;
+  async (requestObject, credentialsToPresent, appFetch = fetch) => {
 
     const remotePresentations =
       await Credential.Presentation.prepareRemotePresentations(
