@@ -6,23 +6,32 @@ import {
 } from "dcql";
 import { isValiError } from "valibot";
 import { decode, prepareVpToken } from "../../sd-jwt";
-import type { Disclosure, DisclosureWithEncoded } from "../../sd-jwt/types";
+import type { Disclosure } from "../../sd-jwt/types";
 import { ValidationFailed } from "../../utils/errors";
 import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
 
-type EvaluateDcqlQuery = (
+/**
+ * The purpose for the credential request by the RP.
+ */
+type CredentialPurpose = {
+  required: boolean;
+  description?: string;
+};
+
+export type EvaluateDcqlQuery = (
   credentialsSdJwt: [string /* keyTag */, string /* credential */][],
   query: DcqlQuery.Input
 ) => {
   id: string;
+  vct: string;
   credential: string;
   keyTag: string;
-  requiredDisclosures: DisclosureWithEncoded[];
-  isOptional?: boolean;
+  requiredDisclosures: Disclosure[];
+  purposes: CredentialPurpose[];
 }[];
 
-type PrepareRemotePresentations = (
+export type PrepareRemotePresentations = (
   credentials: {
     id: string;
     credential: string;
@@ -90,7 +99,6 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     if (!queryResult.canBeSatisfied) {
       throw new Error("No credential can satisfy the provided DCQL query");
     }
-
     // Build an object vct:credentialJwt to map matched credentials to their JWT
     const credentialsSdJwtByVct = credentials.reduce(
       (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
@@ -103,24 +111,24 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
       }
       const { vct, claims } = match.output;
 
-      // Find a matching credential set to see whether the credential is optional
-      // If no credential set is found, then the credential is required by default
-      // NOTE: This is an extra, it might not be necessary
-      const credentialSet = queryResult.credential_sets?.find((set) =>
-        set.matching_options?.flat().includes(vct)
-      );
-      const isOptional = credentialSet ? !credentialSet.required : false;
+      const purposes = queryResult.credential_sets
+        ?.filter((set) => set.matching_options?.flat().includes(id))
+        ?.map<CredentialPurpose>((credentialSet) => ({
+          description: credentialSet.purpose?.toString(),
+          required: Boolean(credentialSet.required),
+        }));
 
       const [keyTag, credential] = credentialsSdJwtByVct[vct]!;
-      const requiredDisclosures = Object.values(
-        claims
-      ) as DisclosureWithEncoded[];
+      const requiredDisclosures = Object.values(claims) as Disclosure[];
       return {
         id,
+        vct,
         keyTag,
         credential,
-        isOptional,
         requiredDisclosures,
+        // When it is a match but no credential_sets are found, the credential is required by default
+        // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
+        purposes: purposes ?? [{ required: true }],
       };
     });
   } catch (error) {

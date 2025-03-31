@@ -4,9 +4,8 @@ import { RequestObjectWalletCapabilities } from "./types";
 
 export type GetRequestObject = (
   requestUri: Out<StartFlow>["requestUri"],
-  context: {
+  context?: {
     appFetch?: GlobalFetch["fetch"];
-    walletInstanceAttestation: string;
     walletCapabilities?: RequestObjectWalletCapabilities;
   }
 ) => Promise<{ requestObjectEncodedJwt: string }>;
@@ -23,7 +22,7 @@ export type GetRequestObject = (
  */
 export const getRequestObject: GetRequestObject = async (
   requestUri,
-  { appFetch = fetch, walletCapabilities }
+  { appFetch = fetch, walletCapabilities } = {}
 ) => {
   if (walletCapabilities) {
     // Validate external input

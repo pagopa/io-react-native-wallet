@@ -12,6 +12,7 @@ export type TestScenarioProp = {
   onPress: () => void;
   icon: IOIcons;
   isPresent?: boolean;
+  successMessage?: string;
 } & AsyncStatus;
 
 export default function TestScenario({
@@ -20,6 +21,7 @@ export default function TestScenario({
   isLoading,
   hasError,
   icon,
+  successMessage = "OBTAINED",
   isPresent = false,
 }: TestScenarioProp) {
   const [hasLoaded, setHasLoaded] = useState(false); // This in needed to avoid the error toast to be shown on the first render
@@ -40,13 +42,13 @@ export default function TestScenario({
 
   const getBadge = useCallback((): Badge | undefined => {
     if (isPresent) {
-      return { text: "OBTAINED", variant: "success" };
+      return { text: successMessage, variant: "success" };
     } else if (hasError.status) {
       return { text: "ERROR", variant: "error" };
     } else {
       return undefined;
     }
-  }, [hasError, isPresent]);
+  }, [hasError, isPresent, successMessage]);
 
   return (
     <ModuleCredential
