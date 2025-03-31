@@ -24,6 +24,7 @@ export type EvaluateDcqlQuery = (
   query: DcqlQuery.Input
 ) => {
   id: string;
+  vct: string;
   credential: string;
   keyTag: string;
   requiredDisclosures: Disclosure[];
@@ -121,6 +122,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
       const requiredDisclosures = Object.values(claims) as Disclosure[];
       return {
         id,
+        vct,
         keyTag,
         credential,
         requiredDisclosures,
