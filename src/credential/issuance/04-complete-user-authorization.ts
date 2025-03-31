@@ -8,10 +8,7 @@ import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import {
-  decode,
-  encodeBase64,
-  } from "@pagopa/io-react-native-jwt";
+import { decode, encodeBase64 } from "@pagopa/io-react-native-jwt";
 import { type RemotePresentation, RequestObject } from "../presentation/types";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
