@@ -11,15 +11,13 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import {
   decode,
   encodeBase64,
-  SignJWT,
-  type CryptoContext,
-} from "@pagopa/io-react-native-jwt";
-import { RequestObject } from "../presentation/types";
-import { v4 as uuidv4 } from "uuid";
+  } from "@pagopa/io-react-native-jwt";
+import { type RemotePresentation, RequestObject } from "../presentation/types";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
 import { LogLevel, Logger } from "../../utils/logging";
+import { Credential } from "@pagopa/io-react-native-wallet";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -30,11 +28,13 @@ export type CompleteUserAuthorizationWithQueryMode = (
 
 export type CompleteUserAuthorizationWithFormPostJwtMode = (
   requestObject: Out<GetRequestedCredentialToBePresented>,
+  credentials: {
+    id: string;
+    credential: string;
+    keyTag: string;
+    requestedClaims: string[];
+  }[],
   context: {
-    wiaCryptoContext: CryptoContext;
-    pidCryptoContext: CryptoContext;
-    pid: string;
-    walletInstanceAttestation: string;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<AuthorizationResult>;
@@ -160,101 +160,34 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
 /**
  * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link completeUserAuthorizationWithFormPostJwtMode}.
  * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
- * It is used as a first step to complete the user authorization by obtaining the requested credential to be presented from the authorization server.
- * The information is obtained by performing a GET request to the authorization endpoint with request_uri and client_id parameters.
- * @param issuerRequestUri the URI of the issuer where the request is sent
- * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param context.walletInstanceAccestation the Wallet Instance's attestation to be presented
- * @param context.pid the PID to be presented
- * @param context.wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
- * @param context.pidCryptoContext The PID crypto context associated with the pid parameter
- * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * The information is obtained by performing a POST request to the endpoint received in the response_uri field of the requestObject, where the Authorization Response payload is posted.
+ * Following this,the redirect_uri from the response is used to obtain the final authorization response.
+ * @param requestObject - The request object containing the necessary parameters for authorization.
+ * @param credentialsToPresent the credentials to be presented, which will always include the PID and WIA in a credential issuance flow
+ * @param appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {ValidationFailed} if an error while validating the response
  * @returns the authorization response which contains code, state and iss
  */
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
-  async (requestObject, ctx) => {
+  async (requestObject, credentialsToPresent, ctx) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
 
-    const {
-      wiaCryptoContext,
-      pidCryptoContext,
-      pid,
-      walletInstanceAttestation,
-      appFetch = fetch,
-    } = ctx;
+    const { appFetch = fetch } = ctx;
 
-    const wiaWpToken = await new SignJWT(wiaCryptoContext)
-      .setProtectedHeader({
-        alg: "ES256",
-        typ: "JWT",
-      })
-      .setPayload({
-        vp: walletInstanceAttestation,
-        jti: uuidv4().toString(),
-        nonce: requestObject.nonce,
-      })
-      .setIssuedAt()
-      .setExpirationTime("5m")
-      .setAudience(requestObject.response_uri)
-      .sign();
+    const remotePresentations =
+      await Credential.Presentation.prepareRemotePresentations(
+        credentialsToPresent,
+        requestObject.nonce,
+        requestObject.client_id
+      );
 
-    const pidWpToken = await new SignJWT(pidCryptoContext)
-      .setProtectedHeader({
-        alg: "ES256",
-        typ: "JWT",
-      })
-      .setPayload({
-        vp: pid,
-        jti: uuidv4().toString(),
-        nonce: requestObject.nonce,
-      })
-      .setIssuedAt()
-      .setExpirationTime("5m")
-      .setAudience(requestObject.response_uri)
-      .sign();
-
-    Logger.log(
-      LogLevel.DEBUG,
-      `Wallet instance attestation JWT token: ${wiaWpToken}`
-    );
-
-    /* The path parameter refers to the vp_token variable of the authzResponsePayload and must point to the plain credential which
-     * is cointaned in the `vp` property of the signed jwt token payload
-     */
-    const presentationSubmission = {
-      definition_id: `${uuidv4()}`,
-      id: `${uuidv4()}`,
-      descriptor_map: [
-        {
-          id: "PersonIdentificationData",
-          path: "$.vp_token[0].vp",
-          format: "vc+sd-jwt",
-        },
-        {
-          id: "WalletAttestation",
-          path: "$.vp_token[1].vp",
-          format: "jwt",
-        },
-      ],
-    };
-
-    Logger.log(
-      LogLevel.DEBUG,
-      `Presentation submission: ${JSON.stringify(presentationSubmission)}`
-    );
-
-    const authzResponsePayload = encodeBase64(
-      JSON.stringify({
-        state: requestObject.state,
-        presentation_submission: presentationSubmission,
-        vp_token: [pidWpToken, wiaWpToken],
-      })
-    );
+    const authzResponsePayload = createAuthzResponsePayload({
+      state: requestObject.state,
+      remotePresentations,
+    });
 
     Logger.log(
       LogLevel.DEBUG,
@@ -334,3 +267,30 @@ export const parseAuthorizationResponse = (
   }
   return authResParsed.data;
 };
+
+/**
+ * Creates the authorization response payload to be sent.
+ * This payload includes the state and the VP tokens for the presented credentials.
+ * The payload is encoded in Base64.
+ * @param state - The state parameter from the request object (optional).
+ * @param remotePresentations - An array of remote presentations containing credential IDs and their corresponding VP tokens.
+ * @returns The Base64 encoded authorization response payload.
+ */
+const createAuthzResponsePayload = ({
+  state,
+  remotePresentations,
+}: {
+  state?: string;
+  remotePresentations: RemotePresentation[];
+}): string =>
+  encodeBase64(
+    JSON.stringify({
+      ...(state ? { state } : {}),
+      vp_token: Object.fromEntries(
+        remotePresentations.map(({ credentialId, vpToken }) => [
+          credentialId,
+          vpToken,
+        ])
+      ),
+    })
+  );

@@ -81,15 +81,14 @@ export const getCredentialThunk = createAppAsyncThunk<
   if (!pid) {
     throw new Error("PID not found");
   }
-  const pidCryptoContext = createCryptoContextFor(pid.keyTag);
   return await getCredential({
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
     redirectUri: REDIRECT_URI,
     credentialType,
+    pid: pid,
+    // TODO handle like PID
     walletInstanceAttestation,
     wiaCryptoContext,
-    pid: pid.credential,
-    pidCryptoContext,
   });
 });
 
