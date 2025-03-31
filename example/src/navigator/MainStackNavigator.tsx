@@ -26,6 +26,11 @@ import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch } from "../store/utils";
 import { labelByCredentialType } from "../utils/ui";
 import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
+import { PresentationScreen } from "../screens/PresentationScreen";
+import {
+  QrScannerScreen,
+  type QrScannerScreenParams,
+} from "../screens/QrScannerScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -47,6 +52,8 @@ export type MainStackNavParamList = {
     authUrl: string;
     redirectUri: string;
   };
+  Presentations: undefined;
+  QrScanner: QrScannerScreenParams;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -121,6 +128,16 @@ export const MainStackNavigator = () => {
               name="StatusAttestation"
               component={StatusAttestationScreen}
               options={{ title: "Test credentials attestations" }}
+            />
+            <Stack.Screen
+              name="Presentations"
+              component={PresentationScreen}
+              options={{ title: "Presentation" }}
+            />
+            <Stack.Screen
+              name="QrScanner"
+              component={QrScannerScreen}
+              options={{ title: "Scan QR" }}
             />
             <Stack.Screen
               name="Trustmark"
