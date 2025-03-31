@@ -67,7 +67,6 @@ export const SdJwt4VC = z.object({
   ),
 });
 
-type Verification = z.infer<typeof Verification>;
 const Verification = z.object({
   trust_framework: z.string(),
   authentic_source: z.object({
@@ -79,7 +78,6 @@ const Verification = z.object({
   }),
 });
 
-type SvgTemplate = z.infer<typeof SvgTemplate>;
 const SvgTemplate = z.object({
   uri: z.string().url(),
   "uri#integrity": z.string(),
@@ -90,7 +88,6 @@ const SvgTemplate = z.object({
   }),
 });
 
-type SimpleRendering = z.infer<typeof SimpleRendering>;
 const SimpleRendering = z.object({
   logo: z.object({
     uri: z.string().url(),
@@ -101,7 +98,6 @@ const SimpleRendering = z.object({
   text_color: z.string().optional(),
 });
 
-type Display = z.infer<typeof Display>;
 const Display = z.array(
   z.object({
     lang: z.string(),
@@ -114,7 +110,6 @@ const Display = z.array(
   })
 );
 
-type ClaimDisplay = z.infer<typeof ClaimDisplay>;
 const ClaimDisplay = z.array(
   z.object({
     lang: z.string(),
@@ -123,7 +118,6 @@ const ClaimDisplay = z.array(
   })
 );
 
-type Claims = z.infer<typeof Claims>;
 const Claims = z.array(
   z.object({
     path: z.array(z.string()),
