@@ -122,7 +122,7 @@ const Claims = z.array(
   z.object({
     path: z.array(z.string()),
     display: ClaimDisplay,
-    sd: z.enum(["always", "never"]),
+    sd: z.union([z.literal("always"), z.literal("never")]),
     svg_id: z.string(),
   })
 );
