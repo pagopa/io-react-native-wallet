@@ -144,7 +144,6 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
  */
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
   async (requestObject, credentialsToPresent, appFetch = fetch) => {
-
     const remotePresentations =
       await Credential.Presentation.prepareRemotePresentations(
         credentialsToPresent,
