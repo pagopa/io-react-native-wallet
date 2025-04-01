@@ -140,7 +140,7 @@ export const obtainCredential: ObtainCredential = async (
       "Content-Type": "application/json",
       DPoP: tokenRequestSignedDPop,
       Authorization: `${accessToken.token_type} ${accessToken.access_token}`,
-      ...(operationType && { operationType }),
+      ...(operationType === "reissuing" && { operationType }),
     },
     body: JSON.stringify(credentialRequestFormBody),
   })
