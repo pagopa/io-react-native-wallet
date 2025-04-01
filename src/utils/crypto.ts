@@ -27,7 +27,7 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
      */
     async getPublicKey() {
       return getPublicKey(keytag)
-        .then(fixBase64WithLendingZero)
+        .then(fixBase64WithLeadingZero)
         .then(async (jwk) => ({
           ...jwk,
           // Keys in the TEE are not stored with their KID, which is supposed to be assigned when they are included in JWK sets.
@@ -52,20 +52,20 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
 /**
  * 
  * This function takes a JSON Web Key (JWK) and returns a new JWK with its base64-url properties (x, y, e, n) processed.
- * Each property is passed through the `removeLendingZeroAndParseb64u` function if it exists, which fixes any unwanted leading zeros.
+ * Each property is passed through the `removeLeadingZeroAndParseb64u` function if it exists, which fixes any unwanted leading zeros.
  *
  * @param key - The input JSON Web Key that may contain properties with potential leading zero issues.
  * @returns A new JSON Web Key with the processed properties.
  */
-const fixBase64WithLendingZero = (key: JWK): JWK =>{
+const fixBase64WithLeadingZero = (key: JWK): JWK =>{
   const { x, y, e, n, ...pk } = key;
 
   return {
     ...pk,
-    ...(x ? { x: removeLendingZeroAndParseb64u(x) } : {}),
-    ...(y ? { y: removeLendingZeroAndParseb64u(y) } : {}),
-    ...(e ? { e: removeLendingZeroAndParseb64u(e) } : {}),
-    ...(n ? { n: removeLendingZeroAndParseb64u(n) } : {}),
+    ...(x ? { x: removeLeadingZeroAndParseb64u(x) } : {}),
+    ...(y ? { y: removeLeadingZeroAndParseb64u(y) } : {}),
+    ...(e ? { e: removeLeadingZeroAndParseb64u(e) } : {}),
+    ...(n ? { n: removeLeadingZeroAndParseb64u(n) } : {}),
   };
 }
 
@@ -78,17 +78,15 @@ const fixBase64WithLendingZero = (key: JWK): JWK =>{
  * @param input - The base64 encoded string to process.
  * @returns A new base64-url encoded string with any leading zero removed.
  */
-const removeLendingZeroAndParseb64u = (input: string): string =>{
+const removeLeadingZeroAndParseb64u = (input: string): string =>{
   // Decode base64 input into a Buffer
   const buffer = Buffer.from(input, 'base64');
   const hex = buffer.toString('hex');
   // If the hex string starts with "00", remove the first two characters
   const fixedHex = hex.startsWith("00") ? hex.slice(2) : hex;
-
-  // Convert the (possibly modified) hex string back to a Buffer
   const newBuffer = Buffer.from(fixedHex, 'hex');
 
-  // Return the Buffer as a base64 encoded string
+  // removePadding convert base64 string to base64-url
   return removePadding(newBuffer.toString('base64'));
 }
 
