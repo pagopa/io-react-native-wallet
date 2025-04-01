@@ -10,9 +10,8 @@ describe("authorizeUserWithQueryMode", () => {
     };
     const authRedirectUrl = `test://cb?code=abcdefg&state=123456&iss=123456`;
 
-    const authResParsed = await completeUserAuthorizationWithQueryMode(
-      authRedirectUrl
-    );
+    const authResParsed =
+      await completeUserAuthorizationWithQueryMode(authRedirectUrl);
 
     expect(authResParsed).toMatchObject(authRes);
   });
