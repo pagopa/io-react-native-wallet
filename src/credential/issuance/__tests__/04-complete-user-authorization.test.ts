@@ -1,5 +1,10 @@
 import { AuthorizationError, AuthorizationIdpError } from "../errors";
-import { completeUserAuthorizationWithQueryMode } from "../04-complete-user-authorization";
+import {
+  buildAuthorizationUrl,
+  completeUserAuthorizationWithQueryMode,
+} from "../04-complete-user-authorization";
+import type { Out } from "src/utils/misc";
+import type { EvaluateIssuerTrust } from "src/credential/status";
 
 describe("authorizeUserWithQueryMode", () => {
   it("should return the authorization result when the authorization server responds with a valid response", async () => {
@@ -10,8 +15,9 @@ describe("authorizeUserWithQueryMode", () => {
     };
     const authRedirectUrl = `test://cb?code=abcdefg&state=123456&iss=123456`;
 
-    const authResParsed =
-      await completeUserAuthorizationWithQueryMode(authRedirectUrl);
+    const authResParsed = await completeUserAuthorizationWithQueryMode(
+      authRedirectUrl
+    );
 
     expect(authResParsed).toMatchObject(authRes);
   });
@@ -43,5 +49,42 @@ describe("authorizeUserWithQueryMode", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(AuthorizationError);
     }
+  });
+});
+
+describe("buildAuthorizationUrl", () => {
+  it("should build the authorization URL", async () => {
+    const authUrl = await buildAuthorizationUrl(
+      "issuerRequestUri",
+      "clientId",
+      {
+        oauth_authorization_server: {
+          authorization_endpoint: "https://issuer.com/authorize",
+        },
+      } as Out<EvaluateIssuerTrust>["issuerConf"],
+      "idpHint"
+    );
+
+    expect(authUrl).toMatchObject({
+      authUrl:
+        "https://issuer.com/authorize?client_id=clientId&request_uri=issuerRequestUri&idphint=idpHint",
+    });
+  });
+
+  it("should build the authorization URL without idpHint", async () => {
+    const authUrl = await buildAuthorizationUrl(
+      "issuerRequestUri",
+      "clientId",
+      {
+        oauth_authorization_server: {
+          authorization_endpoint: "https://issuer.com/authorize",
+        },
+      } as Out<EvaluateIssuerTrust>["issuerConf"]
+    );
+
+    expect(authUrl).toMatchObject({
+      authUrl:
+        "https://issuer.com/authorize?client_id=clientId&request_uri=issuerRequestUri",
+    });
   });
 });

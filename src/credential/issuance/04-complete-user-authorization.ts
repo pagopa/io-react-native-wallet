@@ -49,7 +49,7 @@ export type BuildAuthorizationUrl = (
   issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
   clientId: Out<StartUserAuthorization>["clientId"],
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  idpHint: string
+  idpHint?: string
 ) => Promise<{
   authUrl: string;
 }>;
@@ -60,7 +60,7 @@ export type BuildAuthorizationUrl = (
  * @param issuerRequestUri the URI of the issuer where the request is sent
  * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
  * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param idpHint Unique identifier of the IDP selected by the user
+ * @param idpHint Unique identifier of the IDP selected by the user (optional)
  * @returns An object containing the authorization URL
  */
 export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
@@ -75,8 +75,11 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
   const params = new URLSearchParams({
     client_id: clientId,
     request_uri: issuerRequestUri,
-    idphint: idpHint,
   });
+
+  if (idpHint) {
+    params.append("idphint", idpHint);
+  }
 
   const authUrl = `${authzRequestEndpoint}?${params}`;
 
