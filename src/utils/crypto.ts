@@ -50,14 +50,13 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
 };
 
 /**
- * 
  * This function takes a JSON Web Key (JWK) and returns a new JWK with its base64-url properties (x, y, e, n) processed.
  * Each property is passed through the `removeLeadingZeroAndParseb64u` function if it exists, which fixes any unwanted leading zeros.
  *
  * @param key - The input JSON Web Key that may contain properties with potential leading zero issues.
  * @returns A new JSON Web Key with the processed properties.
  */
-const fixBase64WithLeadingZero = (key: JWK): JWK =>{
+const fixBase64WithLeadingZero = (key: JWK): JWK => {
   const { x, y, e, n, ...pk } = key;
 
   return {
@@ -67,10 +66,9 @@ const fixBase64WithLeadingZero = (key: JWK): JWK =>{
     ...(e ? { e: removeLeadingZeroAndParseb64u(e) } : {}),
     ...(n ? { n: removeLeadingZeroAndParseb64u(n) } : {}),
   };
-}
+};
 
 /**
- * 
  * This function processes a base64-encoded string to remove any unwanted leading zeros.
  * It converts the input base64 string into a buffer, then to a hex string, checks for a leading "00",
  * and removes it if present. The result is then converted back to a base64-url.
@@ -78,17 +76,17 @@ const fixBase64WithLeadingZero = (key: JWK): JWK =>{
  * @param input - The base64 encoded string to process.
  * @returns A new base64-url encoded string with any leading zero removed.
  */
-const removeLeadingZeroAndParseb64u = (input: string): string =>{
+const removeLeadingZeroAndParseb64u = (input: string): string => {
   // Decode base64 input into a Buffer
-  const buffer = Buffer.from(input, 'base64');
-  const hex = buffer.toString('hex');
+  const buffer = Buffer.from(input, "base64");
+  const hex = buffer.toString("hex");
   // If the hex string starts with "00", remove the first two characters
   const fixedHex = hex.startsWith("00") ? hex.slice(2) : hex;
-  const newBuffer = Buffer.from(fixedHex, 'hex');
+  const newBuffer = Buffer.from(fixedHex, "hex");
 
   // removePadding convert base64 string to base64-url
-  return removePadding(newBuffer.toString('base64'));
-}
+  return removePadding(newBuffer.toString("base64"));
+};
 
 /**
  * Executes the input function injecting an ephemeral crypto context.
