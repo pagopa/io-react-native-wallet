@@ -339,7 +339,7 @@ async function verifyCredentialMDoc(
    */
   //const key = decodedCredential.mDoc.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
   //
-  //if (!deepCompareKeys(key, holderBindingKey as PublicKey)) {
+  //if (!compareKeysByThumbprint(key, holderBindingKey as PublicKey)) {
   //  throw new IoWalletError(
   //    `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
   //  );

@@ -109,16 +109,12 @@ export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
 });
 
 /**
- * This function takes two {@link PublicKey} and executes on them
- * a deep comparison, checking if they have the same kty, and,
- * in case they both are RSA keys, wether they use the same alg and
- * have the same e and n while, in case they both are EC keys, wether they
- * are defined on the same crv, and have the same x and y
+ * This function takes two {@link PublicKey} and evaluates and compares their thumbprints
  * @param key1 The first key
  * @param key2 The second key
- * @returns true if the keys are deep equal, false otherwise
+ * @returns true if the keys' thumbprints are equal, false otherwise
  */
-export const deepCompareKeys = async (key1: PublicKey, key2: PublicKey) => {
+export const compareKeysByThumbprint = async (key1: PublicKey, key2: PublicKey) => {
   const thumbprint1 = await thumbprint(key1);
   const thumbprint2 = await thumbprint(key2);
 
