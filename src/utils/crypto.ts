@@ -114,7 +114,10 @@ export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
  * @param key2 The second key
  * @returns true if the keys' thumbprints are equal, false otherwise
  */
-export const compareKeysByThumbprint = async (key1: PublicKey, key2: PublicKey) => {
+export const compareKeysByThumbprint = async (
+  key1: PublicKey,
+  key2: PublicKey
+) => {
   const thumbprint1 = await thumbprint(key1);
   const thumbprint2 = await thumbprint(key2);
 
