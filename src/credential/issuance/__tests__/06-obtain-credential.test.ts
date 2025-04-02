@@ -3,6 +3,7 @@ import { obtainCredential } from "../06-obtain-credential";
 import type { TokenResponse } from "../types";
 import type { AuthorizationDetail } from "src/utils/par";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import process from "node:process";
 
 describe("obtainCredential", () => {
   let mockFetch: jest.Mock;
@@ -19,6 +20,8 @@ describe("obtainCredential", () => {
   const mockClientId = "client_id";
 
   beforeEach(() => {
+    process.env.TOKEN_TYPE = "DPoP";
+    process.env.ACCESS_TOKEN = "mock_access_token";
     mockFetch = jest.fn().mockResolvedValue({
       status: 200,
       json: jest.fn().mockResolvedValue({
@@ -63,8 +66,8 @@ describe("obtainCredential", () => {
     } as CredentialIssuerEntityConfiguration["payload"]["metadata"];
 
     mockAccessToken = {
-      access_token: "mock_access_token",
-      token_type: "DPoP",
+      access_token: process.env.ACCESS_TOKEN,
+      token_type: process.env.TOKEN_TYPE,
       c_nonce: "mock_nonce",
       c_nonce_expires_in: 3600,
       expires_in: 3600,
