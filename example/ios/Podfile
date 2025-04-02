@@ -30,19 +30,6 @@ target 'IoReactNativeWalletExample' do
   end
 
   post_install do |installer|
-    # TODO: can be removed after upgrading RN version [WLEO-170]
-    deployment_target = min_ios_version_supported
-    installer.generated_projects.each do |project|
-        project.targets.each do |target|
-            target.build_configurations.each do |config|
-                config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = deployment_target
-            end
-        end
-        project.build_configurations.each do |config|
-            config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = deployment_target
-        end
-      end
-
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
