@@ -10,6 +10,8 @@ import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey } from "./jwk";
 import { X509, KEYUTIL, RSAKey, KJUR } from "jsrsasign";
 import { JWK } from "./jwk";
+import { isValid } from "js-base64";
+import { IoWalletError } from "./errors";
 
 /**
  * Create a CryptoContext bound to a key pair.
@@ -118,33 +120,35 @@ export const compareKeysByThumbprint = async (
   key1: PublicKey,
   key2: PublicKey
 ) => {
-  const thumbprint1 = await thumbprint(key1);
-  const thumbprint2 = await thumbprint(key2);
-
+  //Parallel for optimization
+  const [thumbprint1, thumbprint2] = await Promise.all([
+    thumbprint(key1),
+    thumbprint(key2),
+  ]);
   return thumbprint1 === thumbprint2;
 };
 
 /**
- * This helper function converts a DEM certificate in PEM format by adding newlines and
+ * This helper function converts a DER certificate in PEM format by adding newlines and
  * and the BEGIN|END CERTIFICATE lines
  * @param der The der certificate as a Base64 encoded {@link string} or as an {@link ArrayBuffer}
  * @returns the certificate in PEM format
  */
 export const derToPem = (der: string | ArrayBuffer): string => {
-  let base64: string;
+  // If der is an instance of ArrayBuffer, we convert it to string,
+  // otherwise, we check if it's in actual base64 format
+  const base64 =
+    der instanceof ArrayBuffer
+      ? Buffer.from(new Uint8Array(der)).toString("base64")
+      : isValid(der)
+        ? der
+        : undefined;
 
-  // Se 'der' è un ArrayBuffer, convertiamolo in una stringa Base64
-  if (der instanceof ArrayBuffer) {
-    // Converte l'ArrayBuffer in una stringa Base64
-    base64 = Buffer.from(new Uint8Array(der)).toString("base64");
-  } else {
-    // Se è già una stringa, assumiamo che sia in Base64
-    base64 = der;
-  }
+  if (!base64) throw new IoWalletError("Wrong certificate format");
 
-  // Inserisce interruzioni di linea ogni 64 caratteri, come richiesto dal formato PEM
+  // Insert line breaks exery 64 charachters, as PEM format specification demands
   const formatted = base64.replace(/(.{64})/g, "$1\n").trim();
 
-  // Costruisce il certificato PEM
+  // Create the PEM certificate
   return `-----BEGIN CERTIFICATE-----\n${formatted}\n-----END CERTIFICATE-----`;
 };
