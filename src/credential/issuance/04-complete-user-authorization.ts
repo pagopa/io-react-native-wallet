@@ -198,7 +198,6 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     /* The path parameter refers to the vp_token variable of the authzResponsePayload and must point to the plain credential which
      * is cointaned in the `vp` property of the signed jwt token payload
      */
-    // TODO: DCQL
     const presentationSubmission = {
       definition_id: `${uuidv4()}`,
       id: `${uuidv4()}`,
@@ -219,8 +218,8 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     const authzResponsePayload = encodeBase64(
       JSON.stringify({
         state: requestObject.state,
-        presentation_submission: presentationSubmission, // TODO: remove
-        vp_token: [pidWpToken, wiaWpToken], // TODO: modify DCQL
+        presentation_submission: presentationSubmission,
+        vp_token: [pidWpToken, wiaWpToken],
       })
     );
 
