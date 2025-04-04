@@ -2141,10 +2141,10 @@
     react-native-svg "^15.1.0"
     rn-placeholder "1.3.3"
 
-"@pagopa/io-react-native-cbor@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cbor/-/io-react-native-cbor-1.0.0.tgz#838f0cacd2a170af1509fea063228271c76acaec"
-  integrity sha512-CsbhJ4QnG1oc29o+042g30EmSba5pmAwx2Z3MdhaZTccic/jArabAxHj2qC/OHH4sTJwzNsuM4u/XIE9LyZyJA==
+"@pagopa/io-react-native-cbor@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cbor/-/io-react-native-cbor-1.1.0.tgz#56d2dc5673cb0237060194d43c83fd06ce244a83"
+  integrity sha512-yHzErZ3C9V5NDBEKvXWzgzUvedSI1p7T3njjdSO+a/a3HAK36DkBiB/yQlPEjdXOv9gdTh1S596AKm+/j/5bmQ==
   dependencies:
     zod "^3.24.1"
 

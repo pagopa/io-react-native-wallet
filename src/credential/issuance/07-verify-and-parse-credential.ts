@@ -19,6 +19,7 @@ export type VerifyAndParseCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
+  credentialType: string,
   context: {
     credentialCryptoContext: CryptoContext;
     /**
@@ -60,7 +61,7 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 };
 
 type DecodedMDocCredential = Out<typeof verifyMdoc> & {
-  mDoc: CBOR.MDOC;
+  issuerSigned: CBOR.IssuerSigned;
 };
 
 const parseCredentialSdJwt = (
@@ -157,10 +158,11 @@ const parseCredentialSdJwt = (
 const parseCredentialMDoc = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
-  { mDoc }: DecodedMDocCredential,
+  credential_type: string,
+  { issuerSigned }: DecodedMDocCredential,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentials_supported[mDoc.docType];
+  const credentialSubject = credentials_supported[credential_type];
 
   if (!credentialSubject) {
     throw new IoWalletError("Credential type not supported by the issuer");
@@ -189,12 +191,12 @@ const parseCredentialMDoc = (
     )
   );
 
-  if (!mDoc.issuerSigned.nameSpaces) {
+  if (!issuerSigned.nameSpaces) {
     throw new IoWalletError("Missing claims in the credential");
   }
 
   const flatNamespaces: [string, string, string][] = Object.entries(
-    mDoc.issuerSigned.nameSpaces
+    issuerSigned.nameSpaces
   ).flatMap(([namespace, values]) =>
     values.map(
       (v) =>
@@ -314,24 +316,36 @@ async function verifyCredentialMDoc(
   issuerKeys: JWK[],
   holderBindingContext: CryptoContext
 ): Promise<DecodedMDocCredential> {
-  const [decodedCredential] =
+  /**
+   * For the moment, being that issues in the crypto key generation
+   * have been found on Android, the check for the deviceKey inside
+   * of the mDoc is skipped, so we are not interested in the holderBindingKey
+   */
+  const [decodedCredential, _] =
     // parallel for optimization
     await Promise.all([
       verifyMdoc(rawCredential, issuerKeys),
       holderBindingContext.getPublicKey(),
     ]);
 
-  // TODO Implement the holder binding verification for MDOC
-
-  // Get only the first decoded credential
-
   if (!decodedCredential) {
     throw new IoWalletError("No MDOC credentials found!");
   }
 
-  return {
-    mDoc: decodedCredential.mDoc,
-  };
+  /**
+   * For the moment, being that issues in the crypto key generation
+   * have been found on Android, the check for the deviceKey inside
+   * of the mDoc is skipped.
+   */
+  //const key = decodedCredential.mDoc.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
+  //
+  //if (!compareKeysByThumbprint(key, holderBindingKey as PublicKey)) {
+  //  throw new IoWalletError(
+  //    `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
+  //  );
+  //}
+
+  return decodedCredential;
 }
 
 // utility type that specialize VerifyAndParseCredential for given format
@@ -339,13 +353,15 @@ type WithFormat<Format extends Parameters<VerifyAndParseCredential>[2]> = (
   _0: Parameters<VerifyAndParseCredential>[0],
   _1: Parameters<VerifyAndParseCredential>[1],
   _2: Format,
-  _3: Parameters<VerifyAndParseCredential>[3]
+  _3: Parameters<VerifyAndParseCredential>[3],
+  _4: Parameters<VerifyAndParseCredential>[4]
 ) => ReturnType<VerifyAndParseCredential>;
 
 const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
+  __,
   {
     credentialCryptoContext,
     ignoreMissingAttributes,
@@ -381,6 +397,7 @@ const verifyAndParseCredentialMDoc: WithFormat<"mso_mdoc"> = async (
   issuerConf,
   credential,
   _,
+  credentialType,
   { credentialCryptoContext, ignoreMissingAttributes }
 ) => {
   const decoded = await verifyCredentialMDoc(
@@ -391,6 +408,7 @@ const verifyAndParseCredentialMDoc: WithFormat<"mso_mdoc"> = async (
 
   const parsedCredential = parseCredentialMDoc(
     issuerConf.credential_configurations_supported,
+    credentialType,
     decoded,
     ignoreMissingAttributes
   );
@@ -432,6 +450,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   issuerConf,
   credential,
   format,
+  credentialType,
   context
 ) => {
   if (format === "vc+sd-jwt") {
@@ -439,6 +458,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
       issuerConf,
       credential,
       format,
+      credentialType,
       context
     );
   }
@@ -447,6 +467,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
       issuerConf,
       credential,
       format,
+      credentialType,
       context
     );
   }
