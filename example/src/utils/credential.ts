@@ -164,6 +164,7 @@ export const getCredential = async ({
       issuerConf,
       credential,
       format,
+      credentialType,
       { credentialCryptoContext, ignoreMissingAttributes: true }
     );
 
