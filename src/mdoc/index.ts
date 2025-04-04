@@ -2,7 +2,11 @@ import { CBOR, COSE } from "@pagopa/io-react-native-cbor";
 import type { JWK } from "../utils/jwk";
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import { b64utob64 } from "jsrsasign";
-import { derToPem, getSigningJwk, parsePublicKey } from "../utils/crypto";
+import {
+  convertCertToPem,
+  getSigningJwk,
+  parsePublicKey,
+} from "../utils/crypto";
 
 export const verify = async (
   token: string,
@@ -17,7 +21,7 @@ export const verify = async (
   const cert = issuerSigned.issuerAuth.unprotectedHeader[0]?.keyId;
   if (!cert) throw new Error("Certificate not present in credential");
 
-  const pemcert = derToPem(b64utob64(cert));
+  const pemcert = convertCertToPem(b64utob64(cert));
   const publickey = parsePublicKey(pemcert);
   if (!publickey) throw new Error("Certificate not present in credential");
 
