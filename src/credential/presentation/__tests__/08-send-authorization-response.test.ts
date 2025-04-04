@@ -123,12 +123,14 @@ describe("sendAuthorizationResponse", () => {
     },
   };
   const mockPresentationDefinitionId = "mock_presentation_definition_id";
-  const mockRemotePresentations = [
-    {
-      inputDescriptor: { id: "descriptor1", format: "jwt" },
-      vpToken: "mock_vp_token",
-    },
-  ] as unknown as RemotePresentation[];
+  const mockRemotePresentation = {
+    presentations: [
+      {
+        inputDescriptor: { id: "descriptor1", format: "jwt" },
+        vpToken: "mock_vp_token",
+      },
+    ] as unknown as RemotePresentation[],
+  } as unknown as RemotePresentation;
   const mockRpJwKeys: any = [{ kid: "rsa-key-enc", use: "enc", kty: "RSA" }];
 
   beforeEach(() => {
@@ -146,7 +148,7 @@ describe("sendAuthorizationResponse", () => {
       mockRequestObject as any,
       mockPresentationDefinitionId,
       mockRpJwKeys,
-      mockRemotePresentations,
+      mockRemotePresentation,
       { appFetch: mockFetch }
     );
 
@@ -164,19 +166,21 @@ describe("sendAuthorizationResponse", () => {
       ...mockRequestObject,
       response_mode: "direct_post.jwt",
     };
-    const multipleRemotePresentations = [
-      ...mockRemotePresentations,
-      {
-        inputDescriptor: { id: "descriptor2", format: "jwt" },
-        vpToken: "mock_vp_token2",
-      },
-    ] as unknown as RemotePresentation[];
+    const multipleRemotePresentation = {
+      presentations: [
+        ...mockRemotePresentation.presentations,
+        {
+          inputDescriptor: { id: "descriptor2", format: "jwt" },
+          vpToken: "mock_vp_token2",
+        },
+      ] as unknown as RemotePresentation[],
+    } as unknown as RemotePresentation;
 
     await sendAuthorizationResponse(
       directPostJwtRequest as any,
       mockPresentationDefinitionId,
       mockRpJwKeys,
-      multipleRemotePresentations,
+      multipleRemotePresentation,
       { appFetch: mockFetch }
     );
 
@@ -190,13 +194,15 @@ describe("sendAuthorizationResponse", () => {
       ...mockRequestObject,
       response_mode: "direct_post",
     };
-    const multipleRemotePresentations = [
-      ...mockRemotePresentations,
-      {
-        inputDescriptor: { id: "descriptor2", format: "jwt" },
-        vpToken: "mock_vp_token2",
-      },
-    ] as unknown as RemotePresentation[];
+    const multipleRemotePresentations = {
+      presentations: [
+        ...mockRemotePresentation.presentations,
+        {
+          inputDescriptor: { id: "descriptor2", format: "jwt" },
+          vpToken: "mock_vp_token2",
+        },
+      ] as unknown as RemotePresentation[],
+    } as unknown as RemotePresentation;
 
     await sendAuthorizationResponse(
       directPostJwtRequest as any,

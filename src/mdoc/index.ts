@@ -1,4 +1,4 @@
-import { CBOR, COSE } from "@pagopa/io-react-native-cbor";
+import { CBOR, COSE, ISO18013 } from "@pagopa/io-react-native-cbor";
 import type { JWK } from "../utils/jwk";
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import { b64utob64 } from "jsrsasign";
@@ -7,6 +7,8 @@ import {
   getSigningJwk,
   parsePublicKey,
 } from "../utils/crypto";
+import { type Presentation } from "../credential/presentation/types";
+import { base64ToBase64Url } from "../utils/string";
 
 export const verify = async (
   token: string,
@@ -37,4 +39,47 @@ export const verify = async (
   if (!signatureCorrect) throw new Error("Invalid mDoc signature");
 
   return { issuerSigned };
+};
+
+export const prepareVpTokenMdoc = async (
+  requestNonce: string,
+  generatedNonce: string,
+  clientId: string,
+  responseUri: string,
+  docType: string,
+  keyTag: string,
+  [verifiableCredential, requestedClaims, _]: Presentation
+): Promise<{
+  vp_token: string;
+}> => {
+  /* verifiableCredential is a IssuerSigned structure */
+  const documents = [
+    {
+      issuerSignedContent: verifiableCredential,
+      alias: keyTag,
+      docType,
+    },
+  ];
+
+  /* we map each requested claim as for ex. { "org.iso.18013.5.1.mDL" { <claim-name>: true, ... }} for selective disclosure */
+  const fieldRequestedAndAccepted = JSON.stringify({
+    [docType]: requestedClaims.reduce((acc, item) => {
+      return { ...acc, [item]: true };
+    }, {}),
+  });
+
+  /* clientId,responseUri,requestNonce are retrieved by Auth Request Object */
+  /* create DeviceResponse as { documents: { docType, issuerSigned, deviceSigned }, version, status } */
+  const vp_token = await ISO18013.generateOID4VPDeviceResponse(
+    clientId,
+    responseUri,
+    requestNonce,
+    generatedNonce,
+    documents,
+    fieldRequestedAndAccepted
+  );
+
+  return {
+    vp_token: base64ToBase64Url(vp_token),
+  };
 };
