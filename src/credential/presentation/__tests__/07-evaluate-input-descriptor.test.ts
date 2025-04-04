@@ -260,9 +260,41 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
 });
 
 describe("evaluateInputDescriptorForMdoc", () => {
+  const minimalIssuerAuth = {
+    rawValue: "mocked-issuerAuth",
+    unprotectedHeader: [
+      {
+        keyId: "mocked-keyId",
+        algorithm: "mocked-alg",
+      },
+    ],
+    payload: {
+      validityInfo: {
+        signed: new Date("2025-04-03T17:08:59Z"),
+        validFrom: new Date("2025-04-03T17:08:59Z"),
+        validUntil: new Date("2026-04-03T17:08:59Z"),
+      },
+      deviceKeyInfo: {
+        deviceKey: {
+          kty: "EC" as const,
+          crv: "P-256" as const,
+          x: "mocked-x",
+          y: "mocked-y",
+        },
+      },
+      valueDigests: {
+        "org.iso.18013.5.1": {
+          1: "Doe",
+          2: "John",
+          3: 20,
+        },
+      },
+    },
+  };
+
   const minimalPayloadCredential: CBOR.IssuerSigned = {
     // minimal payload
-    issuerAuth: "mocked-issuerAuth",
+    issuerAuth: minimalIssuerAuth,
     nameSpaces: {
       "org.iso.18013.5.1": [
         {
@@ -349,7 +381,7 @@ describe("evaluateInputDescriptorForMdoc", () => {
 
     const payloadCredential: CBOR.IssuerSigned = {
       // minimal payload
-      issuerAuth: "mocked-issuerAuth",
+      issuerAuth: minimalIssuerAuth,
       nameSpaces: {
         "org.iso.18013.5.1": [
           {

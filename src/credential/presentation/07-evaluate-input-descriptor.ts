@@ -107,15 +107,18 @@ const mapDisclosuresToObject = (
 const mapNamespacesToObject = (
   namespaces: CBOR.IssuerSigned["nameSpaces"]
 ): Record<string, unknown> => {
-  return Object.entries(namespaces).reduce((obj, [namespace, elements]) => {
-    obj[namespace] = Object.fromEntries(
-      elements.map((element) => [
-        element.elementIdentifier,
-        element.elementValue,
-      ])
-    );
-    return obj;
-  }, {} as Record<string, unknown>);
+  return Object.entries(namespaces).reduce(
+    (obj, [namespace, elements]) => {
+      obj[namespace] = Object.fromEntries(
+        elements.map((element) => [
+          element.elementIdentifier,
+          element.elementValue,
+        ])
+      );
+      return obj;
+    },
+    {} as Record<string, unknown>
+  );
 };
 
 /**
