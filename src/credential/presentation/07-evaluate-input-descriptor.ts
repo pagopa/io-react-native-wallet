@@ -68,7 +68,7 @@ export const disclosureWithEncodedToEvaluatedDisclosure = (
 type DecodedCredentialMdoc = {
   keyTag: string;
   credential: string;
-  mdoc: CBOR.MDOC;
+  issuerSigned: CBOR.IssuerSigned;
 };
 
 type DecodedCredentialSdJwt = {
@@ -429,11 +429,11 @@ export const findCredentialMDoc = (
   matchedKeyTag: string;
   matchedCredential: string;
 } => {
-  for (const { keyTag, credential, mdoc } of decodedMDocCredentials) {
+  for (const { keyTag, credential, issuerSigned } of decodedMDocCredentials) {
     try {
       const evaluatedDisclosure = evaluateInputDescriptorForMdoc(
         inputDescriptor,
-        mdoc.issuerSigned
+        issuerSigned
       );
 
       return {
@@ -483,13 +483,13 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
   const decodedMdocCredentials =
     (await Promise.all(
       credentialsMdoc?.map(async ([keyTag, credential]) => {
-        const cbor = await CBOR.decodeDocuments(credential);
-        if (!cbor || !cbor.documents || !cbor.documents[0]) {
+        const issuerSigned = await CBOR.decodeIssuerSigned(credential);
+        if (!issuerSigned) {
           throw new CredentialNotFoundError(
             "mso_mdoc credential is not present."
           );
         }
-        return { keyTag, credential, mdoc: cbor.documents[0] };
+        return { keyTag, credential, issuerSigned };
       })
     )) || [];
 
