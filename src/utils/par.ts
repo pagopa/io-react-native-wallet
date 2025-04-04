@@ -13,7 +13,7 @@ import { IssuerResponseError } from "./errors";
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
   credential_configuration_id: z.string(),
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]), // TODO: add dc+sd-jwt?
+  format: z.union([z.literal("dc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   type: z.literal("openid_credential"),
 });
 
