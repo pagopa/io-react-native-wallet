@@ -150,6 +150,7 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
         issuerConf,
         credential,
         format,
+        credentialType,
         { credentialCryptoContext }
       );
 
