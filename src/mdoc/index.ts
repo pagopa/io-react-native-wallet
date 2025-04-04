@@ -8,7 +8,7 @@ import {
   parsePublicKey,
 } from "../utils/crypto";
 import { type Presentation } from "../credential/presentation/types";
-import { base64ToBase64Url } from "..//utils/string";
+import { base64ToBase64Url } from "../utils/string";
 
 export const verify = async (
   token: string,
