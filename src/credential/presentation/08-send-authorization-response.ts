@@ -11,6 +11,7 @@ import {
 } from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
+import { Base64 } from "js-base64";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -82,13 +83,15 @@ export const buildDirectPostBody = async (
  * @param jwkKeys - Array of JWKs from the Relying Party for encryption.
  * @param requestObject - Contains state, nonce, and other relevant info.
  * @param payload - Object that contains either the VP token to encrypt and the mapping of the credential disclosures or the error code
+ * @param generatedNonce - Optional nonce for the `apu` claim in the JWE header, it is used during ISO 18013-7.
  * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body,
  *          where `response` contains the encrypted JWE.
  */
 export const buildDirectPostJwtBody = async (
   jwkKeys: Out<FetchJwks>["keys"],
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
-  payload: DirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload,
+  generatedNonce?: string
 ): Promise<string> => {
   // Prepare the authorization response payload to be encrypted
   const authzResponsePayload = JSON.stringify({
@@ -98,7 +101,6 @@ export const buildDirectPostJwtBody = async (
 
   // Choose a suitable RSA public key for encryption
   const encPublicJwk = choosePublicKeyToEncrypt(jwkKeys);
-
   // Encrypt the authorization payload
   const { client_metadata } = requestObject;
   const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
@@ -111,6 +113,9 @@ export const buildDirectPostJwtBody = async (
         | "A256CBC-HS512"
         | "A128CBC-HS256") || "A256CBC-HS512",
     kid: encPublicJwk.kid,
+    /* ISO 18013-7 */
+    apv: Base64.encodeURI(requestObject.nonce),
+    ...(generatedNonce ? { apu: Base64.encodeURI(generatedNonce) } : {}),
   }).encrypt(encPublicJwk);
 
   // Build the x-www-form-urlencoded form body
@@ -129,7 +134,7 @@ export type SendAuthorizationResponse = (
   requestObject: Out<VerifyRequestObjectSignature>["requestObject"],
   presentationDefinitionId: string,
   jwkKeys: Out<FetchJwks>["keys"],
-  remotePresentations: RemotePresentation[],
+  remotePresentation: RemotePresentation,
   context?: {
     appFetch?: GlobalFetch["fetch"];
   }
@@ -150,28 +155,25 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   requestObject,
   presentationDefinitionId,
   jwkKeys,
-  remotePresentations,
+  remotePresentation,
   { appFetch = fetch } = {}
 ): Promise<AuthorizationResponse> => {
+  const { generatedNonce, presentations } = remotePresentation;
   /**
    * 1. Prepare the VP token and presentation submission
    * If there is only one credential, `vpToken` is a single string.
    * If there are multiple credential, `vpToken` is an array of string.
    **/
   const vp_token =
-    remotePresentations?.length === 1
-      ? remotePresentations[0]?.vpToken
-      : remotePresentations.map(
-          (remotePresentation) => remotePresentation.vpToken
-        );
+    presentations?.length === 1
+      ? presentations[0]?.vpToken
+      : presentations.map((presentation) => presentation.vpToken);
 
-  const descriptor_map = remotePresentations.map(
-    (remotePresentation, index) => ({
-      id: remotePresentation.inputDescriptor.id,
-      path: remotePresentations.length === 1 ? `$` : `$[${index}]`,
-      format: remotePresentation.format,
-    })
-  );
+  const descriptor_map = presentations.map((presentation, index) => ({
+    id: presentation.inputDescriptor.id,
+    path: presentations?.length === 1 ? `$` : `$[${index}]`,
+    format: presentation.format,
+  }));
 
   const presentation_submission = {
     id: uuid.v4(),
@@ -182,17 +184,22 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   // 2. Choose the appropriate request body builder based on response mode
   const requestBody =
     requestObject.response_mode === "direct_post.jwt"
-      ? await buildDirectPostJwtBody(jwkKeys, requestObject, {
-          vp_token,
-          presentation_submission,
-        })
+      ? await buildDirectPostJwtBody(
+          jwkKeys,
+          requestObject,
+          {
+            vp_token,
+            presentation_submission,
+          },
+          generatedNonce
+        )
       : await buildDirectPostBody(requestObject, {
           vp_token,
           presentation_submission: presentation_submission,
         });
 
   // 3. Send the authorization response via HTTP POST and validate the response
-  return await appFetch(requestObject.response_uri, {
+  const authResponse = await appFetch(requestObject.response_uri, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -201,7 +208,10 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
-    .then(AuthorizationResponse.parse);
+    .then(AuthorizationResponse.safeParse);
+
+  // Some Relying Parties may return an empty body.
+  return authResponse.success ? authResponse.data : {};
 };
 
 /**

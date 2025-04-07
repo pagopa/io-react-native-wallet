@@ -45,14 +45,11 @@ export const obfuscateString = (
 };
 
 /**
- * Converts a hexadecimal byte string to a Base64 URL-encoded string.
+ * Converts a base64 string to a Base64 URL-encoded string.
  *
- * @param byteString - The input string in hexadecimal format.
+ * @param byteString - The input string in base64 format.
  * @returns The Base64 URL-encoded string.
  */
-export const base64ToBase64Url = (byteString: string): string => {
-  return byteString
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/[=]+$/, "");
+export const base64ToBase64Url = (base64: string): string => {
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/[=]+$/, "");
 };

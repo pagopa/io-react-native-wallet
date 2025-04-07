@@ -5,8 +5,10 @@ import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
 import { MissingDataError, CredentialNotFoundError } from "./errors";
 import Ajv from "ajv";
-import { base64ToBase64Url } from "../../utils/string";
 import { CBOR } from "@pagopa/io-react-native-cbor";
+import { prepareVpTokenMdoc } from "../../mdoc";
+import { generateRandomAlphaNumericString } from "../../utils/misc";
+
 const ajv = new Ajv({ allErrors: true });
 
 type EvaluatedDisclosures = {
@@ -51,9 +53,12 @@ export type PrepareRemotePresentations = (
     credential: string;
     keyTag: string;
   }[],
-  nonce: string,
-  client_id: string
-) => Promise<RemotePresentation[]>;
+  authRequestObject: {
+    nonce: string;
+    clientId: string;
+    responseUri: string;
+  }
+) => Promise<RemotePresentation>;
 
 export const disclosureWithEncodedToEvaluatedDisclosure = (
   disclosure: DisclosureWithEncoded
@@ -68,7 +73,7 @@ export const disclosureWithEncodedToEvaluatedDisclosure = (
 type DecodedCredentialMdoc = {
   keyTag: string;
   credential: string;
-  mdoc: CBOR.MDOC;
+  issuerSigned: CBOR.IssuerSigned;
 };
 
 type DecodedCredentialSdJwt = {
@@ -429,11 +434,11 @@ export const findCredentialMDoc = (
   matchedKeyTag: string;
   matchedCredential: string;
 } => {
-  for (const { keyTag, credential, mdoc } of decodedMDocCredentials) {
+  for (const { keyTag, credential, issuerSigned } of decodedMDocCredentials) {
     try {
       const evaluatedDisclosure = evaluateInputDescriptorForMdoc(
         inputDescriptor,
-        mdoc.issuerSigned
+        issuerSigned
       );
 
       return {
@@ -483,13 +488,13 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
   const decodedMdocCredentials =
     (await Promise.all(
       credentialsMdoc?.map(async ([keyTag, credential]) => {
-        const cbor = await CBOR.decodeDocuments(credential);
-        if (!cbor || !cbor.documents || !cbor.documents[0]) {
+        const issuerSigned = await CBOR.decodeIssuerSigned(credential);
+        if (!issuerSigned) {
           throw new CredentialNotFoundError(
             "mso_mdoc credential is not present."
           );
         }
-        return { keyTag, credential, mdoc: cbor.documents[0] };
+        return { keyTag, credential, issuerSigned };
       })
     )) || [];
 
@@ -556,28 +561,48 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
  */
 export const prepareRemotePresentations: PrepareRemotePresentations = async (
   credentialAndDescriptors,
-  nonce,
-  client_id
+  authRequestObject
 ) => {
-  return Promise.all(
+  /* In case of ISO 18013-7 we need a nonce, it shall have a minimum entropy of 16  */
+  const generatedNonce = generateRandomAlphaNumericString(16);
+
+  const presentations = await Promise.all(
     credentialAndDescriptors.map(async (item) => {
       const descriptor = item.inputDescriptor;
 
       if (descriptor.format?.mso_mdoc) {
+        const { vp_token } = await prepareVpTokenMdoc(
+          authRequestObject.nonce,
+          generatedNonce,
+          authRequestObject.clientId,
+          authRequestObject.responseUri,
+          descriptor.id,
+          item.keyTag,
+          [
+            item.credential,
+            item.requestedClaims,
+            createCryptoContextFor(item.keyTag),
+          ]
+        );
+
         return {
           requestedClaims: item.requestedClaims,
           inputDescriptor: descriptor,
-          vpToken: base64ToBase64Url(item.credential),
+          vpToken: vp_token,
           format: "mso_mdoc",
         };
       }
 
       if (descriptor.format?.["vc+sd-jwt"]) {
-        const { vp_token } = await prepareVpToken(nonce, client_id, [
-          item.credential,
-          item.requestedClaims,
-          createCryptoContextFor(item.keyTag),
-        ]);
+        const { vp_token } = await prepareVpToken(
+          authRequestObject.nonce,
+          authRequestObject.clientId,
+          [
+            item.credential,
+            item.requestedClaims,
+            createCryptoContextFor(item.keyTag),
+          ]
+        );
 
         return {
           requestedClaims: item.requestedClaims,
@@ -592,4 +617,9 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
       );
     })
   );
+
+  return {
+    presentations,
+    generatedNonce,
+  };
 };
