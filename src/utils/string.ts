@@ -1,4 +1,4 @@
-import { Buffer } from "buffer";
+import { Base64 } from "js-base64";
 
 /**
  * Randomly obfuscates characters in a string by replacing them with a specified character.
@@ -63,5 +63,5 @@ export const base64ToBase64Url = (base64: string): string => {
  * @returns The Base64 URL-encoded string.
  */
 export const utf8ToB64Url = (utf8: string): string => {
-  return base64ToBase64Url(Buffer.from(utf8, "utf-8").toString("base64"));
+  return base64ToBase64Url(Base64.encode(utf8));
 };
