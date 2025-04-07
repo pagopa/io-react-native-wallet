@@ -199,7 +199,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
         });
 
   // 3. Send the authorization response via HTTP POST and validate the response
-  return await appFetch(requestObject.response_uri, {
+  const authResponse = await appFetch(requestObject.response_uri, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -208,7 +208,10 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
-    .then(AuthorizationResponse.parse);
+    .then(AuthorizationResponse.safeParse);
+
+  // Some Relying Parties may return an empty body.
+  return authResponse.success ? authResponse.data : {};
 };
 
 /**
