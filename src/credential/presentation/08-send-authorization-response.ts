@@ -11,7 +11,7 @@ import {
 } from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
-import { utf8ToB64Url } from "../../utils/string";
+import { Base64 } from "js-base64";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -114,8 +114,8 @@ export const buildDirectPostJwtBody = async (
         | "A128CBC-HS256") || "A256CBC-HS512",
     kid: encPublicJwk.kid,
     /* ISO 18013-7 */
-    apv: utf8ToB64Url(requestObject.nonce),
-    ...(generatedNonce ? { apu: utf8ToB64Url(generatedNonce) } : {}),
+    apv: Base64.encodeURI(requestObject.nonce),
+    ...(generatedNonce ? { apu: Base64.encodeURI(generatedNonce) } : {}),
   }).encrypt(encPublicJwk);
 
   // Build the x-www-form-urlencoded form body
