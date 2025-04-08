@@ -36,7 +36,7 @@ export type DisclosureWithEncoded = {
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
-    typ: z.literal("vc+sd-jwt"),
+    typ: z.literal("dc+sd-jwt"),
     alg: z.string(),
     kid: z.string().optional(),
   }),
@@ -48,15 +48,40 @@ export const SdJwt4VC = z.object({
       exp: UnixTime,
       _sd_alg: z.literal("sha-256"),
       status: z.object({
-        status_attestation: z.object({
+        status_assertion: z.object({
           credential_hash_alg: z.literal("sha-256"),
         }),
       }),
       cnf: z.object({
         jwk: JWK,
       }),
-      vct: z.string(),
+      vct: z.string().url(),
+      "vct#integrity": z.string().optional(),
+      issuing_authority: z.string(),
+      issuing_country: z.string(),
     }),
     ObfuscatedDisclosures
   ),
+});
+
+/**
+ * Metadata for a digital credential. This information is retrieved from the URL defined in the `vct` claim.
+ *
+ * @see https://italia.github.io/eid-wallet-it-docs/v0.9.1/en/pid-eaa-data-model.html#digital-credential-metadata-type
+ */
+export type TypeMetadata = z.infer<typeof TypeMetadata>;
+export const TypeMetadata = z.object({
+  name: z.string(),
+  description: z.string(),
+  data_source: z.object({
+    trust_framework: z.string(),
+    authentic_source: z.object({
+      organization_name: z.string(),
+      organization_code: z.string(),
+      contacts: z.array(z.string()),
+      homepage_uri: z.string().url(),
+      logo_uri: z.string().url(),
+    }),
+  }),
+  // TODO: add more fields
 });

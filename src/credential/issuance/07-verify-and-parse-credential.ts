@@ -75,14 +75,14 @@ const parseCredentialSdJwt = (
   if (!credentialSubject.claims) {
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
-  const attrDefinitions = Object.entries(credentialSubject.claims);
+  const attrDefinitions = credentialSubject.claims;
 
   // the key of the attribute defintion must match the disclosure's name
   const attrsNotInDisclosures = attrDefinitions.filter(
-    ([attrKey]) => !disclosures.some(([, name]) => name === attrKey)
+    (definition) => !disclosures.some(([, name]) => name === definition.path[0]) // Ignore nested paths for now, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-15.html#name-claims-path-pointer
   );
   if (attrsNotInDisclosures.length > 0) {
-    const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
+    const missing = attrsNotInDisclosures.map((_) => _.path[0]).join(", ");
     const received = disclosures.map((_) => _[1 /* name */]).join(", ");
     if (!ignoreMissingAttributes) {
       throw new IoWalletError(
@@ -97,13 +97,13 @@ const parseCredentialSdJwt = (
     attrDefinitions
       // retrieve the value from the disclosure set
       .map(
-        ([attrKey, definition]) =>
+        ({ path, ...definition }) =>
           [
-            attrKey,
+            path[0],
             {
               ...definition,
               value: disclosures.find(
-                (_) => _[1 /* name */] === attrKey
+                (_) => _[1 /* name */] === path[0]
               )?.[2 /* value */],
             },
           ] as const
@@ -188,7 +188,7 @@ type WithFormat<Format extends Parameters<VerifyAndParseCredential>[2]> = (
   _3: Parameters<VerifyAndParseCredential>[3]
 ) => ReturnType<VerifyAndParseCredential>;
 
-const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
+const verifyAndParseCredentialSdJwt: WithFormat<"dc+sd-jwt"> = async (
   issuerConf,
   credential,
   _,
@@ -242,7 +242,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   format,
   context
 ) => {
-  if (format === "vc+sd-jwt") {
+  if (format === "dc+sd-jwt") {
     return verifyAndParseCredentialSdJwt(
       issuerConf,
       credential,

@@ -292,7 +292,7 @@ export const findCredentialSdJwt = (
   }
 
   throw new CredentialNotFoundError(
-    "None of the vc+sd-jwt credentials satisfy the requirements."
+    "None of the dc+sd-jwt credentials satisfy the requirements."
   );
 };
 
@@ -323,10 +323,10 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
 
   return Promise.all(
     inputDescriptors.map(async (descriptor) => {
-      if (descriptor.format?.["vc+sd-jwt"]) {
+      if (descriptor.format?.["dc+sd-jwt"]) {
         if (!decodedSdJwtCredentials.length) {
           throw new CredentialNotFoundError(
-            "vc+sd-jwt credential is not supported."
+            "dc+sd-jwt credential is not supported."
           );
         }
 
@@ -370,7 +370,7 @@ export const prepareLegacyRemotePresentations: PrepareLegacyRemotePresentations 
       credentialAndDescriptors.map(async (item) => {
         const descriptor = item.inputDescriptor;
 
-        if (descriptor.format?.["vc+sd-jwt"]) {
+        if (descriptor.format?.["dc+sd-jwt"]) {
           const { vp_token } = await prepareVpToken(nonce, client_id, [
             item.credential,
             item.requestedClaims,
@@ -381,7 +381,7 @@ export const prepareLegacyRemotePresentations: PrepareLegacyRemotePresentations 
             requestedClaims: item.requestedClaims,
             inputDescriptor: descriptor,
             vpToken: vp_token,
-            format: "vc+sd-jwt",
+            format: "dc+sd-jwt",
           };
         }
 
