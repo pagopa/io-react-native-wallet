@@ -1,5 +1,6 @@
 import type { DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
+import { CredentialsNotFoundError } from "../errors";
 
 const pidKeyTag = "pidkeytag";
 const pidSdJwt =
@@ -76,8 +77,41 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query1)).toThrowError();
-    expect(() => evaluateDcqlQuery(credentials, query2)).toThrowError();
+    const query3: DcqlQuery.Input = {
+      credentials: [
+        {
+          id: "IHaveThis",
+          format: "vc+sd-jwt",
+          meta: {
+            vct_values: ["PersonIdentificationData"],
+          },
+        },
+        {
+          id: "IDontHaveThis",
+          format: "vc+sd-jwt",
+          meta: {
+            vct_values: ["MissingCredential"],
+          },
+        },
+      ],
+      credential_sets: [
+        {
+          options: [["IHaveThis", "IDontHaveThis"]],
+          purpose: "Identification",
+          required: true,
+        },
+      ],
+    };
+
+    expect(() => evaluateDcqlQuery(credentials, query1)).toThrowError(
+      CredentialsNotFoundError
+    );
+    expect(() => evaluateDcqlQuery(credentials, query2)).toThrowError(
+      CredentialsNotFoundError
+    );
+    expect(() => evaluateDcqlQuery(credentials, query3)).toThrowError(
+      CredentialsNotFoundError
+    );
   });
 
   it("should work correctly with a simple query", () => {
