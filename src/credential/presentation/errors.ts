@@ -88,18 +88,25 @@ export class MissingDataError extends IoWalletError {
   }
 }
 
+export type NotFoundDetail = {
+  id: string;
+  reason?: string;
+  vctValues?: string[];
+};
+
 /**
- * When a credential is not found in the wallet.
- *
+ * Error thrown when one or more credentials cannot be found in the wallet
+ * and the presentation request cannot be satisfied.
  */
-export class CredentialNotFoundError extends IoWalletError {
-  code = "ERR_CREDENTIAL_NOT_FOUND";
+export class CredentialsNotFoundError extends IoWalletError {
+  code = "ERR_CREDENTIALS_NOT_FOUND";
+  details: NotFoundDetail[];
 
   /**
-   * @param credentialId The ID of the credential that was not found.
+   * @param details The details of the credentials that could not be found.
    */
-  constructor(credentialId: string) {
-    const message = `Credential not found: ${credentialId}.`;
-    super(message);
+  constructor(details: NotFoundDetail[]) {
+    super("One or more credentials cannot be found in the wallet");
+    this.details = details;
   }
 }
