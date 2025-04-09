@@ -1,6 +1,6 @@
 import type { DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
-import { CredentialsNotFoundError } from "../errors";
+import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
 
 const pidKeyTag = "pidkeytag";
 const pidSdJwt =
@@ -45,74 +45,81 @@ describe("evaluateDcqlQuery", () => {
     expect(() => evaluateDcqlQuery(credentials, query)).toThrowError();
   });
 
-  it("should throw error when no credential satisfies the DCQL query", () => {
-    const query1: DcqlQuery.Input = {
-      credentials: [
-        {
-          id: "PersonIdentificationData",
-          format: "vc+sd-jwt",
-          meta: {
-            vct_values: ["MissingPID"],
+  test.each([
+    [
+      {
+        credentials: [
+          {
+            id: "PersonIdentificationData",
+            format: "vc+sd-jwt",
+            meta: {
+              vct_values: ["MissingPID"],
+            },
           },
-        },
-      ],
-    };
-
-    const query2: DcqlQuery.Input = {
-      credentials: [
-        {
-          id: "PersonIdentificationData",
-          format: "vc+sd-jwt",
-          meta: {
-            vct_values: ["MissingPID"],
+        ],
+      },
+      [{ id: "PersonIdentificationData", vctValues: ["MissingPID"] }],
+    ],
+    [
+      {
+        credentials: [
+          {
+            id: "PersonIdentificationData",
+            format: "vc+sd-jwt",
+            meta: {
+              vct_values: ["MissingPID"],
+            },
           },
-        },
-      ],
-      credential_sets: [
-        {
-          options: [["PersonIdentificationData"]],
-          purpose: "Identification",
-          required: true,
-        },
-      ],
-    };
-
-    const query3: DcqlQuery.Input = {
-      credentials: [
-        {
-          id: "IHaveThis",
-          format: "vc+sd-jwt",
-          meta: {
-            vct_values: ["PersonIdentificationData"],
+        ],
+        credential_sets: [
+          {
+            options: [["PersonIdentificationData"]],
+            purpose: "Identification",
+            required: true,
           },
-        },
-        {
-          id: "IDontHaveThis",
-          format: "vc+sd-jwt",
-          meta: {
-            vct_values: ["MissingCredential"],
+        ],
+      },
+      [{ id: "PersonIdentificationData", vctValues: ["MissingPID"] }],
+    ],
+    [
+      {
+        credentials: [
+          {
+            id: "IHaveThis",
+            format: "vc+sd-jwt",
+            meta: {
+              vct_values: ["PersonIdentificationData"],
+            },
           },
-        },
-      ],
-      credential_sets: [
-        {
-          options: [["IHaveThis", "IDontHaveThis"]],
-          purpose: "Identification",
-          required: true,
-        },
-      ],
-    };
-
-    expect(() => evaluateDcqlQuery(credentials, query1)).toThrowError(
-      CredentialsNotFoundError
-    );
-    expect(() => evaluateDcqlQuery(credentials, query2)).toThrowError(
-      CredentialsNotFoundError
-    );
-    expect(() => evaluateDcqlQuery(credentials, query3)).toThrowError(
-      CredentialsNotFoundError
-    );
-  });
+          {
+            id: "IDontHaveThis",
+            format: "vc+sd-jwt",
+            meta: {
+              vct_values: ["MissingCredential"],
+            },
+          },
+        ],
+        credential_sets: [
+          {
+            options: [["IHaveThis", "IDontHaveThis"]],
+            purpose: "Identification",
+            required: true,
+          },
+        ],
+      },
+      [{ id: "IDontHaveThis", vctValues: ["MissingCredential"] }],
+    ],
+  ] as Array<[DcqlQuery.Input, Array<NotFoundDetail>]>)(
+    "should throw error when no credential satisfies the DCQL query /%#",
+    (dcqlQuery, expected) => {
+      try {
+        evaluateDcqlQuery(credentials, dcqlQuery);
+      } catch (err) {
+        expect(err).toBeInstanceOf(CredentialsNotFoundError);
+        expect((err as CredentialsNotFoundError).details).toEqual(expected);
+      }
+    }
+  );
 
   it("should work correctly with a simple query", () => {
     const query: DcqlQuery.Input = {
