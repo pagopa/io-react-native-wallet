@@ -1,5 +1,6 @@
 import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
 import { sha256 } from "js-sha256";
+import { LogLevel, Logger } from "./logging";
 
 /**
  * Check if a response is in the expected status, otherwise throw an error
@@ -13,6 +14,10 @@ export const hasStatusOrThrow =
   async (res: Response): Promise<Response> => {
     if (res.status !== status) {
       const ErrorClass = customError ?? UnexpectedStatusCodeError;
+      Logger.log(
+        LogLevel.ERROR,
+        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`
+      );
       throw new ErrorClass({
         message: `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
         statusCode: res.status,
