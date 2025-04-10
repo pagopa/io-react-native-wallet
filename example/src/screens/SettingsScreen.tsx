@@ -38,7 +38,6 @@ const HomeScreen = () => {
   const [debugAddress, setDebugAddress] = useState<string>(
     currentDebugAddress || ""
   );
-  console.log(currentDebugAddress);
   const toast = useIOToast();
 
   const toggleEnvionment = (selected: EnvType) => {
@@ -54,7 +53,6 @@ const HomeScreen = () => {
       initLogging(debugAddress);
       toast.success("Logging server set correctly");
     } catch (e) {
-      console.log(e);
       toast.error("Invalid logging server address");
     }
   };
