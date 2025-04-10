@@ -1,6 +1,6 @@
 // startFlow.test.ts
-import { ValidationFailed } from "../../../utils/errors";
 import { startFlowFromQR } from "../01-start-flow";
+import { InvalidQRCodeError } from "../errors";
 
 describe("startFlowFromQR", () => {
   const requestUri = "https://request.uri";
@@ -31,12 +31,12 @@ describe("startFlowFromQR", () => {
   it("should throw InvalidQRCodeError for invalid request_uri ", () => {
     expect(() =>
       startFlowFromQR({ requestUri: "test", requestUriMethod, clientId })
-    ).toThrow(ValidationFailed);
+    ).toThrow(InvalidQRCodeError);
   });
 
   it("should throw InvalidQRCodeError for invalid client_id", () => {
     expect(() =>
       startFlowFromQR({ requestUri, requestUriMethod, clientId: "" })
-    ).toThrow(ValidationFailed);
+    ).toThrow(InvalidQRCodeError);
   });
 });

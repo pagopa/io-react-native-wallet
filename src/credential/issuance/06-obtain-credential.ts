@@ -28,7 +28,8 @@ export type ObtainCredential = (
     dPopCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
-  }
+  },
+  operationType?: "reissuing"
 ) => Promise<CredentialResponse>;
 
 export const createNonceProof = async (
@@ -74,7 +75,8 @@ export const obtainCredential: ObtainCredential = async (
   accessToken,
   clientId,
   credentialDefinition,
-  context
+  context,
+  operationType
 ) => {
   const {
     credentialCryptoContext,
@@ -153,6 +155,7 @@ export const obtainCredential: ObtainCredential = async (
       "Content-Type": "application/json",
       DPoP: tokenRequestSignedDPop,
       Authorization: `${accessToken.token_type} ${accessToken.access_token}`,
+      ...(operationType === "reissuing" && { operationType }),
     },
     body: JSON.stringify(credentialRequestFormBody),
   })
