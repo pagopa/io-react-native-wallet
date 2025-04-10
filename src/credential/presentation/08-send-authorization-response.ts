@@ -30,6 +30,9 @@ export const AuthorizationResponse = z.object({
  * Selects a public key (with `use = enc`) from the set of JWK keys
  * offered by the Relying Party (RP) for encryption.
  *
+ * Preference is given to EC keys (P-256 or P-384), followed by RSA keys,
+ * based on compatibility and common usage for encryption.
+ *
  * @param rpJwkKeys - The array of JWKs retrieved from the RP entity configuration.
  * @returns The first suitable public key found in the list.
  * @throws {NoSuitableKeysFoundInEntityConfiguration} If no suitable encryption key is found.
