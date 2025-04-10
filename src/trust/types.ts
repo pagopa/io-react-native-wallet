@@ -156,6 +156,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
       jwks: z.object({ keys: z.array(JWK) }),
       metadata: z.object({
         openid_credential_issuer: z.object({
+          nonce_endpoint: z.string().optional(),
           credential_issuer: z.string(),
           credential_endpoint: z.string(),
           revocation_endpoint: z.string(),

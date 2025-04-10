@@ -13,6 +13,12 @@ export const TokenResponse = z.object({
   token_type: z.string(),
 });
 
+export type NonceResponse = z.infer<typeof NonceResponse>;
+
+export const NonceResponse = z.object({
+  c_nonce: z.string(),
+});
+
 export type CredentialResponse = z.infer<typeof CredentialResponse>;
 
 export const CredentialResponse = z.object({

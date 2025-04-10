@@ -15,7 +15,7 @@ import {
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialResponse } from "./types";
+import { CredentialResponse, NonceResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import { TypeMetadata } from "../../sd-jwt/types";
 import { v4 as uuidv4 } from "uuid";
@@ -55,6 +55,31 @@ export const createNonceProof = async (
     .sign();
 };
 
+// Request a fresh nonce from the issuer
+const requestFreshNonce = async (
+  nonceUrl: string,
+  appFetch: GlobalFetch["fetch"]
+): Promise<string> => {
+  const nonceResponse = await appFetch(nonceUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.json())
+    .then((body) => NonceResponse.safeParse(body));
+
+  if (!nonceResponse.success) {
+    throw new ValidationFailed({
+      message: "Unable to obtain a fresh nonce from the issuer",
+      reason: nonceResponse.error.message,
+    });
+  }
+
+  return nonceResponse.data.c_nonce;
+};
+
 /**
  * Obtains the credential from the issuer.
  * The key pair of the credentialCryptoContext is used for Openid4vci proof JWT to be presented with the Access Token and the DPoP Proof JWT at the Credential Endpoint
@@ -85,7 +110,17 @@ export const obtainCredential: ObtainCredential = async (
     dPopCryptoContext,
   } = context;
 
+  const nonceUrl = issuerConf.openid_credential_issuer.nonce_endpoint;
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+
+  /**
+   * If a nonce endpoint is provided, a fresh nonce is requested from the issuer.
+   * Otherwise, the nonce from the access token is used.
+   * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata-p
+   */
+  const nonce = nonceUrl
+    ? await requestFreshNonce(nonceUrl, appFetch)
+    : accessToken.c_nonce;
 
   /**
    * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
@@ -93,7 +128,7 @@ export const obtainCredential: ObtainCredential = async (
    * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
    */
   const signedNonceProof = await createNonceProof(
-    accessToken.c_nonce,
+    nonce,
     clientId,
     credentialUrl,
     credentialCryptoContext
