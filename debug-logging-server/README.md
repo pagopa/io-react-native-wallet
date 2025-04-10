@@ -1,6 +1,6 @@
 ## Example
 
-This debug loggin server can be used along with the [example app](./example) to receive log messages from the library implementation.
+This debug logging server can be used along with the [example app](./example) to receive log messages from the library implementation.
 
 ### NodeJS
 
