@@ -33,6 +33,27 @@ export type DisclosureWithEncoded = {
   encoded: string;
 };
 
+const SdJwtEvidence = z.array(
+  z.object({
+    type: z.literal("vouch"),
+    time: UnixTime,
+    attestation: z.object({
+      type: z.literal("digital_attestation"),
+      reference_number: z.string(),
+      date_of_issuance: z.date(),
+      voucher: z.string(),
+    }),
+  })
+);
+
+const SdJwtVerification = z
+  .object({
+    trust_framework: z.string(),
+    assurance_level: z.string(),
+    evidence: SdJwtEvidence,
+  })
+  .optional();
+
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
@@ -48,6 +69,7 @@ export const SdJwt4VC = z.object({
       sub: z.string(),
       iat: UnixTime.optional(),
       exp: UnixTime,
+      _sd: z.array(z.string()),
       _sd_alg: z.literal("sha-256"),
       status: z.object({
         status_assertion: z.object({
@@ -61,7 +83,7 @@ export const SdJwt4VC = z.object({
       "vct#integrity": z.string().optional(),
       issuing_authority: z.string(),
       issuing_country: z.string(),
-      // TODO: verification ?
+      verification: SdJwtVerification,
     }),
     ObfuscatedDisclosures
   ),
