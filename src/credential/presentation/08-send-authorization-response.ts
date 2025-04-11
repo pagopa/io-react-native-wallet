@@ -113,7 +113,6 @@ export const buildDirectPostJwtBody = async (
     ...payload,
   });
 
-  // Choose a suitable RSA public key for encryption
   const encPublicJwk = choosePublicKeyToEncrypt(jwkKeys);
   // Encrypt the authorization payload
   const { client_metadata } = requestObject;
