@@ -30,6 +30,9 @@ export const AuthorizationResponse = z.object({
  * Selects a public key (with `use = enc`) from the set of JWK keys
  * offered by the Relying Party (RP) for encryption.
  *
+ * Preference is given to EC keys (P-256 or P-384), followed by RSA keys,
+ * based on compatibility and common usage for encryption.
+ *
  * @param rpJwkKeys - The array of JWKs retrieved from the RP entity configuration.
  * @returns The first suitable public key found in the list.
  * @throws {NoSuitableKeysFoundInEntityConfiguration} If no suitable encryption key is found.
@@ -37,7 +40,18 @@ export const AuthorizationResponse = z.object({
 export const choosePublicKeyToEncrypt = (
   rpJwkKeys: Out<FetchJwks>["keys"]
 ): JWK => {
-  const [encKey] = rpJwkKeys.filter((jwk) => jwk.use === "enc");
+  // First try to find RSA keys which are more commonly used for encryption
+  const encKeys = rpJwkKeys.filter((jwk) => jwk.use === "enc");
+
+  // Prioritize EC keys first, then fall back to RSA keys if needed
+  // io-react-native-jwt support only EC keys with P-256 or P-384 curves
+  const ecEncKeys = encKeys.filter(
+    (jwk) => jwk.kty === "EC" && (jwk.crv === "P-256" || jwk.crv === "P-384")
+  );
+  const rsaEncKeys = encKeys.filter((jwk) => jwk.kty === "RSA");
+
+  // Select the first available key based on priority
+  const encKey = ecEncKeys[0] || rsaEncKeys[0] || encKeys[0];
 
   if (encKey) {
     return encKey;
@@ -99,7 +113,6 @@ export const buildDirectPostJwtBody = async (
     ...payload,
   });
 
-  // Choose a suitable RSA public key for encryption
   const encPublicJwk = choosePublicKeyToEncrypt(jwkKeys);
   // Encrypt the authorization payload
   const { client_metadata } = requestObject;
