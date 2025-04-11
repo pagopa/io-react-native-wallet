@@ -15,7 +15,7 @@ import {
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialResponse } from "./types";
+import { CredentialResponse, NonceResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import { TypeMetadata } from "../../sd-jwt/types";
 import { v4 as uuidv4 } from "uuid";
@@ -86,6 +86,13 @@ export const obtainCredential: ObtainCredential = async (
   } = context;
 
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+  const nonceUrl = issuerConf.openid_credential_issuer.nonce_endpoint;
+
+  // Fetch the nonce from the Credential Issuer
+  const { c_nonce } = await appFetch(nonceUrl, { method: "POST" })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.json())
+    .then((body) => NonceResponse.parse(body));
 
   /**
    * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
@@ -93,7 +100,7 @@ export const obtainCredential: ObtainCredential = async (
    * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
    */
   const signedNonceProof = await createNonceProof(
-    accessToken.c_nonce,
+    c_nonce,
     clientId,
     credentialUrl,
     credentialCryptoContext
@@ -117,10 +124,7 @@ export const obtainCredential: ObtainCredential = async (
 
   /** The credential request body */
   const credentialRequestFormBody = {
-    credential_definition: {
-      type: [credentialDefinition.credential_configuration_id],
-    },
-    format: credentialDefinition.format,
+    credential_identifier: credentialDefinition.credential_configuration_id,
     proof: {
       jwt: signedNonceProof,
       proof_type: "jwt",

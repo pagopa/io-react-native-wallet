@@ -155,6 +155,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           credential_issuer: z.string(),
           credential_endpoint: z.string(),
           revocation_endpoint: z.string(),
+          nonce_endpoint: z.string(),
           status_attestation_endpoint: z.string(),
           display: z.array(CredentialIssuerDisplayMetadata),
           credential_configurations_supported: z.record(

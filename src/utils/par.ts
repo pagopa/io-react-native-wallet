@@ -44,14 +44,14 @@ export const makeParRequest =
     responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
-    authorizationDetails: AuthorizationDetails,
-    assertionType: string
+    authorizationDetails: AuthorizationDetails
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
     const parUrl = new URL(parEndpoint);
     const aud = `${parUrl.protocol}//${parUrl.hostname}`;
 
+    // TODO: is this the same as the client_id?
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
       .payload.cnf.jwk.kid;
 
@@ -91,10 +91,9 @@ export const makeParRequest =
         code_challenge_method: codeChallengeMethod,
         authorization_details: authorizationDetails,
         redirect_uri: redirectUri,
-        client_assertion_type: assertionType,
-        client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
+        // scope: "", // https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/pid-eaa-issuance.html#pushed-authorization-request-par-request
       })
-      .setIssuedAt() //iat is set to now
+      .setIssuedAt() // iat is set to now
       .setExpirationTime("5min")
       .sign();
 
@@ -105,14 +104,14 @@ export const makeParRequest =
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       request: signedJwtForPar,
-      client_assertion_type: assertionType,
-      client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
     });
 
     return await appFetch(parEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        "OAuth-Client-Attestation": walletInstanceAttestation,
+        "OAuth-Client-Attestation-PoP": signedWiaPoP,
       },
       body: formBody.toString(),
     })
