@@ -5,7 +5,7 @@ import {
   type Theme,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -23,9 +23,11 @@ import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
-import { useAppDispatch } from "../store/utils";
+import { useAppDispatch, useAppSelector } from "../store/utils";
 import { labelByCredentialType } from "../utils/ui";
 import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
+import { selectEnv } from "../store/reducers/environment";
+import { initLogging } from "../utils/logging";
 import { PresentationScreen } from "../screens/PresentationScreen";
 import {
   QrScannerScreen,
@@ -69,7 +71,15 @@ const lightTheme: Theme = {
 
 export const MainStackNavigator = () => {
   const ioAuthToken = useSelector(selectIoAuthToken);
+  const selectedEnv = useAppSelector(selectEnv);
   const dispatch = useAppDispatch();
+
+  /**
+   * Sets the logging environment when the selected environment changes.
+   */
+  useEffect(() => {
+    initLogging(selectedEnv);
+  }, [selectedEnv]);
 
   const headerRight = useCallback(
     () => (

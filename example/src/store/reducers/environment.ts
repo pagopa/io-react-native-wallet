@@ -3,10 +3,13 @@ import { persistReducer, type PersistConfig } from "redux-persist";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { EnvType, RootState } from "../types";
 // State type definition for the environment slice
-type EnvironmentState = { env: EnvType };
+type EnvironmentState = { env: EnvType; loggingAddress?: string };
 
 // Initial state for the environment slice
-const initialState: EnvironmentState = { env: "prod" };
+const initialState: EnvironmentState = {
+  env: "prod",
+  loggingAddress: undefined,
+};
 
 /**
  * Redux slice for the environment state. It contains the selected environment which can be either "prod" or "pre".
@@ -19,15 +22,21 @@ export const environmentSlice = createSlice({
     envSet: (state, action: PayloadAction<EnvType>) => {
       state.env = action.payload;
     },
+    // Sets the debug logging address
+    loggingAddressSet: (state, action: PayloadAction<string>) => {
+      state.loggingAddress = action.payload;
+    },
     // Resets the session state when logging out
-    envReset: () => initialState,
+    envReset: (state) => {
+      state.env = initialState.env;
+    },
   },
 });
 
 /**
  * Exports the actions for the session slice.
  */
-export const { envSet, envReset } = environmentSlice.actions;
+export const { envSet, envReset, loggingAddressSet } = environmentSlice.actions;
 
 /**
  * Redux persist configuration for the environment slice.
@@ -52,3 +61,6 @@ export const environmentReducer = persistReducer(
  * @returns the selected environment
  */
 export const selectEnv = (state: RootState) => state.environment.env;
+
+export const selectLoggingAddress = (state: RootState) =>
+  state.environment.loggingAddress;

@@ -7,6 +7,7 @@ import { verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -62,10 +63,18 @@ const parseCredentialSdJwt = (
   const credentialSubject = credentials_supported[sdJwt.payload.vct];
 
   if (!credentialSubject) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Credential type not supported by the issuer: ${sdJwt.payload.vct}`
+    );
     throw new IoWalletError("Credential type not supported by the issuer");
   }
 
   if (credentialSubject.format !== sdJwt.header.typ) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}'`
+    );
     throw new IoWalletError(
       `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}', `
     );
@@ -73,6 +82,7 @@ const parseCredentialSdJwt = (
 
   // transfrom a record { key: value } in an iterable of pairs [key, value]
   if (!credentialSubject.claims) {
+    Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
   const attrDefinitions = credentialSubject.claims;
@@ -85,6 +95,10 @@ const parseCredentialSdJwt = (
     const missing = attrsNotInDisclosures.map((_) => _.path[0]).join(", ");
     const received = disclosures.map((_) => _[1 /* name */]).join(", ");
     if (!ignoreMissingAttributes) {
+      Logger.log(
+        LogLevel.ERROR,
+        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+      );
       throw new IoWalletError(
         `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
       );
@@ -172,6 +186,10 @@ async function verifyCredentialSdJwt(
   const { cnf } = decodedCredential.sdJwt.payload;
 
   if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
+    );
     throw new IoWalletError(
       `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
     );
@@ -204,14 +222,18 @@ const verifyAndParseCredentialSdJwt: WithFormat<"dc+sd-jwt"> = async (
     credentialCryptoContext
   );
 
+  Logger.log(LogLevel.DEBUG, `Decoded credential {$decoded}`);
+
   const parsedCredential = parseCredentialSdJwt(
     issuerConf.openid_credential_issuer.credential_configurations_supported,
     decoded,
     ignoreMissingAttributes,
     includeUndefinedAttributes
   );
-
   const maybeIssuedAt = getValueFromDisclosures(decoded.disclosures, "iat");
+
+  Logger.log(LogLevel.DEBUG, `Parsed credential {$parsedCredential}`);
+  Logger.log(LogLevel.DEBUG, `Issued at {$maybeIssuedAt}`);
 
   return {
     parsedCredential,
@@ -243,6 +265,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   context
 ) => {
   if (format === "dc+sd-jwt") {
+    Logger.log(LogLevel.DEBUG, "Parsing credential in vc+sd-jwt format");
     return verifyAndParseCredentialSdJwt(
       issuerConf,
       credential,
@@ -251,5 +274,6 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
     );
   }
 
+  Logger.log(LogLevel.ERROR, `Unsupported credential format: ${format}`);
   throw new IoWalletError(`Unsupported credential format: ${format}`);
 };
