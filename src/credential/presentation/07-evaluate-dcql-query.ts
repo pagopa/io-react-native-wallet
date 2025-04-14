@@ -56,7 +56,7 @@ const mapCredentialToObject = (jwt: string) => {
   const credentialFormat = sdJwt.header.typ;
 
   // TODO [SIW-2082]: support MDOC credentials
-  if (credentialFormat !== "vc+sd-jwt") {
+  if (credentialFormat !== "dc+sd-jwt") {
     throw new Error(`Unsupported credential format: ${credentialFormat}`);
   }
 
@@ -106,7 +106,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     );
 
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
-      if (match.output.credential_format !== "vc+sd-jwt") {
+      if (match.output.credential_format !== "dc+sd-jwt") {
         throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
       }
       const { vct, claims } = match.output;
@@ -167,7 +167,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         credentialId: item.id,
         requestedClaims: item.requestedClaims,
         vpToken: vp_token,
-        format: "vc+sd-jwt",
+        format: "dc+sd-jwt",
       };
     })
   );

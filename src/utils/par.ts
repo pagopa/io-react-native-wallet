@@ -9,11 +9,12 @@ import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
 import { IssuerResponseError } from "./errors";
+import { LogLevel, Logger } from "./logging";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
   credential_configuration_id: z.string(),
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]), // TODO: add dc+sd-jwt?
+  format: z.union([z.literal("dc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   type: z.literal("openid_credential"),
 });
 
@@ -108,6 +109,11 @@ export const makeParRequest =
       client_assertion_type: assertionType,
       client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
     });
+
+    Logger.log(
+      LogLevel.DEBUG,
+      `Sending ${formBody} to PAR endpoint ${parEndpoint}`
+    );
 
     return await appFetch(parEndpoint, {
       method: "POST",

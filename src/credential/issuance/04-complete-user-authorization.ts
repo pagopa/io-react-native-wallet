@@ -9,11 +9,12 @@ import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { decode, encodeBase64 } from "@pagopa/io-react-native-jwt";
+import * as Presentation from "../presentation";
 import { type RemotePresentation, RequestObject } from "../presentation/types";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
-import { Credential } from "@pagopa/io-react-native-wallet";
+import { LogLevel, Logger } from "../../utils/logging";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -90,6 +91,10 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
  */
 export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWithQueryMode =
   async (authRedirectUrl) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      `The requeste credential is a PersonIdentificationData, completing the user authorization with query mode`
+    );
     const query = parseUrl(authRedirectUrl).query;
 
     return parseAuthorizationResponse(query);
@@ -109,12 +114,21 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
  */
 export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePresented =
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      `The requeste credential is not a PersonIdentificationData, requesting the credential to be presented`
+    );
     const authzRequestEndpoint =
       issuerConf.oauth_authorization_server.authorization_endpoint;
     const params = new URLSearchParams({
       client_id: clientId,
       request_uri: issuerRequestUri,
     });
+
+    Logger.log(
+      LogLevel.DEBUG,
+      `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`
+    );
 
     const requestObject = await appFetch(
       `${authzRequestEndpoint}?${params.toString()}`,
@@ -126,6 +140,10 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
       .then((reqObj) => RequestObject.safeParse(reqObj.payload));
 
     if (!requestObject.success) {
+      Logger.log(
+        LogLevel.ERROR,
+        `Error while validating the response object: ${requestObject.error.message}`
+      );
       throw new ValidationFailed({
         message: "Request Object validation failed",
         reason: requestObject.error.message,
@@ -147,17 +165,31 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
  */
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
   async (requestObject, credentialsToPresent, appFetch = fetch) => {
-    const remotePresentations =
-      await Credential.Presentation.prepareRemotePresentations(
-        credentialsToPresent,
-        requestObject.nonce,
-        requestObject.client_id
-      );
+    Logger.log(
+      LogLevel.DEBUG,
+      `The requested credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
+    );
+
+    const remotePresentations = await Presentation.prepareRemotePresentations(
+      credentialsToPresent,
+      requestObject.nonce,
+      requestObject.client_id
+    );
+
+    Logger.log(
+      LogLevel.DEBUG,
+      `Remote presentations: ${JSON.stringify(remotePresentations)}`
+    );
 
     const authzResponsePayload = createAuthzResponsePayload({
       state: requestObject.state,
       remotePresentations,
     });
+
+    Logger.log(
+      LogLevel.DEBUG,
+      `Authz response payload: ${authzResponsePayload}`
+    );
 
     // Note: according to the spec, the response should be encrypted with the public key of the RP however this is not implemented yet
     // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-response
@@ -171,6 +203,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     const body = new URLSearchParams({
       response: authzResponsePayload,
     }).toString();
+
     const resUriRes = await appFetch(requestObject.response_uri, {
       method: "POST",
       headers: {
@@ -183,6 +216,10 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
 
     const responseUri = ResponseUriResultShape.safeParse(resUriRes);
     if (!responseUri.success) {
+      Logger.log(
+        LogLevel.ERROR,
+        `Error while validating the response uri: ${responseUri.error.message}`
+      );
       throw new ValidationFailed({
         message: "Response Uri validation failed",
         reason: responseUri.error.message,
@@ -210,8 +247,16 @@ export const parseAuthorizationResponse = (
   if (!authResParsed.success) {
     const authErr = AuthorizationErrorShape.safeParse(authRes);
     if (!authErr.success) {
+      Logger.log(
+        LogLevel.ERROR,
+        `Error while parsing the authorization response: ${authResParsed.error.message}`
+      );
       throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
     }
+    Logger.log(
+      LogLevel.ERROR,
+      `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+    );
     throw new AuthorizationIdpError(
       authErr.data.error,
       authErr.data.error_description

@@ -56,11 +56,7 @@ const IssuanceErrorSupported = z.object({
 // Metadata for a credential which is supported by an Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
-  format: z.union([
-    z.literal("vc+sd-jwt"), // Credentials 0.7.1
-    z.literal("dc+sd-jwt"), // Credentials 0.9.x
-    z.literal("vc+mdoc-cbor"),
-  ]),
+  format: z.union([z.literal("dc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   vct: z.string(),
   scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
