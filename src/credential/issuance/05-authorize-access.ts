@@ -10,6 +10,7 @@ import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type AuthorizeAccess = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -76,6 +77,8 @@ export const authorizeAccess: AuthorizeAccess = async (
     dPopCryptoContext
   );
 
+  Logger.log(LogLevel.DEBUG, `Token request DPoP: ${tokenRequestSignedDPop}`);
+
   const signedWiaPoP = await createPopToken(
     {
       jti: `${uuidv4()}`,
@@ -84,6 +87,8 @@ export const authorizeAccess: AuthorizeAccess = async (
     },
     wiaCryptoContext
   );
+
+  Logger.log(LogLevel.DEBUG, `WIA DPoP token: ${signedWiaPoP}`);
 
   const requestBody = {
     grant_type: "authorization_code",
@@ -96,6 +101,12 @@ export const authorizeAccess: AuthorizeAccess = async (
   };
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);
+
+  Logger.log(
+    LogLevel.DEBUG,
+    `Auth form request body: ${authorizationRequestFormBody}`
+  );
+
   const tokenRes = await appFetch(tokenUrl, {
     method: "POST",
     headers: {
@@ -109,6 +120,11 @@ export const authorizeAccess: AuthorizeAccess = async (
     .then((body) => TokenResponse.safeParse(body));
 
   if (!tokenRes.success) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Token Response validation failed: ${tokenRes.error.message}`
+    );
+
     throw new ValidationFailed({
       message: "Token Response validation failed",
       reason: tokenRes.error.message,

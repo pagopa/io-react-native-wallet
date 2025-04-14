@@ -9,6 +9,7 @@ import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
 import { IssuerResponseError } from "./errors";
+import { LogLevel, Logger } from "./logging";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
@@ -108,6 +109,11 @@ export const makeParRequest =
       client_assertion_type: assertionType,
       client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
     });
+
+    Logger.log(
+      LogLevel.DEBUG,
+      `Sending ${formBody} to PAR endpoint ${parEndpoint}`
+    );
 
     return await appFetch(parEndpoint, {
       method: "POST",

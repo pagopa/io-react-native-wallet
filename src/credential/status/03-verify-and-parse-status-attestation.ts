@@ -4,6 +4,7 @@ import { verify, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { EvaluateIssuerTrust, StatusAttestation } from "../status";
 import { ParsedStatusAttestation } from "./types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type VerifyAndParseStatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -43,9 +44,18 @@ export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
         payload: decodedJwt.payload,
       });
 
+      Logger.log(
+        LogLevel.DEBUG,
+        `Parsed status attestation: ${parsedStatusAttestation}`
+      );
+
       const holderBindingKey = await credentialCryptoContext.getPublicKey();
       const { cnf } = parsedStatusAttestation.payload;
       if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
+        Logger.log(
+          LogLevel.ERROR,
+          `Failed to verify holder binding for status attestation, expected kid: ${holderBindingKey.kid}, got: ${parsedStatusAttestation.payload.cnf.jwk.kid}`
+        );
         throw new IoWalletError(
           `Failed to verify holder binding for status attestation, expected kid: ${holderBindingKey.kid}, got: ${parsedStatusAttestation.payload.cnf.jwk.kid}`
         );

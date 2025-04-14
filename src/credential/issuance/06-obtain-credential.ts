@@ -19,6 +19,7 @@ import { CredentialResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import { TypeMetadata } from "../../sd-jwt/types";
 import { v4 as uuidv4 } from "uuid";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -99,6 +100,8 @@ export const obtainCredential: ObtainCredential = async (
     credentialCryptoContext
   );
 
+  Logger.log(LogLevel.DEBUG, `Signed nonce proof: ${signedNonceProof}`);
+
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
   const containsCredentialDefinition = accessToken.authorization_details.some(
     (c) =>
@@ -109,6 +112,10 @@ export const obtainCredential: ObtainCredential = async (
   );
 
   if (!containsCredentialDefinition) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Credential definition not found in the access token response ${accessToken.authorization_details}`
+    );
     throw new ValidationFailed({
       message:
         "The access token response does not contain the requested credential",
@@ -127,6 +134,11 @@ export const obtainCredential: ObtainCredential = async (
     },
   };
 
+  Logger.log(
+    LogLevel.DEBUG,
+    `Credential request body: ${JSON.stringify(credentialRequestFormBody)}`
+  );
+
   const tokenRequestSignedDPop = await createDPopToken(
     {
       htm: "POST",
@@ -136,6 +148,9 @@ export const obtainCredential: ObtainCredential = async (
     },
     dPopCryptoContext
   );
+
+  Logger.log(LogLevel.DEBUG, `Token request DPoP: ${tokenRequestSignedDPop}`);
+
   const credentialRes = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
@@ -152,6 +167,10 @@ export const obtainCredential: ObtainCredential = async (
     .catch(handleObtainCredentialError);
 
   if (!credentialRes.success) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Credential Response validation failed: ${credentialRes.error.message}`
+    );
     throw new ValidationFailed({
       message: "Credential Response validation failed",
       reason: credentialRes.error.message,
@@ -168,6 +187,8 @@ export const obtainCredential: ObtainCredential = async (
  * @throws {IssuerResponseError} with a specific code for more context
  */
 const handleObtainCredentialError = (e: unknown) => {
+  Logger.log(LogLevel.ERROR, `Error occurred while obtaining credential: ${e}`);
+
   if (!(e instanceof UnexpectedStatusCodeError)) {
     throw e;
   }
