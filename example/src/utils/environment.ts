@@ -13,6 +13,7 @@ import {
   PROD_VERIFIER_BASE_URL,
 } from "@env";
 import type { EnvType } from "../store/types";
+import * as z from "zod";
 
 /**
  * Environment type definition for both the pre and prod environments.
@@ -67,6 +68,11 @@ export const CIE_UAT_IDPHINT =
   "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
 
 /**
+ * IDPHINT for SPID when using the PRE environment of the identity provider.
+ */
+export const SPID_DEMO_IDPHINT = "https://demo.spid.gov.it";
+
+/**
  * Utility function which returns the IDPHINT for CIE based on the selected environment.
  * @param env - The selected environment
  * @returns the IDPHINT for CIE based on the selected environment
@@ -74,7 +80,12 @@ export const CIE_UAT_IDPHINT =
 export const getCieIdpHint = (env: EnvType) =>
   env === "pre" ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT;
 
-/**
- * IDPHINT for SPID when using the PRE environment of the identity provider.
- */
-export const SPID_DEMO_IDPHINT = "https://demo.spid.gov.it";
+export const validateLoggingAddress = (address: string) =>
+  z
+    .string()
+    .regex(
+      new RegExp(
+        "^((https?:\\/\\/)|(www.))(?:([a-zA-Z]+)|(\\d+\\.\\d+\\.\\d+\\.\\d+)):\\d{4}\\/\\S*$"
+      )
+    )
+    .parse(address);

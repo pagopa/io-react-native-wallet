@@ -6,6 +6,7 @@ import {
 } from "../utils/errors";
 import type { WalletInstanceData } from "../client/generated/wallet-provider";
 import type { IntegrityContext } from "..";
+import { LogLevel, Logger } from "../utils/logging";
 
 export async function createWalletInstance(context: {
   integrityContext: IntegrityContext;
@@ -13,14 +14,24 @@ export async function createWalletInstance(context: {
   appFetch?: GlobalFetch["fetch"];
 }) {
   const { integrityContext } = context;
-
   const api = getWalletProviderClient(context);
 
   //1. Obtain nonce
   const challenge = await api.get("/nonce").then((response) => response.nonce);
 
+  Logger.log(
+    LogLevel.DEBUG,
+    `Challenge ${challenge} obtained from ${context.walletProviderBaseUrl}`
+  );
+
   const keyAttestation = await integrityContext.getAttestation(challenge);
+
   const hardwareKeyTag = integrityContext.getHardwareKeyTag();
+
+  Logger.log(
+    LogLevel.DEBUG,
+    `Key attestation extracted from the device for hardware key tag ${hardwareKeyTag} - ${keyAttestation} `
+  );
 
   //2. Create Wallet Instance
   await api
@@ -37,6 +48,11 @@ export async function createWalletInstance(context: {
 }
 
 const handleCreateWalletInstanceError = (e: unknown) => {
+  Logger.log(
+    LogLevel.ERROR,
+    `An error occurred while calling /wallet-instances endpoint: ${e}`
+  );
+
   if (!(e instanceof WalletProviderResponseError)) {
     throw e;
   }
