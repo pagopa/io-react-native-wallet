@@ -7,8 +7,8 @@ import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import {
   type RemotePresentation,
   DirectAuthorizationBodyPayload,
+  ErrorResponse,
   type LegacyRemotePresentation,
-  LegacyDirectAuthorizationBodyPayload,
 } from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
@@ -61,7 +61,7 @@ export const choosePublicKeyToEncrypt = (
 export const buildDirectPostJwtBody = async (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  payload: DirectAuthorizationBodyPayload | LegacyDirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
@@ -220,3 +220,49 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
     .then((res) => res.json())
     .then(AuthorizationResponse.parse);
 };
+
+/**
+ * Type definition for the function that sends the authorization response
+ * to the Relying Party, completing the presentation flow.
+ */
+export type SendAuthorizationErrorResponse = (
+  requestObject: Out<VerifyRequestObject>["requestObject"],
+  error: ErrorResponse,
+  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
+  context?: {
+    appFetch?: GlobalFetch["fetch"];
+  }
+) => Promise<AuthorizationResponse>;
+
+/**
+ * Sends the authorization error response to the Relying Party (RP) using the specified `response_mode`.
+ * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
+ *
+ * @param requestObject - The request details, including presentation requirements.
+ * @param error - The response error value
+ * @param jwkKeys - Array of JWKs from the Relying Party for optional encryption.
+ * @param context - Contains optional custom fetch implementation.
+ * @returns Parsed and validated authorization response from the Relying Party.
+ */
+export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
+  async (
+    requestObject,
+    error,
+    rpConf,
+    { appFetch = fetch } = {}
+  ): Promise<AuthorizationResponse> => {
+    const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
+      error,
+    });
+
+    return await appFetch(requestObject.response_uri, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: requestBody,
+    })
+      .then(hasStatusOrThrow(200))
+      .then((res) => res.json())
+      .then(AuthorizationResponse.parse);
+  };

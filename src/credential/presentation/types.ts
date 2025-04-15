@@ -133,26 +133,37 @@ export const RequestObjectWalletCapabilities = z.object({
 });
 
 /**
- * Authorization Response payload when using `presentation_definition`.
- * @deprecated Use `DirectAuthorizationBodyPayload`
+ * This type models the possible error responses the OpenID4VP protocol allows for a presentation of a credential.
+ * See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/pid-eaa-presentation.html#authorization-response-errors for more information.
  */
-export type LegacyDirectAuthorizationBodyPayload = z.infer<
-  typeof LegacyDirectAuthorizationBodyPayload
->;
+export type ErrorResponse = z.infer<typeof ErrorResponse>;
+export const ErrorResponse = z.enum([
+  "invalid_request_object",
+  "invalid_request_uri",
+  "vp_formats_not_supported",
+  "invalid_request",
+  "access_denied",
+  "invalid_client",
+]);
+
 /**
  * @deprecated Use `DirectAuthorizationBodyPayload`
  */
-export const LegacyDirectAuthorizationBodyPayload = z.object({
+const LegacyDirectAuthorizationBodyPayload = z.object({
   vp_token: z.union([z.string(), z.array(z.string())]).optional(),
   presentation_submission: z.record(z.string(), z.unknown()),
 });
 
 /**
- * Authorization Response payload when using DCQL queries.
+ * Authorization Response payload sent to the Relying Party.
  */
 export type DirectAuthorizationBodyPayload = z.infer<
   typeof DirectAuthorizationBodyPayload
 >;
-export const DirectAuthorizationBodyPayload = z.object({
-  vp_token: z.record(z.string(), z.string()),
-});
+export const DirectAuthorizationBodyPayload = z.union([
+  z.object({
+    vp_token: z.record(z.string(), z.string()),
+  }),
+  z.object({ error: ErrorResponse }),
+  LegacyDirectAuthorizationBodyPayload,
+]);

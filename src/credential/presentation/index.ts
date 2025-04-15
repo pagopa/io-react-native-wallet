@@ -33,6 +33,8 @@ import {
   type SendAuthorizationResponse,
   sendLegacyAuthorizationResponse,
   type SendLegacyAuthorizationResponse,
+  sendAuthorizationErrorResponse,
+  type SendAuthorizationErrorResponse,
 } from "./08-send-authorization-response";
 import * as Errors from "./errors";
 
@@ -49,6 +51,7 @@ export {
   prepareRemotePresentations,
   sendAuthorizationResponse,
   sendLegacyAuthorizationResponse,
+  sendAuthorizationErrorResponse,
   Errors,
 };
 export type {
@@ -64,4 +67,5 @@ export type {
   PrepareRemotePresentations,
   SendAuthorizationResponse,
   SendLegacyAuthorizationResponse,
+  SendAuthorizationErrorResponse,
 };
