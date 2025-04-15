@@ -247,6 +247,16 @@ describe("sendAuthorizationErrorResponse", () => {
     });
   });
 
+  it('should choose the first EC key with "enc" use from the list', () => {
+    const mockJwKeys: any = [
+      { kid: "rsa-key-enc", use: "enc", kty: "RSA" },
+      { kid: "ec-b-key-enc", use: "enc", kty: "EC", crv: "B-256" },
+      { kid: "ec-key-enc", use: "enc", kty: "EC", crv: "P-256" },
+    ];
+    const encPublicJwk = choosePublicKeyToEncrypt(mockJwKeys);
+    expect(encPublicJwk).toEqual(mockJwKeys[2]);
+  });
+
   it("should send an error code building the body using buildDirectPostBody", async () => {
     const res = await sendAuthorizationErrorResponse(
       mockRequestObject as any,
