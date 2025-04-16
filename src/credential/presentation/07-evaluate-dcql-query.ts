@@ -10,6 +10,7 @@ import type { Disclosure } from "../../sd-jwt/types";
 import { ValidationFailed } from "../../utils/errors";
 import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
+import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
 
 /**
  * The purpose for the credential request by the RP.
@@ -47,6 +48,11 @@ type DcqlMatchSuccess = Extract<
   { success: true }
 >;
 
+type DcqlMatchFailure = Extract<
+  DcqlQueryResult.CredentialMatch,
+  { success: false }
+>;
+
 /**
  * Convert a credential in JWT format to an object with claims
  * for correct parsing by the `dcql` library.
@@ -81,6 +87,32 @@ const getDcqlQueryMatches = (result: DcqlQueryResult) =>
     ([, match]) => match.success === true
   ) as [string, DcqlMatchSuccess][];
 
+/**
+ * Extract only failed matches from the DCQL query result.
+ */
+const getDcqlQueryFailedMatches = (result: DcqlQueryResult) =>
+  Object.entries(result.credential_matches).filter(
+    ([, match]) => match.success === false
+  ) as [string, DcqlMatchFailure][];
+
+/**
+ * Extract missing credentials from the DCQL query result.
+ * Note: here we are assuming a failed match is a missing credential,
+ * but there might be other reasons for its failure.
+ */
+const extractMissingCredentials = (
+  queryResult: DcqlQueryResult,
+  originalQuery: DcqlQuery
+): NotFoundDetail[] => {
+  return getDcqlQueryFailedMatches(queryResult).map(([id]) => {
+    const credential = originalQuery.credentials.find((c) => c.id === id);
+    if (credential?.format !== "vc+sd-jwt") {
+      throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
+    }
+    return { id, vctValues: credential.meta?.vct_values };
+  });
+};
+
 export const evaluateDcqlQuery: EvaluateDcqlQuery = (
   credentialsSdJwt,
   query
@@ -97,8 +129,11 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     const queryResult = DcqlQuery.query(parsedQuery, credentials);
 
     if (!queryResult.canBeSatisfied) {
-      throw new Error("No credential can satisfy the provided DCQL query");
+      throw new CredentialsNotFoundError(
+        extractMissingCredentials(queryResult, parsedQuery)
+      );
     }
+
     // Build an object vct:credentialJwt to map matched credentials to their JWT
     const credentialsSdJwtByVct = credentials.reduce(
       (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
