@@ -24,7 +24,7 @@ export const CredentialResponse = z.object({
       credential: z.string(),
     })
   ),
-  notification_id: z.string(),
+  notification_id: z.string().optional(),
 });
 
 /**
