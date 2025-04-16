@@ -1,5 +1,11 @@
-import { AuthorizationDetail } from "../../utils/par";
 import * as z from "zod";
+
+export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
+export const AuthorizationDetail = z.object({
+  type: z.literal("openid_credential"),
+  credential_configuration_id: z.string(),
+  credential_identifiers: z.array(z.string()),
+});
 
 export type TokenResponse = z.infer<typeof TokenResponse>;
 

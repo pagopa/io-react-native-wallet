@@ -13,9 +13,8 @@ import { LogLevel, Logger } from "./logging";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
-  credential_configuration_id: z.string(),
-  format: z.union([z.literal("dc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   type: z.literal("openid_credential"),
+  credential_configuration_id: z.string(),
 });
 
 export type AuthorizationDetails = z.infer<typeof AuthorizationDetails>;
@@ -92,7 +91,9 @@ export const makeParRequest =
         code_challenge_method: codeChallengeMethod,
         authorization_details: authorizationDetails,
         redirect_uri: redirectUri,
-        // scope: "", // https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/pid-eaa-issuance.html#pushed-authorization-request-par-request
+        // TODO: `scope` is not necessary if `authorization_details` is provided, so should we also support `scope`?
+        // See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/pid-eaa-issuance.html#pushed-authorization-request-par-request
+        // scope: "",
       })
       .setIssuedAt() // iat is set to now
       .setExpirationTime("5min")
@@ -100,10 +101,7 @@ export const makeParRequest =
 
     /** The request body for the Pushed Authorization Request */
     var formBody = new URLSearchParams({
-      response_type: "code",
       client_id: clientId,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
       request: signedJwtForPar,
     });
 

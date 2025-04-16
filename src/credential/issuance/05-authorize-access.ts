@@ -90,12 +90,10 @@ export const authorizeAccess: AuthorizeAccess = async (
   Logger.log(LogLevel.DEBUG, `WIA DPoP token: ${signedWiaPoP}`);
 
   const requestBody = {
-    // client_id: clientId,
     grant_type: "authorization_code",
     code,
-    redirect_uri: redirectUri,
     code_verifier: codeVerifier,
-    // scope: ""
+    redirect_uri: redirectUri,
   };
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);

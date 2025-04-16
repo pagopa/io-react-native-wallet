@@ -114,7 +114,6 @@ export const obtainCredential: ObtainCredential = async (
     (c) =>
       c.credential_configuration_id ===
         credentialDefinition.credential_configuration_id &&
-      c.format === credentialDefinition.format &&
       c.type === credentialDefinition.type
   );
 
@@ -131,6 +130,7 @@ export const obtainCredential: ObtainCredential = async (
 
   /** The credential request body */
   const credentialRequestFormBody = {
+    // TODO: credential_identifier vs credential_configuration_id???
     credential_identifier: credentialDefinition.credential_configuration_id,
     proof: {
       jwt: signedNonceProof,
