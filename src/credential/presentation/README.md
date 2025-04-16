@@ -21,6 +21,13 @@ sequenceDiagram
   O->>+I: Redirect: Authorization Response
 ```
 
+## Mapped results
+
+|Error|Description|
+|-----|-----------|
+|`ValidationFailed`|The presentation request is not valid, for instance the DCQL query is invalid.|
+|`CredentialsNotFoundError`|The presentation cannot be completed because the Wallet does not contain all requested credentials. The missing credentials can be found in `details`.|
+
 
 ## Examples
 

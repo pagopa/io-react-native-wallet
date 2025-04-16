@@ -3,7 +3,7 @@ import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
 import { decode, prepareVpToken } from "../../sd-jwt";
 import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
-import { CredentialNotFoundError, MissingDataError } from "./errors";
+import { CredentialsNotFoundError, MissingDataError } from "./errors";
 import Ajv from "ajv";
 
 const ajv = new Ajv({ allErrors: true });
@@ -291,9 +291,12 @@ export const findCredentialSdJwt = (
     }
   }
 
-  throw new CredentialNotFoundError(
-    "None of the dc+sd-jwt credentials satisfy the requirements."
-  );
+  throw new CredentialsNotFoundError([
+    {
+      id: "",
+      reason: "None of the vc+sd-jwt credentials satisfy the requirements.",
+    },
+  ]);
 };
 
 /**
@@ -325,9 +328,12 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
     inputDescriptors.map(async (descriptor) => {
       if (descriptor.format?.["dc+sd-jwt"]) {
         if (!decodedSdJwtCredentials.length) {
-          throw new CredentialNotFoundError(
-            "dc+sd-jwt credential is not supported."
-          );
+          throw new CredentialsNotFoundError([
+            {
+              id: descriptor.id,
+              reason: "vc+sd-jwt credential is not supported.",
+            },
+          ]);
         }
 
         const { matchedEvaluation, matchedKeyTag, matchedCredential } =
@@ -341,9 +347,12 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
         };
       }
 
-      throw new CredentialNotFoundError(
-        `${descriptor.format} format is not supported.`
-      );
+      throw new CredentialsNotFoundError([
+        {
+          id: descriptor.id,
+          reason: `${descriptor.format} format is not supported.`,
+        },
+      ]);
     })
   );
 };
@@ -385,9 +394,12 @@ export const prepareLegacyRemotePresentations: PrepareLegacyRemotePresentations 
           };
         }
 
-        throw new CredentialNotFoundError(
-          `${descriptor.format} format is not supported.`
-        );
+        throw new CredentialsNotFoundError([
+          {
+            id: descriptor.id,
+            reason: `${descriptor.format} format is not supported.`,
+          },
+        ]);
       })
     );
   };
