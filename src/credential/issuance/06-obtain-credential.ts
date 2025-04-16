@@ -90,7 +90,10 @@ export const obtainCredential: ObtainCredential = async (
   const nonceUrl = issuerConf.openid_credential_issuer.nonce_endpoint;
 
   // Fetch the nonce from the Credential Issuer
-  const { c_nonce } = await appFetch(nonceUrl, { method: "POST" })
+  const { c_nonce } = await appFetch(nonceUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
     .then((body) => NonceResponse.parse(body));
@@ -130,7 +133,7 @@ export const obtainCredential: ObtainCredential = async (
 
   /** The credential request body */
   const credentialRequestFormBody = {
-    // TODO: credential_identifier vs credential_configuration_id???
+    // TODO: [SIW-2264] credential_identifier vs credential_configuration_id?
     credential_identifier: credentialDefinition.credential_configuration_id,
     proof: {
       jwt: signedNonceProof,
@@ -181,6 +184,7 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
+  // TODO: [SIW-2264] handle multiple credentials
   return credentialRes.data;
 };
 
@@ -251,7 +255,7 @@ export const fetchTypeMetadata = async (
     throw new IoWalletError(`${alg} algorithm is not supported`);
   }
 
-  // TODO: check if the hash is correctly calculated
+  // TODO: [SIW-2264] check if the hash is correctly calculated
   const metadataHash = await sha256ToBase64(JSON.stringify(metadata));
 
   if (metadataHash !== hash) {

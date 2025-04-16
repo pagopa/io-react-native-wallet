@@ -91,7 +91,7 @@ export const makeParRequest =
         code_challenge_method: codeChallengeMethod,
         authorization_details: authorizationDetails,
         redirect_uri: redirectUri,
-        // TODO: `scope` is not necessary if `authorization_details` is provided, so should we also support `scope`?
+        // TODO: [SIW-2264] `scope` is not necessary if `authorization_details` is provided, so should we also support `scope`?
         // See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/pid-eaa-issuance.html#pushed-authorization-request-par-request
         // scope: "",
       })
