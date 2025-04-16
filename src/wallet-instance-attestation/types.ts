@@ -46,6 +46,8 @@ export const WalletInstanceAttestationRequestJwt = z.object({
   ),
 });
 
+// TODO: add type for Wallet Attestation in SD-JWT and MDOC format
+// See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/wallet-solution.html#wallet-attestation-issuance step 18
 export type WalletInstanceAttestationJwt = z.infer<
   typeof WalletInstanceAttestationJwt
 >;
@@ -53,7 +55,7 @@ export const WalletInstanceAttestationJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("wallet-attestation+jwt"),
+      typ: z.literal("jwt"),
     })
   ),
   payload: z.intersection(
@@ -61,27 +63,19 @@ export const WalletInstanceAttestationJwt = z.object({
     z.object({
       sub: z.string(),
       aal: z.string(),
-      authorization_endpoint: z.string(),
-      response_types_supported: z.array(z.string()),
-      vp_formats_supported: z.object({
-        "vc+sd-jwt": z
-          .object({
-            "sd-jwt_alg_values": z.array(z.string()),
-          })
-          .optional(),
-        "vp+sd-jwt": z
-          .object({
-            "sd-jwt_alg_values": z.array(z.string()),
-          })
-          .optional(),
-      }),
-      request_object_signing_alg_values_supported: z.array(z.string()),
-      presentation_definition_uri_supported: z.boolean(),
+      vct: z.string(),
+      wallet_name: z.string(),
+      wallet_link: z.string(),
     })
   ),
 });
 
 export type TokenResponse = z.infer<typeof TokenResponse>;
 export const TokenResponse = z.object({
-  wallet_attestation: z.string(),
+  wallet_attestations: z.array(
+    z.object({
+      format: z.enum(["jwt", "dc+sd-jwt", "mso_mdoc"]),
+      wallet_attestation: z.string(),
+    })
+  ),
 });
