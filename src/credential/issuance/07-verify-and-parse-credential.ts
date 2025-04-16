@@ -265,7 +265,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   context
 ) => {
   if (format === "dc+sd-jwt") {
-    Logger.log(LogLevel.DEBUG, "Parsing credential in vc+sd-jwt format");
+    Logger.log(LogLevel.DEBUG, "Parsing credential in dc+sd-jwt format");
     return verifyAndParseCredentialSdJwt(
       issuerConf,
       credential,
