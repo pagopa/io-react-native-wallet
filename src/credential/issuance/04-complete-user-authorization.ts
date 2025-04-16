@@ -8,13 +8,17 @@ import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { decode, encodeBase64 } from "@pagopa/io-react-native-jwt";
+import {
+  decode,
+  SignJWT,
+  type CryptoContext,
+} from "@pagopa/io-react-native-jwt";
 import { type RemotePresentation, RequestObject } from "../presentation/types";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
 import { LogLevel, Logger } from "../../utils/logging";
-import { Credential } from "@pagopa/io-react-native-wallet";
+import { Presentation } from "..";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -31,7 +35,10 @@ export type CompleteUserAuthorizationWithFormPostJwtMode = (
     keyTag: string;
     requestedClaims: string[];
   }[],
-  appFetch?: GlobalFetch["fetch"]
+  context: {
+    wiaCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }
 ) => Promise<AuthorizationResult>;
 
 export type GetRequestedCredentialToBePresented = (
@@ -164,22 +171,26 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
  * @returns the authorization response which contains code, state and iss
  */
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
-  async (requestObject, credentialsToPresent, appFetch = fetch) => {
+  async (
+    requestObject,
+    credentialsToPresent,
+    { wiaCryptoContext, appFetch = fetch }
+  ) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
 
-    const remotePresentations =
-      await Credential.Presentation.prepareRemotePresentations(
-        credentialsToPresent,
-        requestObject.nonce,
-        requestObject.client_id
-      );
+    const remotePresentations = await Presentation.prepareRemotePresentations(
+      credentialsToPresent,
+      requestObject.nonce,
+      requestObject.client_id
+    );
 
-    const authzResponsePayload = createAuthzResponsePayload({
+    const authzResponsePayload = await createAuthzResponsePayload({
       state: requestObject.state,
       remotePresentations,
+      wiaCryptoContext,
     });
 
     Logger.log(
@@ -269,21 +280,38 @@ export const parseAuthorizationResponse = (
  * @param remotePresentations - An array of remote presentations containing credential IDs and their corresponding VP tokens.
  * @returns The Base64 encoded authorization response payload.
  */
-const createAuthzResponsePayload = ({
+const createAuthzResponsePayload = async ({
   state,
   remotePresentations,
+  wiaCryptoContext,
 }: {
   state?: string;
   remotePresentations: RemotePresentation[];
-}): string =>
-  encodeBase64(
-    JSON.stringify({
+  wiaCryptoContext: CryptoContext;
+}): Promise<string> => {
+  const { kid } = await wiaCryptoContext.getPublicKey();
+
+  return new SignJWT(wiaCryptoContext)
+    .setProtectedHeader({
+      typ: "jwt",
+      kid,
+    })
+    .setPayload({
+      /**
+       * TODO [SIW-2264]: `state` coming from `requestObject` is marked as `optional`
+       * At the moment, it is not entirely clear whether this value can indeed be omitted
+       * and, if so, what the consequences of its absence might be.
+       */
       ...(state ? { state } : {}),
-      vp_token: Object.fromEntries(
-        remotePresentations.map(({ credentialId, vpToken }) => [
-          credentialId,
-          vpToken,
-        ])
+      vp_token: remotePresentations.reduce(
+        (vp_token, { credentialId, vpToken }) => ({
+          ...vp_token,
+          [credentialId]: vpToken,
+        }),
+        {}
       ),
     })
-  );
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
+};
