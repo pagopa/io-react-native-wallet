@@ -1,9 +1,8 @@
-import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { StartFlow } from "./01-start-flow";
+import { hasStatusOrThrow } from "../../utils/misc";
 import { RequestObjectWalletCapabilities } from "./types";
 
 export type GetRequestObject = (
-  requestUri: Out<StartFlow>["requestUri"],
+  requestUri: string,
   context?: {
     appFetch?: GlobalFetch["fetch"];
     walletCapabilities?: RequestObjectWalletCapabilities;
