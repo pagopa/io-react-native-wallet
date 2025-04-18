@@ -26,7 +26,7 @@ import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { labelByCredentialType } from "../utils/ui";
 import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
-import { selectEnv } from "../store/reducers/environment";
+import { selectLoggingAddress } from "../store/reducers/environment";
 import { initLogging } from "../utils/logging";
 import { PresentationScreen } from "../screens/PresentationScreen";
 import {
@@ -71,15 +71,15 @@ const lightTheme: Theme = {
 
 export const MainStackNavigator = () => {
   const ioAuthToken = useSelector(selectIoAuthToken);
-  const selectedEnv = useAppSelector(selectEnv);
+  const loggingServerAddr = useAppSelector(selectLoggingAddress);
   const dispatch = useAppDispatch();
 
   /**
    * Sets the logging environment when the selected environment changes.
    */
   useEffect(() => {
-    initLogging(selectedEnv);
-  }, [selectedEnv]);
+    initLogging(loggingServerAddr);
+  }, [loggingServerAddr]);
 
   const headerRight = useCallback(
     () => (

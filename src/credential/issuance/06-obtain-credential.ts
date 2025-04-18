@@ -175,6 +175,11 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
+  Logger.log(
+    LogLevel.DEBUG,
+    `Credential Response: ${JSON.stringify(credentialRes.data)}`
+  );
+
   return credentialRes.data;
 };
 
