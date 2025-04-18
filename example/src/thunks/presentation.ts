@@ -59,37 +59,28 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");
   }
-  const qrcode = args.qrcode;
-  const url = new URL(qrcode);
-
-  const requestUri = url.searchParams.get("request_uri");
-  const clientId = url.searchParams.get("client_id");
-  const state = url.searchParams.get("state");
-  const requestUriMethod = (url.searchParams.get("request_uri_method") ??
-    "get") as "get" | "post";
-
-  if (!requestUri || !clientId) {
-    throw new Error("Invalid presentation link");
-  }
+  const url = new URL(args.qrcode);
 
   const qrParams = Credential.Presentation.startFlowFromQR({
-    requestUri,
-    clientId,
-    requestUriMethod,
-    ...(state && { state }),
+    request_uri: url.searchParams.get("request_uri"),
+    client_id: url.searchParams.get("client_id"),
+    state: url.searchParams.get("state"),
+    request_uri_method: url.searchParams.get("request_uri_method") as
+      | "get"
+      | "post",
   });
 
   const { rpConf, subject } =
-    await Credential.Presentation.evaluateRelyingPartyTrust(qrParams.clientId);
+    await Credential.Presentation.evaluateRelyingPartyTrust(qrParams.client_id);
 
   const { requestObjectEncodedJwt } =
-    await Credential.Presentation.getRequestObject(qrParams.requestUri);
+    await Credential.Presentation.getRequestObject(qrParams.request_uri);
 
   const { requestObject } = await Credential.Presentation.verifyRequestObject(
     requestObjectEncodedJwt,
     {
       rpConf,
-      clientId: qrParams.clientId,
+      clientId: qrParams.client_id,
       rpSubject: subject,
       state: qrParams.state,
     }
