@@ -229,9 +229,9 @@ export function extractErrorMessageFromIssuerConf(
  * @returns A type guard that checks if the error is an instance of the given class and has the expected code
  */
 const makeErrorTypeGuard =
-  <T extends typeof UnexpectedStatusCodeError>(errorClass: T) =>
-  (error: unknown, code?: ExtractErrorCode<T>): error is T =>
-    error instanceof errorClass && error.code === (code ?? error.code);
+  <T extends typeof UnexpectedStatusCodeError>(ErrorClass: T) =>
+  (error: unknown, code?: ExtractErrorCode<T>): error is InstanceType<T> =>
+    error instanceof ErrorClass && error.code === (code ?? error.code);
 
 export const isIssuerResponseError = makeErrorTypeGuard(IssuerResponseError);
 export const isWalletProviderResponseError = makeErrorTypeGuard(
