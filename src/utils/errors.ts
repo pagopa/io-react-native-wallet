@@ -3,11 +3,17 @@ import type { CredentialIssuerEntityConfiguration } from "../trust";
 import {
   IssuerResponseErrorCodes,
   WalletProviderResponseErrorCodes,
+  RelyingPartyResponseErrorCodes,
   type IssuerResponseErrorCode,
   type WalletProviderResponseErrorCode,
+  type RelyingPartyResponseErrorCode,
 } from "./error-codes";
 
-export { IssuerResponseErrorCodes, WalletProviderResponseErrorCodes };
+export {
+  IssuerResponseErrorCodes,
+  WalletProviderResponseErrorCodes,
+  RelyingPartyResponseErrorCodes,
+};
 
 // An error reason that supports both a string and a generic JSON object
 type GenericErrorReason = string | Record<string, unknown>;
@@ -110,8 +116,6 @@ export class UnexpectedStatusCodeError extends IoWalletError {
 /**
  * An error subclass thrown when an Issuer HTTP request fails.
  * The specific error can be found in the `code` property.
- *
- * The class is generic over the error code to narrow down the reason.
  */
 export class IssuerResponseError extends UnexpectedStatusCodeError {
   code: IssuerResponseErrorCode;
@@ -146,6 +150,25 @@ export class WalletProviderResponseError extends UnexpectedStatusCodeError {
     this.code =
       params.code ??
       WalletProviderResponseErrorCodes.WalletProviderGenericError;
+  }
+}
+
+/**
+ * An error subclass thrown when a Relying Party HTTP request fails.
+ * The specific error can be found in the `code` property.
+ */
+export class RelyingPartyResponseError extends UnexpectedStatusCodeError {
+  code: RelyingPartyResponseErrorCode;
+
+  constructor(params: {
+    code?: RelyingPartyResponseErrorCode;
+    message: string;
+    reason: GenericErrorReason;
+    statusCode: number;
+  }) {
+    super(params);
+    this.code =
+      params.code ?? RelyingPartyResponseErrorCodes.RelyingPartyGenericError;
   }
 }
 
@@ -200,36 +223,43 @@ export function extractErrorMessageFromIssuerConf(
 }
 
 /**
- * Type guard for issuer errors.
- * @param error The error to check
- * @param code Optional code to narrow down the issuer error
+ * Factory function to create a type guard for specific error classes.
+ *
+ * @param errorClass The error class to create the type guard for
+ * @returns A type guard that checks if the error is an instance of the given class and has the expected code
  */
-export const isIssuerResponseError = (
-  error: unknown,
-  code?: IssuerResponseErrorCode
-): error is IssuerResponseError =>
-  error instanceof IssuerResponseError && error.code === (code ?? error.code);
+const makeErrorTypeGuard =
+  <T extends typeof UnexpectedStatusCodeError>(ErrorClass: T) =>
+  (error: unknown, code?: ExtractErrorCode<T>): error is InstanceType<T> =>
+    error instanceof ErrorClass && error.code === (code ?? error.code);
 
-/**
- * Type guard for wallet provider errors.
- * @param error The error to check
- * @param code Optional code to narrow down the wallet provider error
- */
-export const isWalletProviderResponseError = (
-  error: unknown,
-  code?: WalletProviderResponseErrorCode
-): error is WalletProviderResponseError =>
-  error instanceof WalletProviderResponseError &&
-  error.code === (code ?? error.code);
+export const isIssuerResponseError = makeErrorTypeGuard(IssuerResponseError);
+export const isWalletProviderResponseError = makeErrorTypeGuard(
+  WalletProviderResponseError
+);
+export const isRelyingPartyResponseError = makeErrorTypeGuard(
+  RelyingPartyResponseError
+);
 
-type ErrorCodeMap<T> = T extends typeof IssuerResponseError
-  ? IssuerResponseErrorCode
-  : T extends typeof WalletProviderResponseError
-    ? WalletProviderResponseErrorCode
-    : never;
+// Mapping type between error classes and their allowed codes
+type ErrorCodeMap =
+  | {
+      type: typeof IssuerResponseError;
+      code: IssuerResponseErrorCode;
+    }
+  | {
+      type: typeof WalletProviderResponseError;
+      code: WalletProviderResponseErrorCode;
+    }
+  | {
+      type: typeof RelyingPartyResponseError;
+      code: RelyingPartyResponseErrorCode;
+    };
+
+type ExtractErrorCode<T> = Extract<ErrorCodeMap, { type: T }>["code"];
 
 type ErrorCase<T> = {
-  code: ErrorCodeMap<T>;
+  code: ExtractErrorCode<T>;
   message: string;
   reason?: GenericErrorReason;
 };

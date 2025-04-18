@@ -1,10 +1,17 @@
 import type { CredentialIssuerEntityConfiguration } from "../../trust";
 import {
   extractErrorMessageFromIssuerConf,
+  isIssuerResponseError,
+  isRelyingPartyResponseError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
+  isWalletProviderResponseError,
+  RelyingPartyResponseError,
+  RelyingPartyResponseErrorCodes,
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
+  WalletProviderResponseError,
+  WalletProviderResponseErrorCodes,
 } from "../errors";
 
 type EntityConfig = CredentialIssuerEntityConfiguration["payload"]["metadata"];
@@ -169,5 +176,45 @@ describe("ResponseErrorBuilder", () => {
 
     const error = errorBuilderWithoutFallback.buildFrom(original);
     expect(error).toEqual(original);
+  });
+});
+
+describe("Error type guards", () => {
+  const typeGuards = {
+    isIssuerResponseError,
+    isWalletProviderResponseError,
+    isRelyingPartyResponseError,
+  };
+
+  test.each([
+    ["isIssuerResponseError", IssuerResponseError, IssuerResponseErrorCodes],
+    [
+      "isWalletProviderResponseError",
+      WalletProviderResponseError,
+      WalletProviderResponseErrorCodes,
+    ],
+    [
+      "isRelyingPartyResponseError",
+      RelyingPartyResponseError,
+      RelyingPartyResponseErrorCodes,
+    ],
+  ])("%s type guard works correctly", (guardName, ErrorClass, errorCodes) => {
+    const typeGuard = typeGuards[guardName as keyof typeof typeGuards];
+
+    const [correctCode, wrongCode] = Object.keys(errorCodes);
+
+    const error = new ErrorClass({
+      // @ts-ignore
+      code: correctCode,
+      message: "A message",
+      reason: "A reason",
+      statusCode: 400,
+    });
+
+    expect(typeGuard(error)).toBe(true);
+    // @ts-ignore
+    expect(typeGuard(error, correctCode)).toBe(true);
+    // @ts-ignore
+    expect(typeGuard(error, wrongCode)).toBe(false);
   });
 });
