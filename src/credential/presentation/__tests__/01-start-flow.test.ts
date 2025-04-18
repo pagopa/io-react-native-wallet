@@ -3,9 +3,9 @@ import { startFlowFromQR } from "../01-start-flow";
 import { InvalidQRCodeError } from "../errors";
 
 describe("startFlowFromQR", () => {
-  const requestUri = "https://request.uri";
-  const clientId = "client123";
-  const requestUriMethod = "get";
+  const request_uri = "https://request.uri";
+  const client_id = "client123";
+  const request_uri_method = "get";
   const state = "state123";
 
   beforeEach(() => {
@@ -14,29 +14,43 @@ describe("startFlowFromQR", () => {
 
   it("should successfully decode a valid QR code", () => {
     const result = startFlowFromQR({
-      requestUri,
-      clientId,
-      requestUriMethod,
+      request_uri,
+      client_id,
+      request_uri_method,
       state,
     });
 
     expect(result).toEqual({
-      requestUri,
-      clientId,
-      requestUriMethod,
+      request_uri,
+      client_id,
+      request_uri_method,
       state,
     });
   });
 
   it("should throw InvalidQRCodeError for invalid request_uri ", () => {
     expect(() =>
-      startFlowFromQR({ requestUri: "test", requestUriMethod, clientId })
+      startFlowFromQR({ request_uri_method, client_id, request_uri: "test" })
     ).toThrow(InvalidQRCodeError);
   });
 
   it("should throw InvalidQRCodeError for invalid client_id", () => {
     expect(() =>
-      startFlowFromQR({ requestUri, requestUriMethod, clientId: "" })
+      startFlowFromQR({ request_uri, request_uri_method, client_id: "" })
     ).toThrow(InvalidQRCodeError);
+  });
+
+  it("should throw InvalidQRCodeError for nullable parameters ", () => {
+    expect(() =>
+      startFlowFromQR({
+        request_uri: null,
+        request_uri_method: null,
+        client_id: null,
+      })
+    ).toThrow(InvalidQRCodeError);
+  });
+
+  it("should throw InvalidQRCodeError for missing parameters ", () => {
+    expect(() => startFlowFromQR({ request_uri })).toThrow(InvalidQRCodeError);
   });
 });
