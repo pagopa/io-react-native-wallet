@@ -105,6 +105,34 @@ export const buildDirectPostJwtBody = async (
 };
 
 /**
+ * Builds a URL-encoded form body for a direct POST response without encryption.
+ *
+ * @param requestObject - Contains state, nonce, and other relevant info.
+ * @param payload - Object that contains either the VP token to encrypt and the stringified mapping of the credential disclosures or the error code
+ * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
+ */
+export const buildDirectPostBody = async (
+  requestObject: Out<VerifyRequestObject>["requestObject"],
+  payload: DirectAuthorizationBodyPayload
+): Promise<string> => {
+  const formUrlEncodedBody = new URLSearchParams({
+    ...(requestObject.state && { state: requestObject.state }),
+    ...Object.entries(payload).reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        [key]:
+          Array.isArray(value) || typeof value === "object"
+            ? JSON.stringify(value)
+            : value,
+      }),
+      {} as Record<string, string>
+    ),
+  });
+
+  return formUrlEncodedBody.toString();
+};
+
+/**
  * Type definition for the function that sends the authorization response
  * to the Relying Party, completing the presentation flow.
  * Use with `presentation_definition`.
@@ -234,8 +262,7 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
  */
 export type SendAuthorizationErrorResponse = (
   requestObject: Out<VerifyRequestObject>["requestObject"],
-  error: ErrorResponse,
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
+  error: { error: ErrorResponse; errorDescription: string },
   context?: {
     appFetch?: GlobalFetch["fetch"];
   }
@@ -254,12 +281,12 @@ export type SendAuthorizationErrorResponse = (
 export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
   async (
     requestObject,
-    error,
-    rpConf,
+    { error, errorDescription },
     { appFetch = fetch } = {}
   ): Promise<AuthorizationResponse> => {
-    const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
+    const requestBody = await buildDirectPostBody(requestObject, {
       error,
+      error_description: errorDescription,
     });
 
     return await appFetch(requestObject.response_uri, {
@@ -269,7 +296,7 @@ export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
       },
       body: requestBody,
     })
-      .then(hasStatusOrThrow(200))
+      .then(hasStatusOrThrow(200, RelyingPartyResponseError))
       .then((res) => res.json())
       .then(AuthorizationResponse.parse);
   };
@@ -290,6 +317,10 @@ const handleAuthorizationResponseError = (e: unknown) => {
       code: RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse,
       message:
         "The Authorization Response contains invalid parameters or it is malformed",
+    })
+    .handle(403, {
+      code: RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse,
+      message: "The Authorization Response was forbidden",
     })
     .handle("*", {
       code: RelyingPartyResponseErrorCodes.RelyingPartyGenericError,

@@ -164,6 +164,6 @@ export const DirectAuthorizationBodyPayload = z.union([
   z.object({
     vp_token: z.record(z.string(), z.string()),
   }),
-  z.object({ error: ErrorResponse }),
+  z.object({ error: ErrorResponse, error_description: z.string() }),
   LegacyDirectAuthorizationBodyPayload,
 ]);
