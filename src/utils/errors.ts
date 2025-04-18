@@ -137,7 +137,7 @@ export class IssuerResponseError extends UnexpectedStatusCodeError {
  */
 export class WalletProviderResponseError extends UnexpectedStatusCodeError {
   code: WalletProviderResponseErrorCode;
-  reason: GenericErrorReason;
+  reason: ProblemDetail;
 
   constructor(params: {
     code?: WalletProviderResponseErrorCode;
