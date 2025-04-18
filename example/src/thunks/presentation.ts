@@ -108,6 +108,10 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       .map((c) => [c.keyTag, c.credential]),
   ] as [string, string][];
 
+  if (requestObject.dcql_query && args.allowed === "refusalState") {
+    return processRefusedPresentation(requestObject);
+  }
+
   if (requestObject.dcql_query) {
     return processPresentation(requestObject, rpConf, credentialsSdJwt);
   }
@@ -211,4 +215,17 @@ const processPresentation: ProcessPresentation = async (
     requestObject,
     requestedClaims: credentialsToPresent.flatMap((c) => c.requestedClaims),
   };
+};
+
+// Mock an error in the presentation flow
+const processRefusedPresentation = async (requestObject: RequestObject) => {
+  const authResponse =
+    await Credential.Presentation.sendAuthorizationErrorResponse(
+      requestObject,
+      {
+        error: "invalid_request_object",
+        errorDescription: "Mock error during request object validation",
+      }
+    );
+  return { authResponse, requestObject, requestedClaims: [] };
 };
