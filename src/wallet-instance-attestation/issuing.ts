@@ -95,7 +95,7 @@ export const getAttestation = async ({
   const challenge = await api.get("/nonce").then((response) => response.nonce);
   Logger.log(
     LogLevel.DEBUG,
-    `Challenge ${challenge} obtained from ${walletProviderBaseUrl}`
+    `Challenge obtained from ${walletProviderBaseUrl}: ${challenge} `
   );
 
   // 2. Get a signed attestation request
@@ -121,7 +121,10 @@ export const getAttestation = async ({
     .then((result) => TokenResponse.parse(result))
     .catch(handleAttestationCreationError);
 
-  Logger.log(LogLevel.DEBUG, `Obtained wallet attestation ${tokenResponse}`);
+  Logger.log(
+    LogLevel.DEBUG,
+    `Obtained wallet attestation: ${tokenResponse.wallet_attestation}`
+  );
 
   return tokenResponse.wallet_attestation;
 };

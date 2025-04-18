@@ -5,17 +5,8 @@ import {
   type transportFunctionType,
 } from "react-native-logs";
 
-/**
- * An implementation example of the logging system.
- * It creates a logger via `react-native-logs` and sends the logs to a custom server and to the console.
- * @param address - The address of the logging server.
- */
-export const initLogging = (address: string) => {
-  /**
-   * Initialize the logger with `react-native-logs`.
-   */
+const getRemoteServerTransport = (address: string) => {
   const customTransport: transportFunctionType<{}> = async (props) => {
-    console.log(address);
     await fetch(address, {
       method: "POST",
       headers: {
@@ -27,6 +18,22 @@ export const initLogging = (address: string) => {
       console.log(e);
     });
   };
+  return customTransport;
+};
+
+/**
+ * An implementation example of the logging system.
+ * It creates a logger via `react-native-logs` and sends the logs to a custom server and to the console.
+ * @param address - The address of the logging server.
+ */
+export const initLogging = (address?: string) => {
+  /**
+   * Initialize the logger with `react-native-logs`.
+   */
+
+  const transport = address
+    ? [consoleTransport, getRemoteServerTransport(address)]
+    : [consoleTransport];
 
   const reactNativeLogger = logger.createLogger({
     levels: {
@@ -36,7 +43,7 @@ export const initLogging = (address: string) => {
       error: 3,
     },
     severity: "debug",
-    transport: [consoleTransport, customTransport],
+    transport,
     transportOptions: {
       colors: {
         info: "blueBright",

@@ -64,10 +64,7 @@ export const statusAttestation: StatusAttestation = async (
     credential_pop: credentialPop,
   };
 
-  Logger.log(
-    LogLevel.DEBUG,
-    `Credential pop: ${JSON.stringify(credentialPop)}`
-  );
+  Logger.log(LogLevel.DEBUG, `Credential pop: ${credentialPop}`);
 
   const result = await appFetch(statusAttUrl, {
     method: "POST",
