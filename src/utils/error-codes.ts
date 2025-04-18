@@ -43,8 +43,19 @@ export const WalletProviderResponseErrorCodes = {
   WalletInstanceNotFound: "ERR_IO_WALLET_INSTANCE_NOT_FOUND",
 } as const;
 
+export const RelyingPartyResponseErrorCodes = {
+  RelyingPartyGenericError: "ERR_RP_GENERIC_ERROR",
+  /**
+   * An error code thrown then the Relying Party rejects the Wallet's Authorization Response.
+   */
+  InvalidAuthorizationResponse: "ERR_RP_INVALID_AUTHORIZATION_RESPONSE",
+} as const;
+
 export type IssuerResponseErrorCode =
   (typeof IssuerResponseErrorCodes)[keyof typeof IssuerResponseErrorCodes];
 
 export type WalletProviderResponseErrorCode =
   (typeof WalletProviderResponseErrorCodes)[keyof typeof WalletProviderResponseErrorCodes];
+
+export type RelyingPartyResponseErrorCode =
+  (typeof RelyingPartyResponseErrorCodes)[keyof typeof RelyingPartyResponseErrorCodes];

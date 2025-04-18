@@ -13,6 +13,12 @@ import {
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
 import type { RelyingPartyEntityConfiguration } from "../../trust";
+import {
+  RelyingPartyResponseError,
+  ResponseErrorBuilder,
+  UnexpectedStatusCodeError,
+  RelyingPartyResponseErrorCodes,
+} from "../../utils/errors";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -218,7 +224,8 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
-    .then(AuthorizationResponse.parse);
+    .then(AuthorizationResponse.parse)
+    .catch(handleAuthorizationResponseError);
 };
 
 /**
@@ -266,3 +273,27 @@ export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
       .then((res) => res.json())
       .then(AuthorizationResponse.parse);
   };
+
+/**
+ * Handle the the presentation error by mapping it to a custom exception.
+ * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
+ * @param e - The error to be handled
+ * @throws {RelyingPartyResponseError} with a specific code for more context
+ */
+const handleAuthorizationResponseError = (e: unknown) => {
+  if (!(e instanceof UnexpectedStatusCodeError)) {
+    throw e;
+  }
+
+  throw new ResponseErrorBuilder(RelyingPartyResponseError)
+    .handle(400, {
+      code: RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse,
+      message:
+        "The Authorization Response contains invalid parameters or it is malformed",
+    })
+    .handle("*", {
+      code: RelyingPartyResponseErrorCodes.RelyingPartyGenericError,
+      message: "Unable to successfully send the Authorization Response",
+    })
+    .buildFrom(e);
+};
