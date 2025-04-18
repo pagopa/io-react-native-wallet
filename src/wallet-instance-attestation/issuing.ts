@@ -85,7 +85,7 @@ export const getAttestation = async ({
   integrityContext: IntegrityContext;
   walletProviderBaseUrl: string;
   appFetch?: GlobalFetch["fetch"];
-}): Promise<string> => {
+}): Promise<TokenResponse["wallet_attestations"]> => {
   const api = getWalletProviderClient({
     walletProviderBaseUrl,
     appFetch,
@@ -123,7 +123,7 @@ export const getAttestation = async ({
 
   Logger.log(LogLevel.DEBUG, `Obtained wallet attestation ${tokenResponse}`);
 
-  return tokenResponse.wallet_attestation;
+  return tokenResponse.wallet_attestations;
 };
 
 const handleAttestationCreationError = (e: unknown) => {

@@ -37,12 +37,10 @@ const CredentialIssuerDisplayMetadata = z.object({
 });
 
 type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
-const ClaimsMetadata = z.record(
-  z.object({
-    value_type: z.string(),
-    display: z.array(z.object({ name: z.string(), locale: z.string() })),
-  })
-);
+const ClaimsMetadata = z.object({
+  path: z.array(z.string()),
+  display: z.array(CredentialDisplayMetadata),
+});
 
 type IssuanceErrorSupported = z.infer<typeof IssuanceErrorSupported>;
 const IssuanceErrorSupported = z.object({
@@ -58,10 +56,11 @@ const IssuanceErrorSupported = z.object({
 // Metadata for a credential which is supported by an Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
+  format: z.union([z.literal("dc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
+  vct: z.string(),
   scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
-  claims: ClaimsMetadata,
+  claims: z.array(ClaimsMetadata),
   cryptographic_binding_methods_supported: z.array(z.string()),
   credential_signing_alg_values_supported: z.array(z.string()),
   authentic_source: z.string().optional(),
@@ -156,12 +155,15 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           credential_issuer: z.string(),
           credential_endpoint: z.string(),
           revocation_endpoint: z.string(),
+          nonce_endpoint: z.string(),
           status_attestation_endpoint: z.string(),
           display: z.array(CredentialIssuerDisplayMetadata),
           credential_configurations_supported: z.record(
             SupportedCredentialMetadata
           ),
           jwks: z.object({ keys: z.array(JWK) }),
+          trust_frameworks_supported: z.array(z.string()),
+          evidence_supported: z.array(z.string()),
         }),
         oauth_authorization_server: z.object({
           authorization_endpoint: z.string(),
