@@ -36,6 +36,7 @@ export type SupportedCredentials =
   | "urn:eu.europa.ec.eudi:pid:1"
   | "org.iso.18013.5.1.mDL"
   | "EuropeanDisabilityCard"
+  | "eu.europa.ec.eudi.hiid.1"
   | "EuropeanHealthInsuranceCard";
 
 /**

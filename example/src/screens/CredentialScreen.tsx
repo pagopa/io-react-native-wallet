@@ -34,6 +34,11 @@ export const CredentialScreen = () => {
   );
   const ts = useAppSelector(selectCredential("EuropeanHealthInsuranceCard"));
 
+  const healthIdState = useAppSelector(
+    selectCredentialAsyncStatus("eu.europa.ec.eudi.hiid.1")
+  );
+  const healthId = useAppSelector(selectCredential("eu.europa.ec.eudi.hiid.1"));
+
   useDebugInfo({
     mdlState,
     mdl,
@@ -41,6 +46,8 @@ export const CredentialScreen = () => {
     dc,
     tsState,
     ts,
+    healthIdState,
+    healthId,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -83,6 +90,18 @@ export const CredentialScreen = () => {
         icon: "healthCard",
         isPresent: !!ts,
       },
+      {
+        title: "Get credential (HealthId)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({ credentialType: "eu.europa.ec.eudi.hiid.1" })
+          ),
+        isLoading: healthIdState.isLoading,
+        hasError: healthIdState.hasError,
+        isDone: healthIdState.isDone,
+        icon: "healthCard",
+        isPresent: !!healthId,
+      },
     ],
     [
       dc,
@@ -98,6 +117,10 @@ export const CredentialScreen = () => {
       tsState.hasError,
       tsState.isDone,
       tsState.isLoading,
+      healthId,
+      healthIdState.hasError,
+      healthIdState.isDone,
+      healthIdState.isLoading,
     ]
   );
 
