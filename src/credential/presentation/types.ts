@@ -134,6 +134,7 @@ export const RequestObjectWalletCapabilities = z.object({
 
 /**
  * This type models the possible error responses the OpenID4VP protocol allows for a presentation of a credential.
+ * When the Wallet encounters one of these errors, it will notify the Relying Party through the `response_uri` endpoint.
  * See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/pid-eaa-presentation.html#authorization-response-errors for more information.
  */
 export type ErrorResponse = z.infer<typeof ErrorResponse>;
@@ -167,3 +168,14 @@ export const DirectAuthorizationBodyPayload = z.union([
   z.object({ error: ErrorResponse, error_description: z.string() }),
   LegacyDirectAuthorizationBodyPayload,
 ]);
+
+/**
+ * The error object sent by the Relying Party when it is unable to process the Authorization Response.
+ */
+export type AuthorizationResponseError = z.infer<
+  typeof AuthorizationResponseError
+>;
+export const AuthorizationResponseError = z.object({
+  error: z.string(),
+  error_description: z.string(),
+});
