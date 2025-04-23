@@ -168,14 +168,3 @@ export const DirectAuthorizationBodyPayload = z.union([
   z.object({ error: ErrorResponse, error_description: z.string() }),
   LegacyDirectAuthorizationBodyPayload,
 ]);
-
-/**
- * The error object sent by the Relying Party when it is unable to process the Authorization Response.
- */
-export type AuthorizationResponseError = z.infer<
-  typeof AuthorizationResponseError
->;
-export const AuthorizationResponseError = z.object({
-  error: z.string(),
-  error_description: z.string(),
-});

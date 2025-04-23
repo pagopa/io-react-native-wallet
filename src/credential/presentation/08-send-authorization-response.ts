@@ -8,7 +8,6 @@ import {
   type RemotePresentation,
   DirectAuthorizationBodyPayload,
   ErrorResponse,
-  AuthorizationResponseError,
   type LegacyRemotePresentation,
 } from "./types";
 import * as z from "zod";
@@ -313,24 +312,19 @@ const handleAuthorizationResponseError = (e: unknown) => {
     throw e;
   }
 
-  // Try to extract the message from the error. The original error is automatically passed in the `reason` field.
-  const error = AuthorizationResponseError.safeParse(e.reason);
-  const errorMessage = error.success
-    ? error.data.error_description
-    : "Unable to successfully send the Authorization Response";
-
   throw new ResponseErrorBuilder(RelyingPartyResponseError)
     .handle(400, {
       code: RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse,
-      message: errorMessage,
+      message:
+        "The Authorization Response contains invalid parameters or it is malformed",
     })
     .handle(403, {
       code: RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse,
-      message: errorMessage,
+      message: "The Authorization Response was forbidden",
     })
     .handle("*", {
       code: RelyingPartyResponseErrorCodes.RelyingPartyGenericError,
-      message: errorMessage,
+      message: "Unable to successfully send the Authorization Response",
     })
     .buildFrom(e);
 };
