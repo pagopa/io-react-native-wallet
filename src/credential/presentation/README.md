@@ -24,11 +24,11 @@ sequenceDiagram
 
 ## Mapped results
 
-|Error|Description|
-|-----|-----------|
-|`ValidationFailed`|The presentation request is not valid, for instance the DCQL query is invalid.|
-|`CredentialsNotFoundError`|The presentation cannot be completed because the Wallet does not contain all requested credentials. The missing credentials can be found in `details`.|
-
+| Error                       | Description|
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ValidationFailed`          | The presentation request is not valid, for instance the DCQL query is invalid.                                                                         |
+| `CredentialsNotFoundError`  | The presentation cannot be completed because the Wallet does not contain all requested credentials. The missing credentials can be found in `details`. |
+| `RelyingPartyResponseError` | Error in the Relying Party's response. See the next table for more details.                                                                            |
 
 The following HTTP errors are mapped to a `RelyingPartyResponseError` with specific codes.
 
