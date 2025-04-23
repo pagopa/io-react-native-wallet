@@ -30,6 +30,14 @@ sequenceDiagram
 |`CredentialsNotFoundError`|The presentation cannot be completed because the Wallet does not contain all requested credentials. The missing credentials can be found in `details`.|
 
 
+The following HTTP errors are mapped to a `RelyingPartyResponseError` with specific codes.
+
+| HTTP Status  | Error Code                              | Description                                                                                                  |
+| ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `400`, `403` | `ERR_RP_INVALID_AUTHORIZATION_RESPONSE` | The Relying Party rejected the Authorization Response sent by the Wallet because it was deemed invalid.      |
+| `*`          | `ERR_RP_GENERIC_ERROR`                  | This is a generic error code to map unexpected errors that occurred when interacting with the Relying Party. |
+
+
 ## Examples
 
 <details>
