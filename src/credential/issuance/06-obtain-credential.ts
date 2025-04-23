@@ -25,7 +25,9 @@ export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
-  credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
+  credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"] & {
+    credential_identifier: string;
+  },
   context: {
     dPopCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
@@ -115,9 +117,12 @@ export const obtainCredential: ObtainCredential = async (
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
   const containsCredentialDefinition = accessToken.authorization_details.some(
     (c) =>
+      c.type === credentialDefinition.type &&
       c.credential_configuration_id ===
         credentialDefinition.credential_configuration_id &&
-      c.type === credentialDefinition.type
+      c.credential_identifiers.includes(
+        credentialDefinition.credential_identifier
+      )
   );
 
   if (!containsCredentialDefinition) {
@@ -134,7 +139,7 @@ export const obtainCredential: ObtainCredential = async (
   /** The credential request body */
   const credentialRequestFormBody = {
     // TODO: [SIW-2264] credential_identifier vs credential_configuration_id?
-    credential_identifier: credentialDefinition.credential_configuration_id,
+    credential_identifier: credentialDefinition.credential_identifier,
     proof: {
       jwt: signedNonceProof,
       proof_type: "jwt",
