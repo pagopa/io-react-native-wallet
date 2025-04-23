@@ -80,6 +80,10 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   if (mDL?.credential) {
     credentialsMdoc.push([mDL.keyTag, mDL.credential]);
   }
+  const healthId = credentials["eu.europa.ec.eudi.hiid.1"];
+  if (healthId?.credential) {
+    credentialsMdoc.push([healthId.keyTag, healthId.credential]);
+  }
 
   const evaluateInputDescriptors =
     await Credential.Presentation.evaluateInputDescriptors(

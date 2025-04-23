@@ -8,6 +8,7 @@ export const iconByCredentialType: Record<
   "org.iso.18013.5.1.mDL": "car",
   EuropeanDisabilityCard: "accessibility",
   EuropeanHealthInsuranceCard: "healthCard",
+  "eu.europa.ec.eudi.hiid.1": "healthCard",
 };
 
 export const labelByCredentialType: Record<
@@ -17,4 +18,5 @@ export const labelByCredentialType: Record<
   "org.iso.18013.5.1.mDL": "MDL",
   EuropeanDisabilityCard: "DC",
   EuropeanHealthInsuranceCard: "TS",
+  "eu.europa.ec.eudi.hiid.1": "HID",
 };

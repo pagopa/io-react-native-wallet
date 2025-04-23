@@ -42,21 +42,25 @@ const initialState: CredentialState = {
     "org.iso.18013.5.1.mDL": undefined,
     EuropeanDisabilityCard: undefined,
     EuropeanHealthInsuranceCard: undefined,
+    "eu.europa.ec.eudi.hiid.1": undefined,
   },
   credentialsAsyncStatus: {
     "org.iso.18013.5.1.mDL": asyncStatusInitial,
     EuropeanDisabilityCard: asyncStatusInitial,
     EuropeanHealthInsuranceCard: asyncStatusInitial,
+    "eu.europa.ec.eudi.hiid.1": asyncStatusInitial,
   },
   statusAttestation: {
     "org.iso.18013.5.1.mDL": undefined,
     EuropeanDisabilityCard: undefined,
     EuropeanHealthInsuranceCard: undefined,
+    "eu.europa.ec.eudi.hiid.1": undefined,
   },
   statusAttAsyncStatus: {
     "org.iso.18013.5.1.mDL": asyncStatusInitial,
     EuropeanDisabilityCard: asyncStatusInitial,
     EuropeanHealthInsuranceCard: asyncStatusInitial,
+    "eu.europa.ec.eudi.hiid.1": asyncStatusInitial,
   },
 };
 

@@ -131,7 +131,9 @@ export const obtainCredential: ObtainCredential = async (
 
   /** The credential request body */
   const credentialRequestFormBody = {
-    vct: credentialDefinition.credential_configuration_id,
+    ...(format === "mso_mdoc"
+      ? { doctype: credentialDefinition.credential_configuration_id }
+      : { vct: credentialDefinition.credential_configuration_id }),
     format,
     proof: {
       jwt: signedNonceProof,
