@@ -86,7 +86,6 @@ describe("buildDirectPostJwtBody", () => {
       vp_token: { PID: mockVpToken },
     });
 
-    // Should call chooseRSAPublicKeyToEncrypt and produce a "response=mock_encrypted_jwe"
     expect(result).toBe("response=mock_encrypted_jwe&state=mock_state");
   });
 });
