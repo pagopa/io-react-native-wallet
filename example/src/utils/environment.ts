@@ -80,12 +80,15 @@ export const SPID_DEMO_IDPHINT = "https://demo.spid.gov.it";
 export const getCieIdpHint = (env: EnvType) =>
   env === "pre" ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT;
 
+/**
+ * Validates a logging server address.
+ * It matches, for example, the following address:
+ * - http://example.com:8080/path/to/resource
+ * - https://192.168.1.1:5000/path/to/resource
+ * - http://localhost:8080
+ * - http://192.168.1.1:5000
+ * @param address - The address of the logging server.
+ * @returns the address if it is valid.
+ */
 export const validateLoggingAddress = (address: string) =>
-  z
-    .string()
-    .regex(
-      new RegExp(
-        "^((https?:\\/\\/)|(www.))(?:([a-zA-Z]+)|(\\d+\\.\\d+\\.\\d+\\.\\d+)):\\d{4}\\/\\S*$"
-      )
-    )
-    .parse(address);
+  z.string().url().parse(address);

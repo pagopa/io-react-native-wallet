@@ -21,7 +21,7 @@ export async function createWalletInstance(context: {
 
   Logger.log(
     LogLevel.DEBUG,
-    `Challenge ${challenge} obtained from ${context.walletProviderBaseUrl}`
+    `Challenge obtained from ${context.walletProviderBaseUrl}: ${challenge}`
   );
 
   const keyAttestation = await integrityContext.getAttestation(challenge);
@@ -30,7 +30,7 @@ export async function createWalletInstance(context: {
 
   Logger.log(
     LogLevel.DEBUG,
-    `Key attestation extracted from the device for hardware key tag ${hardwareKeyTag} - ${keyAttestation} `
+    `Key attestation: ${keyAttestation}\nAssociated hardware key tag: ${hardwareKeyTag}`
   );
 
   //2. Create Wallet Instance

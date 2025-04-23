@@ -46,7 +46,7 @@ export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
 
       Logger.log(
         LogLevel.DEBUG,
-        `Parsed status attestation: ${parsedStatusAttestation}`
+        `Parsed status attestation: ${JSON.stringify(parsedStatusAttestation)}`
       );
 
       const holderBindingKey = await credentialCryptoContext.getPublicKey();
