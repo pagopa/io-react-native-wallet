@@ -1,13 +1,7 @@
-import {
-  DcqlQuery,
-  DcqlError,
-  DcqlCredentialSetError,
-  DcqlQueryResult,
-} from "dcql";
+import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
 import { decode, prepareVpToken } from "../../sd-jwt";
 import type { Disclosure } from "../../sd-jwt/types";
-import { ValidationFailed } from "../../utils/errors";
 import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
 import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
@@ -167,20 +161,16 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
       };
     });
   } catch (error) {
-    // Invalid DCQL query structure
+    // Invalid DCQL query structure. Remap to `DcqlError` for consistency.
     if (isValiError(error)) {
-      throw new ValidationFailed({
-        message: "Invalid DCQL query",
-        reason: error.issues.map((issue) => issue.message).join(", "),
+      throw new DcqlError({
+        message: "Failed to parse the provided DCQL query",
+        code: "PARSE_ERROR",
+        cause: error.issues,
       });
     }
 
-    if (error instanceof DcqlError) {
-      // TODO [SIW-2110]: handle invalid DQCL query or let the error propagate
-    }
-    if (error instanceof DcqlCredentialSetError) {
-      // TODO [SIW-2110]: handle missing credentials or let the error propagate
-    }
+    // Let other errors propagate so they can be caught with `err instanceof DcqlError`
     throw error;
   }
 };
