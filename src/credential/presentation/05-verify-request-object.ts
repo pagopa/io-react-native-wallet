@@ -1,6 +1,6 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import type { RelyingPartyEntityConfiguration } from "../../trust";
-import { UnverifiedEntityError } from "./errors";
+import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
 import { getJwksFromConfig } from "./04-retrieve-rp-jwks";
 
@@ -21,6 +21,7 @@ export type VerifyRequestObject = (
  * @param context.rpConf The Entity Configuration of the Relying Party
  * @param context.state Optional state
  * @returns The verified Request Object
+ * @throws {InvalidRequestObjectError} if the Request Object cannot be validated
  */
 export const verifyRequestObject: VerifyRequestObject = async (
   requestObjectEncodedJwt,
@@ -35,19 +36,35 @@ export const verifyRequestObject: VerifyRequestObject = async (
   );
 
   if (!pubKey) {
-    throw new UnverifiedEntityError("Request Object signature verification!");
+    throw new InvalidRequestObjectError(
+      "The public key for signature verification cannot be found in the Entity Configuration"
+    );
   }
 
-  // Standard claims are verified within `verify`
-  await verify(requestObjectEncodedJwt, pubKey, { issuer: clientId });
+  try {
+    // Standard claims are verified within `verify`
+    await verify(requestObjectEncodedJwt, pubKey, { issuer: clientId });
+  } catch (_) {
+    throw new InvalidRequestObjectError(
+      "The Request Object signature verification failed"
+    );
+  }
 
-  const requestObject = RequestObject.parse(requestObjectJwt.payload);
+  const requestObjectParse = RequestObject.safeParse(requestObjectJwt.payload);
+
+  if (!requestObjectParse.success) {
+    throw new InvalidRequestObjectError(
+      "The Request Object cannot be parsed successfully",
+      formatFlattenedZodErrors(requestObjectParse.error.flatten())
+    );
+  }
+  const { data: requestObject } = requestObjectParse;
 
   const isClientIdMatch =
     clientId === requestObject.client_id && clientId === rpSubject;
 
   if (!isClientIdMatch) {
-    throw new UnverifiedEntityError(
+    throw new InvalidRequestObjectError(
       "Client ID does not match Request Object or Entity Configuration"
     );
   }
@@ -56,8 +73,20 @@ export const verifyRequestObject: VerifyRequestObject = async (
     state && requestObject.state ? state === requestObject.state : true;
 
   if (!isStateMatch) {
-    throw new UnverifiedEntityError("State does not match Request Object");
+    throw new InvalidRequestObjectError(
+      "The provided state does not match the Request Object's"
+    );
   }
 
   return { requestObject };
 };
+
+/**
+ * Utility to format flattened Zod errors into a simplified string `key1: key1_error, key2: key2_error`
+ */
+const formatFlattenedZodErrors = (
+  errors: Zod.typeToFlattenedError<RequestObject>
+): string =>
+  Object.entries(errors.fieldErrors)
+    .map(([key, error]) => `${key}: ${error.at(0)}`)
+    .join(", ");
