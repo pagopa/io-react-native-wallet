@@ -1,0 +1,71 @@
+name: Release new example app
+on:
+  workflow_dispatch:
+    inputs:
+      releaseLevel:
+        description: Version to bump
+        required: true
+        type: choice
+        default: minor
+        options:
+          - major
+          - minor
+          - patch
+jobs:
+  release-android:
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.bump-app-version.outputs.currentAppVersion }}
+      - id: setup-node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: ".node-version"
+      - id: yarn-cache
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+      - id: install-packages
+        run: yarn install --frozen-lockfile
+      - id: setup
+        uses: ./.github/actions/setup-composite
+      - id: setup-jdk-17
+        uses: actions/setup-java@5ffc13f4174014e2d4d4572b3d74c3fa61aeb2c2 #v3.11.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: gradle
+      - id: bump-package-version
+        run: |
+          yarn version --${{ github.event.inputs.releaseLevel }}
+          echo "APP_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+      - id: setup-android-sdk
+        uses: android-actions/setup-android@00854ea68c109d98c75d956347303bf7c45b0277 #v3.2.1
+      - id: setup-ruby
+        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf #v1.204.0
+        with:
+          bundler-cache: true
+      - id: build-release-android
+        run: |
+          cd android && bundle exec fastlane build_apk version:APP_VERSION
+        shell: bash
+
+      - id: upload-apk
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
+        with:
+          name: apk-file
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+      - id: create-release
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 #v2.2.2
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
