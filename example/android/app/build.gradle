@@ -82,8 +82,8 @@ android {
         applicationId "it.pagopa.app.io.poc.itwallet"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11
-        versionName "2.3.0"
+        versionCode 1
+        versionName "1.0"
     }
     signingConfigs {
         debug {
