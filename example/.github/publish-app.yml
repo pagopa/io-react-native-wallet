@@ -66,6 +66,7 @@ jobs:
       - id: create-release
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 #v2.2.2
         with:
+          name: Release Example App ${{ env.APP_VERSION }}
           files: android/app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
