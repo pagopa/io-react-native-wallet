@@ -15,7 +15,7 @@ export type VerifyRequestObject = (
 ) => Promise<{ requestObject: RequestObject }>;
 
 /**
- * Function to verify the Request Object's signature and the client ID.
+ * Function to verify the Request Object's validity, from the signature to the required properties.
  * @param requestObjectEncodedJwt The Request Object in JWT format
  * @param context.clientId The client ID to verify
  * @param context.rpConf The Entity Configuration of the Relying Party
@@ -28,18 +28,8 @@ export const verifyRequestObject: VerifyRequestObject = async (
   { clientId, rpConf, rpSubject, state }
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
-  const { keys } = getJwksFromConfig(rpConf);
 
-  // Verify token signature to ensure the request object is authentic
-  const pubKey = keys?.find(
-    ({ kid }) => kid === requestObjectJwt.protectedHeader.kid
-  );
-
-  if (!pubKey) {
-    throw new InvalidRequestObjectError(
-      "The public key for signature verification cannot be found in the Entity Configuration"
-    );
-  }
+  const pubKey = getSigPublicKey(rpConf, requestObjectJwt.protectedHeader.kid);
 
   try {
     // Standard claims are verified within `verify`
@@ -50,15 +40,7 @@ export const verifyRequestObject: VerifyRequestObject = async (
     );
   }
 
-  const requestObjectParse = RequestObject.safeParse(requestObjectJwt.payload);
-
-  if (!requestObjectParse.success) {
-    throw new InvalidRequestObjectError(
-      "The Request Object cannot be parsed successfully",
-      formatFlattenedZodErrors(requestObjectParse.error.flatten())
-    );
-  }
-  const { data: requestObject } = requestObjectParse;
+  const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
 
   const isClientIdMatch =
     clientId === requestObject.client_id && clientId === rpSubject;
@@ -82,11 +64,58 @@ export const verifyRequestObject: VerifyRequestObject = async (
 };
 
 /**
+ * Validate the shape of the Request Object to ensure all required properties are present and are of the expected type.
+ *
+ * @param payload The Request Object to validate
+ * @returns A valid Request Object
+ * @throws {InvalidRequestObjectError} when the Request Object cannot be parsed
+ */
+const validateRequestObjectShape = (payload: unknown): RequestObject => {
+  const requestObjectParse = RequestObject.safeParse(payload);
+
+  if (requestObjectParse.success) {
+    return requestObjectParse.data;
+  }
+
+  throw new InvalidRequestObjectError(
+    "The Request Object cannot be parsed successfully",
+    formatFlattenedZodErrors(requestObjectParse.error.flatten())
+  );
+};
+
+/**
+ * Get the public key to verify the Request Object's signature from the Relying Party'EC.
+ *
+ * @param rpConf The Relying Party'EC
+ * @param kid The identifier of the key to find
+ * @returns The corresponding public key to verify the signature
+ * @throws {InvalidRequestObjectError} when the key cannot be found
+ */
+const getSigPublicKey = (
+  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
+  kid: string | undefined
+) => {
+  try {
+    const { keys } = getJwksFromConfig(rpConf);
+
+    const pubKey = keys.find((k) => k.kid === kid);
+
+    if (!pubKey) throw new Error();
+
+    return pubKey;
+  } catch (_) {
+    throw new InvalidRequestObjectError(
+      `The public key for signature verification (${kid}) cannot be found in the Entity Configuration`
+    );
+  }
+};
+
+/**
  * Utility to format flattened Zod errors into a simplified string `key1: key1_error, key2: key2_error`
  */
 const formatFlattenedZodErrors = (
   errors: Zod.typeToFlattenedError<RequestObject>
 ): string =>
   Object.entries(errors.fieldErrors)
-    .map(([key, error]) => `${key}: ${error.at(0)}`)
+    .map(([key, error]) => `${key}: ${error[0]}`)
     .join(", ");
