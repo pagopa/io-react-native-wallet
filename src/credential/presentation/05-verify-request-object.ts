@@ -86,7 +86,7 @@ const validateRequestObjectShape = (payload: unknown): RequestObject => {
 /**
  * Get the public key to verify the Request Object's signature from the Relying Party's EC.
  *
- * @param rpConf The Relying Party'EC
+ * @param rpConf The Relying Party's EC
  * @param kid The identifier of the key to find
  * @returns The corresponding public key to verify the signature
  * @throws {InvalidRequestObjectError} when the key cannot be found

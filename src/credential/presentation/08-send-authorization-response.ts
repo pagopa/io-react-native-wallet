@@ -273,8 +273,7 @@ export type SendAuthorizationErrorResponse = (
  * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
  *
  * @param requestObject - The request details, including presentation requirements.
- * @param error - The response error value
- * @param jwkKeys - Array of JWKs from the Relying Party for optional encryption.
+ * @param error - The response error value, with description
  * @param context - Contains optional custom fetch implementation.
  * @returns Parsed and validated authorization response from the Relying Party.
  */
