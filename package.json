@@ -95,7 +95,7 @@
       "<rootDir>/lib/"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?@react-native|react-native|uuid)"
+      "node_modules/(?!(jest-)?@react-native|react-native|uuid|@pagopa/io-react-native-cbor)"
     ]
   },
   "react-native-builder-bob": {
