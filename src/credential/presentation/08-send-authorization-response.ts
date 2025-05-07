@@ -59,21 +59,21 @@ export const choosePublicKeyToEncrypt = (
 /**
  * Builds a URL-encoded form body for a direct POST response using JWT encryption.
  *
- * @param jwkKeys - Array of JWKs from the Relying Party for encryption.
- * @param requestObject - Contains state, nonce, and other relevant info.
  * @param payload - Object that contains the VP token to encrypt and the mapping of the credential disclosures
+ * @param rpConf - The Relying Party's configuration to get the keys for encryption
+ * @param state - Optional state
  * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body, where `response` contains the encrypted JWE.
  */
 export const buildDirectPostJwtBody = async (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
+  payload: DirectAuthorizationBodyPayload,
   rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  payload: DirectAuthorizationBodyPayload
+  state?: string
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
   // Prepare the authorization response payload to be encrypted
   const authzResponsePayload = JSON.stringify({
-    state: requestObject.state,
+    state,
     ...payload,
   });
   // Choose a suitable public key for encryption
@@ -99,7 +99,7 @@ export const buildDirectPostJwtBody = async (
   // Build the x-www-form-urlencoded form body
   const formBody = new URLSearchParams({
     response: encryptedResponse,
-    ...(requestObject.state ? { state: requestObject.state } : {}),
+    ...(state ? { state } : {}),
   });
   return formBody.toString();
 };
@@ -107,16 +107,16 @@ export const buildDirectPostJwtBody = async (
 /**
  * Builds a URL-encoded form body for a direct POST response without encryption.
  *
- * @param requestObject - Contains state, nonce, and other relevant info.
  * @param payload - Object that contains either the VP token to encrypt and the stringified mapping of the credential disclosures or the error code
+ * @param state - Optional state to include in the POST body
  * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
  */
 export const buildDirectPostBody = async (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
-  payload: DirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload,
+  state?: string
 ): Promise<string> => {
   const formUrlEncodedBody = new URLSearchParams({
-    ...(requestObject.state && { state: requestObject.state }),
+    ...(state && { state: state }),
     ...Object.entries(payload).reduce(
       (acc, [key, value]) => ({
         ...acc,
@@ -193,10 +193,11 @@ export const sendLegacyAuthorizationResponse: SendLegacyAuthorizationResponse =
       descriptor_map,
     };
 
-    const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-      vp_token,
-      presentation_submission,
-    });
+    const requestBody = await buildDirectPostJwtBody(
+      { vp_token, presentation_submission },
+      rpConf,
+      requestObject.state
+    );
 
     // 3. Send the authorization response via HTTP POST and validate the response
     return await appFetch(requestObject.response_uri, {
@@ -232,15 +233,19 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   { appFetch = fetch } = {}
 ): Promise<AuthorizationResponse> => {
   // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
-  const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-    vp_token: remotePresentations.reduce(
-      (acc, presentation) => ({
-        ...acc,
-        [presentation.credentialId]: presentation.vpToken,
-      }),
-      {} as Record<string, string>
-    ),
-  });
+  const requestBody = await buildDirectPostJwtBody(
+    {
+      vp_token: remotePresentations.reduce(
+        (acc, presentation) => ({
+          ...acc,
+          [presentation.credentialId]: presentation.vpToken,
+        }),
+        {} as Record<string, string>
+      ),
+    },
+    rpConf,
+    requestObject.state
+  );
 
   // 2. Send the authorization response via HTTP POST and validate the response
   return await appFetch(requestObject.response_uri, {
@@ -261,8 +266,12 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
  * to the Relying Party, completing the presentation flow.
  */
 export type SendAuthorizationErrorResponse = (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
-  error: { error: ErrorResponse; errorDescription: string },
+  params: {
+    responseUri: string;
+    error: ErrorResponse;
+    errorDescription: string;
+    state?: string;
+  },
   context?: {
     appFetch?: GlobalFetch["fetch"];
   }
@@ -272,23 +281,21 @@ export type SendAuthorizationErrorResponse = (
  * Sends the authorization error response to the Relying Party (RP) using the specified `response_mode`.
  * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
  *
- * @param requestObject - The request details, including presentation requirements.
- * @param error - The response error value, with description
+ * @param params - The parameters needed to send the authorization error, including the error value and description.
  * @param context - Contains optional custom fetch implementation.
  * @returns Parsed and validated authorization response from the Relying Party.
  */
 export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
   async (
-    requestObject,
-    { error, errorDescription },
+    { responseUri, error, errorDescription, state },
     { appFetch = fetch } = {}
   ): Promise<AuthorizationResponse> => {
-    const requestBody = await buildDirectPostBody(requestObject, {
-      error,
-      error_description: errorDescription,
-    });
+    const requestBody = await buildDirectPostBody(
+      { error, error_description: errorDescription },
+      state
+    );
 
-    return await appFetch(requestObject.response_uri, {
+    return await appFetch(responseUri, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

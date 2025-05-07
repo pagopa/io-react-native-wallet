@@ -67,9 +67,10 @@ describe("buildDirectPostBody", () => {
   it("should build the correct formBody string", async () => {
     const mockVpToken = "mock_vp_token";
 
-    const result = await buildDirectPostBody(mockRequestObject, {
-      vp_token: { PID: mockVpToken },
-    });
+    const result = await buildDirectPostBody(
+      { vp_token: { PID: mockVpToken } },
+      mockRequestObject.state
+    );
 
     // URLSearchParams output should be 'state=mock_state&vp_token={"PID":"mock_vp_token"}'
     expect(result).toContain("state=mock_state");
@@ -82,9 +83,11 @@ describe("buildDirectPostJwtBody", () => {
   it("should build the correct formBody string", async () => {
     const mockVpToken = "mock_vp_token";
 
-    const result = await buildDirectPostJwtBody(mockRequestObject, mockRpConf, {
-      vp_token: { PID: mockVpToken },
-    });
+    const result = await buildDirectPostJwtBody(
+      { vp_token: { PID: mockVpToken } },
+      mockRpConf,
+      mockRequestObject.state
+    );
 
     expect(result).toBe("response=mock_encrypted_jwe&state=mock_state");
   });
@@ -164,8 +167,9 @@ describe("sendAuthorizationErrorResponse", () => {
     });
 
     const res = await sendAuthorizationErrorResponse(
-      mockRequestObject,
       {
+        responseUri: mockRequestObject.response_uri,
+        state: mockRequestObject.state,
         error: "access_denied",
         errorDescription: "an_error_occurred",
       },
