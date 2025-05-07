@@ -210,13 +210,14 @@ const processPresentation: ProcessPresentation = async (
 
 // Mock an error in the presentation flow
 const processRefusedPresentation = async (requestObject: RequestObject) => {
+  const { state, response_uri } = requestObject;
+
   const authResponse =
-    await Credential.Presentation.sendAuthorizationErrorResponse(
-      requestObject,
-      {
-        error: "invalid_request_object",
-        errorDescription: "Mock error during request object validation",
-      }
-    );
+    await Credential.Presentation.sendAuthorizationErrorResponse({
+      state,
+      responseUri: response_uri,
+      error: "invalid_request_object",
+      errorDescription: "Mock error during request object validation",
+    });
   return { authResponse, requestObject, requestedClaims: [] };
 };
