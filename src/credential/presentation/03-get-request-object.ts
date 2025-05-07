@@ -1,3 +1,4 @@
+import { RelyingPartyResponseError } from "../../utils/errors";
 import { hasStatusOrThrow } from "../../utils/misc";
 import { RequestObjectWalletCapabilities } from "./types";
 
@@ -40,7 +41,7 @@ export const getRequestObject: GetRequestObject = async (
       },
       body: formUrlEncodedBody.toString(),
     })
-      .then(hasStatusOrThrow(200))
+      .then(hasStatusOrThrow(200, RelyingPartyResponseError))
       .then((res) => res.text());
 
     return {
@@ -51,7 +52,7 @@ export const getRequestObject: GetRequestObject = async (
   const requestObjectEncodedJwt = await appFetch(requestUri, {
     method: "GET",
   })
-    .then(hasStatusOrThrow(200))
+    .then(hasStatusOrThrow(200, RelyingPartyResponseError))
     .then((res) => res.text());
 
   return {

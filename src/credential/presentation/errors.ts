@@ -1,4 +1,5 @@
 import { IoWalletError, serializeAttrs } from "../../utils/errors";
+export { DcqlError } from "dcql";
 
 /**
  * An error subclass thrown when auth request decode fail
@@ -57,18 +58,17 @@ export class InvalidQRCodeError extends IoWalletError {
 }
 
 /**
- * When the entity is unverified because the Relying Party is not trusted.
- *
+ * When the Request Object sent by the Relying Party is not valid
  */
-export class UnverifiedEntityError extends IoWalletError {
-  code = "ERR_UNVERIFIED_RP_ENTITY";
+export class InvalidRequestObjectError extends IoWalletError {
+  code = "ERR_INVALID_REQUEST_OBJECT";
 
-  /**
-   * @param reason A description of why the entity cannot be verified.
-   */
-  constructor(reason: string) {
-    const message = `Unverified entity: ${reason}.`;
+  /** Detailed reason for the Request Object validation failure. */
+  reason: string;
+
+  constructor(message: string, reason = "unspecified") {
     super(message);
+    this.reason = reason;
   }
 }
 
