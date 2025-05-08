@@ -2380,10 +2380,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pagopa/io-react-native-cbor@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cbor/-/io-react-native-cbor-1.2.1.tgz#d175195a5e3db66e785004873d480f6ba5637ec8"
-  integrity sha512-Af0O3H3FqIbKggBYYVqRLCg+uxJbMny/j92f2UpRI2CyG2lKbEM5OtXiHkWbriNv1MGTMCYjU3rYDYhA/v3UJQ==
+"@pagopa/io-react-native-cbor@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cbor/-/io-react-native-cbor-1.2.3.tgz#d9b4f8566e75413fa4139ae4df8e8407657a1f50"
+  integrity sha512-E8jItIXMdzLxVd30ERkFcRcXyMC01M5450ShSN0Bn9ev8CewPIojJaV5YZoP5VnNYYnlvRCPoum8j2JBOUW03g==
   dependencies:
     zod "^3.24.1"
 
