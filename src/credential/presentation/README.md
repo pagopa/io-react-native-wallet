@@ -15,10 +15,11 @@ sequenceDiagram
   O->>+I: QR-CODE: Authorization Request (`request_uri`)
   I->>+O: GET: Verifier's Entity Configuration
   O->>+I: Respond with metadata (including public keys)
-  I->>+O: GET: Request Object, resolved from the `request_uri`
+  I->>+O: GET: Request Object, resolved from `request_uri`
   O->>+I: Respond with the Request Object
-  I->>+O: POST: VP token encrypted response
-  O->>+I: Redirect: Authorization Response
+  I->>+I: Validate Request Object and give consent
+  I->>+O: POST: Authorization Response with encrypted VP token
+  O->>+I: Respond with optional `redirect_uri`
 ```
 
 ## Mapped results
@@ -42,23 +43,23 @@ const qrCodeParams = decodeQrCode(qrCode)
 
 // Start the issuance flow
 const {
-  requestUri,
-  clientId,
-  requestUriMethod,
+  request_uri,
+  client_id,
+  request_uri_method,
   state
 } = Credential.Presentation.startFlowFromQR(qrCodeParams);
 
 // Get the Relying Party's Entity Configuration and evaluate trust
-const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(clientId);
+const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(client_id);
 
 // Get the Request Object from the RP
 const { requestObjectEncodedJwt } =
-  await Credential.Presentation.getRequestObject(requestUri);
+  await Credential.Presentation.getRequestObject(request_uri);
 
 // Validate the Request Object
 const { requestObject } = await Credential.Presentation.verifyRequestObject(
   requestObjectEncodedJwt,
-  { clientId, rpConf }
+  { clientId: client_id, rpConf }
 );
 
 // All the credentials that might be requested by the Relying Party

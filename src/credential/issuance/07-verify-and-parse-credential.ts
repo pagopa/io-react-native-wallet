@@ -222,7 +222,7 @@ const verifyAndParseCredentialSdJwt: WithFormat<"dc+sd-jwt"> = async (
     credentialCryptoContext
   );
 
-  Logger.log(LogLevel.DEBUG, `Decoded credential {$decoded}`);
+  Logger.log(LogLevel.DEBUG, `Decoded credential: ${JSON.stringify(decoded)}`);
 
   const parsedCredential = parseCredentialSdJwt(
     issuerConf.openid_credential_issuer.credential_configurations_supported,
@@ -232,8 +232,10 @@ const verifyAndParseCredentialSdJwt: WithFormat<"dc+sd-jwt"> = async (
   );
   const maybeIssuedAt = getValueFromDisclosures(decoded.disclosures, "iat");
 
-  Logger.log(LogLevel.DEBUG, `Parsed credential {$parsedCredential}`);
-  Logger.log(LogLevel.DEBUG, `Issued at {$maybeIssuedAt}`);
+  Logger.log(
+    LogLevel.DEBUG,
+    `Parsed credential: ${JSON.stringify(parsedCredential)}\nIssued at: ${maybeIssuedAt}`
+  );
 
   return {
     parsedCredential,

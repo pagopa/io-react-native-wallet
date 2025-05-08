@@ -107,7 +107,7 @@ export const makeParRequest =
 
     Logger.log(
       LogLevel.DEBUG,
-      `Sending ${formBody} to PAR endpoint ${parEndpoint}`
+      `Sending to PAR endpoint ${parEndpoint}: ${formBody}`
     );
 
     return await appFetch(parEndpoint, {

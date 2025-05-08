@@ -2,9 +2,9 @@ import * as z from "zod";
 import { InvalidQRCodeError } from "./errors";
 
 const PresentationParams = z.object({
-  clientId: z.string().nonempty(),
-  requestUri: z.string().url(),
-  requestUriMethod: z.enum(["get", "post"]),
+  client_id: z.string().nonempty(),
+  request_uri: z.string().url(),
+  request_uri_method: z.enum(["get", "post"]),
   state: z.string().optional(),
 });
 export type PresentationParams = z.infer<typeof PresentationParams>;
@@ -13,24 +13,25 @@ export type PresentationParams = z.infer<typeof PresentationParams>;
  * The beginning of the presentation flow.
  * To be implemented accordind to the user touchpoint
  *
- * @param params Presentation parameters, depending on the starting touchoint
+ * @param params Presentation parameters, depending on the starting touchpoint
  * @returns The url for the Relying Party to connect with
  */
-export type StartFlow = (
-  params: Partial<PresentationParams>
-) => PresentationParams;
+export type StartFlow = (params: {
+  [K in keyof PresentationParams]?: PresentationParams[K] | null;
+}) => PresentationParams;
 
 /**
- * Start a presentation flow by decoding an incoming QR-code
+ * Start a presentation flow by validating the required parameters.
+ * Parameters are extracted from a url encoded in a QR code or in a deep link.
  *
- * @param params The encoded QR-code content
+ * @param params The parameters to be validated
  * @returns The url for the Relying Party to connect with
- * @throws If the provided qr code fails to be decoded
+ * @throws If the provided parameters are not valid
  */
 export const startFlowFromQR: StartFlow = (params) => {
   const result = PresentationParams.safeParse({
     ...params,
-    requestUriMethod: params.requestUriMethod ?? "get",
+    request_uri_method: params.request_uri_method ?? "get",
   });
 
   if (result.success) {
