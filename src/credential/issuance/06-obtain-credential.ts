@@ -189,6 +189,11 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
+  Logger.log(
+    LogLevel.DEBUG,
+    `Credential Response: ${JSON.stringify(credentialRes.data)}`
+  );
+
   // TODO: [SIW-2264] handle multiple credentials
   return credentialRes.data;
 };
