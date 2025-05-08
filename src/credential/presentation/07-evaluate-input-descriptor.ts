@@ -4,6 +4,7 @@ import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
 import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
 import { MissingDataError, CredentialNotFoundError } from "./errors";
+import { type EvaluatedDisclosure } from "./types";
 import Ajv from "ajv";
 import { CBOR } from "@pagopa/io-react-native-cbor";
 import { prepareVpTokenMdoc } from "../../mdoc";
@@ -14,12 +15,6 @@ const ajv = new Ajv({ allErrors: true });
 type EvaluatedDisclosures = {
   requiredDisclosures: EvaluatedDisclosure[];
   optionalDisclosures: EvaluatedDisclosure[];
-};
-
-export type EvaluatedDisclosure = {
-  namespace?: string;
-  name: string;
-  value: unknown;
 };
 
 type EvaluateInputDescriptorSdJwt4VC = (
@@ -48,7 +43,7 @@ export type EvaluateInputDescriptors = (
 
 export type PrepareRemotePresentations = (
   credentialAndDescriptors: {
-    requestedClaims: string[];
+    requestedClaims: EvaluatedDisclosure[];
     inputDescriptor: InputDescriptor;
     credential: string;
     keyTag: string;
@@ -586,7 +581,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         );
 
         return {
-          requestedClaims: item.requestedClaims,
+          requestedClaims: [...item.requestedClaims.map(({ name }) => name)],
           inputDescriptor: descriptor,
           vpToken: vp_token,
           format: "mso_mdoc",
@@ -605,7 +600,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         );
 
         return {
-          requestedClaims: item.requestedClaims,
+          requestedClaims: [...item.requestedClaims.map(({ name }) => name)],
           inputDescriptor: descriptor,
           vpToken: vp_token,
           format: "vc+sd-jwt",
