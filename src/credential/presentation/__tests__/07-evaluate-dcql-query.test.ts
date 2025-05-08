@@ -20,7 +20,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PersonIdentificationData",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           // @ts-expect-error invalid query on purpose
           claims: [{ id: "tax_id_code", path: "tax_id_code" }],
         },
@@ -35,7 +35,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PersonIdentificationData",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           claims: [{ id: "tax_id_code", path: ["tax_id_code"] }],
           claim_sets: [["missing_claim", "tax_id_code"]],
         },
@@ -126,7 +126,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -163,7 +163,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -175,7 +175,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "DrivingLicense",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -218,7 +218,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -226,7 +226,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "optional",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["other_credential"],
           },
@@ -262,7 +262,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -270,7 +270,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "MDL",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -316,7 +316,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -328,7 +328,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "MDL",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -348,7 +348,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "optional",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["other_credential"],
           },
@@ -400,7 +400,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -412,7 +412,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "MDL",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -424,7 +424,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "optional",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["other_credential"],
           },
