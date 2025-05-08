@@ -61,11 +61,21 @@ export const prepareVpTokenMdoc = async (
     },
   ];
 
-  /* we map each requested claim as for ex. { "org.iso.18013.5.1.mDL" { <claim-name>: true, ... }} for selective disclosure */
+  /* we map each requested claim as for ex. { "org.iso.18013.5.1.mDL": { "org.iso.18013.5.1": { <claim-name>: true, ... }}} for selective disclosure */
   const fieldRequestedAndAccepted = JSON.stringify({
-    [docType]: requestedClaims.reduce((acc, item) => {
-      return { ...acc, [item]: true };
-    }, {}),
+    [docType]: requestedClaims.reduce<Record<string, unknown>>(
+      (acc, { name, namespace }) => {
+        if (namespace) {
+          acc[namespace] ??= {};
+          const existingNamespace = acc[namespace] as Record<string, boolean>;
+          existingNamespace[name] = true;
+        } else {
+          acc[name] = true;
+        }
+        return acc;
+      },
+      {} as Record<string, unknown>
+    ),
   });
 
   /* clientId,responseUri,requestNonce are retrieved by Auth Request Object */

@@ -1,12 +1,11 @@
 // __tests__/evaluateInputDescriptorForSdJwt4VC.test.ts
 
 import {
-  type EvaluatedDisclosure,
   disclosureWithEncodedToEvaluatedDisclosure,
   evaluateInputDescriptorForMdoc,
   evaluateInputDescriptorForSdJwt4VC,
 } from "../07-evaluate-input-descriptor";
-import { InputDescriptor } from "../types";
+import { InputDescriptor, type EvaluatedDisclosure } from "../types";
 import {
   type SdJwt4VC,
   type DisclosureWithEncoded,

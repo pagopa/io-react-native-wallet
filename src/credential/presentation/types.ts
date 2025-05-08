@@ -3,12 +3,18 @@ import { UnixTime } from "../../sd-jwt/types";
 import * as z from "zod";
 import { JWKS } from "../../utils/jwk";
 
+export type EvaluatedDisclosure = {
+  namespace?: string;
+  name: string;
+  value: unknown;
+};
+
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
  */
 export type Presentation = [
   /* verified credential token */ string,
-  /* claims */ string[],
+  /* claims */ EvaluatedDisclosure[],
   /* the context for the key associated to the credential */ CryptoContext,
 ];
 
