@@ -95,13 +95,9 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const credentialAndInputDescriptor = evaluateInputDescriptors.map(
     (evaluateInputDescriptor) => {
       // Present only the mandatory claims
-      const requestedClaims = [
-        ...evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures.map(
-          (item) => item.name
-        ),
-      ];
       return {
-        requestedClaims,
+        requestedClaims:
+          evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures,
         inputDescriptor: evaluateInputDescriptor.inputDescriptor,
         credential: evaluateInputDescriptor.credential,
         keyTag: evaluateInputDescriptor.keyTag,
