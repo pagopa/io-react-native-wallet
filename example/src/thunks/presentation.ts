@@ -19,7 +19,10 @@ export type RemoteCrossDevicePresentationThunkOutput = {
     ReturnType<Credential.Presentation.SendAuthorizationResponse>
   >;
 };
-
+export type RequestObject = Awaited<
+  ReturnType<Credential.Presentation.VerifyRequestObjectSignature>
+>["requestObject"];
+type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[0];
 /**
  * Thunk to present credential.
  */
@@ -63,27 +66,117 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       jwks.keys
     );
 
-  const { presentationDefinition } =
-    await Credential.Presentation.fetchPresentDefinition(requestObject);
-
-  const credentialsSdJwt: [string, string][] = [];
-  const credentialsMdoc: [string, string][] = [];
+  const credentialsSdJwt: [string, string, string][] = [];
+  const credentialsMdoc: [string, string, string][] = [];
 
   const pid = selectPid(getState());
   if (!pid) {
     throw new Error("PID not found");
   }
-  credentialsSdJwt.push([pid.keyTag, pid.credential]);
+  credentialsSdJwt.push([pid.credentialType, pid.keyTag, pid.credential]);
 
   const credentials = selectCredentials(getState());
   const mDL = credentials["org.iso.18013.5.1.mDL"];
   if (mDL?.credential) {
-    credentialsMdoc.push([mDL.keyTag, mDL.credential]);
+    credentialsMdoc.push([mDL.credentialType, mDL.keyTag, mDL.credential]);
   }
   const healthId = credentials["eu.europa.ec.eudi.hiid.1"];
   if (healthId?.credential) {
-    credentialsMdoc.push([healthId.keyTag, healthId.credential]);
+    credentialsMdoc.push([
+      healthId.credentialType,
+      healthId.keyTag,
+      healthId.credential,
+    ]);
   }
+
+  if (requestObject.dcql_query) {
+    const authResponse = await handleDcqlResponse(
+      args,
+      requestObject,
+      credentialsSdJwt,
+      credentialsMdoc,
+      jwks.keys
+    );
+
+    return { result: authResponse };
+  }
+
+  if (requestObject.presentation_definition) {
+    const authResponse = await handlePresentationDefinitionResponse(
+      args,
+      requestObject,
+      credentialsSdJwt,
+      credentialsMdoc,
+      jwks.keys
+    );
+
+    return { result: authResponse };
+  }
+
+  throw new Error("Invalid request object");
+});
+
+/**
+ * Helper method to prepare and send presentation authorization response
+ */
+const handleDcqlResponse = async (
+  args: RemoteCrossDevicePresentationThunkInput,
+  requestObject: RequestObject,
+  credentialsSdJwt: [string, string, string][],
+  credentialsMdoc: [string, string, string][],
+  jwksKeys: any[]
+) => {
+  const evaluateDcqlQuery = await Credential.Presentation.evaluateDcqlQuery(
+    requestObject.dcql_query as DcqlQuery,
+    credentialsSdJwt,
+    credentialsMdoc
+  );
+
+  const credentialsToPresent = evaluateDcqlQuery.map(
+    ({ requiredDisclosures, ...rest }) => ({
+      ...rest,
+      credentialInputId: rest.id,
+      requestedClaims: requiredDisclosures,
+    })
+  );
+
+  const authRequestObject = {
+    nonce: requestObject.nonce,
+    clientId: requestObject.client_id,
+    responseUri: requestObject.response_uri,
+  };
+
+  const remotePresentations =
+    await Credential.Presentation.prepareRemotePresentations(
+      credentialsToPresent,
+      authRequestObject
+    );
+
+  return args.allowed === "acceptanceState"
+    ? await Credential.Presentation.sendAuthorizationResponseDcql(
+        requestObject,
+        jwksKeys,
+        remotePresentations
+      )
+    : await Credential.Presentation.sendAuthorizationErrorResponse(
+        requestObject,
+        "access_denied",
+        jwksKeys
+      );
+};
+
+/**
+ * Helper method to prepare and send presentation authorization response
+ */
+const handlePresentationDefinitionResponse = async (
+  args: RemoteCrossDevicePresentationThunkInput,
+  requestObject: RequestObject,
+  credentialsSdJwt: [string, string, string][],
+  credentialsMdoc: [string, string, string][],
+  jwksKeys: any[]
+) => {
+  const { presentationDefinition } =
+    await Credential.Presentation.fetchPresentDefinition(requestObject);
 
   const evaluateInputDescriptors =
     await Credential.Presentation.evaluateInputDescriptors(
@@ -98,9 +191,12 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       return {
         requestedClaims:
           evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures,
-        inputDescriptor: evaluateInputDescriptor.inputDescriptor,
+        credentialInputId: evaluateInputDescriptor.inputDescriptor.id,
         credential: evaluateInputDescriptor.credential,
         keyTag: evaluateInputDescriptor.keyTag,
+        format: Object.keys(
+          evaluateInputDescriptor.inputDescriptor.format || {}
+        )[0]!,
       };
     }
   );
@@ -117,19 +213,16 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       authRequestObject
     );
 
-  const authResponse =
-    args.allowed === "acceptanceState"
-      ? await Credential.Presentation.sendAuthorizationResponse(
-          requestObject,
-          presentationDefinition.id,
-          jwks.keys,
-          remotePresentations
-        )
-      : await Credential.Presentation.sendAuthorizationErrorResponse(
-          requestObject,
-          "access_denied",
-          jwks.keys
-        );
-
-  return { result: authResponse };
-});
+  return args.allowed === "acceptanceState"
+    ? await Credential.Presentation.sendAuthorizationResponse(
+        requestObject,
+        presentationDefinition.id,
+        jwksKeys,
+        remotePresentations
+      )
+    : await Credential.Presentation.sendAuthorizationErrorResponse(
+        requestObject,
+        "access_denied",
+        jwksKeys
+      );
+};

@@ -22,17 +22,23 @@ import {
 } from "./06-fetch-presentation-definition";
 import {
   evaluateInputDescriptors,
-  prepareRemotePresentations,
   type EvaluateInputDescriptors,
-  type PrepareRemotePresentations,
 } from "./07-evaluate-input-descriptor";
 import {
+  evaluateDcqlQuery,
+  type EvaluateDcqlQuery,
+} from "./07-evaluate-dcql-query";
+import {
+  prepareRemotePresentations,
   sendAuthorizationResponse,
   type SendAuthorizationResponse,
   sendAuthorizationErrorResponse,
   type SendAuthorizationErrorResponse,
+  sendAuthorizationResponseDcql,
+  type SendAuthorizationResponseDcql,
 } from "./08-send-authorization-response";
 import * as Errors from "./errors";
+import type { PrepareRemotePresentations } from "./types";
 
 export {
   startFlowFromQR,
@@ -43,8 +49,10 @@ export {
   verifyRequestObjectSignature,
   fetchPresentDefinition,
   evaluateInputDescriptors,
+  evaluateDcqlQuery,
   sendAuthorizationResponse,
   sendAuthorizationErrorResponse,
+  sendAuthorizationResponseDcql,
   prepareRemotePresentations,
   Errors,
 };
@@ -58,5 +66,7 @@ export type {
   EvaluateInputDescriptors,
   PrepareRemotePresentations,
   SendAuthorizationResponse,
+  SendAuthorizationResponseDcql,
   SendAuthorizationErrorResponse,
+  EvaluateDcqlQuery,
 };
