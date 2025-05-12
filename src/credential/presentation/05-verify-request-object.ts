@@ -14,6 +14,11 @@ export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
   async (requestObjectEncodedJwt, jwkKeys) => {
     const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
+    /**
+     * Wallets MUST NOT process Request Objects where the typ Header Parameter is not present
+     * or does not have the value oauth-authz-req+jwt.
+     */
+
     // verify token signature to ensure the request object is authentic
     const pubKey =
       jwkKeys?.find(
