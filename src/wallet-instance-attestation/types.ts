@@ -81,7 +81,22 @@ export const WalletInstanceAttestationJwt = z.object({
   ),
 });
 
+/**
+ * @deprecated Use `WalletAttestationResponse`
+ */
 export type TokenResponse = z.infer<typeof TokenResponse>;
 export const TokenResponse = z.object({
   wallet_attestation: z.string(),
+});
+
+export type WalletAttestationResponse = z.infer<
+  typeof WalletAttestationResponse
+>;
+export const WalletAttestationResponse = z.object({
+  wallet_attestations: z.array(
+    z.object({
+      wallet_attestation: z.string(),
+      format: z.enum(["jwt", "dc+sd-jwt", "mso_mdoc"]),
+    })
+  ),
 });
