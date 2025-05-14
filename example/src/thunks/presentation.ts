@@ -188,16 +188,28 @@ const handlePresentationDefinitionResponse = async (
   const credentialAndInputDescriptor = evaluateInputDescriptors.map(
     (evaluateInputDescriptor) => {
       // Present only the mandatory claims
-      return {
-        requestedClaims:
-          evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures,
-        credentialInputId: evaluateInputDescriptor.inputDescriptor.id,
-        credential: evaluateInputDescriptor.credential,
-        keyTag: evaluateInputDescriptor.keyTag,
-        format: Object.keys(
-          evaluateInputDescriptor.inputDescriptor.format || {}
-        )[0]!,
-      };
+      const format = Object.keys(
+        evaluateInputDescriptor.inputDescriptor.format || {}
+      )[0]! as "mso_mdoc" | "vc+sd-jwt";
+      return format === "mso_mdoc"
+        ? {
+            requestedClaims:
+              evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures,
+            credentialInputId: evaluateInputDescriptor.inputDescriptor.id,
+            credential: evaluateInputDescriptor.credential,
+            keyTag: evaluateInputDescriptor.keyTag,
+            format,
+            doctype: evaluateInputDescriptor.inputDescriptor.id,
+          }
+        : {
+            requestedClaims:
+              evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures,
+            credentialInputId: evaluateInputDescriptor.inputDescriptor.id,
+            credential: evaluateInputDescriptor.credential,
+            keyTag: evaluateInputDescriptor.keyTag,
+            format,
+            vct: evaluateInputDescriptor.inputDescriptor.id,
+          };
     }
   );
 

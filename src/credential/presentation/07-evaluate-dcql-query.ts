@@ -10,7 +10,7 @@ import { decode } from "../../sd-jwt";
 import type { Disclosure } from "../../sd-jwt/types";
 import { ValidationFailed } from "../../utils/errors";
 import { CredentialNotFoundError } from "./errors";
-import type { EvaluatedDisclosure } from "./types";
+import type { CredentialFormat, EvaluatedDisclosure } from "./types";
 import { CBOR } from "@pagopa/io-react-native-cbor";
 
 /**
@@ -34,15 +34,13 @@ export type EvaluateDcqlQuery = (
     string /* credential */,
   ][]
 ) => Promise<
-  {
+  ({
     id: string;
-    vct: string;
     credential: string;
     keyTag: string;
-    format: string;
     requiredDisclosures: EvaluatedDisclosure[];
     purposes: CredentialPurpose[];
-  }[]
+  } & CredentialFormat)[]
 >;
 
 type DcqlMatchSuccess = Extract<
@@ -182,9 +180,10 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
           ([type]) => type === doctype
         )!;
         const requiredDisclosures = Object.entries(namespaces).reduce(
-          (acc, [, nsClaims]) => [
+          (acc, [ns, nsClaims]) => [
             ...acc,
             ...Object.entries(nsClaims).map(([claimName]) => ({
+              namespace: ns,
               name: claimName,
               value: nsClaims[claimName],
             })),
@@ -194,7 +193,6 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
 
         return {
           id,
-          vct: doctype,
           keyTag,
           format: match.output.credential_format,
           credential,
@@ -202,6 +200,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
           // When it is a match but no credential_sets are found, the credential is required by default
           // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
           purposes: purposes ?? [{ required: true }],
+          doctype,
         };
       }
 

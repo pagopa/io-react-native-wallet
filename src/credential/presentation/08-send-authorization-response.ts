@@ -373,7 +373,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
           generatedNonce,
           authRequestObject.clientId,
           authRequestObject.responseUri,
-          credentialInputId,
+          item.doctype,
           item.keyTag,
           [
             item.credential,

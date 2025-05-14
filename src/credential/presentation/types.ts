@@ -9,6 +9,16 @@ export type EvaluatedDisclosure = {
   value: unknown;
 };
 
+export type CredentialFormat =
+  | {
+      format: "vc+sd-jwt";
+      vct: string;
+    }
+  | {
+      format: "mso_mdoc";
+      doctype: string;
+    };
+
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
  */
@@ -32,13 +42,12 @@ export type RemotePresentation = {
 };
 
 export type PrepareRemotePresentations = (
-  credentials: {
+  credentials: ({
     requestedClaims: EvaluatedDisclosure[];
     credentialInputId: string; // The credential ID descriptor in the presentation definition or DCQL query
     credential: string;
     keyTag: string;
-    format: string;
-  }[],
+  } & CredentialFormat)[],
   authRequestObject: {
     nonce: string;
     clientId: string;
