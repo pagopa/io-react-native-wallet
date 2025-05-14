@@ -64,6 +64,8 @@ export async function getAttestationRequest(
 
 /**
  * Request a Wallet Instance Attestation (WIA) to the Wallet provider
+ * @version 0.7.1
+ * @deprecated use `v2.getAttestation`. This method will be removed in future releases.
  *
  * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
  * @param params.appFetch (optional) Http client

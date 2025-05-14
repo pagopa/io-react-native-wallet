@@ -44,7 +44,6 @@ export async function getAttestationRequest(
   return new SignJWT(wiaCryptoContext)
     .setPayload({
       iss: keyThumbprint,
-      sub: walletProviderBaseUrl,
       aud: walletProviderBaseUrl,
       nonce: challenge,
       hardware_signature: signature,
@@ -63,6 +62,16 @@ export async function getAttestationRequest(
     .sign();
 }
 
+/**
+ * Request a Wallet Instance Attestation (WIA) to the Wallet provider
+ * @version 1.0.0
+ *
+ * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
+ * @param params.appFetch (optional) Http client
+ * @param walletProviderBaseUrl Base url for the Wallet Provider
+ * @returns The retrieved Wallet Instance Attestation token
+ * @throws {WalletProviderResponseError} with a specific code for more context
+ */
 export const getAttestation = async ({
   wiaCryptoContext,
   integrityContext,

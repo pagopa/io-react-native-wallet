@@ -6,7 +6,10 @@ import { getAttestation as getAttestationV2 } from "./v2/issuing";
 import { getAttestation } from "./issuing";
 export { getAttestation };
 
-// TODO: remove after migrating to v1.00
+/**
+ * TODO: export a temporary object to avoid breaking existing implementations
+ * This should be removed after fully migrating to v1.0.0
+ */
 export const v2 = {
   getAttestation: getAttestationV2,
 };
