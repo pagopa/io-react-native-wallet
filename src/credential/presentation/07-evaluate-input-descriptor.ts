@@ -1,14 +1,10 @@
-import { InputDescriptor, type RemotePresentation } from "./types";
-import { decode, prepareVpToken } from "../../sd-jwt";
+import { InputDescriptor, type EvaluatedDisclosure } from "./types";
+import { decode } from "../../sd-jwt";
 import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
-import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
 import { MissingDataError, CredentialNotFoundError } from "./errors";
-import { type EvaluatedDisclosure } from "./types";
 import Ajv from "ajv";
 import { CBOR } from "@pagopa/io-react-native-cbor";
-import { prepareVpTokenMdoc } from "../../mdoc";
-import { generateRandomAlphaNumericString } from "../../utils/misc";
 
 const ajv = new Ajv({ allErrors: true });
 
@@ -30,8 +26,8 @@ type EvaluateInputDescriptorMdoc = (
 
 export type EvaluateInputDescriptors = (
   descriptors: InputDescriptor[],
-  credentialsSdJwt: [string /* keyTag */, string /* credential */][],
-  credentialsMdoc: [string /* keyTag */, string /* credential */][]
+  credentialsSdJwt: [string, string /* keyTag */, string /* credential */][],
+  credentialsMdoc: [string, string /* keyTag */, string /* credential */][]
 ) => Promise<
   {
     evaluatedDisclosure: EvaluatedDisclosures;
@@ -40,20 +36,6 @@ export type EvaluateInputDescriptors = (
     keyTag: string;
   }[]
 >;
-
-export type PrepareRemotePresentations = (
-  credentialAndDescriptors: {
-    requestedClaims: EvaluatedDisclosure[];
-    inputDescriptor: InputDescriptor;
-    credential: string;
-    keyTag: string;
-  }[],
-  authRequestObject: {
-    nonce: string;
-    clientId: string;
-    responseUri: string;
-  }
-) => Promise<RemotePresentation>;
 
 export const disclosureWithEncodedToEvaluatedDisclosure = (
   disclosure: DisclosureWithEncoded
@@ -474,7 +456,7 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
 ) => {
   // We need decode SD-JWT credentials for evaluation
   const decodedSdJwtCredentials =
-    credentialsSdJwt?.map(([keyTag, credential]) => {
+    credentialsSdJwt?.map(([, keyTag, credential]) => {
       const { sdJwt, disclosures } = decode(credential);
       return { keyTag, credential, sdJwt, disclosures };
     }) || [];
@@ -482,7 +464,7 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
   // We need decode Mdoc credentials for evaluation
   const decodedMdocCredentials =
     (await Promise.all(
-      credentialsMdoc?.map(async ([keyTag, credential]) => {
+      credentialsMdoc?.map(async ([, keyTag, credential]) => {
         const issuerSigned = await CBOR.decodeIssuerSigned(credential);
         if (!issuerSigned) {
           throw new CredentialNotFoundError(
@@ -538,83 +520,4 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
   );
 
   return results;
-};
-
-/**
- * Prepares remote presentations for a set of credentials based on input descriptors.
- *
- * For each credential and its corresponding input descriptor, this function:
- * - Validates the credential format.
- * - Generates a verifiable presentation token (vpToken) using the provided nonce and client identifier.
- *
- * @param credentialAndDescriptors - An array containing objects with requested claims,
- *                                   input descriptor, credential, and keyTag.
- * @param nonce - A unique nonce for the verifiable presentation token.
- * @param client_id - The client identifier.
- * @returns A promise that resolves to an array of RemotePresentation objects.
- * @throws {CredentialNotFoundError} When the credential format is unsupported.
- */
-export const prepareRemotePresentations: PrepareRemotePresentations = async (
-  credentialAndDescriptors,
-  authRequestObject
-) => {
-  /* In case of ISO 18013-7 we need a nonce, it shall have a minimum entropy of 16  */
-  const generatedNonce = generateRandomAlphaNumericString(16);
-
-  const presentations = await Promise.all(
-    credentialAndDescriptors.map(async (item) => {
-      const descriptor = item.inputDescriptor;
-
-      if (descriptor.format?.mso_mdoc) {
-        const { vp_token } = await prepareVpTokenMdoc(
-          authRequestObject.nonce,
-          generatedNonce,
-          authRequestObject.clientId,
-          authRequestObject.responseUri,
-          descriptor.id,
-          item.keyTag,
-          [
-            item.credential,
-            item.requestedClaims,
-            createCryptoContextFor(item.keyTag),
-          ]
-        );
-
-        return {
-          requestedClaims: [...item.requestedClaims.map(({ name }) => name)],
-          inputDescriptor: descriptor,
-          vpToken: vp_token,
-          format: "mso_mdoc",
-        };
-      }
-
-      if (descriptor.format?.["vc+sd-jwt"]) {
-        const { vp_token } = await prepareVpToken(
-          authRequestObject.nonce,
-          authRequestObject.clientId,
-          [
-            item.credential,
-            item.requestedClaims,
-            createCryptoContextFor(item.keyTag),
-          ]
-        );
-
-        return {
-          requestedClaims: [...item.requestedClaims.map(({ name }) => name)],
-          inputDescriptor: descriptor,
-          vpToken: vp_token,
-          format: "vc+sd-jwt",
-        };
-      }
-
-      throw new CredentialNotFoundError(
-        `${descriptor.format} format is not supported.`
-      );
-    })
-  );
-
-  return {
-    presentations,
-    generatedNonce,
-  };
 };

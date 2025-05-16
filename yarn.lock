@@ -4067,6 +4067,13 @@ dayjs@^1.8.15:
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.9.tgz#9ca491933fadd0a60a2c19f6c237c03517d71d1a"
   integrity sha512-QvzAURSbQ0pKdIye2txOzNaHmxtUBXerpY0FJsFXUMKbIZeFm5ht1LS/jFsrncjnmtv8HsG0W2g6c0zUjZWmpA==
 
+dcql@^0.2.22:
+  version "0.2.22"
+  resolved "https://registry.yarnpkg.com/dcql/-/dcql-0.2.22.tgz#aeae2f7f47b8bce5fe2c4a8857df8406feb91230"
+  integrity sha512-4CfuUoJ1/dfj4aOMwCGF3HEHsPpRUyALbst5Dx3qcNkIXNFpVqebKVYd58X9/ZlKN/wWJxPS34S7uQ0fcbzS5A==
+  dependencies:
+    valibot "1.0.0-beta.8"
+
 debug@2.6.9, debug@^2.2.0, debug@^2.6.9:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -8956,6 +8963,11 @@ v8-to-istanbul@^9.0.1:
     "@jridgewell/trace-mapping" "^0.3.12"
     "@types/istanbul-lib-coverage" "^2.0.1"
     convert-source-map "^1.6.0"
+
+valibot@1.0.0-beta.8:
+  version "1.0.0-beta.8"
+  resolved "https://registry.yarnpkg.com/valibot/-/valibot-1.0.0-beta.8.tgz#670bbdef4affd58bb71a5e5bd2fe4d1ea535770f"
+  integrity sha512-OPAwJZtowb0j91b+bd77+ny7D1VVzsCzD7Jl9waLUlMprTsfI9Y3HHbW3hAQD7wKDKHsmGEesuiYWaYvcZL2wg==
 
 validate-npm-package-license@^3.0.1:
   version "3.0.4"
