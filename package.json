@@ -96,6 +96,9 @@
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?@react-native|react-native|uuid|@pagopa/io-react-native-cbor)"
+    ],
+    "testPathIgnorePatterns": [
+      "/__tests__/utils"
     ]
   },
   "react-native-builder-bob": {

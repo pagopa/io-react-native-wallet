@@ -64,7 +64,7 @@ type DecodedMDocCredential = Out<typeof verifyMdoc> & {
   issuerSigned: CBOR.IssuerSigned;
 };
 
-const parseCredentialSdJwt = (
+export const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
   { sdJwt, disclosures }: DecodedSdJwtCredential,
@@ -92,7 +92,8 @@ const parseCredentialSdJwt = (
 
   // the key of the attribute defintion must match the disclosure's name
   const attrsNotInDisclosures = attrDefinitions.filter(
-    ([attrKey]) => !disclosures.some(([, name]) => name === attrKey)
+    ([attrKey, definition]) =>
+      !disclosures.some(([, name]) => name === attrKey) && definition.mandatory
   );
   if (attrsNotInDisclosures.length > 0) {
     const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
@@ -121,6 +122,8 @@ const parseCredentialSdJwt = (
             },
           ] as const
       )
+      //filter the not found elements
+      .filter(([_, definition]) => definition.value !== undefined)
       // add a human readable attribute name, with i18n, in the form { locale: name }
       // example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
       .map(
@@ -155,11 +158,12 @@ const parseCredentialSdJwt = (
   return definedValues;
 };
 
-const parseCredentialMDoc = (
+export const parseCredentialMDoc = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
   credential_type: string,
   { issuerSigned }: DecodedMDocCredential,
+  ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
   const credentialSubject = credentials_supported[credential_type];
@@ -208,6 +212,27 @@ const parseCredentialMDoc = (
     )
   );
 
+  // Check that all mandatory attributes defined in the issuer configuration are present in the disclosure set
+  // and filter the non present ones
+  const attrsNotInDisclosures = attrDefinitions.filter(
+    ([attrDefNamespace, attrKey, definition]) => {
+      const isClaimPresent = flatNamespaces.find(
+        ([namespace, name]) =>
+          attrDefNamespace === namespace && name === attrKey
+      );
+      return isClaimPresent === undefined && definition.mandatory;
+    }
+  );
+  if (attrsNotInDisclosures.length > 0) {
+    const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
+    const received = flatNamespaces.map((_) => _[1 /*name*/]);
+    if (!ignoreMissingAttributes) {
+      throw new IoWalletError(
+        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+      );
+    }
+  }
+
   // Attributes defined in the issuer configuration and present in the disclosure set
   const definedValues = Object.fromEntries(
     attrDefinitions
@@ -225,6 +250,8 @@ const parseCredentialMDoc = (
             },
           ] as const
       )
+      //filter the not found elements
+      .filter(([_, definition]) => definition.value !== undefined)
       // Add a human-readable attribute name, with i18n, in the form { locale: name }
       // Example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
       .map(
@@ -410,6 +437,7 @@ const verifyAndParseCredentialMDoc: WithFormat<"mso_mdoc"> = async (
     issuerConf.credential_configurations_supported,
     credentialType,
     decoded,
+    undefined,
     ignoreMissingAttributes
   );
 
