@@ -64,6 +64,7 @@ type DecodedMDocCredential = Out<typeof verifyMdoc> & {
   issuerSigned: CBOR.IssuerSigned;
 };
 
+//Exported for testing purposes
 export const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
@@ -158,6 +159,7 @@ export const parseCredentialSdJwt = (
   return definedValues;
 };
 
+//Exported for testing purposes
 export const parseCredentialMDoc = (
   // the list of supported credentials, as defined in the issuer configuration
   credentials_supported: Out<GetIssuerConfig>["issuerConf"]["credential_configurations_supported"],
