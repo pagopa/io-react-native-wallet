@@ -15,7 +15,7 @@ import {
   selectInstanceRevocationAsyncStatus,
 } from "../store/reducers/instance";
 import {
-  selectAttestation,
+  selectAttestationAsJwt,
   selectAttestationAsyncStatus,
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "../thunks/attestation";
@@ -37,7 +37,7 @@ export const WalletInstanceScreen = () => {
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
   const instanceKeyTag = useAppSelector(selectInstanceKeyTag);
-  const attestation = useAppSelector(selectAttestation);
+  const attestation = useAppSelector(selectAttestationAsJwt);
 
   useDebugInfo({
     instanceState,

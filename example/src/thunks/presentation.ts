@@ -1,7 +1,7 @@
 import { createAppAsyncThunk } from "./utils";
 import { Credential } from "@pagopa/io-react-native-wallet";
 import {
-  selectAttestation,
+  selectAttestationAsJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
@@ -55,7 +55,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   }
 
   // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestation(getState());
+  const walletInstanceAttestation = selectAttestationAsJwt(getState());
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");
   }

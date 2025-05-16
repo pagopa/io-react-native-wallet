@@ -1,16 +1,21 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
+import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
 import { getAttestationThunk } from "../../thunks/attestation";
 import { createSecureStorage } from "../storage";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./sesssion";
-import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
+
+// Supported Wallet Attestation formats
+type Format = Awaited<
+  ReturnType<typeof WalletInstanceAttestation.getAttestation>
+>[number]["format"];
 
 // State type definition for the attestion slice
 type AttestationState = {
-  attestation: string | undefined;
+  attestation: Record<Format, string> | undefined;
   asyncStatus: AsyncStatus;
 };
 
@@ -34,7 +39,13 @@ const attestationSlice = createSlice({
     // Dispatched when a get attestion async thunk resolves. Sets the attestation and resets the state.
     builder.addCase(getAttestationThunk.fulfilled, (state, action) => {
       state.asyncStatus.isDone = true;
-      state.attestation = action.payload;
+      state.attestation = action.payload.reduce(
+        (acc, { wallet_attestation, format }) => ({
+          ...acc,
+          [format]: wallet_attestation,
+        }),
+        {} as Record<Format, string>
+      );
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
@@ -94,12 +105,16 @@ export const selectAttestationAsyncStatus = (state: RootState) =>
   state.attestation.asyncStatus;
 
 /**
- * Selects the attestation from the attestation state.
+ * Selects the attestation from the attestation state in the givern format.
+ * @param format - The format of the attestation to select
  * @param state - The root state of the Redux store
  * @returns the attestation
  */
-export const selectAttestation = (state: RootState) =>
-  state.attestation.attestation;
+export const makeSelectAttestation = (format: Format) => (state: RootState) =>
+  state.attestation.attestation?.[format];
+
+export const selectAttestationAsJwt = makeSelectAttestation("jwt");
+export const selectAttestationAsSdJwt = makeSelectAttestation("dc+sd-jwt");
 
 /**
  * Checks if the Wallet Instance Attestation needs to be requested by
@@ -108,7 +123,7 @@ export const selectAttestation = (state: RootState) =>
  * @returns true if the Wallet Instance Attestation is expired or not present
  */
 export const shouldRequestAttestationSelector = createSelector(
-  selectAttestation,
+  selectAttestationAsJwt,
   (attestation) => {
     if (!attestation) {
       return true;

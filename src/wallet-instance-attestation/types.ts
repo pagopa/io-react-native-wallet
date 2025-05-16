@@ -33,15 +33,17 @@ export const WalletInstanceAttestationRequestJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("war+jwt"),
+      typ: z.literal("wp-war+jwt"),
     })
   ),
   payload: z.intersection(
     Jwt.shape.payload,
     z.object({
       aud: z.string(),
-      jti: z.string(),
       nonce: z.string(),
+      hardware_signature: z.string(),
+      integrity_assertion: z.string(),
+      hardware_key_tag: z.string(),
     })
   ),
 });
@@ -53,7 +55,8 @@ export const WalletInstanceAttestationJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("wallet-attestation+jwt"),
+      typ: z.literal("oauth-client-attestation+jwt"),
+      trust_chain: z.array(z.string()),
     })
   ),
   payload: z.intersection(
@@ -61,32 +64,10 @@ export const WalletInstanceAttestationJwt = z.object({
     z.object({
       sub: z.string(),
       aal: z.string(),
-      authorization_endpoint: z.string(),
-      response_types_supported: z.array(z.string()),
-      vp_formats_supported: z.object({
-        "vc+sd-jwt": z
-          .object({
-            "sd-jwt_alg_values": z.array(z.string()),
-          })
-          .optional(),
-        "vp+sd-jwt": z
-          .object({
-            "sd-jwt_alg_values": z.array(z.string()),
-          })
-          .optional(),
-      }),
-      request_object_signing_alg_values_supported: z.array(z.string()),
-      presentation_definition_uri_supported: z.boolean(),
+      wallet_link: z.string().optional(),
+      wallet_name: z.string().optional(),
     })
   ),
-});
-
-/**
- * @deprecated Use `WalletAttestationResponse`
- */
-export type TokenResponse = z.infer<typeof TokenResponse>;
-export const TokenResponse = z.object({
-  wallet_attestation: z.string(),
 });
 
 export type WalletAttestationResponse = z.infer<
