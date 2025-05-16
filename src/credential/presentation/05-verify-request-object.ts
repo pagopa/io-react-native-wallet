@@ -14,7 +14,6 @@ export const verifyRequestObjectSignature: VerifyRequestObjectSignature =
   async (requestObjectEncodedJwt, jwkKeys) => {
     const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
-
     // verify token signature to ensure the request object is authentic
     const pubKey =
       jwkKeys?.find(
