@@ -4,10 +4,10 @@ import {
   parseCredentialMDoc,
   parseCredentialSdJwt,
 } from "../07-verify-and-parse-credential";
-import { mocks } from "./utils/07-verify-and-parse-credentials-mocks";
+import { inputs } from "./utils/07-verify-and-parse-credentials-inputs";
 
 describe("parsingScenarios", () => {
-  it.each(mocks.map((s, index) => [`${index} : ${s.name}`, s]))(
+  it.each(inputs.map((s, index) => [`${index} : ${s.name}`, s]))(
     "should parse without optional claims or throw if a mandatory claim is not found; %s",
     (_, scenario) => {
       if (scenario.throws) {

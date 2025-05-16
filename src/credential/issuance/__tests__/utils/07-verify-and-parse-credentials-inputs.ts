@@ -7,7 +7,7 @@ import {
 } from "./07-verify-and-parse-credentials-utils";
 import { IoWalletError } from "../../../../utils/errors";
 
-export const mocks: TestScenario<
+export const inputs: TestScenario<
   ParseCredentialArg,
   ParseCredentialReturn,
   Error
