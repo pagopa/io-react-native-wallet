@@ -208,7 +208,6 @@ const handlePresentationDefinitionResponse = async (
             credential: evaluateInputDescriptor.credential,
             keyTag: evaluateInputDescriptor.keyTag,
             format,
-            vct: evaluateInputDescriptor.inputDescriptor.id,
           };
     }
   );
