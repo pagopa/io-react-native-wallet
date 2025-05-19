@@ -51,7 +51,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 >("presentation/remote", async (args, { getState, dispatch }) => {
   // Checks if the wallet instance attestation needs to be requested
   if (shouldRequestAttestationSelector(getState())) {
-    await dispatch(getAttestationThunk());
+    await dispatch(getAttestationThunk({ apiVersion: "1.0" }));
   }
 
   // Gets the Wallet Instance Attestation from the persisted store

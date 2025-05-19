@@ -3,7 +3,8 @@ import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 
 import { getAttestation } from "./issuing";
-export { getAttestation };
+import { deprecatedGetAttestation } from "./issuing.deprecated";
+export { getAttestation, deprecatedGetAttestation };
 
 /**
  * Decode a given JWT to get the parsed Wallet Instance Attestation object they define.
