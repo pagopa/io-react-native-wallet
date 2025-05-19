@@ -10,7 +10,7 @@ import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 
-type GetAttestationThunkInput = { apiVersion: "0.7.1" | "1.0" };
+type GetAttestationThunkInput = { apiVersion: "0.7.1" | "1.0" }; // TODO: [SIW-2111] Remove after transition to v1.0
 type GetAttestationThunkOutput = Awaited<
   ReturnType<typeof WalletInstanceAttestation.getAttestation>
 >;
