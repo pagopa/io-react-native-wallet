@@ -3,7 +3,7 @@ import { CBOR } from "@pagopa/io-react-native-cbor";
 import type { Out } from "../../utils/misc";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { IoWalletError } from "../../utils/errors";
-import { SdJwt4VC } from "../../sd-jwt/types";
+import { Disclosure, SdJwt4VC } from "../../sd-jwt/types";
 import { verify as verifySdJwt } from "../../sd-jwt";
 import { verify as verifyMdoc } from "../../mdoc";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
@@ -14,8 +14,9 @@ import {
   CredentialClaim,
 } from "../../entity/openid-connect/issuer/types";
 import { extractElementValueAsDate } from "../../mdoc/converters";
+import { z } from "zod";
 
-export type VerifyAndParseCredential = (
+export type VerifyAndParseCredential = <JWT extends z.ZodType<SdJwt4VC>>(
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
@@ -30,6 +31,11 @@ export type VerifyAndParseCredential = (
      * Include attributes that are not explicitly mapped in the issuer configuration.
      */
     includeUndefinedAttributes?: boolean;
+    /**
+     * Extra parsers to extract disclosures from sd-jwt payloads
+     */
+    sdJwtExtractors?: ((sdJwt: z.infer<JWT>) => Disclosure[])[];
+    sdJwtCustomSchema?: JWT;
   }
 ) => Promise<{
   parsedCredential: ParsedCredential;
@@ -305,12 +311,21 @@ export const parseCredentialMDoc = (
 async function verifyCredentialSdJwt(
   rawCredential: string,
   issuerKeys: JWK[],
-  holderBindingContext: CryptoContext
+  holderBindingContext: CryptoContext,
+  sdJwtExtractors?: (<S extends z.ZodType<SdJwt4VC>>(
+    sdJwt: z.infer<S>
+  ) => Disclosure[])[],
+  sdJwtCustomSchema?: z.ZodType<SdJwt4VC>
 ): Promise<DecodedSdJwtCredential> {
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
-      verifySdJwt(rawCredential, issuerKeys, SdJwt4VC),
+      verifySdJwt(
+        rawCredential,
+        issuerKeys,
+        sdJwtCustomSchema,
+        sdJwtExtractors
+      ),
       holderBindingContext.getPublicKey(),
     ]);
 
@@ -395,12 +410,16 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
     credentialCryptoContext,
     ignoreMissingAttributes,
     includeUndefinedAttributes,
+    sdJwtCustomSchema,
+    sdJwtExtractors,
   }
 ) => {
   const decoded = await verifyCredentialSdJwt(
     credential,
     issuerConf.keys,
-    credentialCryptoContext
+    credentialCryptoContext,
+    sdJwtExtractors,
+    sdJwtCustomSchema
   );
 
   const parsedCredential = parseCredentialSdJwt(

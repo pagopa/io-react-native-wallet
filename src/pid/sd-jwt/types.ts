@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Verification } from "../../sd-jwt/types";
+import { SdJwt4VC, Verification } from "../../sd-jwt/types";
 
 /**
  * Data structure for the PID.
@@ -26,4 +26,18 @@ export const PID = z.object({
       .optional(),
     taxIdCode: z.string(),
   }),
+});
+
+/**
+ * SdJwt4VC PID extension
+ */
+export type PidSdJwt4VC = z.infer<typeof PidSdJwt4VC>;
+export const PidSdJwt4VC = SdJwt4VC.extend({
+  payload: SdJwt4VC.shape.payload.and(
+    z.object({
+      expiry_date: z.string().refine((str) => !isNaN(new Date(str).getTime())),
+      issuing_country: z.string(),
+      issuing_authority: z.string(),
+    })
+  ),
 });

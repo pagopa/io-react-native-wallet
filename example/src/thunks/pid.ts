@@ -19,6 +19,7 @@ import {
   supportsInAppBrowser,
 } from "@pagopa/io-react-native-login-utils";
 import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
+import { PID } from "@pagopa/io-react-native-wallet";
 
 /**
  * Type definition for the input of the {@link getPidThunk}.
@@ -151,7 +152,11 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
         credential,
         format,
         credentialType,
-        { credentialCryptoContext }
+        {
+          credentialCryptoContext,
+          sdJwtCustomSchema: PID.SdJwt.PidSdJwt4VC,
+          sdJwtExtractors: [PID.SdJwt.pidSdJwtDisclosureExtractor],
+        }
       );
 
     return {
