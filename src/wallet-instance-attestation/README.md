@@ -1,7 +1,11 @@
 # Wallet Instance Attestation
 
-This flow consists of a single step and is used to obtain a Wallet Instance Attestation. The wallet provider must implement its endpoints based on the OpenAPI specification provided in the [wallet-instance.yaml](../../openapi/wallet-provider.yaml) file.
-In order to require a status attestation the consumer application must provide:
+This flow consists of a single step and is used to obtain a Wallet Instance Attestation. The attestation is issued in multiple formats:
+- `jwt`
+- `dc+sd-jwt`
+- `mso_mdoc`
+
+The wallet provider must implement its endpoints based on the OpenAPI specification provided in the [wallet-instance.yaml](../../openapi/wallet-provider.yaml) file. In order to require a status attestation the consumer application must provide:
 
 - `wiaCryptoContext` object that is used to sign the attestation request. The key must be generated before creating the crypto context;
 - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance;
@@ -29,10 +33,11 @@ const issuedAttestation = await WalletInstanceAttestation.getAttestation({
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
 });
+// [{ "format": "jwt", "wallet_attestation": "ey..." }, { "format": "dc+sd-jwt", "wallet_attestation": "ey..." }]
 return issuedAttestation;
 ```
 
-The returned `issuedAttestation` is supposed to be stored and used for any future operation that requires a Wallet Instance Attestation. The wallet attestation has a limited validity and must be regenerated when it expires.
+The returned `issuedAttestation` is supposed to be stored and used for any future operation that requires a Wallet Instance Attestation in one of the available formats. The wallet attestation has a limited validity and must be regenerated when it expires.
 
 ## Mapped results
 
