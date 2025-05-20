@@ -71,5 +71,4 @@ export type PidWithToken = {
  */
 export type VerifyResult = PidWithToken;
 
-export { PID, PidSdJwt4VC } from "./types";
-export { pidSdJwtDisclosureExtractor } from "./extractors";
+export { PID } from "./types";

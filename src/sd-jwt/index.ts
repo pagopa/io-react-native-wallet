@@ -140,8 +140,7 @@ export const disclose = async (
 export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   token: string,
   publicKey: JWK | JWK[],
-  customSchema?: S,
-  extractors?: ((sdJwt: z.infer<S>) => Disclosure[])[]
+  customSchema?: S
 ): Promise<{ sdJwt: z.infer<S>; disclosures: Disclosure[] }> => {
   // get decoded data
   const [rawSdJwt = ""] = token.split("~");
@@ -159,21 +158,9 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
     )
   );
 
-  const disclosures = decoded.disclosures.map((d) => d.decoded);
-
-  if (extractors) {
-    return {
-      sdJwt: decoded.sdJwt,
-      disclosures: [
-        ...disclosures,
-        ...extractors.flatMap((extractor) => extractor(decoded.sdJwt)),
-      ],
-    };
-  }
-
   return {
     sdJwt: decoded.sdJwt,
-    disclosures,
+    disclosures: decoded.disclosures.map((d) => d.decoded),
   };
 };
 
