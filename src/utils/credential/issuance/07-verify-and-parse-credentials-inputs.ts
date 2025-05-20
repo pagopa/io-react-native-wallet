@@ -5,7 +5,7 @@ import {
   buildMockSDJWTTestScenario,
   buildMockMDOCTestScenario,
 } from "./07-verify-and-parse-credentials-utils";
-import { IoWalletError } from "../../../../utils/errors";
+import { IoWalletError } from "../../../utils/errors";
 
 export const inputs: TestScenario<
   ParseCredentialArg,

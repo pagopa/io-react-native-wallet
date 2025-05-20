@@ -1,7 +1,7 @@
 import type {
   parseCredentialMDoc,
   parseCredentialSdJwt,
-} from "../../07-verify-and-parse-credential";
+} from "src/credential/issuance/07-verify-and-parse-credential";
 
 export type TestScenario<
   T extends object,
@@ -150,6 +150,9 @@ export function buildMockSDJWTTestScenario(
           vct: "eu.europa.ec.eudi.pid.1",
           iss: "unused",
           sub: "unused",
+          expiry_date: "unused",
+          issuing_authority: "unused",
+          issuing_country: "unused",
           exp: 0,
           _sd_alg: "sha-256",
           cnf: {

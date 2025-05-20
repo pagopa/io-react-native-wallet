@@ -4,7 +4,7 @@ import {
   parseCredentialMDoc,
   parseCredentialSdJwt,
 } from "../07-verify-and-parse-credential";
-import { inputs } from "./utils/07-verify-and-parse-credentials-inputs";
+import { inputs } from "../../../utils/credential/issuance/07-verify-and-parse-credentials-inputs";
 
 describe("parsingScenarios", () => {
   it.each(inputs.map((s, index) => [`${index} : ${s.name}`, s]))(
