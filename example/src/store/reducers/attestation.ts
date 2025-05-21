@@ -105,7 +105,7 @@ export const selectAttestationAsyncStatus = (state: RootState) =>
   state.attestation.asyncStatus;
 
 /**
- * Selects the attestation from the attestation state in the givern format.
+ * Selects the attestation from the attestation state in the given format.
  * @param format - The format of the attestation to select
  * @param state - The root state of the Redux store
  * @returns the attestation
