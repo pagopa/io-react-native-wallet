@@ -226,7 +226,9 @@ export const parseCredentialMDoc = (
     }
   );
   if (attrsNotInDisclosures.length > 0) {
-    const missing = attrsNotInDisclosures.map((_) => _[1 /* claim key */]).join(", ");
+    const missing = attrsNotInDisclosures
+      .map((_) => _[1 /* claim key */])
+      .join(", ");
     const received = flatNamespaces.map((_) => _[1 /*name*/]);
     if (!ignoreMissingAttributes) {
       throw new IoWalletError(
