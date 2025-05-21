@@ -305,15 +305,6 @@ export const sendAuthorizationResponseDcql: SendAuthorizationResponseDcql =
     { appFetch = fetch } = {}
   ): Promise<AuthorizationResponse> => {
     const { generatedNonce, presentations } = remotePresentation;
-    console.log({
-      vp_token: presentations.reduce(
-        (acc, presentation) => ({
-          ...acc,
-          [presentation.credentialId]: presentation.vpToken,
-        }),
-        {} as Record<string, string>
-      ),
-    });
     // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
     const requestBody = await buildDirectPostJwtBody(
       jwkKeys,
