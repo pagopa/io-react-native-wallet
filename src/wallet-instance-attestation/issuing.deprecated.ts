@@ -5,14 +5,15 @@ import {
 } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey, JWK } from "../utils/jwk";
 import { getWalletProviderClient } from "../client";
-import type { IntegrityContext } from "../utils/integrity";
-import { LogLevel, Logger } from "../utils/logging";
+import type { IntegrityContext } from "..";
 import {
   ResponseErrorBuilder,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../utils/errors";
-import { WalletAttestationResponse } from "./types";
+import { LogLevel, Logger } from "../utils/logging";
+
+// TODO: [SIW-2111] Delete this file after transition to v1.0
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -23,7 +24,7 @@ import { WalletAttestationResponse } from "./types";
  * @param walletProviderBaseUrl - Base url for the Wallet Provider
  * @returns A JWT containing the attestation request
  */
-export async function getAttestationRequest(
+async function getAttestationRequest(
   challenge: string,
   wiaCryptoContext: CryptoContext,
   integrityContext: IntegrityContext,
@@ -48,8 +49,8 @@ export async function getAttestationRequest(
   return new SignJWT(wiaCryptoContext)
     .setPayload({
       iss: keyThumbprint,
-      aud: walletProviderBaseUrl,
-      nonce: challenge,
+      sub: walletProviderBaseUrl,
+      challenge,
       hardware_signature: signature,
       integrity_assertion: authenticatorData,
       hardware_key_tag: hardwareKeyTag,
@@ -59,7 +60,7 @@ export async function getAttestationRequest(
     })
     .setProtectedHeader({
       kid: publicKey.kid,
-      typ: "wp-war+jwt",
+      typ: "war+jwt",
     })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -68,7 +69,8 @@ export async function getAttestationRequest(
 
 /**
  * Request a Wallet Instance Attestation (WIA) to the Wallet provider
- * @version 1.0.0
+ * @version 0.7.1
+ * @deprecated Use `getAttestation`: this function will be removed in future releases
  *
  * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
  * @param params.appFetch (optional) Http client
@@ -76,7 +78,7 @@ export async function getAttestationRequest(
  * @returns The retrieved Wallet Instance Attestation token
  * @throws {WalletProviderResponseError} with a specific code for more context
  */
-export const getAttestation = async ({
+export const deprecatedGetAttestation = async ({
   wiaCryptoContext,
   integrityContext,
   walletProviderBaseUrl,
@@ -86,7 +88,7 @@ export const getAttestation = async ({
   integrityContext: IntegrityContext;
   walletProviderBaseUrl: string;
   appFetch?: GlobalFetch["fetch"];
-}): Promise<WalletAttestationResponse["wallet_attestations"]> => {
+}): Promise<string> => {
   const api = getWalletProviderClient({
     walletProviderBaseUrl,
     appFetch,
@@ -111,30 +113,28 @@ export const getAttestation = async ({
     `Signed attestation request: ${signedAttestationRequest}`
   );
 
-  // 3. Request WIA in multiple formats
-  const response = await api
-    .post("/wallet-attestation", {
+  // 3. Request WIA
+  const tokenResponse = await api
+    .post("/token", {
       body: {
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
         assertion: signedAttestationRequest,
       },
     })
-    .then(WalletAttestationResponse.parse)
     .catch(handleAttestationCreationError);
 
-  for (const attestation of response.wallet_attestations) {
-    Logger.log(
-      LogLevel.DEBUG,
-      `Obtained wallet attestation in ${attestation.format} format: ${attestation.wallet_attestation}`
-    );
-  }
+  Logger.log(
+    LogLevel.DEBUG,
+    `Obtained wallet attestation: ${tokenResponse.wallet_attestation}`
+  );
 
-  return response.wallet_attestations;
+  return tokenResponse.wallet_attestation;
 };
 
 const handleAttestationCreationError = (e: unknown) => {
   Logger.log(
     LogLevel.ERROR,
-    `An error occurred while calling /wallet-attestation endpoint: ${e}`
+    `An error occurred while calling /token endpoint: ${e}`
   );
 
   if (!(e instanceof WalletProviderResponseError)) {
