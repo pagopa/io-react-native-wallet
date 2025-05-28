@@ -14,7 +14,6 @@ export class FederationError extends IoWalletError {
  * Error thrown when a trust chain is unexpectedly empty.
  */
 export class TrustChainEmptyError extends FederationError {
-  // Now extends FederationError
   code = "ERR_FED_TRUST_CHAIN_EMPTY";
   constructor(message = "Trust chain cannot be empty.") {
     super(message, undefined);
