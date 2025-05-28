@@ -70,6 +70,9 @@ export const SdJwt4VC = z.object({
       vct: z.string(),
       "vct#integrity": z.string().optional(),
       verification: Verification.optional(),
+      expiry_date: z.string().refine((str) => !isNaN(new Date(str).getTime())),
+      issuing_authority: z.string(),
+      issuing_country: z.string(),
     }),
     ObfuscatedDisclosures
   ),

@@ -35,6 +35,9 @@ describe("SdJwt4VC", () => {
         },
         exp: 1768490196,
         iat: 1736954196,
+        expiry_date: "2026-12-05",
+        issuing_country: "IT",
+        issuing_authority: "Istituto Poligrafico e Zecca dello Stato",
         verification: {
           evidence: {
             method: "cie",
