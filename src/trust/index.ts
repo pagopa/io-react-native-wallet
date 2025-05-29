@@ -19,6 +19,7 @@ import {
   RelyingPartyNotAuthorizedError,
   TrustAnchorKidMissingError,
 } from "./errors";
+import type { X509CertificateOptions } from "@pagopa/io-react-native-crypto";
 
 export type {
   WalletProviderEntityConfiguration,
@@ -35,25 +36,31 @@ export type {
  *
  * @param trustAnchorEntity The entity configuration of the known trust anchor
  * @param chain The chain of statements to be validated
- * @param renewOnFail Whether to renew the provided chain if the validation fails at first. Default: true
- * @param appFetch Fetch api implementation. Default: the built-in implementation
+ * @param x509Options Options for the verification process
+ * @param appFetch (optional) fetch api implementation
+ * @param renewOnFail Whether to attempt to renew the trust chain if the initial validation fails
  * @returns The result of the chain validation
  * @throws {FederationError} If the chain is not valid
  */
 export async function verifyTrustChain(
   trustAnchorEntity: TrustAnchorEntityConfiguration,
   chain: string[],
+  x509Options: X509CertificateOptions = {
+    connectTimeout: 10000,
+    readTimeout: 10000,
+    requireCrl: true,
+  },
   {
     appFetch = fetch,
     renewOnFail = true,
   }: { appFetch?: GlobalFetch["fetch"]; renewOnFail?: boolean } = {}
 ): Promise<ReturnType<typeof validateTrustChain>> {
   try {
-    return validateTrustChain(trustAnchorEntity, chain);
+    return validateTrustChain(trustAnchorEntity, chain, x509Options);
   } catch (error) {
     if (renewOnFail) {
       const renewedChain = await renewTrustChain(chain, appFetch);
-      return validateTrustChain(trustAnchorEntity, renewedChain);
+      return validateTrustChain(trustAnchorEntity, renewedChain, x509Options);
     } else {
       throw error;
     }
