@@ -7,12 +7,18 @@ import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import {
   type RemotePresentation,
   DirectAuthorizationBodyPayload,
+  ErrorResponse,
   type LegacyRemotePresentation,
-  LegacyDirectAuthorizationBodyPayload,
 } from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
 import type { RelyingPartyEntityConfiguration } from "../../trust";
+import {
+  RelyingPartyResponseError,
+  ResponseErrorBuilder,
+  UnexpectedStatusCodeError,
+  RelyingPartyResponseErrorCodes,
+} from "../../utils/errors";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -61,7 +67,7 @@ export const choosePublicKeyToEncrypt = (
 export const buildDirectPostJwtBody = async (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  payload: DirectAuthorizationBodyPayload | LegacyDirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
@@ -96,6 +102,34 @@ export const buildDirectPostJwtBody = async (
     ...(requestObject.state ? { state: requestObject.state } : {}),
   });
   return formBody.toString();
+};
+
+/**
+ * Builds a URL-encoded form body for a direct POST response without encryption.
+ *
+ * @param requestObject - Contains state, nonce, and other relevant info.
+ * @param payload - Object that contains either the VP token to encrypt and the stringified mapping of the credential disclosures or the error code
+ * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
+ */
+export const buildDirectPostBody = async (
+  requestObject: Out<VerifyRequestObject>["requestObject"],
+  payload: DirectAuthorizationBodyPayload
+): Promise<string> => {
+  const formUrlEncodedBody = new URLSearchParams({
+    ...(requestObject.state && { state: requestObject.state }),
+    ...Object.entries(payload).reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        [key]:
+          Array.isArray(value) || typeof value === "object"
+            ? JSON.stringify(value)
+            : value,
+      }),
+      {} as Record<string, string>
+    ),
+  });
+
+  return formUrlEncodedBody.toString();
 };
 
 /**
@@ -218,5 +252,78 @@ export const sendAuthorizationResponse: SendAuthorizationResponse = async (
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
-    .then(AuthorizationResponse.parse);
+    .then(AuthorizationResponse.parse)
+    .catch(handleAuthorizationResponseError);
+};
+
+/**
+ * Type definition for the function that sends the authorization response
+ * to the Relying Party, completing the presentation flow.
+ */
+export type SendAuthorizationErrorResponse = (
+  requestObject: Out<VerifyRequestObject>["requestObject"],
+  error: { error: ErrorResponse; errorDescription: string },
+  context?: {
+    appFetch?: GlobalFetch["fetch"];
+  }
+) => Promise<AuthorizationResponse>;
+
+/**
+ * Sends the authorization error response to the Relying Party (RP) using the specified `response_mode`.
+ * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
+ *
+ * @param requestObject - The request details, including presentation requirements.
+ * @param error - The response error value, with description
+ * @param context - Contains optional custom fetch implementation.
+ * @returns Parsed and validated authorization response from the Relying Party.
+ */
+export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
+  async (
+    requestObject,
+    { error, errorDescription },
+    { appFetch = fetch } = {}
+  ): Promise<AuthorizationResponse> => {
+    const requestBody = await buildDirectPostBody(requestObject, {
+      error,
+      error_description: errorDescription,
+    });
+
+    return await appFetch(requestObject.response_uri, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: requestBody,
+    })
+      .then(hasStatusOrThrow(200, RelyingPartyResponseError))
+      .then((res) => res.json())
+      .then(AuthorizationResponse.parse);
+  };
+
+/**
+ * Handle the the presentation error by mapping it to a custom exception.
+ * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
+ * @param e - The error to be handled
+ * @throws {RelyingPartyResponseError} with a specific code for more context
+ */
+const handleAuthorizationResponseError = (e: unknown) => {
+  if (!(e instanceof UnexpectedStatusCodeError)) {
+    throw e;
+  }
+
+  throw new ResponseErrorBuilder(RelyingPartyResponseError)
+    .handle(400, {
+      code: RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse,
+      message:
+        "The Authorization Response contains invalid parameters or it is malformed",
+    })
+    .handle(403, {
+      code: RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse,
+      message: "The Authorization Response was forbidden",
+    })
+    .handle("*", {
+      code: RelyingPartyResponseErrorCodes.RelyingPartyGenericError,
+      message: "Unable to successfully send the Authorization Response",
+    })
+    .buildFrom(e);
 };

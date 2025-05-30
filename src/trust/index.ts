@@ -11,8 +11,14 @@ import {
 } from "./types";
 import { renewTrustChain, validateTrustChain } from "./chain";
 import { hasStatusOrThrow } from "../utils/misc";
-import { IoWalletError } from "../utils/errors";
 import type { JWK } from "../utils/jwk";
+import {
+  BuildTrustChainError,
+  FederationListParseError,
+  MissingFederationFetchEndpointError,
+  RelyingPartyNotAuthorizedError,
+  TrustAnchorKidMissingError,
+} from "./errors";
 
 export type {
   WalletProviderEntityConfiguration,
@@ -32,7 +38,7 @@ export type {
  * @param renewOnFail Whether to renew the provided chain if the validation fails at first. Default: true
  * @param appFetch Fetch api implementation. Default: the built-in implementation
  * @returns The result of the chain validation
- * @throws {IoWalletError} When either validation or renewal fail
+ * @throws {FederationError} If the chain is not valid
  */
 export async function verifyTrustChain(
   trustAnchorEntity: TrustAnchorEntityConfiguration,
@@ -210,7 +216,6 @@ export const getEntityConfiguration = (
  * @param appFetch An optional instance of the http client to be used.
  * @returns The parsed entity configuration object
  * @throws {IoWalletError} If the http request fails
- * @throws Parse error if the document is not in the expected shape.
  */
 export async function getEntityStatement(
   accreditationBodyBaseUrl: string,
@@ -270,7 +275,8 @@ export async function getSignedEntityStatement(
  * @param federationListEndpoint The URL of the federation list endpoint.
  * @param appFetch An optional instance of the http client to be used.
  * @returns The federation list as an array of strings.
- * @throws {IoWalletError} If the HTTP request fails or the response cannot be parsed.
+ * @throws {IoWalletError} If the HTTP request fails.
+ * @throws {FederationError} If the result is not in the expected format.
  */
 export async function getFederationList(
   federationListEndpoint: string,
@@ -288,8 +294,9 @@ export async function getFederationList(
     .then((json) => {
       const result = FederationListResponse.safeParse(json);
       if (!result.success) {
-        throw new IoWalletError(
-          `Invalid federation list format received from Trust Anchor: ${result.error.message}`
+        throw new FederationListParseError(
+          `Invalid federation list format received from ${federationListEndpoint}. Error: ${result.error.message}`,
+          { url: federationListEndpoint, parseError: result.error.toString() }
         );
       }
       return result.data;
@@ -303,8 +310,7 @@ export async function getFederationList(
  * @param trustAnchorKey The public key of the Trust Anchor (TA) entity
  * @param appFetch An optional instance of the http client to be used.
  * @returns A list of signed tokens that represent the trust chain, in the order of the chain (from the RP to the Trust Anchor)
- * @throws {IoWalletError} When an element of the chain fails to parse
- * The result of this function can be used to validate the trust chain with {@link verifyTrustChain}
+ * @throws {FederationError} When an element of the chain fails to parse or other build steps fail.
  */
 export async function buildTrustChain(
   relyingPartyEntityBaseUrl: string,
@@ -320,13 +326,14 @@ export async function buildTrustChain(
   // 2: Trust Anchor signature verification
   const trustAnchorJwt = trustChain[trustChain.length - 1];
   if (!trustAnchorJwt) {
-    throw new IoWalletError(
-      "Cannot verify trust anchor: missing entity configuration."
+    throw new BuildTrustChainError(
+      "Cannot verify trust anchor: missing entity configuration in gathered chain.",
+      { relyingPartyUrl: relyingPartyEntityBaseUrl }
     );
   }
 
   if (!trustAnchorKey.kid) {
-    throw new IoWalletError("Missing 'kid' in provided Trust Anchor key.");
+    throw new TrustAnchorKidMissingError();
   }
 
   await verify(trustAnchorJwt, trustAnchorKey.kid, [trustAnchorKey]);
@@ -343,8 +350,9 @@ export async function buildTrustChain(
     });
 
     if (!federationList.includes(relyingPartyEntityBaseUrl)) {
-      throw new IoWalletError(
-        "Relying Party entity base URL is not authorized by the Trust Anchor's federation list."
+      throw new RelyingPartyNotAuthorizedError(
+        "Relying Party entity base URL is not authorized by the Trust Anchor's federation list.",
+        { relyingPartyUrl: relyingPartyEntityBaseUrl, federationListEndpoint }
       );
     }
   }
@@ -358,6 +366,7 @@ export async function buildTrustChain(
  * @param appFetch An optional instance of the http client to be used.
  * @param isLeaf Whether the current entity is the leaf of the chain.
  * @returns A full ordered list of JWTs (ECs and ESs) forming the trust chain.
+ * @throws {FederationError} If any of the fetched documents fail to parse or other errors occur during the gathering process.
  */
 async function gatherTrustChain(
   entityBaseUrl: string,
@@ -399,8 +408,9 @@ async function gatherTrustChain(
   const federationFetchEndpoint =
     parentEC.payload.metadata.federation_entity.federation_fetch_endpoint;
   if (!federationFetchEndpoint) {
-    throw new IoWalletError(
-      "Missing federation_fetch_endpoint in parent's configuration."
+    throw new MissingFederationFetchEndpointError(
+      `Missing federation_fetch_endpoint in parent's (${parentEntityBaseUrl}) configuration when gathering chain for ${entityBaseUrl}.`,
+      { entityBaseUrl, missingInEntityUrl: parentEntityBaseUrl }
     );
   }
 
