@@ -15,7 +15,7 @@ import {
   selectInstanceRevocationAsyncStatus,
 } from "../store/reducers/instance";
 import {
-  selectAttestation,
+  selectAttestationAsJwt,
   selectAttestationAsyncStatus,
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "../thunks/attestation";
@@ -37,7 +37,7 @@ export const WalletInstanceScreen = () => {
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
   const instanceKeyTag = useAppSelector(selectInstanceKeyTag);
-  const attestation = useAppSelector(selectAttestation);
+  const attestation = useAppSelector(selectAttestationAsJwt);
 
   useDebugInfo({
     instanceState,
@@ -83,7 +83,17 @@ export const WalletInstanceScreen = () => {
       },
       {
         title: "Get Attestation",
-        onPress: () => dispatch(getAttestationThunk()),
+        onPress: () => dispatch(getAttestationThunk({ apiVersion: "1.0" })),
+        isLoading: attestationState.isLoading,
+        hasError: attestationState.hasError,
+        isDone: attestationState.isDone,
+        icon: "bonus",
+        isPresent: !!attestation,
+      },
+      // TODO: [SIW-2111] Remove after transition to v1.0
+      {
+        title: "Get Legacy Attestation (v0.7.1)",
+        onPress: () => dispatch(getAttestationThunk({ apiVersion: "0.7.1" })),
         isLoading: attestationState.isLoading,
         hasError: attestationState.hasError,
         isDone: attestationState.isDone,

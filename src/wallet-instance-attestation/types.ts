@@ -33,15 +33,17 @@ export const WalletInstanceAttestationRequestJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("war+jwt"),
+      typ: z.literal("wp-war+jwt"),
     })
   ),
   payload: z.intersection(
     Jwt.shape.payload,
     z.object({
       aud: z.string(),
-      jti: z.string(),
       nonce: z.string(),
+      hardware_signature: z.string(),
+      integrity_assertion: z.string(),
+      hardware_key_tag: z.string(),
     })
   ),
 });
@@ -55,7 +57,8 @@ export const WalletInstanceAttestationJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
-      typ: z.literal("jwt"),
+      typ: z.literal("oauth-client-attestation+jwt"),
+      trust_chain: z.array(z.string()),
     })
   ),
   payload: z.intersection(
@@ -63,19 +66,20 @@ export const WalletInstanceAttestationJwt = z.object({
     z.object({
       sub: z.string(),
       aal: z.string(),
-      vct: z.string(),
-      wallet_name: z.string(),
-      wallet_link: z.string(),
+      wallet_link: z.string().optional(),
+      wallet_name: z.string().optional(),
     })
   ),
 });
 
-export type TokenResponse = z.infer<typeof TokenResponse>;
-export const TokenResponse = z.object({
+export type WalletAttestationResponse = z.infer<
+  typeof WalletAttestationResponse
+>;
+export const WalletAttestationResponse = z.object({
   wallet_attestations: z.array(
     z.object({
-      format: z.enum(["jwt", "dc+sd-jwt", "mso_mdoc"]),
       wallet_attestation: z.string(),
+      format: z.enum(["jwt", "dc+sd-jwt", "mso_mdoc"]),
     })
   ),
 });

@@ -1,4 +1,4 @@
-import type { DcqlQuery } from "dcql";
+import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
 
@@ -27,7 +27,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError();
+    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
   });
 
   it("should throw error when the DCQL is invalid", () => {
@@ -42,7 +42,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError();
+    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
   });
 
   test.each([
