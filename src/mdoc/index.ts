@@ -20,7 +20,7 @@ export const verify = async (
     throw new Error("Invalid mDoc");
   }
 
-  const cert = issuerSigned.issuerAuth.unprotectedHeader[0]?.keyId;
+  const cert = issuerSigned.issuerAuth.unprotectedHeader[0]?.x5chain?.[0];
   if (!cert) throw new Error("Certificate not present in credential");
 
   const pemcert = convertCertToPem(b64utob64(cert));
