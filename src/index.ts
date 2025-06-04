@@ -26,7 +26,7 @@ export {
   AuthorizationDetail,
   AuthorizationDetails,
   fixBase64EncodingOnKey,
-  getCredentialIssuerEntityConfiguration
+  getCredentialIssuerEntityConfiguration,
 };
 
 export type { IntegrityContext, AuthorizationContext };

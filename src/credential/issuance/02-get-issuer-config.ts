@@ -96,30 +96,42 @@ const credentialIssuerRationalization = (
  * @returns the isssuer configuration to be used later in our flows
  */
 const credentialIssuerRationalizationOIDFED = (
-  issuerMetadata: Awaited<ReturnType<typeof getCredentialIssuerEntityConfiguration>>
+  issuerMetadata: Awaited<
+    ReturnType<typeof getCredentialIssuerEntityConfiguration>
+  >
 ): Awaited<ReturnType<GetIssuerConfig>> => {
-
-  const adapted_credential_configurations_supported : CredentialConfigurationSupported = 
+  const adapted_credential_configurations_supported: CredentialConfigurationSupported =
     Object.fromEntries(
-      Object.entries(issuerMetadata.payload.metadata.openid_credential_issuer.credential_configurations_supported).map(([key, config]) => {
-
-        const newConfig : CredentialConfigurationSupported[string] = {
+      Object.entries(
+        issuerMetadata.payload.metadata.openid_credential_issuer
+          .credential_configurations_supported
+      ).map(([key, config]) => {
+        const newConfig: CredentialConfigurationSupported[string] = {
           ...config,
-          cryptographic_suites_supported : config.credential_signing_alg_values_supported,
-        }
+          cryptographic_suites_supported:
+            config.credential_signing_alg_values_supported,
+        };
 
-        return [key, newConfig]
+        return [key, newConfig];
       })
-    )
+    );
 
   return {
     issuerConf: {
-      credential_configurations_supported: adapted_credential_configurations_supported,
+      credential_configurations_supported:
+        adapted_credential_configurations_supported,
       pushed_authorization_request_endpoint:
-        issuerMetadata.payload.metadata.oauth_authorization_server.pushed_authorization_request_endpoint,
-      authorization_endpoint: issuerMetadata.payload.metadata.oauth_authorization_server.authorization_endpoint,
-      token_endpoint: issuerMetadata.payload.metadata.oauth_authorization_server.token_endpoint,
-      credential_endpoint: issuerMetadata.payload.metadata.openid_credential_issuer.credential_endpoint,
+        issuerMetadata.payload.metadata.oauth_authorization_server
+          .pushed_authorization_request_endpoint,
+      authorization_endpoint:
+        issuerMetadata.payload.metadata.oauth_authorization_server
+          .authorization_endpoint,
+      token_endpoint:
+        issuerMetadata.payload.metadata.oauth_authorization_server
+          .token_endpoint,
+      credential_endpoint:
+        issuerMetadata.payload.metadata.openid_credential_issuer
+          .credential_endpoint,
       keys: issuerMetadata.payload.metadata.openid_credential_issuer.jwks.keys,
     },
   };
