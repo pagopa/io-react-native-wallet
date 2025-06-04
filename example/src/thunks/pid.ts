@@ -65,7 +65,7 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
     const { issuerUrl, credentialType } = startFlow();
 
     // Evaluate issuer trust
-    const { issuerConf } = await Credential.Issuance.getIssuerConfig(
+    const { issuerConf } = await Credential.Issuance.getIssuerConfigOIDFED(
       issuerUrl,
       {
         appFetch,
