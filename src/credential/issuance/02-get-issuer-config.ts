@@ -3,6 +3,7 @@ import type { Out } from "../../utils/misc";
 import type { JWK } from "src/utils/jwk";
 import { getCredentialIssuerMetadata } from "../../entity/openid-connect/issuer";
 import type { CredentialConfigurationSupported } from "../../entity/openid-connect/issuer/types";
+import { getCredentialIssuerEntityConfiguration } from "@pagopa/io-react-native-wallet";
 
 export type GetIssuerConfig = (
   issuerUrl: Out<StartFlow>["issuerUrl"],
@@ -27,6 +28,8 @@ export type IssuerConfig = {
 
 /**
  * WARNING: This function must be called after {@link startFlow}. The next function to be called is {@link startUserAuthorization}.
+ * WARNING: This function extracts the {@link IssuerConfig} from the OpenID Connect endpoint. For the OpenID Federation variant, use {@link getIssuerConfigOIDFED}.
+ * WARNING: The variants should not be used in conjunction.
  * Get the Issuer's configuration from the Issuer's metadata.
  * Currently it only supports a mixed configuration based on OpenID Connect partial implementation.
  * @param issuerUrl The base url of the Issuer returned by {@link startFlow}
@@ -42,6 +45,27 @@ export const getIssuerConfig: GetIssuerConfig = async (
   });
 
   return credentialIssuerRationalization(res);
+};
+
+/**
+ * WARNING: This function must be called after {@link startFlow}. The next function to be called is {@link startUserAuthorization}.
+ * WARNING: This function extracts the {@link IssuerConfig} from the OpenID Federation EC. For the OpenID Connect variant, use {@link getIssuerConfig}.
+ * WARNING: The variants should not be used in conjunction.
+ * Get the Issuer's configuration from the Issuer's metadata fetched from the OpenID Federation system.
+ * Currently it only supports a mixed configuration based on OpenID Federation partial implementation.
+ * @param issuerUrl The base url of the Issuer returned by {@link startFlow}
+ * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @returns The Issuer's configuration
+ */
+export const getIssuerConfigOIDFED: GetIssuerConfig = async (
+  issuerUrl,
+  context = {}
+): ReturnType<GetIssuerConfig> => {
+  const res = await getCredentialIssuerEntityConfiguration(issuerUrl, {
+    appFetch: context.appFetch,
+  });
+
+  return credentialIssuerRationalizationOIDFED(res);
 };
 
 /**
@@ -62,6 +86,41 @@ const credentialIssuerRationalization = (
       token_endpoint: issuerMetadata.token_endpoint,
       credential_endpoint: issuerMetadata.credential_endpoint,
       keys: issuerMetadata.jwks.keys,
+    },
+  };
+};
+
+/**
+ * Rationalize the issuer's metadata taken from OpenID Federation to the issuer's configuration which is then used in our flows to interact with the issuer.
+ * @param issuerMetadata - The issuer's metadata
+ * @returns the isssuer configuration to be used later in our flows
+ */
+const credentialIssuerRationalizationOIDFED = (
+  issuerMetadata: Awaited<ReturnType<typeof getCredentialIssuerEntityConfiguration>>
+): Awaited<ReturnType<GetIssuerConfig>> => {
+
+  const adapted_credential_configurations_supported : CredentialConfigurationSupported = 
+    Object.fromEntries(
+      Object.entries(issuerMetadata.payload.metadata.openid_credential_issuer.credential_configurations_supported).map(([key, config]) => {
+
+        const newConfig : CredentialConfigurationSupported[string] = {
+          ...config,
+          cryptographic_suites_supported : config.credential_signing_alg_values_supported,
+        }
+
+        return [key, newConfig]
+      })
+    )
+
+  return {
+    issuerConf: {
+      credential_configurations_supported: adapted_credential_configurations_supported,
+      pushed_authorization_request_endpoint:
+        issuerMetadata.payload.metadata.oauth_authorization_server.pushed_authorization_request_endpoint,
+      authorization_endpoint: issuerMetadata.payload.metadata.oauth_authorization_server.authorization_endpoint,
+      token_endpoint: issuerMetadata.payload.metadata.oauth_authorization_server.token_endpoint,
+      credential_endpoint: issuerMetadata.payload.metadata.openid_credential_issuer.credential_endpoint,
+      keys: issuerMetadata.payload.metadata.openid_credential_issuer.jwks.keys,
     },
   };
 };
