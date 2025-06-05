@@ -253,6 +253,12 @@ export const evaluateInputDescriptorForMdoc: EvaluateInputDescriptorMdoc = (
     );
   }
 
+  if (requiredDisclosures.length === 0 && optionalDisclosures.length === 0) {
+    throw new MissingDataError(
+      "Credential validation failed: No required fields were requested and no optional field has been requested or found."
+    );
+  }
+
   return {
     requiredDisclosures,
     optionalDisclosures,
@@ -345,6 +351,12 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
     if (!allFieldsValid) {
       throw new MissingDataError(
         "Credential validation failed: Required fields are missing or do not match the input descriptor."
+      );
+    }
+
+    if (requiredDisclosures.length === 0 && optionalDisclosures.length === 0) {
+      throw new MissingDataError(
+        "Credential validation failed: No required fields were requested and no optional field has been requested or found."
       );
     }
 

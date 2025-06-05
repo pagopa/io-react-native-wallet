@@ -84,7 +84,7 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
     ).toThrow(); // Required field not satisfied
   });
 
-  it("should pass if a field path does not exist but is optional", () => {
+  it("should throw if a field path does not exist but is optional", () => {
     const inputDescriptor: InputDescriptor = {
       id: "testDescriptor",
       name: "test",
@@ -111,13 +111,13 @@ describe("evaluateInputDescriptorForSdJwt4VC", () => {
       },
     ];
 
-    const { requiredDisclosures } = evaluateInputDescriptorForSdJwt4VC(
-      inputDescriptor,
-      payloadCredential,
-      disclosures
-    );
-    // Because the field is optional, we keep the original disclosures
-    expect(requiredDisclosures).toEqual([]);
+    expect(() => {
+      evaluateInputDescriptorForSdJwt4VC(
+        inputDescriptor,
+        payloadCredential,
+        disclosures
+      );
+    }).toThrow();
   });
 
   it("should pass if a field path required and another is optional", () => {
@@ -340,7 +340,7 @@ describe("evaluateInputDescriptorForMdoc", () => {
     ).toThrow(); // Required field not satisfied
   });
 
-  it("should pass if a field path does not exist but is optional", () => {
+  it("should throw if a field path does not exist but is optional", () => {
     const inputDescriptor: InputDescriptor = {
       id: "testDescriptor",
       name: "test",
@@ -354,11 +354,9 @@ describe("evaluateInputDescriptorForMdoc", () => {
       },
     };
 
-    const { requiredDisclosures, optionalDisclosures } =
-      evaluateInputDescriptorForMdoc(inputDescriptor, minimalPayloadCredential);
-    // Because the field is optional, we keep the original disclosures
-    expect(requiredDisclosures).toEqual([]);
-    expect(optionalDisclosures).toEqual([]);
+    expect(() =>
+      evaluateInputDescriptorForMdoc(inputDescriptor, minimalPayloadCredential)
+    ).toThrow();
   });
 
   it("should pass if a field path required and another is optional", () => {
