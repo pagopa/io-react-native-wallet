@@ -4,10 +4,15 @@ import {
   TrustAnchorEntityConfiguration,
 } from "./types";
 import { JWK } from "../utils/jwk";
-import { IoWalletError } from "../utils/errors";
 import * as z from "zod";
 import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
 import { decode, type ParsedToken, verify } from "./utils";
+import {
+  MissingFederationFetchEndpointError,
+  TrustChainEmptyError,
+  TrustChainRenewalError,
+  TrustChainTokenMissingError,
+} from "./errors";
 
 // The first element of the chain is supposed to be the Entity Configuration for the document issuer
 const FirstElementShape = EntityConfiguration;
@@ -26,7 +31,7 @@ const LastElementShape = z.union([
  * @param trustAnchorEntity The entity configuration of the known trust anchor
  * @param chain The chain of statements to be validated
  * @returns The list of parsed token representing the chain
- * @throws {IoWalletError} If the chain is not valid
+ * @throws {FederationError} If the chain is not valid
  */
 export async function validateTrustChain(
   trustAnchorEntity: TrustAnchorEntityConfiguration,
@@ -34,7 +39,7 @@ export async function validateTrustChain(
 ): Promise<ParsedToken[]> {
   // If the chain is empty, fail
   if (chain.length === 0) {
-    throw new IoWalletError("Cannot verify empty trust chain");
+    throw new TrustChainEmptyError("Cannot verify empty trust chain.");
   }
 
   // Select the expected token shape
@@ -49,7 +54,10 @@ export async function validateTrustChain(
   const selectKid = (currentIndex: number): string => {
     const token = chain[currentIndex];
     if (!token) {
-      throw new IoWalletError(`Cannot select kid: empty token`);
+      throw new TrustChainTokenMissingError(
+        `Token missing at index ${currentIndex} in trust chain.`,
+        { index: currentIndex }
+      );
     }
     const shape = selectTokenShape(currentIndex);
     return shape.parse(decode(token)).header.kid;
@@ -65,7 +73,10 @@ export async function validateTrustChain(
     const nextIndex = currentIndex + 1;
     const nextToken = chain[nextIndex];
     if (!nextToken) {
-      throw new IoWalletError(`Cannot select keys: empty nextToken`);
+      throw new TrustChainTokenMissingError(
+        `Next token missing at index ${nextIndex} (needed for keys for token at ${currentIndex}).`,
+        { index: nextIndex }
+      );
     }
     const shape = selectTokenShape(nextIndex);
     return shape.parse(decode(nextToken)).payload.jwks.keys;
@@ -86,7 +97,7 @@ export async function validateTrustChain(
  * @param chain The original chain
  * @param appFetch (optional) fetch api implementation
  * @returns A list of signed token that represent the trust chain, in the same order of the provided chain
- * @throws IoWalletError When an element of the chain fails to parse
+ * @throws {FederationError} If the chain is not valid
  */
 export async function renewTrustChain(
   chain: string[],
@@ -117,8 +128,12 @@ export async function renewTrustChain(
         const federationFetchEndpoint =
           parentEC.payload.metadata.federation_entity.federation_fetch_endpoint;
         if (!federationFetchEndpoint) {
-          throw new IoWalletError(
-            `Parent EC at ${parentBaseUrl} is missing federation_fetch_endpoint`
+          throw new MissingFederationFetchEndpointError(
+            `Parent EC at ${parentBaseUrl} is missing federation_fetch_endpoint, cannot renew ES for ${entityStatement.payload.sub}.`,
+            {
+              entityBaseUrl: entityStatement.payload.sub,
+              missingInEntityUrl: parentBaseUrl,
+            }
           );
         }
         return getSignedEntityStatement(
@@ -127,8 +142,9 @@ export async function renewTrustChain(
           { appFetch }
         );
       }
-      throw new IoWalletError(
-        `Cannot renew trust chain because element #${index} failed to parse.`
+      throw new TrustChainRenewalError(
+        `Failed to renew trust chain. Reason: element #${index} failed to parse.`,
+        { originalChain: chain }
       );
     })
   );
