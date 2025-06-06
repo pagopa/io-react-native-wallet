@@ -257,7 +257,8 @@ export const fetchTypeMetadata = async (
     },
   })
     .then(hasStatusOrThrow(200, IssuerResponseError))
-    .then((res) => TypeMetadata.parse(res.json()));
+    .then((res) => res.json())
+    .then(TypeMetadata.parse);
 
   const [alg, hash] = vctIntegrity.split(/-(.*)/s);
 

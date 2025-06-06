@@ -120,6 +120,7 @@ export const makeParRequest =
       body: formBody.toString(),
     })
       .then(hasStatusOrThrow(201, IssuerResponseError))
-      .then((res) => ParResponse.parse(res.json()))
+      .then((res) => res.json())
+      .then(ParResponse.parse)
       .then((result) => result.request_uri);
   };
