@@ -10,7 +10,6 @@ import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 
-type GetAttestationThunkInput = { apiVersion: "0.7.1" | "1.0" }; // TODO: [SIW-2111] Remove after transition to v1.0
 type GetAttestationThunkOutput = Awaited<
   ReturnType<typeof WalletInstanceAttestation.getAttestation>
 >;
@@ -20,8 +19,8 @@ type GetAttestationThunkOutput = Awaited<
  */
 export const getAttestationThunk = createAppAsyncThunk<
   GetAttestationThunkOutput,
-  GetAttestationThunkInput
->("walletinstance/attestation", async (args, { getState }) => {
+  void
+>("walletinstance/attestation", async (_, { getState }) => {
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
   if (!integrityKeyTag) {
@@ -37,18 +36,6 @@ export const getAttestationThunk = createAppAsyncThunk<
   // Get env URLs
   const env = selectEnv(getState());
   const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
-
-  // TODO: [SIW-2111] Remove after transition to v1.0
-  if (args.apiVersion === "0.7.1") {
-    const issuingAttestation =
-      await WalletInstanceAttestation.deprecatedGetAttestation({
-        wiaCryptoContext,
-        integrityContext,
-        walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-        appFetch,
-      });
-    return [{ format: "jwt", wallet_attestation: issuingAttestation }];
-  }
 
   /**
    * Obtains a new Wallet Instance Attestation.
