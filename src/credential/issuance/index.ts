@@ -21,6 +21,7 @@ import {
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
 import {
   obtainCredential,
+  fetchTypeMetadata,
   type ObtainCredential,
 } from "./06-obtain-credential";
 import {
@@ -38,6 +39,7 @@ export {
   completeUserAuthorizationWithFormPostJwtMode,
   authorizeAccess,
   obtainCredential,
+  fetchTypeMetadata,
   verifyAndParseCredential,
   parseAuthorizationResponse,
   Errors,

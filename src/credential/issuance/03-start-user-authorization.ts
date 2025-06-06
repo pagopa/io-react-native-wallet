@@ -4,7 +4,6 @@ import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
-import { ASSERTION_TYPE } from "./const";
 import { LogLevel, Logger } from "../../utils/logging";
 
 export type StartUserAuthorization = (
@@ -146,8 +145,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
     responseMode,
     parEndpoint,
     walletInstanceAttestation,
-    [credentialDefinition],
-    ASSERTION_TYPE
+    [credentialDefinition]
   );
 
   return { issuerRequestUri, clientId, codeVerifier, credentialDefinition };
