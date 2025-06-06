@@ -11,6 +11,7 @@ export type TokenResponse = z.infer<typeof TokenResponse>;
 
 export const TokenResponse = z.object({
   access_token: z.string(),
+  refresh_token: z.string().optional(),
   authorization_details: z.array(AuthorizationDetail),
   expires_in: z.number(),
   token_type: z.string(),
@@ -24,7 +25,7 @@ export const CredentialResponse = z.object({
       credential: z.string(),
     })
   ),
-  notification_id: z.string(),
+  notification_id: z.string().optional(),
 });
 
 /**
