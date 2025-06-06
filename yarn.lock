@@ -2380,10 +2380,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pagopa/io-react-native-crypto@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
-  integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
+"@pagopa/io-react-native-crypto@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.1.0.tgz#37fabd69cb71a811745975193e31adfb520fdb57"
+  integrity sha512-4RmBHwvq/JY5iTMxyFQIDn/21PUQ50C239lKyRW7xeNxC8Yf9MF/KReO9bzXQFlyqrRm3OV7OwZyIPdyZFAN5A==
 
 "@pagopa/io-react-native-jwt@^2.1.0":
   version "2.1.0"
