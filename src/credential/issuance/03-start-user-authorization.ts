@@ -143,7 +143,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   } = ctx;
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-  console.log
+
   if (!clientId) {
     Logger.log(
       LogLevel.ERROR,
