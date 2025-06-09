@@ -8,7 +8,7 @@ import { LogLevel, Logger } from "../../utils/logging";
 
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credentialType: Out<StartFlow>["credentialType"],
+  credentialType: string[],
   context: {
     wiaCryptoContext: CryptoContext;
     walletInstanceAttestation: string;
@@ -19,18 +19,14 @@ export type StartUserAuthorization = (
   issuerRequestUri: string;
   clientId: string;
   codeVerifier: string;
-  credentialDefinition: AuthorizationDetail;
+  credentialDefinition: AuthorizationDetail[];
 }>;
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
  * issuer configuration.
  * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param credentialType The type of the credential to be requested returned by {@link startFlow}
- * @param context.wiaCryptoContext The Wallet Instance's crypto context
- * @param context.walletInstanceAttestation The Wallet Instance's attestation
- * @param context.redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
- * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @param credentialType The type of the credential to be requested;
  * @returns The credential definition to be used in the request which includes the format and the type and its type
  */
 const selectCredentialDefinition = (
@@ -44,7 +40,7 @@ const selectCredentialDefinition = (
     .filter((e) => e.includes(credentialType))
     .map((e) => ({
       credential_configuration_id: credentialType,
-      format: credential_configurations_supported[e]!.format,
+      format: credential_configurations_supported[e]!.format, // TODO: is it mandatory?
       type: "openid_credential" as const,
     }));
 
@@ -61,40 +57,61 @@ const selectCredentialDefinition = (
 /**
  * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
  * @param issuerConf The issuer configuration
- * @param credentialType The type of the credential to be requested
+ * @param credentialType The type of the credential(s) to be requested
  * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
  */
 const selectResponseMode = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credentialType: Out<StartFlow>["credentialType"]
+  credentialTypes: string[]
 ): ResponseMode => {
   const responseModeSupported =
     issuerConf.oauth_authorization_server.response_modes_supported;
 
-  const responseMode =
-    credentialType === "PersonIdentificationData" ? "query" : "form_post.jwt";
+  const responseModeSet = new Set<ResponseMode>();
+
+  for (const credentialType of credentialTypes) {
+    responseModeSet.add(
+      credentialType.match(/PersonIdentificationData/i)
+        ? "query"
+        : "form_post.jwt"
+    );
+  }
+
+  if (responseModeSet.size !== 1) {
+    Logger.log(
+      LogLevel.ERROR,
+      `${credentialTypes} have incompatible response_mode: ${[...responseModeSet.values()]}`
+    );
+    throw new Error(
+      "Requested credentials have incompatible response_mode and cannot be requested with the same PAR request"
+    );
+  }
+
+  const [responseMode] = responseModeSet.values();
 
   Logger.log(
     LogLevel.DEBUG,
-    `Selected response mode ${responseMode} for credential type ${credentialType}`
+    `Selected response mode ${responseMode} for credential type ${credentialTypes}`
   );
 
-  if (!responseModeSupported.includes(responseMode)) {
+  if (!responseModeSupported.includes(responseMode!)) {
     Logger.log(
       LogLevel.ERROR,
       `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`
     );
-    throw new Error(`No response mode support the type '${credentialType}'`);
+    throw new Error(`No response mode support the type '${credentialTypes}'`);
   }
 
-  return responseMode;
+  return responseMode!;
 };
 
 /**
  * WARNING: This function must be called after {@link evaluateIssuerTrust} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
+ *
  * Creates and sends a PAR request to the /as/par endpoint of the authorization server.
  * This starts the authentication flow to obtain an access token.
- * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer.
+ * This token enables the Wallet Instance to request a digital credential from the Credential Endpoint of the Credential Issuer; when multiple credential types are passed,
+ * it is possible to use the same access token for the issuance of all requested credentials.
  * This is an HTTP POST request containing the Wallet Instance identifier (client id), the code challenge and challenge method as specified by PKCE according to RFC 9126
  * along with the WTE and its proof of possession (WTE-PoP).
  * Additionally, it includes a request object, which is a signed JWT encapsulating the type of digital credential requested (authorization_details),
@@ -104,15 +121,20 @@ const selectResponseMode = (
  * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirectUri of the Wallet Instance where the Authorization Response
  * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
  * @param issuerConf The issuer configuration
- * @param credentialType The type of the credential to be requested returned by {@link selectCredentialDefinition}
+ * @param credentialType The type of the credential(s) to be requested
  * @param ctx The context object containing the Wallet Instance's cryptographic context, the Wallet Instance's attestation, the redirect URI and the fetch implementation
  * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier and the credential definition
  */
+
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,
   credentialType,
   ctx
 ) => {
+  const _credentialType = Array.isArray(credentialType)
+    ? credentialType
+    : [credentialType];
+
   const {
     wiaCryptoContext,
     walletInstanceAttestation,
@@ -121,6 +143,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   } = ctx;
 
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
+  console.log
   if (!clientId) {
     Logger.log(
       LogLevel.ERROR,
@@ -131,21 +154,22 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
-  const credentialDefinition = selectCredentialDefinition(
-    issuerConf,
-    credentialType
+  const credentialDefinition = _credentialType.map((c) =>
+    selectCredentialDefinition(issuerConf, c)
   );
-  const responseMode = selectResponseMode(issuerConf, credentialType);
+  const responseMode = selectResponseMode(issuerConf, _credentialType);
 
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(
-    clientId,
-    codeVerifier,
-    redirectUri,
-    responseMode,
     parEndpoint,
     walletInstanceAttestation,
-    [credentialDefinition]
+    {
+      clientId,
+      codeVerifier,
+      redirectUri,
+      responseMode,
+      authorizationDetails: credentialDefinition,
+    }
   );
 
   return { issuerRequestUri, clientId, codeVerifier, credentialDefinition };
