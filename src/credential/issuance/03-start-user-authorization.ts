@@ -38,9 +38,8 @@ const selectCredentialDefinition = (
 
   const [result] = Object.keys(credential_configurations_supported)
     .filter((e) => e.includes(credentialType))
-    .map((e) => ({
+    .map(() => ({
       credential_configuration_id: credentialType,
-      format: credential_configurations_supported[e]!.format, // TODO: is it mandatory?
       type: "openid_credential" as const,
     }));
 
