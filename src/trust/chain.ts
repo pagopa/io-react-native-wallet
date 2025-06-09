@@ -64,7 +64,7 @@ export async function validateTrustChain(
         ? LastElementShape
         : MiddleElementShape;
 
-  // select the kid from the current index
+  // Select the kid from the current index
   const selectKid = (currentIndex: number): string => {
     const token = chain[currentIndex];
     if (!token) {
@@ -77,8 +77,8 @@ export async function validateTrustChain(
     return shape.parse(decode(token)).header.kid;
   };
 
-  // select keys from the next token
-  // if the current token is the last, keys from trust anchor will be used
+  // Select keys from the next token
+  // If the current token is the last, keys from trust anchor will be used
   const selectKeys = (currentIndex: number): JWK[] => {
     if (currentIndex === chain.length - 1) {
       return trustAnchorEntity.payload.jwks.keys;
@@ -105,7 +105,7 @@ export async function validateTrustChain(
     const kidFromTokenHeader = selectKid(i);
     const signerJwks = selectKeys(i);
 
-    // Step 1: Verify JWT signature using the utility from ./utils
+    // Step 1: Verify JWT signature
     const parsedToken = await verify(
       tokenString,
       kidFromTokenHeader,
@@ -126,17 +126,28 @@ export async function validateTrustChain(
 
     // Check if the JWK contains an X.509 certificate chain ('x5c' parameter)
     if (jwkUsedForVerification.x5c && jwkUsedForVerification.x5c.length > 0) {
-      const certChainBase64 = jwkUsedForVerification.x5c;
+      const originalX5cChain: string[] = jwkUsedForVerification.x5c;
+      let certChainToPassToNative = [...originalX5cChain];
+
+      // If the chain has more than one certificate AND
+      // the last certificate in the x5c chain is the same as the trust anchor,
+      // remove the anchor from the chain being passed, as it's supplied separately.
+      if (
+        certChainToPassToNative.length > 1 &&
+        certChainToPassToNative[certChainToPassToNative.length - 1] ===
+          x509TrustAnchorCertBase64
+      ) {
+        certChainToPassToNative.pop(); // Remove the last element
+      }
 
       const x509ValidationResult: CertificateValidationResult =
         await verifyCertificateChain(
-          certChainBase64,
+          certChainToPassToNative,
           x509TrustAnchorCertBase64,
           x509Options
         );
 
       if (!x509ValidationResult.isValid) {
-        // If the certificate chain is not valid, throw the specific X509ValidationError.
         throw new X509ValidationError(
           `X.509 certificate chain validation failed for token at index ${i} (kid: ${kidFromTokenHeader}). Status: ${x509ValidationResult.validationStatus}. Error: ${x509ValidationResult.errorMessage}`,
           {

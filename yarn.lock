@@ -2380,10 +2380,9 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pagopa/io-react-native-crypto@^1.1.0":
+"@pagopa/io-react-native-crypto@https://github.com/pagopa/io-react-native-crypto.git#fix-crl-ios":
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.1.0.tgz#37fabd69cb71a811745975193e31adfb520fdb57"
-  integrity sha512-4RmBHwvq/JY5iTMxyFQIDn/21PUQ50C239lKyRW7xeNxC8Yf9MF/KReO9bzXQFlyqrRm3OV7OwZyIPdyZFAN5A==
+  resolved "https://github.com/pagopa/io-react-native-crypto.git#74df8f4a8f21e2f99c0c737f4e2a955991ce1803"
 
 "@pagopa/io-react-native-jwt@^2.1.0":
   version "2.1.0"

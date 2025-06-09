@@ -2141,10 +2141,9 @@
     react-native-svg "^15.1.0"
     rn-placeholder "1.3.3"
 
-"@pagopa/io-react-native-crypto@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.npmjs.org/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz"
-  integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
+"@pagopa/io-react-native-crypto@https://github.com/pagopa/io-react-native-crypto.git#fix-crl-ios":
+  version "1.1.0"
+  resolved "https://github.com/pagopa/io-react-native-crypto.git#74df8f4a8f21e2f99c0c737f4e2a955991ce1803"
 
 "@pagopa/io-react-native-integrity@^0.3.1":
   version "0.3.1"
