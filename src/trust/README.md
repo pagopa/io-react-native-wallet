@@ -43,9 +43,9 @@ import { trustAnchorEntityConfiguration } from "./your-data";
 import { chain } from "./your-data"; // array of JWTs, starting from leaf
 
 const result = await validateTrustChain(trustAnchorEntityConfiguration, chain, {
-  connectTimeout: 3000,
-  readTimeout: 3000,
-  requireCrl: false,
+    connectTimeout: 3000,
+    readTimeout: 3000,
+    requireCrl: false,
 });
 ```
 
@@ -63,30 +63,69 @@ const newChain = await renewTrustChain(chain);
 
 This will fetch updated JWTs from each authority in the chain.
 
+### Build a trust chain
+
+```ts
+import { buildTrustChain } from "./trust";
+
+const chain = await buildTrustChain({
+  leaf: "https://example-leaf",
+  trustAnchor: trustAnchorEntityConfiguration,
+});
+```
+
+* **leaf**: the entity URL of the subject to be trusted.
+* **trustAnchor**: the known trust anchor configuration.
+* Returns a list of JWT strings ordered from leaf to trust anchor.
+
+
 ## Trust Chain Structure
 
-| Position | JWT Type                            | Requirements                     |
-| -------- | ----------------------------------- | -------------------------------- |
-| First    | Entity Configuration                | `iss === sub` (self-issued)      |
-| Middle   | Entity Statement                    | `iss ≠ sub`, signed by parent    |
-| Last     | Entity Statement or Trust Anchor EC | Trust Anchor must be known |
+| Position | JWT Type                            | Requirements                  |
+| -------- | ----------------------------------- |-------------------------------|
+| First    | Entity Configuration                | `iss === sub` (self-issued)   |
+| Middle   | Entity Statement                    | `iss ≠ sub`, signed by parent |
+| Last     | Entity Statement or Trust Anchor EC | Trust Anchor must be known    |
+
+### Build and Validate Example
+
+```ts
+import {
+  buildTrustChain,
+  validateTrustChain,
+} from "./trust";
+import { trustAnchorEntityConfiguration } from "./your-data";
+
+const chain = await buildTrustChain({
+  leaf: "https://example-leaf",
+  trustAnchor: trustAnchorEntityConfiguration,
+});
+
+const result = await validateTrustChain(trustAnchorEntityConfiguration, chain, {
+  connectTimeout: 3000,
+  readTimeout: 3000,
+  requireCrl: true,
+});
+```
+
+* This example fetches and builds the full trust chain dynamically, then validates it end-to-end.
 
 ## Example Trust Chain
 
 ```ts
 [
-  {
-    header: { alg: "ES256", kid: "leaf-kid" },
-    payload: { iss: "https://leaf", sub: "https://leaf", jwks: { keys: [...] } }
-  },
-  {
-    header: { alg: "ES256", kid: "intermediate-kid" },
-    payload: { iss: "https://intermediate", sub: "https://leaf", jwks: { keys: [...] } }
-  },
-  {
-    header: { alg: "ES256", kid: "ta-kid" },
-    payload: { iss: "https://ta", sub: "https://ta", jwks: { keys: [...] } }
-  }
+    {
+        header: { alg: "ES256", kid: "leaf-kid" },
+        payload: { iss: "https://leaf", sub: "https://leaf", jwks: { keys: [...] } }
+    },
+    {
+        header: { alg: "ES256", kid: "intermediate-kid" },
+        payload: { iss: "https://intermediate", sub: "https://leaf", jwks: { keys: [...] } }
+    },
+    {
+        header: { alg: "ES256", kid: "ta-kid" },
+        payload: { iss: "https://ta", sub: "https://ta", jwks: { keys: [...] } }
+    }
 ]
 ```
 
@@ -96,12 +135,12 @@ If you're testing in Node (not in React Native), you need to mock X.509 and cryp
 
 ```ts
 jest.mock("@pagopa/io-react-native-crypto", () => ({
-  verifyCertificateChain: jest.fn().mockResolvedValue({
-    isValid: true,
-    validationStatus: "VALID",
-    errorMessage: undefined,
-  }),
-  generate: jest.fn().mockResolvedValue({ ... }),
+    verifyCertificateChain: jest.fn().mockResolvedValue({
+        isValid: true,
+        validationStatus: "VALID",
+        errorMessage: undefined,
+    }),
+    generate: jest.fn().mockResolvedValue({ ... }),
 }));
 ```
 
