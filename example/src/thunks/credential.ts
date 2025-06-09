@@ -59,7 +59,7 @@ export const getCredentialThunk = createAppAsyncThunk<
 >("credential/credentialGet", async (args, { getState, dispatch }) => {
   // Checks if the wallet instance attestation needs to be reuqested
   if (shouldRequestAttestationSelector(getState())) {
-    await dispatch(getAttestationThunk({ apiVersion: "0.7.1" }));
+    await dispatch(getAttestationThunk());
   }
 
   // Gets the Wallet Instance Attestation from the persisted store

@@ -113,7 +113,7 @@ export const getAttestation = async ({
 
   // 3. Request WIA in multiple formats
   const response = await api
-    .post("/wallet-attestation", {
+    .post("/wallet-attestations", {
       body: {
         assertion: signedAttestationRequest,
       },
