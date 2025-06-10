@@ -1,4 +1,8 @@
 name: Release new example app
+permissions:
+  contents: write
+  packages: write
+  actions: read
 on:
   workflow_dispatch:
     inputs:
