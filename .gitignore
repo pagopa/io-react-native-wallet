@@ -61,9 +61,6 @@ buck-out/
 android/app/libs
 android/keystores/debug.keystore
 
-# Expo
-.expo/
-
 # Turborepo
 .turbo/
 
@@ -89,3 +86,6 @@ example/android/app/src/main/assets/index.android.bundle
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Fastlane 
+example/fastlane/report.xml
