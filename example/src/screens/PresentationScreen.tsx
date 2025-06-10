@@ -42,6 +42,17 @@ export const PresentationScreen = () => {
         isPresent: !!presentationDetails.redirectUri,
         successMessage: "OK",
       },
+      {
+        title: "PID Remote Cross-Device (Refuse)",
+        onPress: () =>
+          navigation.navigate("QrScanner", {
+            presentationBehavior: "refusalState",
+          }),
+        isLoading: refusalPresentationState.isLoading,
+        hasError: refusalPresentationState.hasError,
+        isDone: refusalPresentationState.isDone,
+        icon: "qrCode",
+      },
     ],
     [
       navigation,
@@ -49,6 +60,9 @@ export const PresentationScreen = () => {
       acceptancePresentationState.isDone,
       acceptancePresentationState.isLoading,
       presentationDetails.redirectUri,
+      refusalPresentationState.hasError,
+      refusalPresentationState.isDone,
+      refusalPresentationState.isLoading,
     ]
   );
 

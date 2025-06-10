@@ -2,11 +2,10 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import {
   createCryptoContextFor,
   Credential,
-  WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import {
-  selectAttestation,
+  selectAttestationAsJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
@@ -58,9 +57,7 @@ export type PreparePidFlowParamsThunkOutput = {
   codeVerifier: Awaited<
     ReturnType<typeof Credential.Issuance.startUserAuthorization>
   >["codeVerifier"];
-  walletInstanceAttestation: Awaited<
-    ReturnType<typeof WalletInstanceAttestation.getAttestation>
-  >;
+  walletInstanceAttestation: string;
   credentialDefinition: Awaited<
     ReturnType<typeof Credential.Issuance.startUserAuthorization>
   >["credentialDefinition"];
@@ -89,7 +86,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   }
 
   // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestation(getState());
+  const walletInstanceAttestation = selectAttestationAsJwt(getState());
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");
   }
