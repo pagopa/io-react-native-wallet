@@ -24,8 +24,8 @@ jobs:
       - name: Publish package on NPM 📦
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if [[ "$VERSION" == *"-next."* ]]; then
-            npm publish --access=public --tag=next
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-([a-zA-Z]+)\.[0-9]+$ ]]; then
+            npm publish --access=public --tag=${BASH_REMATCH[1]}
           else
             npm publish --access=public
           fi
