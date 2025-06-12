@@ -4,6 +4,8 @@ on:
     types: [created]
 jobs:
   check_release_title:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.check_title.outputs.should_skip }}
