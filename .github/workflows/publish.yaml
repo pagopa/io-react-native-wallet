@@ -14,10 +14,10 @@ jobs:
         id: check_title
         run: |
           if echo "${{ github.event.release.name }}" | grep -iq 'example'; then
-            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "should_skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "Release title is valid. Proceeding with the workflow."
-            echo "should_skip=false" >> $GITHUB_OUTPUT
+            echo "should_skip=false" >> "$GITHUB_OUTPUT"
           fi
 
   build:
