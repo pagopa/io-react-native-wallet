@@ -13,6 +13,7 @@ import * as WalletInstance from "./wallet-instance";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
+import { getCredentialIssuerEntityConfiguration } from "./entity/trust";
 
 export {
   SdJwt,
@@ -25,6 +26,7 @@ export {
   AuthorizationDetail,
   AuthorizationDetails,
   fixBase64EncodingOnKey,
+  getCredentialIssuerEntityConfiguration,
 };
 
 export type { IntegrityContext, AuthorizationContext };
