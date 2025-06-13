@@ -245,12 +245,10 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     }
   );
 
-  console.log(credential);
-
   const parsedCredential = await Credential.Issuance.verifyAndParseCredential(
     issuerConf,
     credential,
-    format,
+    credential_configuration_id,
     { credentialCryptoContext }
   );
 

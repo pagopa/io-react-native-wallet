@@ -35,7 +35,7 @@ export type ObtainCredential = (
     appFetch?: GlobalFetch["fetch"];
   },
   operationType?: "reissuing"
-) => Promise<CredentialResponse["credentials"][number]>;
+) => Promise<{ credential: string; format: string }>;
 
 export const createNonceProof = async (
   nonce: string,
@@ -88,6 +88,8 @@ export const obtainCredential: ObtainCredential = async (
     appFetch = fetch,
     dPopCryptoContext,
   } = context;
+  const { credential_configuration_id, credential_identifier } =
+    credentialDefinition;
 
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
   const issuerUrl = issuerConf.oauth_authorization_server.issuer;
@@ -119,12 +121,9 @@ export const obtainCredential: ObtainCredential = async (
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
   const containsCredentialDefinition = accessToken.authorization_details.some(
     (c) =>
-      c.credential_configuration_id ===
-        credentialDefinition.credential_configuration_id &&
-      (credentialDefinition.credential_identifier
-        ? c.credential_identifiers.includes(
-            credentialDefinition.credential_identifier
-          )
+      c.credential_configuration_id === credential_configuration_id &&
+      (credential_identifier
+        ? c.credential_identifiers.includes(credential_identifier)
         : true)
   );
 
@@ -145,14 +144,13 @@ export const obtainCredential: ObtainCredential = async (
    * when the Authorization Server does not support `credential_identifier`.
    * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-15.html#section-3.3.4
    */
-  const credentialRequestFormBody = credentialDefinition.credential_identifier
+  const credentialRequestFormBody = credential_identifier
     ? {
-        credential_identifier: credentialDefinition.credential_identifier,
+        credential_identifier: credential_identifier,
         proof: { jwt: signedNonceProof, proof_type: "jwt" },
       }
     : {
-        credential_configuration_id:
-          credentialDefinition.credential_configuration_id,
+        credential_configuration_id: credential_configuration_id,
         proof: { jwt: signedNonceProof, proof_type: "jwt" },
       };
 
@@ -204,8 +202,17 @@ export const obtainCredential: ObtainCredential = async (
     `Credential Response: ${JSON.stringify(credentialRes.data)}`
   );
 
+  // Extract the format corresponding to the credential_configuration_id used
+  const issuerCredentialConfig =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credential_configuration_id
+    ];
+
   // TODO: [SIW-2264] Handle multiple credentials
-  return credentialRes.data.credentials.at(0)!;
+  return {
+    credential: credentialRes.data.credentials.at(0)!.credential,
+    format: issuerCredentialConfig!.format,
+  };
 };
 
 /**

@@ -12,7 +12,7 @@ import { LogLevel, Logger } from "../../utils/logging";
 export type VerifyAndParseCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"],
+  credentialConfigurationId: string,
   context: {
     credentialCryptoContext: CryptoContext;
     /**
@@ -55,37 +55,27 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 
 const parseCredentialSdJwt = (
   // the list of supported credentials, as defined in the issuer configuration
-  credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
+  credentialConfig: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"][string],
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentials_supported[sdJwt.payload.vct];
-
-  if (!credentialSubject) {
+  if (credentialConfig.format !== sdJwt.header.typ) {
     Logger.log(
       LogLevel.ERROR,
-      `Credential type not supported by the issuer: ${sdJwt.payload.vct}`
-    );
-    throw new IoWalletError("Credential type not supported by the issuer");
-  }
-
-  if (credentialSubject.format !== sdJwt.header.typ) {
-    Logger.log(
-      LogLevel.ERROR,
-      `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}'`
+      `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`
     );
     throw new IoWalletError(
-      `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}', `
+      `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}', `
     );
   }
 
   // transfrom a record { key: value } in an iterable of pairs [key, value]
-  if (!credentialSubject.claims) {
+  if (!credentialConfig.claims) {
     Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
-  const attrDefinitions = credentialSubject.claims;
+  const attrDefinitions = credentialConfig.claims;
 
   // the key of the attribute defintion must match the disclosure's name
   const attrsNotInDisclosures = attrDefinitions.filter(
@@ -198,18 +188,10 @@ async function verifyCredentialSdJwt(
   return decodedCredential;
 }
 
-// utility type that specialize VerifyAndParseCredential for given format
-type WithFormat<Format extends Parameters<VerifyAndParseCredential>[2]> = (
-  _0: Parameters<VerifyAndParseCredential>[0],
-  _1: Parameters<VerifyAndParseCredential>[1],
-  _2: Format,
-  _3: Parameters<VerifyAndParseCredential>[3]
-) => ReturnType<VerifyAndParseCredential>;
-
-const verifyAndParseCredentialSdJwt: WithFormat<"dc+sd-jwt"> = async (
+const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   issuerConf,
   credential,
-  _,
+  credentialConfigurationId,
   {
     credentialCryptoContext,
     ignoreMissingAttributes,
@@ -224,8 +206,21 @@ const verifyAndParseCredentialSdJwt: WithFormat<"dc+sd-jwt"> = async (
 
   Logger.log(LogLevel.DEBUG, `Decoded credential: ${JSON.stringify(decoded)}`);
 
+  const credentialConfig =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credentialConfigurationId
+    ];
+
+  if (!credentialConfig) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Credential type not supported by the issuer: ${credentialConfigurationId}`
+    );
+    throw new IoWalletError("Credential type not supported by the issuer");
+  }
+
   const parsedCredential = parseCredentialSdJwt(
-    issuerConf.openid_credential_issuer.credential_configurations_supported,
+    credentialConfig,
     decoded,
     ignoreMissingAttributes,
     includeUndefinedAttributes
@@ -263,15 +258,20 @@ const verifyAndParseCredentialSdJwt: WithFormat<"dc+sd-jwt"> = async (
 export const verifyAndParseCredential: VerifyAndParseCredential = async (
   issuerConf,
   credential,
-  format,
+  credentialConfigurationId,
   context
 ) => {
+  const format =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credentialConfigurationId
+    ]?.format;
+
   if (format === "dc+sd-jwt") {
     Logger.log(LogLevel.DEBUG, "Parsing credential in dc+sd-jwt format");
     return verifyAndParseCredentialSdJwt(
       issuerConf,
       credential,
-      format,
+      credentialConfigurationId,
       context
     );
   }
