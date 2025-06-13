@@ -8,14 +8,16 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import {
+  IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialResponse } from "./types";
+import { CredentialResponse, NonceResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
+import { TypeMetadata } from "../../sd-jwt/types";
 import { v4 as uuidv4 } from "uuid";
 import { LogLevel, Logger } from "../../utils/logging";
 
@@ -23,14 +25,17 @@ export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
-  credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
+  credentialDefinition: {
+    credential_configuration_id: string;
+    credential_identifier?: string;
+  },
   context: {
     dPopCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   },
   operationType?: "reissuing"
-) => Promise<CredentialResponse>;
+) => Promise<{ credential: string; format: string }>;
 
 export const createNonceProof = async (
   nonce: string,
@@ -83,8 +88,21 @@ export const obtainCredential: ObtainCredential = async (
     appFetch = fetch,
     dPopCryptoContext,
   } = context;
+  const { credential_configuration_id, credential_identifier } =
+    credentialDefinition;
 
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+  const issuerUrl = issuerConf.oauth_authorization_server.issuer;
+  const nonceUrl = issuerConf.openid_credential_issuer.nonce_endpoint;
+
+  // Fetch the nonce from the Credential Issuer
+  const { c_nonce } = await appFetch(nonceUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.json())
+    .then((body) => NonceResponse.parse(body));
 
   /**
    * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
@@ -92,9 +110,9 @@ export const obtainCredential: ObtainCredential = async (
    * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
    */
   const signedNonceProof = await createNonceProof(
-    accessToken.c_nonce,
+    c_nonce,
     clientId,
-    credentialUrl,
+    issuerUrl,
     credentialCryptoContext
   );
 
@@ -103,10 +121,10 @@ export const obtainCredential: ObtainCredential = async (
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
   const containsCredentialDefinition = accessToken.authorization_details.some(
     (c) =>
-      c.credential_configuration_id ===
-        credentialDefinition.credential_configuration_id &&
-      c.format === credentialDefinition.format &&
-      c.type === credentialDefinition.type
+      c.credential_configuration_id === credential_configuration_id &&
+      (credential_identifier
+        ? c.credential_identifiers.includes(credential_identifier)
+        : true)
   );
 
   if (!containsCredentialDefinition) {
@@ -120,17 +138,21 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  /** The credential request body */
-  const credentialRequestFormBody = {
-    credential_definition: {
-      type: [credentialDefinition.credential_configuration_id],
-    },
-    format: credentialDefinition.format,
-    proof: {
-      jwt: signedNonceProof,
-      proof_type: "jwt",
-    },
-  };
+  /**
+   * The credential request body.
+   * We accept both `credential_identifier` (recommended) and `credential_configuration_id`
+   * when the Authorization Server does not support `credential_identifier`.
+   * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-15.html#section-3.3.4
+   */
+  const credentialRequestFormBody = credential_identifier
+    ? {
+        credential_identifier: credential_identifier,
+        proof: { jwt: signedNonceProof, proof_type: "jwt" },
+      }
+    : {
+        credential_configuration_id: credential_configuration_id,
+        proof: { jwt: signedNonceProof, proof_type: "jwt" },
+      };
 
   Logger.log(
     LogLevel.DEBUG,
@@ -180,7 +202,17 @@ export const obtainCredential: ObtainCredential = async (
     `Credential Response: ${JSON.stringify(credentialRes.data)}`
   );
 
-  return credentialRes.data;
+  // Extract the format corresponding to the credential_configuration_id used
+  const issuerCredentialConfig =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credential_configuration_id
+    ];
+
+  // TODO: [SIW-2264] Handle multiple credentials
+  return {
+    credential: credentialRes.data.credentials.at(0)!.credential,
+    format: issuerCredentialConfig!.format,
+  };
 };
 
 /**
@@ -217,4 +249,49 @@ const handleObtainCredentialError = (e: unknown) => {
       message: "Unable to obtain the requested credential",
     })
     .buildFrom(e);
+};
+
+/**
+ * Retrieve the Type Metadata for a credential and verify its integrity.
+ * @param vct The VCT as a valid HTTPS url
+ * @param vctIntegrity The integrity hash
+ * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @returns The credential metadata {@link TypeMetadata}
+ */
+export const fetchTypeMetadata = async (
+  vct: string,
+  vctIntegrity: string,
+  context: {
+    appFetch?: GlobalFetch["fetch"];
+  } = {}
+): Promise<TypeMetadata> => {
+  const { appFetch = fetch } = context;
+  const { origin, pathname } = new URL(vct);
+
+  const metadata = await appFetch(`${origin}/.well-known/vct${pathname}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(hasStatusOrThrow(200, IssuerResponseError))
+    .then((res) => res.json())
+    .then(TypeMetadata.parse);
+
+  const [alg, hash] = vctIntegrity.split(/-(.*)/s);
+
+  if (alg !== "sha256") {
+    throw new IoWalletError(`${alg} algorithm is not supported`);
+  }
+
+  // TODO: [SIW-2264] check if the hash is correctly calculated
+  const metadataHash = await sha256ToBase64(JSON.stringify(metadata));
+
+  if (metadataHash !== hash) {
+    throw new ValidationFailed({
+      message: "Unable to verify VCT integrity",
+      reason: "vct#integrity does not match the metadata hash",
+    });
+  }
+
+  return metadata;
 };
