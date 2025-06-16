@@ -7,11 +7,12 @@ import { fixBase64EncodingOnKey, JWK } from "../utils/jwk";
 import { getWalletProviderClient } from "../client";
 import type { IntegrityContext } from "..";
 import {
+  IoWalletError,
   ResponseErrorBuilder,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../utils/errors";
-import { TokenResponse } from "./types";
+import { WalletAttestationResponse } from "./types";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -47,8 +48,8 @@ export async function getAttestationRequest(
   return new SignJWT(wiaCryptoContext)
     .setPayload({
       iss: keyThumbprint,
-      sub: walletProviderBaseUrl,
-      challenge,
+      aud: walletProviderBaseUrl,
+      nonce: challenge,
       hardware_signature: signature,
       integrity_assertion: authenticatorData,
       hardware_key_tag: hardwareKeyTag,
@@ -58,7 +59,7 @@ export async function getAttestationRequest(
     })
     .setProtectedHeader({
       kid: publicKey.kid,
-      typ: "war+jwt",
+      typ: "wp-war+jwt",
     })
     .setIssuedAt()
     .setExpirationTime("1h")
@@ -103,16 +104,21 @@ export const getAttestation = async ({
 
   // 3. Request WIA
   const tokenResponse = await api
-    .post("/token", {
+    .post("/wallet-attestations", {
       body: {
-        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
         assertion: signedAttestationRequest,
       },
     })
-    .then((result) => TokenResponse.parse(result))
+    .then(WalletAttestationResponse.parse)
     .catch(handleAttestationCreationError);
 
-  return tokenResponse.wallet_attestation;
+  const wallet_attestation = tokenResponse.wallet_attestations;
+  if (wallet_attestation && wallet_attestation[0]) {
+    // Return first because eudiw be return only jwt
+    return wallet_attestation[0].wallet_attestation;
+  }
+
+  throw new IoWalletError("Wallet Attestation response is empty!");
 };
 
 const handleAttestationCreationError = (e: unknown) => {
