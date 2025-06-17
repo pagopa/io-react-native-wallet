@@ -61,14 +61,14 @@ export const TrustScreen = () => {
       {
         id: "pagopa-wp",
         title: "Validate Trust Chain (PagoPA-WP)",
-        relyingPartyUrl: "https://foo11.blob.core.windows.net/foo",
+        relyingPartyUrl: "https://foo11.blob.core.windows.net/foo", // PAGOPA Wallet Provider
         icon: "locked",
         successMessage: "Chain Valid",
       },
       {
         id: "pagopa-rp",
         title: "Validate Trust Chain (PagoPA-RP)",
-        relyingPartyUrl: "https://foo11.blob.core.windows.net/rp-test",
+        relyingPartyUrl: "https://foo11.blob.core.windows.net/rp-test", // PAGOPA Relying Party
         icon: "locked",
         successMessage: "Chain Valid",
       },
@@ -76,7 +76,7 @@ export const TrustScreen = () => {
         id: "reg-toscana-rp",
         title: "Validate Trust Chain (Reg-Toscana-RP)",
         relyingPartyUrl:
-          "https://lab.auth.regione.toscana.it/auth-lab/realms/rt/it-wallet-provider/r_toscan",
+          "https://lab.auth.regione.toscana.it/auth-lab/realms/rt/it-wallet-provider/r_toscan", // REGIONE TOSCANA Relying Party
         icon: "locked",
         successMessage: "Chain Valid",
       },

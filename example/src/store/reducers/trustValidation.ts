@@ -1,4 +1,3 @@
-// src/store/reducers/trustValidation.ts
 import { createSlice } from "@reduxjs/toolkit";
 import { asyncStatusInitial } from "../utils";
 import type { AsyncStatus, RootState } from "../types";
@@ -61,9 +60,5 @@ const trustValidationSlice = createSlice({
 
 export const { trustValidationReset } = trustValidationSlice.actions;
 export const trustValidationReducer = trustValidationSlice.reducer;
-
-// Selectors
 export const selectTrustValidationState = (state: RootState) =>
   state.trustValidation;
-export const selectTrustValidationAsyncStatus = (state: RootState) =>
-  state.trustValidation.asyncStatus;
