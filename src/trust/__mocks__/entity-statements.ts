@@ -25,6 +25,7 @@ export const trustAnchorEntityConfiguration = {
           kid: "-r_Ut1wvDzpE27SAjCriV2BHseEpI-JggtDU2oo_4ao",
           alg: "RS256",
           n: "rwuTfTBfTAoJTFLDqd-NocN88qsxqUrQpqBBDbqCb6fmNLJ1b7uezVLlEuXmc8tAdLNNtb2TZYRvP3vTnRhPTVOdOxJ3uop1U1MmPuxwWjgq-JeONeiAUEaF12G-1f-7PKgul8q91CnKjRhT04XIsG7H7mgVdelpmLGrp-K90lVopYjVizqehqYr9d0WNcKeiDyGpWub6SBUN0Z3ajHw12KJIobpKKtzdEp0j7ZvxndnXN-4z0rR_LK8uoSoYyL5aNZXxZ5pcZ-4rG-4xzsLyMT99GxTiPrPN-lA08EOKM9QZT749Ykac-h9r3q7aL-z2568R901evL9-wgjTCp8NQ",
+          x5c: ["FAKE_CERT_BASE64"],
         },
         {
           kty: "EC" as const,
@@ -34,6 +35,7 @@ export const trustAnchorEntityConfiguration = {
           x: "fxOz69xflu6gWc85XpDe8CFVKoLT4CjLzpb4NqC5x_U",
           y: "RS1IHtb-SoXfbBsiGxRZQSl-l2g7kF39MEqPC0GLOdg",
           alg: "ES256",
+          x5c: ["FAKE_CERT_BASE64"],
         },
       ],
     },
@@ -70,6 +72,7 @@ export const intermediateEntityStatement = {
           kid: "-LIeEyrq8QFXR9mUIwsEoO9E0pmw35QVJSicVgwhItE",
           alg: "RS256",
           n: "ssTdWEs7wI1BOmAn4-9YdiEM0X-WQ_LWUGUWRCIzjYfxf-caoNXqbV4OSjCeuctl7MdhvKwUv55GQt0fUzeEkM4IbThTwLOrhUvj5W3GhWv_tR-RFC_s1kX4ud54ThXSM7GlR9EuV6NNpSZHe7R46HESLzd91pTr7K1ZqsOK719qSAWPY8H9e9N4PRJbkVSq4iPvHNkZIqR6-fo8njvOcwC8hSMhMwSLfciPawrJmTlPFzzgo5fctZlnZPpFtrTRC-jh-yNs_V6sRgKR1BMfWoi6fKN3uZ8H5nayb_zysNUM6kOU8f_Ochk4CWGwaJZvPB0WzBM63eoSDE4f55IN1Q",
+          x5c: ["FAKE_CERT_BASE64"],
         },
       ],
     },
@@ -97,6 +100,7 @@ export const intermediateEntityConfiguration = {
           kid: intermediateEntityStatement.header.kid || "int-key",
           alg: "RS256",
           n: "dummyIntermediateModulus",
+          x5c: ["FAKE_CERT_BASE64"],
         },
       ],
     },
@@ -129,6 +133,7 @@ export const leafEntityStatement = {
           kid: "fHuPjwpl8SI383lbj9PmvY7cn-6vCaEfLVVOJ1kDiiM",
           alg: "RS256",
           n: "pI5E4rZBRPo0rjzjJ8Mj6ZGSIdHWXtsQpWw2Ti-hPCJVxeA8_9CLlmP5FQaPYr57CegINxRDxDU_DTNSpU-tY6R0aOv-iUUYIpoLnvVgECrygRxj2w3-0iXgO7IXvpAXu8i7NCJ5s2go_yLaZI1xRPzJyOBEm9VpsMAdFINVFjT-moBgXM5cGTrjfT8EbCiXDfasA8HMOhDYNFNvNKpmoqOum9LA6hceOCsjB0B2qBIS6AQeUEoBPmJVzEcORccAte_hX3r0WVUAhIogX6n2eILi33VTPuBkZ-PyWt6VGy2n9xA8RF0ww8yDhoN5aloEbQDDgMoJcfgvEuoQ20QeQw",
+          x5c: ["FAKE_CERT_BASE64"],
         },
       ],
     },
@@ -156,6 +161,7 @@ export const leafEntityConfiguration = {
           kid: "fHuPjwpl8SI383lbj9PmvY7cn-6vCaEfLVVOJ1kDiiM",
           alg: "RS256",
           n: "pI5E4rZBRPo0rjzjJ8Mj6ZGSIdHWXtsQpWw2Ti-hPCJVxeA8_9CLlmP5FQaPYr57CegINxRDxDU_DTNSpU-tY6R0aOv-iUUYIpoLnvVgECrygRxj2w3-0iXgO7IXvpAXu8i7NCJ5s2go_yLaZI1xRPzJyOBEm9VpsMAdFINVFjT-moBgXM5cGTrjfT8EbCiXDfasA8HMOhDYNFNvNKpmoqOum9LA6hceOCsjB0B2qBIS6AQeUEoBPmJVzEcORccAte_hX3r0WVUAhIogX6n2eILi33VTPuBkZ-PyWt6VGy2n9xA8RF0ww8yDhoN5aloEbQDDgMoJcfgvEuoQ20QeQw",
+          x5c: ["FAKE_CERT_BASE64"],
         },
       ],
     },
@@ -174,7 +180,7 @@ export const leafEntityConfiguration = {
   },
 };
 
-// Encodes a jwt object and appena a stub signature
+// Encodes a jwt object and append a stub signature
 export const signed = async (jwt: any) => {
   const keytag = `${Math.random()}`;
   await generate(keytag);
