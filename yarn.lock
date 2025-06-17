@@ -2380,10 +2380,16 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pagopa/io-react-native-crypto@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-0.2.3.tgz#395a001e6fc831897dd979a7994950457b637328"
-  integrity sha512-cXJBwBsPUBxIFoTVXqlVc2zNgUuFPVdtIKu0WUyEGg8ZNOMGT9cRpE/qYx2uTY+hrYxtO8RKH6aXLsF43mYRBA==
+"@pagopa/io-react-native-cbor@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cbor/-/io-react-native-cbor-1.4.0.tgz#125b8cd31597fc537a8ce263f6a4e3c2c2d099dd"
+  integrity sha512-1jyckAlVRGO3SPR6kBbhqd3PhwNyAKq58ITI9Dztb+waiUmbuUSukkTfBCrJquz1rgwVuSyCDvJHIJsx64rwzA==
+  dependencies:
+    zod "^3.24.1"
+
+"@pagopa/io-react-native-crypto@github:pagopa/io-react-native-crypto#siw-2497":
+  version "1.1.1"
+  resolved "https://codeload.github.com/pagopa/io-react-native-crypto/tar.gz/fca2ad459a7d9e4c3450e0741eb64ef3e9663cb8"
 
 "@pagopa/io-react-native-jwt@^2.1.0":
   version "2.1.0"
@@ -9232,3 +9238,8 @@ zod@^3.22.4:
   version "3.23.8"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
+
+zod@^3.24.1:
+  version "3.25.63"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.63.tgz#5eac66b56aa9f5e1cd3604dd541b819110474efa"
+  integrity sha512-3ttCkqhtpncYXfP0f6dsyabbYV/nEUW+Xlu89jiXbTBifUfjaSqXOG6JnQPLtqt87n7KAmnMqcjay6c0Wq0Vbw==

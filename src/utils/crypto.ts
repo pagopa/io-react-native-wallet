@@ -1,11 +1,12 @@
 import {
-  getPublicKey,
-  sign,
-  generate,
   deleteKey,
+  generate,
+  getPublicKey,
+  getPublicKeyFixed,
+  sign,
 } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
-import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, thumbprint } from "@pagopa/io-react-native-jwt";
 import { fixBase64EncodingOnKey } from "./jwk";
 
 /**
@@ -33,6 +34,30 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
           // However the values is an arbitrary string that might be anything
           kid: await thumbprint(jwk),
         }));
+    },
+    /**
+     * Get a signature for a provided value.
+     * If the key pair doesn't exist yet, an error is raised.
+     * @param value
+     * @returns The signature for the value
+     */
+    async getSignature(value: string) {
+      return sign(value, keytag);
+    },
+  };
+};
+
+export const createCryptoContextFixedFor = (keytag: string): CryptoContext => {
+  return {
+    async getPublicKey() {
+      return getPublicKeyFixed(keytag).then(async (jwk) => ({
+        ...jwk,
+        // Keys in the TEE are not stored with their KID, which is supposed to be assigned when they are included in JWK sets.
+        // (that is, KID is not a propoerty of the key itself, but it's property used to identify a key in a set).
+        // We assume the convention we use the thumbprint of the public key as KID, thus for easy development we decided to evaluate KID here
+        // However the values is an arbitrary string that might be anything
+        kid: await thumbprint(jwk),
+      }));
     },
     /**
      * Get a signature for a provided value.
