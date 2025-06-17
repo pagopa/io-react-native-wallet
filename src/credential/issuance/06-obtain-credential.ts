@@ -25,8 +25,9 @@ export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
-  credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"] & {
-    credential_identifier: string;
+  credentialDefinition: {
+    credential_configuration_id: string;
+    credential_identifier?: string;
   },
   context: {
     dPopCryptoContext: CryptoContext;
@@ -34,7 +35,7 @@ export type ObtainCredential = (
     appFetch?: GlobalFetch["fetch"];
   },
   operationType?: "reissuing"
-) => Promise<CredentialResponse>;
+) => Promise<{ credential: string; format: string }>;
 
 export const createNonceProof = async (
   nonce: string,
@@ -87,8 +88,11 @@ export const obtainCredential: ObtainCredential = async (
     appFetch = fetch,
     dPopCryptoContext,
   } = context;
+  const { credential_configuration_id, credential_identifier } =
+    credentialDefinition;
 
   const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
+  const issuerUrl = issuerConf.oauth_authorization_server.issuer;
   const nonceUrl = issuerConf.openid_credential_issuer.nonce_endpoint;
 
   // Fetch the nonce from the Credential Issuer
@@ -108,7 +112,7 @@ export const obtainCredential: ObtainCredential = async (
   const signedNonceProof = await createNonceProof(
     c_nonce,
     clientId,
-    credentialUrl,
+    issuerUrl,
     credentialCryptoContext
   );
 
@@ -117,12 +121,10 @@ export const obtainCredential: ObtainCredential = async (
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
   const containsCredentialDefinition = accessToken.authorization_details.some(
     (c) =>
-      c.type === credentialDefinition.type &&
-      c.credential_configuration_id ===
-        credentialDefinition.credential_configuration_id &&
-      c.credential_identifiers.includes(
-        credentialDefinition.credential_identifier
-      )
+      c.credential_configuration_id === credential_configuration_id &&
+      (credential_identifier
+        ? c.credential_identifiers.includes(credential_identifier)
+        : true)
   );
 
   if (!containsCredentialDefinition) {
@@ -136,15 +138,21 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  /** The credential request body */
-  const credentialRequestFormBody = {
-    // TODO: [SIW-2264] credential_identifier vs credential_configuration_id?
-    credential_identifier: credentialDefinition.credential_identifier,
-    proof: {
-      jwt: signedNonceProof,
-      proof_type: "jwt",
-    },
-  };
+  /**
+   * The credential request body.
+   * We accept both `credential_identifier` (recommended) and `credential_configuration_id`
+   * when the Authorization Server does not support `credential_identifier`.
+   * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-15.html#section-3.3.4
+   */
+  const credentialRequestFormBody = credential_identifier
+    ? {
+        credential_identifier: credential_identifier,
+        proof: { jwt: signedNonceProof, proof_type: "jwt" },
+      }
+    : {
+        credential_configuration_id: credential_configuration_id,
+        proof: { jwt: signedNonceProof, proof_type: "jwt" },
+      };
 
   Logger.log(
     LogLevel.DEBUG,
@@ -194,8 +202,17 @@ export const obtainCredential: ObtainCredential = async (
     `Credential Response: ${JSON.stringify(credentialRes.data)}`
   );
 
-  // TODO: [SIW-2264] handle multiple credentials
-  return credentialRes.data;
+  // Extract the format corresponding to the credential_configuration_id used
+  const issuerCredentialConfig =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credential_configuration_id
+    ];
+
+  // TODO: [SIW-2264] Handle multiple credentials
+  return {
+    credential: credentialRes.data.credentials.at(0)!.credential,
+    format: issuerCredentialConfig!.format,
+  };
 };
 
 /**
@@ -257,7 +274,8 @@ export const fetchTypeMetadata = async (
     },
   })
     .then(hasStatusOrThrow(200, IssuerResponseError))
-    .then((res) => TypeMetadata.parse(res.json()));
+    .then((res) => res.json())
+    .then(TypeMetadata.parse);
 
   const [alg, hash] = vctIntegrity.split(/-(.*)/s);
 

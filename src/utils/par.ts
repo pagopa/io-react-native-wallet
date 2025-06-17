@@ -26,6 +26,17 @@ export const ParResponse = z.object({
   expires_in: z.number(),
 });
 
+type AuthDetailsOrScope =
+  | { authorizationDetails: AuthorizationDetails; scope?: string }
+  | { authorizationDetails?: AuthorizationDetails; scope: string };
+
+type ParRequestPayload = {
+  clientId: string;
+  codeVerifier: string;
+  redirectUri: string;
+  responseMode: string;
+} & AuthDetailsOrScope;
+
 /**
  * Make a PAR request to the issuer and return the response url
  */
@@ -38,13 +49,16 @@ export const makeParRequest =
     appFetch: GlobalFetch["fetch"];
   }) =>
   async (
-    clientId: string,
-    codeVerifier: string,
-    redirectUri: string,
-    responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
-    authorizationDetails: AuthorizationDetails
+    {
+      codeVerifier,
+      responseMode,
+      clientId,
+      redirectUri,
+      authorizationDetails,
+      scope,
+    }: ParRequestPayload
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
@@ -65,15 +79,15 @@ export const makeParRequest =
     );
 
     /** A code challenge is provided so that the PAR is bound
-        to the subsequent authorization code request
-        @see https://datatracker.ietf.org/doc/html/rfc9126#name-request */
+            to the subsequent authorization code request
+            @see https://datatracker.ietf.org/doc/html/rfc9126#name-request */
     const codeChallengeMethod = "S256";
     const codeChallenge = await sha256ToBase64(codeVerifier);
 
     /** The PAR request token is signed used the Wallet Instance Attestation key.
-        The signature can be verified by reading the public key from the key set shippet
-        with the it will ship the Wallet Instance Attestation.
-        The key is matched by its kid */
+            The signature can be verified by reading the public key from the key set shippet
+            with the it will ship the Wallet Instance Attestation.
+            The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
         typ: "jwt",
@@ -89,11 +103,11 @@ export const makeParRequest =
         state: generateRandomAlphaNumericString(32),
         code_challenge: codeChallenge,
         code_challenge_method: codeChallengeMethod,
-        authorization_details: authorizationDetails,
         redirect_uri: redirectUri,
-        // TODO: [SIW-2264] `scope` is not necessary if `authorization_details` is provided, so should we also support `scope`?
-        // See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/pid-eaa-issuance.html#pushed-authorization-request-par-request
-        // scope: "",
+        ...(authorizationDetails && {
+          authorization_details: authorizationDetails,
+        }),
+        ...(scope && { scope }),
       })
       .setIssuedAt() // iat is set to now
       .setExpirationTime("5min")
@@ -120,6 +134,7 @@ export const makeParRequest =
       body: formBody.toString(),
     })
       .then(hasStatusOrThrow(201, IssuerResponseError))
-      .then((res) => ParResponse.parse(res.json()))
+      .then((res) => res.json())
+      .then(ParResponse.parse)
       .then((result) => result.request_uri);
   };

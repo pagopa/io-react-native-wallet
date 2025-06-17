@@ -58,7 +58,7 @@ export const WalletInstanceAttestationJwt = z.object({
     Jwt.shape.header,
     z.object({
       typ: z.literal("oauth-client-attestation+jwt"),
-      trust_chain: z.array(z.string()),
+      trust_chain: z.array(z.string()).optional(), // TODO: [SIW-2264] Make mandatory
     })
   ),
   payload: z.intersection(
