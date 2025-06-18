@@ -1,4 +1,3 @@
-import { generate } from "@pagopa/io-react-native-crypto";
 import {
   createCryptoContextFor,
   Credential,
@@ -17,7 +16,11 @@ import type {
   PidResult,
   SupportedCredentials,
 } from "../store/types";
-import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import {
+  DPOP_KEYTAG,
+  generateTestCryptoKey,
+  WIA_KEYTAG,
+} from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import { getAttestationThunk } from "./attestation";
@@ -195,11 +198,11 @@ export const continuePidFlowThunk = createAppAsyncThunk<
 
   // Create credential crypto context
   const credentialKeyTag = uuidv4().toString();
-  await generate(credentialKeyTag);
+  await generateTestCryptoKey(credentialKeyTag);
   const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
   // Create DPoP context for the whole issuance flow
-  await regenerateCryptoKey(DPOP_KEYTAG);
+  await generateTestCryptoKey(DPOP_KEYTAG);
   const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
   const { accessToken } = await Credential.Issuance.authorizeAccess(

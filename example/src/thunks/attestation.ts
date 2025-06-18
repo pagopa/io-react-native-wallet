@@ -1,11 +1,11 @@
 import {
-  WalletInstanceAttestation,
   createCryptoContextFor,
+  WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
 import { getIntegrityContext } from "../utils/integrity";
-import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import { generateTestCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
@@ -25,7 +25,7 @@ export const getAttestationThunk = createAppAsyncThunk(
 
     // generate Key for Wallet Instance Attestation
     // ensure the key esists befor starting the issuing process
-    await regenerateCryptoKey(WIA_KEYTAG);
+    await generateTestCryptoKey(WIA_KEYTAG);
     const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
     // Get env URLs

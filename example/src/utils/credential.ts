@@ -1,11 +1,15 @@
 import {
-  Credential,
   createCryptoContextFor,
+  Credential,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
-import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
+import {
+  DPOP_KEYTAG,
+  generateTestCryptoKey,
+  regenerateCryptoKey,
+} from "../utils/crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   CredentialResult,
@@ -173,7 +177,7 @@ export const getCredential = async ({
 }): Promise<CredentialResult> => {
   // Create credential crypto context
   const credentialKeyTag = uuidv4().toString();
-  await generate(credentialKeyTag);
+  await generateTestCryptoKey(credentialKeyTag);
   const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
   // Start the issuance flow
@@ -219,7 +223,7 @@ export const getCredential = async ({
     );
 
   // Generate the DPoP context which will be used for the whole issuance flow
-  await regenerateCryptoKey(DPOP_KEYTAG);
+  await generateTestCryptoKey(DPOP_KEYTAG);
   const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
   const { accessToken } = await Credential.Issuance.authorizeAccess(

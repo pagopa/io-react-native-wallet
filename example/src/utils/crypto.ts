@@ -1,8 +1,10 @@
 import {
-  generate,
-  deleteKey,
   type CryptoError,
+  deleteKey,
+  type ECKey,
+  generate,
 } from "@pagopa/io-react-native-crypto";
+import { Base64 } from "js-base64";
 
 /**
  * Key which is used to generate a wallet instance attestation crypto context.
@@ -25,6 +27,20 @@ export const regenerateCryptoKey = async (keyTag: string) => {
   // Delete the key if it exists, otherwise ignore the error
   await deleteKeyIfExists(keyTag);
   await generate(keyTag);
+};
+
+export const generateTestCryptoKey = async (keyTag: string) => {
+  let ecKeyLen = 0;
+  do {
+    await deleteKeyIfExists(keyTag);
+    const key = await generate(keyTag);
+    if (key.kty === "EC") {
+      const ecKey = key as ECKey;
+      const realLen = Base64.toUint8Array(ecKey.x);
+      ecKeyLen = realLen.length;
+      console.log("Generated EC key:", ecKey, "length:", ecKeyLen);
+    }
+  } while (ecKeyLen < 33);
 };
 
 /**
