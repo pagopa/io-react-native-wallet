@@ -1,17 +1,22 @@
 import type { Out } from "../../utils/misc";
 import { IoWalletError } from "../../utils/errors";
-import { verify, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import {
+  type CryptoContext,
+  decode as decodeJwt,
+  verify,
+} from "@pagopa/io-react-native-jwt";
 import type { EvaluateIssuerTrust, StatusAttestation } from "../status";
 import { ParsedStatusAttestation } from "./types";
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
+import { extractJwkFromCredential } from "../../utils/credentials";
 
 export type VerifyAndParseStatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   statusAttestation: Out<StatusAttestation>,
   context: {
     credentialCryptoContext: CryptoContext;
-  }
+  },
+  credential: string
 ) => Promise<{ parsedStatusAttestation: ParsedStatusAttestation }>;
 
 /**
@@ -28,10 +33,9 @@ export type VerifyAndParseStatusAttestation = (
  * @throws {IoWalletError} If the credential data fail to parse
  */
 export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
-  async (issuerConf, rawStatusAttestation, context) => {
+  async (issuerConf, rawStatusAttestation, _, credential) => {
     try {
       const { statusAttestation } = rawStatusAttestation;
-      const { credentialCryptoContext } = context;
 
       await verify(
         statusAttestation,
@@ -49,7 +53,7 @@ export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
         `Parsed status attestation: ${JSON.stringify(parsedStatusAttestation)}`
       );
 
-      const holderBindingKey = await credentialCryptoContext.getPublicKey();
+      const holderBindingKey = await extractJwkFromCredential(credential);
       const { cnf } = parsedStatusAttestation.payload;
       if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
         Logger.log(

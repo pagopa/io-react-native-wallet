@@ -1,6 +1,6 @@
 import {
-  Credential,
   createCryptoContextFor,
+  Credential,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
@@ -302,7 +302,8 @@ export const getCredentialStatusAttestation = async (
       statusAttestation,
       {
         credentialCryptoContext,
-      }
+      },
+      credential
     );
 
   return {
