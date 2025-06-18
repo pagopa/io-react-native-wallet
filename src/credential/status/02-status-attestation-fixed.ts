@@ -83,24 +83,3 @@ const handleStatusAttestationError = (e: unknown) => {
     })
     .buildFrom(e);
 };
-
-/*const extractJwkFromCredential = async (credential: string) => {
-  try {
-    if (credential.includes("~")) {
-      const parsed = decode(credential);
-      const jwk = parsed.sdJwt.payload.cnf.jwk;
-      if (jwk) {
-        return { ...jwk, kid: await thumbprint(jwk) };
-      }
-    }
-
-    // 2. CBOR case
-    const decoded = await CBOR.decode(credential);
-    const jwk = decoded?.credentialSubject?.cnf?.jwk;
-    if (jwk) {
-      return { ...jwk, kid: await thumbprint(jwk) };
-    }
-  } catch {}
-
-  return undefined;
-};*/

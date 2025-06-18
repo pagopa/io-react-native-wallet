@@ -2387,9 +2387,9 @@
   dependencies:
     zod "^3.24.1"
 
-"@pagopa/io-react-native-crypto@github:pagopa/io-react-native-crypto#siw-2497":
+"@pagopa/io-react-native-crypto@file:./package.tgz":
   version "1.1.1"
-  resolved "https://codeload.github.com/pagopa/io-react-native-crypto/tar.gz/fca2ad459a7d9e4c3450e0741eb64ef3e9663cb8"
+  resolved "file:./package.tgz#8b31936be0bd8a2ff3aebaa4fb0dd7c4cb17b7dd"
 
 "@pagopa/io-react-native-jwt@^2.1.0":
   version "2.1.0"

@@ -107,6 +107,16 @@ android {
     }
 }
 
+// Force all Bouncy Castle dependencies to use the same version to avoid duplicate classes
+configurations.all {
+    c -> c.resolutionStrategy.eachDependency {
+        DependencyResolveDetails dependency ->
+            if (dependency.requested.group == 'org.bouncycastle') {
+                dependency.useTarget 'org.bouncycastle:bcprov-jdk18on:1.77'
+            }
+    }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")

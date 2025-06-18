@@ -4,7 +4,11 @@ import {
   type Out,
 } from "../../utils/misc";
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
-import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
+import {
+  type CryptoContext,
+  SignJWT,
+  thumbprint,
+} from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import { StatusAttestationResponse } from "./types";
 import {
@@ -13,7 +17,9 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
+import { CBOR } from "@pagopa/io-react-native-cbor";
+import { decode } from "../../sd-jwt";
 
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -40,7 +46,7 @@ export const statusAttestation: StatusAttestation = async (
   credentialCryptoContext,
   appFetch: GlobalFetch["fetch"] = fetch
 ) => {
-  const jwk = await credentialCryptoContext.getPublicKey();
+  const jwk = await extractJwkFromCredential(credential);
   const credentialHash = await getCredentialHashWithouDiscloures(credential);
   const statusAttUrl =
     issuerConf.openid_credential_issuer.status_attestation_endpoint;
@@ -102,4 +108,21 @@ const handleStatusAttestationError = (e: unknown) => {
       message: `Unable to obtain the status attestation for the given credential`,
     })
     .buildFrom(e);
+};
+
+const extractJwkFromCredential = async (credential: string) => {
+  if (credential.includes("~")) {
+    const parsed = decode(credential);
+    const jwk = parsed.sdJwt.payload.cnf.jwk;
+    if (jwk) {
+      return { ...jwk, kid: await thumbprint(jwk) };
+    }
+  }
+
+  // 2. CBOR case
+  const decoded = await CBOR.decode(credential);
+  const jwk = decoded?.credentialSubject?.cnf?.jwk;
+  if (jwk) {
+    return { ...jwk, kid: await thumbprint(jwk) };
+  }
 };
