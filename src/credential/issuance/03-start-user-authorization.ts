@@ -153,6 +153,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const codeVerifier = generateRandomAlphaNumericString(64);
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
+  const aud = issuerConf.openid_credential_issuer.credential_issuer;
   const credentialDefinition = _credentialType.map((c) =>
     selectCredentialDefinition(issuerConf, c)
   );
@@ -163,6 +164,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
     parEndpoint,
     walletInstanceAttestation,
     {
+      aud,
       clientId,
       codeVerifier,
       redirectUri,

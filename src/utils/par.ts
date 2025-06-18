@@ -35,6 +35,7 @@ type ParRequestPayload = {
   codeVerifier: string;
   redirectUri: string;
   responseMode: string;
+  aud: string;
 } & AuthDetailsOrScope;
 
 /**
@@ -58,12 +59,10 @@ export const makeParRequest =
       redirectUri,
       authorizationDetails,
       scope,
+      aud,
     }: ParRequestPayload
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
-
-    const parUrl = new URL(parEndpoint);
-    const aud = `${parUrl.protocol}//${parUrl.hostname}`;
 
     // TODO: is this the same as the client_id?
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)

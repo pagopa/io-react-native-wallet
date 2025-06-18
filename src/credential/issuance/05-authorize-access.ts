@@ -46,7 +46,7 @@ export type AuthorizeAccess = (
 export const authorizeAccess: AuthorizeAccess = async (
   issuerConf,
   code,
-  clientId,
+  _,
   redirectUri,
   codeVerifier,
   context
@@ -57,11 +57,7 @@ export const authorizeAccess: AuthorizeAccess = async (
     wiaCryptoContext,
     dPopCryptoContext,
   } = context;
-
-  const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
-  const parUrl = new URL(parEndpoint);
-  const aud = `${parUrl.protocol}//${parUrl.hostname}`;
+  const aud = issuerConf.openid_credential_issuer.credential_issuer;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
