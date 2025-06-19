@@ -15,14 +15,14 @@ export const extractJwkFromCredential = async (
 ) => {
   if (format === "vc+sd-jwt") {
     // 1. SD-JWT case
-    const parsed = decode(credential);
-    const jwk = parsed.sdJwt.payload.cnf.jwk;
+    const decoded = decode(credential);
+    const jwk = decoded.sdJwt.payload.cnf.jwk;
     if (jwk) {
       return { ...jwk, kid: await thumbprint(jwk) };
     }
   }
 
-  // 2. CBOR case
+  // 2. CBOR case (This needs to be tested with a real credential and updated accordingly)
   const decoded = await CBOR.decode(credential);
   const jwk = decoded?.credentialSubject?.cnf?.jwk;
   if (jwk) {
