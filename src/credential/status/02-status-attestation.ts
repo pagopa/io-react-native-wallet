@@ -19,6 +19,7 @@ import { extractJwkFromCredential } from "../../utils/credentials";
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
+  format: Out<ObtainCredential>["format"],
   credentialCryptoContext: CryptoContext,
   appFetch?: GlobalFetch["fetch"]
 ) => Promise<{
@@ -30,6 +31,7 @@ export type StatusAttestation = (
  * Verify the status of the credential attestation.
  * @param issuerConf - The issuer's configuration
  * @param credential - The credential to be verified
+ * @param format - The format of the credential, e.g. "sd-jwt"
  * @param credentialCryptoContext - The credential's crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {IssuerResponseError} with a specific code for more context
@@ -38,10 +40,11 @@ export type StatusAttestation = (
 export const statusAttestation: StatusAttestation = async (
   issuerConf,
   credential,
+  format,
   credentialCryptoContext,
   appFetch: GlobalFetch["fetch"] = fetch
 ) => {
-  const jwk = await extractJwkFromCredential(credential);
+  const jwk = await extractJwkFromCredential(credential, format);
   const credentialHash = await getCredentialHashWithouDiscloures(credential);
   const statusAttUrl =
     issuerConf.openid_credential_issuer.status_attestation_endpoint;
