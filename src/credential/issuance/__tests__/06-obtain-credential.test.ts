@@ -55,7 +55,6 @@ describe("obtainCredential", () => {
 
     mockCredentialDefinition = {
       credential_configuration_id: "mock_credential_configuration_id",
-      format: "vc+sd-jwt",
       type: "openid_credential",
     };
 
@@ -68,14 +67,12 @@ describe("obtainCredential", () => {
     mockAccessToken = {
       access_token: process.env.ACCESS_TOKEN,
       token_type: process.env.TOKEN_TYPE,
-      c_nonce: "mock_nonce",
-      c_nonce_expires_in: 3600,
       expires_in: 3600,
       authorization_details: [
         {
           credential_configuration_id: "mock_credential_configuration_id",
-          format: "vc+sd-jwt",
           type: "openid_credential",
+          credential_identifiers: ["credential_1"],
         },
       ],
     };
