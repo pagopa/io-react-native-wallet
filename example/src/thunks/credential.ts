@@ -35,6 +35,7 @@ type GetCredentialThunkInput = {
 type GetCredentialStatusAttestationThunkInput = {
   credentialType: SupportedCredentialsWithoutPid;
   credential: Out<Credential.Issuance.ObtainCredential>["credential"];
+  format: Out<Credential.Issuance.ObtainCredential>["format"];
   keyTag: string;
 };
 
@@ -102,7 +103,7 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
   GetCredentialStatusAttestationThunkOutput,
   GetCredentialStatusAttestationThunkInput
 >("credential/statusAttestationGet", async (args, { getState }) => {
-  const { credential, keyTag, credentialType } = args;
+  const { credential, format, keyTag, credentialType } = args;
 
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
@@ -113,6 +114,7 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
   return await getCredentialStatusAttestation(
     WALLET_EAA_PROVIDER_BASE_URL,
     credential,
+    format,
     credentialCryptoContext,
     credentialType
   );

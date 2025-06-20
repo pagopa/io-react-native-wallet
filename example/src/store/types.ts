@@ -58,6 +58,7 @@ type CredentialResultBase = {
   >["parsedCredential"];
   keyTag: string;
   credentialType: SupportedCredentials;
+  format: Awaited<ReturnType<Credential.Issuance.ObtainCredential>>["format"];
 };
 
 /**

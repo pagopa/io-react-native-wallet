@@ -2,12 +2,11 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
-import { SdJwt4VC } from "../../sd-jwt/types";
-import { verify as verifySdJwt } from "../../sd-jwt";
+import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
