@@ -55,17 +55,21 @@ const IssuanceErrorSupported = z.object({
 
 // Metadata for a credential which is supported by an Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
-const SupportedCredentialMetadata = z.object({
-  format: z.union([z.literal("dc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
-  vct: z.string(),
-  scope: z.string(),
-  display: z.array(CredentialDisplayMetadata),
-  claims: z.array(ClaimsMetadata),
-  cryptographic_binding_methods_supported: z.array(z.string()),
-  credential_signing_alg_values_supported: z.array(z.string()),
-  authentic_source: z.string().optional(),
-  issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
-});
+const SupportedCredentialMetadata = z.intersection(
+  z.discriminatedUnion("format", [
+    z.object({ format: z.literal("dc+sd-jwt"), vct: z.string() }),
+    z.object({ format: z.literal("mso_mdoc"), doctype: z.string() }),
+  ]),
+  z.object({
+    scope: z.string(),
+    display: z.array(CredentialDisplayMetadata),
+    claims: z.array(ClaimsMetadata),
+    cryptographic_binding_methods_supported: z.array(z.string()),
+    credential_signing_alg_values_supported: z.array(z.string()),
+    authentic_source: z.string().optional(),
+    issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
+  })
+);
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
 export const EntityStatement = z.object({
@@ -154,7 +158,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
         openid_credential_issuer: z.object({
           credential_issuer: z.string(),
           credential_endpoint: z.string(),
-          revocation_endpoint: z.string(),
+          revocation_endpoint: z.string().optional(),
           nonce_endpoint: z.string(),
           status_attestation_endpoint: z.string(),
           display: z.array(CredentialIssuerDisplayMetadata),
