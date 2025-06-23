@@ -61,16 +61,11 @@ const parseCredentialSdJwt = (
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
   if (credentialConfig.format !== sdJwt.header.typ) {
-    Logger.log(
-      LogLevel.ERROR,
-      `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`
-    );
-    throw new IoWalletError(
-      `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}', `
-    );
+    const message = `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
   }
 
-  // transfrom a record { key: value } in an iterable of pairs [key, value]
   if (!credentialConfig.claims) {
     Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
@@ -85,13 +80,9 @@ const parseCredentialSdJwt = (
     const missing = attrsNotInDisclosures.map((_) => _.path[0]).join(", ");
     const received = disclosures.map((_) => _[1 /* name */]).join(", ");
     if (!ignoreMissingAttributes) {
-      Logger.log(
-        LogLevel.ERROR,
-        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
-      );
-      throw new IoWalletError(
-        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
-      );
+      const message = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
+      Logger.log(LogLevel.ERROR, message);
+      throw new IoWalletError(message);
     }
   }
 
@@ -176,13 +167,9 @@ async function verifyCredentialSdJwt(
   const { cnf } = decodedCredential.sdJwt.payload;
 
   if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
-    Logger.log(
-      LogLevel.ERROR,
-      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
-    );
-    throw new IoWalletError(
-      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
-    );
+    const message = `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
   }
 
   return decodedCredential;
@@ -246,7 +233,7 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
  * Verify and parse an encoded credential.
  * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
  * @param credential The encoded credential returned by {@link obtainCredential}
- * @param format The format of the credentual returned by {@link obtainCredential}
+ * @param credentialConfigurationId The credential configuration ID that defines the provided credential
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
  * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
  * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
@@ -276,6 +263,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
     );
   }
 
-  Logger.log(LogLevel.ERROR, `Unsupported credential format: ${format}`);
-  throw new IoWalletError(`Unsupported credential format: ${format}`);
+  const message = `Unsupported credential format: ${format}`;
+  Logger.log(LogLevel.ERROR, message);
+  throw new IoWalletError(message);
 };
