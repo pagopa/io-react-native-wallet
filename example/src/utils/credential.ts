@@ -29,7 +29,6 @@ export const getPidCieID = async ({
   redirectUri,
   idpHint,
   walletInstanceAttestation,
-  credentialType,
   wiaCryptoContext,
 }: {
   pidIssuerUrl: string;
@@ -37,7 +36,6 @@ export const getPidCieID = async ({
   idpHint: string;
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
-  credentialType: "PersonIdentificationData";
 }): Promise<PidResult> => {
   /*
    * Create credential crypto context for the PID
@@ -50,11 +48,10 @@ export const getPidCieID = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: pidIssuerUrl,
-    credentialType: "PersonIdentificationData",
-    appFetch,
+    credentialType: "dc_sd_jwt_PersonIdentificationData",
   });
 
-  const { issuerUrl } = startFlow();
+  const { issuerUrl, credentialType } = startFlow();
 
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -66,7 +63,7 @@ export const getPidCieID = async ({
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      credentialType,
+      [credentialType],
       {
         walletInstanceAttestation,
         redirectUri,
@@ -74,7 +71,7 @@ export const getPidCieID = async ({
         appFetch,
       }
     );
-
+  console.log("-->", credentialDefinition);
   // Obtain the Authorization URL
   const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
     issuerRequestUri,
@@ -113,12 +110,28 @@ export const getPidCieID = async ({
     }
   );
 
+  const [pidCredentialDefinition] = credentialDefinition;
+
+  const { credential_configuration_id, credential_identifiers } =
+    accessToken.authorization_details.find(
+      (authDetails) =>
+        authDetails.credential_configuration_id ===
+        pidCredentialDefinition?.credential_configuration_id
+    ) ?? {};
+
+  // Get the first credential_identifier from the access token's authorization details
+  const [credential_identifier] = credential_identifiers ?? [];
+
+  if (!credential_configuration_id) {
+    throw new Error("No credential configuration ID found for PID");
+  }
+
   // Obtain che eID credential
-  const { credential, format } = await Credential.Issuance.obtainCredential(
+  const { credential } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
-    credentialDefinition,
+    { credential_configuration_id, credential_identifier },
     {
       credentialCryptoContext,
       dPopCryptoContext,
@@ -131,7 +144,7 @@ export const getPidCieID = async ({
     await Credential.Issuance.verifyAndParseCredential(
       issuerConf,
       credential,
-      format,
+      credential_configuration_id,
       { credentialCryptoContext }
     );
 
@@ -139,7 +152,8 @@ export const getPidCieID = async ({
     parsedCredential,
     credential,
     keyTag: credentialKeyTag,
-    credentialType,
+    credentialType: "PersonIdentificationData",
+    credentialConfigurationId: credential_configuration_id,
   };
 };
 
@@ -189,10 +203,10 @@ export const getCredential = async ({
     await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
 
   // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
+  const { issuerRequestUri, clientId, codeVerifier } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      credentialType,
+      [credentialType],
       {
         walletInstanceAttestation,
         redirectUri,
@@ -241,7 +255,8 @@ export const getCredential = async ({
     issuerConf,
     accessToken,
     clientId,
-    credentialDefinition,
+    // TODO: [SIW-2209] to fix in PR #219
+    { credential_configuration_id: "", credential_identifier: "" },
     {
       credentialCryptoContext,
       dPopCryptoContext,
@@ -263,6 +278,7 @@ export const getCredential = async ({
     credential,
     keyTag: credentialKeyTag,
     credentialType,
+    credentialConfigurationId: "", // TODO: [SIW-2209] to fix in PR #219
   };
 };
 
