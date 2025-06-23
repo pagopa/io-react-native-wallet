@@ -8,7 +8,7 @@ import { LogLevel, Logger } from "../../utils/logging";
 
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credentialType: string[],
+  credentialTypes: string[],
   context: {
     wiaCryptoContext: CryptoContext;
     walletInstanceAttestation: string;
@@ -127,13 +127,9 @@ const selectResponseMode = (
 
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,
-  credentialType,
+  credentialTypes,
   ctx
 ) => {
-  const _credentialType = Array.isArray(credentialType)
-    ? credentialType
-    : [credentialType];
-
   const {
     wiaCryptoContext,
     walletInstanceAttestation,
@@ -154,11 +150,10 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
   const aud = issuerConf.openid_credential_issuer.credential_issuer;
-  const credentialDefinition = _credentialType.map((c) =>
+  const credentialDefinition = credentialTypes.map((c) =>
     selectCredentialDefinition(issuerConf, c)
   );
-  const responseMode = selectResponseMode(issuerConf, _credentialType);
-
+  const responseMode = selectResponseMode(issuerConf, credentialTypes);
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
   const issuerRequestUri = await getPar(
     parEndpoint,

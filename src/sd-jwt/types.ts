@@ -55,8 +55,8 @@ export const SdJwt4VC = z.object({
       cnf: z.object({
         jwk: JWK,
       }),
-      vct: z.string().url(),
-      "vct#integrity": z.string().optional(),
+      vct: z.string(),
+      "vct#integrity": z.string(),
       issuing_authority: z.string(),
       issuing_country: z.string(),
     }),

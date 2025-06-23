@@ -229,7 +229,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     throw new Error("No credential configuration ID found for PID");
   }
 
-  // Get all credentials that were authorized
+  // Get the credential identifier that was authorized
   const { credential } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
@@ -245,17 +245,19 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     }
   );
 
-  const parsedCredential = await Credential.Issuance.verifyAndParseCredential(
-    issuerConf,
-    credential,
-    credential_configuration_id,
-    { credentialCryptoContext }
-  );
+  const { parsedCredential } =
+    await Credential.Issuance.verifyAndParseCredential(
+      issuerConf,
+      credential,
+      credential_configuration_id,
+      { credentialCryptoContext }
+    );
 
   return {
     parsedCredential,
     credential,
     keyTag: credentialKeyTag,
     credentialType: "PersonIdentificationData",
+    credentialConfigurationId: credential_configuration_id,
   };
 });
