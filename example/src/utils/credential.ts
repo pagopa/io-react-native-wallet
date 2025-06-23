@@ -71,7 +71,7 @@ export const getPidCieID = async ({
         appFetch,
       }
     );
-  console.log("-->", credentialDefinition);
+
   // Obtain the Authorization URL
   const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
     issuerRequestUri,
