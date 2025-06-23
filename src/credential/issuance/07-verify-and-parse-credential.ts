@@ -58,7 +58,7 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 };
 
 const parseCredentialSdJwt = (
-  // The credential configuration to use to parse the provided cedential
+  // The credential configuration to use to parse the provided credential
   credentialConfig: CredentialConf,
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
