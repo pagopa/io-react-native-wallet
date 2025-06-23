@@ -41,7 +41,7 @@ export type CredentialConfigurationSupported = z.infer<
 >;
 export const CredentialConfigurationSupported = z.record(
   z.object({
-    cryptographic_suites_supported: z.array(z.string()),
+    cryptographic_suites_supported: z.array(z.string()).optional(),
     vct: z.string().optional(),
     scope: z.string().optional(),
     cryptographic_binding_methods_supported: z.array(z.string()),
