@@ -49,13 +49,12 @@ const CredentialIssuerDisplayMetadata = z.object({
 });
 
 type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
-const ClaimsMetadata = z.record(
-  z.object({
-    value_type: z.string(),
-    display: z.array(z.object({ name: z.string(), locale: z.string() })),
-    mandatory: z.boolean().default(false),
-  })
-);
+const ClaimsMetadata = z.object({
+  path: z.array(z.string()),
+  display: z.array(CredentialDisplayMetadata),
+  mandatory: z.boolean().optional(),
+  value_type: z.string().optional(),
+});
 
 type IssuanceErrorSupported = z.infer<typeof IssuanceErrorSupported>;
 const IssuanceErrorSupported = z.object({
@@ -71,12 +70,16 @@ const IssuanceErrorSupported = z.object({
 // Metadata for a credentia which is supported by a Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("mso_mdoc")]),
+  format: z.union([
+    z.literal("vc+sd-jwt"),
+    z.literal("mso_mdoc"),
+  ]),
+  vct: z.string().optional(),
   scope: z.string(),
   display: z.array(CredentialDisplayMetadata),
-  claims: ClaimsMetadata.optional(), // TODO [SIW-1268]: should not be optional
+  claims: z.array(ClaimsMetadata),
   cryptographic_binding_methods_supported: z.array(z.string()),
-  credential_signing_alg_values_supported: z.array(z.string()),
+  credential_signing_alg_values_supported: z.array(z.string()).optional(),
   authentic_source: z.string().optional(),
   issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
 });
@@ -166,40 +169,37 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           credential_issuer: z.string(),
           credential_endpoint: z.string(),
           revocation_endpoint: z.string(),
+          nonce_endpoint: z.string(),
           status_attestation_endpoint: z.string(),
           display: z.array(CredentialIssuerDisplayMetadata),
           credential_configurations_supported: z.record(
             SupportedCredentialMetadata
           ),
           jwks: z.object({ keys: z.array(JWK) }),
+          trust_frameworks_supported: z.array(z.string()),
+          evidence_supported: z.array(z.string()),
         }),
         oauth_authorization_server: z.object({
           authorization_endpoint: z.string(),
           pushed_authorization_request_endpoint: z.string(),
-          dpop_signing_alg_values_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
           token_endpoint: z.string(),
-          introspection_endpoint: z.string().optional(), // TODO [SIW-1268]: should not be optional
           client_registration_types_supported: z.array(z.string()),
           code_challenge_methods_supported: z.array(z.string()),
-          authorization_details_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional,
           acr_values_supported: z.array(z.string()),
           grant_types_supported: z.array(z.string()),
           issuer: z.string(),
           jwks: z.object({ keys: z.array(JWK) }),
           scopes_supported: z.array(z.string()),
-          request_parameter_supported: z.boolean().optional(), // TODO [SIW-1268]: should not be optional
-          request_uri_parameter_supported: z.boolean().optional(), // TODO [SIW-1268]: should not be optional
-          response_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
           response_modes_supported: z.array(z.string()),
-          subject_types_supported: z.array(z.string()).optional(), // TODO [SIW-1268]: should not be optional
           token_endpoint_auth_methods_supported: z.array(z.string()),
           token_endpoint_auth_signing_alg_values_supported: z.array(z.string()),
           request_object_signing_alg_values_supported: z.array(z.string()),
         }),
-        /** Credential Issuers act as Relying Party
-            when they require the presentation of other credentials.
-            This does not apply for PID issuance, which requires CIE authz. */
-        wallet_relying_party: RelyingPartyMetadata.optional(),
+        /**
+         * Credential Issuers act as Relying Party when they require the presentation of other credentials.
+         * This does not apply for PID issuance, which requires CIE authz.
+         */
+        openid_credential_verifier: RelyingPartyMetadata.optional(),
       }),
     }),
   })

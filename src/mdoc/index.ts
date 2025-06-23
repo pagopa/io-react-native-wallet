@@ -14,8 +14,8 @@ export const verify = async (
   token: string,
   _: JWK | JWK[]
 ): Promise<{ issuerSigned: CBOR.IssuerSigned }> => {
-  // get decoded data
-  const issuerSigned = await CBOR.decodeIssuerSigned(token);
+  // ensure that token is base64
+  const issuerSigned = await CBOR.decodeIssuerSigned(b64utob64(token));
   if (!issuerSigned) {
     throw new Error("Invalid mDoc");
   }
