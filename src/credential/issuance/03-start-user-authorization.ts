@@ -120,9 +120,9 @@ const selectResponseMode = (
  * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirectUri of the Wallet Instance where the Authorization Response
  * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
  * @param issuerConf The issuer configuration
- * @param credentialType The type of the credential(s) to be requested
+ * @param credentialTypes The type of the credential(s) to be requested
  * @param ctx The context object containing the Wallet Instance's cryptographic context, the Wallet Instance's attestation, the redirect URI and the fetch implementation
- * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier and the credential definition
+ * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier and the credential definition(s)
  */
 
 export const startUserAuthorization: StartUserAuthorization = async (

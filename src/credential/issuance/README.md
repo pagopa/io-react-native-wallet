@@ -6,7 +6,7 @@ There's a fork in the flow which is based on the type of the credential that is 
 This is due to the fact that eID credentials require a different authorization flow than other credentials, which is accomplished by a strong authentication method like SPID or CIE.
 Credentials instead require a simpler authorization flow and they require other credentials to be presented in order to be issued.
 
-The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step.
+The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step. Available credentials are identified with a unique `credential_configuration_id`, that must be used when requesting authorization. The Authorization Server returns an array of **credential identifiers** that map to the `credential_configuration_id` provided: to obtain the credential, one of the credential identifiers (or all of them) must be requested to the credential endpoint.
 
 ## Sequence Diagram
 
@@ -252,7 +252,6 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 const startFlow: Credential.Issuance.StartFlow = () => ({
   issuerUrl: WALLET_EID_PROVIDER_BASE_URL,
   credentialType: "PersonIdentificationData",
-  appFetch,
 });
 
 const { issuerUrl } = startFlow();
@@ -265,12 +264,16 @@ const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
 
 // Start user authorization
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-  await Credential.Issuance.startUserAuthorization(issuerConf, credentialType, {
-    walletInstanceAttestation,
-    redirectUri,
-    wiaCryptoContext,
-    appFetch,
-  });
+  await Credential.Issuance.startUserAuthorization(
+    issuerConf,
+    [credentialType], // Request authorization for one or more credentials
+    {
+      walletInstanceAttestation,
+      redirectUri,
+      wiaCryptoContext,
+      appFetch,
+    }
+  );
 
 // Complete the authorization process with query mode with the authorizationContext which opens the browser
 const { code } =
@@ -301,12 +304,27 @@ const { accessToken } = await Credential.Issuance.authorizeAccess(
   }
 );
 
+
+const [pidCredentialDefinition] = credentialDefinition;
+
+// Extract the credential_identifier(s) from the access token
+// For each one of them, a credential can be obtained by calling `obtainCredential`
+const { credential_configuration_id, credential_identifiers } =
+    accessToken.authorization_details.find(
+      (authDetails) =>
+        authDetails.credential_configuration_id ===
+        pidCredentialDefinition.credential_configuration_id
+    );
+
 // Obtain che eID credential
 const { credential, format } = await Credential.Issuance.obtainCredential(
   issuerConf,
   accessToken,
   clientId,
-  credentialDefinition,
+  {
+    credential_configuration_id,
+    credential_identifier: credential_identifiers.at(0),
+  },
   {
     credentialCryptoContext,
     dPopCryptoContext,
@@ -318,13 +336,14 @@ const { credential, format } = await Credential.Issuance.obtainCredential(
 const { parsedCredential, issuedAt, expiration } = await Credential.Issuance.verifyAndParseCredential(
   issuerConf,
   credential,
-  format,
+  credential_configuration_id,
   { credentialCryptoContext }
 );
 
 return {
   parsedCredential,
   credential,
+  credentialConfigurationId: credential_configuration_id
   keyTag: credentialKeyTag,
   credentialType,
   issuedAt,

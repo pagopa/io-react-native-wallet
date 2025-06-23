@@ -233,7 +233,7 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
  * Verify and parse an encoded credential.
  * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
  * @param credential The encoded credential returned by {@link obtainCredential}
- * @param format The format of the credentual returned by {@link obtainCredential}
+ * @param credentialConfigurationId The credential configuration ID that defines the provided credential
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
  * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
  * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
