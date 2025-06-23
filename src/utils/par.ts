@@ -64,7 +64,6 @@ export const makeParRequest =
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
-    // TODO: is this the same as the client_id?
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
       .payload.cnf.jwk.kid;
 
