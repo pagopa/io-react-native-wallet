@@ -5,7 +5,7 @@ describe("SdJwt4VC", () => {
     // example provided at https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html
     const token = {
       header: {
-        typ: "vc+sd-jwt",
+        typ: "dc+sd-jwt",
         alg: "RS512",
         kid: "dB67gL7ck3TFiIAf7N6_7SHvqk0MDYMEQcoGGlkUAAw",
       },
@@ -21,7 +21,11 @@ describe("SdJwt4VC", () => {
         sub: "216f8946-9ecb-4819-9309-c076f34a7e11",
         _sd_alg: "sha-256",
         vct: "PersonIdentificationData",
+        "vct#integrity":
+          "13e25888ac7b8a3a6d61440da787fccc81654e61085732bcacd89b36aec32675",
         iss: "https://pidprovider.example.com",
+        issuing_country: "IT",
+        issuing_authority: "Istituto Poligrafico e Zecca dello Stato",
         cnf: {
           jwk: {
             kty: "EC",
@@ -33,7 +37,7 @@ describe("SdJwt4VC", () => {
         },
         exp: 1751107255,
         status: {
-          status_attestation: {
+          status_assertion: {
             credential_hash_alg: "sha-256",
           },
         },

@@ -100,7 +100,7 @@ const extractMissingCredentials = (
 ): NotFoundDetail[] => {
   return getDcqlQueryFailedMatches(queryResult).map(([id]) => {
     const credential = originalQuery.credentials.find((c) => c.id === id);
-    if (credential?.format !== "vc+sd-jwt") {
+    if (credential?.format !== "dc+sd-jwt") {
       throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
     }
     return { id, vctValues: credential.meta?.vct_values };
