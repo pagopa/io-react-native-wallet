@@ -1,7 +1,10 @@
 # 🪪 @pagopa/io-react-native-wallet
 
+> [!WARNING]
+> The work to align the library to IT-Wallet v1.0.0 is still ongoing. After implementing the updated specs, the library will be published as v2. For IT-Wallet v0.7.1 please use v0.3.0.
+
 Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via a predefined flows, a set of utilities and helpers.
-Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications, currently aligned with version [0.7.1](https://github.com/italia/eudi-wallet-it-docs/releases/tag/0.7.1).
+Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications, currently aligned with version [1.0.0](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.0.0).
 
 ## Dependencies
 
