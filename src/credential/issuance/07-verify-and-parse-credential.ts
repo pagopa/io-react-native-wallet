@@ -9,8 +9,12 @@ import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
 import { LogLevel, Logger } from "../../utils/logging";
 
+type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
+type CredentialConf =
+  IssuerConf["openid_credential_issuer"]["credential_configurations_supported"][string];
+
 export type VerifyAndParseCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: IssuerConf,
   credential: Out<ObtainCredential>["credential"],
   credentialConfigurationId: string,
   context: {
@@ -54,8 +58,8 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 };
 
 const parseCredentialSdJwt = (
-  // the list of supported credentials, as defined in the issuer configuration
-  credentialConfig: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"][string],
+  // The credential configuration to use to parse the provided cedential
+  credentialConfig: CredentialConf,
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
