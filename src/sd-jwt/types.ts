@@ -64,6 +64,10 @@ export const SdJwt4VC = z.object({
   ),
 });
 
+/**
+ * Object containing User authentication and User data verification information.
+ * Useful to extract the assurance level to determine L2/L3 authentication.
+ */
 export type Verification = z.infer<typeof Verification>;
 export const Verification = z.object({
   trust_framework: z.string(),
