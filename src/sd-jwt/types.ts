@@ -64,6 +64,24 @@ export const SdJwt4VC = z.object({
   ),
 });
 
+export type Verification = z.infer<typeof Verification>;
+export const Verification = z.object({
+  trust_framework: z.string(),
+  assurance_level: z.string(),
+  evidence: z.array(
+    z.object({
+      type: z.literal("vouch"),
+      time: z.string(),
+      attestation: z.object({
+        type: z.literal("digital_attestation"),
+        reference_number: z.string(),
+        date_of_issuance: z.string(),
+        voucher: z.object({ organization: z.string() }),
+      }),
+    })
+  ),
+});
+
 /**
  * Metadata for a digital credential. This information is retrieved from the URL defined in the `vct` claim.
  *
