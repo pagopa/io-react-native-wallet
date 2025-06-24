@@ -2141,10 +2141,10 @@
     react-native-svg "^15.1.0"
     rn-placeholder "1.3.3"
 
-"@pagopa/io-react-native-crypto@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.1.1.tgz#dd9226679d81259cd9d093df7947248105090851"
-  integrity sha512-QqaLnQDTrTOBC92cxR4LwPybZ5i0IrkIDDmLHyAhX9T3jLqVg7WY05BcM7kFyuZfc/ZGcrKpRoo058GGa79QMw==
+"@pagopa/io-react-native-crypto@^1.1.3":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.1.tgz#89f7ea4c720f6cde204e1b6b24a113feaf2ba493"
+  integrity sha512-O7pucZCK9D+SWcmmBmB66P6XL/OPXLJm8k2zNYCgjf4OR2o6Kn/Vbzkk6JptraG2EgGL1iKvjNc7hJxd0YTh+g==
 
 "@pagopa/io-react-native-integrity@^0.3.1":
   version "0.3.1"
