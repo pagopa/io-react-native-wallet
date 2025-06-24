@@ -134,8 +134,7 @@ export async function validateTrustChain(
       // remove the anchor from the chain being passed, as it's supplied separately.
       if (
         certChainToPassToNative.length > 1 &&
-        certChainToPassToNative[certChainToPassToNative.length - 1] ===
-          x509TrustAnchorCertBase64
+        certChainToPassToNative.at(-1) === x509TrustAnchorCertBase64
       ) {
         certChainToPassToNative.pop(); // Remove the last element
       }

@@ -61,10 +61,10 @@ export function getTrustAnchorX509Certificate(
 
   if (taSigningJwk.x5c && taSigningJwk.x5c.length > 0 && taSigningJwk.x5c[0]) {
     return taSigningJwk.x5c[0];
-  } else {
-    throw new FederationError(
-      `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' does not contain a valid 'x5c' certificate array.`,
-      { trustAnchorKid: taHeaderKid, reason: "Missing or empty x5c in JWK" }
-    );
   }
+
+  throw new FederationError(
+    `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' does not contain a valid 'x5c' certificate array.`,
+    { trustAnchorKid: taHeaderKid, reason: "Missing or empty x5c in JWK" }
+  );
 }
