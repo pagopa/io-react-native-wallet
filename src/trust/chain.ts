@@ -15,6 +15,7 @@ import {
 import {
   FederationError,
   MissingFederationFetchEndpointError,
+  MissingX509CertsError,
   TrustChainEmptyError,
   TrustChainRenewalError,
   TrustChainTokenMissingError,
@@ -124,39 +125,45 @@ export async function validateTrustChain(
       );
     }
 
-    // Check if the JWK contains an X.509 certificate chain ('x5c' parameter)
-    if (jwkUsedForVerification.x5c && jwkUsedForVerification.x5c.length > 0) {
-      const originalX5cChain: string[] = jwkUsedForVerification.x5c;
-      let certChainToPassToNative = [...originalX5cChain];
+    if (
+      !jwkUsedForVerification.x5c ||
+      jwkUsedForVerification.x5c.length === 0
+    ) {
+      throw new MissingX509CertsError(
+        `JWK with kid '${kidFromTokenHeader}' does not contain an X.509 certificate chain (x5c) for token at index ${i}.`
+      );
+    }
 
-      // If the chain has more than one certificate AND
-      // the last certificate in the x5c chain is the same as the trust anchor,
-      // remove the anchor from the chain being passed, as it's supplied separately.
-      if (
-        certChainToPassToNative.length > 1 &&
-        certChainToPassToNative.at(-1) === x509TrustAnchorCertBase64
-      ) {
-        certChainToPassToNative.pop(); // Remove the last element
-      }
+    const originalX5cChain: string[] = jwkUsedForVerification.x5c;
+    let certChainToPassToNative = [...originalX5cChain];
 
-      const x509ValidationResult: CertificateValidationResult =
-        await verifyCertificateChain(
-          certChainToPassToNative,
-          x509TrustAnchorCertBase64,
-          x509Options
-        );
+    // If the chain has more than one certificate AND
+    // the last certificate in the x5c chain is the same as the trust anchor,
+    // remove the anchor from the chain being passed, as it's supplied separately.
+    if (
+      certChainToPassToNative.length > 1 &&
+      certChainToPassToNative.at(-1) === x509TrustAnchorCertBase64
+    ) {
+      certChainToPassToNative.pop(); // Remove the last element
+    }
 
-      if (!x509ValidationResult.isValid) {
-        throw new X509ValidationError(
-          `X.509 certificate chain validation failed for token at index ${i} (kid: ${kidFromTokenHeader}). Status: ${x509ValidationResult.validationStatus}. Error: ${x509ValidationResult.errorMessage}`,
-          {
-            tokenIndex: i,
-            kid: kidFromTokenHeader,
-            x509ValidationStatus: x509ValidationResult.validationStatus,
-            x509ErrorMessage: x509ValidationResult.errorMessage,
-          }
-        );
-      }
+    const x509ValidationResult: CertificateValidationResult =
+      await verifyCertificateChain(
+        certChainToPassToNative,
+        x509TrustAnchorCertBase64,
+        x509Options
+      );
+
+    if (!x509ValidationResult.isValid) {
+      throw new X509ValidationError(
+        `X.509 certificate chain validation failed for token at index ${i} (kid: ${kidFromTokenHeader}). Status: ${x509ValidationResult.validationStatus}. Error: ${x509ValidationResult.errorMessage}`,
+        {
+          tokenIndex: i,
+          kid: kidFromTokenHeader,
+          x509ValidationStatus: x509ValidationResult.validationStatus,
+          x509ErrorMessage: x509ValidationResult.errorMessage,
+        }
+      );
     }
     return parsedToken;
   });
