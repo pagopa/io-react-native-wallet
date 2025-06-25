@@ -134,22 +134,18 @@ export async function validateTrustChain(
       );
     }
 
-    const originalX5cChain: string[] = jwkUsedForVerification.x5c;
-    let certChainToPassToNative = [...originalX5cChain];
-
     // If the chain has more than one certificate AND
     // the last certificate in the x5c chain is the same as the trust anchor,
     // remove the anchor from the chain being passed, as it's supplied separately.
-    if (
-      certChainToPassToNative.length > 1 &&
-      certChainToPassToNative.at(-1) === x509TrustAnchorCertBase64
-    ) {
-      certChainToPassToNative.pop(); // Remove the last element
-    }
+    const certChainBase64 =
+      jwkUsedForVerification.x5c.length > 1 &&
+      jwkUsedForVerification.x5c.at(-1) === x509TrustAnchorCertBase64
+        ? jwkUsedForVerification.x5c.slice(0, -1)
+        : jwkUsedForVerification.x5c;
 
     const x509ValidationResult: CertificateValidationResult =
       await verifyCertificateChain(
-        certChainToPassToNative,
+        certChainBase64,
         x509TrustAnchorCertBase64,
         x509Options
       );
