@@ -6,13 +6,26 @@ import {
 import { JWK } from "../utils/jwk";
 import * as z from "zod";
 import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
-import { decode, type ParsedToken, verify } from "./utils";
 import {
+  decode,
+  getTrustAnchorX509Certificate,
+  type ParsedToken,
+  verify,
+} from "./utils";
+import {
+  FederationError,
   MissingFederationFetchEndpointError,
+  MissingX509CertsError,
   TrustChainEmptyError,
   TrustChainRenewalError,
   TrustChainTokenMissingError,
+  X509ValidationError,
 } from "./errors";
+import {
+  type CertificateValidationResult,
+  verifyCertificateChain,
+  type X509CertificateOptions,
+} from "@pagopa/io-react-native-crypto";
 
 // The first element of the chain is supposed to be the Entity Configuration for the document issuer
 const FirstElementShape = EntityConfiguration;
@@ -26,16 +39,18 @@ const LastElementShape = z.union([
 ]);
 
 /**
- * Validates a provided trust chain against a known trust
+ * Validates a provided trust chain against a known trust anchor, including X.509 certificate checks.
  *
- * @param trustAnchorEntity The entity configuration of the known trust anchor
- * @param chain The chain of statements to be validated
- * @returns The list of parsed token representing the chain
- * @throws {FederationError} If the chain is not valid
+ * @param trustAnchorEntity The entity configuration of the known trust anchor (for JWT validation).
+ * @param chain The chain of statements to be validated.
+ * @param x509Options Options for X.509 certificate validation.
+ * @returns The list of parsed tokens representing the chain.
+ * @throws {FederationError} If the chain is not valid (JWT or X.509). Specific errors like TrustChainEmptyError, X509ValidationError may be thrown.
  */
 export async function validateTrustChain(
   trustAnchorEntity: TrustAnchorEntityConfiguration,
-  chain: string[]
+  chain: string[],
+  x509Options: X509CertificateOptions
 ): Promise<ParsedToken[]> {
   // If the chain is empty, fail
   if (chain.length === 0) {
@@ -50,7 +65,7 @@ export async function validateTrustChain(
         ? LastElementShape
         : MiddleElementShape;
 
-  // select the kid from the current index
+  // Select the kid from the current index
   const selectKid = (currentIndex: number): string => {
     const token = chain[currentIndex];
     if (!token) {
@@ -63,8 +78,8 @@ export async function validateTrustChain(
     return shape.parse(decode(token)).header.kid;
   };
 
-  // select keys from the next token
-  // if the current token is the last, keys from trust anchor will be used
+  // Select keys from the next token
+  // If the current token is the last, keys from trust anchor will be used
   const selectKeys = (currentIndex: number): JWK[] => {
     if (currentIndex === chain.length - 1) {
       return trustAnchorEntity.payload.jwks.keys;
@@ -82,13 +97,74 @@ export async function validateTrustChain(
     return shape.parse(decode(nextToken)).payload.jwks.keys;
   };
 
+  const x509TrustAnchorCertBase64 =
+    getTrustAnchorX509Certificate(trustAnchorEntity);
+
   // Iterate the chain and validate each element's signature against the public keys of its next
   // If there is no next, hence it's the end of the chain, and it must be verified by the Trust Anchor
-  return Promise.all(
-    chain
-      .map((token, i) => [token, selectKid(i), selectKeys(i)] as const)
-      .map((args) => verify(...args))
-  );
+  const validationPromises = chain.map(async (tokenString, i) => {
+    const kidFromTokenHeader = selectKid(i);
+    const signerJwks = selectKeys(i);
+
+    // Step 1: Verify JWT signature
+    const parsedToken = await verify(
+      tokenString,
+      kidFromTokenHeader,
+      signerJwks
+    );
+
+    // Step 2: X.509 Certificate Chain Validation
+    const jwkUsedForVerification = signerJwks.find(
+      (k) => k.kid === kidFromTokenHeader
+    );
+
+    if (!jwkUsedForVerification) {
+      throw new FederationError(
+        `JWK with kid '${kidFromTokenHeader}' was not found in signer's JWKS for token at index ${i}, though JWT verification passed.`,
+        { tokenIndex: i, kid: kidFromTokenHeader }
+      );
+    }
+
+    if (
+      !jwkUsedForVerification.x5c ||
+      jwkUsedForVerification.x5c.length === 0
+    ) {
+      throw new MissingX509CertsError(
+        `JWK with kid '${kidFromTokenHeader}' does not contain an X.509 certificate chain (x5c) for token at index ${i}.`
+      );
+    }
+
+    // If the chain has more than one certificate AND
+    // the last certificate in the x5c chain is the same as the trust anchor,
+    // remove the anchor from the chain being passed, as it's supplied separately.
+    const certChainBase64 =
+      jwkUsedForVerification.x5c.length > 1 &&
+      jwkUsedForVerification.x5c.at(-1) === x509TrustAnchorCertBase64
+        ? jwkUsedForVerification.x5c.slice(0, -1)
+        : jwkUsedForVerification.x5c;
+
+    const x509ValidationResult: CertificateValidationResult =
+      await verifyCertificateChain(
+        certChainBase64,
+        x509TrustAnchorCertBase64,
+        x509Options
+      );
+
+    if (!x509ValidationResult.isValid) {
+      throw new X509ValidationError(
+        `X.509 certificate chain validation failed for token at index ${i} (kid: ${kidFromTokenHeader}). Status: ${x509ValidationResult.validationStatus}. Error: ${x509ValidationResult.errorMessage}`,
+        {
+          tokenIndex: i,
+          kid: kidFromTokenHeader,
+          x509ValidationStatus: x509ValidationResult.validationStatus,
+          x509ErrorMessage: x509ValidationResult.errorMessage,
+        }
+      );
+    }
+    return parsedToken;
+  });
+
+  return Promise.all(validationPromises);
 }
 
 /**
