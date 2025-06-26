@@ -33,6 +33,7 @@ import {
   QrScannerScreen,
   type QrScannerScreenParams,
 } from "../screens/QrScannerScreen";
+import { TrustScreen } from "../screens/TrustScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -55,6 +56,7 @@ export type MainStackNavParamList = {
     redirectUri: string;
   };
   Presentations: undefined;
+  Trust: undefined;
   QrScanner: QrScannerScreenParams;
 };
 
@@ -143,6 +145,11 @@ export const MainStackNavigator = () => {
               name="Presentations"
               component={PresentationScreen}
               options={{ title: "Presentation" }}
+            />
+            <Stack.Screen
+              name="Trust"
+              component={TrustScreen}
+              options={{ title: "Trust" }}
             />
             <Stack.Screen
               name="QrScanner"
