@@ -53,7 +53,7 @@ export const getPidCieIDThunk = createAppAsyncThunk<
   const env = selectEnv(getState());
   const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
 
-  const { idpHint, credentialType } = args;
+  const { idpHint } = args;
   // Resets the credential state before obtaining a new PID
   dispatch(credentialReset());
   return await getPidCieID({
@@ -62,6 +62,5 @@ export const getPidCieIDThunk = createAppAsyncThunk<
     idpHint,
     walletInstanceAttestation,
     wiaCryptoContext,
-    credentialType,
   });
 });

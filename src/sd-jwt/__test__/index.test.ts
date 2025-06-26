@@ -3,39 +3,14 @@ import { decode, disclose } from "../index";
 
 import { encodeBase64, decodeBase64 } from "@pagopa/io-react-native-jwt";
 import { SdJwt4VC } from "../types";
+import { pid } from "../__mocks__/sd-jwt";
 
-// Examples from https://www.ietf.org/archive/id/draft-terbu-sd-jwt-vc-02.html#name-example-4
-// but adapted to adhere to format declared in https://italia.github.io/eudi-wallet-it-docs/versione-corrente/en/pid-eaa-data-model.html#id2
-// In short, the token is a Frankenstein composed as follows:
-//  - the header is taken from the italian specification, with kid and alg valued according to the signing keys
-//  - disclosures are taken from the SD-JWT-4-VC standard
-//  - payload is taken from the italian specification, but _sd are compiled with:
-//    - "address" is used as verification._sd
-//    - all others disclosures are in claims._sd
-const token =
-  "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2QiOlsiMHExRDVKbWF2NnBRYUVoX0pfRmN2X3VOTk1RSWdDeWhRT3hxbFk0bDNxVSIsIktDSi1BVk52ODhkLXhqNnNVSUFPSnhGbmJVaDNySFhES2tJSDFsRnFiUnMiLCJNOWxvOVl4RE5JWHJBcTJxV2VpQ0E0MHpwSl96WWZGZFJfNEFFQUxjUnRVIiwiY3pnalVrMG5xUkNzd1NoQ2hDamRTNkExLXY0N2RfcVRDU0ZJdklIaE1vSSIsIm5HblFyN2NsbTN0ZlRwOHlqTF91SHJEU090elIyUFZiOFM3R2VMZEFxQlEiLCJ4TklWd2xwU3NhWjhDSlNmMGd6NXhfNzVWUldXYzZWMW1scGVqZENycVVzIl0sInN1YiI6IjIxNmY4OTQ2LTllY2ItNDgxOS05MzA5LWMwNzZmMzRhN2UxMSIsIl9zZF9hbGciOiJzaGEtMjU2IiwidmN0IjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwiaXNzIjoiaHR0cHM6Ly9wcmUuZWlkLndhbGxldC5pcHpzLml0IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2Iiwia2lkIjoiUnYzVy1FaUtwdkJUeWs1eVp4dnJldi03TURCNlNselVDQm9fQ1FqamRkVSIsIngiOiIwV294N1F0eVBxQnlnMzVNSF9YeUNjbmQ1TGUtSm0wQVhIbFVnREJBMDNZIiwieSI6ImVFaFZ2ZzFKUHFOZDNEVFNhNG1HREdCbHdZNk5QLUVaYkxiTkZYU1h3SWcifX0sImV4cCI6MTc1MTU0NjU3Niwic3RhdHVzIjp7InN0YXR1c19hdHRlc3RhdGlvbiI6eyJjcmVkZW50aWFsX2hhc2hfYWxnIjoic2hhLTI1NiJ9fX0.qXHA2oqr8trX4fGxpxpUft2GX380TM3pzfo1MYAsDjUC8HsODA-4rdRWAvDe2zYP57x4tJU7eiABkd1Kmln9yQ~WyJrSkRFUDhFYU5URU1CRE9aelp6VDR3IiwidW5pcXVlX2lkIiwiVElOSVQtTFZMREFBODVUNTBHNzAyQiJd~WyJ6SUF5VUZ2UGZJcEUxekJxeEk1aGFRIiwiYmlydGhfZGF0ZSIsIjE5ODUtMTItMTAiXQ~WyJHcjNSM3MyOTBPa1FVbS1ORlR1OTZBIiwidGF4X2lkX2NvZGUiLCJUSU5JVC1MVkxEQUE4NVQ1MEc3MDJCIl0~WyJHeE9SYWxNQWVsZlowZWRGSmpqWVV3IiwiZ2l2ZW5fbmFtZSIsIkFkYSJd~WyJfdlY1UklrbDBJT0VYS290czlrdDF3IiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd~WyJDajV0Y2NSNzJKd3J6ZTJUVzRhLXdnIiwiaWF0IiwxNzIwMDEwNTc1XQ";
-
-const unsigned =
-  "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2QiOlsiMHExRDVKbWF2NnBRYUVoX0pfRmN2X3VOTk1RSWdDeWhRT3hxbFk0bDNxVSIsIktDSi1BVk52ODhkLXhqNnNVSUFPSnhGbmJVaDNySFhES2tJSDFsRnFiUnMiLCJNOWxvOVl4RE5JWHJBcTJxV2VpQ0E0MHpwSl96WWZGZFJfNEFFQUxjUnRVIiwiY3pnalVrMG5xUkNzd1NoQ2hDamRTNkExLXY0N2RfcVRDU0ZJdklIaE1vSSIsIm5HblFyN2NsbTN0ZlRwOHlqTF91SHJEU090elIyUFZiOFM3R2VMZEFxQlEiLCJ4TklWd2xwU3NhWjhDSlNmMGd6NXhfNzVWUldXYzZWMW1scGVqZENycVVzIl0sInN1YiI6IjIxNmY4OTQ2LTllY2ItNDgxOS05MzA5LWMwNzZmMzRhN2UxMSIsIl9zZF9hbGciOiJzaGEtMjU2IiwidmN0IjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwiaXNzIjoiaHR0cHM6Ly9wcmUuZWlkLndhbGxldC5pcHpzLml0IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2Iiwia2lkIjoiUnYzVy1FaUtwdkJUeWs1eVp4dnJldi03TURCNlNselVDQm9fQ1FqamRkVSIsIngiOiIwV294N1F0eVBxQnlnMzVNSF9YeUNjbmQ1TGUtSm0wQVhIbFVnREJBMDNZIiwieSI6ImVFaFZ2ZzFKUHFOZDNEVFNhNG1HREdCbHdZNk5QLUVaYkxiTkZYU1h3SWcifX0sImV4cCI6MTc1MTU0NjU3Niwic3RhdHVzIjp7InN0YXR1c19hdHRlc3RhdGlvbiI6eyJjcmVkZW50aWFsX2hhc2hfYWxnIjoic2hhLTI1NiJ9fX0";
-
-const signature =
-  "qXHA2oqr8trX4fGxpxpUft2GX380TM3pzfo1MYAsDjUC8HsODA-4rdRWAvDe2zYP57x4tJU7eiABkd1Kmln9yQ";
-
-const signed = `${unsigned}.${signature}`;
-
-const tokenizedDisclosures = [
-  "WyJrSkRFUDhFYU5URU1CRE9aelp6VDR3IiwidW5pcXVlX2lkIiwiVElOSVQtTFZMREFBODVUNTBHNzAyQiJd",
-  "WyJ6SUF5VUZ2UGZJcEUxekJxeEk1aGFRIiwiYmlydGhfZGF0ZSIsIjE5ODUtMTItMTAiXQ",
-  "WyJHcjNSM3MyOTBPa1FVbS1ORlR1OTZBIiwidGF4X2lkX2NvZGUiLCJUSU5JVC1MVkxEQUE4NVQ1MEc3MDJCIl0",
-  "WyJHeE9SYWxNQWVsZlowZWRGSmpqWVV3IiwiZ2l2ZW5fbmFtZSIsIkFkYSJd",
-  "WyJfdlY1UklrbDBJT0VYS290czlrdDF3IiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd",
-  "WyJDajV0Y2NSNzJKd3J6ZTJUVzRhLXdnIiwiaWF0IiwxNzIwMDEwNTc1XQ",
-];
+const { token, signed, tokenizedDisclosures } = pid;
 
 const sdJwt = {
   header: {
     kid: "-F_6Uga8n3VegjY2U7YUHK1zLoaD-NPTc63RMISnLaw",
-    typ: "vc+sd-jwt",
+    typ: "dc+sd-jwt",
     alg: "ES256",
   },
   payload: {
@@ -50,7 +25,11 @@ const sdJwt = {
     sub: "216f8946-9ecb-4819-9309-c076f34a7e11",
     _sd_alg: "sha-256",
     vct: "PersonIdentificationData",
+    "vct#integrity":
+      "13e25888ac7b8a3a6d61440da787fccc81654e61085732bcacd89b36aec32675",
     iss: "https://pre.eid.wallet.ipzs.it",
+    issuing_country: "IT",
+    issuing_authority: "Istituto Poligrafico e Zecca dello Stato",
     cnf: {
       jwk: {
         kty: "EC",
@@ -62,7 +41,7 @@ const sdJwt = {
     },
     exp: 1751546576,
     status: {
-      status_attestation: {
+      status_assertion: {
         credential_hash_alg: "sha-256",
       },
     },

@@ -10,6 +10,8 @@ import * as Errors from "./errors";
 import { Base64 } from "js-base64";
 import { type Presentation } from "../credential/presentation/types";
 
+export * from "./utils";
+
 const decodeDisclosure = (encoded: string): DisclosureWithEncoded => {
   const utf8String = Base64.decode(encoded); // Decode Base64 into UTF-8 string
   const decoded = Disclosure.parse(JSON.parse(utf8String));
