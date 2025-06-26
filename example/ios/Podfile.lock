@@ -9,7 +9,7 @@ PODS:
   - hermes-engine/Pre-built (0.75.5)
   - JOSESwift (3.0.0)
   - OpenSSL-Universal (3.3.3001)
-  - pagopa-io-react-native-crypto (1.2.1):
+  - pagopa-io-react-native-crypto (1.2.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2010,7 +2010,7 @@ SPEC CHECKSUMS:
   hermes-engine: c9fe5870af65876125fdbbf833071b6f329db30d
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
-  pagopa-io-react-native-crypto: 8a796cd6d350cc024197f7f1621fa2d65eb44ac7
+  pagopa-io-react-native-crypto: bcb3de29a2a59dbd48cd68e8a8c33622e9fd0276
   pagopa-io-react-native-integrity: 48c93d245cfea4bcbfeaab76ab5cda83e0e9c8c0
   pagopa-io-react-native-jwt: 4f1c348d8260f0dc882412243531b3a516608e97
   pagopa-io-react-native-secure-storage: 0297d41360d93f89e9f89c8412b99916e0dbf520
