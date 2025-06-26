@@ -1,4 +1,3 @@
-import type { CredentialIssuerEntityConfiguration } from "../../trust";
 import {
   extractErrorMessageFromIssuerConf,
   isIssuerResponseError,
@@ -13,6 +12,7 @@ import {
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../errors";
+import type { CredentialIssuerEntityConfiguration } from "../../trust/types";
 
 type EntityConfig = CredentialIssuerEntityConfiguration["payload"]["metadata"];
 

@@ -2,14 +2,14 @@ import {
   RelyingPartyResponseError,
   RelyingPartyResponseErrorCodes,
 } from "../../../utils/errors";
-import type { RelyingPartyEntityConfiguration } from "../../../trust";
 import {
   buildDirectPostBody,
   buildDirectPostJwtBody,
-  sendAuthorizationResponse,
   sendAuthorizationErrorResponse,
+  sendAuthorizationResponse,
 } from "../08-send-authorization-response";
 import type { RemotePresentation, RequestObject } from "../types";
+import type { RelyingPartyEntityConfiguration } from "../../../trust/types";
 
 jest.mock("@pagopa/io-react-native-jwt", () => {
   const actualModule = jest.requireActual("@pagopa/io-react-native-jwt");
