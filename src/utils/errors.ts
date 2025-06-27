@@ -1,13 +1,13 @@
 import type { ProblemDetail } from "../client/generated/wallet-provider";
-import type { CredentialIssuerEntityConfiguration } from "../trust";
 import {
-  IssuerResponseErrorCodes,
-  WalletProviderResponseErrorCodes,
-  RelyingPartyResponseErrorCodes,
   type IssuerResponseErrorCode,
-  type WalletProviderResponseErrorCode,
+  IssuerResponseErrorCodes,
   type RelyingPartyResponseErrorCode,
+  RelyingPartyResponseErrorCodes,
+  type WalletProviderResponseErrorCode,
+  WalletProviderResponseErrorCodes,
 } from "./error-codes";
+import type { CredentialIssuerEntityConfiguration } from "../trust/types";
 
 export {
   IssuerResponseErrorCodes,

@@ -1,4 +1,3 @@
-import { buildTrustChain, verifyTrustChain } from "../index";
 import {
   intermediateEntityConfiguration,
   intermediateEntityStatement,
@@ -7,6 +6,8 @@ import {
   signed,
   trustAnchorEntityConfiguration,
 } from "../__mocks__/entity-statements";
+import { buildTrustChain } from "../build-chain";
+import { verifyTrustChain } from "../verify-chain";
 
 // Dummy base URLs aligned with our non‑regulatory examples
 const leafBaseUrl = "https://leaf.example";

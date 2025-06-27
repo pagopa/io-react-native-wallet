@@ -1,11 +1,7 @@
 import { createAppAsyncThunk } from "./utils";
 import appFetch from "../utils/fetch";
 import type { ParsedToken } from "../../../src/trust/utils";
-import {
-  buildTrustChain,
-  getTrustAnchorEntityConfiguration,
-  verifyTrustChain,
-} from "../../../src/trust";
+import { Trust } from "@pagopa/io-react-native-wallet";
 
 export type ValidateTrustChainThunkInput = {
   relyingPartyUrl: string;
@@ -23,12 +19,10 @@ export const validateTrustChainThunk = createAppAsyncThunk<
   // 1. Get Trust Anchor Entity Configuration
   console.log("Fetching Trust Anchor Entity Configuration...", trustAnchorUrl);
   console.log("Verifying Trust Chain for Relying Party URL:", relyingPartyUrl);
-  const trustAnchorEntityConfig = await getTrustAnchorEntityConfiguration(
-    trustAnchorUrl,
-    {
+  const trustAnchorEntityConfig =
+    await Trust.Build.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
       appFetch,
-    }
-  );
+    });
 
   const trustAnchorKey = trustAnchorEntityConfig.payload.jwks.keys[0];
   if (!trustAnchorKey) {
@@ -36,7 +30,7 @@ export const validateTrustChainThunk = createAppAsyncThunk<
   }
 
   // This function internally gathers and performs initial verifications.
-  const builtChainJwts = await buildTrustChain(
+  const builtChainJwts = await Trust.Build.buildTrustChain(
     relyingPartyUrl,
     trustAnchorKey,
     appFetch
@@ -45,7 +39,7 @@ export const validateTrustChainThunk = createAppAsyncThunk<
   console.log("✅ Chain built successfully");
 
   // Perform full validation on the built chain (including X.509 if configured)
-  const validatedChainTokens = await verifyTrustChain(
+  const validatedChainTokens = await Trust.Verify.verifyTrustChain(
     trustAnchorEntityConfig,
     builtChainJwts,
     {

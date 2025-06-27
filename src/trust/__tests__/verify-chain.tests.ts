@@ -1,6 +1,5 @@
 // helper to assert type
-const testType = <T>(_: T) => true;
-
+import { verifyTrustChain } from "../verify-chain";
 import {
   CredentialIssuerEntityConfiguration,
   EntityConfiguration,
@@ -8,14 +7,6 @@ import {
   TrustAnchorEntityConfiguration,
   WalletProviderEntityConfiguration,
 } from "../types";
-import {
-  getCredentialIssuerEntityConfiguration,
-  getEntityConfiguration,
-  getRelyingPartyEntityConfiguration,
-  getTrustAnchorEntityConfiguration,
-  getWalletProviderEntityConfiguration,
-  verifyTrustChain,
-} from "..";
 import {
   intermediateEntityStatement,
   leafEntityConfiguration,
@@ -25,6 +16,15 @@ import {
 } from "../__mocks__/entity-statements";
 
 import * as mockEC from "../__mocks__/entity-configurations";
+import {
+  getCredentialIssuerEntityConfiguration,
+  getEntityConfiguration,
+  getRelyingPartyEntityConfiguration,
+  getTrustAnchorEntityConfiguration,
+  getWalletProviderEntityConfiguration,
+} from "../build-chain";
+
+const testType = <T>(_: T) => true;
 
 describe("verifyTrustChain", () => {
   it("should throw on empty trust chain", async () => {

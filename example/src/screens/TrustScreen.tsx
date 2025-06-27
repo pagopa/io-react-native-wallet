@@ -29,7 +29,7 @@ export const TrustScreen = () => {
   const { isValid, validatedChain, validationError, asyncStatus } =
     useAppSelector(selectTrustValidationState);
   const env = useAppSelector(selectEnv);
-  const { WALLET_TA_BASE_URL } = getEnv(env);
+  const { WALLET_TA_BASE_URL, WALLET_PID_PROVIDER_BASE_URL } = getEnv(env);
 
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
   useDebugInfo({
@@ -80,8 +80,15 @@ export const TrustScreen = () => {
         icon: "locked",
         successMessage: "Chain Valid",
       },
+      {
+        id: "ipzs-iss-pid",
+        title: "Validate Trust Chain (IPZS-ISS-PID)",
+        relyingPartyUrl: WALLET_PID_PROVIDER_BASE_URL, // IPZS PID Issuance
+        icon: "locked",
+        successMessage: "Chain Valid",
+      },
     ],
-    []
+    [WALLET_PID_PROVIDER_BASE_URL]
   );
 
   const scenarios: Array<ScenarioData> = useMemo(

@@ -1,11 +1,11 @@
 // __tests__/evaluateRelyingPartyTrust.test.ts
 
 import { evaluateRelyingPartyTrust } from "../02-evaluate-rp-trust";
-import { getRelyingPartyEntityConfiguration } from "../../../trust";
+import { getRelyingPartyEntityConfiguration } from "../../../trust/build-chain";
 import { RelyingPartyEntityConfiguration } from "../../../trust/types";
 
 // Mock the getRelyingPartyEntityConfiguration module
-jest.mock("../../../trust", () => ({
+jest.mock("../../../trust/build-chain", () => ({
   getRelyingPartyEntityConfiguration: jest.fn(),
 }));
 
