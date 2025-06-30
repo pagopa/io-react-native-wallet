@@ -34,7 +34,6 @@ export default function PidSpidIdpSelectionScreen({ navigation }: Props) {
           preparePidFlowParamsThunk({
             idpHint,
             authMethod: "spid",
-            credentialType: "PersonIdentificationData",
           })
         ).unwrap();
         navigation.navigate("PidSpidLogin", { authUrl, redirectUri });

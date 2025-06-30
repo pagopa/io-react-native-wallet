@@ -7,5 +7,5 @@
  */
 export type StartFlow = () => {
   issuerUrl: string;
-  credentialType: string;
+  credentialConfigId: string;
 };

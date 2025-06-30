@@ -72,6 +72,8 @@ The expected result from the authentication process is in `form_post.jwt` format
   <summary>Credential issuance flow</summary>
 
 ```ts
+// TODO: [SIW-2209] update documentation in PR #219
+
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the key tag used to create the wallet instance
 const integrityContext = getIntegrityContext(integrityKeyTag);
@@ -251,10 +253,10 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 // Start the issuance flow
 const startFlow: Credential.Issuance.StartFlow = () => ({
   issuerUrl: WALLET_EID_PROVIDER_BASE_URL,
-  credentialType: "dc_sd_jwt_PersonIdentificationData",
+  credentialConfigId: "dc_sd_jwt_PersonIdentificationData",
 });
 
-const { issuerUrl } = startFlow();
+const { issuerUrl, credentialConfigId } = startFlow();
 
 // Evaluate issuer trust
 const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -266,7 +268,7 @@ const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
   await Credential.Issuance.startUserAuthorization(
     issuerConf,
-    [credentialType], // Request authorization for one or more credentials
+    [credentialConfigId], // Request authorization for one or more credentials
     {
       walletInstanceAttestation,
       redirectUri,
@@ -344,8 +346,8 @@ return {
   parsedCredential,
   credential,
   credentialConfigurationId: credential_configuration_id
+  credentialType: "PersonIdentificationData",
   keyTag: credentialKeyTag,
-  credentialType,
   issuedAt,
   expiration
 };

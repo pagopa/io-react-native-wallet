@@ -11,11 +11,7 @@ import {
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
-import type {
-  PidAuthMethods,
-  PidResult,
-  SupportedCredentials,
-} from "../store/types";
+import type { PidAuthMethods, PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -32,7 +28,6 @@ export const CIE_L3_REDIRECT_URI = "https://cie.callback";
 type PreparePidFlowParamsThunkInput = {
   idpHint: string;
   authMethod: PidAuthMethods;
-  credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
   ciePin?: string;
 };
 
@@ -72,7 +67,6 @@ export type PreparePidFlowParamsThunkOutput = {
  * The flow can be managed using either SPID or CIE L3 as the authentication method.
  * @param args.idpHint The identity provider hint to use in the issuance flow.
  * @param args.authMethod The authentication method to use, either SPID or CIE L3.
- * @param args.credentialType The type of credential to be issued.
  * @param args.ciePin The CIE PIN to use in the issuance flow (optional, only for CIE L3).
  * @returns The needed parameters to continue the issuance flow.
  */
@@ -108,10 +102,10 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-    credentialType: "dc_sd_jwt_PersonIdentificationData",
+    credentialConfigId: "dc_sd_jwt_PersonIdentificationData",
   });
 
-  const { issuerUrl, credentialType } = startFlow();
+  const { issuerUrl, credentialConfigId } = startFlow();
 
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -123,7 +117,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      [credentialType],
+      [credentialConfigId],
       {
         walletInstanceAttestation,
         redirectUri: redirectUri,
