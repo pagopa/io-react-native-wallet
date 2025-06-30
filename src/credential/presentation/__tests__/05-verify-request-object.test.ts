@@ -1,8 +1,8 @@
 import * as jwtModule from "@pagopa/io-react-native-jwt";
-import type { RelyingPartyEntityConfiguration } from "../../../trust";
 import { InvalidRequestObjectError } from "../errors";
 import type { RequestObject } from "../types";
 import { verifyRequestObject } from "..";
+import type { RelyingPartyEntityConfiguration } from "../../../trust/types";
 
 const CLIENT_ID = "https://relying_party.rp";
 const VERIFY_RESULT_MOCK = { payload: {}, protectedHeader: {} };

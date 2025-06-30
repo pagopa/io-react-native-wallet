@@ -5,7 +5,6 @@ import {
 } from "./types";
 import { JWK } from "../utils/jwk";
 import * as z from "zod";
-import { getSignedEntityConfiguration, getSignedEntityStatement } from ".";
 import {
   decode,
   getTrustAnchorX509Certificate,
@@ -26,6 +25,10 @@ import {
   verifyCertificateChain,
   type X509CertificateOptions,
 } from "@pagopa/io-react-native-crypto";
+import {
+  getSignedEntityConfiguration,
+  getSignedEntityStatement,
+} from "./build-chain";
 
 // The first element of the chain is supposed to be the Entity Configuration for the document issuer
 const FirstElementShape = EntityConfiguration;
@@ -224,4 +227,41 @@ export async function renewTrustChain(
       );
     })
   );
+}
+
+/**
+ * Verify a given trust chain is actually valid.
+ * It can handle fast chain renewal, which means we try to fetch a fresh version of each statement.
+ *
+ * @param trustAnchorEntity The entity configuration of the known trust anchor
+ * @param chain The chain of statements to be validated
+ * @param x509Options Options for the verification process
+ * @param appFetch (optional) fetch api implementation
+ * @param renewOnFail Whether to attempt to renew the trust chain if the initial validation fails
+ * @returns The result of the chain validation
+ * @throws {FederationError} If the chain is not valid
+ */
+export async function verifyTrustChain(
+  trustAnchorEntity: TrustAnchorEntityConfiguration,
+  chain: string[],
+  x509Options: X509CertificateOptions = {
+    connectTimeout: 10000,
+    readTimeout: 10000,
+    requireCrl: true,
+  },
+  {
+    appFetch = fetch,
+    renewOnFail = true,
+  }: { appFetch?: GlobalFetch["fetch"]; renewOnFail?: boolean } = {}
+): Promise<ReturnType<typeof validateTrustChain>> {
+  try {
+    return validateTrustChain(trustAnchorEntity, chain, x509Options);
+  } catch (error) {
+    if (renewOnFail) {
+      const renewedChain = await renewTrustChain(chain, appFetch);
+      return validateTrustChain(trustAnchorEntity, renewedChain, x509Options);
+    } else {
+      throw error;
+    }
+  }
 }
