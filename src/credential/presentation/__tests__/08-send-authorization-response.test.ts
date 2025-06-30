@@ -45,7 +45,7 @@ const mockRequestObject: RequestObject = {
     credentials: [
       {
         id: "PID",
-        format: "vc+sd-jwt",
+        format: "dc+sd-jwt",
         meta: { vct_values: ["PersonIdentificationData"] },
       },
     ],

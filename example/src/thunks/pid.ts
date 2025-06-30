@@ -108,7 +108,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-    credentialType: "PersonIdentificationData",
+    credentialType: "dc_sd_jwt_PersonIdentificationData",
   });
 
   const { issuerUrl, credentialType } = startFlow();
@@ -123,7 +123,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      credentialType,
+      [credentialType],
       {
         walletInstanceAttestation,
         redirectUri: redirectUri,
@@ -213,11 +213,31 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     }
   );
 
-  const { credential, format } = await Credential.Issuance.obtainCredential(
+  const [pidCredentialDefinition] = credentialDefinition;
+
+  const { credential_configuration_id, credential_identifiers } =
+    accessToken.authorization_details.find(
+      (authDetails) =>
+        authDetails.credential_configuration_id ===
+        pidCredentialDefinition?.credential_configuration_id
+    ) ?? {};
+
+  // Get the first credential_identifier from the access token's authorization details
+  const [credential_identifier] = credential_identifiers ?? [];
+
+  if (!credential_configuration_id) {
+    throw new Error("No credential configuration ID found for PID");
+  }
+
+  // Get the credential identifier that was authorized
+  const { credential } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
-    credentialDefinition,
+    {
+      credential_configuration_id,
+      credential_identifier,
+    },
     {
       credentialCryptoContext,
       dPopCryptoContext,
@@ -229,7 +249,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     await Credential.Issuance.verifyAndParseCredential(
       issuerConf,
       credential,
-      format,
+      credential_configuration_id,
       { credentialCryptoContext }
     );
 
@@ -238,5 +258,6 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     credential,
     keyTag: credentialKeyTag,
     credentialType: "PersonIdentificationData",
+    credentialConfigurationId: credential_configuration_id,
   };
 });

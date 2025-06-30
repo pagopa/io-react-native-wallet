@@ -18,7 +18,7 @@ export const createPopToken = async (
   return new SignJWT(crypto)
     .setPayload(payload)
     .setProtectedHeader({
-      typ: "jwt-client-attestation-pop",
+      typ: "oauth-client-attestation-pop+jwt",
       kid,
     })
     .setIssuedAt()
