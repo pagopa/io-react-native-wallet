@@ -1,7 +1,7 @@
-import { getCredentialIssuerEntityConfiguration } from "../../trust";
 import { CredentialIssuerEntityConfiguration } from "../../trust/types";
 import type { StartFlow } from "./01-start-flow";
 import type { Out } from "../../utils/misc";
+import { getCredentialIssuerEntityConfiguration } from "../../trust/build-chain";
 
 export type EvaluateIssuerTrust = (
   issuerUrl: Out<StartFlow>["issuerUrl"],

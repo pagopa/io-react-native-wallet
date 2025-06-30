@@ -1,8 +1,8 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import type { RelyingPartyEntityConfiguration } from "../../trust";
 import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
 import { getJwksFromConfig } from "./04-retrieve-rp-jwks";
+import type { RelyingPartyEntityConfiguration } from "../../trust/types";
 
 export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
