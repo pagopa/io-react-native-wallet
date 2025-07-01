@@ -193,7 +193,7 @@ export const getCredential = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: credentialIssuerUrl,
-    credentialId: credentialType,
+    credentialId: credentialType, // TODO: [SIW-2209] to fix in PR #219
   });
 
   const { issuerUrl, credentialId } = startFlow();
