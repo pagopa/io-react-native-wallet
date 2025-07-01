@@ -102,10 +102,10 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-    credentialConfigId: "dc_sd_jwt_PersonIdentificationData",
+    credentialId: "dc_sd_jwt_PersonIdentificationData",
   });
 
-  const { issuerUrl, credentialConfigId } = startFlow();
+  const { issuerUrl, credentialId } = startFlow();
 
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -117,7 +117,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      [credentialConfigId],
+      [credentialId],
       {
         walletInstanceAttestation,
         redirectUri: redirectUri,

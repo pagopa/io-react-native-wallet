@@ -26,29 +26,29 @@ export type StartUserAuthorization = (
  * Ensures that the credential type requested is supported by the issuer and contained in the
  * issuer configuration.
  * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param credentialConfigId The credential configuration ID to be requested;
+ * @param credentialId The credential configuration ID to be requested;
  * @returns The credential definition to be used in the request which includes the format and the type and its type
  */
 const selectCredentialDefinition = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credentialConfigId: Out<StartFlow>["credentialConfigId"]
+  credentialId: Out<StartFlow>["credentialId"]
 ): AuthorizationDetail => {
   const credential_configurations_supported =
     issuerConf.openid_credential_issuer.credential_configurations_supported;
 
   const [result] = Object.keys(credential_configurations_supported)
-    .filter((e) => e.includes(credentialConfigId))
+    .filter((e) => e.includes(credentialId))
     .map(() => ({
-      credential_configuration_id: credentialConfigId,
+      credential_configuration_id: credentialId,
       type: "openid_credential" as const,
     }));
 
   if (!result) {
     Logger.log(
       LogLevel.ERROR,
-      `Requested credential ${credentialConfigId} is not supported by the issuer according to its configuration ${JSON.stringify(credential_configurations_supported)}`
+      `Requested credential ${credentialId} is not supported by the issuer according to its configuration ${JSON.stringify(credential_configurations_supported)}`
     );
-    throw new Error(`No credential support the type '${credentialConfigId}'`);
+    throw new Error(`No credential support the type '${credentialId}'`);
   }
   return result;
 };
@@ -57,7 +57,7 @@ const selectCredentialDefinition = (
  * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
  * When multiple credentials are provided, all of them must support the same response_mode.
  * @param issuerConf The issuer configuration
- * @param credentialConfigId The credential configuration IDs to be requested
+ * @param credentialId The credential configuration IDs to be requested
  * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
  */
 const selectResponseMode = (
@@ -69,9 +69,9 @@ const selectResponseMode = (
 
   const responseModeSet = new Set<ResponseMode>();
 
-  for (const credentialConfigId of credentialConfigIds) {
+  for (const credentialId of credentialConfigIds) {
     responseModeSet.add(
-      credentialConfigId.match(/PersonIdentificationData/i)
+      credentialId.match(/PersonIdentificationData/i)
         ? "query"
         : "form_post.jwt"
     );

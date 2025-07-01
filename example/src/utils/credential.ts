@@ -48,10 +48,10 @@ export const getPidCieID = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: pidIssuerUrl,
-    credentialConfigId: "dc_sd_jwt_PersonIdentificationData",
+    credentialId: "dc_sd_jwt_PersonIdentificationData",
   });
 
-  const { issuerUrl, credentialConfigId } = startFlow();
+  const { issuerUrl, credentialId } = startFlow();
 
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -63,7 +63,7 @@ export const getPidCieID = async ({
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      [credentialConfigId],
+      [credentialId],
       {
         walletInstanceAttestation,
         redirectUri,
@@ -193,10 +193,10 @@ export const getCredential = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: credentialIssuerUrl,
-    credentialConfigId: credentialType,
+    credentialId: credentialType,
   });
 
-  const { issuerUrl, credentialConfigId } = startFlow();
+  const { issuerUrl, credentialId } = startFlow();
 
   // Evaluate issuer trust
   const { issuerConf } =
@@ -206,7 +206,7 @@ export const getCredential = async ({
   const { issuerRequestUri, clientId, codeVerifier } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      [credentialConfigId],
+      [credentialId],
       {
         walletInstanceAttestation,
         redirectUri,

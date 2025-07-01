@@ -253,10 +253,10 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 // Start the issuance flow
 const startFlow: Credential.Issuance.StartFlow = () => ({
   issuerUrl: WALLET_EID_PROVIDER_BASE_URL,
-  credentialConfigId: "dc_sd_jwt_PersonIdentificationData",
+  credentialId: "dc_sd_jwt_PersonIdentificationData",
 });
 
-const { issuerUrl, credentialConfigId } = startFlow();
+const { issuerUrl, credentialId } = startFlow();
 
 // Evaluate issuer trust
 const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -268,7 +268,7 @@ const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
   await Credential.Issuance.startUserAuthorization(
     issuerConf,
-    [credentialConfigId], // Request authorization for one or more credentials
+    [credentialId], // Request authorization for one or more credentials
     {
       walletInstanceAttestation,
       redirectUri,
