@@ -107,7 +107,6 @@ export default function TestCieL3Scenario({
                 preparePidFlowParamsThunk({
                   idpHint,
                   authMethod: "cieL3",
-                  credentialType: "PersonIdentificationData",
                   ciePin,
                 })
               );

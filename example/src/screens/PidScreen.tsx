@@ -63,7 +63,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         onPress: () =>
           dispatch(
             getPidCieIDThunk({
-              credentialType: "PersonIdentificationData",
               idpHint: cieIdpHint,
               authMethod: "cieL2",
             })

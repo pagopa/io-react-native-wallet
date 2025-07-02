@@ -33,26 +33,26 @@ export type DisclosureWithEncoded = {
   encoded: string;
 };
 
-const SdJwt4VCEvidence = z.array(
-  z.object({
-    type: z.literal("vouch"),
-    time: UnixTime,
-    attestation: z.object({
-      type: z.literal("digital_attestation"),
-      reference_number: z.string(),
-      date_of_issuance: z.date(),
-      voucher: z.string(),
-    }),
-  })
-);
+// const SdJwt4VCEvidence = z.array(
+//   z.object({
+//     type: z.literal("vouch"),
+//     time: UnixTime,
+//     attestation: z.object({
+//       type: z.literal("digital_attestation"),
+//       reference_number: z.string(),
+//       date_of_issuance: z.date(),
+//       voucher: z.string(),
+//     }),
+//   })
+// );
 
-const SdJwt4VCVerification = z
-  .object({
-    trust_framework: z.string(),
-    assurance_level: z.string(),
-    evidence: SdJwt4VCEvidence,
-  })
-  .optional();
+// const SdJwt4VCVerification = z
+//   .object({
+//     trust_framework: z.string(),
+//     assurance_level: z.string(),
+//     evidence: SdJwt4VCEvidence,
+//   })
+//   .optional();
 
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
@@ -84,71 +84,10 @@ export const SdJwt4VC = z.object({
       "vct#integrity": z.string(),
       issuing_authority: z.string(),
       issuing_country: z.string(),
-      verification: SdJwt4VCVerification,
     }),
     ObfuscatedDisclosures
   ),
 });
-
-const Verification = z.object({
-  trust_framework: z.string(),
-  authentic_source: z.object({
-    organization_name: z.string(),
-    organization_code: z.string(),
-    contacts: z.array(z.string()),
-    homepage_uri: z.string().url(),
-    logo_uri: z.string().url(),
-  }),
-});
-
-const SvgTemplate = z.object({
-  uri: z.string().url(),
-  "uri#integrity": z.string(),
-  properties: z.object({
-    orientation: z.string().url().optional(),
-    color_scheme: z.string().optional(),
-    contrast: z.string().optional(),
-  }),
-});
-
-const SimpleRendering = z.object({
-  logo: z.object({
-    uri: z.string().url(),
-    "uri#integrity": z.string(),
-    alt_text: z.string().optional(),
-  }),
-  background_color: z.string().optional(),
-  text_color: z.string().optional(),
-});
-
-const Display = z.array(
-  z.object({
-    lang: z.string(),
-    name: z.string(),
-    description: z.string(),
-    rendering: z.object({
-      svg_template: z.array(SvgTemplate),
-      simple: SimpleRendering.optional(),
-    }),
-  })
-);
-
-const ClaimDisplay = z.array(
-  z.object({
-    lang: z.string(),
-    label: z.string(),
-    description: z.string(),
-  })
-);
-
-const Claims = z.array(
-  z.object({
-    path: z.array(z.string()),
-    display: ClaimDisplay,
-    sd: z.union([z.literal("always"), z.literal("never")]),
-    svg_id: z.string(),
-  })
-);
 
 /**
  * Object containing User authentication and User data verification information.
@@ -181,14 +120,15 @@ export type TypeMetadata = z.infer<typeof TypeMetadata>;
 export const TypeMetadata = z.object({
   name: z.string(),
   description: z.string(),
-  extends: z.string().url().optional(),
-  "extends#integrity": z.string().optional(),
-  schema: z.string().optional(),
-  schema_uri: z.string().url().optional(),
-  "schema_uri#integrity": z.string().optional(),
   data_source: z.object({
-    verification: Verification,
+    trust_framework: z.string(),
+    authentic_source: z.object({
+      organization_name: z.string(),
+      organization_code: z.string(),
+      contacts: z.array(z.string()),
+      homepage_uri: z.string().url(),
+      logo_uri: z.string().url(),
+    }),
   }),
-  display: Display,
-  claims: Claims,
+  // TODO: add more fields
 });

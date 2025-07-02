@@ -60,7 +60,6 @@ const { parsedStatusAttestation } =
 return {
   statusAttestation: res.statusAttestation,
   parsedStatusAttestation,
-  credentialType,
 };
 ```
 
