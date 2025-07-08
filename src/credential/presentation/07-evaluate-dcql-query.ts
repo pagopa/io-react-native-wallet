@@ -12,6 +12,7 @@ import { ValidationFailed } from "../../utils/errors";
 import { CredentialNotFoundError } from "./errors";
 import type { CredentialFormat, EvaluatedDisclosure } from "./types";
 import { CBOR } from "@pagopa/io-react-native-cbor";
+import { b64utob64 } from "jsrsasign";
 
 /**
  * The purpose for the credential request by the RP.
@@ -80,7 +81,7 @@ const mapCredentialsMdocToObj = async (
   return await Promise.all(
     credentialsMdoc?.map(async ([type, _, credential]) => {
       const issuerSigned = credential
-        ? await CBOR.decodeIssuerSigned(credential)
+        ? await CBOR.decodeIssuerSigned(b64utob64(credential))
         : undefined;
       if (!issuerSigned) {
         throw new CredentialNotFoundError(

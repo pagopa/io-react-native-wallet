@@ -33,7 +33,6 @@ export type AsyncStatus = {
  * This simplifies the type definition of the `credential` store.
  */
 export type SupportedCredentials =
-  | "urn:eu.europa.ec.eudi:pid:1"
   | "dc_sd_jwt_PersonIdentificationData"
   | "org.iso.18013.5.1.mDL"
   | "EuropeanDisabilityCard"
