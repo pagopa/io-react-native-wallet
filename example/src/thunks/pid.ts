@@ -59,7 +59,7 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
     // Start the issuance flow
     const startFlow: Credential.Issuance.StartFlow = () => ({
       issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-      credentialType: "urn:eu.europa.ec.eudi:pid:1",
+      credentialType: "dc_sd_jwt_PersonIdentificationData",
     });
 
     const { issuerUrl, credentialType } = startFlow();
