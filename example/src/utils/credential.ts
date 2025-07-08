@@ -20,7 +20,7 @@ import {
  * Implements a flow to obtain a generic credential.
  * @param credentialIssuerUrl - The credential issuer URL
  * @param redirectUri - The redirect URI for the authorization flow
- * @param credentialType - The type of the credential to obtain, which must be `urn:eu.europa.ec.eudi:pid:1`
+ * @param credentialType - The type of the credential to obtain
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
  * @param pid - The PID credential

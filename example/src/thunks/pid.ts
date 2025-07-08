@@ -24,7 +24,10 @@ import { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } from "@env";
  * Type definition for the input of the {@link getPidThunk}.
  */
 type getPidThunkInput = {
-  credentialType: Extract<SupportedCredentials, "urn:eu.europa.ec.eudi:pid:1">;
+  credentialType: Extract<
+    SupportedCredentials,
+    "dc_sd_jwt_PersonIdentificationData"
+  >;
 };
 
 /**
@@ -158,7 +161,7 @@ export const getPidThunk = createAppAsyncThunk<PidResult, getPidThunkInput>(
       parsedCredential,
       credential,
       keyTag: credentialKeyTag,
-      credentialType: "urn:eu.europa.ec.eudi:pid:1",
+      credentialType: "dc_sd_jwt_PersonIdentificationData",
     };
   }
 );

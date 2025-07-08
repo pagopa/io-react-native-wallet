@@ -127,10 +127,11 @@ export function buildMockSDJWTTestScenario(
 ): Parameters<typeof parseCredentialSdJwt> {
   return [
     {
-      "eu.europa.ec.eudi.pid.1": {
+      dc_sd_jwt_PersonIdentificationData: {
         cryptographic_suites_supported: [],
         cryptographic_binding_methods_supported: [],
         format: "vc+sd-jwt",
+        vct: "urn:eu.europa.ec.eudi:pid:1",
         display: [],
         claims,
       },
@@ -147,7 +148,7 @@ export function buildMockSDJWTTestScenario(
               credential_hash_alg: "sha-256",
             },
           },
-          vct: "eu.europa.ec.eudi.pid.1",
+          vct: "urn:eu.europa.ec.eudi:pid:1",
           iss: "unused",
           sub: "unused",
           expiry_date: "unused",

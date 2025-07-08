@@ -41,7 +41,7 @@ export type SupportedCredentials =
   | "mso_mdoc_CompanyBadge";
 
 /**
- * Type definition for the supported credentials without the urn:eu.europa.ec.eudi:pid:1.
+ * Type definition for the supported credentials without the pid.
  */
 export type SupportedCredentialsWithoutPid = Exclude<
   SupportedCredentials,

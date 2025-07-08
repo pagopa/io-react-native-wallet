@@ -32,7 +32,7 @@ export const PidScreen = () => {
         onPress: () =>
           dispatch(
             getPidThunk({
-              credentialType: "urn:eu.europa.ec.eudi:pid:1",
+              credentialType: "dc_sd_jwt_PersonIdentificationData",
             })
           ),
         title: "Get PID (SPID)",
