@@ -388,7 +388,9 @@ type WithFormat<Format extends Parameters<VerifyAndParseCredential>[2]> = (
   _4: Parameters<VerifyAndParseCredential>[4]
 ) => ReturnType<VerifyAndParseCredential>;
 
-const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
+const verifyAndParseCredentialSdJwt: WithFormat<
+  "vc+sd-jwt" | "dc+sd-jwt"
+> = async (
   issuerConf,
   credential,
   _,
@@ -485,7 +487,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   credentialType,
   context
 ) => {
-  if (format === "vc+sd-jwt") {
+  if (format === "vc+sd-jwt" || format === "dc+sd-jwt") {
     return verifyAndParseCredentialSdJwt(
       issuerConf,
       credential,

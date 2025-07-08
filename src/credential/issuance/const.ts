@@ -7,5 +7,6 @@ export type SupportedCredentialFormat = z.infer<
 >;
 export const SupportedCredentialFormat = z.union([
   z.literal("vc+sd-jwt"),
+  z.literal("dc+sd-jwt"),
   z.literal("mso_mdoc"),
 ]);

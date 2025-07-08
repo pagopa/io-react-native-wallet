@@ -190,7 +190,7 @@ const handlePresentationDefinitionResponse = async (
       // Present only the mandatory claims
       const format = Object.keys(
         evaluateInputDescriptor.inputDescriptor.format || {}
-      )[0]! as "mso_mdoc" | "vc+sd-jwt";
+      )[0]! as "mso_mdoc" | "vc+sd-jwt" | "dc+sd-jwt";
       return format === "mso_mdoc"
         ? {
             requestedClaims:

@@ -338,7 +338,7 @@ export const sendAuthorizationResponseDcql: SendAuthorizationResponseDcql =
  * Prepares remote presentations for a set of credentials.
  *
  * For each credential, this function:
- * - Validates the credential format (currently supports 'mso_mdoc' and 'vc+sd-jwt').
+ * - Validates the credential format (currently supports 'mso_mdoc', 'vc+sd-jwt' or 'dc+sd-jwt').
  * - Generates a verifiable presentation token (vpToken) using the appropriate method.
  * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
  *
@@ -381,7 +381,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         };
       }
 
-      if (format === "vc+sd-jwt") {
+      if (format === "vc+sd-jwt" || format === "dc+sd-jwt") {
         const { vp_token } = await prepareVpToken(
           authRequestObject.nonce,
           authRequestObject.clientId,
@@ -396,7 +396,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
           requestedClaims: [...item.requestedClaims.map(({ name }) => name)],
           credentialId: credentialInputId,
           vpToken: vp_token,
-          format: "vc+sd-jwt",
+          format,
         };
       }
 

@@ -498,7 +498,6 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
             "mso_mdoc credential is not supported."
           );
         }
-
         const { matchedEvaluation, matchedKeyTag, matchedCredential } =
           findCredentialMDoc(descriptor, decodedMdocCredentials);
 
@@ -510,7 +509,10 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
         };
       }
 
-      if (descriptor.format?.["vc+sd-jwt"]) {
+      if (
+        descriptor.format?.["vc+sd-jwt"] ||
+        descriptor.format?.["dc+sd-jwt"]
+      ) {
         if (!decodedSdJwtCredentials.length) {
           throw new CredentialNotFoundError(
             "vc+sd-jwt credential is not supported."

@@ -72,6 +72,7 @@ type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
 const SupportedCredentialMetadata = z.object({
   format: z.union([
     z.literal("vc+sd-jwt"),
+    z.literal("dc+sd-jwt"),
     z.literal("mso_mdoc"),
   ]),
   vct: z.string().optional(),

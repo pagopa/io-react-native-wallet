@@ -151,7 +151,10 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
           required: Boolean(credentialSet.required),
         }));
 
-      if (match.output.credential_format === "vc+sd-jwt") {
+      if (
+        match.output.credential_format === "vc+sd-jwt" ||
+        match.output.credential_format === "dc+sd-jwt"
+      ) {
         const { vct, claims } = match.output;
 
         const [, keyTag, credential] = credentialsSdJwt.find(
