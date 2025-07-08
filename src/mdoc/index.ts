@@ -55,7 +55,7 @@ export const prepareVpTokenMdoc = async (
   /* verifiableCredential is a IssuerSigned structure */
   const documents = [
     {
-      issuerSignedContent: verifiableCredential,
+      issuerSignedContent: b64utob64(verifiableCredential),
       alias: keyTag,
       docType,
     },

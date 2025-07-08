@@ -5,6 +5,7 @@ import { JSONPath } from "jsonpath-plus";
 import { MissingDataError, CredentialNotFoundError } from "./errors";
 import Ajv from "ajv";
 import { CBOR } from "@pagopa/io-react-native-cbor";
+import { b64utob64 } from "jsrsasign";
 
 const ajv = new Ajv({ allErrors: true });
 
@@ -477,7 +478,9 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
   const decodedMdocCredentials =
     (await Promise.all(
       credentialsMdoc?.map(async ([, keyTag, credential]) => {
-        const issuerSigned = await CBOR.decodeIssuerSigned(credential);
+        const issuerSigned = await CBOR.decodeIssuerSigned(
+          b64utob64(credential)
+        );
         if (!issuerSigned) {
           throw new CredentialNotFoundError(
             "mso_mdoc credential is not present."
