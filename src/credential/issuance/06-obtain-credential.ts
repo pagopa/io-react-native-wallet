@@ -14,7 +14,7 @@ import {
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialResponse } from "./types";
+import { CredentialResponse, NonceResponse } from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import uuid from "react-native-uuid";
 
@@ -22,13 +22,16 @@ export type ObtainCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
   clientId: Out<StartUserAuthorization>["clientId"],
-  credentialDefinition: Out<StartUserAuthorization>["credentialDefinition"],
+  credentialDefinition: {
+    credential_configuration_id: string;
+    credential_identifier?: string;
+  },
   context: {
     dPopCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<CredentialResponse>;
+) => Promise<CredentialResponse["credentials"][number] & { format: string }>;
 
 export const createNonceProof = async (
   nonce: string,
@@ -82,6 +85,25 @@ export const obtainCredential: ObtainCredential = async (
   } = context;
 
   const credentialUrl = issuerConf.credential_endpoint;
+  const issuerUrl = issuerConf.issuer;
+  const nonceUrl = issuerConf.nonce_endpoint;
+
+  // Fetch the nonce from the Credential Issuer
+  const { c_nonce } = nonceUrl
+    ? await appFetch(nonceUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then(hasStatusOrThrow(200))
+        .then((res) => res.json())
+        .then((body) => NonceResponse.parse(body))
+    : accessToken;
+  if (!c_nonce) {
+    throw new ValidationFailed({
+      message:
+        "Nonce Endpoint not found or access token does not contain the c_nonce",
+    });
+  }
 
   /**
    * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
@@ -89,17 +111,22 @@ export const obtainCredential: ObtainCredential = async (
    * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
    */
   const signedNonceProof = await createNonceProof(
-    accessToken.c_nonce,
+    c_nonce,
     clientId,
-    credentialUrl,
+    issuerUrl,
     credentialCryptoContext
   );
 
+  // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
   const containsCredentialDefinition = accessToken.authorization_details.some(
-    (detail) =>
-      detail.credential_configuration_id ===
+    (c) =>
+      c.credential_configuration_id ===
         credentialDefinition.credential_configuration_id &&
-      detail.type === credentialDefinition.type
+      (credentialDefinition.credential_identifier
+        ? c.credential_identifiers.includes(
+            credentialDefinition.credential_identifier
+          )
+        : true)
   );
 
   if (!containsCredentialDefinition) {
@@ -131,10 +158,7 @@ export const obtainCredential: ObtainCredential = async (
 
   /** The credential request body */
   const credentialRequestFormBody = {
-    ...(format === "mso_mdoc"
-      ? { doctype: credentialDefinition.credential_configuration_id }
-      : { vct: credentialDefinition.credential_configuration_id }),
-    format,
+    credential_identifier: credentialDefinition.credential_configuration_id,
     proof: {
       jwt: signedNonceProof,
       proof_type: "jwt",
@@ -171,8 +195,11 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  /* temporary base64 parsing for the "mso_mdoc" format until the credential submission with this format is fixed. */
-  return credentialRes.data;
+  // We support only one credential for now
+  return {
+    format,
+    ...credentialRes.data.credentials.at(0)!,
+  };
 };
 
 /**

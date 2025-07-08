@@ -22,7 +22,9 @@ export type IssuerConfig = {
   pushed_authorization_request_endpoint: string;
   authorization_endpoint: string;
   token_endpoint: string;
+  nonce_endpoint?: string;
   credential_endpoint: string;
+  issuer: string;
   keys: Array<JWK>;
 };
 
@@ -86,6 +88,7 @@ const credentialIssuerRationalization = (
       token_endpoint: issuerMetadata.token_endpoint,
       credential_endpoint: issuerMetadata.credential_endpoint,
       keys: issuerMetadata.jwks.keys,
+      issuer: issuerMetadata.authorization_endpoint,
     },
   };
 };
@@ -106,10 +109,48 @@ const credentialIssuerRationalizationOIDFED = (
         issuerMetadata.payload.metadata.openid_credential_issuer
           .credential_configurations_supported
       ).map(([key, config]) => {
+        const claimsRaw = config.claims;
+        // we need to evaluate how claims is in oder to support Federation and OID4VCI
+        // claim structure is different in both case
+        let claims: CredentialConfigurationSupported[string]["claims"];
+
+        if (
+          claimsRaw &&
+          typeof Object.values(claimsRaw)[0] === "object" &&
+          "mandatory" in Object.values(claimsRaw)[0]!
+        ) {
+          // claims is Record<string, { mandatory: boolean; display: Display[] }>
+          claims = Object.fromEntries(
+            Object.entries(claimsRaw).map(([, v]) => [
+              [v.path[0]],
+              {
+                mandatory: true,
+                display: v.display,
+              },
+            ])
+          );
+        } else {
+          // claims is Record<string, Record<string, { mandatory; display }>>
+          claims = Object.fromEntries(
+            Object.entries(claimsRaw).map(([k, inner]) => [
+              [k],
+              Object.fromEntries(
+                Object.entries(inner).map(([innerK, v]: any) => [
+                  [innerK],
+                  {
+                    mandatory: v.mandatory,
+                    display: v.display,
+                  },
+                ])
+              ),
+            ])
+          );
+        }
         const newConfig: CredentialConfigurationSupported[string] = {
           ...config,
+          claims,
           cryptographic_suites_supported:
-            config.credential_signing_alg_values_supported,
+            config.credential_signing_alg_values_supported!,
         };
 
         return [key, newConfig];
@@ -133,6 +174,9 @@ const credentialIssuerRationalizationOIDFED = (
         issuerMetadata.payload.metadata.openid_credential_issuer
           .credential_endpoint,
       keys: issuerMetadata.payload.metadata.openid_credential_issuer.jwks.keys,
+      issuer: issuerMetadata.payload.metadata.oauth_authorization_server.issuer,
+      nonce_endpoint:
+        issuerMetadata.payload.metadata.openid_credential_issuer.nonce_endpoint,
     },
   };
 };

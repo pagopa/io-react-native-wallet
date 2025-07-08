@@ -72,7 +72,9 @@ export const parseCredentialSdJwt = (
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentials_supported[sdJwt.payload.vct];
+  const credentialSubject = Object.entries(credentials_supported).find(
+    ([, vl]) => vl.vct === sdJwt.payload.vct
+  )?.[1];
 
   if (!credentialSubject) {
     throw new IoWalletError("Credential type not supported by the issuer");
