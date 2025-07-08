@@ -39,6 +39,11 @@ export const CredentialScreen = () => {
   );
   const healthId = useAppSelector(selectCredential("eu.europa.ec.eudi.hiid.1"));
 
+  const badgeState = useAppSelector(
+    selectCredentialAsyncStatus("mso_mdoc_CompanyBadge")
+  );
+  const badge = useAppSelector(selectCredential("mso_mdoc_CompanyBadge"));
+
   useDebugInfo({
     mdlState,
     mdl,
@@ -48,6 +53,8 @@ export const CredentialScreen = () => {
     ts,
     healthIdState,
     healthId,
+    badgeState,
+    badge,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -102,6 +109,18 @@ export const CredentialScreen = () => {
         icon: "healthCard",
         isPresent: !!healthId,
       },
+      {
+        title: "Get credential (Badge)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({ credentialType: "mso_mdoc_CompanyBadge" })
+          ),
+        isLoading: badgeState.isLoading,
+        hasError: badgeState.hasError,
+        isDone: badgeState.isDone,
+        icon: "healthCard",
+        isPresent: !!badge,
+      },
     ],
     [
       dc,
@@ -121,6 +140,10 @@ export const CredentialScreen = () => {
       healthIdState.hasError,
       healthIdState.isDone,
       healthIdState.isLoading,
+      badge,
+      badgeState.hasError,
+      badgeState.isDone,
+      badgeState.isLoading,
     ]
   );
 

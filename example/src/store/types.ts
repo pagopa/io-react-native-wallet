@@ -38,7 +38,8 @@ export type SupportedCredentials =
   | "org.iso.18013.5.1.mDL"
   | "EuropeanDisabilityCard"
   | "eu.europa.ec.eudi.hiid.1"
-  | "EuropeanHealthInsuranceCard";
+  | "EuropeanHealthInsuranceCard"
+  | "mso_mdoc_CompanyBadge";
 
 /**
  * Type definition for the supported credentials without the urn:eu.europa.ec.eudi:pid:1.

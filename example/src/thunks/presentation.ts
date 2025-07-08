@@ -88,6 +88,14 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       healthId.credential,
     ]);
   }
+  const badge = credentials.mso_mdoc_CompanyBadge;
+  if (badge?.credential) {
+    credentialsMdoc.push([
+      badge.credentialType,
+      badge.keyTag,
+      badge.credential,
+    ]);
+  }
 
   if (requestObject.dcql_query) {
     const authResponse = await handleDcqlResponse(
