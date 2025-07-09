@@ -9,6 +9,7 @@ import {
 import { selectEnv } from "../store/reducers/environment";
 import type {
   CredentialResult,
+  SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import {
@@ -33,7 +34,7 @@ type GetCredentialThunkInput = {
  * Type definition for the input of the {@link getCredentialStatusAttestationThunk}.
  */
 type GetCredentialStatusAttestationThunkInput = {
-  credentialType: SupportedCredentialsWithoutPid;
+  credentialType: SupportedCredentials;
   credential: Out<Credential.Issuance.ObtainCredential>["credential"];
   keyTag: string;
 };
@@ -44,7 +45,7 @@ type GetCredentialStatusAttestationThunkInput = {
 export type GetCredentialStatusAttestationThunkOutput = {
   statusAttestation: Out<Credential.Status.StatusAttestation>["statusAttestation"];
   parsedStatusAttestation: Out<Credential.Status.VerifyAndParseStatusAttestation>["parsedStatusAttestation"];
-  credentialType: SupportedCredentialsWithoutPid;
+  credentialType: SupportedCredentials;
 };
 
 /**
@@ -106,6 +107,7 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
 
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
+  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const env = selectEnv(getState());
   const { WALLET_EAA_PROVIDER_BASE_URL } = getEnv(env);
@@ -114,6 +116,7 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
     WALLET_EAA_PROVIDER_BASE_URL,
     credential,
     credentialCryptoContext,
+    wiaCryptoContext,
     credentialType
   );
 });

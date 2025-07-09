@@ -10,6 +10,7 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   CredentialResult,
   PidResult,
+  SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
@@ -294,7 +295,8 @@ export const getCredentialStatusAttestation = async (
   credentialIssuerUrl: string,
   credential: string,
   credentialCryptoContext: CryptoContext,
-  credentialType: SupportedCredentialsWithoutPid
+  wiaCryptoContext: CryptoContext,
+  credentialType: SupportedCredentials
 ) => {
   // Start the issuance flow
   const startFlow: Credential.Status.StartFlow = () => ({
@@ -309,7 +311,7 @@ export const getCredentialStatusAttestation = async (
   const statusAttestation = await Credential.Status.statusAttestation(
     issuerConf,
     credential,
-    credentialCryptoContext
+    { credentialCryptoContext, wiaCryptoContext }
   );
 
   const parsedStatusAttestation =

@@ -18,10 +18,13 @@ import { LogLevel, Logger } from "../../utils/logging";
 export type StatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
-  credentialCryptoContext: CryptoContext,
-  appFetch?: GlobalFetch["fetch"]
+  context: {
+    credentialCryptoContext: CryptoContext;
+    wiaCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }
 ) => Promise<{
-  statusAttestation: StatusAttestationResponse["status_attestation"];
+  statusAttestation: string;
 }>;
 
 /**
@@ -29,7 +32,8 @@ export type StatusAttestation = (
  * Verify the status of the credential attestation.
  * @param issuerConf - The issuer's configuration
  * @param credential - The credential to be verified
- * @param credentialCryptoContext - The credential's crypto context
+ * @param context.credentialCryptoContext - The credential's crypto context
+ * @param context.wiaCryptoContext - The Wallet Attestation's crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {IssuerResponseError} with a specific code for more context
  * @returns The credential status attestation
@@ -37,23 +41,26 @@ export type StatusAttestation = (
 export const statusAttestation: StatusAttestation = async (
   issuerConf,
   credential,
-  credentialCryptoContext,
-  appFetch: GlobalFetch["fetch"] = fetch
+  ctx
 ) => {
+  const { credentialCryptoContext, wiaCryptoContext, appFetch = fetch } = ctx;
+
   const jwk = await credentialCryptoContext.getPublicKey();
+  const issuerJwk = await wiaCryptoContext.getPublicKey();
   const credentialHash = await getCredentialHashWithouDiscloures(credential);
   const statusAttUrl =
     issuerConf.openid_credential_issuer.status_attestation_endpoint;
   const credentialPop = await new SignJWT(credentialCryptoContext)
     .setPayload({
+      iss: issuerJwk.kid,
       aud: statusAttUrl,
       jti: uuidv4().toString(),
       credential_hash: credentialHash,
-      credential_hash_alg: "S256",
+      credential_hash_alg: "sha-256",
     })
     .setProtectedHeader({
       alg: "ES256",
-      typ: "status-attestation-request+jwt",
+      typ: "status-assertion-request+jwt",
       kid: jwk.kid,
     })
     .setIssuedAt()
@@ -61,7 +68,7 @@ export const statusAttestation: StatusAttestation = async (
     .sign();
 
   const body = {
-    credential_pop: credentialPop,
+    status_assertion_requests: [credentialPop],
   };
 
   Logger.log(LogLevel.DEBUG, `Credential pop: ${credentialPop}`);
@@ -78,7 +85,7 @@ export const statusAttestation: StatusAttestation = async (
     .then((json) => StatusAttestationResponse.parse(json))
     .catch(handleStatusAttestationError);
 
-  return { statusAttestation: result.status_attestation };
+  return { statusAttestation: result.status_assertion_responses[0]! };
 };
 
 /**

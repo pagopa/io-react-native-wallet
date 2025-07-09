@@ -83,9 +83,9 @@ const HomeScreen = () => {
         description: "Obtain the status attestation of a credential",
         icon: "chevronRight",
         onPress: () =>
-          credentials.MDL
+          pid
             ? navigation.navigate("StatusAttestation")
-            : Alert.alert("Obtain a MDL first"),
+            : Alert.alert("Obtain a PID or a MDL first"),
       },
       {
         label: "Trustmark",
@@ -103,7 +103,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, credentials, hasSomeCredential]
+    [hasIntegrityKeyTag, navigation, pid, hasSomeCredential]
   );
 
   return (

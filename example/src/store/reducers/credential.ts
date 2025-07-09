@@ -14,6 +14,7 @@ import type {
   RootState,
   SupportedCredentialsWithoutPid,
   AsyncStatus,
+  SupportedCredentials,
 } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { sessionReset } from "./sesssion";
@@ -39,10 +40,10 @@ type CredentialState = {
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
   statusAttestation: Record<
-    SupportedCredentialsWithoutPid,
+    SupportedCredentials,
     GetCredentialStatusAttestationThunkOutput | undefined
   >;
-  statusAttAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
+  statusAttAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
   trustmark: Record<
     SupportedCredentialsWithoutPid,
     GetTrustmarkThunkOutput | undefined
@@ -63,11 +64,13 @@ const initialState: CredentialState = {
     EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
   statusAttestation: {
+    PersonIdentificationData: undefined,
     MDL: undefined,
     EuropeanDisabilityCard: undefined,
     EuropeanHealthInsuranceCard: undefined,
   },
   statusAttAsyncStatus: {
+    PersonIdentificationData: asyncStatusInitial,
     MDL: asyncStatusInitial,
     EuropeanDisabilityCard: asyncStatusInitial,
     EuropeanHealthInsuranceCard: asyncStatusInitial,
@@ -316,7 +319,7 @@ export const selectCredentialAsyncStatus =
  * @returns the status attestation for the requested credential
  */
 export const selectStatusAttestation =
-  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
+  (credentialType: SupportedCredentials) => (state: RootState) =>
     state.credential.statusAttestation[credentialType];
 
 /**
@@ -325,7 +328,7 @@ export const selectStatusAttestation =
  * @returns the state of the async operation for the requested credential as {@link AsyncStatus}
  */
 export const selectStatusAttestationAsyncStatus =
-  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
+  (credentialType: SupportedCredentials) => (state: RootState) =>
     state.credential.statusAttAsyncStatus[credentialType];
 
 /**
