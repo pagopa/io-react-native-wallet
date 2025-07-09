@@ -172,7 +172,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
         const [, keyTag, credential] = credentialsSdJwtByVct[vct]!;
 
         const requiredDisclosures = Object.values(claims).map((item) => {
-          const [_, name, value] = item as [string, string, string]
+          const [_, name, value] = item as [string, string, string];
           return {
             name,
             value,

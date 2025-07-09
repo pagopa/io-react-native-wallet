@@ -515,7 +515,7 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
       ) {
         if (!decodedSdJwtCredentials.length) {
           throw new CredentialNotFoundError(
-            "vc+sd-jwt credential is not supported."
+            "vc+sd-jwt or dc+sd-jwt credential is not supported."
           );
         }
 
