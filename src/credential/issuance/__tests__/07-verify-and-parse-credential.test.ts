@@ -108,6 +108,8 @@ describe("verifyAndParseCredential", () => {
           name: { "it-IT": "Codice fiscale", "en-US": "Tax ID code" },
         },
       },
+      credential: pid.token,
+      credentialConfigurationId: "mock_valid_sd_jwt_cred",
       expiration: new Date(1751546576000),
       issuedAt: new Date(1720010575000),
     });

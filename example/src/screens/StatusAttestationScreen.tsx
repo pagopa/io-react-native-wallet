@@ -18,11 +18,13 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
  */
 export const StatusAttestationScreen = () => {
   const dispatch = useAppDispatch();
-  const mDl = useAppSelector(selectCredential("MDL"));
+  const mDl = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
   const mdlStatAttState = useAppSelector(
-    selectStatusAttestationAsyncStatus("MDL")
+    selectStatusAttestationAsyncStatus("dc_sd_jwt_mDL")
   );
-  const mdlStatusAttestation = useAppSelector(selectStatusAttestation("MDL"));
+  const mdlStatusAttestation = useAppSelector(
+    selectStatusAttestation("dc_sd_jwt_mDL")
+  );
 
   useDebugInfo({
     mdlStatusAttestationState: mdlStatAttState,
@@ -37,7 +39,7 @@ export const StatusAttestationScreen = () => {
             onPress: () =>
               dispatch(
                 getCredentialStatusAttestationThunk({
-                  credentialType: "MDL",
+                  credentialType: "dc_sd_jwt_mDL",
                   credential: mDl.credential,
                   keyTag: mDl.keyTag,
                 })

@@ -19,6 +19,7 @@ import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
 import { LogLevel, Logger } from "../../utils/logging";
 import { Presentation } from "..";
+import type { DcqlQuery } from "dcql";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -29,14 +30,10 @@ export type CompleteUserAuthorizationWithQueryMode = (
 
 export type CompleteUserAuthorizationWithFormPostJwtMode = (
   requestObject: Out<GetRequestedCredentialToBePresented>,
-  credentials: {
-    id: string;
-    credential: string;
-    keyTag: string;
-    requestedClaims: string[];
-  }[],
+  pid: string,
   context: {
     wiaCryptoContext: CryptoContext;
+    pidCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<AuthorizationResult>;
@@ -160,12 +157,12 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
   };
 
 /**
- * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link completeUserAuthorizationWithFormPostJwtMode}.
+ * WARNING: This function must be called after {@link getRequestedCredentialToBePresented}. The next function to be called is {@link authorizeAccess}.
  * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
  * The information is obtained by performing a POST request to the endpoint received in the response_uri field of the requestObject, where the Authorization Response payload is posted.
  * Following this,the redirect_uri from the response is used to obtain the final authorization response.
  * @param requestObject - The request object containing the necessary parameters for authorization.
- * @param credentialsToPresent the credentials to be presented, which will always include the PID and WIA in a credential issuance flow
+ * @param pid The `PID` that must be presented for the issuance of credentials.
  * @param appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {ValidationFailed} if an error while validating the response
  * @returns the authorization response which contains code, state and iss
@@ -173,12 +170,29 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
 export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
   async (
     requestObject,
-    credentialsToPresent,
-    { wiaCryptoContext, appFetch = fetch }
+    pid,
+    { wiaCryptoContext, pidCryptoContext, appFetch = fetch }
   ) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
+    );
+
+    if (!requestObject.dcql_query) {
+      throw new Error("Invalid request object");
+    }
+
+    const dcqlQueryResult = Presentation.evaluateDcqlQuery(
+      [[pidCryptoContext, pid]],
+      requestObject.dcql_query as DcqlQuery
+    );
+
+    const credentialsToPresent = dcqlQueryResult.map(
+      ({ requiredDisclosures, cryptoContext, ...rest }) => ({
+        ...rest,
+        cryptoContext,
+        requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
+      })
     );
 
     const remotePresentations = await Presentation.prepareRemotePresentations(
@@ -309,6 +323,7 @@ const createAuthzResponsePayload = async ({
           [credentialId]: vpToken,
         }),
         {}
+        // TODO: Add status assertion/attestation
       ),
     })
     .setIssuedAt()

@@ -5,7 +5,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
-import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   CredentialResult,
@@ -13,7 +13,6 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
-import { DcqlQuery } from "dcql";
 
 /**
  * Implements a flow to obtain a PID credential.
@@ -221,38 +220,14 @@ export const getCredential = async ({
       appFetch
     );
 
-  // The credentials to be presented will always include the PID and WIA
-  // in a credential issuance flow
-  const credentialsSdJwt = [
-    [pid.keyTag, pid.credential],
-    [WIA_KEYTAG, walletInstanceAttestation],
-  ] as [string, string][];
-
-  if (!requestObject.dcql_query) {
-    throw new Error("Invalid request object");
-  }
-
-  // Assuming that WIA is a SD-JWT
-  const dcqlQueryResult = Credential.Presentation.evaluateDcqlQuery(
-    credentialsSdJwt,
-    requestObject.dcql_query as DcqlQuery
-  );
-
-  const credentialsToPresent = dcqlQueryResult.map(
-    ({ requiredDisclosures, ...rest }) => ({
-      ...rest,
-      requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
-    })
-  );
-
-  // The app here should ask the user to confirm the required data contained in the requestObject
-
+  await regenerateCryptoKey(pid.keyTag);
+  const pidCryptoContext = createCryptoContextFor(pid.keyTag);
   // Complete the user authorization via form_post.jwt mode
   const { code } =
     await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
       requestObject,
-      credentialsToPresent,
-      { wiaCryptoContext }
+      pid.credential,
+      { wiaCryptoContext, pidCryptoContext }
     );
 
   // Generate the DPoP context which will be used for the whole issuance flow
@@ -273,13 +248,19 @@ export const getCredential = async ({
     }
   );
 
+  // For simplicity, in this example flow we work on a single credential.
+  const { credential_configuration_id, credential_identifiers } =
+    accessToken.authorization_details[0]!;
+
   // Obtain the credential
-  const { credential, format } = await Credential.Issuance.obtainCredential(
+  const { credential } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
-    // TODO: [SIW-2209] to fix in PR #219
-    { credential_configuration_id: "", credential_identifier: "" },
+    {
+      credential_configuration_id,
+      credential_identifier: credential_identifiers[0],
+    },
     {
       credentialCryptoContext,
       dPopCryptoContext,
@@ -292,7 +273,7 @@ export const getCredential = async ({
     await Credential.Issuance.verifyAndParseCredential(
       issuerConf,
       credential,
-      format,
+      credential_configuration_id,
       { credentialCryptoContext, ignoreMissingAttributes: true }
     );
 
@@ -300,8 +281,9 @@ export const getCredential = async ({
     parsedCredential,
     credential,
     keyTag: credentialKeyTag,
-    credentialType,
-    credentialConfigurationId: "", // TODO: [SIW-2209] to fix in PR #219
+    credentialType:
+      credential_configuration_id as SupportedCredentialsWithoutPid,
+    credentialConfigurationId: credential_configuration_id,
   };
 };
 
