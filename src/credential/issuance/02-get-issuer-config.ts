@@ -149,6 +149,8 @@ const credentialIssuerRationalizationOIDFED = (
         const newConfig: CredentialConfigurationSupported[string] = {
           ...config,
           claims,
+          // cryptographic_suites_supported have been renamed credential_signing_alg_values_supported.
+          // We mantain it for Potential compatibility
           cryptographic_suites_supported:
             config.credential_signing_alg_values_supported!,
         };
