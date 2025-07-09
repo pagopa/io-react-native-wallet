@@ -118,7 +118,7 @@ export const CredentialScreen = () => {
         isLoading: badgeState.isLoading,
         hasError: badgeState.hasError,
         isDone: badgeState.isDone,
-        icon: "healthCard",
+        icon: "categJobOffers",
         isPresent: !!badge,
       },
     ],
