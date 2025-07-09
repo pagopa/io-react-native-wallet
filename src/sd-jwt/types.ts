@@ -49,7 +49,7 @@ export const SdJwt4VC = z.object({
     typ: CredentialFormat,
     alg: z.string(),
     kid: z.string().optional(),
-    x5c: z.string().optional(),
+    x5c: z.array(z.string()).optional(),
     vctm: z.array(z.string()).optional(),
   }),
   payload: z.intersection(
