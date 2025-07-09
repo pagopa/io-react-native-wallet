@@ -9,7 +9,7 @@ export const iconByCredentialType: Record<
   EuropeanDisabilityCard: "accessibility",
   EuropeanHealthInsuranceCard: "healthCard",
   "eu.europa.ec.eudi.hiid.1": "healthCard",
-  mso_mdoc_CompanyBadge: "accessibility",
+  mso_mdoc_CompanyBadge: "categJobOffers",
 };
 
 export const labelByCredentialType: Record<
