@@ -144,6 +144,17 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
       throw new Error("No credential can satisfy the provided DCQL query");
     }
 
+    // Build an object vct:credentialJwt to map matched credentials to their JWT
+    const credentialsSdJwtByVct = credentials.reduce(
+      (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
+      {} as Record<string, [string /* keyTag */, string /* credential */]>
+    );
+    // Build an object doctype:credentialMdoc to map matched credentials to their JWT
+    const credentialsMdocByDoctype = credentials.reduce(
+      (acc, c, i) => ({ ...acc, [c.doctype]: credentialsMdoc[i]! }),
+      {} as Record<string, [string /* keyTag */, string /* credential */]>
+    );
+
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
       const purposes = queryResult.credential_sets
         ?.filter((set) => set.matching_options?.flat().includes(id))
@@ -158,12 +169,16 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
       ) {
         const { vct, claims } = match.output;
 
-        const [, keyTag, credential] = credentialsSdJwt.find(
-          ([type]) => type === vct
-        )!;
-        const requiredDisclosures = Object.values(
-          claims
-        ) as EvaluatedDisclosure[];
+        const [, keyTag, credential] = credentialsSdJwtByVct[vct]!;
+
+        const requiredDisclosures = Object.values(claims).map((item) => {
+          const claim = item as string[];
+          return {
+            name: claim[1],
+            value: claim[2],
+          };
+        }) as EvaluatedDisclosure[];
+
         return {
           id,
           vct,
@@ -180,9 +195,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
       if (match.output.credential_format === "mso_mdoc") {
         const { doctype, namespaces } = match.output;
 
-        const [, keyTag, credential] = credentialsMdoc.find(
-          ([type]) => type === doctype
-        )!;
+        const [, keyTag, credential] = credentialsMdocByDoctype[doctype]!;
         const requiredDisclosures = Object.entries(namespaces).reduce(
           (acc, [ns, nsClaims]) => [
             ...acc,
