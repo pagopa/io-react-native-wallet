@@ -80,12 +80,14 @@ export const statusAttestation: StatusAttestation = async (
     },
     body: JSON.stringify(body),
   })
-    .then(hasStatusOrThrow(201))
+    .then(hasStatusOrThrow(200))
     .then((raw) => raw.json())
     .then((json) => StatusAttestationResponse.parse(json))
     .catch(handleStatusAttestationError);
 
-  return { statusAttestation: result.status_assertion_responses[0]! };
+  const [statusAttestationJwt] = result.status_assertion_responses;
+
+  return { statusAttestation: statusAttestationJwt! };
 };
 
 /**

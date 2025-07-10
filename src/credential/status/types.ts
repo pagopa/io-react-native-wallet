@@ -27,11 +27,18 @@ export type ParsedStatusAttestation = z.infer<typeof ParsedStatusAttestation>;
  */
 export const ParsedStatusAttestation = z.object({
   header: z.object({
-    typ: z.literal("status-attestation+jwt"),
+    typ: z.literal("status-assertion+jwt"),
     alg: z.string(),
     kid: z.string().optional(),
   }),
   payload: z.object({
+    credential_status_type: z.string(),
+    credential_status_detail: z
+      .object({
+        state: z.string(),
+        description: z.string(),
+      })
+      .optional(),
     credential_hash_alg: z.string(),
     credential_hash: z.string(),
     cnf: z.object({

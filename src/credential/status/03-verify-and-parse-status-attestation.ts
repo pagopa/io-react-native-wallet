@@ -52,13 +52,9 @@ export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
       const holderBindingKey = await credentialCryptoContext.getPublicKey();
       const { cnf } = parsedStatusAttestation.payload;
       if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
-        Logger.log(
-          LogLevel.ERROR,
-          `Failed to verify holder binding for status attestation, expected kid: ${holderBindingKey.kid}, got: ${parsedStatusAttestation.payload.cnf.jwk.kid}`
-        );
-        throw new IoWalletError(
-          `Failed to verify holder binding for status attestation, expected kid: ${holderBindingKey.kid}, got: ${parsedStatusAttestation.payload.cnf.jwk.kid}`
-        );
+        const errorMessage = `Failed to verify holder binding for status attestation, expected kid: ${holderBindingKey.kid}, got: ${parsedStatusAttestation.payload.cnf.jwk.kid}`;
+        Logger.log(LogLevel.ERROR, errorMessage);
+        throw new IoWalletError(errorMessage);
       }
 
       return { parsedStatusAttestation };

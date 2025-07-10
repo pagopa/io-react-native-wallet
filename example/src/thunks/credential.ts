@@ -109,11 +109,15 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
   const credentialCryptoContext = createCryptoContextFor(keyTag);
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
-  const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL } = getEnv(env);
+  const env = getEnv(selectEnv(getState()));
+
+  const issuerUrl =
+    credentialType === "PersonIdentificationData"
+      ? env.WALLET_PID_PROVIDER_BASE_URL
+      : env.WALLET_EAA_PROVIDER_BASE_URL;
 
   return await getCredentialStatusAttestation(
-    WALLET_EAA_PROVIDER_BASE_URL,
+    issuerUrl,
     credential,
     credentialCryptoContext,
     wiaCryptoContext,
