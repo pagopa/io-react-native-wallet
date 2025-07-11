@@ -1,6 +1,7 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { UnixTime } from "../../sd-jwt/types";
+import { ObfuscatedDisclosures, UnixTime } from "../../sd-jwt/types";
 import * as z from "zod";
+import { JWK } from "../../utils/jwk";
 
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
@@ -30,7 +31,6 @@ export type LegacyRemotePresentation = {
 export type RemotePresentation = {
   requestedClaims: string[];
   credentialId: string;
-  format: string;
   vpToken: string;
 };
 
