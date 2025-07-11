@@ -1,9 +1,9 @@
 import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
 import { decode, prepareVpToken } from "../../sd-jwt";
-import { type Disclosure } from "../../sd-jwt/types";
+import type { Disclosure } from "../../sd-jwt/types";
 import { createCryptoContextFor } from "../../utils/crypto";
-import { type RemotePresentation } from "./types";
+import type { RemotePresentation } from "./types";
 import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
 
 /**

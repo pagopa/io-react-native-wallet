@@ -1,7 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { ObfuscatedDisclosures, UnixTime } from "../../sd-jwt/types";
+import { UnixTime } from "../../sd-jwt/types";
 import * as z from "zod";
-import { JWK } from "../../utils/jwk";
 
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
