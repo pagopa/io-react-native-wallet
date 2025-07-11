@@ -161,7 +161,7 @@ export const getPidCieID = async ({
  * Implements a flow to obtain a generic credential.
  * @param credentialIssuerUrl - The credential issuer URL
  * @param redirectUri - The redirect URI for the authorization flow
- * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @param credentialId - The id of the credential to obtain
  * @param pid - The PID credential
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
@@ -170,14 +170,14 @@ export const getPidCieID = async ({
 export const getCredential = async ({
   credentialIssuerUrl,
   redirectUri,
-  credentialType,
+  credentialId,
   pid,
   walletInstanceAttestation,
   wiaCryptoContext,
 }: {
   credentialIssuerUrl: string;
   redirectUri: string;
-  credentialType: SupportedCredentialsWithoutPid;
+  credentialId: SupportedCredentialsWithoutPid;
   pid: PidResult;
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
@@ -190,10 +190,10 @@ export const getCredential = async ({
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: credentialIssuerUrl,
-    credentialId: credentialType, // TODO: [SIW-2209] to fix in PR #219
+    credentialId,
   });
 
-  const { issuerUrl, credentialId } = startFlow();
+  const { issuerUrl, credentialId: credId } = startFlow();
 
   // Evaluate issuer trust
   const { issuerConf } =
@@ -201,16 +201,12 @@ export const getCredential = async ({
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier } =
-    await Credential.Issuance.startUserAuthorization(
-      issuerConf,
-      [credentialId],
-      {
-        walletInstanceAttestation,
-        redirectUri,
-        wiaCryptoContext,
-        appFetch,
-      }
-    );
+    await Credential.Issuance.startUserAuthorization(issuerConf, [credId], {
+      walletInstanceAttestation,
+      redirectUri,
+      wiaCryptoContext,
+      appFetch,
+    });
 
   const requestObject =
     await Credential.Issuance.getRequestedCredentialToBePresented(
