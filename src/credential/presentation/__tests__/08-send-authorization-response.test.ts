@@ -96,7 +96,6 @@ describe("sendAuthorizationResponse", () => {
     {
       requestedClaims: ["name", "surname"],
       credentialId: "PID",
-      format: "dc+sd-jwt",
       vpToken: "mock_vp_token",
     },
   ];
