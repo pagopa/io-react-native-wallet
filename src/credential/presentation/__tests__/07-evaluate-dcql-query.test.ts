@@ -1,11 +1,9 @@
 import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
-import { pid, mdl } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { pid, mdl, legacyPid } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { createCryptoContextFor } from "../../../utils/crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
-createCryptoContextFor;
 
 const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
@@ -471,6 +469,36 @@ describe("evaluateDcqlQuery", () => {
           ["4d10ba615ed63a12", "document_number", "123456789"],
           ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
           ["c4b40efadfcd3bdd", "driving_privileges", "B"],
+        ],
+      },
+    ];
+
+    expect(result).toEqual(expected);
+  });
+
+  it("should work with older vc+sd-jwt credentials", () => {
+    const query: DcqlQuery.Input = {
+      credentials: [
+        {
+          id: "PID",
+          format: "vc+sd-jwt",
+          meta: {
+            vct_values: ["PersonIdentificationData"],
+          },
+          claims: [{ path: ["tax_id_code"] }],
+        },
+      ],
+    };
+    const result = evaluateDcqlQuery([[pidCryptoContext, legacyPid]], query);
+    const expected = [
+      {
+        id: "PID",
+        vct: "PersonIdentificationData",
+        cryptoContext: pidCryptoContext,
+        credential: legacyPid,
+        purposes: [{ required: true }],
+        requiredDisclosures: [
+          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
         ],
       },
     ];

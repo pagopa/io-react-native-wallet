@@ -30,7 +30,6 @@ export type LegacyRemotePresentation = {
 export type RemotePresentation = {
   requestedClaims: string[];
   credentialId: string;
-  format: string;
   vpToken: string;
 };
 

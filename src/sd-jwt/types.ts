@@ -54,12 +54,20 @@ export type DisclosureWithEncoded = {
 //   })
 //   .optional();
 
+const StatusAssertion = z.object({
+  credential_hash_alg: z.literal("sha-256"),
+});
+
+/**
+ * Type for a Verifiable Credential in SD-JWT format.
+ * It supports both the older and the new data model for backward compatibility.
+ */
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
-    typ: z.literal("dc+sd-jwt"),
+    typ: z.enum(["vc+sd-jwt", "dc+sd-jwt"]),
     alg: z.string(),
-    kid: z.string().optional(),
+    kid: z.string(),
     trust_chain: z.array(z.string()).optional(),
     x5c: z.array(z.string()).optional(),
     vctm: z.array(z.string()).optional(),
@@ -72,18 +80,21 @@ export const SdJwt4VC = z.object({
       exp: UnixTime,
       _sd: z.array(z.string()),
       _sd_alg: z.literal("sha-256"),
-      status: z.object({
-        status_assertion: z.object({
-          credential_hash_alg: z.literal("sha-256"),
-        }),
-      }),
+      status: z
+        .union([
+          // Credentials v1.0
+          z.object({ status_assertion: StatusAssertion }),
+          // Credentials v0.7.1
+          z.object({ status_attestation: StatusAssertion }),
+        ])
+        .optional(),
       cnf: z.object({
         jwk: JWK,
       }),
       vct: z.string(),
-      "vct#integrity": z.string(),
-      issuing_authority: z.string(),
-      issuing_country: z.string(),
+      "vct#integrity": z.string().optional(),
+      issuing_authority: z.string().optional(),
+      issuing_country: z.string().optional(),
     }),
     ObfuscatedDisclosures
   ),
