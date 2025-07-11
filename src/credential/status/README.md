@@ -46,7 +46,7 @@ const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
 const res = await Credential.Status.statusAttestation(
   issuerConf,
   credential,
-  credentialCryptoContext
+  { credentialCryptoContext, wiaCryptoContext }
 );
 
 // Verify and parse the status attestation
