@@ -83,7 +83,7 @@ export const TrustScreen = () => {
         title: "Validate Trust Chain (PagoPA-WP)",
         relyingPartyUrls: {
           prod: "https://wallet.io.pagopa.it",
-          pre: "https://pre.foo11.blob.core.windows.net/foo",
+          pre: "https://foo11.blob.core.windows.net/foo",
         },
         icon: "locked",
         successMessage: "Chain Valid",
