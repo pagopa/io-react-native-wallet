@@ -33,27 +33,6 @@ export type DisclosureWithEncoded = {
   encoded: string;
 };
 
-// const SdJwt4VCEvidence = z.array(
-//   z.object({
-//     type: z.literal("vouch"),
-//     time: UnixTime,
-//     attestation: z.object({
-//       type: z.literal("digital_attestation"),
-//       reference_number: z.string(),
-//       date_of_issuance: z.date(),
-//       voucher: z.string(),
-//     }),
-//   })
-// );
-
-// const SdJwt4VCVerification = z
-//   .object({
-//     trust_framework: z.string(),
-//     assurance_level: z.string(),
-//     evidence: SdJwt4VCEvidence,
-//   })
-//   .optional();
-
 const StatusAssertion = z.object({
   credential_hash_alg: z.literal("sha-256"),
 });
