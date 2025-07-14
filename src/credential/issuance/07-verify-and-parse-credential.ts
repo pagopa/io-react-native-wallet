@@ -72,7 +72,9 @@ export const parseCredentialSdJwt = (
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentials_supported[sdJwt.payload.vct];
+  const credentialSubject = Object.entries(credentials_supported).find(
+    ([, vl]) => vl.vct === sdJwt.payload.vct
+  )?.[1];
 
   if (!credentialSubject) {
     throw new IoWalletError("Credential type not supported by the issuer");
@@ -388,7 +390,9 @@ type WithFormat<Format extends Parameters<VerifyAndParseCredential>[2]> = (
   _4: Parameters<VerifyAndParseCredential>[4]
 ) => ReturnType<VerifyAndParseCredential>;
 
-const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
+const verifyAndParseCredentialSdJwt: WithFormat<
+  "vc+sd-jwt" | "dc+sd-jwt"
+> = async (
   issuerConf,
   credential,
   _,
@@ -485,7 +489,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   credentialType,
   context
 ) => {
-  if (format === "vc+sd-jwt") {
+  if (format === "vc+sd-jwt" || format === "dc+sd-jwt") {
     return verifyAndParseCredentialSdJwt(
       issuerConf,
       credential,

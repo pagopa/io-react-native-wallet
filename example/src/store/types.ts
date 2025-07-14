@@ -33,18 +33,19 @@ export type AsyncStatus = {
  * This simplifies the type definition of the `credential` store.
  */
 export type SupportedCredentials =
-  | "urn:eu.europa.ec.eudi:pid:1"
+  | "dc_sd_jwt_PersonIdentificationData"
   | "org.iso.18013.5.1.mDL"
   | "EuropeanDisabilityCard"
   | "eu.europa.ec.eudi.hiid.1"
-  | "EuropeanHealthInsuranceCard";
+  | "EuropeanHealthInsuranceCard"
+  | "mso_mdoc_CompanyBadge";
 
 /**
- * Type definition for the supported credentials without the urn:eu.europa.ec.eudi:pid:1.
+ * Type definition for the supported credentials without the pid.
  */
 export type SupportedCredentialsWithoutPid = Exclude<
   SupportedCredentials,
-  "urn:eu.europa.ec.eudi:pid:1"
+  "dc_sd_jwt_PersonIdentificationData"
 >;
 
 /**
@@ -72,7 +73,10 @@ export type CredentialResult = CredentialResultBase & {
  * Type definition to represent a PID result to be used in the store.
  */
 export type PidResult = CredentialResultBase & {
-  credentialType: Extract<SupportedCredentials, "urn:eu.europa.ec.eudi:pid:1">;
+  credentialType: Extract<
+    SupportedCredentials,
+    "dc_sd_jwt_PersonIdentificationData"
+  >;
 };
 
 /**

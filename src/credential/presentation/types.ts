@@ -14,6 +14,9 @@ export type CredentialFormat =
       format: "vc+sd-jwt";
     }
   | {
+      format: "dc+sd-jwt";
+    }
+  | {
       format: "mso_mdoc";
       doctype: string;
     };

@@ -41,7 +41,7 @@ export const decode = <S extends z.ZodType<SdJwt4VC>>(
   if (token.slice(-1) === "~") {
     token = token.slice(0, -1);
   }
-  const [rawSdJwt = "", ...rawDisclosures] = token.split("~");
+  const [rawSdJwt = "", ...rawDisclosures] = token.split("~").filter(Boolean);
 
   // get the sd-jwt as object
   // validate it's a valid SD-JWT for Verifiable Credentials
@@ -80,7 +80,7 @@ export const disclose = async (
   token: string,
   claims: string[]
 ): Promise<{ token: string; paths: { claim: string; path: string }[] }> => {
-  const [rawSdJwt, ...rawDisclosures] = token.split("~");
+  const [rawSdJwt, ...rawDisclosures] = token.split("~").filter(Boolean);
   const { sdJwt, disclosures } = decode(token, SdJwt4VC);
 
   // for each claim, return the path on which they are located in the SD-JWT token

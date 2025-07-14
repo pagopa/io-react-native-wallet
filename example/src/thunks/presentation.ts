@@ -88,6 +88,14 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       healthId.credential,
     ]);
   }
+  const badge = credentials.mso_mdoc_CompanyBadge;
+  if (badge?.credential) {
+    credentialsMdoc.push([
+      badge.credentialType,
+      badge.keyTag,
+      badge.credential,
+    ]);
+  }
 
   if (requestObject.dcql_query) {
     const authResponse = await handleDcqlResponse(
@@ -190,7 +198,7 @@ const handlePresentationDefinitionResponse = async (
       // Present only the mandatory claims
       const format = Object.keys(
         evaluateInputDescriptor.inputDescriptor.format || {}
-      )[0]! as "mso_mdoc" | "vc+sd-jwt";
+      )[0]! as "mso_mdoc" | "vc+sd-jwt" | "dc+sd-jwt";
       return format === "mso_mdoc"
         ? {
             requestedClaims:
