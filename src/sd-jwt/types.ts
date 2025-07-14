@@ -57,7 +57,6 @@ export const SdJwt4VC = z.object({
       sub: z.string(),
       iat: UnixTime.optional(),
       exp: UnixTime,
-      _sd: z.array(z.string()),
       _sd_alg: z.literal("sha-256"),
       status: z
         .union([

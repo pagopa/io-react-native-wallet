@@ -188,9 +188,8 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     );
 
     const credentialsToPresent = dcqlQueryResult.map(
-      ({ requiredDisclosures, cryptoContext, ...rest }) => ({
+      ({ requiredDisclosures, ...rest }) => ({
         ...rest,
-        cryptoContext,
         requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
       })
     );
@@ -323,7 +322,6 @@ const createAuthzResponsePayload = async ({
           [credentialId]: vpToken,
         }),
         {}
-        // TODO: Add status assertion/attestation
       ),
     })
     .setIssuedAt()

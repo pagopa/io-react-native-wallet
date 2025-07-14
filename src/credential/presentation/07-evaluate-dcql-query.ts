@@ -128,10 +128,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     // Build an object vct:credentialJwt to map matched credentials to their JWT
     const credentialsSdJwtByVct = credentials.reduce(
       (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
-      {} as Record<
-        string,
-        [CryptoContext /* cryptoContext */, string /* credential */]
-      >
+      {} as Record<string, [CryptoContext, string /* credential */]>
     );
 
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
