@@ -140,15 +140,12 @@ const requestObject =
     appFetch
   );
 
-await regenerateCryptoKey(pid.keyTag);
-const pidCryptoContext = createCryptoContextFor(pid.keyTag);
-
 // Complete the user authorization via form_post.jwt mode
 const { code } =
   await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
     requestObject,
     pid.credential,
-    { wiaCryptoContext, pidCryptoContext }
+    { wiaCryptoContext, pidCryptoContext: createCryptoContextFor(pid.keyTag) }
   );
 
 // Generate the DPoP context which will be used for the whole issuance flow
