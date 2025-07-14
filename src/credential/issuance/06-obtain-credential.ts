@@ -36,7 +36,6 @@ export type ObtainCredential = (
 ) => Promise<{
   credential: string;
   format: string;
-  credential_configuration_id: string;
 }>;
 
 export const createNonceProof = async (
@@ -214,7 +213,6 @@ export const obtainCredential: ObtainCredential = async (
   return {
     credential: credentialRes.data.credentials.at(0)!.credential,
     format: issuerCredentialConfig!.format,
-    credential_configuration_id,
   };
 };
 

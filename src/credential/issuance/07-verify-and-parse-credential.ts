@@ -30,8 +30,6 @@ export type VerifyAndParseCredential = (
   }
 ) => Promise<{
   parsedCredential: ParsedCredential;
-  credential: Out<ObtainCredential>["credential"];
-  credentialConfigurationId: string;
   expiration: Date;
   issuedAt: Date | undefined;
 }>;
@@ -227,8 +225,6 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
 
   return {
     parsedCredential,
-    credential,
-    credentialConfigurationId,
     expiration: new Date(decoded.sdJwt.payload.exp * 1000),
     issuedAt:
       typeof maybeIssuedAt === "number"
