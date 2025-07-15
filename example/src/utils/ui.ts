@@ -5,16 +5,18 @@ export const iconByCredentialType: Record<
   SupportedCredentialsWithoutPid,
   IOIcons
 > = {
-  MDL: "car",
-  EuropeanDisabilityCard: "accessibility",
-  EuropeanHealthInsuranceCard: "healthCard",
+  dc_sd_jwt_mDL: "car",
+  mso_mdoc_mDL: "car",
+  dc_sd_jwt_EuropeanDisabilityCard: "accessibility",
+  dc_sd_jwt_EuropeanHealthInsuranceCard: "healthCard",
 };
 
 export const labelByCredentialType: Record<
   SupportedCredentialsWithoutPid,
   string
 > = {
-  MDL: "MDL",
-  EuropeanDisabilityCard: "DC",
-  EuropeanHealthInsuranceCard: "TS",
+  mso_mdoc_mDL: "MDL",
+  dc_sd_jwt_mDL: "MDL",
+  dc_sd_jwt_EuropeanDisabilityCard: "DC",
+  dc_sd_jwt_EuropeanHealthInsuranceCard: "TS",
 };

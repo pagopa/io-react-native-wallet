@@ -2,14 +2,19 @@ import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
 import { pid, mdl, legacyPid } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { createCryptoContextFor } from "../../../utils/crypto";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
 
+const pidCryptoContext = createCryptoContextFor(pidKeyTag);
+const mdlCryptoContext = createCryptoContextFor(mdlKeyTag);
+
 const credentials = [
-  [pidKeyTag, pid.token],
-  [mdlKeyTag, mdl.token],
-] as [string, string][];
+  [pidCryptoContext, pid.token],
+  [mdlCryptoContext, mdl.token],
+] as [CryptoContext, string][];
 
 describe("evaluateDcqlQuery", () => {
   it("should throw error when the DCQL query structure is invalid", () => {
@@ -141,7 +146,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
+        cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
@@ -186,7 +191,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
+        cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
@@ -198,7 +203,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "DrivingLicense",
         vct: "MDL",
-        keyTag: mdlKeyTag,
+        cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
@@ -241,7 +246,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
+        cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -285,7 +290,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
+        cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -296,7 +301,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "MDL",
         vct: "MDL",
-        keyTag: mdlKeyTag,
+        cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
         requiredDisclosures: [
@@ -367,7 +372,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
+        cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -379,7 +384,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "MDL",
         vct: "MDL",
-        keyTag: mdlKeyTag,
+        cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -442,7 +447,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
+        cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -454,7 +459,7 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "MDL",
         vct: "MDL",
-        keyTag: mdlKeyTag,
+        cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [
           { description: "Identification", required: true },
@@ -484,12 +489,12 @@ describe("evaluateDcqlQuery", () => {
         },
       ],
     };
-    const result = evaluateDcqlQuery([[pidKeyTag, legacyPid]], query);
+    const result = evaluateDcqlQuery([[pidCryptoContext, legacyPid]], query);
     const expected = [
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
+        cryptoContext: pidCryptoContext,
         credential: legacyPid,
         purposes: [{ required: true }],
         requiredDisclosures: [

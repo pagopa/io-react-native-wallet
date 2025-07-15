@@ -19,18 +19,32 @@ import { selectPid } from "../store/reducers/pid";
  */
 export const StatusAttestationScreen = () => {
   const dispatch = useAppDispatch();
-  const mDl = useAppSelector(selectCredential("MDL"));
-  const mdlStatAttState = useAppSelector(
-    selectStatusAttestationAsyncStatus("MDL")
-  );
-  const mdlStatusAttestation = useAppSelector(selectStatusAttestation("MDL"));
-  const pid = useAppSelector(selectPid);
+
   const pidStatusAttestation = useAppSelector(
     selectStatusAttestation("PersonIdentificationData")
   );
   const pidStatAttState = useAppSelector(
     selectStatusAttestationAsyncStatus("PersonIdentificationData")
   );
+
+  const mDl = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
+  const mdlStatAttState = useAppSelector(
+    selectStatusAttestationAsyncStatus("dc_sd_jwt_mDL")
+  );
+  const mdlStatusAttestation = useAppSelector(
+    selectStatusAttestation("dc_sd_jwt_mDL")
+  );
+
+  const dc = useAppSelector(
+    selectCredential("dc_sd_jwt_EuropeanDisabilityCard")
+  );
+  const dcStatAttState = useAppSelector(
+    selectStatusAttestationAsyncStatus("dc_sd_jwt_EuropeanDisabilityCard")
+  );
+  const dcStatusAttestation = useAppSelector(
+    selectStatusAttestation("dc_sd_jwt_EuropeanDisabilityCard")
+  );
+  const pid = useAppSelector(selectPid);
 
   useDebugInfo({
     mdlStatusAttestationState: mdlStatAttState,
@@ -62,7 +76,7 @@ export const StatusAttestationScreen = () => {
         onPress: () =>
           dispatch(
             getCredentialStatusAttestationThunk({
-              credentialType: "MDL",
+              credentialType: "dc_sd_jwt_mDL",
               credential: mDl.credential,
               keyTag: mDl.keyTag,
             })
@@ -73,6 +87,22 @@ export const StatusAttestationScreen = () => {
         icon: "car",
         isPresent: !!mdlStatusAttestation,
       },
+      dc && {
+        title: "Get Status Attestation (DC)",
+        onPress: () =>
+          dispatch(
+            getCredentialStatusAttestationThunk({
+              credentialType: "dc_sd_jwt_EuropeanDisabilityCard",
+              credential: dc.credential,
+              keyTag: dc.keyTag,
+            })
+          ),
+        isLoading: dcStatAttState.isLoading,
+        hasError: dcStatAttState.hasError,
+        isDone: dcStatAttState.isDone,
+        icon: "accessibility",
+        isPresent: !!dcStatusAttestation,
+      },
     ],
     [
       dispatch,
@@ -82,6 +112,9 @@ export const StatusAttestationScreen = () => {
       pid,
       pidStatAttState,
       pidStatusAttestation,
+      dc,
+      dcStatAttState,
+      dcStatusAttestation,
     ]
   );
 

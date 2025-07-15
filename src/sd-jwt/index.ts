@@ -110,7 +110,11 @@ export const disclose = async (
     })
   );
 
-  const filteredDisclosures = rawDisclosures.filter((d) => {
+  // The disclosures in the new SD-JWT aligned with version 1.0
+  // include a trailing "~" character.
+  // To avoid parsing errors, it is necessary to filter the array
+  // to remove any empty strings
+  const filteredDisclosures = rawDisclosures.filter(Boolean).filter((d) => {
     const {
       decoded: [, name],
     } = decodeDisclosure(d);
