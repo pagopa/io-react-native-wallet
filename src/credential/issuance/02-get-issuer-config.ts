@@ -111,15 +111,20 @@ const credentialIssuerRationalizationOIDFED = (
       ).map(([key, config]) => {
         const claimsRaw = config.claims;
 
-        const claims : CredentialConfigurationSupported[string]["claims"] = Object.entries(claimsRaw).map(([, v]) => ({
+        const claims: CredentialConfigurationSupported[string]["claims"] =
+          Object.entries(claimsRaw)
+            .map(([, v]) => ({
               path: v.path,
               details: {
                 mandatory: v.mandatory,
                 display: v.display,
               },
-          })).reduce((cumulated, entry) =>
-              pathInsert(cumulated, entry.path, entry.details)
-            ,{})
+            }))
+            .reduce(
+              (cumulated, entry) =>
+                pathInsert(cumulated, entry.path, entry.details),
+              {}
+            );
 
         const newConfig: CredentialConfigurationSupported[string] = {
           ...config,

@@ -81,15 +81,19 @@ export const safeJsonParse = <T>(text: string, withDefault?: T): T | null => {
  * @param value The value to insert at the specified path
  * @returns A new object with the property at path set to value, on-path objects are recreated
  */
-export function pathInsert(object: any, path: string[], value: any) : any {
+export function pathInsert(object: any, path: string[], value: any): any {
   if (path.length === 1) {
     return {
       ...object,
-      [path[0]!] : value
-    }
+      [path[0]!]: value,
+    };
   }
   return {
     ...object,
-    [path[0]!] : pathInsert(path[0]! in object ? object[path[0]!] : {}, path.slice(1), value)
-  }
+    [path[0]!]: pathInsert(
+      path[0]! in object ? object[path[0]!] : {},
+      path.slice(1),
+      value
+    ),
+  };
 }
