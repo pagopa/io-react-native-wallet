@@ -195,7 +195,11 @@ const { parsedCredential } =
     issuerConf,
     credential,
     credential_configuration_id,
-    { credentialCryptoContext, ignoreMissingAttributes: true }
+    { 
+      credentialCryptoContext, 
+      ignoreMissingAttributes: true,
+      includeUndefinedAttributes: false 
+    }
   );
 
 const credentialType =
