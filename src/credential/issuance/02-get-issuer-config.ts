@@ -1,5 +1,5 @@
 import type { StartFlow } from "./01-start-flow";
-import type { Out } from "../../utils/misc";
+import { pathInsert, type Out } from "../../utils/misc";
 import type { JWK } from "src/utils/jwk";
 import { getCredentialIssuerMetadata } from "../../entity/openid-connect/issuer";
 import type { CredentialConfigurationSupported } from "../../entity/openid-connect/issuer/types";
@@ -110,42 +110,17 @@ const credentialIssuerRationalizationOIDFED = (
           .credential_configurations_supported
       ).map(([key, config]) => {
         const claimsRaw = config.claims;
-        // we need to evaluate how claims is in oder to support Federation and OID4VCI
-        // claim structure is different in both case
-        let claims: CredentialConfigurationSupported[string]["claims"];
 
-        if (
-          claimsRaw &&
-          typeof Object.values(claimsRaw)[0] === "object" &&
-          "mandatory" in Object.values(claimsRaw)[0]!
-        ) {
-          // claims is Record<string, { mandatory: boolean; display: Display[] }>
-          claims = Object.fromEntries(
-            Object.entries(claimsRaw).map(([, v]) => [
-              [v.path[0]],
-              {
-                mandatory: true,
+        const claims : CredentialConfigurationSupported[string]["claims"] = Object.entries(claimsRaw).map(([, v]) => ({
+              path: v.path,
+              details: {
+                mandatory: v.mandatory,
                 display: v.display,
               },
-            ])
-          );
-        } else {
-          // claims is Record<string, Record<string, { mandatory; display }>>
-          claims = Object.fromEntries(
-            Object.entries(claimsRaw).map(([k, inner]) => [
-              [k],
-              Object.fromEntries(
-                Object.entries(inner).map(([innerK, v]: any) => [
-                  [innerK],
-                  {
-                    mandatory: v.mandatory,
-                    display: v.display,
-                  },
-                ])
-              ),
-            ])
-          );
-        }
+          })).reduce((cumulated, entry) =>
+              pathInsert(cumulated, entry.path, entry.details)
+            ,{})
+
         const newConfig: CredentialConfigurationSupported[string] = {
           ...config,
           claims,
