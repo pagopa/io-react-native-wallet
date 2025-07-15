@@ -33,7 +33,10 @@ export type ObtainCredential = (
     appFetch?: GlobalFetch["fetch"];
   },
   operationType?: "reissuing"
-) => Promise<{ credential: string; format: string }>;
+) => Promise<{
+  credential: string;
+  format: string;
+}>;
 
 export const createNonceProof = async (
   nonce: string,

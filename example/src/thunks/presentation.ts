@@ -1,5 +1,8 @@
 import { createAppAsyncThunk } from "./utils";
-import { Credential } from "@pagopa/io-react-native-wallet";
+import {
+  createCryptoContextFor,
+  Credential,
+} from "@pagopa/io-react-native-wallet";
 import {
   selectAttestationAsJwt,
   shouldRequestAttestationSelector,
@@ -9,6 +12,7 @@ import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
@@ -28,7 +32,7 @@ type AuthResponse = Awaited<
 type ProcessPresentation = (
   requestObject: RequestObject,
   rpConf: RpConf,
-  credentialsSdJwt: [string, string][]
+  credentialsSdJwt: [CryptoContext, string][]
 ) => Promise<RemoteCrossDevicePresentationThunkOutput>;
 
 export type RemoteCrossDevicePresentationThunkInput = {
@@ -93,11 +97,11 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const credentials = selectCredentials(getState());
   const credentialsSdJwt = [
-    [pid.keyTag, pid.credential],
+    [createCryptoContextFor(pid.keyTag), pid.credential],
     ...Object.values(credentials)
       .filter(isDefined)
-      .map((c) => [c.keyTag, c.credential]),
-  ] as [string, string][];
+      .map((c) => [createCryptoContextFor(c.keyTag), c.credential]),
+  ] as [CryptoContext, string][];
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
     return processRefusedPresentation(requestObject);
@@ -141,7 +145,7 @@ const processLegacyPresentation: ProcessPresentation = async (
         requestedClaims,
         inputDescriptor: evaluateInputDescriptor.inputDescriptor,
         credential: evaluateInputDescriptor.credential,
-        keyTag: evaluateInputDescriptor.keyTag,
+        cryptoContext: evaluateInputDescriptor.cryptoContext,
       };
     }
   );

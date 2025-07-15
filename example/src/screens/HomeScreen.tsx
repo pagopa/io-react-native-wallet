@@ -83,7 +83,7 @@ const HomeScreen = () => {
         description: "Obtain the status attestation of a credential",
         icon: "chevronRight",
         onPress: () =>
-          credentials.MDL
+          credentials.dc_sd_jwt_mDL
             ? navigation.navigate("StatusAttestation")
             : Alert.alert("Obtain a MDL first"),
       },

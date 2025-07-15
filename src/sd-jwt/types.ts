@@ -47,6 +47,9 @@ export const SdJwt4VC = z.object({
     typ: z.enum(["vc+sd-jwt", "dc+sd-jwt"]),
     alg: z.string(),
     kid: z.string(),
+    trust_chain: z.array(z.string()).optional(),
+    x5c: z.array(z.string()).optional(),
+    vctm: z.array(z.string()).optional(),
   }),
   payload: z.intersection(
     z.object({

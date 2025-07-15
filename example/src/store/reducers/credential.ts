@@ -53,34 +53,40 @@ type CredentialState = {
 // Initial state for the credential slice
 const initialState: CredentialState = {
   credentials: {
-    MDL: undefined,
-    EuropeanDisabilityCard: undefined,
-    EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_mDL: undefined,
+    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_EuropeanDisabilityCard: undefined,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
   },
   credentialsAsyncStatus: {
-    MDL: asyncStatusInitial,
-    EuropeanDisabilityCard: asyncStatusInitial,
-    EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
   statusAttestation: {
-    MDL: undefined,
-    EuropeanDisabilityCard: undefined,
-    EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_mDL: undefined,
+    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_EuropeanDisabilityCard: undefined,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
   },
   statusAttAsyncStatus: {
-    MDL: asyncStatusInitial,
-    EuropeanDisabilityCard: asyncStatusInitial,
-    EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
   trustmark: {
-    MDL: undefined,
-    EuropeanDisabilityCard: undefined,
-    EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_mDL: undefined,
+    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_EuropeanDisabilityCard: undefined,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
   },
   trustmarkAsyncStatus: {
-    MDL: asyncStatusInitial,
-    EuropeanDisabilityCard: asyncStatusInitial,
-    EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
   },
 };
 

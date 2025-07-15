@@ -96,7 +96,7 @@ export const RequestObject = z.object({
   state: z.string().optional(),
   nonce: z.string(),
   response_uri: z.string(),
-  response_uri_method: z.string().optional(),
+  request_uri_method: z.string().optional(),
   response_type: z.literal("vp_token"),
   response_mode: z.literal("direct_post.jwt"),
   client_id: z.string(),
