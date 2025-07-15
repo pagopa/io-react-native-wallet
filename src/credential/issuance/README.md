@@ -186,7 +186,10 @@ const { credential } = await Credential.Issuance.obtainCredential(
   }
 );
 
-// Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
+/*
+ * Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
+ * WARNING: includeUndefinedAttributes should not be set to true in production in order to get only claims explicitly declared by the issuer.
+ */
 const { parsedCredential } =
   await Credential.Issuance.verifyAndParseCredential(
     issuerConf,
