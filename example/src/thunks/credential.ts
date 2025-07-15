@@ -88,7 +88,6 @@ export const getCredentialThunk = createAppAsyncThunk<
     // and we restrict `getCredential` to issuing only one credential at a time.
     credentialId: credentialType,
     pid: pid,
-    // TODO handle like PID
     walletInstanceAttestation,
     wiaCryptoContext,
   });
