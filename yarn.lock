@@ -2387,10 +2387,10 @@
   dependencies:
     zod "^3.24.1"
 
-"@pagopa/io-react-native-crypto@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.0.tgz#382eef02469fe3cba4bd5193fcc605fe2c939833"
-  integrity sha512-aiUAjIntlCMrr5gUwiiVoH/BqzTb/8gWT/0tu6GSjbl1Xtl6Wg06z6vKOlmlwjZ8Qx9++TN2qhs98CSTFgiQnQ==
+"@pagopa/io-react-native-crypto@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.2.tgz#b7e6494e7eb40f2116d2f839031a8ba89209054c"
+  integrity sha512-s2M3c+xjpLYFyPJ2pMu+aePuWMMEMTHr5pONUZ66w/S7o+QnbRMpDjz+qaB57eCB6pBcGGY+iLXxD/JEXTxfZQ==
 
 "@pagopa/io-react-native-jwt@^2.1.0":
   version "2.1.0"
