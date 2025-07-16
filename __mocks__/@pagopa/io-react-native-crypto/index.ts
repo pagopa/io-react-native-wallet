@@ -74,4 +74,11 @@ const verifyCertificateChain = jest.fn().mockResolvedValue({
   errorMessage: undefined,
 });
 
-export { deleteKey, getPublicKey, getPublicKeyFixed, generate, sign, verifyCertificateChain };
+export {
+  deleteKey,
+  getPublicKey,
+  getPublicKeyFixed,
+  generate,
+  sign,
+  verifyCertificateChain,
+};
