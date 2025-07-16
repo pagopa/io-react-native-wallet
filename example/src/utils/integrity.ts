@@ -28,6 +28,7 @@ export type HardwareSignatureWithAuthData = {
  * Generates the hardware signature with the authentication data. The implementation differs between iOS and Android.
  * This will later be used to verify the signature on the server side.
  * @param hardwareKeyTag - the hardware key tag to use for the signature.
+ * @param clientData - the client data as a string.
  * @returns a function that takes the client data as string and returns a promise that resolves with the signature and the authenticator data or rejects with an error.
  */
 const getHardwareSignatureWithAuthData = (

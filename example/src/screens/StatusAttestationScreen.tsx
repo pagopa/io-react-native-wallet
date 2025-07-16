@@ -39,6 +39,7 @@ export const StatusAttestationScreen = () => {
                 getCredentialStatusAttestationThunk({
                   credentialType: "MDL",
                   credential: mDl.credential,
+                  format: mDl.format,
                   keyTag: mDl.keyTag,
                 })
               ),

@@ -241,5 +241,6 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     credential,
     keyTag: credentialKeyTag,
     credentialType: "PersonIdentificationData",
+    format,
   };
 });
