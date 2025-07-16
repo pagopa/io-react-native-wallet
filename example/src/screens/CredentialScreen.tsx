@@ -19,22 +19,35 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 export const CredentialScreen = () => {
   const dispatch = useAppDispatch();
 
-  const mdlState = useAppSelector(selectCredentialAsyncStatus("MDL"));
-  const mdl = useAppSelector(selectCredential("MDL"));
+  const sd_jwt_mdlState = useAppSelector(
+    selectCredentialAsyncStatus("dc_sd_jwt_mDL")
+  );
+  const sd_jwt_mdl = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
+
+  const mdoc_mdlState = useAppSelector(
+    selectCredentialAsyncStatus("mso_mdoc_mDL")
+  );
+  const mdoc_mdl = useAppSelector(selectCredential("mso_mdoc_mDL"));
 
   const dcState = useAppSelector(
-    selectCredentialAsyncStatus("EuropeanDisabilityCard")
+    selectCredentialAsyncStatus("dc_sd_jwt_EuropeanDisabilityCard")
   );
-  const dc = useAppSelector(selectCredential("EuropeanDisabilityCard"));
+  const dc = useAppSelector(
+    selectCredential("dc_sd_jwt_EuropeanDisabilityCard")
+  );
 
   const tsState = useAppSelector(
-    selectCredentialAsyncStatus("EuropeanHealthInsuranceCard")
+    selectCredentialAsyncStatus("dc_sd_jwt_EuropeanHealthInsuranceCard")
   );
-  const ts = useAppSelector(selectCredential("EuropeanHealthInsuranceCard"));
+  const ts = useAppSelector(
+    selectCredential("dc_sd_jwt_EuropeanHealthInsuranceCard")
+  );
 
   useDebugInfo({
-    mdlState,
-    mdl,
+    sd_jwt_mdlState,
+    sd_jwt_mdl,
+    mdoc_mdlState,
+    mdoc_mdl,
     dcState,
     dc,
     tsState,
@@ -44,19 +57,32 @@ export const CredentialScreen = () => {
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
-        title: "Get credential (MDL)",
-        onPress: () => dispatch(getCredentialThunk({ credentialType: "MDL" })),
-        isLoading: mdlState.isLoading,
-        hasError: mdlState.hasError,
-        isDone: mdlState.isDone,
+        title: "Get credential (MDL in SD-JWT)",
+        onPress: () =>
+          dispatch(getCredentialThunk({ credentialType: "dc_sd_jwt_mDL" })),
+        isLoading: sd_jwt_mdlState.isLoading,
+        hasError: sd_jwt_mdlState.hasError,
+        isDone: sd_jwt_mdlState.isDone,
         icon: "car",
-        isPresent: !!mdl,
+        isPresent: !!sd_jwt_mdl,
       },
       {
-        title: "Get credential (DC)",
+        title: "Get credential (MDL in Mdoc)",
+        onPress: () =>
+          dispatch(getCredentialThunk({ credentialType: "mso_mdoc_mDL" })),
+        isLoading: mdoc_mdlState.isLoading,
+        hasError: mdoc_mdlState.hasError,
+        isDone: mdoc_mdlState.isDone,
+        icon: "car",
+        isPresent: !!mdoc_mdl,
+      },
+      {
+        title: "Get credential (DC in SD-JWT)",
         onPress: () =>
           dispatch(
-            getCredentialThunk({ credentialType: "EuropeanDisabilityCard" })
+            getCredentialThunk({
+              credentialType: "dc_sd_jwt_EuropeanDisabilityCard",
+            })
           ),
         isLoading: dcState.isLoading,
         hasError: dcState.hasError,
@@ -65,11 +91,11 @@ export const CredentialScreen = () => {
         isPresent: !!dc,
       },
       {
-        title: "Get credential (TS)",
+        title: "Get credential (TS in SD-JWT)",
         onPress: () =>
           dispatch(
             getCredentialThunk({
-              credentialType: "EuropeanHealthInsuranceCard",
+              credentialType: "dc_sd_jwt_EuropeanHealthInsuranceCard",
             })
           ),
         isLoading: tsState.isLoading,
@@ -84,15 +110,19 @@ export const CredentialScreen = () => {
       dcState.hasError,
       dcState.isDone,
       dcState.isLoading,
-      dispatch,
-      mdl,
-      mdlState.hasError,
-      mdlState.isDone,
-      mdlState.isLoading,
+      mdoc_mdl,
+      mdoc_mdlState.hasError,
+      mdoc_mdlState.isDone,
+      mdoc_mdlState.isLoading,
+      sd_jwt_mdl,
+      sd_jwt_mdlState.hasError,
+      sd_jwt_mdlState.isDone,
+      sd_jwt_mdlState.isLoading,
       ts,
       tsState.hasError,
       tsState.isDone,
       tsState.isLoading,
+      dispatch,
     ]
   );
 

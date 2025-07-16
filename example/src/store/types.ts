@@ -34,9 +34,10 @@ export type AsyncStatus = {
  */
 export type SupportedCredentials =
   | "PersonIdentificationData"
-  | "MDL"
-  | "EuropeanDisabilityCard"
-  | "EuropeanHealthInsuranceCard";
+  | "dc_sd_jwt_mDL"
+  | "mso_mdoc_mDL"
+  | "dc_sd_jwt_EuropeanDisabilityCard"
+  | "dc_sd_jwt_EuropeanHealthInsuranceCard";
 
 /**
  * Type definition for the supported credentials without the PersonIdentificationData.
@@ -58,6 +59,7 @@ type CredentialResultBase = {
   >["parsedCredential"];
   keyTag: string;
   credentialType: SupportedCredentials;
+  credentialConfigurationId: string;
   format: Awaited<ReturnType<Credential.Issuance.ObtainCredential>>["format"];
 };
 

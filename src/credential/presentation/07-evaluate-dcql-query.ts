@@ -2,9 +2,9 @@ import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
 import { decode, prepareVpToken } from "../../sd-jwt";
 import type { Disclosure } from "../../sd-jwt/types";
-import { createCryptoContextFor } from "../../utils/crypto";
 import type { RemotePresentation } from "./types";
 import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 /**
  * The purpose for the credential request by the RP.
@@ -15,13 +15,13 @@ type CredentialPurpose = {
 };
 
 export type EvaluateDcqlQuery = (
-  credentialsSdJwt: [string /* keyTag */, string /* credential */][],
+  credentialsSdJwt: [CryptoContext, string /* credential */][],
   query: DcqlQuery.Input
 ) => {
   id: string;
   vct: string;
   credential: string;
-  keyTag: string;
+  cryptoContext: CryptoContext;
   requiredDisclosures: Disclosure[];
   purposes: CredentialPurpose[];
 }[];
@@ -30,7 +30,7 @@ export type PrepareRemotePresentations = (
   credentials: {
     id: string;
     credential: string;
-    keyTag: string;
+    cryptoContext: CryptoContext;
     requestedClaims: string[];
   }[],
   nonce: string,
@@ -54,11 +54,6 @@ type DcqlMatchFailure = Extract<
 const mapCredentialToObject = (jwt: string) => {
   const { sdJwt, disclosures } = decode(jwt);
   const credentialFormat = sdJwt.header.typ;
-
-  // TODO [SIW-2082]: support MDOC credentials
-  if (credentialFormat !== "vc+sd-jwt") {
-    throw new Error(`Unsupported credential format: ${credentialFormat}`);
-  }
 
   return {
     vct: sdJwt.payload.vct,
@@ -100,7 +95,10 @@ const extractMissingCredentials = (
 ): NotFoundDetail[] => {
   return getDcqlQueryFailedMatches(queryResult).map(([id]) => {
     const credential = originalQuery.credentials.find((c) => c.id === id);
-    if (credential?.format !== "vc+sd-jwt") {
+    if (
+      credential?.format !== "dc+sd-jwt" &&
+      credential?.format !== "vc+sd-jwt"
+    ) {
       throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
     }
     return { id, vctValues: credential.meta?.vct_values };
@@ -114,7 +112,6 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
   const credentials = credentialsSdJwt.map(([, credential]) =>
     mapCredentialToObject(credential)
   );
-
   try {
     // Validate the query
     const parsedQuery = DcqlQuery.parse(query);
@@ -131,11 +128,14 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     // Build an object vct:credentialJwt to map matched credentials to their JWT
     const credentialsSdJwtByVct = credentials.reduce(
       (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
-      {} as Record<string, [string /* keyTag */, string /* credential */]>
+      {} as Record<string, [CryptoContext, string /* credential */]>
     );
 
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
-      if (match.output.credential_format !== "vc+sd-jwt") {
+      if (
+        match.output.credential_format !== "dc+sd-jwt" &&
+        match.output.credential_format !== "vc+sd-jwt"
+      ) {
         throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
       }
       const { vct, claims } = match.output;
@@ -147,12 +147,12 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
           required: Boolean(credentialSet.required),
         }));
 
-      const [keyTag, credential] = credentialsSdJwtByVct[vct]!;
+      const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
       const requiredDisclosures = Object.values(claims) as Disclosure[];
       return {
         id,
         vct,
-        keyTag,
+        cryptoContext,
         credential,
         requiredDisclosures,
         // When it is a match but no credential_sets are found, the credential is required by default
@@ -185,14 +185,13 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
       const { vp_token } = await prepareVpToken(nonce, clientId, [
         item.credential,
         item.requestedClaims,
-        createCryptoContextFor(item.keyTag),
+        item.cryptoContext,
       ]);
 
       return {
         credentialId: item.id,
         requestedClaims: item.requestedClaims,
         vpToken: vp_token,
-        format: "vc+sd-jwt",
       };
     })
   );

@@ -1,14 +1,18 @@
-import { AuthorizationDetail } from "../../utils/par";
 import * as z from "zod";
-import { SupportedCredentialFormat } from "./const";
+
+export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
+export const AuthorizationDetail = z.object({
+  type: z.literal("openid_credential"),
+  credential_configuration_id: z.string(),
+  credential_identifiers: z.array(z.string()),
+});
 
 export type TokenResponse = z.infer<typeof TokenResponse>;
 
 export const TokenResponse = z.object({
   access_token: z.string(),
+  refresh_token: z.string().optional(),
   authorization_details: z.array(AuthorizationDetail),
-  c_nonce: z.string(),
-  c_nonce_expires_in: z.number(),
   expires_in: z.number(),
   token_type: z.string(),
 });
@@ -16,10 +20,12 @@ export const TokenResponse = z.object({
 export type CredentialResponse = z.infer<typeof CredentialResponse>;
 
 export const CredentialResponse = z.object({
-  c_nonce: z.string(),
-  c_nonce_expires_in: z.number(),
-  credential: z.string(),
-  format: SupportedCredentialFormat,
+  credentials: z.array(
+    z.object({
+      credential: z.string(),
+    })
+  ),
+  notification_id: z.string().optional(),
 });
 
 /**
@@ -30,3 +36,8 @@ export const ResponseUriResultShape = z.object({
 });
 
 export type ResponseMode = "query" | "form_post.jwt";
+
+export type NonceResponse = z.infer<typeof NonceResponse>;
+export const NonceResponse = z.object({
+  c_nonce: z.string(),
+});

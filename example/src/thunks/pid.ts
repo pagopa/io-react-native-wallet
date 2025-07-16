@@ -2,21 +2,16 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import {
   createCryptoContextFor,
   Credential,
-  WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import {
-  selectAttestation,
+  selectAttestationAsJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
-import type {
-  PidAuthMethods,
-  PidResult,
-  SupportedCredentials,
-} from "../store/types";
+import type { PidAuthMethods, PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -33,7 +28,6 @@ export const CIE_L3_REDIRECT_URI = "https://cie.callback";
 type PreparePidFlowParamsThunkInput = {
   idpHint: string;
   authMethod: PidAuthMethods;
-  credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
   ciePin?: string;
 };
 
@@ -58,9 +52,7 @@ export type PreparePidFlowParamsThunkOutput = {
   codeVerifier: Awaited<
     ReturnType<typeof Credential.Issuance.startUserAuthorization>
   >["codeVerifier"];
-  walletInstanceAttestation: Awaited<
-    ReturnType<typeof WalletInstanceAttestation.getAttestation>
-  >;
+  walletInstanceAttestation: string;
   credentialDefinition: Awaited<
     ReturnType<typeof Credential.Issuance.startUserAuthorization>
   >["credentialDefinition"];
@@ -75,7 +67,6 @@ export type PreparePidFlowParamsThunkOutput = {
  * The flow can be managed using either SPID or CIE L3 as the authentication method.
  * @param args.idpHint The identity provider hint to use in the issuance flow.
  * @param args.authMethod The authentication method to use, either SPID or CIE L3.
- * @param args.credentialType The type of credential to be issued.
  * @param args.ciePin The CIE PIN to use in the issuance flow (optional, only for CIE L3).
  * @returns The needed parameters to continue the issuance flow.
  */
@@ -89,7 +80,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   }
 
   // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestation(getState());
+  const walletInstanceAttestation = selectAttestationAsJwt(getState());
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");
   }
@@ -111,10 +102,10 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
     issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-    credentialType: "PersonIdentificationData",
+    credentialId: "dc_sd_jwt_PersonIdentificationData",
   });
 
-  const { issuerUrl, credentialType } = startFlow();
+  const { issuerUrl, credentialId } = startFlow();
 
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -126,7 +117,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
-      credentialType,
+      [credentialId],
       {
         walletInstanceAttestation,
         redirectUri: redirectUri,
@@ -216,11 +207,31 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     }
   );
 
-  const { credential, format } = await Credential.Issuance.obtainCredential(
+  const [pidCredentialDefinition] = credentialDefinition;
+
+  const { credential_configuration_id, credential_identifiers } =
+    accessToken.authorization_details.find(
+      (authDetails) =>
+        authDetails.credential_configuration_id ===
+        pidCredentialDefinition?.credential_configuration_id
+    ) ?? {};
+
+  // Get the first credential_identifier from the access token's authorization details
+  const [credential_identifier] = credential_identifiers ?? [];
+
+  if (!credential_configuration_id) {
+    throw new Error("No credential configuration ID found for PID");
+  }
+
+  // Get the credential identifier that was authorized
+  const { credential } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
-    credentialDefinition,
+    {
+      credential_configuration_id,
+      credential_identifier,
+    },
     {
       credentialCryptoContext,
       dPopCryptoContext,
@@ -232,7 +243,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     await Credential.Issuance.verifyAndParseCredential(
       issuerConf,
       credential,
-      format,
+      credential_configuration_id,
       { credentialCryptoContext }
     );
 
@@ -241,6 +252,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     credential,
     keyTag: credentialKeyTag,
     credentialType: "PersonIdentificationData",
+    credentialConfigurationId: credential_configuration_id,
     format,
   };
 });

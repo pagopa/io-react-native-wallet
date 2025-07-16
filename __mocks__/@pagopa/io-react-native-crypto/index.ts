@@ -68,4 +68,10 @@ const sign = jest.fn<
   );
 });
 
-export { deleteKey, getPublicKey, getPublicKeyFixed, generate, sign };
+const verifyCertificateChain = jest.fn().mockResolvedValue({
+  isValid: true,
+  validationStatus: "VALID",
+  errorMessage: undefined,
+});
+
+export { deleteKey, getPublicKey, getPublicKeyFixed, generate, sign, verifyCertificateChain };

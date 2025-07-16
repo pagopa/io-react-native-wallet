@@ -1,24 +1,24 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
 import uuid from "react-native-uuid";
-import { getJwksFromConfig, type FetchJwks } from "./04-retrieve-rp-jwks";
+import { type FetchJwks, getJwksFromConfig } from "./04-retrieve-rp-jwks";
 import type { VerifyRequestObject } from "./05-verify-request-object";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import {
-  type RemotePresentation,
   DirectAuthorizationBodyPayload,
   ErrorResponse,
   type LegacyRemotePresentation,
+  type RemotePresentation,
 } from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
-import type { RelyingPartyEntityConfiguration } from "../../trust";
 import {
   RelyingPartyResponseError,
+  RelyingPartyResponseErrorCodes,
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
-  RelyingPartyResponseErrorCodes,
 } from "../../utils/errors";
+import type { RelyingPartyEntityConfiguration } from "../../trust/types";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({

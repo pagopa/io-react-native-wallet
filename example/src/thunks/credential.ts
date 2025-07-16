@@ -3,7 +3,7 @@ import {
   Credential,
 } from "@pagopa/io-react-native-wallet";
 import {
-  selectAttestation,
+  selectAttestationAsJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { selectEnv } from "../store/reducers/environment";
@@ -64,7 +64,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   }
 
   // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestation(getState());
+  const walletInstanceAttestation = selectAttestationAsJwt(getState());
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");
   }
@@ -82,15 +82,15 @@ export const getCredentialThunk = createAppAsyncThunk<
   if (!pid) {
     throw new Error("PID not found");
   }
-  const pidCryptoContext = createCryptoContextFor(pid.keyTag);
   return await getCredential({
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
     redirectUri: REDIRECT_URI,
-    credentialType,
+    // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
+    // and we restrict `getCredential` to issuing only one credential at a time.
+    credentialId: credentialType,
+    pid: pid,
     walletInstanceAttestation,
     wiaCryptoContext,
-    pid: pid.credential,
-    pidCryptoContext,
   });
 });
 

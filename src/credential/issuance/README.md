@@ -6,7 +6,7 @@ There's a fork in the flow which is based on the type of the credential that is 
 This is due to the fact that eID credentials require a different authorization flow than other credentials, which is accomplished by a strong authentication method like SPID or CIE.
 Credentials instead require a simpler authorization flow and they require other credentials to be presented in order to be issued.
 
-The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step.
+The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step. Available credentials are identified with a unique `credential_configuration_id`, that must be used when requesting authorization. The Authorization Server returns an array of **credential identifiers** that map to the `credential_configuration_id` provided: to obtain the credential, one of the credential identifiers (or all of them) must be requested to the credential endpoint.
 
 ## Sequence Diagram
 
@@ -96,16 +96,12 @@ const walletInstanceAttestation =
     appFetch,
   });
 
-const credentialType = "someCredential"; // Let's assume this is the credential type
-
-const eid = {
+const pid = {
   credential: "example",
   parsedCredential: "example"
   keyTag: "example";
-  credentialType: "eid";
+  credentialType: "PersonIdentificationData";
 };
-
-const eidCryptoContext = createCryptoContextFor(eid.keyTag);
 
 // Create credential crypto context
 const credentialKeyTag = uuidv4().toString();
@@ -115,22 +111,26 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 // Start the issuance flow
 const startFlow: Credential.Issuance.StartFlow = () => ({
   issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-  credentialType,
+  credentialId: "someCredentialId",
 });
 
-const { issuerUrl } = startFlow();
+const { issuerUrl, credentialId } = startFlow();
 
 // Evaluate issuer trust
 const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
 
 // Start user authorization
-const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-  await Credential.Issuance.startUserAuthorization(issuerConf, credentialType, {
-    walletInstanceAttestation,
-    redirectUri,
-    wiaCryptoContext,
-    appFetch,
-  });
+const { issuerRequestUri, clientId, codeVerifier } =
+  await Credential.Issuance.startUserAuthorization(
+    issuerConf, 
+    [credentialId], 
+    {
+      walletInstanceAttestation,
+      redirectUri: REDIRECT_URI,
+      wiaCryptoContext,
+      appFetch,
+    }
+  );
 
 const requestObject =
   await Credential.Issuance.getRequestedCredentialToBePresented(
@@ -140,13 +140,12 @@ const requestObject =
     appFetch
   );
 
-// The app here should ask the user to confirm the required data contained in the requestObject
-
 // Complete the user authorization via form_post.jwt mode
 const { code } =
   await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
     requestObject,
-    { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
+    pid.credential,
+    { wiaCryptoContext, pidCryptoContext: createCryptoContextFor(pid.keyTag) }
   );
 
 // Generate the DPoP context which will be used for the whole issuance flow
@@ -157,7 +156,7 @@ const { accessToken } = await Credential.Issuance.authorizeAccess(
   issuerConf,
   code,
   clientId,
-  redirectUri,
+  redirectUri: REDIRECT_URI,
   codeVerifier,
   {
     walletInstanceAttestation,
@@ -167,12 +166,19 @@ const { accessToken } = await Credential.Issuance.authorizeAccess(
   }
 );
 
-// Obtain the credential
-const { credential, format } = await Credential.Issuance.obtainCredential(
+// For simplicity, in this example flow we work on a single credential.
+const { credential_configuration_id, credential_identifiers } =
+    accessToken.authorization_details[0]!;
+
+ // Obtain the credential
+const { credential } = await Credential.Issuance.obtainCredential(
   issuerConf,
   accessToken,
   clientId,
-  credentialDefinition,
+  {
+    credential_configuration_id,
+    credential_identifier: credential_identifiers[0],
+  },
   {
     credentialCryptoContext,
     dPopCryptoContext,
@@ -184,22 +190,29 @@ const { credential, format } = await Credential.Issuance.obtainCredential(
  * Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
  * WARNING: includeUndefinedAttributes should not be set to true in production in order to get only claims explicitly declared by the issuer.
  */
-const { parsedCredential } = await Credential.Issuance.verifyAndParseCredential(
-  issuerConf,
-  credential,
-  format,
-  {
-    credentialCryptoContext,
-    ignoreMissingAttributes: true,
-    includeUndefinedAttributes: false
-  }
-);
+const { parsedCredential } =
+  await Credential.Issuance.verifyAndParseCredential(
+    issuerConf,
+    credential,
+    credential_configuration_id,
+    { 
+      credentialCryptoContext, 
+      ignoreMissingAttributes: true,
+      includeUndefinedAttributes: false 
+    }
+  );
+
+const credentialType =
+  issuerConf.openid_credential_issuer.credential_configurations_supported[
+    credential_configuration_id
+  ].scope;
 
 return {
   parsedCredential,
   credential,
   keyTag: credentialKeyTag,
   credentialType,
+  credentialConfigurationId: credential_configuration_id,
 };
 ```
 
@@ -251,11 +264,10 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 // Start the issuance flow
 const startFlow: Credential.Issuance.StartFlow = () => ({
   issuerUrl: WALLET_EID_PROVIDER_BASE_URL,
-  credentialType: "PersonIdentificationData",
-  appFetch,
+  credentialId: "dc_sd_jwt_PersonIdentificationData",
 });
 
-const { issuerUrl } = startFlow();
+const { issuerUrl, credentialId } = startFlow();
 
 // Evaluate issuer trust
 const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
@@ -265,12 +277,16 @@ const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
 
 // Start user authorization
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-  await Credential.Issuance.startUserAuthorization(issuerConf, credentialType, {
-    walletInstanceAttestation,
-    redirectUri,
-    wiaCryptoContext,
-    appFetch,
-  });
+  await Credential.Issuance.startUserAuthorization(
+    issuerConf,
+    [credentialId], // Request authorization for one or more credentials
+    {
+      walletInstanceAttestation,
+      redirectUri,
+      wiaCryptoContext,
+      appFetch,
+    }
+  );
 
 // Complete the authorization process with query mode with the authorizationContext which opens the browser
 const { code } =
@@ -301,12 +317,27 @@ const { accessToken } = await Credential.Issuance.authorizeAccess(
   }
 );
 
+
+const [pidCredentialDefinition] = credentialDefinition;
+
+// Extract the credential_identifier(s) from the access token
+// For each one of them, a credential can be obtained by calling `obtainCredential`
+const { credential_configuration_id, credential_identifiers } =
+    accessToken.authorization_details.find(
+      (authDetails) =>
+        authDetails.credential_configuration_id ===
+        pidCredentialDefinition.credential_configuration_id
+    );
+
 // Obtain che eID credential
 const { credential, format } = await Credential.Issuance.obtainCredential(
   issuerConf,
   accessToken,
   clientId,
-  credentialDefinition,
+  {
+    credential_configuration_id,
+    credential_identifier: credential_identifiers.at(0),
+  },
   {
     credentialCryptoContext,
     dPopCryptoContext,
@@ -318,15 +349,16 @@ const { credential, format } = await Credential.Issuance.obtainCredential(
 const { parsedCredential, issuedAt, expiration } = await Credential.Issuance.verifyAndParseCredential(
   issuerConf,
   credential,
-  format,
+  credential_configuration_id,
   { credentialCryptoContext }
 );
 
 return {
   parsedCredential,
   credential,
+  credentialConfigurationId: credential_configuration_id
+  credentialType: "PersonIdentificationData",
   keyTag: credentialKeyTag,
-  credentialType,
   issuedAt,
   expiration
 };

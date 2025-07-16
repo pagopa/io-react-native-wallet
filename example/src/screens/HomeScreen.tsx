@@ -73,11 +73,17 @@ const HomeScreen = () => {
             : Alert.alert("Obtain a PID first"),
       },
       {
+        label: "Trust Federation",
+        description: "Verify the trust of an entity",
+        icon: "chevronRight",
+        onPress: () => navigation.navigate("Trust"),
+      },
+      {
         label: "Status Attestation",
         description: "Obtain the status attestation of a credential",
         icon: "chevronRight",
         onPress: () =>
-          credentials.MDL
+          credentials.dc_sd_jwt_mDL
             ? navigation.navigate("StatusAttestation")
             : Alert.alert("Obtain a MDL first"),
       },

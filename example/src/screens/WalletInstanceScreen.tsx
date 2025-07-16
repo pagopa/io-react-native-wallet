@@ -15,7 +15,8 @@ import {
   selectInstanceRevocationAsyncStatus,
 } from "../store/reducers/instance";
 import {
-  selectAttestation,
+  selectAttestationAsJwt,
+  selectAttestationAsSdJwt,
   selectAttestationAsyncStatus,
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "../thunks/attestation";
@@ -37,13 +38,15 @@ export const WalletInstanceScreen = () => {
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
   const instanceKeyTag = useAppSelector(selectInstanceKeyTag);
-  const attestation = useAppSelector(selectAttestation);
+  const attestationJwt = useAppSelector(selectAttestationAsJwt);
+  const attestationSdJwt = useAppSelector(selectAttestationAsSdJwt);
 
   useDebugInfo({
     instanceState,
     instanceKeyTag,
     attestationState,
-    attestation,
+    attestationJwt,
+    attestationSdJwt,
     instanceRevocationState,
   });
 
@@ -88,7 +91,7 @@ export const WalletInstanceScreen = () => {
         hasError: attestationState.hasError,
         isDone: attestationState.isDone,
         icon: "bonus",
-        isPresent: !!attestation,
+        isPresent: !!attestationJwt,
       },
       {
         title: "Revoke current Wallet Instance",
@@ -100,7 +103,7 @@ export const WalletInstanceScreen = () => {
       },
     ],
     [
-      attestation,
+      attestationJwt,
       attestationState.hasError,
       attestationState.isDone,
       attestationState.isLoading,

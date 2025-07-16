@@ -37,12 +37,10 @@ const CredentialIssuerDisplayMetadata = z.object({
 });
 
 type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
-const ClaimsMetadata = z.record(
-  z.object({
-    value_type: z.string(),
-    display: z.array(z.object({ name: z.string(), locale: z.string() })),
-  })
-);
+const ClaimsMetadata = z.object({
+  path: z.array(z.string()),
+  display: z.array(CredentialDisplayMetadata),
+});
 
 type IssuanceErrorSupported = z.infer<typeof IssuanceErrorSupported>;
 const IssuanceErrorSupported = z.object({
@@ -57,16 +55,21 @@ const IssuanceErrorSupported = z.object({
 
 // Metadata for a credential which is supported by an Issuer
 type SupportedCredentialMetadata = z.infer<typeof SupportedCredentialMetadata>;
-const SupportedCredentialMetadata = z.object({
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
-  scope: z.string(),
-  display: z.array(CredentialDisplayMetadata),
-  claims: ClaimsMetadata,
-  cryptographic_binding_methods_supported: z.array(z.string()),
-  credential_signing_alg_values_supported: z.array(z.string()),
-  authentic_source: z.string().optional(),
-  issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
-});
+const SupportedCredentialMetadata = z.intersection(
+  z.discriminatedUnion("format", [
+    z.object({ format: z.literal("dc+sd-jwt"), vct: z.string() }),
+    z.object({ format: z.literal("mso_mdoc"), doctype: z.string() }),
+  ]),
+  z.object({
+    scope: z.string(),
+    display: z.array(CredentialDisplayMetadata),
+    claims: z.array(ClaimsMetadata),
+    cryptographic_binding_methods_supported: z.array(z.string()),
+    credential_signing_alg_values_supported: z.array(z.string()),
+    authentic_source: z.string().optional(),
+    issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
+  })
+);
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
 export const EntityStatement = z.object({
@@ -155,13 +158,16 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
         openid_credential_issuer: z.object({
           credential_issuer: z.string(),
           credential_endpoint: z.string(),
-          revocation_endpoint: z.string(),
+          revocation_endpoint: z.string().optional(),
+          nonce_endpoint: z.string(),
           status_attestation_endpoint: z.string(),
           display: z.array(CredentialIssuerDisplayMetadata),
           credential_configurations_supported: z.record(
             SupportedCredentialMetadata
           ),
           jwks: z.object({ keys: z.array(JWK) }),
+          trust_frameworks_supported: z.array(z.string()),
+          evidence_supported: z.array(z.string()),
         }),
         oauth_authorization_server: z.object({
           authorization_endpoint: z.string(),
@@ -184,19 +190,6 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
          * This does not apply for PID issuance, which requires CIE authz.
          */
         openid_credential_verifier: RelyingPartyMetadata.optional(),
-        /**
-         * @deprecated use `openid_credential_verifier`
-         * TODO [SIW-2111]: remove after migrating to 0.9.x
-         */
-        wallet_relying_party: z
-          .object({
-            application_type: z.string().optional(),
-            client_id: z.string().optional(),
-            client_name: z.string().optional(),
-            jwks: z.object({ keys: z.array(JWK) }),
-            contacts: z.array(z.string()).optional(),
-          })
-          .optional(),
       }),
     }),
   })

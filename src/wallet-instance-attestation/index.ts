@@ -2,8 +2,8 @@ import { WalletInstanceAttestationJwt } from "./types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 
-import { getAttestation } from "./issuing";
-export { getAttestation };
+export { getAttestation } from "./issuing";
+
 /**
  * Decode a given JWT to get the parsed Wallet Instance Attestation object they define.
  * It ensures provided data is in a valid shape.
