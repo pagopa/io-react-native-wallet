@@ -224,7 +224,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   }
 
   // Get the credential identifier that was authorized
-  const { credential } = await Credential.Issuance.obtainCredential(
+  const { credential, format } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,

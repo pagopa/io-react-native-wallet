@@ -129,7 +129,7 @@ export const getPidCieID = async ({
   }
 
   // Obtain che eID credential
-  const { credential } = await Credential.Issuance.obtainCredential(
+  const { credential, format } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
@@ -250,7 +250,7 @@ export const getCredential = async ({
     accessToken.authorization_details[0]!;
 
   // Obtain the credential
-  const { credential } = await Credential.Issuance.obtainCredential(
+  const { credential, format } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
