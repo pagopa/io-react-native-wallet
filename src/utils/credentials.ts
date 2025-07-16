@@ -1,18 +1,20 @@
 import { decode } from "../sd-jwt";
-import { CBOR } from "@pagopa/io-react-native-cbor";
 import { thumbprint } from "@pagopa/io-react-native-jwt";
 import type { Out } from "./misc";
 import type { ObtainCredential } from "../credential/issuance";
+import type { JWK } from "./jwk";
+import { IoWalletError } from "./errors";
 
 /**
  * Extracts a JWK from a credential.
  * @param credential - The credential string, which can be in SD-JWT or CBOR format.
  * @param format - The format of the credential, either "vc+sd-jwt" or "vc+mdoc-cbor".
+ * @return A Promise that resolves to a JWK object if the credential is in SD-JWT format and contains a JWK, or undefined otherwise.
  */
 export const extractJwkFromCredential = async (
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"]
-) => {
+): Promise<JWK> => {
   if (format === "vc+sd-jwt") {
     // 1. SD-JWT case
     const decoded = decode(credential);
@@ -21,11 +23,5 @@ export const extractJwkFromCredential = async (
       return { ...jwk, kid: await thumbprint(jwk) };
     }
   }
-
-  // 2. CBOR case (This needs to be tested with a real credential and updated accordingly)
-  const decoded = await CBOR.decode(credential);
-  const jwk = decoded?.credentialSubject?.cnf?.jwk;
-  if (jwk) {
-    return { ...jwk, kid: await thumbprint(jwk) };
-  }
+  throw new IoWalletError(`Credential format ${format} not supported`);
 };
