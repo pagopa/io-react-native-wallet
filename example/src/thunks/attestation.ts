@@ -17,7 +17,6 @@ import { isAndroid } from "../utils/device";
 type GetAttestationThunkOutput = Awaited<
   ReturnType<typeof WalletInstanceAttestation.getAttestation>
 >;
-
 /**
  * Thunk to obtain a new Wallet Instance Attestation.
  */
@@ -37,14 +36,13 @@ export const getAttestationThunk = createAppAsyncThunk<
   await regenerateCryptoKey(WIA_KEYTAG);
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
-    // Get env URLs
-    const env = selectEnv(getState());
-    const { WALLET_PROVIDER_BASE_URL, GOOGLE_CLOUD_PROJECT_NUMBER } =
-      getEnv(env);
-    const googleCloudProjectNumber = isAndroid
-      ? GOOGLE_CLOUD_PROJECT_NUMBER
-      : undefined;
-    await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
+  // Get env URLs
+  const env = selectEnv(getState());
+  const { WALLET_PROVIDER_BASE_URL, GOOGLE_CLOUD_PROJECT_NUMBER } = getEnv(env);
+  const googleCloudProjectNumber = isAndroid
+    ? GOOGLE_CLOUD_PROJECT_NUMBER
+    : undefined;
+  await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
 
   /**
    * Obtains a new Wallet Instance Attestation.
