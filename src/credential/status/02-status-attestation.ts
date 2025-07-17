@@ -102,10 +102,6 @@ const handleStatusAttestationError = (e: unknown) => {
   }
 
   throw new ResponseErrorBuilder(IssuerResponseError)
-    .handle(404, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
     .handle("*", {
       code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
       message: `Unable to obtain the status attestation for the given credential`,

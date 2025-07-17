@@ -20,12 +20,12 @@ export type StatusAttestationResponse = z.infer<
 /**
  * Type for a parsed status attestation.
  */
-export type ParsedStatusAttestation = z.infer<typeof ParsedStatusAttestation>;
+export type ParsedStatusAssertion = z.infer<typeof ParsedStatusAssertion>;
 
 /**
  * Shape for parsing a status attestation in a JWT.
  */
-export const ParsedStatusAttestation = z.object({
+export const ParsedStatusAssertion = z.object({
   header: z.object({
     typ: z.literal("status-assertion+jwt"),
     alg: z.string(),
@@ -48,3 +48,44 @@ export const ParsedStatusAttestation = z.object({
     iat: UnixTime,
   }),
 });
+
+export type ParsedStatusAssertionError = z.infer<
+  typeof ParsedStatusAssertionError
+>;
+
+/**
+ * The JWT that contains the errors occurred for the status assertion request.
+ * @see https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-revocation.html#http-status-assertion-response
+ */
+export const ParsedStatusAssertionError = z.object({
+  header: z.object({
+    typ: z.literal("status-assertion-error+jwt"),
+    alg: z.string(),
+    kid: z.string().optional(),
+  }),
+  payload: z.object({
+    credential_hash_alg: z.string(),
+    credential_hash: z.string(),
+    error: z.string(),
+    error_description: z.string(),
+  }),
+});
+
+export type ParsedStatusAssertionResponse = z.infer<
+  typeof ParsedStatusAssertionResponse
+>;
+export const ParsedStatusAssertionResponse = z.union([
+  ParsedStatusAssertion,
+  ParsedStatusAssertionError,
+]);
+
+export enum StatusType {
+  VALID = "0x00",
+  INVALID = "0x01",
+  SUSPENDED = "0x02",
+}
+
+export type InvalidStatusErrorReason = {
+  error: string;
+  error_description: string;
+};
