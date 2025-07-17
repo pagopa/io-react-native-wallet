@@ -32,6 +32,7 @@ export const ParsedStatusAssertion = z.object({
     kid: z.string().optional(),
   }),
   payload: z.object({
+    iss: z.string(),
     credential_status_type: z.string(),
     credential_status_detail: z
       .object({
