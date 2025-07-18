@@ -60,6 +60,7 @@ type CredentialResultBase = {
   keyTag: string;
   credentialType: SupportedCredentials;
   credentialConfigurationId: string;
+  format: Awaited<ReturnType<Credential.Issuance.ObtainCredential>>["format"];
 };
 
 /**

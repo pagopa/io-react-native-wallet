@@ -1,11 +1,11 @@
 import {
-  Credential,
   createCryptoContextFor,
+  Credential,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
-import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
+import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   CredentialResult,
@@ -13,6 +13,8 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
+import type { Out } from "../../../src/utils/misc";
+import type { ObtainCredential } from "../../../src/credential/issuance";
 
 /**
  * Implements a flow to obtain a PID credential.
@@ -127,7 +129,7 @@ export const getPidCieID = async ({
   }
 
   // Obtain che eID credential
-  const { credential } = await Credential.Issuance.obtainCredential(
+  const { credential, format } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
@@ -154,6 +156,7 @@ export const getPidCieID = async ({
     keyTag: credentialKeyTag,
     credentialType: "PersonIdentificationData",
     credentialConfigurationId: credential_configuration_id,
+    format,
   };
 };
 
@@ -247,7 +250,7 @@ export const getCredential = async ({
     accessToken.authorization_details[0]!;
 
   // Obtain the credential
-  const { credential } = await Credential.Issuance.obtainCredential(
+  const { credential, format } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
@@ -278,6 +281,7 @@ export const getCredential = async ({
     credentialType:
       credential_configuration_id as SupportedCredentialsWithoutPid,
     credentialConfigurationId: credential_configuration_id,
+    format,
   };
 };
 
@@ -285,13 +289,15 @@ export const getCredential = async ({
  * Implements a flow to obtain a credential status attestation.
  * @param credentialIssuerUrl - The credential issuer URL
  * @param credential - The credential to obtain the status attestation for
+ * @param format - The format of the credential, e.g. "sd-jwt"
  * @param credentialCryptoContext - The credential crypto context associated with the credential
  * @param credentialType - The type of the credential
  * @returns The credential status attestation
  */
 export const getCredentialStatusAttestation = async (
   credentialIssuerUrl: string,
-  credential: string,
+  credential: Out<ObtainCredential>["credential"],
+  format: Out<ObtainCredential>["format"],
   credentialCryptoContext: CryptoContext,
   credentialType: SupportedCredentialsWithoutPid
 ) => {
@@ -308,6 +314,7 @@ export const getCredentialStatusAttestation = async (
   const statusAttestation = await Credential.Status.statusAttestation(
     issuerConf,
     credential,
+    format,
     credentialCryptoContext
   );
 
@@ -317,7 +324,9 @@ export const getCredentialStatusAttestation = async (
       statusAttestation,
       {
         credentialCryptoContext,
-      }
+      },
+      credential,
+      format
     );
 
   return {

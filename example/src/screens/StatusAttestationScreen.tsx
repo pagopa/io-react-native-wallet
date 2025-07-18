@@ -41,6 +41,7 @@ export const StatusAttestationScreen = () => {
                 getCredentialStatusAttestationThunk({
                   credentialType: "dc_sd_jwt_mDL",
                   credential: mDl.credential,
+                  format: mDl.format,
                   keyTag: mDl.keyTag,
                 })
               ),
