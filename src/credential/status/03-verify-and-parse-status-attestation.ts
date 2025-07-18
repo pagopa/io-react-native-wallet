@@ -5,7 +5,7 @@ import {
   IssuerResponseErrorCodes,
 } from "../../utils/errors";
 import { verify, type CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { EvaluateIssuerTrust, StatusAttestation } from "../status";
+import type { EvaluateIssuerTrust, StatusAssertion } from "../status";
 import {
   ParsedStatusAssertion,
   ParsedStatusAssertionError,
@@ -16,62 +16,62 @@ import {
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { LogLevel, Logger } from "../../utils/logging";
 
-export type VerifyAndParseStatusAttestation = (
+export type VerifyAndParseStatusAssertion = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  statusAttestation: Out<StatusAttestation>,
+  statusAssertion: Out<StatusAssertion>,
   context: {
     credentialCryptoContext: CryptoContext;
   }
-) => Promise<{ parsedStatusAttestation: ParsedStatusAssertion }>;
+) => Promise<{ parsedStatusAssertion: ParsedStatusAssertion }>;
 
 /**
- * Given a status attestation, verifies that:
+ * Given a status assertion, verifies that:
  * - It's in the supported format;
- * - The attestation is correctly signed;
+ * - The assertion is correctly signed;
  * - It's bound to the given key.
  * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
- * @param statusAttestation The encoded status attestation returned by {@link statusAttestation}
+ * @param statusAssertion The encoded status assertion returned by {@link statusAssertion}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
- * @returns A parsed status attestation
+ * @returns A parsed status assertion
  * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
- * @throws {IssuerResponseError} If the status attestation contains an error or the credential status is invalid
+ * @throws {IssuerResponseError} If the status assertion contains an error or the credential status is invalid
  */
-export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
-  async (issuerConf, rawStatusAttestation, context) => {
-    const { statusAttestation } = rawStatusAttestation;
+export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
+  async (issuerConf, rawStatusAssertion, context) => {
+    const { statusAssertion } = rawStatusAssertion;
     const { credentialCryptoContext } = context;
 
     await verify(
-      statusAttestation,
+      statusAssertion,
       issuerConf.openid_credential_issuer.jwks.keys
     );
 
-    const decodedJwt = decodeJwt(statusAttestation);
-    const parsedStatusAttestation = ParsedStatusAssertionResponse.parse({
+    const decodedJwt = decodeJwt(statusAssertion);
+    const parsedStatusAssertion = ParsedStatusAssertionResponse.parse({
       header: decodedJwt.protectedHeader,
       payload: decodedJwt.payload,
     });
 
     Logger.log(
       LogLevel.DEBUG,
-      `Parsed status attestation: ${JSON.stringify(parsedStatusAttestation)}`
+      `Parsed status assertion: ${JSON.stringify(parsedStatusAssertion)}`
     );
 
     // Errors are transmitted in the JWT and use a 200 HTTP status code
-    if (isStatusAssertionError(parsedStatusAttestation)) {
+    if (isStatusAssertionError(parsedStatusAssertion)) {
       throw new IssuerResponseError({
         code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
         message: "The credential status request has failed",
         statusCode: 200,
-        reason: buildErrorReason(parsedStatusAttestation),
+        reason: buildErrorReason(parsedStatusAssertion),
       });
     }
 
-    const { cnf, credential_status_type } = parsedStatusAttestation.payload;
+    const { cnf, credential_status_type } = parsedStatusAssertion.payload;
     const holderBindingKey = await credentialCryptoContext.getPublicKey();
 
     if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
-      const errorMessage = `Failed to verify holder binding for status attestation, expected kid: ${holderBindingKey.kid}, got: ${cnf.jwk.kid}`;
+      const errorMessage = `Failed to verify holder binding for status assertion, expected kid: ${holderBindingKey.kid}, got: ${cnf.jwk.kid}`;
       Logger.log(LogLevel.ERROR, errorMessage);
       throw new IoWalletError(errorMessage);
     }
@@ -81,11 +81,11 @@ export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
         code: IssuerResponseErrorCodes.CredentialInvalidStatus,
         message: "Invalid status found for the given credential",
         statusCode: 200,
-        reason: buildErrorReason(parsedStatusAttestation),
+        reason: buildErrorReason(parsedStatusAssertion),
       });
     }
 
-    return { parsedStatusAttestation };
+    return { parsedStatusAssertion };
   };
 
 const isStatusAssertionError = (

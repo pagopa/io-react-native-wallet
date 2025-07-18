@@ -3,27 +3,22 @@ import { JWK } from "../../utils/jwk";
 import * as z from "zod";
 
 /**
- * Shape from parsing a status attestation response in case of 201.
+ * Shape from parsing a status assertion response in case of 201.
  */
-export const StatusAttestationResponse = z.object({
+export const StatusAssertionResponse = z.object({
   status_assertion_responses: z.array(z.string()),
 });
 
 /**
- * Type from parsing a status attestation response in case of 201.
- * Inferred from {@link StatusAttestationResponse}.
+ * Type from parsing a status assertion response in case of 201.
+ * Inferred from {@link StatusAssertionResponse}.
  */
-export type StatusAttestationResponse = z.infer<
-  typeof StatusAttestationResponse
->;
+export type StatusAssertionResponse = z.infer<typeof StatusAssertionResponse>;
 
-/**
- * Type for a parsed status attestation.
- */
 export type ParsedStatusAssertion = z.infer<typeof ParsedStatusAssertion>;
 
 /**
- * Shape for parsing a status attestation in a JWT.
+ * Shape for parsing a successful status assertion in a JWT.
  */
 export const ParsedStatusAssertion = z.object({
   header: z.object({
@@ -72,6 +67,9 @@ export const ParsedStatusAssertionError = z.object({
   }),
 });
 
+/**
+ * The status assertion response that might include either a successful assertion or an error
+ */
 export type ParsedStatusAssertionResponse = z.infer<
   typeof ParsedStatusAssertionResponse
 >;
