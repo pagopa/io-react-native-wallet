@@ -35,6 +35,16 @@ const getPublicKey = jest.fn<
   );
 });
 
+const getPublicKeyFixed = jest.fn<
+  ReturnType<typeof source.getPublicKeyFixed>,
+  Parameters<typeof source.getPublicKeyFixed>
+>(async (keytag) => {
+  if (keystore.has(keytag)) return mockKey;
+  throw new MockCryptoError(
+    `MockCryptoError: cannot retrieve key, keytag '${keytag}' does not exist`
+  );
+});
+
 const generate = jest.fn<
   ReturnType<typeof source.generate>,
   Parameters<typeof source.generate>
@@ -64,4 +74,11 @@ const verifyCertificateChain = jest.fn().mockResolvedValue({
   errorMessage: undefined,
 });
 
-export { deleteKey, getPublicKey, generate, sign, verifyCertificateChain };
+export {
+  deleteKey,
+  getPublicKey,
+  getPublicKeyFixed,
+  generate,
+  sign,
+  verifyCertificateChain,
+};

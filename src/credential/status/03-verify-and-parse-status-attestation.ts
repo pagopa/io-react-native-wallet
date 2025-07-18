@@ -1,17 +1,24 @@
 import type { Out } from "../../utils/misc";
 import { IoWalletError } from "../../utils/errors";
-import { verify, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import {
+  type CryptoContext,
+  decode as decodeJwt,
+  verify,
+} from "@pagopa/io-react-native-jwt";
 import type { EvaluateIssuerTrust, StatusAttestation } from "../status";
 import { ParsedStatusAttestation } from "./types";
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
+import { extractJwkFromCredential } from "../../utils/credentials";
+import type { ObtainCredential } from "../issuance";
 
 export type VerifyAndParseStatusAttestation = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   statusAttestation: Out<StatusAttestation>,
   context: {
     credentialCryptoContext: CryptoContext;
-  }
+  },
+  credential: Out<ObtainCredential>["credential"],
+  format: Out<ObtainCredential>["format"]
 ) => Promise<{ parsedStatusAttestation: ParsedStatusAttestation }>;
 
 /**
@@ -20,18 +27,19 @@ export type VerifyAndParseStatusAttestation = (
  * - The attestation is correctly signed;
  * - It's bound to the given key.
  * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
- * @param statusAttestation The encoded status attestation returned by {@link statusAttestation}
+ * @param rawStatusAttestation The encoded status attestation returned by {@link statusAttestation}
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
+ * @param credential The credential to be verified
+ * @param format The format of the credential, e.g. "sd-jwt"
  * @returns A parsed status attestation
  * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
  * @throws {IoWalletError} If the credential is not bound to the provided user key
  * @throws {IoWalletError} If the credential data fail to parse
  */
 export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
-  async (issuerConf, rawStatusAttestation, context) => {
+  async (issuerConf, rawStatusAttestation, _, credential, format) => {
     try {
       const { statusAttestation } = rawStatusAttestation;
-      const { credentialCryptoContext } = context;
 
       await verify(
         statusAttestation,
@@ -49,7 +57,10 @@ export const verifyAndParseStatusAttestation: VerifyAndParseStatusAttestation =
         `Parsed status attestation: ${JSON.stringify(parsedStatusAttestation)}`
       );
 
-      const holderBindingKey = await credentialCryptoContext.getPublicKey();
+      const holderBindingKey = await extractJwkFromCredential(
+        credential,
+        format
+      );
       const { cnf } = parsedStatusAttestation.payload;
       if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
         Logger.log(
