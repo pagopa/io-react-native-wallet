@@ -6,7 +6,7 @@ import {
 import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
-import { StatusAttestationResponse } from "./types";
+import { StatusAssertionResponse } from "./types";
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
@@ -16,48 +16,55 @@ import {
 import { Logger, LogLevel } from "../../utils/logging";
 import { extractJwkFromCredential } from "../../utils/credentials";
 
-export type StatusAttestation = (
+export type StatusAssertion = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
-  credentialCryptoContext: CryptoContext,
-  appFetch?: GlobalFetch["fetch"]
+  context: {
+    credentialCryptoContext: CryptoContext;
+    wiaCryptoContext: CryptoContext;
+    appFetch?: GlobalFetch["fetch"];
+  }
 ) => Promise<{
-  statusAttestation: StatusAttestationResponse["status_attestation"];
+  statusAssertion: string;
 }>;
 
 /**
- * WARNING: This function must be called after {@link startFlow}.
- * Verify the status of the credential attestation.
+ * Get the status assertion of a digital credential.
  * @param issuerConf - The issuer's configuration
  * @param credential - The credential to be verified
  * @param format - The format of the credential, e.g. "sd-jwt"
- * @param credentialCryptoContext - The credential's crypto context
+ * @param context.credentialCryptoContext - The credential's crypto context
+ * @param context.wiaCryptoContext - The Wallet Attestation's crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @throws {IssuerResponseError} with a specific code for more context
- * @returns The credential status attestation
+ * @returns The credential status assertion
  */
-export const statusAttestation: StatusAttestation = async (
+export const statusAssertion: StatusAssertion = async (
   issuerConf,
   credential,
   format,
-  credentialCryptoContext,
-  appFetch: GlobalFetch["fetch"] = fetch
+  ctx
 ) => {
+  const { credentialCryptoContext, wiaCryptoContext, appFetch = fetch } = ctx;
+
   const jwk = await extractJwkFromCredential(credential, format);
+  const issuerJwk = await wiaCryptoContext.getPublicKey();
   const credentialHash = await getCredentialHashWithouDiscloures(credential);
   const statusAttUrl =
     issuerConf.openid_credential_issuer.status_attestation_endpoint;
+
   const credentialPop = await new SignJWT(credentialCryptoContext)
     .setPayload({
+      iss: issuerJwk.kid,
       aud: statusAttUrl,
       jti: uuidv4().toString(),
       credential_hash: credentialHash,
-      credential_hash_alg: "S256",
+      credential_hash_alg: "sha-256",
     })
     .setProtectedHeader({
       alg: "ES256",
-      typ: "status-attestation-request+jwt",
+      typ: "status-assertion-request+jwt",
       kid: jwk.kid,
     })
     .setIssuedAt()
@@ -65,7 +72,7 @@ export const statusAttestation: StatusAttestation = async (
     .sign();
 
   const body = {
-    credential_pop: credentialPop,
+    status_assertion_requests: [credentialPop],
   };
 
   Logger.log(LogLevel.DEBUG, `Credential pop: ${credentialPop}`);
@@ -77,33 +84,31 @@ export const statusAttestation: StatusAttestation = async (
     },
     body: JSON.stringify(body),
   })
-    .then(hasStatusOrThrow(201))
+    .then(hasStatusOrThrow(200))
     .then((raw) => raw.json())
-    .then((json) => StatusAttestationResponse.parse(json))
-    .catch(handleStatusAttestationError);
+    .then((json) => StatusAssertionResponse.parse(json))
+    .catch(handleStatusAssertionError);
 
-  return { statusAttestation: result.status_attestation };
+  const [statusAttestationJwt] = result.status_assertion_responses;
+
+  return { statusAssertion: statusAttestationJwt! };
 };
 
 /**
- * Handle the status attestation error by mapping it to a custom exception.
+ * Handle the status assertion error by mapping it to a custom exception.
  * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
  * @param e - The error to be handled
  * @throws {IssuerResponseError} with a specific code for more context
  */
-const handleStatusAttestationError = (e: unknown) => {
+const handleStatusAssertionError = (e: unknown) => {
   if (!(e instanceof UnexpectedStatusCodeError)) {
     throw e;
   }
 
   throw new ResponseErrorBuilder(IssuerResponseError)
-    .handle(404, {
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-    })
     .handle("*", {
       code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
-      message: `Unable to obtain the status attestation for the given credential`,
+      message: `Unable to obtain the status assertion for the given credential`,
     })
     .buildFrom(e);
 };

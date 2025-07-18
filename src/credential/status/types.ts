@@ -3,35 +3,38 @@ import { JWK } from "../../utils/jwk";
 import * as z from "zod";
 
 /**
- * Shape from parsing a status attestation response in case of 201.
+ * Shape from parsing a status assertion response in case of 201.
  */
-export const StatusAttestationResponse = z.object({
-  status_attestation: z.string(),
+export const StatusAssertionResponse = z.object({
+  status_assertion_responses: z.array(z.string()),
 });
 
 /**
- * Type from parsing a status attestation response in case of 201.
- * Inferred from {@link StatusAttestationResponse}.
+ * Type from parsing a status assertion response in case of 201.
+ * Inferred from {@link StatusAssertionResponse}.
  */
-export type StatusAttestationResponse = z.infer<
-  typeof StatusAttestationResponse
->;
+export type StatusAssertionResponse = z.infer<typeof StatusAssertionResponse>;
+
+export type ParsedStatusAssertion = z.infer<typeof ParsedStatusAssertion>;
 
 /**
- * Type for a parsed status attestation.
+ * Shape for parsing a successful status assertion in a JWT.
  */
-export type ParsedStatusAttestation = z.infer<typeof ParsedStatusAttestation>;
-
-/**
- * Shape for parsing a status attestation in a JWT.
- */
-export const ParsedStatusAttestation = z.object({
+export const ParsedStatusAssertion = z.object({
   header: z.object({
-    typ: z.literal("status-attestation+jwt"),
+    typ: z.literal("status-assertion+jwt"),
     alg: z.string(),
     kid: z.string().optional(),
   }),
   payload: z.object({
+    iss: z.string(),
+    credential_status_type: z.string(),
+    credential_status_detail: z
+      .object({
+        state: z.string(),
+        description: z.string(),
+      })
+      .optional(),
     credential_hash_alg: z.string(),
     credential_hash: z.string(),
     cnf: z.object({
@@ -41,3 +44,47 @@ export const ParsedStatusAttestation = z.object({
     iat: UnixTime,
   }),
 });
+
+export type ParsedStatusAssertionError = z.infer<
+  typeof ParsedStatusAssertionError
+>;
+
+/**
+ * The JWT that contains the errors occurred for the status assertion request.
+ * @see https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-revocation.html#http-status-assertion-response
+ */
+export const ParsedStatusAssertionError = z.object({
+  header: z.object({
+    typ: z.literal("status-assertion-error+jwt"),
+    alg: z.string(),
+    kid: z.string().optional(),
+  }),
+  payload: z.object({
+    credential_hash_alg: z.string(),
+    credential_hash: z.string(),
+    error: z.string(),
+    error_description: z.string(),
+  }),
+});
+
+/**
+ * The status assertion response that might include either a successful assertion or an error
+ */
+export type ParsedStatusAssertionResponse = z.infer<
+  typeof ParsedStatusAssertionResponse
+>;
+export const ParsedStatusAssertionResponse = z.union([
+  ParsedStatusAssertion,
+  ParsedStatusAssertionError,
+]);
+
+export enum StatusType {
+  VALID = "0x00",
+  INVALID = "0x01",
+  SUSPENDED = "0x02",
+}
+
+export type InvalidStatusErrorReason = {
+  error: string;
+  error_description: string;
+};
