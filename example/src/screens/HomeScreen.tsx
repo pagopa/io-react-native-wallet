@@ -79,12 +79,12 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Trust"),
       },
       {
-        label: "Status Attestation",
-        description: "Obtain the status attestation of a credential",
+        label: "Status Assertion",
+        description: "Obtain the status assertion of a credential",
         icon: "chevronRight",
         onPress: () =>
           pid
-            ? navigation.navigate("StatusAttestation")
+            ? navigation.navigate("StatusAssertion")
             : Alert.alert("Obtain a PID or another credential first"),
       },
       {

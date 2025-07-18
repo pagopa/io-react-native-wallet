@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   selectCredential,
-  selectStatusAttestation,
-  selectStatusAttestationAsyncStatus,
+  selectStatusAssertionAsyncStatuses,
+  selectStatusAssertions,
 } from "../store/reducers/credential";
-import { getCredentialStatusAttestationThunk } from "../thunks/credential";
+import { getCredentialStatusAssertionThunk } from "../thunks/credential";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
@@ -15,108 +15,73 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectPid } from "../store/reducers/pid";
 
 /**
- * This component (screen in a future PR) is used to test the status attestation functionalities for the credentials already obtained.
+ * This component (screen in a future PR) is used to test the status assertion functionalities for the credentials already obtained.
  */
-export const StatusAttestationScreen = () => {
+export const StatusAssertionScreen = () => {
   const dispatch = useAppDispatch();
 
-  const pidStatusAttestation = useAppSelector(
-    selectStatusAttestation("PersonIdentificationData")
-  );
-  const pidStatAttState = useAppSelector(
-    selectStatusAttestationAsyncStatus("PersonIdentificationData")
-  );
+  const statusAssertion = useAppSelector(selectStatusAssertions);
+  const asyncStatus = useAppSelector(selectStatusAssertionAsyncStatuses);
 
-  const mDl = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
-  const mdlStatAttState = useAppSelector(
-    selectStatusAttestationAsyncStatus("dc_sd_jwt_mDL")
-  );
-  const mdlStatusAttestation = useAppSelector(
-    selectStatusAttestation("dc_sd_jwt_mDL")
-  );
-
+  const pid = useAppSelector(selectPid);
+  const mDL = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
   const dc = useAppSelector(
     selectCredential("dc_sd_jwt_EuropeanDisabilityCard")
   );
-  const dcStatAttState = useAppSelector(
-    selectStatusAttestationAsyncStatus("dc_sd_jwt_EuropeanDisabilityCard")
-  );
-  const dcStatusAttestation = useAppSelector(
-    selectStatusAttestation("dc_sd_jwt_EuropeanDisabilityCard")
-  );
-  const pid = useAppSelector(selectPid);
 
   useDebugInfo({
-    mdlStatusAttestationState: mdlStatAttState,
-    pidStatusAttestationState: pidStatAttState,
-    mdlStatusAttestation,
-    pidStatusAttestation,
+    pidStatusAssertionState: asyncStatus.PersonIdentificationData,
+    mdlStatusAssertionState: asyncStatus.dc_sd_jwt_mDL,
+    dcStatusAssertionState: asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
+    pidStatusAssertion: statusAssertion.PersonIdentificationData,
+    mdlStatusAssertion: statusAssertion.dc_sd_jwt_mDL,
+    dcStatusAssertion: statusAssertion.dc_sd_jwt_EuropeanDisabilityCard,
   });
 
-  const scenarios: Array<TestScenarioProp | undefined> = useMemo(
-    () => [
-      pid && {
-        title: "Get Status Attestation (PID)",
-        onPress: () =>
-          dispatch(
-            getCredentialStatusAttestationThunk({
-              credentialType: "PersonIdentificationData",
-              credential: pid.credential,
-              keyTag: pid.keyTag,
-            })
-          ),
-        isLoading: pidStatAttState.isLoading,
-        hasError: pidStatAttState.hasError,
-        isDone: pidStatAttState.isDone,
-        icon: "fiscalCodeIndividual",
-        isPresent: !!pidStatusAttestation,
-      },
-      mDl && {
-        title: "Get Status Attestation (MDL)",
-        onPress: () =>
-          dispatch(
-            getCredentialStatusAttestationThunk({
-              credentialType: "dc_sd_jwt_mDL",
-              credential: mDl.credential,
-              keyTag: mDl.keyTag,
-            })
-          ),
-        isLoading: mdlStatAttState.isLoading,
-        hasError: mdlStatAttState.hasError,
-        isDone: mdlStatAttState.isDone,
-        icon: "car",
-        isPresent: !!mdlStatusAttestation,
-      },
-      dc && {
-        title: "Get Status Attestation (DC)",
-        onPress: () =>
-          dispatch(
-            getCredentialStatusAttestationThunk({
-              credentialType: "dc_sd_jwt_EuropeanDisabilityCard",
-              credential: dc.credential,
-              keyTag: dc.keyTag,
-            })
-          ),
-        isLoading: dcStatAttState.isLoading,
-        hasError: dcStatAttState.hasError,
-        isDone: dcStatAttState.isDone,
-        icon: "accessibility",
-        isPresent: !!dcStatusAttestation,
-      },
-    ],
-    [
-      dispatch,
-      mDl,
-      mdlStatAttState,
-      mdlStatusAttestation,
-      pid,
-      pidStatAttState,
-      pidStatusAttestation,
-      dc,
-      dcStatAttState,
-      dcStatusAttestation,
-    ]
-  );
+  const scenarios: Array<TestScenarioProp | undefined> = [
+    pid && {
+      title: "Get Status Assertion (PID)",
+      onPress: () =>
+        dispatch(
+          getCredentialStatusAssertionThunk({
+            credentialType: "PersonIdentificationData",
+            credential: pid.credential,
+            keyTag: pid.keyTag,
+          })
+        ),
+      ...asyncStatus.PersonIdentificationData,
+      icon: "fiscalCodeIndividual",
+      isPresent: !!statusAssertion.PersonIdentificationData,
+    },
+    mDL && {
+      title: "Get Status Assertion (MDL)",
+      onPress: () =>
+        dispatch(
+          getCredentialStatusAssertionThunk({
+            credentialType: "dc_sd_jwt_mDL",
+            credential: mDL.credential,
+            keyTag: mDL.keyTag,
+          })
+        ),
+      ...asyncStatus.dc_sd_jwt_mDL,
+      icon: "car",
+      isPresent: !!statusAssertion.dc_sd_jwt_mDL,
+    },
+    dc && {
+      title: "Get Status Assertion (DC)",
+      onPress: () =>
+        dispatch(
+          getCredentialStatusAssertionThunk({
+            credentialType: "dc_sd_jwt_EuropeanDisabilityCard",
+            credential: dc.credential,
+            keyTag: dc.keyTag,
+          })
+        ),
+      ...asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
+      icon: "accessibility",
+      isPresent: !!statusAssertion.dc_sd_jwt_EuropeanDisabilityCard,
+    },
+  ];
 
   return (
     <FlatList

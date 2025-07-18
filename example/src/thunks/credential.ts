@@ -14,7 +14,7 @@ import type {
 } from "../store/types";
 import {
   getCredential,
-  getCredentialStatusAttestation,
+  getCredentialStatusAssertion,
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
@@ -31,20 +31,20 @@ type GetCredentialThunkInput = {
 };
 
 /**
- * Type definition for the input of the {@link getCredentialStatusAttestationThunk}.
+ * Type definition for the input of the {@link getCredentialStatusAssertionThunk}.
  */
-type GetCredentialStatusAttestationThunkInput = {
+type GetCredentialStatusAssertionThunkInput = {
   credentialType: SupportedCredentials;
   credential: Out<Credential.Issuance.ObtainCredential>["credential"];
   keyTag: string;
 };
 
 /**
- * Type definition for the output of the {@link getCredentialStatusAttestationThunk}.
+ * Type definition for the output of the {@link getCredentialStatusAssertionThunk}.
  */
-export type GetCredentialStatusAttestationThunkOutput = {
-  statusAttestation: Out<Credential.Status.StatusAttestation>["statusAttestation"];
-  parsedStatusAttestation: Out<Credential.Status.VerifyAndParseStatusAttestation>["parsedStatusAttestation"];
+export type GetCredentialStatusAssertionThunkOutput = {
+  statusAssertion: Out<Credential.Status.StatusAssertion>["statusAssertion"];
+  parsedStatusAssertion: Out<Credential.Status.VerifyAndParseStatusAssertion>["parsedStatusAssertion"];
   credentialType: SupportedCredentials;
 };
 
@@ -95,14 +95,14 @@ export const getCredentialThunk = createAppAsyncThunk<
 });
 
 /**
- * Thunk to obtain a credential status attestation.
- * @param args.credentialType - TThe type of credential for which you want to obtain the status attestation.
+ * Thunk to obtain a credential status assertion.
+ * @param args.credentialType - TThe type of credential for which you want to obtain the status assertion.
  * @returns The obtained credential result
  */
-export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
-  GetCredentialStatusAttestationThunkOutput,
-  GetCredentialStatusAttestationThunkInput
->("credential/statusAttestationGet", async (args, { getState }) => {
+export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
+  GetCredentialStatusAssertionThunkOutput,
+  GetCredentialStatusAssertionThunkInput
+>("credential/statusAssertionGet", async (args, { getState }) => {
   const { credential, keyTag, credentialType } = args;
 
   // Create credential crypto context
@@ -116,7 +116,7 @@ export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
       ? env.WALLET_PID_PROVIDER_BASE_URL
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 
-  return await getCredentialStatusAttestation(
+  return await getCredentialStatusAssertion(
     issuerUrl,
     credential,
     credentialCryptoContext,

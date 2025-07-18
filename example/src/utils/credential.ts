@@ -283,14 +283,14 @@ export const getCredential = async ({
 };
 
 /**
- * Implements a flow to obtain a credential status attestation.
+ * Implements a flow to obtain a credential status assertion.
  * @param credentialIssuerUrl - The credential issuer URL
- * @param credential - The credential to obtain the status attestation for
+ * @param credential - The credential to obtain the status assertion for
  * @param credentialCryptoContext - The credential crypto context associated with the credential
  * @param credentialType - The type of the credential
- * @returns The credential status attestation
+ * @returns The credential status assertion
  */
-export const getCredentialStatusAttestation = async (
+export const getCredentialStatusAssertion = async (
   credentialIssuerUrl: string,
   credential: string,
   credentialCryptoContext: CryptoContext,
@@ -307,24 +307,24 @@ export const getCredentialStatusAttestation = async (
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
 
-  const statusAttestation = await Credential.Status.statusAttestation(
+  const statusAssertion = await Credential.Status.statusAssertion(
     issuerConf,
     credential,
     { credentialCryptoContext, wiaCryptoContext }
   );
 
-  const parsedStatusAttestation =
-    await Credential.Status.verifyAndParseStatusAttestation(
+  const parsedStatusAssertion =
+    await Credential.Status.verifyAndParseStatusAssertion(
       issuerConf,
-      statusAttestation,
+      statusAssertion,
       {
         credentialCryptoContext,
       }
     );
 
   return {
-    ...statusAttestation,
-    ...parsedStatusAttestation,
+    ...statusAssertion,
+    ...parsedStatusAssertion,
     credentialType,
   };
 };
