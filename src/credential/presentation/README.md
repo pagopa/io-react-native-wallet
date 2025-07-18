@@ -24,7 +24,7 @@ sequenceDiagram
 
 ## Mapped results
 
-| Error                       | Description|
+| Error                       | Description                                                                                                                                            |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `InvalidRequestObject`      | The Request Object is not valid, for instance it is malformed or its signature cannot be verified.                                                     |
 | `DcqlError`                 | The DCQL query cannot be evaluated because it contains errors.                                                                                         |
@@ -32,13 +32,13 @@ sequenceDiagram
 | `RelyingPartyResponseError` | Error in the Relying Party's response. See the next table for more details.                                                                            |
 
 #### RelyingPartyResponseError
+
 The following HTTP errors are mapped to a `RelyingPartyResponseError` with specific codes.
 
 | HTTP Status  | Error Code                              | Description                                                                                                  |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `400`, `403` | `ERR_RP_INVALID_AUTHORIZATION_RESPONSE` | The Relying Party rejected the Authorization Response sent by the Wallet because it was deemed invalid.      |
 | `*`          | `ERR_RP_GENERIC_ERROR`                  | This is a generic error code to map unexpected errors that occurred when interacting with the Relying Party. |
-
 
 ## Examples
 
@@ -49,18 +49,15 @@ The following HTTP errors are mapped to a `RelyingPartyResponseError` with speci
 
 ```ts
 // Retrieve and scan the qr-code, decode it and get its parameters
-const qrCodeParams = decodeQrCode(qrCode)
+const qrCodeParams = decodeQrCode(qrCode);
 
 // Start the issuance flow
-const {
-  request_uri,
-  client_id,
-  request_uri_method,
-  state
-} = Credential.Presentation.startFlowFromQR(qrCodeParams);
+const { request_uri, client_id, request_uri_method, state } =
+  Credential.Presentation.startFlowFromQR(qrCodeParams);
 
 // Get the Relying Party's Entity Configuration and evaluate trust
-const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(client_id);
+const { rpConf } =
+  await Credential.Presentation.evaluateRelyingPartyTrust(client_id);
 
 // Get the Request Object from the RP
 const { requestObjectEncodedJwt } =
@@ -72,10 +69,24 @@ const { requestObject } = await Credential.Presentation.verifyRequestObject(
   { clientId: client_id, rpConf }
 );
 
-// All the credentials that might be requested by the Relying Party
+// PID, WIA and all the credentials that might be requested by the Relying Party
 const credentialsSdJwt = [
-  ["credential1_keytag", "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2"],
-  ["credential2_keytag", "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KIC"]
+  {
+    cryptoContext: createCryptoContextFor("keyTag"),
+    credential:
+      "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2",
+    credentialId: "dc_sd_jwt_PersonIdentificationData",
+  },
+  {
+    cryptoContext: createCryptoContextFor(WIA_KEYTAG),
+    credential: "walletInstanceAttestation",
+  },
+  {
+    cryptoContext: createCryptoContextFor("keyTag"),
+    credential:
+      "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KIC",
+    credentialId: "dc_sd_jwt_mDL",
+  },
 ];
 
 const result = Credential.Presentation.evaluateDcqlQuery(
@@ -83,12 +94,10 @@ const result = Credential.Presentation.evaluateDcqlQuery(
   requestObject.dcql_query as DcqlQuery
 );
 
-const credentialsToPresent = result.map(
-  ({ requiredDisclosures, ...rest }) => ({
-    ...rest,
-    requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
-  })
-);
+const credentialsToPresent = result.map(({ requiredDisclosures, ...rest }) => ({
+  ...rest,
+  requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
+}));
 
 const remotePresentations =
   await Credential.Presentation.prepareRemotePresentations(

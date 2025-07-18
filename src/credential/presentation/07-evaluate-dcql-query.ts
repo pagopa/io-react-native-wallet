@@ -15,12 +15,17 @@ type CredentialPurpose = {
 };
 
 export type EvaluateDcqlQuery = (
-  credentialsSdJwt: [CryptoContext, string /* credential */][],
+  credentialsSdJwt: {
+    cryptoContext: CryptoContext;
+    credential: string;
+    credentialId: string | undefined;
+  }[],
   query: DcqlQuery.Input
 ) => {
   id: string;
   vct: string;
   credential: string;
+  credentialId?: string;
   cryptoContext: CryptoContext;
   requiredDisclosures: Disclosure[];
   purposes: CredentialPurpose[];
@@ -109,7 +114,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
   credentialsSdJwt,
   query
 ) => {
-  const credentials = credentialsSdJwt.map(([, credential]) =>
+  const credentials = credentialsSdJwt.map(({ credential }) =>
     mapCredentialToObject(credential)
   );
   try {
@@ -128,7 +133,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     // Build an object vct:credentialJwt to map matched credentials to their JWT
     const credentialsSdJwtByVct = credentials.reduce(
       (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
-      {} as Record<string, [CryptoContext, string /* credential */]>
+      {} as Record<string, Parameters<EvaluateDcqlQuery>["0"][number]>
     );
 
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
@@ -147,13 +152,15 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
           required: Boolean(credentialSet.required),
         }));
 
-      const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
+      const { cryptoContext, credential, credentialId } =
+        credentialsSdJwtByVct[vct]!;
       const requiredDisclosures = Object.values(claims) as Disclosure[];
       return {
         id,
         vct,
         cryptoContext,
         credential,
+        credentialId,
         requiredDisclosures,
         // When it is a match but no credential_sets are found, the credential is required by default
         // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
