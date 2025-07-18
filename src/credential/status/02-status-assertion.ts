@@ -13,11 +13,13 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
+import { extractJwkFromCredential } from "../../utils/credentials";
 
 export type StatusAssertion = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
+  format: Out<ObtainCredential>["format"],
   context: {
     credentialCryptoContext: CryptoContext;
     wiaCryptoContext: CryptoContext;
@@ -31,6 +33,7 @@ export type StatusAssertion = (
  * Get the status assertion of a digital credential.
  * @param issuerConf - The issuer's configuration
  * @param credential - The credential to be verified
+ * @param format - The format of the credential, e.g. "sd-jwt"
  * @param context.credentialCryptoContext - The credential's crypto context
  * @param context.wiaCryptoContext - The Wallet Attestation's crypto context
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
@@ -40,15 +43,17 @@ export type StatusAssertion = (
 export const statusAssertion: StatusAssertion = async (
   issuerConf,
   credential,
+  format,
   ctx
 ) => {
   const { credentialCryptoContext, wiaCryptoContext, appFetch = fetch } = ctx;
 
-  const jwk = await credentialCryptoContext.getPublicKey();
+  const jwk = await extractJwkFromCredential(credential, format);
   const issuerJwk = await wiaCryptoContext.getPublicKey();
   const credentialHash = await getCredentialHashWithouDiscloures(credential);
   const statusAttUrl =
     issuerConf.openid_credential_issuer.status_attestation_endpoint;
+
   const credentialPop = await new SignJWT(credentialCryptoContext)
     .setPayload({
       iss: issuerJwk.kid,

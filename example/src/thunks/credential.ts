@@ -36,6 +36,7 @@ type GetCredentialThunkInput = {
 type GetCredentialStatusAssertionThunkInput = {
   credentialType: SupportedCredentials;
   credential: Out<Credential.Issuance.ObtainCredential>["credential"];
+  format: Out<Credential.Issuance.ObtainCredential>["format"];
   keyTag: string;
 };
 
@@ -103,7 +104,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   GetCredentialStatusAssertionThunkOutput,
   GetCredentialStatusAssertionThunkInput
 >("credential/statusAssertionGet", async (args, { getState }) => {
-  const { credential, keyTag, credentialType } = args;
+  const { credential, format, keyTag, credentialType } = args;
 
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
@@ -119,6 +120,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   return await getCredentialStatusAssertion(
     issuerUrl,
     credential,
+    format,
     credentialCryptoContext,
     wiaCryptoContext,
     credentialType

@@ -45,6 +45,7 @@ export const StatusAssertionScreen = () => {
         dispatch(
           getCredentialStatusAssertionThunk({
             credentialType: "PersonIdentificationData",
+            format: pid.format,
             credential: pid.credential,
             keyTag: pid.keyTag,
           })
@@ -59,6 +60,7 @@ export const StatusAssertionScreen = () => {
         dispatch(
           getCredentialStatusAssertionThunk({
             credentialType: "dc_sd_jwt_mDL",
+            format: mDL.format,
             credential: mDL.credential,
             keyTag: mDL.keyTag,
           })
@@ -73,6 +75,7 @@ export const StatusAssertionScreen = () => {
         dispatch(
           getCredentialStatusAssertionThunk({
             credentialType: "dc_sd_jwt_EuropeanDisabilityCard",
+            format: dc.format,
             credential: dc.credential,
             keyTag: dc.keyTag,
           })

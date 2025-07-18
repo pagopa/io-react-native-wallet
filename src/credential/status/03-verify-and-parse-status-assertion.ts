@@ -4,7 +4,7 @@ import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
 } from "../../utils/errors";
-import { verify, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { verify } from "@pagopa/io-react-native-jwt";
 import type { EvaluateIssuerTrust, StatusAssertion } from ".";
 import {
   ParsedStatusAssertion,
@@ -15,13 +15,14 @@ import {
 } from "./types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { LogLevel, Logger } from "../../utils/logging";
+import type { ObtainCredential } from "../issuance";
+import { extractJwkFromCredential } from "../../utils/credentials";
 
 export type VerifyAndParseStatusAssertion = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   statusAssertion: Out<StatusAssertion>,
-  context: {
-    credentialCryptoContext: CryptoContext;
-  }
+  credential: Out<ObtainCredential>["credential"],
+  format: Out<ObtainCredential>["format"]
 ) => Promise<{ parsedStatusAssertion: ParsedStatusAssertion }>;
 
 /**
@@ -37,9 +38,8 @@ export type VerifyAndParseStatusAssertion = (
  * @throws {IssuerResponseError} If the status assertion contains an error or the credential status is invalid
  */
 export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
-  async (issuerConf, rawStatusAssertion, context) => {
+  async (issuerConf, rawStatusAssertion, credential, format) => {
     const { statusAssertion } = rawStatusAssertion;
-    const { credentialCryptoContext } = context;
 
     await verify(
       statusAssertion,
@@ -68,7 +68,7 @@ export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
     }
 
     const { cnf, credential_status_type } = parsedStatusAssertion.payload;
-    const holderBindingKey = await credentialCryptoContext.getPublicKey();
+    const holderBindingKey = await extractJwkFromCredential(credential, format);
 
     if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
       const errorMessage = `Failed to verify holder binding for status assertion, expected kid: ${holderBindingKey.kid}, got: ${cnf.jwk.kid}`;
