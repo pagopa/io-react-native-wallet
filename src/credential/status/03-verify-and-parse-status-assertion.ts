@@ -5,7 +5,7 @@ import {
   IssuerResponseErrorCodes,
 } from "../../utils/errors";
 import { verify, type CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { EvaluateIssuerTrust, StatusAssertion } from "../status";
+import type { EvaluateIssuerTrust, StatusAssertion } from ".";
 import {
   ParsedStatusAssertion,
   ParsedStatusAssertionError,
