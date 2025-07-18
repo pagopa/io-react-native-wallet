@@ -94,7 +94,7 @@ describe("verifyAndParseStatusAssertion", () => {
       expect(err).toBeInstanceOf(IssuerResponseError);
       const error = err as IssuerResponseError;
       expect(error.code).toEqual(
-        IssuerResponseErrorCodes.StatusAttestationRequestFailed
+        IssuerResponseErrorCodes.CredentialInvalidStatus
       );
       expect(error.reason).toEqual(
         expect.objectContaining({

@@ -108,7 +108,7 @@ const handleStatusAssertionError = (e: unknown) => {
   throw new ResponseErrorBuilder(IssuerResponseError)
     .handle("*", {
       code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
-      message: `Unable to obtain the status attestation for the given credential`,
+      message: `Unable to obtain the status assertion for the given credential`,
     })
     .buildFrom(e);
 };

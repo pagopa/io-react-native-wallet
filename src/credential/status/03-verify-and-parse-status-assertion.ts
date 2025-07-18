@@ -60,8 +60,8 @@ export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
     // Errors are transmitted in the JWT and use a 200 HTTP status code
     if (isStatusAssertionError(parsedStatusAssertion)) {
       throw new IssuerResponseError({
-        code: IssuerResponseErrorCodes.StatusAttestationRequestFailed,
-        message: "The credential status request has failed",
+        code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+        message: "The status assertion contains an error",
         statusCode: 200,
         reason: buildErrorReason(parsedStatusAssertion),
       });
