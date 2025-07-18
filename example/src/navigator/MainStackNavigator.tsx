@@ -14,7 +14,7 @@ import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScree
 import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
 import { PidScreen } from "../screens/PidScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import { StatusAssertionScreen } from "../screens/StatusAttestationScreen";
+import { StatusAssertionScreen } from "../screens/StatusAssertionScreen";
 import {
   TrustmarkQrCodeScreen,
   TrustmarkScreen,
