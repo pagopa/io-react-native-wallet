@@ -183,7 +183,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
     }
 
     const dcqlQueryResult = Presentation.evaluateDcqlQuery(
-      [[pidCryptoContext, pid]],
+      [{ cryptoContext: pidCryptoContext, credential: pid }],
       requestObject.dcql_query as DcqlQuery
     );
 

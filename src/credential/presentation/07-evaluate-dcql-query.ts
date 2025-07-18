@@ -18,7 +18,7 @@ export type EvaluateDcqlQuery = (
   credentialsSdJwt: {
     cryptoContext: CryptoContext;
     credential: string;
-    credentialId: string | undefined;
+    credentialId?: string;
   }[],
   query: DcqlQuery.Input
 ) => {
