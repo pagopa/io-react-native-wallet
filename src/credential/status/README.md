@@ -1,16 +1,16 @@
-# Credential Status Attestation
+# Credential Status Assertion
 
-This flow is used to obtain a credential status attestation from its credential issuer. Each step in the flow is imported from the related file which is named with a sequential number.
-The credential status attestation is a JWT which contains the credential status which indicates if the credential is valid or not.
-The status attestation is supposed to be stored securely along with the credential. It has a limited lifetime and should be refreshed periodically according to the `exp` field in the JWT payload.
+This flow is used to obtain a credential status assertion from its credential issuer. Each step in the flow is imported from the related file which is named with a sequential number.
+The credential status assertion is a JWT which contains the credential status which indicates if the credential is valid or not (see [OAuth Status Assertions](https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-revocation.html#oauth-status-assertions)).
+The status assertion is supposed to be stored securely along with the credential. It has a limited lifetime and should be refreshed periodically according to the `exp` field in the JWT payload.
 
 ## Sequence Diagram
 
 ```mermaid
 graph TD;
     0[startFlow]
-    1[statusAttestation]
-    2[verifyAndParseStatusAttestation]
+    1[statusAssertion]
+    2[verifyAndParseStatusAssertion]
 
     0 --> 1
     1 --> 2
@@ -21,14 +21,14 @@ graph TD;
 
 The following errors are mapped to a `IssuerResponseError` with specific codes.
 
-|HTTP Status|Error Code|Description|
-|-----------|----------|-----------|
-|`404 Not Found`|`ERR_CREDENTIAL_INVALID_STATUS`|This response is returned by the credential issuer when the status attestation is invalid. It might contain more details in the `reason` property.|
+|Error Code|Description|
+|----------|-----------|
+|`ERR_CREDENTIAL_INVALID_STATUS`|This error is thrown when the status assertion for a given credential is invalid. It might contain more details in the `reason` property.|
 
 ## Example
 
 <details>
-  <summary>Credential status attestation flow</summary>
+  <summary>Credential status assertion flow</summary>
 
 ```ts
 // Start the issuance flow
@@ -42,24 +42,26 @@ const { issuerUrl } = startFlow();
 // Evaluate issuer trust
 const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
 
-// Get the credential attestation
-const res = await Credential.Status.statusAttestation(
+// Get the credential assertion
+const res = await Credential.Status.statusAssertion(
   issuerConf,
   credential,
+  format,
   { credentialCryptoContext, wiaCryptoContext }
 );
 
-// Verify and parse the status attestation
-const { parsedStatusAttestation } =
-  await Credential.Status.verifyAndParseStatusAttestation(
+// Verify and parse the status assertion
+const { parsedStatusAssertion } =
+  await Credential.Status.verifyAndParseStatusAssertion(
     issuerConf,
-    res.statusAttestation,
-    { credentialCryptoContext }
+    res.statusAssertion,
+    credential,
+    format
   );
 
 return {
-  statusAttestation: res.statusAttestation,
-  parsedStatusAttestation,
+  statusAssertion: res.statusAssertion,
+  parsedStatusAssertion,
 };
 ```
 
