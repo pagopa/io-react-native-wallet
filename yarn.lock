@@ -4045,10 +4045,10 @@ dayjs@^1.8.15:
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.9.tgz#9ca491933fadd0a60a2c19f6c237c03517d71d1a"
   integrity sha512-QvzAURSbQ0pKdIye2txOzNaHmxtUBXerpY0FJsFXUMKbIZeFm5ht1LS/jFsrncjnmtv8HsG0W2g6c0zUjZWmpA==
 
-dcql@^0.2.21:
-  version "0.2.21"
-  resolved "https://registry.yarnpkg.com/dcql/-/dcql-0.2.21.tgz#57acff9c02cbe2d704ccf687542eb86897766ac1"
-  integrity sha512-X4oorKCSp9ieyIed/m7r4kBTu7kbWoXU4w/93HqNQNe0eyNdU+Rrl9xCErjiogD9oEFLzSLhLJsagto6NRgMlg==
+dcql@0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/dcql/-/dcql-0.3.0.tgz#32b31b342d554a2fa68c7db13e239f61119e156a"
+  integrity sha512-Q/yEf1itIpAYpLbGJsdGMj5Q2Ug0/NMYmyYiJWlKjk7LQOkDJ5Qh6ebLbiZBQ7gsvNBGWiOhtL306j5WdXcOcA==
   dependencies:
     valibot "1.0.0-beta.8"
 

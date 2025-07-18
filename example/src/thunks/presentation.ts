@@ -12,12 +12,13 @@ import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { WIA_KEYTAG } from "../utils/crypto";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
 >["requestObject"];
+type DcqlCredentialsSdJwt =
+  Parameters<Credential.Presentation.EvaluateDcqlQuery>[0];
 type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[1];
 type RpConf = Awaited<
   ReturnType<Credential.Presentation.EvaluateRelyingPartyTrust>
@@ -33,7 +34,7 @@ type AuthResponse = Awaited<
 type ProcessPresentation = (
   requestObject: RequestObject,
   rpConf: RpConf,
-  credentialsSdJwt: [CryptoContext, string][]
+  credentialsSdJwt: DcqlCredentialsSdJwt
 ) => Promise<RemoteCrossDevicePresentationThunkOutput>;
 
 export type RemoteCrossDevicePresentationThunkInput = {
@@ -99,12 +100,25 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const credentials = selectCredentials(getState());
 
   const credentialsSdJwt = [
-    [createCryptoContextFor(pid.keyTag), pid.credential],
-    [createCryptoContextFor(WIA_KEYTAG), walletInstanceAttestation],
+    {
+      cryptoContext: createCryptoContextFor(pid.keyTag),
+      credential: pid.credential,
+      credentialId: pid.credentialConfigurationId,
+    },
+    {
+      cryptoContext: createCryptoContextFor(WIA_KEYTAG),
+      credential: walletInstanceAttestation,
+    },
     ...Object.values(credentials)
       .filter(isDefined)
-      .map((c) => [createCryptoContextFor(c.keyTag), c.credential]),
-  ] as [CryptoContext, string][];
+      .map((c) => ({
+        cryptoContext: createCryptoContextFor(c.keyTag),
+        credential: c.credential,
+        credentialId: c.credentialConfigurationId,
+      })),
+  ] as DcqlCredentialsSdJwt;
+
+  console.log({ credentialsSdJwt });
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
     return processRefusedPresentation(requestObject);
@@ -133,7 +147,7 @@ const processLegacyPresentation: ProcessPresentation = async (
   const evaluateInputDescriptors =
     await Credential.Presentation.evaluateInputDescriptors(
       presentationDefinition.input_descriptors,
-      credentialsSdJwt
+      credentialsSdJwt.map((c) => [c.cryptoContext, c.credential])
     );
 
   const credentialAndInputDescriptor = evaluateInputDescriptors.map(

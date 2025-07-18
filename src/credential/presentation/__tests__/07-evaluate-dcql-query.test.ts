@@ -1,9 +1,11 @@
 import { DcqlError, type DcqlQuery } from "dcql";
-import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
+import {
+  evaluateDcqlQuery,
+  type EvaluateDcqlQuery,
+} from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
 import { pid, mdl, legacyPid } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { createCryptoContextFor } from "../../../utils/crypto";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
@@ -12,9 +14,17 @@ const pidCryptoContext = createCryptoContextFor(pidKeyTag);
 const mdlCryptoContext = createCryptoContextFor(mdlKeyTag);
 
 const credentials = [
-  [pidCryptoContext, pid.token],
-  [mdlCryptoContext, mdl.token],
-] as [CryptoContext, string][];
+  {
+    cryptoContext: pidCryptoContext,
+    credential: pid.token,
+    credentialId: "dc_sd_jwt_PersonIdentificationData",
+  },
+  {
+    cryptoContext: mdlCryptoContext,
+    credential: mdl.token,
+    credentialId: "dc_sd_jwt_mDL",
+  },
+] as Parameters<EvaluateDcqlQuery>["0"];
 
 describe("evaluateDcqlQuery", () => {
   it("should throw error when the DCQL query structure is invalid", () => {
@@ -148,6 +158,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
+        credentialId: "dc_sd_jwt_PersonIdentificationData",
         purposes: [{ required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -193,6 +204,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
+        credentialId: "dc_sd_jwt_PersonIdentificationData",
         purposes: [{ required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -205,6 +217,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
+        credentialId: "dc_sd_jwt_mDL",
         purposes: [{ required: true }],
         requiredDisclosures: [
           ["4d10ba615ed63a12", "document_number", "123456789"],
@@ -248,6 +261,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
+        credentialId: "dc_sd_jwt_PersonIdentificationData",
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
@@ -292,6 +306,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
+        credentialId: "dc_sd_jwt_PersonIdentificationData",
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
@@ -303,6 +318,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
+        credentialId: "dc_sd_jwt_mDL",
         purposes: [{ description: "Extra services", required: false }],
         requiredDisclosures: [
           ["4d10ba615ed63a12", "document_number", "123456789"],
@@ -374,6 +390,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
+        credentialId: "dc_sd_jwt_PersonIdentificationData",
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -386,6 +403,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
+        credentialId: "dc_sd_jwt_mDL",
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
@@ -449,6 +467,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
+        credentialId: "dc_sd_jwt_PersonIdentificationData",
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -461,6 +480,7 @@ describe("evaluateDcqlQuery", () => {
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
+        credentialId: "dc_sd_jwt_mDL",
         purposes: [
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
@@ -489,13 +509,23 @@ describe("evaluateDcqlQuery", () => {
         },
       ],
     };
-    const result = evaluateDcqlQuery([[pidCryptoContext, legacyPid]], query);
+    const result = evaluateDcqlQuery(
+      [
+        {
+          cryptoContext: pidCryptoContext,
+          credential: legacyPid,
+          credentialId: "PersonIdentificationData",
+        },
+      ],
+      query
+    );
     const expected = [
       {
         id: "PID",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: legacyPid,
+        credentialId: "PersonIdentificationData",
         purposes: [{ required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
