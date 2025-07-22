@@ -79,13 +79,13 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Trust"),
       },
       {
-        label: "Status Attestation",
-        description: "Obtain the status attestation of a credential",
+        label: "Status Assertion",
+        description: "Obtain the status assertion of a credential",
         icon: "chevronRight",
         onPress: () =>
-          credentials.dc_sd_jwt_mDL
-            ? navigation.navigate("StatusAttestation")
-            : Alert.alert("Obtain a MDL first"),
+          pid
+            ? navigation.navigate("StatusAssertion")
+            : Alert.alert("Obtain a PID first"),
       },
       {
         label: "Trustmark",
@@ -103,7 +103,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, credentials, hasSomeCredential]
+    [hasIntegrityKeyTag, navigation, pid, hasSomeCredential]
   );
 
   return (
