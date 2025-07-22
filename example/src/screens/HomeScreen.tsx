@@ -85,7 +85,7 @@ const HomeScreen = () => {
         onPress: () =>
           pid
             ? navigation.navigate("StatusAssertion")
-            : Alert.alert("Obtain a PID or another credential first"),
+            : Alert.alert("Obtain a PID first"),
       },
       {
         label: "Trustmark",
