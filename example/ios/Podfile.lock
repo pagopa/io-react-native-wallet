@@ -7,6 +7,31 @@ PODS:
   - hermes-engine (0.75.5):
     - hermes-engine/Pre-built (= 0.75.5)
   - hermes-engine/Pre-built (0.75.5)
+  - IoReactNativeCbor (1.4.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - IOWalletCBOR (~> 0.1.0)
+    - IOWalletProximity (~> 1.2.1)
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - IOWalletCBOR (0.1.0)
+  - IOWalletProximity (1.2.2)
   - JOSESwift (3.0.0)
   - OpenSSL-Universal (3.3.3001)
   - pagopa-io-react-native-crypto (1.2.2):
@@ -1763,6 +1788,7 @@ DEPENDENCIES:
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - "IoReactNativeCbor (from `../node_modules/@pagopa/io-react-native-cbor`)"
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-integrity (from `../node_modules/@pagopa/io-react-native-integrity`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
@@ -1839,6 +1865,8 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - IOWalletCBOR
+    - IOWalletProximity
     - JOSESwift
     - OpenSSL-Universal
     - SocketRocket
@@ -1858,6 +1886,8 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2025-02-06-RNv0.75.5-53ff6df3af18e250c29a74f34273f50dbfa410dc
+  IoReactNativeCbor:
+    :path: "../node_modules/@pagopa/io-react-native-cbor"
   pagopa-io-react-native-crypto:
     :path: "../node_modules/@pagopa/io-react-native-crypto"
   pagopa-io-react-native-integrity:
@@ -2007,14 +2037,17 @@ SPEC CHECKSUMS:
   FBLazyVector: ee328dc37246cbe6d45ae4472951c0ca0dd6ffbf
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
-  hermes-engine: c9fe5870af65876125fdbbf833071b6f329db30d
+  hermes-engine: bb4eaebe62ac19032aa4981faf5221337690474b
+  IoReactNativeCbor: ba360acb44797d51ec28579e4a8f01ace4e8809f
+  IOWalletCBOR: f6147a29e88bfd3ef36386840df1b5f907c3ae41
+  IOWalletProximity: 55d5527de91a971dbcdbdda1838860c9860683ac
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   pagopa-io-react-native-crypto: bcb3de29a2a59dbd48cd68e8a8c33622e9fd0276
   pagopa-io-react-native-integrity: 48c93d245cfea4bcbfeaab76ab5cda83e0e9c8c0
   pagopa-io-react-native-jwt: 4f1c348d8260f0dc882412243531b3a516608e97
   pagopa-io-react-native-secure-storage: 0297d41360d93f89e9f89c8412b99916e0dbf520
-  RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
+  RCT-Folly: 34124ae2e667a0e5f0ea378db071d27548124321
   RCTDeprecation: 3abf1129f54dbf292986302277f62ad01f7af1b2
   RCTRequired: 67f606e1be40dbb827898c23d9eaee3562b087d1
   RCTTypeSafety: 30826859480f0ee4a3dd4fe64854e40d6f29c558
