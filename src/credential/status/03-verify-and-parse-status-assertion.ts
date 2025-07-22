@@ -17,6 +17,7 @@ import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { LogLevel, Logger } from "../../utils/logging";
 import type { ObtainCredential } from "../issuance";
 import { extractJwkFromCredential } from "../../utils/credentials";
+import { isSameThumbprint } from "../../utils/jwk";
 
 export type VerifyAndParseStatusAssertion = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -70,8 +71,8 @@ export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
     const { cnf, credential_status_type } = parsedStatusAssertion.payload;
     const holderBindingKey = await extractJwkFromCredential(credential, format);
 
-    if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
-      const errorMessage = `Failed to verify holder binding for status assertion, expected kid: ${holderBindingKey.kid}, got: ${cnf.jwk.kid}`;
+    if (!isSameThumbprint(cnf.jwk, holderBindingKey)) {
+      const errorMessage = `Failed to verify holder binding for status assertion: the thumbprints of keys ${cnf.jwk.kid} and ${holderBindingKey.kid} do not match`;
       Logger.log(LogLevel.ERROR, errorMessage);
       throw new IoWalletError(errorMessage);
     }
