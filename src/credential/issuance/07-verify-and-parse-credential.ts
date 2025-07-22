@@ -6,11 +6,19 @@ import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import type { JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { Logger, LogLevel } from "../../utils/logging";
+import { MDOC_DEFAULT_NAMESPACE, verify as verifyMdoc } from "../../mdoc";
+import { LogLevel, Logger } from "../../utils/logging";
+import { extractElementValueAsDate } from "../../mdoc/converter";
+import type { CBOR } from "@pagopa/io-react-native-cbor";
+import { b64utob64 } from "jsrsasign";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
 type CredentialConf =
   IssuerConf["openid_credential_issuer"]["credential_configurations_supported"][string];
+
+type DecodedMDocCredential = Out<typeof verifyMdoc> & {
+  issuerSigned: CBOR.IssuerSigned;
+};
 
 export type VerifyAndParseCredential = (
   issuerConf: IssuerConf,
@@ -28,17 +36,15 @@ export type VerifyAndParseCredential = (
     includeUndefinedAttributes?: boolean;
   }
 ) => Promise<{
-  parsedCredential: ParsedCredential;
+  parsedCredential: ParsedCredentialSdJwt | ParsedCredentialMdoc;
   expiration: Date;
   issuedAt: Date | undefined;
 }>;
 
 // The credential as a collection of attributes in plain value
-type ParsedCredential = Record<
+type ParsedCredentialSdJwt = {
   /** Attribute key */
-  string,
-  {
-    /** Human-readable name of the attribute */
+  [claim: string]: {
     name:
       | /* if i18n is provided */ Record<
           string /* locale */,
@@ -46,10 +52,13 @@ type ParsedCredential = Record<
         >
       | /* if no i18n is provided */ string
       | undefined; // Add undefined as a possible value for the name property
-    /** The actual value of the attribute */
     value: unknown;
-  }
->;
+  };
+};
+
+type ParsedCredentialMdoc = {
+  [namespace: string]: ParsedCredentialSdJwt;
+};
 
 // handy alias
 type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
@@ -62,7 +71,7 @@ const parseCredentialSdJwt = (
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
-): ParsedCredential => {
+): ParsedCredentialSdJwt => {
   if (credentialConfig.format !== sdJwt.header.typ) {
     const message = `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
     Logger.log(LogLevel.ERROR, message);
@@ -139,7 +148,123 @@ const parseCredentialSdJwt = (
 
   return definedValues;
 };
+const parseCredentialMDoc = (
+  // the list of supported credentials, as defined in the issuer configuration
+  credentialConfig: CredentialConf,
+  // credential_type: string,
+  { issuerSigned }: DecodedMDocCredential,
+  ignoreMissingAttributes: boolean = false,
+  includeUndefinedAttributes: boolean = false
+): ParsedCredentialMdoc => {
+  if (!credentialConfig) {
+    throw new IoWalletError("Credential type not supported by the issuer");
+  }
 
+  if (!credentialConfig.claims) {
+    throw new IoWalletError("Missing claims in the credential subject");
+  }
+
+  const attrDefinitions = credentialConfig.claims.map<
+    [string, string, { name: string; locale: string }[]]
+  >(({ path: [namespace, attribute], display }) => [
+    namespace as string,
+    attribute as string,
+    display,
+  ]);
+
+  if (!issuerSigned.nameSpaces) {
+    throw new IoWalletError("Missing claims in the credential");
+  }
+
+  const flatNamespaces = Object.entries(issuerSigned.nameSpaces).flatMap(
+    ([namespace, values]) =>
+      values.map<[string, string, string]>((v) => [
+        namespace,
+        v.elementIdentifier,
+        v.elementValue,
+      ])
+  );
+
+  // Check that all mandatory attributes defined in the issuer configuration are present in the disclosure set
+  // and filter the non present ones
+  const attrsNotInDisclosures = attrDefinitions.filter(
+    ([attrDefNamespace, attrKey]) =>
+      flatNamespaces.some(
+        ([namespace, claim]) =>
+          attrDefNamespace === namespace && attrKey === claim
+      )
+  );
+  if (attrsNotInDisclosures.length > 0) {
+    const missing = attrsNotInDisclosures
+      .map(([, attrKey]) => attrKey)
+      .join(", ");
+    const received = Object.keys(Object.values(flatNamespaces));
+
+    if (!ignoreMissingAttributes) {
+      throw new IoWalletError(
+        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+      );
+    }
+  }
+
+  // Attributes defined in the issuer configuration and present in the disclosure set
+  const definedValues = attrDefinitions
+    // Retrieve the value from the corresponding disclosure
+    .map(
+      ([attrDefNamespace, attrKey, display]) =>
+        [
+          attrDefNamespace,
+          attrKey,
+          {
+            display,
+            value: flatNamespaces.find(
+              ([namespace, name]) =>
+                attrDefNamespace === namespace && name === attrKey
+            )?.[2],
+          },
+        ] as const
+    )
+    //filter the not found elements
+    .filter(([_, __, definition]) => definition.value !== undefined)
+    // Add a human-readable attribute name, with i18n, in the form { locale: name }
+    // Example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
+    .reduce<ParsedCredentialMdoc>(
+      (acc, [attrDefNamespace, attrKey, { display, value }]) => ({
+        ...acc,
+        [attrDefNamespace]: {
+          ...(acc[attrDefNamespace] ?? {}),
+          [attrKey]: {
+            value,
+            name: display.reduce(
+              (names, { locale, name }) => ({
+                ...names,
+                [locale]: name,
+              }),
+              {}
+            ),
+          },
+        },
+      }),
+      {}
+    );
+
+  if (includeUndefinedAttributes) {
+    const undefinedValues: ParsedCredentialMdoc = Object.fromEntries(
+      Object.values(flatNamespaces)
+        .filter(([namespace, key]) => !definedValues[namespace]?.[key])
+        .map(([namespace, key, value]) => [
+          namespace,
+          { [key]: { value, name: key } },
+        ])
+    );
+    return {
+      ...definedValues,
+      ...undefinedValues,
+    };
+  }
+
+  return definedValues;
+};
 /**
  * Given a credential, verify it's in the supported format
  * and the credential is correctly signed
@@ -174,6 +299,57 @@ async function verifyCredentialSdJwt(
     Logger.log(LogLevel.ERROR, message);
     throw new IoWalletError(message);
   }
+
+  return decodedCredential;
+}
+/**
+ * Given a credential, verify it's in the supported format
+ * and the credential is correctly signed
+ * and it's bound to the given key
+ *
+ * @param rawCredential The received credential
+ * @param issuerKeys The set of public keys of the issuer,
+ * which will be used to verify the signature
+ * @param holderBindingContext The access to the holder's key
+ *
+ * @throws If the signature verification fails
+ * @throws If the credential is not in the SdJwt4VC format
+ * @throws If the holder binding is not properly configured
+ *
+ */
+async function verifyCredentialMDoc(
+  rawCredential: string,
+  issuerKeys: JWK[],
+  holderBindingContext: CryptoContext
+): Promise<DecodedMDocCredential> {
+  /**
+   * For the moment, being that issues in the crypto key generation
+   * have been found on Android, the check for the deviceKey inside
+   * of the mDoc is skipped, so we are not interested in the holderBindingKey
+   */
+  const [decodedCredential] =
+    // parallel for optimization
+    await Promise.all([
+      verifyMdoc(rawCredential, issuerKeys),
+      holderBindingContext.getPublicKey(),
+    ]);
+
+  if (!decodedCredential) {
+    throw new IoWalletError("No MDOC credentials found!");
+  }
+
+  /**
+   * For the moment, being that issues in the crypto key generation
+   * have been found on Android, the check for the deviceKey inside
+   * of the mDoc is skipped.
+   */
+  //const key = decodedCredential.mDoc.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
+  //
+  //if (!compareKeysByThumbprint(key, holderBindingKey as PublicKey)) {
+  //  throw new IoWalletError(
+  //    `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
+  //  );
+  //}
 
   return decodedCredential;
 }
@@ -232,6 +408,51 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   };
 };
 
+const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
+  issuerConf,
+  credential,
+  credentialConfigurationId,
+  { credentialCryptoContext, ignoreMissingAttributes }
+) => {
+  const decoded = await verifyCredentialMDoc(
+    credential,
+    issuerConf.openid_credential_issuer.jwks.keys,
+    credentialCryptoContext
+  );
+
+  const credentialConfig =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credentialConfigurationId
+    ]!;
+  const parsedCredential = parseCredentialMDoc(
+    credentialConfig,
+    decoded,
+    ignoreMissingAttributes,
+    ignoreMissingAttributes
+  );
+
+  const expirationDate = extractElementValueAsDate(
+    parsedCredential?.[MDOC_DEFAULT_NAMESPACE]?.expiry_date?.value as string
+  );
+  if (!expirationDate) {
+    throw new IoWalletError(`expirationDate must be present!!`);
+  }
+  expirationDate.setDate(expirationDate.getDate() + 1);
+
+  const maybeIssuedAt = extractElementValueAsDate(
+    parsedCredential?.[MDOC_DEFAULT_NAMESPACE]?.issue_date?.value as string
+  );
+  maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
+
+  return {
+    parsedCredential,
+    credential,
+    credentialConfigurationId,
+    expiration: expirationDate ?? new Date(),
+    issuedAt: maybeIssuedAt ?? undefined,
+  };
+};
+
 /**
  * Verify and parse an encoded credential.
  * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
@@ -261,6 +482,15 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
     return verifyAndParseCredentialSdJwt(
       issuerConf,
       credential,
+      credentialConfigurationId,
+      context
+    );
+  }
+  if (format === "mso_mdoc") {
+    Logger.log(LogLevel.DEBUG, "Parsing credential in mso_mdoc format");
+    return await verifyAndParseCredentialMDoc(
+      issuerConf,
+      b64utob64(credential),
       credentialConfigurationId,
       context
     );
