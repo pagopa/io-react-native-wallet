@@ -1,7 +1,10 @@
 import { createAppAsyncThunk } from "./utils";
-import { Credential } from "@pagopa/io-react-native-wallet";
 import {
-  selectAttestationAsJwt,
+  createCryptoContextFor,
+  Credential,
+} from "@pagopa/io-react-native-wallet";
+import {
+  selectAttestationAsSdJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
@@ -9,6 +12,8 @@ import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { WIA_KEYTAG } from "../utils/crypto";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
@@ -28,7 +33,7 @@ type AuthResponse = Awaited<
 type ProcessPresentation = (
   requestObject: RequestObject,
   rpConf: RpConf,
-  credentialsSdJwt: [string, string][]
+  credentialsSdJwt: [CryptoContext, string][]
 ) => Promise<RemoteCrossDevicePresentationThunkOutput>;
 
 export type RemoteCrossDevicePresentationThunkInput = {
@@ -54,11 +59,6 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     await dispatch(getAttestationThunk());
   }
 
-  // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestationAsJwt(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
   const url = new URL(args.qrcode);
 
   const qrParams = Credential.Presentation.startFlowFromQR({
@@ -91,13 +91,20 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     throw new Error("PID not found");
   }
 
+  const walletInstanceAttestation = selectAttestationAsSdJwt(getState());
+  if (!walletInstanceAttestation) {
+    throw new Error("Wallet Instance Attestation not found");
+  }
+
   const credentials = selectCredentials(getState());
+
   const credentialsSdJwt = [
-    [pid.keyTag, pid.credential],
+    [createCryptoContextFor(pid.keyTag), pid.credential],
+    [createCryptoContextFor(WIA_KEYTAG), walletInstanceAttestation],
     ...Object.values(credentials)
       .filter(isDefined)
-      .map((c) => [c.keyTag, c.credential]),
-  ] as [string, string][];
+      .map((c) => [createCryptoContextFor(c.keyTag), c.credential]),
+  ] as [CryptoContext, string][];
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
     return processRefusedPresentation(requestObject);
@@ -141,7 +148,7 @@ const processLegacyPresentation: ProcessPresentation = async (
         requestedClaims,
         inputDescriptor: evaluateInputDescriptor.inputDescriptor,
         credential: evaluateInputDescriptor.credential,
-        keyTag: evaluateInputDescriptor.keyTag,
+        cryptoContext: evaluateInputDescriptor.cryptoContext,
       };
     }
   );
