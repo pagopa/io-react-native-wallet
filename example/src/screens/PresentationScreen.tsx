@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Alert, FlatList } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppSelector } from "../store/utils";
 import TestScenario, {
@@ -8,10 +9,10 @@ import {
   selectPresentationAcceptanceState,
   selectPresentationRefusalState,
 } from "../store/reducers/presentation";
+import { selectCredential } from "../store/reducers/credential";
 
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
-import { FlatList } from "react-native";
 
 export const PresentationScreen = () => {
   const navigation = useNavigation();
@@ -20,6 +21,7 @@ export const PresentationScreen = () => {
   const { asyncStatus: refusalPresentationState } = useAppSelector(
     selectPresentationRefusalState
   );
+  const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
 
   useDebugInfo({
     acceptancePresentationState,
@@ -53,9 +55,21 @@ export const PresentationScreen = () => {
         isDone: refusalPresentationState.isDone,
         icon: "qrCode",
       },
+      {
+        title: "mDL Proximity",
+        onPress: () =>
+          mdoc_mDL
+            ? navigation.navigate("Proximity")
+            : Alert.alert("Obtain a mDL first"),
+        isLoading: refusalPresentationState.isLoading,
+        hasError: refusalPresentationState.hasError,
+        isDone: refusalPresentationState.isDone,
+        icon: "qrCode",
+      },
     ],
     [
       navigation,
+      mdoc_mDL,
       acceptancePresentationState.hasError,
       acceptancePresentationState.isDone,
       acceptancePresentationState.isLoading,

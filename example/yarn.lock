@@ -2166,6 +2166,11 @@
     js-base64 "^3.7.7"
     zod "^3.22.4"
 
+"@pagopa/io-react-native-proximity@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-proximity/-/io-react-native-proximity-0.6.0.tgz#9dacb34c3dd95727d763e6a987143108529ca3e6"
+  integrity sha512-V39nxfQgm0EmhCgCVnvymCuU90TNrk2NeuEl8m9UnUm3Eydj95eXI31VtMpoAvkcnRyvLgpOyJsIFlCBarER4w==
+
 "@pagopa/io-react-native-secure-storage@^0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-secure-storage/-/io-react-native-secure-storage-0.2.0.tgz#386982f350fcefa7bf8dc56e26ff390a9c94db03"
@@ -7006,6 +7011,11 @@ react-native-logs@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/react-native-logs/-/react-native-logs-5.3.0.tgz#49ad1ec1fd37a5ef90280cc3e27e7233727fc921"
   integrity sha512-tq4S0JFy06ggu1D/udYeV80qPy5koURNNcKrVJmv0Hf3x44akysctaE4ARybD5Pv7MnFD8fP1VFhycSLjqXHQw==
+
+react-native-permissions@^5.4.2:
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-5.4.2.tgz#206c0e440cff2ce047514995457bd73a9924fd8b"
+  integrity sha512-XNMoG1fxrB9q73MLn/ZfTaP7pS8qPu0KWypbeFKVTvoR+JJ3O7uedMOTH/mts9bTG+GKhShOoZ+k0CR63q9jwA==
 
 react-native-qrcode-svg@^6.3.12:
   version "6.3.12"
