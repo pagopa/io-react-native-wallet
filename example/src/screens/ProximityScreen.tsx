@@ -1,18 +1,30 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Button, SafeAreaView, StyleSheet, Text } from "react-native";
-import { useAppSelector } from "../store/utils";
-import { selectCredential } from "../store/reducers/credential";
+import { Alert, SafeAreaView, StyleSheet } from "react-native";
+import {
+  Body,
+  ButtonSolid,
+  Alert as IOAlert,
+  VStack,
+} from "@pagopa/io-app-design-system";
 import {
   Proximity,
   parseError,
   parseVerifierRequest,
   type VerifierRequest,
 } from "@pagopa/io-react-native-proximity";
-import { generateAcceptedFields, requestBlePermissions } from "../utils/misc";
-import QRCode from "react-native-qrcode-svg";
+import { useDebugInfo } from "../hooks/useDebugInfo";
+import { useAppSelector } from "../store/utils";
+import { selectCredential } from "../store/reducers/credential";
+import type { CredentialResult } from "../store/types";
+import {
+  generateAcceptedFields,
+  requestBlePermissions,
+  WELL_KNOWN_CREDENTIALS,
+} from "../utils/proximity";
 import { addPadding } from "@pagopa/io-react-native-jwt";
 import { selectAttestationAsMdoc } from "../store/reducers/attestation";
 import { WIA_KEYTAG } from "../utils/crypto";
+import { QrCodeImage } from "../components/QrCodeImage";
 
 /**
  * Proximity status enum to track the current state of the flow.
@@ -29,9 +41,22 @@ enum PROXIMITY_STATUS {
 }
 
 export const ProximityScreen = () => {
-  const mso_mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"))!;
   const attestation_mdoc = useAppSelector(selectAttestationAsMdoc)!;
+  const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"))!;
 
+  if (!attestation_mdoc || !mdoc_mDL) {
+    return <></>;
+  }
+
+  return <ContentView attestation={attestation_mdoc} credential={mdoc_mDL} />;
+};
+
+type ContentViewProps = {
+  attestation: string;
+  credential: CredentialResult;
+};
+
+const ContentView = ({ attestation, credential }: ContentViewProps) => {
   const [status, setStatus] = useState<PROXIMITY_STATUS>(
     PROXIMITY_STATUS.STARTING
   );
@@ -39,8 +64,12 @@ export const ProximityScreen = () => {
   const [request, setRequest] = useState<VerifierRequest["request"] | null>(
     null
   );
+  const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
 
-  console.log("Attestation mdoc: ", attestation_mdoc);
+  useDebugInfo({
+    attestation,
+    credential,
+  });
 
   /**
    * Callback function to handle device connection.
@@ -66,18 +95,15 @@ export const ProximityScreen = () => {
     const documents: Array<Proximity.Document> = [
       {
         alias: WIA_KEYTAG,
-        docType: "org.iso.18013.5.1.IT.WalletAttestation",
-        issuerSignedContent: addPadding(attestation_mdoc),
+        docType: WELL_KNOWN_CREDENTIALS.wia,
+        issuerSignedContent: addPadding(attestation),
       },
       {
-        alias: mso_mdoc_mDL.keyTag,
-        docType: "org.iso.18013.5.1.mDL", // mso_mdoc_mDL.format // org.iso.18013.5.1.mDL
-        issuerSignedContent: addPadding(mso_mdoc_mDL.credential),
+        alias: credential.keyTag,
+        docType: WELL_KNOWN_CREDENTIALS.mdl,
+        issuerSignedContent: addPadding(credential.credential),
       },
     ];
-
-    console.log("####### Documents");
-    console.log(documents);
 
     /*
      * Generate the response to be sent to the verifier app. Currently we blindly accept all the fields requested by the verifier app.
@@ -123,6 +149,7 @@ export const ProximityScreen = () => {
       await Proximity.close();
       setQrCode(null);
       setRequest(null);
+      setRpIsTrusted(false);
       setStatus(PROXIMITY_STATUS.STOPPED);
     } catch (e) {
       console.log("Error closing the proximity flow", e);
@@ -198,7 +225,12 @@ export const ProximityScreen = () => {
         console.log("Parsed JSON:", parsedJson);
         const parsedResponse = parseVerifierRequest(parsedJson);
         console.log("Parsed response:", JSON.stringify(parsedResponse));
+        const isTrusted = Object.values(parsedResponse.request).every(
+          (item) => item.isAuthenticated
+        );
+        console.log("RP is trusted:", isTrusted);
         setRequest(parsedResponse.request);
+        setRpIsTrusted(isTrusted);
         setStatus(PROXIMITY_STATUS.PRESENTING);
       } catch (error) {
         console.error("Error handling new device request:", error);
@@ -260,47 +292,65 @@ export const ProximityScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {status === PROXIMITY_STATUS.STARTING && (
-        <Text style={styles.buttonText}>Starting the proximity flow</Text>
-      )}
-      {status === PROXIMITY_STATUS.STARTED && qrCode && (
-        <QRCode value={qrCode} size={200} />
-      )}
-      {status === PROXIMITY_STATUS.PRESENTING && request && (
-        <>
-          <Button title="Send document" onPress={() => sendDocument(request)} />
-          <Button
-            title={`Send error ${Proximity.ErrorCode.CBOR_DECODING} (${
-              Proximity.ErrorCode[Proximity.ErrorCode.CBOR_DECODING]
-            })`}
-            onPress={() => sendError(Proximity.ErrorCode.CBOR_DECODING)}
+      <VStack space={8}>
+        {status === PROXIMITY_STATUS.STARTING && (
+          <Body>Starting the proximity flow</Body>
+        )}
+        {status === PROXIMITY_STATUS.STARTED && qrCode && (
+          <QrCodeImage value={qrCode} size={"60%"} correctionLevel="L" />
+        )}
+        {status === PROXIMITY_STATUS.PRESENTING && request && (
+          <>
+            <IOAlert
+              variant={rpIsTrusted ? "success" : "error"}
+              content={rpIsTrusted ? "Trusted RP" : "Untrusted RP"}
+            />
+            <ButtonSolid
+              label="Send document"
+              onPress={() => sendDocument(request)}
+              fullWidth
+            />
+            <ButtonSolid
+              label={`Send error ${Proximity.ErrorCode.CBOR_DECODING} (${
+                Proximity.ErrorCode[Proximity.ErrorCode.CBOR_DECODING]
+              })`}
+              onPress={() => sendError(Proximity.ErrorCode.CBOR_DECODING)}
+              fullWidth
+            />
+            <ButtonSolid
+              label={`Send error ${Proximity.ErrorCode.SESSION_ENCRYPTION} (${
+                Proximity.ErrorCode[Proximity.ErrorCode.SESSION_ENCRYPTION]
+              })`}
+              onPress={() => sendError(Proximity.ErrorCode.SESSION_ENCRYPTION)}
+              fullWidth
+            />
+            <ButtonSolid
+              label={`Send error ${Proximity.ErrorCode.SESSION_TERMINATED} (${
+                Proximity.ErrorCode[Proximity.ErrorCode.SESSION_TERMINATED]
+              })`}
+              onPress={() => sendError(Proximity.ErrorCode.SESSION_TERMINATED)}
+              fullWidth
+            />
+          </>
+        )}
+        {status === PROXIMITY_STATUS.STOPPED && (
+          <ButtonSolid
+            label={"Generate QR Engagement"}
+            onPress={() => startFlow()}
+            fullWidth
           />
-          <Button
-            title={`Send error ${Proximity.ErrorCode.SESSION_ENCRYPTION} (${
-              Proximity.ErrorCode[Proximity.ErrorCode.SESSION_ENCRYPTION]
-            })`}
-            onPress={() => sendError(Proximity.ErrorCode.SESSION_ENCRYPTION)}
+        )}
+        {(status === PROXIMITY_STATUS.PRESENTING ||
+          status === PROXIMITY_STATUS.STARTED) && (
+          <ButtonSolid
+            label={"Close QR Engagement"}
+            onPress={() =>
+              closeFlow(status === PROXIMITY_STATUS.PRESENTING ? true : false)
+            }
+            fullWidth
           />
-          <Button
-            title={`Send error ${Proximity.ErrorCode.SESSION_TERMINATED} (${
-              Proximity.ErrorCode[Proximity.ErrorCode.SESSION_TERMINATED]
-            })`}
-            onPress={() => sendError(Proximity.ErrorCode.SESSION_TERMINATED)}
-          />
-        </>
-      )}
-      {status === PROXIMITY_STATUS.STOPPED && (
-        <Button title={"Generate QR Engagement"} onPress={() => startFlow()} />
-      )}
-      {(status === PROXIMITY_STATUS.PRESENTING ||
-        status === PROXIMITY_STATUS.STARTED) && (
-        <Button
-          title={"Close QR Engagement"}
-          onPress={() =>
-            closeFlow(status === PROXIMITY_STATUS.PRESENTING ? true : false)
-          }
-        />
-      )}
+        )}
+      </VStack>
     </SafeAreaView>
   );
 };
@@ -312,28 +362,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
     padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  text: {
-    fontSize: 18,
-    marginBottom: 20,
-    color: "#333",
-  },
-  errorText: {
-    color: "red",
-    fontSize: 16,
-  },
-  button: {
-    margin: 10,
-    backgroundColor: "#007AFF",
-    padding: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
   },
 });

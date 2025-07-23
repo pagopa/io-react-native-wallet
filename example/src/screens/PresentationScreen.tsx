@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Alert, FlatList } from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { Alert, FlatList, type ListRenderItemInfo } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppSelector } from "../store/utils";
 import TestScenario, {
@@ -80,6 +80,13 @@ export const PresentationScreen = () => {
     ]
   );
 
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<TestScenarioProp>) => (
+      <TestScenario {...item} />
+    ),
+    []
+  );
+
   return (
     <FlatList
       contentContainerStyle={{
@@ -87,21 +94,8 @@ export const PresentationScreen = () => {
       }}
       data={scenarios}
       keyExtractor={(item, index) => `${item.title}-${index}`}
-      renderItem={({ item }) => (
-        <>
-          <TestScenario
-            onPress={item.onPress}
-            title={item.title}
-            isLoading={item.isLoading}
-            hasError={item.hasError}
-            isDone={item.isDone}
-            icon={item.icon}
-            isPresent={item.isPresent}
-            successMessage={item.successMessage}
-          />
-          <VSpacer />
-        </>
-      )}
+      renderItem={renderItem}
+      ItemSeparatorComponent={VSpacer}
     />
   );
 };
