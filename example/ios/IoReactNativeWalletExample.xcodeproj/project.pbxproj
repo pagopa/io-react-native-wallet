@@ -23,7 +23,7 @@
 		707D4D5169614B8FA917D2F4 /* TitilliumSansPro-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 39A26329B16346ABAD843E13 /* TitilliumSansPro-Bold.otf */; };
 		744606EBDD2A4DC18B99DB5A /* TitilliumSansPro-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 519C00001FC2425293C57ABD /* TitilliumSansPro-SemiboldItalic.otf */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		990CE13C2BEA042F009912F6 /* BuildFile in Resources */ = {isa = PBXBuildFile; };
+		990CE13C2BEA042F009912F6 /* (null) in Resources */ = {isa = PBXBuildFile; };
 		A586FAA4781B478B87910C64 /* TitilliumSansPro-ThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 291A2E9C27654CA1889BA448 /* TitilliumSansPro-ThinItalic.otf */; };
 		B29C067A5C8D4DDE945A2CDF /* TitilliumSansPro-BlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = F2548BDA338042D48F4BA351 /* TitilliumSansPro-BlackItalic.otf */; };
 		BC81BBE914C142F7B159AF63 /* ReadexPro-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4683D0B61A504DAFA7737A8A /* ReadexPro-OFL.txt */; };
@@ -31,7 +31,7 @@
 		DA91CAA70C3B49E1940001FF /* TitilliumSansPro-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = EC2D199A60474F2EB4481B1D /* TitilliumSansPro-OFL.txt */; };
 		DF9A854F162E46BC88F38167 /* DMMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 82835F2F9B9943C7A6A1A8F0 /* DMMono-Medium.ttf */; };
 		EBAA89C4698D4D39BA7F30CD /* RobotoMono-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A8A254B88CF1419AAE829503 /* RobotoMono-LightItalic.ttf */; };
-		F6FCB85F2E311A6F00C9A13B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6FCB85E2E311A6F00C9A13B /* AppDelegate.swift */; };
+		F6FCB8782E324A6F00C9A13B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6FCB8772E324A6F00C9A13B /* AppDelegate.swift */; };
 		F7C0A5EA58C843658AEEEDB3 /* RobotoMono-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B7E60117481E41E9BE216D24 /* RobotoMono-Light.ttf */; };
 		F8049A4F777B4DD284FE9DD2 /* TitilliumSansPro-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 93ADA44255B7403ABC12B050 /* TitilliumSansPro-Italic.otf */; };
 		FA6A140892434695AC88B32A /* TitilliumSansPro-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 43E6A6E367694585BAE31D00 /* TitilliumSansPro-Thin.otf */; };
@@ -50,7 +50,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00E356EE1AD99517003FC87E /* IoReactNativeWalletExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = IoReactNativeWalletExampleTests.xctest; path = "/Users/lazyafternoons/Documents/pagopa/io-react-native-wallet/example/ios/build/Debug-iphoneos/IoReactNativeWalletExample.app/PlugIns/IoReactNativeWalletExampleTests.xctest"; sourceTree = "<absolute>"; };
 		040DDE708A9A4E56BD32C915 /* RobotoMono-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "RobotoMono-BoldItalic.ttf"; path = "../assets/fonts/RobotoMono/RobotoMono-BoldItalic.ttf"; sourceTree = "<group>"; };
 		111005E83D4A40699A5CE57E /* DMMono-OFL.txt */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "DMMono-OFL.txt"; path = "../assets/fonts/DMMono-OFL.txt"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* IoReactNativeWalletExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IoReactNativeWalletExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -86,7 +85,8 @@
 		EC2D199A60474F2EB4481B1D /* TitilliumSansPro-OFL.txt */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "TitilliumSansPro-OFL.txt"; path = "../assets/fonts/TitilliumSansPro-OFL.txt"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F2548BDA338042D48F4BA351 /* TitilliumSansPro-BlackItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "TitilliumSansPro-BlackItalic.otf"; path = "../assets/fonts/TitilliumSansPro/TitilliumSansPro-BlackItalic.otf"; sourceTree = "<group>"; };
-		F6FCB85E2E311A6F00C9A13B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F6FCB8742E324A2900C9A13B /* IoReactNativeWalletExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IoReactNativeWalletExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6FCB8772E324A6F00C9A13B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = IoReactNativeWalletExample/AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,10 +114,10 @@
 				BCF79CDE2C3D2AD800D4948E /* IoReactNativeWalletExample.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
-				F6FCB85E2E311A6F00C9A13B /* AppDelegate.swift */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				7781B11F3C255B9F0D22CA0B /* PrivacyInfo.xcprivacy */,
+				F6FCB8772E324A6F00C9A13B /* AppDelegate.swift */,
 			);
 			name = IoReactNativeWalletExample;
 			sourceTree = "<group>";
@@ -188,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* IoReactNativeWalletExample.app */,
+				F6FCB8742E324A2900C9A13B /* IoReactNativeWalletExampleTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -219,7 +220,7 @@
 			);
 			name = IoReactNativeWalletExampleTests;
 			productName = IoReactNativeWalletExampleTests;
-			productReference = 00E356EE1AD99517003FC87E /* IoReactNativeWalletExampleTests.xctest */;
+			productReference = F6FCB8742E324A2900C9A13B /* IoReactNativeWalletExampleTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		13B07F861A680F5B00A75B9A /* IoReactNativeWalletExample */ = {
@@ -291,7 +292,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				990CE13C2BEA042F009912F6 /* BuildFile in Resources */,
+				990CE13C2BEA042F009912F6 /* (null) in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				212446ED7612430AB9AB2130 /* TitilliumSansPro-Black.otf in Resources */,
@@ -349,9 +350,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-IoReactNativeWalletExample/Pods-IoReactNativeWalletExample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-IoReactNativeWalletExample/Pods-IoReactNativeWalletExample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -388,9 +393,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-IoReactNativeWalletExample/Pods-IoReactNativeWalletExample-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-IoReactNativeWalletExample/Pods-IoReactNativeWalletExample-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -411,7 +420,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6FCB85F2E311A6F00C9A13B /* AppDelegate.swift in Sources */,
+				F6FCB8782E324A6F00C9A13B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -608,10 +617,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -689,10 +695,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
