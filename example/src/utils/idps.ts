@@ -92,7 +92,6 @@ export const testIdps: IdpList = [
   {
     id: "spiddemo",
     name: "SPID Demo",
-
     localLogo: require("../img/spid.png"),
     profileUrl: SPID_DEMO_IDPHINT,
   },
