@@ -11,17 +11,33 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import { getEnv } from "../utils/environment";
 import { selectEnv } from "../store/reducers/environment";
 
+interface RelyingPartyUrls {
+  pre: string;
+  prod: string;
+}
+
 type BaseScenarioItem = {
   id: string;
   title: string;
-  relyingPartyUrl: string;
+  relyingPartyUrls: RelyingPartyUrls;
   icon: TestScenarioProp["icon"];
   successMessage: string;
 };
 
-interface ScenarioData extends TestScenarioProp {
+interface ScenarioWithUrl {
   id: string;
-  relyingPartyUrl: string;
+  title: string;
+  relyingPartyUrls: string;
+  icon: TestScenarioProp["icon"];
+  successMessage: string;
+}
+
+interface ScenarioData extends ScenarioWithUrl {
+  onPress: () => void;
+  isLoading: boolean;
+  hasError: { status: boolean; error?: any };
+  isDone: boolean;
+  isPresent: boolean;
 }
 
 export const TrustScreen = () => {
@@ -29,7 +45,11 @@ export const TrustScreen = () => {
   const { isValid, validatedChain, validationError, asyncStatus } =
     useAppSelector(selectTrustValidationState);
   const env = useAppSelector(selectEnv);
-  const { WALLET_TA_BASE_URL, WALLET_PID_PROVIDER_BASE_URL } = getEnv(env);
+  const {
+    WALLET_TA_BASE_URL,
+    WALLET_PID_PROVIDER_BASE_URL,
+    WALLET_EAA_PROVIDER_BASE_URL,
+  } = getEnv(env);
 
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
   useDebugInfo({
@@ -56,58 +76,92 @@ export const TrustScreen = () => {
   );
 
   // Add mock scenarios for testing purposes if needed
-  const baseScenarios = useMemo(
+  const baseScenarioConfig = useMemo(
     (): BaseScenarioItem[] => [
       {
         id: "pagopa-wp",
         title: "Validate Trust Chain (PagoPA-WP)",
-        relyingPartyUrl: "https://foo11.blob.core.windows.net/foo", // PAGOPA Wallet Provider
+        relyingPartyUrls: {
+          prod: "https://wallet.io.pagopa.it",
+          pre: "https://foo11.blob.core.windows.net/foo",
+        },
         icon: "locked",
         successMessage: "Chain Valid",
       },
       {
         id: "pagopa-rp",
         title: "Validate Trust Chain (PagoPA-RP)",
-        relyingPartyUrl: "https://foo11.blob.core.windows.net/rp-test", // PAGOPA Relying Party
+        relyingPartyUrls: {
+          prod: "",
+          pre: "https://foo11.blob.core.windows.net/rp-test",
+        },
         icon: "locked",
         successMessage: "Chain Valid",
       },
       {
         id: "reg-toscana-rp",
         title: "Validate Trust Chain (Reg-Toscana-RP)",
-        relyingPartyUrl:
-          "https://lab.auth.regione.toscana.it/auth-lab/realms/rt/it-wallet-provider/r_toscan", // REGIONE TOSCANA Relying Party
+        relyingPartyUrls: {
+          prod: "",
+          pre: "https://lab.auth.regione.toscana.it/r_toscan",
+        },
         icon: "locked",
         successMessage: "Chain Valid",
       },
       {
         id: "ipzs-iss-pid",
         title: "Validate Trust Chain (IPZS-ISS-PID)",
-        relyingPartyUrl: WALLET_PID_PROVIDER_BASE_URL, // IPZS PID Issuance
+        relyingPartyUrls: {
+          prod: WALLET_PID_PROVIDER_BASE_URL,
+          pre: WALLET_PID_PROVIDER_BASE_URL,
+        },
+        icon: "locked",
+        successMessage: "Chain Valid",
+      },
+      {
+        id: "ipzs-iss-eaa",
+        title: "Validate Trust Chain (IPZS-ISS-EAA)",
+        relyingPartyUrls: {
+          prod: WALLET_EAA_PROVIDER_BASE_URL,
+          pre: WALLET_EAA_PROVIDER_BASE_URL,
+        },
         icon: "locked",
         successMessage: "Chain Valid",
       },
     ],
-    [WALLET_PID_PROVIDER_BASE_URL]
+    [WALLET_PID_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL]
   );
+
+  const scenariosWithUrls = useMemo((): ScenarioWithUrl[] => {
+    return baseScenarioConfig.map((scenario) => ({
+      id: scenario.id,
+      title: scenario.title,
+      icon: scenario.icon,
+      successMessage: scenario.successMessage,
+      relyingPartyUrls:
+        env === "pre"
+          ? scenario.relyingPartyUrls.pre
+          : scenario.relyingPartyUrls.prod,
+    }));
+  }, [baseScenarioConfig, env]);
 
   const scenarios: Array<ScenarioData> = useMemo(
     () =>
-      baseScenarios.map((scenario) => {
+      scenariosWithUrls.map((scenario) => {
         const isActive = scenario.id === activeScenarioId;
         return {
           ...scenario,
-          onPress: () => handleValidate(scenario.relyingPartyUrl, scenario.id),
+          onPress: () => handleValidate(scenario.relyingPartyUrls, scenario.id),
           isLoading: isActive && asyncStatus.isLoading,
           hasError:
-            isActive && asyncStatus.hasError
+            isActive && asyncStatus.hasError.status
               ? asyncStatus.hasError
-              : { status: false, error: undefined },
+              : { status: false },
           isDone: isActive && asyncStatus.isDone && isValid === true,
           isPresent: isActive && asyncStatus.isDone && isValid === true,
         };
       }),
-    [baseScenarios, asyncStatus, isValid, activeScenarioId, handleValidate]
+    [scenariosWithUrls, asyncStatus, isValid, activeScenarioId, handleValidate]
   );
 
   const showGlobalFeedbackForActiveScenario =
