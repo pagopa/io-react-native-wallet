@@ -30,6 +30,28 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - IoReactNativeProximity (0.6.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - IOWalletProximity (~> 1.2.2)
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - IOWalletCBOR (0.1.0)
   - IOWalletProximity (1.2.2)
   - JOSESwift (3.0.0)
@@ -1351,6 +1373,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-cie (1.4.2):
+    - React
   - react-native-get-random-values (1.11.0):
     - React-Core
   - react-native-safe-area-context (5.3.0):
@@ -1661,6 +1685,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNPermissions (5.4.2):
+    - React-Core
   - RNReactNativeHapticFeedback (2.3.1):
     - DoubleConversion
     - glog
@@ -1789,6 +1815,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - "IoReactNativeCbor (from `../node_modules/@pagopa/io-react-native-cbor`)"
+  - "IoReactNativeProximity (from `../node_modules/@pagopa/io-react-native-proximity`)"
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-integrity (from `../node_modules/@pagopa/io-react-native-integrity`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
@@ -1824,6 +1851,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - "react-native-cie (from `../node_modules/@pagopa/react-native-cie`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -1856,6 +1884,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -1888,6 +1917,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2025-02-06-RNv0.75.5-53ff6df3af18e250c29a74f34273f50dbfa410dc
   IoReactNativeCbor:
     :path: "../node_modules/@pagopa/io-react-native-cbor"
+  IoReactNativeProximity:
+    :path: "../node_modules/@pagopa/io-react-native-proximity"
   pagopa-io-react-native-crypto:
     :path: "../node_modules/@pagopa/io-react-native-crypto"
   pagopa-io-react-native-integrity:
@@ -1954,6 +1985,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-cie:
+    :path: "../node_modules/@pagopa/react-native-cie"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-safe-area-context:
@@ -2018,6 +2051,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
     :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
@@ -2037,8 +2072,9 @@ SPEC CHECKSUMS:
   FBLazyVector: ee328dc37246cbe6d45ae4472951c0ca0dd6ffbf
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
-  hermes-engine: bb4eaebe62ac19032aa4981faf5221337690474b
+  hermes-engine: c9fe5870af65876125fdbbf833071b6f329db30d
   IoReactNativeCbor: ba360acb44797d51ec28579e4a8f01ace4e8809f
+  IoReactNativeProximity: 6f263fc464f1c0408a7cdcdce3237204a305a20c
   IOWalletCBOR: f6147a29e88bfd3ef36386840df1b5f907c3ae41
   IOWalletProximity: 55d5527de91a971dbcdbdda1838860c9860683ac
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
@@ -2059,8 +2095,8 @@ SPEC CHECKSUMS:
   React-debug: 3770d713498696e4f438ee992eda8643d0515242
   React-defaultsnativemodule: 81178ca62bdae1b45ac569d58446d724bc3a17ea
   React-domnativemodule: cdf33163c8f01705fbc22913d1bb373261fd8947
-  React-Fabric: 5f5caccef43fa27de6d962ef11165f7252907382
-  React-FabricComponents: cd0327ca7d7935064f7fe1e73d9d15669f102038
+  React-Fabric: 7ecf119c0ad168303cb9f51b1ef204bfb4083c95
+  React-FabricComponents: f72127c84bea5cdafa88c7d4c2028301894ef44e
   React-FabricImage: a85f5e7978b495bf44be01c68ee5dac87d76ac70
   React-featureflags: 79165585b574fd24cc9b6d6a46b1222d6b74744d
   React-featureflagsnativemodule: 1d5afb5057428cfcfc9eb4eef9e3896a97305d0f
@@ -2076,6 +2112,7 @@ SPEC CHECKSUMS:
   React-logger: 15a50e9e2fabe5d684cdd818ff1cbd2285bab1f0
   React-Mapbuffer: 5dffd4714a7261a2fd1d94985eec118d0728b787
   React-microtasksnativemodule: 9856dcf1c3d981843197b1b75253a079d961795d
+  react-native-cie: e6c22aa3ad137534ca809cedf1e5258398e97cf8
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-safe-area-context: fdb0a66feac038cb6eb1edafcf2ccee2b5cf0284
   react-native-webview: ced2857298f4a5c9ea1d899c23720957308183b7
@@ -2108,6 +2145,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: b9f5f78da5d16a853fe3dc22e8268d932fc45a83
   RNCClipboard: 4598dae0fe33e2aa130d9d213e2007be78310266
   RNGestureHandler: fc491c834d09b0538618a3f328ab75fe8f90f5b4
+  RNPermissions: 7821a2da97648350ae51a9535f088d9562462c8f
   RNReactNativeHapticFeedback: 41ea40975b5e40a8a32f945ec71a9a698c8aca58
   RNReanimated: ceca32884756a34f3a3b0ffd12f060a3f44c31fa
   RNScreens: b3975354ddafe0fb00112a9054898ccf0d92c78e
@@ -2117,6 +2155,6 @@ SPEC CHECKSUMS:
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: 1dd9dabb9df8fe08f12cd522eae04a2da0e252eb
 
-PODFILE CHECKSUM: 660f9232502be10620af70c21fe8de84a0e17cfa
+PODFILE CHECKSUM: bfdb3bf007c2493d20e9799a95c157a4e4f87baa
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
