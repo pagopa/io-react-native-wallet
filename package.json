@@ -30,7 +30,7 @@
     "test": "jest",
     "tsc": "tsc --noEmit",
     "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx",
-    "prepack": "bob build",
+    "prepack": "yarn generate && bob build",
     "release": "release-it",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install",
