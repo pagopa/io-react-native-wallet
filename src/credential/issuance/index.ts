@@ -24,6 +24,8 @@ import {
   type ObtainCredential,
 } from "./06-obtain-credential";
 import {
+  type ParsedCredentialMdoc,
+  type ParsedCredentialSdJwt,
   verifyAndParseCredential,
   type VerifyAndParseCredential,
 } from "./07-verify-and-parse-credential";
@@ -53,4 +55,6 @@ export type {
   AuthorizeAccess,
   ObtainCredential,
   VerifyAndParseCredential,
+  ParsedCredentialMdoc,
+  ParsedCredentialSdJwt,
 };
