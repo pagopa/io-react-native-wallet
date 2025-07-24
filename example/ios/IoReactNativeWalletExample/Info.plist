@@ -1,100 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
-	<key>CFBundleDisplayName</key>
-	<string>IoReactNativeWalletExample</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(MARKETING_VERSION)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>iowalletexample</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>iowalletexample</string>
-			</array>
-		</dict>
-	</array>
-	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>NFCReaderUsageDescription</key>
-	<string>Read CIE</string>
-	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
-	<key>NSAppTransportSecurity</key>
 	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>$(PRODUCT_NAME) needs access BLE.</string>
+		<key>NSBluetoothPeripheralUsageDescription</key>
+		<string>$(PRODUCT_NAME) needs access BLE.</string>
+		<key>NSBluetoothScanUsageDescription</key>
+		<string>$(PRODUCT_NAME) needs access to scan for nearby Bluetooth devices.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>$(PRODUCT_NAME) needs access your location.</string>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>en</string>
+		<key>CFBundleDisplayName</key>
+		<string>IoReactNativeWalletExample</string>
+		<key>CFBundleExecutable</key>
+		<string>$(EXECUTABLE_NAME)</string>
+		<key>CFBundleIdentifier</key>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundleName</key>
+		<string>$(PRODUCT_NAME)</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>$(MARKETING_VERSION)</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>iowalletexample</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>iowalletexample</string>
+				</array>
+			</dict>
+		</array>
+		<key>CFBundleVersion</key>
+		<string>$(CURRENT_PROJECT_VERSION)</string>
+		<key>LSRequiresIPhoneOS</key>
+		<true />
+		<key>NFCReaderUsageDescription</key>
+		<string>Read CIE</string>
+		<key>NSCameraUsageDescription</key>
+		<string>$(PRODUCT_NAME) needs access to your Camera.</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<false />
+			<key>NSAllowsLocalNetworking</key>
+			<true />
+		</dict>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string></string>
+		<key>UILaunchStoryboardName</key>
+		<string>LaunchScreen</string>
+		<key>UIRequiredDeviceCapabilities</key>
+		<array>
+			<string>armv64</string>
+		</array>
+		<key>UISupportedInterfaceOrientations</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
+		<false />
+		<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+		<array>
+			<string>com.apple.developer.nfc.readersession.iso7816.select-identifiers</string>
+			<string>A0000000308000000009816001</string>
+			<string>A00000000039</string>
+			<string>A0000002471001</string>
+			<string>00000000000000</string>
+		</array>
+		<key>UIAppFonts</key>
+		<array>
+			<string>TitilliumSansPro-Black.otf</string>
+			<string>TitilliumSansPro-BlackItalic.otf</string>
+			<string>TitilliumSansPro-Bold.otf</string>
+			<string>TitilliumSansPro-BoldItalic.otf</string>
+			<string>TitilliumSansPro-Italic.otf</string>
+			<string>TitilliumSansPro-Light.otf</string>
+			<string>TitilliumSansPro-LightItalic.otf</string>
+			<string>TitilliumSansPro-Regular.otf</string>
+			<string>TitilliumSansPro-Semibold.otf</string>
+			<string>TitilliumSansPro-SemiboldItalic.otf</string>
+			<string>TitilliumSansPro-Thin.otf</string>
+			<string>TitilliumSansPro-ThinItalic.otf</string>
+			<string>DMMono-Medium.ttf</string>
+			<string>ReadexPro-Regular.ttf</string>
+			<string>RobotoMono-Bold.ttf</string>
+			<string>RobotoMono-BoldItalic.ttf</string>
+			<string>RobotoMono-Light.ttf</string>
+			<string>RobotoMono-LightItalic.ttf</string>
+			<string>RobotoMono-Regular.ttf</string>
+			<string>RobotoMono-RegularItalic.ttf</string>
+		</array>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>armv64</string>
-	</array>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
-	<array>
-		<string>com.apple.developer.nfc.readersession.iso7816.select-identifiers</string>
-		<string>A0000000308000000009816001</string>
-		<string>A00000000039</string>
-		<string>A0000002471001</string>
-		<string>00000000000000</string>
-	</array>
-	<key>UIAppFonts</key>
-	<array>
-		<string>TitilliumSansPro-Black.otf</string>
-		<string>TitilliumSansPro-BlackItalic.otf</string>
-		<string>TitilliumSansPro-Bold.otf</string>
-		<string>TitilliumSansPro-BoldItalic.otf</string>
-		<string>TitilliumSansPro-Italic.otf</string>
-		<string>TitilliumSansPro-Light.otf</string>
-		<string>TitilliumSansPro-LightItalic.otf</string>
-		<string>TitilliumSansPro-Regular.otf</string>
-		<string>TitilliumSansPro-Semibold.otf</string>
-		<string>TitilliumSansPro-SemiboldItalic.otf</string>
-		<string>TitilliumSansPro-Thin.otf</string>
-		<string>TitilliumSansPro-ThinItalic.otf</string>
-		<string>DMMono-Medium.ttf</string>
-		<string>ReadexPro-Regular.ttf</string>
-		<string>RobotoMono-Bold.ttf</string>
-		<string>RobotoMono-BoldItalic.ttf</string>
-		<string>RobotoMono-Light.ttf</string>
-		<string>RobotoMono-LightItalic.ttf</string>
-		<string>RobotoMono-Regular.ttf</string>
-		<string>RobotoMono-RegularItalic.ttf</string>
-	</array>
-</dict>
 </plist>
