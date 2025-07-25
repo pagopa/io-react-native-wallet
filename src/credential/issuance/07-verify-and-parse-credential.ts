@@ -36,20 +36,12 @@ export type VerifyAndParseCredential = (
     includeUndefinedAttributes?: boolean;
   }
 ) => Promise<{
+  parsedCredential: ParsedCredentialSdJwt | ParsedCredentialMdoc;
   expiration: Date;
   issuedAt: Date | undefined;
-  parsedCredential:
-    | {
-        format: "mso_mdoc";
-        data: ParsedCredentialMdoc;
-      }
-    | {
-        format: "dc+sd-jwt";
-        data: ParsedCredentialSdJwt;
-      };
 }>;
 
-type ParsedCredentialBase = {
+type BaseParsedCredential = {
   /** Attribute key */
   [claim: string]: {
     name:
@@ -64,10 +56,10 @@ type ParsedCredentialBase = {
 };
 
 // The credential as a collection of attributes in plain value
-export type ParsedCredentialSdJwt = ParsedCredentialBase;
+export type ParsedCredentialSdJwt = BaseParsedCredential;
 
 export type ParsedCredentialMdoc = {
-  [namespace: string]: ParsedCredentialBase;
+  [namespace: string]: BaseParsedCredential;
 };
 
 // handy alias
@@ -409,10 +401,7 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   );
 
   return {
-    parsedCredential: {
-      format: "dc+sd-jwt",
-      data: parsedCredential,
-    },
+    parsedCredential,
     expiration: new Date(decoded.sdJwt.payload.exp * 1000),
     issuedAt:
       typeof maybeIssuedAt === "number"
@@ -458,10 +447,7 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
 
   return {
-    parsedCredential: {
-      format: "mso_mdoc",
-      data: parsedCredential,
-    },
+    parsedCredential,
     credential,
     credentialConfigurationId,
     expiration: expirationDate ?? new Date(),
