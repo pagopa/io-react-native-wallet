@@ -166,7 +166,7 @@ const ExpirationTimer = ({ time }: { time: number }) => {
   }, []);
 
   if (timeLeft <= 0) {
-    <H3 color="red">Expired</H3>;
+    <H3 color="error-600">Expired</H3>;
   }
 
   return (
