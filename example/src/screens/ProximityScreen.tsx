@@ -41,8 +41,8 @@ enum PROXIMITY_STATUS {
 }
 
 export const ProximityScreen = () => {
-  const attestation_mdoc = useAppSelector(selectAttestationAsMdoc)!;
-  const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"))!;
+  const attestation_mdoc = useAppSelector(selectAttestationAsMdoc);
+  const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
 
   if (!attestation_mdoc || !mdoc_mDL) {
     return <></>;
