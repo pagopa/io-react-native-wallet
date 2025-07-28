@@ -8,14 +8,14 @@ import { MainStackNavigator } from "./navigator/MainStackNavigator";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   IODSExperimentalContextProvider,
-  IOStyles,
   ToastProvider,
 } from "@pagopa/io-app-design-system";
 import { DebugDataOverlay } from "./components/debug/DebugDataOverlay";
+import { StyleSheet } from "react-native";
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={IOStyles.flex}>
+    <GestureHandlerRootView style={styles.container}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <IODSExperimentalContextProvider isExperimentaEnabled={true}>
@@ -31,3 +31,9 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
