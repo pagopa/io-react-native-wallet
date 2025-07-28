@@ -1,4 +1,4 @@
-import { decode, removePadding } from "@pagopa/io-react-native-jwt";
+import { decode, removePadding, thumbprint } from "@pagopa/io-react-native-jwt";
 import { z } from "zod";
 
 export type JWK = z.infer<typeof JWK>;
@@ -65,3 +65,17 @@ export const JWKS = z.object({
 });
 
 export type JWTDecodeResult = ReturnType<typeof decode>;
+
+/**
+ * Utility function that checks if two JWKs have the same thumbprint.
+ * @param jwkA The first JWK
+ * @param jwkB The second JWK
+ * @returns Whether the thumbprints match
+ */
+export const isSameThumbprint = async (jwkA: JWK, jwkB: JWK) => {
+  const [thumbprintJwkA, thumbprintJwkB] = await Promise.all([
+    thumbprint(jwkA),
+    thumbprint(jwkB),
+  ]);
+  return thumbprintJwkA === thumbprintJwkB;
+};

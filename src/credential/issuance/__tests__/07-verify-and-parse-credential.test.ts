@@ -10,7 +10,6 @@ describe("verifyAndParseCredential", () => {
     getPublicKey: async () => ({
       kty: "EC",
       crv: "P-256",
-      kid: "Rv3W-EiKpvBTyk5yZxvrev-7MDB6SlzUCBo_CQjjddU",
       x: "0Wox7QtyPqByg35MH_XyCcnd5Le-Jm0AXHlUgDBA03Y",
       y: "eEhVvg1JPqNd3DTSa4mGDGBlwY6NP-EZbLbNFXSXwIg",
     }),
