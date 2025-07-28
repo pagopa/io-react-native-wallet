@@ -6,13 +6,13 @@ import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import { isSameThumbprint, type JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { verify as verifyMdoc } from "../../mdoc/";
+import { verify as verifyMdoc } from "../../mdoc";
 import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
+import { getParsedCredentialClaimKey } from "../../mdoc/utils";
 import { LogLevel, Logger } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-cbor";
 import { b64utob64 } from "jsrsasign";
-import { getParsedCredentialClaimKey } from "src/mdoc/utils";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
 type CredentialConf =
