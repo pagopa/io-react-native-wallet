@@ -3,18 +3,18 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import { persistReducer, type PersistConfig } from "redux-persist";
+import { type PersistConfig, persistReducer } from "redux-persist";
 import {
   getCredentialStatusAssertionThunk,
-  getCredentialThunk,
   type GetCredentialStatusAssertionThunkOutput,
+  getCredentialThunk,
 } from "../../thunks/credential";
 import type {
+  AsyncStatus,
   CredentialResult,
   RootState,
-  SupportedCredentialsWithoutPid,
-  AsyncStatus,
   SupportedCredentials,
+  SupportedCredentialsWithoutPid,
 } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { sessionReset } from "./sesssion";
@@ -58,12 +58,14 @@ const initialState: CredentialState = {
     mso_mdoc_mDL: undefined,
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_education_degree: undefined,
   },
   credentialsAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
     mso_mdoc_mDL: asyncStatusInitial,
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
   },
   statusAssertion: {
     PersonIdentificationData: undefined,
@@ -71,6 +73,7 @@ const initialState: CredentialState = {
     mso_mdoc_mDL: undefined,
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_education_degree: undefined,
   },
   statusAssertionAsyncStatus: {
     PersonIdentificationData: asyncStatusInitial,
@@ -78,18 +81,21 @@ const initialState: CredentialState = {
     mso_mdoc_mDL: asyncStatusInitial,
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
   },
   trustmark: {
     dc_sd_jwt_mDL: undefined,
     mso_mdoc_mDL: undefined,
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_education_degree: undefined,
   },
   trustmarkAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
     mso_mdoc_mDL: asyncStatusInitial,
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
   },
 };
 
