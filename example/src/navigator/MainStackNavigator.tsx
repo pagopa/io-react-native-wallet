@@ -14,7 +14,7 @@ import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScree
 import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
 import { PidScreen } from "../screens/PidScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
+import { StatusAssertionScreen } from "../screens/StatusAssertionScreen";
 import {
   TrustmarkQrCodeScreen,
   TrustmarkScreen,
@@ -44,7 +44,7 @@ export type MainStackNavParamList = {
   WalletInstance: undefined;
   Pid: undefined;
   Credentials: undefined;
-  StatusAttestation: undefined;
+  StatusAssertion: undefined;
   Trustmark: undefined;
   TrustmarkQrCode: { credentialType: SupportedCredentialsWithoutPid };
   Login: undefined;
@@ -139,9 +139,9 @@ export const MainStackNavigator = () => {
               options={{ title: "Test credentials issuance" }}
             />
             <Stack.Screen
-              name="StatusAttestation"
-              component={StatusAttestationScreen}
-              options={{ title: "Test credentials attestations" }}
+              name="StatusAssertion"
+              component={StatusAssertionScreen}
+              options={{ title: "Test credentials assertions" }}
             />
             <Stack.Screen
               name="Presentations"

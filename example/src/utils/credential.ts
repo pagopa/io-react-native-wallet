@@ -10,6 +10,7 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   CredentialResult,
   PidResult,
+  SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import { openUrlAndListenForAuthRedirect } from "./openUrlAndListenForRedirect";
@@ -286,20 +287,21 @@ export const getCredential = async ({
 };
 
 /**
- * Implements a flow to obtain a credential status attestation.
+ * Implements a flow to obtain a credential status assertion.
  * @param credentialIssuerUrl - The credential issuer URL
- * @param credential - The credential to obtain the status attestation for
+ * @param credential - The credential to obtain the status assertion for
  * @param format - The format of the credential, e.g. "sd-jwt"
  * @param credentialCryptoContext - The credential crypto context associated with the credential
  * @param credentialType - The type of the credential
- * @returns The credential status attestation
+ * @returns The credential status assertion
  */
-export const getCredentialStatusAttestation = async (
+export const getCredentialStatusAssertion = async (
   credentialIssuerUrl: string,
   credential: Out<ObtainCredential>["credential"],
   format: Out<ObtainCredential>["format"],
   credentialCryptoContext: CryptoContext,
-  credentialType: SupportedCredentialsWithoutPid
+  wiaCryptoContext: CryptoContext,
+  credentialType: SupportedCredentials
 ) => {
   // Start the issuance flow
   const startFlow: Credential.Status.StartFlow = () => ({
@@ -311,27 +313,24 @@ export const getCredentialStatusAttestation = async (
   // Evaluate issuer trust
   const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
 
-  const statusAttestation = await Credential.Status.statusAttestation(
+  const statusAssertion = await Credential.Status.statusAssertion(
     issuerConf,
     credential,
     format,
-    credentialCryptoContext
+    { credentialCryptoContext, wiaCryptoContext }
   );
 
-  const parsedStatusAttestation =
-    await Credential.Status.verifyAndParseStatusAttestation(
+  const parsedStatusAssertion =
+    await Credential.Status.verifyAndParseStatusAssertion(
       issuerConf,
-      statusAttestation,
-      {
-        credentialCryptoContext,
-      },
+      statusAssertion,
       credential,
       format
     );
 
   return {
-    ...statusAttestation,
-    ...parsedStatusAttestation,
+    ...statusAssertion,
+    ...parsedStatusAssertion,
     credentialType,
   };
 };

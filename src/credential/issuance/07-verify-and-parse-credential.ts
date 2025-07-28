@@ -4,9 +4,11 @@ import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
-import type { JWK } from "../../utils/jwk";
+import { isSameThumbprint, type JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { MDOC_DEFAULT_NAMESPACE, verify as verifyMdoc } from "../../mdoc";
+import { verify as verifyMdoc } from "../../mdoc";
+import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
+import { getParsedCredentialClaimKey } from "../../mdoc/utils";
 import { LogLevel, Logger } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-cbor";
@@ -36,13 +38,13 @@ export type VerifyAndParseCredential = (
     includeUndefinedAttributes?: boolean;
   }
 ) => Promise<{
-  parsedCredential: ParsedCredentialSdJwt | ParsedCredentialMdoc;
+  parsedCredential: ParsedCredential;
   expiration: Date;
   issuedAt: Date | undefined;
 }>;
 
 // The credential as a collection of attributes in plain value
-type ParsedCredentialSdJwt = {
+type ParsedCredential = {
   /** Attribute key */
   [claim: string]: {
     name:
@@ -56,10 +58,6 @@ type ParsedCredentialSdJwt = {
   };
 };
 
-type ParsedCredentialMdoc = {
-  [namespace: string]: ParsedCredentialSdJwt;
-};
-
 // handy alias
 type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
   sdJwt: SdJwt4VC;
@@ -71,7 +69,7 @@ const parseCredentialSdJwt = (
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
-): ParsedCredentialSdJwt => {
+): ParsedCredential => {
   if (credentialConfig.format !== sdJwt.header.typ) {
     const message = `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
     Logger.log(LogLevel.ERROR, message);
@@ -155,7 +153,7 @@ const parseCredentialMDoc = (
   { issuerSigned }: DecodedMDocCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
-): ParsedCredentialMdoc => {
+): ParsedCredential => {
   if (!credentialConfig) {
     throw new IoWalletError("Credential type not supported by the issuer");
   }
@@ -228,33 +226,33 @@ const parseCredentialMDoc = (
     .filter(([_, __, definition]) => definition.value !== undefined)
     // Add a human-readable attribute name, with i18n, in the form { locale: name }
     // Example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
-    .reduce<ParsedCredentialMdoc>(
+    .reduce<ParsedCredential>(
       (acc, [attrDefNamespace, attrKey, { display, value }]) => ({
         ...acc,
-        [attrDefNamespace]: {
-          ...(acc[attrDefNamespace] ?? {}),
-          [attrKey]: {
-            value,
-            name: display.reduce(
-              (names, { locale, name }) => ({
-                ...names,
-                [locale]: name,
-              }),
-              {}
-            ),
-          },
+        [getParsedCredentialClaimKey(attrDefNamespace, attrKey)]: {
+          value,
+          name: display.reduce(
+            (names, { locale, name }) => ({
+              ...names,
+              [locale]: name,
+            }),
+            {}
+          ),
         },
       }),
       {}
     );
 
   if (includeUndefinedAttributes) {
-    const undefinedValues: ParsedCredentialMdoc = Object.fromEntries(
+    const undefinedValues: ParsedCredential = Object.fromEntries(
       Object.values(flatNamespaces)
-        .filter(([namespace, key]) => !definedValues[namespace]?.[key])
+        .filter(
+          ([namespace, key]) =>
+            !definedValues[getParsedCredentialClaimKey(namespace, key)]
+        )
         .map(([namespace, key, value]) => [
-          namespace,
-          { [key]: { value, name: key } },
+          getParsedCredentialClaimKey(namespace, key),
+          { value, name: key },
         ])
     );
     return {
@@ -293,8 +291,7 @@ async function verifyCredentialSdJwt(
     ]);
 
   const { cnf } = decodedCredential.sdJwt.payload;
-
-  if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
+  if (!(await isSameThumbprint(cnf.jwk, holderBindingKey as JWK))) {
     const message = `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`;
     Logger.log(LogLevel.ERROR, message);
     throw new IoWalletError(message);
@@ -432,7 +429,9 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   );
 
   const expirationDate = extractElementValueAsDate(
-    parsedCredential?.[MDOC_DEFAULT_NAMESPACE]?.expiry_date?.value as string
+    parsedCredential?.[
+      getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "expiry_date")
+    ]?.value as string
   );
   if (!expirationDate) {
     throw new IoWalletError(`expirationDate must be present!!`);
@@ -440,7 +439,9 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   expirationDate.setDate(expirationDate.getDate() + 1);
 
   const maybeIssuedAt = extractElementValueAsDate(
-    parsedCredential?.[MDOC_DEFAULT_NAMESPACE]?.issue_date?.value as string
+    parsedCredential?.[
+      getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "issue_date")
+    ]?.value as string
   );
   maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
 
@@ -448,7 +449,7 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
     parsedCredential,
     credential,
     credentialConfigurationId,
-    expiration: expirationDate ?? new Date(),
+    expiration: expirationDate,
     issuedAt: maybeIssuedAt ?? undefined,
   };
 };
@@ -477,26 +478,30 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
       credentialConfigurationId
     ]?.format;
 
-  if (format === "dc+sd-jwt") {
-    Logger.log(LogLevel.DEBUG, "Parsing credential in dc+sd-jwt format");
-    return verifyAndParseCredentialSdJwt(
-      issuerConf,
-      credential,
-      credentialConfigurationId,
-      context
-    );
-  }
-  if (format === "mso_mdoc") {
-    Logger.log(LogLevel.DEBUG, "Parsing credential in mso_mdoc format");
-    return await verifyAndParseCredentialMDoc(
-      issuerConf,
-      b64utob64(credential),
-      credentialConfigurationId,
-      context
-    );
-  }
+  switch (format) {
+    case "dc+sd-jwt": {
+      Logger.log(LogLevel.DEBUG, "Parsing credential in dc+sd-jwt format");
+      return verifyAndParseCredentialSdJwt(
+        issuerConf,
+        credential,
+        credentialConfigurationId,
+        context
+      );
+    }
+    case "mso_mdoc": {
+      Logger.log(LogLevel.DEBUG, "Parsing credential in mso_mdoc format");
+      return await verifyAndParseCredentialMDoc(
+        issuerConf,
+        b64utob64(credential), // TODO: remove this conversion after migrating from `io-react-native-cbor` to `io-react-native-ios`
+        credentialConfigurationId,
+        context
+      );
+    }
 
-  const message = `Unsupported credential format: ${format}`;
-  Logger.log(LogLevel.ERROR, message);
-  throw new IoWalletError(message);
+    default: {
+      const message = `Unsupported credential format: ${format}`;
+      Logger.log(LogLevel.ERROR, message);
+      throw new IoWalletError(message);
+    }
+  }
 };

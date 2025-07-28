@@ -7,8 +7,6 @@ import {
   parsePublicKey,
 } from "../utils/crypto";
 
-export const MDOC_DEFAULT_NAMESPACE = "org.iso.18013.5.1";
-
 export const verify = async (
   token: string,
   _: JWK | JWK[]

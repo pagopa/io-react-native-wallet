@@ -38,7 +38,7 @@ const CredentialIssuerDisplayMetadata = z.object({
 
 type ClaimsMetadata = z.infer<typeof ClaimsMetadata>;
 const ClaimsMetadata = z.object({
-  path: z.array(z.string()),
+  path: z.array(z.union([z.string(), z.number(), z.null()])), // https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-15.html#name-claims-path-pointer
   display: z.array(CredentialDisplayMetadata),
 });
 
@@ -70,6 +70,10 @@ const SupportedCredentialMetadata = z.intersection(
     issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
   })
 );
+
+export type SupportedCredentialFormat = z.infer<
+  typeof SupportedCredentialMetadata
+>["format"];
 
 export type EntityStatement = z.infer<typeof EntityStatement>;
 export const EntityStatement = z.object({

@@ -6,7 +6,6 @@ import * as React from "react";
 import {
   FlatList,
   StyleSheet,
-  type ImageSourcePropType,
   type ListRenderItemInfo,
   type StyleProp,
   type ViewStyle,
@@ -51,7 +50,7 @@ const renderItem =
   (info: ListRenderItemInfo<Idp>): React.ReactElement => {
     const { onIdpSelected } = props;
     const { item } = info;
-    const { id, name, logo, localLogo } = item;
+    const { id, name, localLogo } = item;
 
     const onPress = () => onIdpSelected(item);
 
@@ -59,13 +58,16 @@ const renderItem =
       <ModuleIDP
         key={id}
         name={name}
-        logo={logo as ImageSourcePropType}
-        localLogo={localLogo as ImageSourcePropType}
+        logo={{
+          light: localLogo,
+        }}
         onPress={onPress}
         testID={`idp-${item.id}-button`}
       />
     );
   };
+
+const Spacer = () => <VSpacer size={GRID_GUTTER} />;
 
 const IdpsGrid = (props: Props) => (
   <FlatList
@@ -75,7 +77,7 @@ const IdpsGrid = (props: Props) => (
     horizontal={false}
     keyExtractor={keyExtractor}
     renderItem={renderItem(props)}
-    ItemSeparatorComponent={() => <VSpacer size={GRID_GUTTER} />}
+    ItemSeparatorComponent={Spacer}
     contentContainerStyle={styles.contentContainer}
     ListHeaderComponent={props.headerComponent}
     ListFooterComponent={props.footerComponent}
