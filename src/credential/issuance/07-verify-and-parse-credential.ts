@@ -11,7 +11,7 @@ import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
 import { getParsedCredentialClaimKey } from "../../mdoc/utils";
 import { LogLevel, Logger } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
-import type { CBOR } from "@pagopa/io-react-native-cbor";
+import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
