@@ -21,8 +21,7 @@ export const verify = async (
 
   const cert = issuerSigned.issuerAuth.unprotectedHeader.x5chain?.[0];
 
-  if (!cert)
-    throw new Error("Certificate not present in credential");
+  if (!cert) throw new Error("Certificate not present in credential");
 
   const pemcert = convertCertToPem(b64utob64(cert));
   const publickey = parsePublicKey(pemcert);
