@@ -1,4 +1,4 @@
-import { CBOR } from "@pagopa/io-react-native-cbor";
+import { CBOR, COSE } from "@pagopa/io-react-native-iso18013";
 import type { JWK } from "../utils/jwk";
 import { b64utob64 } from "jsrsasign";
 import {
@@ -6,6 +6,7 @@ import {
   getSigningJwk,
   parsePublicKey,
 } from "../utils/crypto";
+import { type PublicKey } from "@pagopa/io-react-native-crypto";
 
 export const verify = async (
   token: string,
@@ -18,7 +19,8 @@ export const verify = async (
     throw new Error("Invalid mDoc");
   }
 
-  const cert = issuerSigned.issuerAuth.unprotectedHeader[0]?.x5chain?.[0];
+  const cert = issuerSigned.issuerAuth.unprotectedHeader.x5chain?.[0];
+
   if (!cert) throw new Error("Certificate not present in credential");
 
   const pemcert = convertCertToPem(b64utob64(cert));
@@ -31,12 +33,12 @@ export const verify = async (
   jwk.y = b64utob64(jwk.y!);
 
   console.info(b64utob64(issuerSigned.issuerAuth.rawValue!));
-  // TODO: remove this comment
-  // const signatureCorrect = await COSE.verify(
-  //   b64utob64(issuerSigned.issuerAuth.rawValue!),
-  //   jwk as PublicKey
-  // ).catch((e: any) => console.error(e));
-  // if (!signatureCorrect) throw new Error("Invalid mDoc signature");
+
+  const signatureCorrect = await COSE.verify(
+    b64utob64(issuerSigned.issuerAuth.rawValue!),
+    jwk as PublicKey
+  ).catch((e: any) => console.error(e));
+  if (!signatureCorrect) throw new Error("Invalid mDoc signature");
 
   return { issuerSigned };
 };

@@ -12,11 +12,10 @@
   },
   "dependencies": {
     "@pagopa/io-app-design-system": "5.8.0",
-    "@pagopa/io-react-native-cbor": "^1.4.0",
-    "@pagopa/io-react-native-crypto": "^1.2.2",
+    "@pagopa/io-react-native-crypto": "^1.2.3",
     "@pagopa/io-react-native-integrity": "^0.3.1",
+    "@pagopa/io-react-native-iso18013": "^0.1.0",
     "@pagopa/io-react-native-jwt": "^2.1.0",
-    "@pagopa/io-react-native-proximity": "^0.6.0",
     "@pagopa/io-react-native-secure-storage": "^0.2.0",
     "@pagopa/react-native-cie": "^1.4.2",
     "@react-native-async-storage/async-storage": "^2.1.2",

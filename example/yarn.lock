@@ -2023,22 +2023,22 @@
     react-native-safe-area-context "^5.4.1"
     react-native-svg "^15.12.0"
 
-"@pagopa/io-react-native-cbor@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cbor/-/io-react-native-cbor-1.4.0.tgz#125b8cd31597fc537a8ce263f6a4e3c2c2d099dd"
-  integrity sha512-1jyckAlVRGO3SPR6kBbhqd3PhwNyAKq58ITI9Dztb+waiUmbuUSukkTfBCrJquz1rgwVuSyCDvJHIJsx64rwzA==
-  dependencies:
-    zod "^3.24.1"
-
-"@pagopa/io-react-native-crypto@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.2.tgz#b7e6494e7eb40f2116d2f839031a8ba89209054c"
-  integrity sha512-s2M3c+xjpLYFyPJ2pMu+aePuWMMEMTHr5pONUZ66w/S7o+QnbRMpDjz+qaB57eCB6pBcGGY+iLXxD/JEXTxfZQ==
+"@pagopa/io-react-native-crypto@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
+  integrity sha512-Pmzr3N8YiF0JS+sYAOxiBYeBXfJq13NfCc7sTQ+RnYuT9GqgOKOLrF6YeJdv1VZ/YyLg2IhH7dAYiWueSAwj8g==
 
 "@pagopa/io-react-native-integrity@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.3.1.tgz#4dc23b221452b4101ea7a5bf35aedbe2e5a3a5fe"
   integrity sha512-ZQP58OSLSus8LbFRa8jHtGo2BoR2Jn8lY1SirhBCfk9qo2qLcwRwanZ5T/tzO9inFOaTxPCvPu7uMdSdi8uRUQ==
+
+"@pagopa/io-react-native-iso18013@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-iso18013/-/io-react-native-iso18013-0.1.0.tgz#5040a04c345dbdc7dc5e2e2f422dc44be71de762"
+  integrity sha512-FDZksmpMa1xwEqH6ta5lBVKasuu8HVIiWuf1lwW/Czmo6sPUBsiCBD57qEhpuMnblfd2bRWR0lmZY0o+5UvfDQ==
+  dependencies:
+    zod "^3.25.67"
 
 "@pagopa/io-react-native-jwt@^2.1.0":
   version "2.1.0"
@@ -2047,11 +2047,6 @@
   dependencies:
     js-base64 "^3.7.7"
     zod "^3.22.4"
-
-"@pagopa/io-react-native-proximity@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-proximity/-/io-react-native-proximity-0.6.0.tgz#9dacb34c3dd95727d763e6a987143108529ca3e6"
-  integrity sha512-V39nxfQgm0EmhCgCVnvymCuU90TNrk2NeuEl8m9UnUm3Eydj95eXI31VtMpoAvkcnRyvLgpOyJsIFlCBarER4w==
 
 "@pagopa/io-react-native-secure-storage@^0.2.0":
   version "0.2.0"
@@ -8006,7 +8001,7 @@ zod@^3.22.4:
   resolved "https://registry.npmjs.org/zod/-/zod-3.23.8.tgz"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
 
-zod@^3.24.1:
+zod@^3.25.67:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==

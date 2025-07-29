@@ -1,7 +1,4 @@
-import type {
-  AcceptedFields,
-  VerifierRequest,
-} from "@pagopa/io-react-native-proximity";
+import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { Platform } from "react-native";
 import {
   checkMultiple,
@@ -64,10 +61,10 @@ export const requestBlePermissions = async (): Promise<boolean> => {
  * @returns A new object representing the accepted fields, with each requested field set to true
  */
 export const generateAcceptedFields = (
-  request: VerifierRequest["request"]
-): AcceptedFields => {
+  request: ISO18013_5.VerifierRequest["request"]
+): ISO18013_5.AcceptedFields => {
   // Cycle through the requested credentials
-  const result: AcceptedFields = {};
+  const result: ISO18013_5.AcceptedFields = {};
   for (const credentialKey in request) {
     const credential = request[credentialKey];
     if (!credential) {
@@ -75,7 +72,7 @@ export const generateAcceptedFields = (
     }
 
     // Cycle through the requested namespaces and the isAuthenticated field
-    const namespaces: AcceptedFields["credential"] = {};
+    const namespaces: ISO18013_5.AcceptedFields["credential"] = {};
     for (const namespaceKey in credential) {
       // Skip the isAuthenticated field
       if (!credential[namespaceKey] || namespaceKey === "isAuthenticated") {
@@ -83,7 +80,7 @@ export const generateAcceptedFields = (
       }
 
       // Cycle through the requested fields and set them to true
-      const fields: AcceptedFields["credential"]["namespace"] = {};
+      const fields: ISO18013_5.AcceptedFields["credential"]["namespace"] = {};
       for (const fieldKey in credential[namespaceKey]!) {
         fields[fieldKey] = true;
       }

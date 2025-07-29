@@ -6,12 +6,7 @@ import {
   Alert as IOAlert,
   VStack,
 } from "@pagopa/io-app-design-system";
-import {
-  Proximity,
-  parseError,
-  parseVerifierRequest,
-  type VerifierRequest,
-} from "@pagopa/io-react-native-proximity";
+import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { useAppSelector } from "../store/utils";
 import { selectCredential } from "../store/reducers/credential";
@@ -61,9 +56,9 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
     PROXIMITY_STATUS.STARTING
   );
   const [qrCode, setQrCode] = useState<string | null>(null);
-  const [request, setRequest] = useState<VerifierRequest["request"] | null>(
-    null
-  );
+  const [request, setRequest] = useState<
+    ISO18013_5.VerifierRequest["request"] | null
+  >(null);
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
 
   useDebugInfo({
@@ -91,8 +86,10 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
    * Sends the required document to the verifier app.
    * @param verifierRequest - The request object received from the verifier app
    */
-  const sendDocument = async (verifierRequest: VerifierRequest["request"]) => {
-    const documents: Array<Proximity.Document> = [
+  const sendDocument = async (
+    verifierRequest: ISO18013_5.VerifierRequest["request"]
+  ) => {
+    const documents: Array<ISO18013_5.RequestedDocument> = [
       {
         alias: WIA_KEYTAG,
         docType: WELL_KNOWN_CREDENTIALS.wia,
@@ -115,7 +112,7 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
     const acceptedFields = generateAcceptedFields(verifierRequest);
     console.log(JSON.stringify(acceptedFields));
     console.log("Accepted fields:", JSON.stringify(acceptedFields));
-    const result = await Proximity.generateResponse(documents, acceptedFields);
+    const result = await ISO18013_5.generateResponse(documents, acceptedFields);
     console.log("Response generated:", result);
 
     /**
@@ -125,7 +122,7 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
      * In order to start a new flow a new QR code must be generated.
      */
     console.log("Sending response to verifier app");
-    await Proximity.sendResponse(result);
+    await ISO18013_5.sendResponse(result);
 
     console.log("Response sent");
   };
@@ -136,17 +133,17 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
   const closeFlow = useCallback(async (sendError: boolean = false) => {
     try {
       if (sendError) {
-        await Proximity.sendErrorResponse(
-          Proximity.ErrorCode.SESSION_TERMINATED
+        await ISO18013_5.sendErrorResponse(
+          ISO18013_5.ErrorCode.SESSION_TERMINATED
         );
       }
       console.log("Cleaning up listeners and closing QR engagement");
-      Proximity.removeListener("onDeviceConnected");
-      Proximity.removeListener("onDeviceConnecting");
-      Proximity.removeListener("onDeviceDisconnected");
-      Proximity.removeListener("onDocumentRequestReceived");
-      Proximity.removeListener("onError");
-      await Proximity.close();
+      ISO18013_5.removeListener("onDeviceConnected");
+      ISO18013_5.removeListener("onDeviceConnecting");
+      ISO18013_5.removeListener("onDeviceDisconnected");
+      ISO18013_5.removeListener("onDocumentRequestReceived");
+      ISO18013_5.removeListener("onError");
+      await ISO18013_5.close();
       setQrCode(null);
       setRequest(null);
       setRpIsTrusted(false);
@@ -170,12 +167,12 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
    * @param data The error data
    */
   const onError = useCallback(
-    async (data: Proximity.EventsPayload["onError"]) => {
+    async (data: ISO18013_5.EventsPayload["onError"]) => {
       try {
         if (!data || !data.error) {
           throw new Error("No error data received");
         }
-        const parsedError = parseError(data.error);
+        const parsedError = ISO18013_5.parseEventError(data.error);
         console.error(`onError: ${parsedError}`);
       } catch (e) {
         console.error("Error parsing onError data:", e);
@@ -191,10 +188,10 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
    * Sends an error response to the verifier app during the presentation.
    * @param errorCode The error code to be sent
    */
-  const sendError = useCallback(async (errorCode: Proximity.ErrorCode) => {
+  const sendError = useCallback(async (errorCode: ISO18013_5.ErrorCode) => {
     try {
       console.log("Sending error response to verifier app");
-      await Proximity.sendErrorResponse(errorCode);
+      await ISO18013_5.sendErrorResponse(errorCode);
       setStatus(PROXIMITY_STATUS.STOPPED);
       console.log("Error response sent");
     } catch (error) {
@@ -211,7 +208,7 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
    * @throws Error if the response generation fails
    */
   const onDocumentRequestReceived = useCallback(
-    async (payload: Proximity.EventsPayload["onDocumentRequestReceived"]) => {
+    async (payload: ISO18013_5.EventsPayload["onDocumentRequestReceived"]) => {
       try {
         // A new request has been received
         console.log("onDocumentRequestReceived", payload);
@@ -223,7 +220,7 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
         // Parse and verify the received request with the exposed function
         const parsedJson = JSON.parse(payload.data);
         console.log("Parsed JSON:", parsedJson);
-        const parsedResponse = parseVerifierRequest(parsedJson);
+        const parsedResponse = ISO18013_5.parseVerifierRequest(parsedJson);
         console.log("Parsed response:", JSON.stringify(parsedResponse));
         const isTrusted = Object.values(parsedResponse.request).every(
           (item) => item.isAuthenticated
@@ -234,7 +231,7 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
         setStatus(PROXIMITY_STATUS.PRESENTING);
       } catch (error) {
         console.error("Error handling new device request:", error);
-        sendError(Proximity.ErrorCode.SESSION_TERMINATED);
+        sendError(ISO18013_5.ErrorCode.SESSION_TERMINATED);
       }
     },
     [sendError]
@@ -255,20 +252,20 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
       return;
     }
     try {
-      await Proximity.start(); // Peripheral mode
+      await ISO18013_5.start(); // Peripheral mode
       // Register listeners
-      Proximity.addListener("onDeviceConnecting", handleOnDeviceConnecting);
-      Proximity.addListener("onDeviceConnected", handleOnDeviceConnected);
-      Proximity.addListener(
+      ISO18013_5.addListener("onDeviceConnecting", handleOnDeviceConnecting);
+      ISO18013_5.addListener("onDeviceConnected", handleOnDeviceConnected);
+      ISO18013_5.addListener(
         "onDocumentRequestReceived",
         onDocumentRequestReceived
       );
-      Proximity.addListener("onDeviceDisconnected", onDeviceDisconnected);
-      Proximity.addListener("onError", onError);
+      ISO18013_5.addListener("onDeviceDisconnected", onDeviceDisconnected);
+      ISO18013_5.addListener("onError", onError);
 
       // Generate the QR code string
       console.log("Generating QR code");
-      const qrString = await Proximity.getQrCodeString();
+      const qrString = await ISO18013_5.getQrCodeString();
       console.log(`Generated QR code: ${qrString}`);
       setQrCode(qrString);
       setStatus(PROXIMITY_STATUS.STARTED);
@@ -311,24 +308,24 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
               fullWidth
             />
             <ButtonSolid
-              label={`Send error ${Proximity.ErrorCode.CBOR_DECODING} (${
-                Proximity.ErrorCode[Proximity.ErrorCode.CBOR_DECODING]
+              label={`Send error ${ISO18013_5.ErrorCode.CBOR_DECODING} (${
+                ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.CBOR_DECODING]
               })`}
-              onPress={() => sendError(Proximity.ErrorCode.CBOR_DECODING)}
+              onPress={() => sendError(ISO18013_5.ErrorCode.CBOR_DECODING)}
               fullWidth
             />
             <ButtonSolid
-              label={`Send error ${Proximity.ErrorCode.SESSION_ENCRYPTION} (${
-                Proximity.ErrorCode[Proximity.ErrorCode.SESSION_ENCRYPTION]
+              label={`Send error ${ISO18013_5.ErrorCode.SESSION_ENCRYPTION} (${
+                ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.SESSION_ENCRYPTION]
               })`}
-              onPress={() => sendError(Proximity.ErrorCode.SESSION_ENCRYPTION)}
+              onPress={() => sendError(ISO18013_5.ErrorCode.SESSION_ENCRYPTION)}
               fullWidth
             />
             <ButtonSolid
-              label={`Send error ${Proximity.ErrorCode.SESSION_TERMINATED} (${
-                Proximity.ErrorCode[Proximity.ErrorCode.SESSION_TERMINATED]
+              label={`Send error ${ISO18013_5.ErrorCode.SESSION_TERMINATED} (${
+                ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.SESSION_TERMINATED]
               })`}
-              onPress={() => sendError(Proximity.ErrorCode.SESSION_TERMINATED)}
+              onPress={() => sendError(ISO18013_5.ErrorCode.SESSION_TERMINATED)}
               fullWidth
             />
           </>
