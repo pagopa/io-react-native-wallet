@@ -7,14 +7,14 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "pods": "pod-install --quiet",
-    "cie-ios:prod": "mv node_modules/@pagopa/react-native-cie/.ios node_modules/@pagopa/react-native-cie/ios && mv node_modules/@pagopa/react-native-cie/.react-native-cie.podspec node_modules/@pagopa/react-native-cie/react-native-cie.podspec && cd ios && bundler exec pod install",
-    "cie-ios:dev": "mv node_modules/@pagopa/react-native-cie/ios node_modules/@pagopa/react-native-cie/.ios && mv node_modules/@pagopa/react-native-cie/react-native-cie.podspec node_modules/@pagopa/react-native-cie/.react-native-cie.podspec && cd ios && rm -rf Pods && bundler exec pod install"
+    "cie-ios:prod": "mv node_modules/@pagopa/react-native-cie/.ios node_modules/@pagopa/react-native-cie/ios && mv node_modules/@pagopa/react-native-cie/.react-native-cie.podspec node_modules/@pagopa/react-native-cie/react-native-cie.podspec && cd ios && pod install",
+    "cie-ios:dev": "mv node_modules/@pagopa/react-native-cie/ios node_modules/@pagopa/react-native-cie/.ios && mv node_modules/@pagopa/react-native-cie/react-native-cie.podspec node_modules/@pagopa/react-native-cie/.react-native-cie.podspec && cd ios && rm -rf Pods && pod install"
   },
   "dependencies": {
     "@pagopa/io-app-design-system": "5.8.0",
     "@pagopa/io-react-native-crypto": "^1.2.3",
     "@pagopa/io-react-native-integrity": "^0.3.1",
-    "@pagopa/io-react-native-iso18013": "^0.1.0",
+    "@pagopa/io-react-native-iso18013": "^0.2.0",
     "@pagopa/io-react-native-jwt": "^2.1.0",
     "@pagopa/io-react-native-secure-storage": "^0.2.0",
     "@pagopa/react-native-cie": "^1.4.2",

@@ -1,16 +1,12 @@
+import { ModuleSummary } from "@pagopa/io-app-design-system";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet } from "react-native";
-import {
-  Body,
-  ButtonSolid,
-  Alert as IOAlert,
-  VStack,
-} from "@pagopa/io-app-design-system";
+import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
 import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { useAppSelector } from "../store/utils";
 import { selectCredential } from "../store/reducers/credential";
-import type { CredentialResult } from "../store/types";
+import type { CredentialResult, EnvType } from "../store/types";
 import {
   generateAcceptedFields,
   requestBlePermissions,
@@ -20,6 +16,10 @@ import { addPadding } from "@pagopa/io-react-native-jwt";
 import { selectAttestationAsMdoc } from "../store/reducers/attestation";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { QrCodeImage } from "../components/QrCodeImage";
+import { selectEnv } from "../store/reducers/environment";
+import { getEnv } from "../utils/environment";
+import { Trust } from "@pagopa/io-react-native-wallet";
+import appFetch from "../utils/fetch";
 
 /**
  * Proximity status enum to track the current state of the flow.
@@ -36,22 +36,30 @@ enum PROXIMITY_STATUS {
 }
 
 export const ProximityScreen = () => {
-  const attestation_mdoc = useAppSelector(selectAttestationAsMdoc);
-  const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
+  const walletAttestationMdoc = useAppSelector(selectAttestationAsMdoc);
+  const mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
+  const env = useAppSelector(selectEnv);
 
-  if (!attestation_mdoc || !mdoc_mDL) {
+  if (!walletAttestationMdoc || !mDL) {
     return <></>;
   }
 
-  return <ContentView attestation={attestation_mdoc} credential={mdoc_mDL} />;
+  return (
+    <ContentView
+      attestation={walletAttestationMdoc}
+      credential={mDL}
+      env={env}
+    />
+  );
 };
 
 type ContentViewProps = {
   attestation: string;
   credential: CredentialResult;
+  env: EnvType;
 };
 
-const ContentView = ({ attestation, credential }: ContentViewProps) => {
+const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   const [status, setStatus] = useState<PROXIMITY_STATUS>(
     PROXIMITY_STATUS.STARTING
   );
@@ -60,6 +68,7 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
     ISO18013_5.VerifierRequest["request"] | null
   >(null);
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
+  const { WALLET_TA_BASE_URL } = getEnv(env);
 
   useDebugInfo({
     attestation,
@@ -241,6 +250,16 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
    * Start utility function to start the proximity flow.
    */
   const startFlow = useCallback(async () => {
+    const trustAnchorEntityConfig =
+      await Trust.Build.getTrustAnchorEntityConfiguration(WALLET_TA_BASE_URL, {
+        appFetch,
+      });
+
+    const x5c = trustAnchorEntityConfig.payload.jwks.keys[0]?.x5c;
+    if (!x5c) {
+      throw new Error("No suitable x5c found in Trust Anchor JWKS.");
+    }
+
     setStatus(PROXIMITY_STATUS.STARTING);
     const hasPermission = await requestBlePermissions();
     if (!hasPermission) {
@@ -252,7 +271,9 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
       return;
     }
     try {
-      await ISO18013_5.start(); // Peripheral mode
+      await ISO18013_5.start({
+        certificates: [x5c],
+      }); // Peripheral mode
       // Register listeners
       ISO18013_5.addListener("onDeviceConnecting", handleOnDeviceConnecting);
       ISO18013_5.addListener("onDeviceConnected", handleOnDeviceConnected);
@@ -274,7 +295,12 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
       Alert.alert("Failed to initialize QR engagement");
       setStatus(PROXIMITY_STATUS.STOPPED);
     }
-  }, [onDeviceDisconnected, onDocumentRequestReceived, onError]);
+  }, [
+    WALLET_TA_BASE_URL,
+    onDeviceDisconnected,
+    onDocumentRequestReceived,
+    onError,
+  ]);
 
   /**
    * Starts the proximity flow and stops it on unmount.
@@ -302,49 +328,49 @@ const ContentView = ({ attestation, credential }: ContentViewProps) => {
               variant={rpIsTrusted ? "success" : "error"}
               content={rpIsTrusted ? "Trusted RP" : "Untrusted RP"}
             />
-            <ButtonSolid
+            <ModuleSummary
               label="Send document"
+              icon="documentAdd"
               onPress={() => sendDocument(request)}
-              fullWidth
             />
-            <ButtonSolid
+            <ModuleSummary
               label={`Send error ${ISO18013_5.ErrorCode.CBOR_DECODING} (${
                 ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.CBOR_DECODING]
               })`}
+              icon="errorFilled"
               onPress={() => sendError(ISO18013_5.ErrorCode.CBOR_DECODING)}
-              fullWidth
             />
-            <ButtonSolid
+            <ModuleSummary
               label={`Send error ${ISO18013_5.ErrorCode.SESSION_ENCRYPTION} (${
                 ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.SESSION_ENCRYPTION]
               })`}
+              icon="errorFilled"
               onPress={() => sendError(ISO18013_5.ErrorCode.SESSION_ENCRYPTION)}
-              fullWidth
             />
-            <ButtonSolid
+            <ModuleSummary
               label={`Send error ${ISO18013_5.ErrorCode.SESSION_TERMINATED} (${
                 ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.SESSION_TERMINATED]
               })`}
+              icon="errorFilled"
               onPress={() => sendError(ISO18013_5.ErrorCode.SESSION_TERMINATED)}
-              fullWidth
             />
           </>
         )}
         {status === PROXIMITY_STATUS.STOPPED && (
-          <ButtonSolid
-            label={"Generate QR Engagement"}
+          <ModuleSummary
+            label="Generate QR Engagement"
+            icon="qrCode"
             onPress={() => startFlow()}
-            fullWidth
           />
         )}
         {(status === PROXIMITY_STATUS.PRESENTING ||
           status === PROXIMITY_STATUS.STARTED) && (
-          <ButtonSolid
+          <ModuleSummary
             label={"Close QR Engagement"}
+            icon="logout"
             onPress={() =>
               closeFlow(status === PROXIMITY_STATUS.PRESENTING ? true : false)
             }
-            fullWidth
           />
         )}
       </VStack>
