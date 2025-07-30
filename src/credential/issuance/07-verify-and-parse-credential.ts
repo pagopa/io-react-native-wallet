@@ -15,6 +15,7 @@ import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
+type AuthorityHints = Out<EvaluateIssuerTrust>["authorityHints"];
 type CredentialConf =
   IssuerConf["openid_credential_issuer"]["credential_configurations_supported"][string];
 
@@ -26,6 +27,7 @@ export type VerifyAndParseCredential = (
   issuerConf: IssuerConf,
   credential: Out<ObtainCredential>["credential"],
   credentialConfigurationId: string,
+  authorityHints: AuthorityHints,
   context: {
     credentialCryptoContext: CryptoContext;
     /**
@@ -316,6 +318,7 @@ async function verifyCredentialSdJwt(
  */
 async function verifyCredentialMDoc(
   rawCredential: string,
+  authorityHints: AuthorityHints,
   issuerKeys: JWK[],
   holderBindingContext: CryptoContext
 ): Promise<DecodedMDocCredential> {
@@ -327,7 +330,7 @@ async function verifyCredentialMDoc(
   const [decodedCredential] =
     // parallel for optimization
     await Promise.all([
-      verifyMdoc(rawCredential, issuerKeys),
+      verifyMdoc(rawCredential, issuerKeys, authorityHints),
       holderBindingContext.getPublicKey(),
     ]);
 
@@ -355,6 +358,7 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   issuerConf,
   credential,
   credentialConfigurationId,
+  _,
   {
     credentialCryptoContext,
     ignoreMissingAttributes,
@@ -409,10 +413,12 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   issuerConf,
   credential,
   credentialConfigurationId,
+  authorityHints,
   { credentialCryptoContext, ignoreMissingAttributes }
 ) => {
   const decoded = await verifyCredentialMDoc(
     credential,
+    authorityHints,
     issuerConf.openid_credential_issuer.jwks.keys,
     credentialCryptoContext
   );
@@ -471,6 +477,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   issuerConf,
   credential,
   credentialConfigurationId,
+  authorityHints,
   context
 ) => {
   const format =
@@ -485,6 +492,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
         issuerConf,
         credential,
         credentialConfigurationId,
+        authorityHints,
         context
       );
     }
@@ -494,6 +502,7 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
         issuerConf,
         b64utob64(credential), // TODO: remove this conversion after migrating from `io-react-native-cbor` to `io-react-native-ios`
         credentialConfigurationId,
+        authorityHints,
         context
       );
     }
