@@ -169,6 +169,10 @@ export const CredentialScreen = () => {
       edState.hasError,
       edState.isDone,
       ed,
+      eeState.isLoading,
+      eeState.hasError,
+      eeState.isDone,
+      ee,
       dispatch,
     ]
   );
