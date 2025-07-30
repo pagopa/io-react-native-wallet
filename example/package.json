@@ -31,6 +31,7 @@
     "lodash": "^4.17.21",
     "react": "19.0.0",
     "react-native": "0.78.3",
+    "react-native-dialog": "^9.3.0",
     "react-native-gesture-handler": "^2.25.0",
     "react-native-get-random-values": "^1.11.0",
     "react-native-haptic-feedback": "^2.3.3",

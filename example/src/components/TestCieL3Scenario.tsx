@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -20,6 +20,7 @@ import {
 import { selectPidFlowParams } from "../store/reducers/pid";
 import { preparePidFlowParamsThunk } from "../thunks/pid";
 import { CieEvent, WebViewComponent, type CieError } from "./cie";
+import { PinDialog } from "./cie/PinDialog";
 
 export type TestCieL3ScenarioProps = {
   title: string;
@@ -38,10 +39,12 @@ export default function TestCieL3Scenario({
   icon,
   isPresent = false,
 }: TestCieL3ScenarioProps) {
-  const [modalText, setModalText] = React.useState<string | undefined>();
-  const [isModalVisible, setModalVisible] = React.useState(false);
-  const [isHidden, setHidden] = React.useState(true);
-  const [hasLoaded, setHasLoaded] = React.useState(false); // This in needed to avoid the error toast to be shown on the first render
+  const [modalText, setModalText] = useState<string | undefined>();
+  const [showDialog, setShowDialog] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [isHidden, setHidden] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false); // This in needed to avoid the error toast to be shown on the first render
+  const [pin, setPin] = useState("");
   const dispatch = useAppDispatch();
   const flowParams = useAppSelector(selectPidFlowParams);
   const toast = useIOToast();
@@ -91,33 +94,48 @@ export default function TestCieL3Scenario({
 
   const run = async () => {
     setHasLoaded(true);
-    Alert.prompt(
-      "CIE pin",
-      "Enter your CIE pin",
-      [
-        {
-          text: "OK",
-          onPress: async (ciePin) => {
-            if (ciePin && ciePin.length === 8 && /^\d+$/.test(ciePin)) {
-              //Initialize params
-              //Hide the webView for the first part of login then open modal
-              setHidden(true);
-              setModalVisible(true);
-              dispatch(
-                preparePidFlowParamsThunk({
-                  idpHint,
-                  authMethod: "cieL3",
-                  ciePin,
-                })
-              );
-            } else {
-              Alert.alert(`❌ Invalid CIE PIN`);
-            }
-          },
-        },
-      ],
-      "secure-text"
-    );
+    setShowDialog(true);
+    // Alert.prompt(
+    //   "CIE pin",
+    //   "Enter your CIE pin",
+    //   [
+    //     {
+    //       text: "OK",
+    //       onPress: async (ciePin) => {
+    //         if (ciePin && ciePin.length === 8 && /^\d+$/.test(ciePin)) {
+    //           //Initialize params
+    //           //Hide the webView for the first part of login then open modal
+    //         } else {
+    //           Alert.alert(`❌ Invalid CIE PIN`);
+    //         }
+    //       },
+    //     },
+    //   ],
+    //   "secure-text"
+    // );
+  };
+  const handleConfirm = () => {
+    if (pin && pin.length === 8 && /^\d+$/.test(pin)) {
+      //Initialize params
+      //Hide the webView for the first part of login then open modal
+      setHidden(true);
+      setModalVisible(true);
+      dispatch(
+        preparePidFlowParamsThunk({
+          idpHint,
+          authMethod: "cieL3",
+          ciePin: pin,
+        })
+      );
+      setShowDialog(false);
+    } else {
+      Alert.alert(`❌ Invalid CIE PIN`);
+    }
+  };
+
+  const handleClose = () => {
+    setPin("");
+    setShowDialog(false);
   };
 
   const toggleModal = () => {
@@ -187,6 +205,12 @@ export default function TestCieL3Scenario({
         onPress={run}
         isFetching={isLoading}
         badge={getBadge()}
+      />
+      <PinDialog
+        visible={showDialog}
+        onConfirm={handleConfirm}
+        onChangePin={setPin}
+        onCancel={handleClose}
       />
       {flowParams && flowParams.ciePin && (
         <Modal
