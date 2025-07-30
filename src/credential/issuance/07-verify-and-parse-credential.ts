@@ -64,7 +64,7 @@ const parseCredentialSdJwt = (
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
   if (credentialConfig.format !== sdJwt.header.typ) {
-    const message = `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
+    const message = `Received credential is of an unknown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
     Logger.log(LogLevel.ERROR, message);
     throw new IoWalletError(message);
   }
@@ -73,55 +73,92 @@ const parseCredentialSdJwt = (
     Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
+
   const attrDefinitions = credentialConfig.claims;
 
-  // the key of the attribute defintion must match the disclosure's name
+  // Validate that all attributes from the config exist in the disclosures
   const attrsNotInDisclosures = attrDefinitions.filter(
-    (definition) => !disclosures.some(([, name]) => name === definition.path[0]) // Ignore nested paths for now, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-15.html#name-claims-path-pointer
+    (definition) => !disclosures.some(([, name]) => name === definition.path[0])
   );
-  if (attrsNotInDisclosures.length > 0) {
+
+  if (attrsNotInDisclosures.length > 0 && !ignoreMissingAttributes) {
     const missing = attrsNotInDisclosures.map((_) => _.path[0]).join(", ");
-    const received = disclosures.map((_) => _[1 /* name */]).join(", ");
-    if (!ignoreMissingAttributes) {
-      const message = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
-      Logger.log(LogLevel.ERROR, message);
-      throw new IoWalletError(message);
-    }
+    const received = disclosures.map((_) => _[1]).join(", ");
+    const message = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
   }
 
-  // attributes that are defined in the issuer configuration
-  // and are present in the disclosure set
-  const definedValues = Object.fromEntries(
-    attrDefinitions
-      // retrieve the value from the disclosure set
-      .map(
-        ({ path, ...definition }) =>
-          [
-            path[0],
-            {
-              ...definition,
-              value: disclosures.find(
-                (_) => _[1 /* name */] === path[0]
-              )?.[2 /* value */],
-            },
-          ] as const
-      )
-      // add a human readable attribute name, with i18n, in the form { locale: name }
-      // example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
-      .map(
-        ([attrKey, { display, ...definition }]) =>
-          [
-            attrKey,
-            {
-              ...definition,
-              name: display.reduce(
-                (names, { locale, name }) => ({ ...names, [locale]: name }),
-                {} as Record<string, string>
-              ),
-            },
-          ] as const
-      )
-  );
+  // Helper to build localized names
+  const buildName = (display: { locale: string; name: string }[]) =>
+    display.reduce(
+      (names, { locale, name }) => ({ ...names, [locale]: name }),
+      {} as Record<string, string>
+    );
+
+  // Recursive helper to apply the path
+  const applyPath = (
+    target: any,
+    path: (string | number | null)[],
+    value: any,
+    display: { locale: string; name: string }[]
+  ): any => {
+    const [key, ...rest] = path;
+
+    if (key === null) {
+      if (!Array.isArray(value)) return target;
+
+      const existingArray = Array.isArray(target.value) ? target.value : [];
+      const mergedArray = value.map((item, index) =>
+        applyPath(existingArray[index] || {}, rest, item, display)
+      );
+
+      return {
+        ...target,
+        value: mergedArray,
+        name: buildName(display),
+      };
+    }
+
+    if (typeof key === "string") {
+      if (rest.length === 0) {
+        return {
+          ...target,
+          [key]: {
+            value: value?.[key] ?? value,
+            name: buildName(display),
+          },
+        };
+      }
+
+      return {
+        ...target,
+        [key]: applyPath(target?.[key] || {}, rest, value, display),
+      };
+    }
+
+    if (typeof key === "number") {
+      const arr = Array.isArray(target) ? [...target] : [];
+      arr[key] = applyPath(arr[key] || {}, rest, value?.[key], display);
+      return arr;
+    }
+
+    return target;
+  };
+
+  const definedValues: ParsedCredential = {};
+
+  for (const { path, display } of attrDefinitions) {
+    const attrKey = path[0];
+    const disclosureValue = disclosures.find(
+      ([, name]) => name === attrKey
+    )?.[2];
+
+    const enriched = applyPath(definedValues, path, disclosureValue, display);
+
+    // Merge result into definedValues without overwriting previous attributes
+    Object.assign(definedValues, enriched);
+  }
 
   if (includeUndefinedAttributes) {
     // attributes that are in the disclosure set
@@ -131,6 +168,7 @@ const parseCredentialSdJwt = (
         .filter((_) => !Object.keys(definedValues).includes(_[1]))
         .map(([, key, value]) => [key, { value, name: key }])
     );
+
     return {
       ...definedValues,
       ...undefinedValues,

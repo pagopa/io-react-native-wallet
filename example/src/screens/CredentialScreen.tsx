@@ -48,6 +48,11 @@ export const CredentialScreen = () => {
   );
   const ed = useAppSelector(selectCredential("dc_sd_jwt_education_degree"));
 
+  const eeState = useAppSelector(
+    selectCredentialAsyncStatus("dc_sd_jwt_education_enrollment")
+  );
+  const ee = useAppSelector(selectCredential("dc_sd_jwt_education_enrollment"));
+
   useDebugInfo({
     sd_jwt_mdlState,
     sd_jwt_mdl,
@@ -59,6 +64,8 @@ export const CredentialScreen = () => {
     ts,
     edState,
     ed,
+    eeState,
+    ee,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -112,7 +119,7 @@ export const CredentialScreen = () => {
         isPresent: !!ts,
       },
       {
-        title: "Get credential (Education degree in SD-JWT)",
+        title: "Get credential (Education degrees in SD-JWT)",
         onPress: () =>
           dispatch(
             getCredentialThunk({
@@ -124,6 +131,21 @@ export const CredentialScreen = () => {
         isDone: edState.isDone,
         icon: "archive",
         isPresent: !!ed,
+      },
+
+      {
+        title: "Get credential (Education enrollment in SD-JWT)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({
+              credentialType: "dc_sd_jwt_education_enrollment",
+            })
+          ),
+        isLoading: eeState.isLoading,
+        hasError: eeState.hasError,
+        isDone: eeState.isDone,
+        icon: "archive",
+        isPresent: !!ee,
       },
     ],
     [

@@ -59,6 +59,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
     dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
   },
   credentialsAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
@@ -66,6 +67,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
     dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
   },
   statusAssertion: {
     PersonIdentificationData: undefined,
@@ -74,6 +76,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
     dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
   },
   statusAssertionAsyncStatus: {
     PersonIdentificationData: asyncStatusInitial,
@@ -82,6 +85,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
     dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
   },
   trustmark: {
     dc_sd_jwt_mDL: undefined,
@@ -89,6 +93,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
     dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
   },
   trustmarkAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
@@ -96,6 +101,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
     dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
   },
 };
 
