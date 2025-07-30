@@ -2643,10 +2643,10 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
   integrity sha512-Pmzr3N8YiF0JS+sYAOxiBYeBXfJq13NfCc7sTQ+RnYuT9GqgOKOLrF6YeJdv1VZ/YyLg2IhH7dAYiWueSAwj8g==
 
-"@pagopa/io-react-native-iso18013@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-iso18013/-/io-react-native-iso18013-0.1.0.tgz#5040a04c345dbdc7dc5e2e2f422dc44be71de762"
-  integrity sha512-FDZksmpMa1xwEqH6ta5lBVKasuu8HVIiWuf1lwW/Czmo6sPUBsiCBD57qEhpuMnblfd2bRWR0lmZY0o+5UvfDQ==
+"@pagopa/io-react-native-iso18013@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-iso18013/-/io-react-native-iso18013-0.2.0.tgz#114c0ab5ed0fe6ab41769f9c6641b2b5fa2c4899"
+  integrity sha512-jj/pkoMQLIZ2/2xRMUoFKfmlKbIig0FV85c5nMVty/SbowAC6cogl6Bqlz3v/NjL42Z+7hKPakz6Pe0IaeFWAA==
   dependencies:
     zod "^3.25.67"
 
