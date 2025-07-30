@@ -148,6 +148,7 @@ export const getPidCieID = async ({
       issuerConf,
       credential,
       credential_configuration_id,
+      undefined, // TODO: pass authority hints
       { credentialCryptoContext }
     );
 
@@ -200,7 +201,7 @@ export const getCredential = async ({
   const { issuerUrl, credentialId: credId } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } =
+  const { issuerConf, authorityHints } =
     await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
 
   // Start user authorization
@@ -272,6 +273,7 @@ export const getCredential = async ({
       issuerConf,
       credential,
       credential_configuration_id,
+      authorityHints,
       { credentialCryptoContext, ignoreMissingAttributes: true }
     );
 

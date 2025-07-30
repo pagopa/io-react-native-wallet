@@ -244,6 +244,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       issuerConf,
       credential,
       credential_configuration_id,
+      undefined, // TODO: Pass authority hints
       { credentialCryptoContext }
     );
 

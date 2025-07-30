@@ -85,6 +85,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConf,
       pid.token,
       "mock_valid_sd_jwt_cred",
+      undefined,
       { credentialCryptoContext }
     );
 
@@ -114,9 +115,15 @@ describe("verifyAndParseCredential", () => {
 
   it("throws in case of unsupported format", async () => {
     await expect(() =>
-      verifyAndParseCredential(mockIssuerConf, pid.token, "mock_invalid_cred", {
-        credentialCryptoContext,
-      })
+      verifyAndParseCredential(
+        mockIssuerConf,
+        pid.token,
+        "mock_invalid_cred",
+        undefined,
+        {
+          credentialCryptoContext,
+        }
+      )
     ).rejects.toThrow("Unsupported credential format: unknown");
   });
 
@@ -139,6 +146,7 @@ describe("verifyAndParseCredential", () => {
         mockIssuerConf,
         pid.token,
         "mock_valid_sd_jwt_cred",
+        undefined,
         { credentialCryptoContext: altCredentialCryptoContext }
       )
     ).rejects.toThrow(
