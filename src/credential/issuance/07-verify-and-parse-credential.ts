@@ -96,7 +96,7 @@ const parseCredentialSdJwt = (
       {} as Record<string, string>
     );
 
-  // Recursive helper to apply the path
+  // Recursive helper to build a nested object structure from a given path
   const applyPath = (
     target: any,
     path: (string | number | null)[],
@@ -105,27 +105,37 @@ const parseCredentialSdJwt = (
   ): any => {
     const [key, ...rest] = path;
 
+    // Handle array paths (key === null)
+    // This means the current attribute is an array and we must map each element
     if (key === null) {
       if (!Array.isArray(value)) return target;
+      const existing = Array.isArray(target.value) ? target.value : [];
 
-      const existingArray = Array.isArray(target.value) ? target.value : [];
-      const mergedArray = value.map((item, index) =>
-        applyPath(existingArray[index] || {}, rest, item, display)
+      // Recursively apply the path for each element in the array
+      const arr = value.map((item, idx) =>
+        applyPath(existing[idx] || {}, rest, item, display)
       );
 
       return {
         ...target,
-        value: mergedArray,
-        name: buildName(display),
+        value: arr,
+        // Add display names for the array container itself
+        name: target.name ?? buildName(display),
       };
     }
 
+    // Handle object keys
     if (typeof key === "string") {
       if (rest.length === 0) {
         return {
           ...target,
           [key]: {
-            value: value?.[key] ?? value,
+            value:
+              typeof value === "object" &&
+              value !== null &&
+              !Array.isArray(value)
+                ? (value[key] ?? value)
+                : value,
             name: buildName(display),
           },
         };
@@ -133,16 +143,24 @@ const parseCredentialSdJwt = (
 
       return {
         ...target,
-        [key]: applyPath(target?.[key] || {}, rest, value, display),
+        [key]: applyPath(
+          target?.[key] || {},
+          rest,
+          value[key] ?? value,
+          display
+        ),
       };
     }
 
+    // Handle array indexes
+    // This is used if a path explicitly defines a fixed array index
     if (typeof key === "number") {
       const arr = Array.isArray(target) ? [...target] : [];
       arr[key] = applyPath(arr[key] || {}, rest, value?.[key], display);
       return arr;
     }
 
+    // Fallback
     return target;
   };
 
@@ -154,10 +172,10 @@ const parseCredentialSdJwt = (
       ([, name]) => name === attrKey
     )?.[2];
 
-    const enriched = applyPath(definedValues, path, disclosureValue, display);
-
-    // Merge result into definedValues without overwriting previous attributes
-    Object.assign(definedValues, enriched);
+    if (disclosureValue !== undefined) {
+      const enriched = applyPath(definedValues, path, disclosureValue, display);
+      Object.assign(definedValues, enriched);
+    }
   }
 
   if (includeUndefinedAttributes) {
