@@ -2344,8 +2344,8 @@ SPEC CHECKSUMS:
   React-debug: aea2894f3f71697ec8724c11db9c46c1574b21e4
   React-defaultsnativemodule: 391d2f28b5fad78891708732b56ae0c1db595b42
   React-domnativemodule: c1f8f824e8db089ee156eaaa7a1d761056f18f0e
-  React-Fabric: 78341bcff6c16f217bc90ec9b3564b34bee273fc
-  React-FabricComponents: dedc2cdd013488f850f6f4c068498f2537de22e0
+  React-Fabric: 6feaccc9047573cb5ee51791aa2db50d42f9469a
+  React-FabricComponents: 41b83f13155ae661afb4cf6655ea3981ad4a018f
   React-FabricImage: 3a61d9accfe3760caab45da3de5e9c9c2b05de03
   React-featureflags: c6de2182d6065b3239245820347947e2c1309feb
   React-featureflagsnativemodule: 18962463abf78262276779587da44031d0bbc468
@@ -2396,7 +2396,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 62fdbd7e63312228d4868779026248c2677911e1
   RNCClipboard: ba9fda8e2c9f003a29f7f66793069c4d0dada955
   RNGestureHandler: bb8e7019e9d33e099f5408a566485ceef0323070
-  RNPermissions: 754c23a13969f5301f33d9dbb3975f3ba186dfaa
+  RNPermissions: 2a8090dd863dc7a545b4b28d3adeade533045a52
   RNReactNativeHapticFeedback: 66c6b0cf19f5d9dae8be36b2336e1fe2a2e42566
   RNReanimated: e023bfbfba9b0b4b85db6a64d2fa8e4996d6839b
   RNScreens: 0d4cb9afe052607ad0aa71f645a88bb7c7f2e64c
@@ -2408,4 +2408,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: a43114841ee92a8a3198054e6a66453b76f14856
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2
