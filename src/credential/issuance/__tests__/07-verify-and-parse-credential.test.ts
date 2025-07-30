@@ -147,7 +147,7 @@ describe("verifyAndParseCredential", () => {
   });
 
   it("verifies and parses a credential with nested array attributes (education_degrees)", async () => {
-    const credentialCryptoContext: CryptoContext = {
+    const eduCredentialCryptoContext: CryptoContext = {
       getPublicKey: async () => ({
         kty: "EC",
         crv: "P-256",
@@ -281,8 +281,7 @@ describe("verifyAndParseCredential", () => {
       education_degree,
       "dc_sd_jwt_education_degree",
       {
-        credentialCryptoContext,
-        ignoreMissingAttributes: true,
+        credentialCryptoContext: eduCredentialCryptoContext,
       }
     );
 
