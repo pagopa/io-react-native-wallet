@@ -421,8 +421,8 @@ describe("verifyAndParseCredential", () => {
             }),
           ],
           name: {
-            "it-IT": "Nome del corso di laurea",
-            "en-US": "Degree course name",
+            "it-IT": "Elenco dei titoli di studio",
+            "en-US": "List of education degrees",
           },
         }),
       })
