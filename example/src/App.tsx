@@ -19,12 +19,12 @@ export default function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <IODSExperimentalContextProvider isExperimentaEnabled={true}>
-            <SafeAreaProvider>
-              <ToastProvider>
+            <ToastProvider>
+              <SafeAreaProvider>
                 <DebugDataOverlay />
                 <MainStackNavigator />
-              </ToastProvider>
-            </SafeAreaProvider>
+              </SafeAreaProvider>
+            </ToastProvider>
           </IODSExperimentalContextProvider>
         </PersistGate>
       </Provider>
