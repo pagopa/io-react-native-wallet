@@ -2033,10 +2033,10 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.3.1.tgz#4dc23b221452b4101ea7a5bf35aedbe2e5a3a5fe"
   integrity sha512-ZQP58OSLSus8LbFRa8jHtGo2BoR2Jn8lY1SirhBCfk9qo2qLcwRwanZ5T/tzO9inFOaTxPCvPu7uMdSdi8uRUQ==
 
-"@pagopa/io-react-native-iso18013@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-iso18013/-/io-react-native-iso18013-0.2.0.tgz#114c0ab5ed0fe6ab41769f9c6641b2b5fa2c4899"
-  integrity sha512-jj/pkoMQLIZ2/2xRMUoFKfmlKbIig0FV85c5nMVty/SbowAC6cogl6Bqlz3v/NjL42Z+7hKPakz6Pe0IaeFWAA==
+"@pagopa/io-react-native-iso18013@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-iso18013/-/io-react-native-iso18013-0.3.0.tgz#390927aa40602f0f4f16f2aabcb8689b5e331112"
+  integrity sha512-s9EWE5pYDRoziPBt5OJ6bDK8DD4Q2hDvIsPlTzWRlZ0Ah3vXF29lN8mVyQlVwuP1J4IOn/sl+IpdArM0ZEG3xg==
   dependencies:
     zod "^3.25.67"
 

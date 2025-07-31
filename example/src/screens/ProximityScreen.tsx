@@ -229,13 +229,13 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         // Parse and verify the received request with the exposed function
         const parsedJson = JSON.parse(payload.data);
         console.log("Parsed JSON:", parsedJson);
-        const parsedResponse = ISO18013_5.parseVerifierRequest(parsedJson);
-        console.log("Parsed response:", JSON.stringify(parsedResponse));
-        const isTrusted = Object.values(parsedResponse.request).every(
+        const parsedRequest = ISO18013_5.parseVerifierRequest(parsedJson);
+        console.log("Parsed request:", JSON.stringify(parsedRequest));
+        const isTrusted = Object.values(parsedRequest.request).every(
           (item) => item.isAuthenticated
         );
         console.log("RP is trusted:", isTrusted);
-        setRequest(parsedResponse.request);
+        setRequest(parsedRequest.request);
         setRpIsTrusted(isTrusted);
         setStatus(PROXIMITY_STATUS.PRESENTING);
       } catch (error) {
