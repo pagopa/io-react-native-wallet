@@ -74,7 +74,8 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   // Get env URLs
   const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
+  const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
+    getEnv(env);
 
   const { credentialType } = args;
 
@@ -85,6 +86,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   }
   return await getCredential({
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+    trustAnchorUrl: WALLET_TA_BASE_URL,
     redirectUri: REDIRECT_URI,
     // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
     // and we restrict `getCredential` to issuing only one credential at a time.

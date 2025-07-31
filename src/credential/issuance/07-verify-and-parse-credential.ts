@@ -12,10 +12,8 @@ import { getParsedCredentialClaimKey } from "../../mdoc/utils";
 import { LogLevel, Logger } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
-import { b64utob64 } from "jsrsasign";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
-type AuthorityHints = Out<EvaluateIssuerTrust>["authorityHints"];
 type CredentialConf =
   IssuerConf["openid_credential_issuer"]["credential_configurations_supported"][string];
 
@@ -27,7 +25,6 @@ export type VerifyAndParseCredential = (
   issuerConf: IssuerConf,
   credential: Out<ObtainCredential>["credential"],
   credentialConfigurationId: string,
-  authorityHints: AuthorityHints,
   context: {
     credentialCryptoContext: CryptoContext;
     /**
@@ -38,7 +35,8 @@ export type VerifyAndParseCredential = (
      * Include attributes that are not explicitly mapped in the issuer configuration.
      */
     includeUndefinedAttributes?: boolean;
-  }
+  },
+  x509CertRoot?: string
 ) => Promise<{
   parsedCredential: ParsedCredential;
   expiration: Date;
@@ -318,8 +316,7 @@ async function verifyCredentialSdJwt(
  */
 async function verifyCredentialMDoc(
   rawCredential: string,
-  authorityHints: AuthorityHints,
-  issuerKeys: JWK[],
+  x509CertRoot: string,
   holderBindingContext: CryptoContext
 ): Promise<DecodedMDocCredential> {
   /**
@@ -330,7 +327,7 @@ async function verifyCredentialMDoc(
   const [decodedCredential] =
     // parallel for optimization
     await Promise.all([
-      verifyMdoc(rawCredential, issuerKeys, authorityHints),
+      verifyMdoc(rawCredential, x509CertRoot),
       holderBindingContext.getPublicKey(),
     ]);
 
@@ -358,7 +355,6 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   issuerConf,
   credential,
   credentialConfigurationId,
-  _,
   {
     credentialCryptoContext,
     ignoreMissingAttributes,
@@ -413,13 +409,16 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   issuerConf,
   credential,
   credentialConfigurationId,
-  authorityHints,
-  { credentialCryptoContext, ignoreMissingAttributes }
+  { credentialCryptoContext, ignoreMissingAttributes },
+  x509CertRoot
 ) => {
+  if (!x509CertRoot) {
+    throw new IoWalletError("Missing x509CertRoot");
+  }
+
   const decoded = await verifyCredentialMDoc(
     credential,
-    authorityHints,
-    issuerConf.openid_credential_issuer.jwks.keys,
+    x509CertRoot,
     credentialCryptoContext
   );
 
@@ -477,8 +476,8 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   issuerConf,
   credential,
   credentialConfigurationId,
-  authorityHints,
-  context
+  context,
+  x509CertRoot
 ) => {
   const format =
     issuerConf.openid_credential_issuer.credential_configurations_supported[
@@ -492,18 +491,17 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
         issuerConf,
         credential,
         credentialConfigurationId,
-        authorityHints,
         context
       );
     }
     case "mso_mdoc": {
       Logger.log(LogLevel.DEBUG, "Parsing credential in mso_mdoc format");
-      return await verifyAndParseCredentialMDoc(
+      return verifyAndParseCredentialMDoc(
         issuerConf,
-        b64utob64(credential), // TODO: remove this conversion after migrating from `io-react-native-cbor` to `io-react-native-ios`
+        credential,
         credentialConfigurationId,
-        authorityHints,
-        context
+        context,
+        x509CertRoot
       );
     }
 
