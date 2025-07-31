@@ -4144,10 +4144,10 @@ data-view-byte-offset@^1.0.0:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
-dcql@^0.2.21:
-  version "0.2.21"
-  resolved "https://registry.yarnpkg.com/dcql/-/dcql-0.2.21.tgz#57acff9c02cbe2d704ccf687542eb86897766ac1"
-  integrity sha512-X4oorKCSp9ieyIed/m7r4kBTu7kbWoXU4w/93HqNQNe0eyNdU+Rrl9xCErjiogD9oEFLzSLhLJsagto6NRgMlg==
+dcql@^0.2.22:
+  version "0.2.22"
+  resolved "https://registry.yarnpkg.com/dcql/-/dcql-0.2.22.tgz#aeae2f7f47b8bce5fe2c4a8857df8406feb91230"
+  integrity sha512-4CfuUoJ1/dfj4aOMwCGF3HEHsPpRUyALbst5Dx3qcNkIXNFpVqebKVYd58X9/ZlKN/wWJxPS34S7uQ0fcbzS5A==
   dependencies:
     valibot "1.0.0-beta.8"
 
@@ -4897,6 +4897,11 @@ fast-levenshtein@^2.0.6:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
   integrity sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==
+
+fast-uri@^3.0.1:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.0.6.tgz#88f130b77cfaea2378d56bf970dea21257a68748"
+  integrity sha512-Atfo14OibSv5wAp4VWNsFYE1AchQRTv9cBGWET4pZWHzYshFSS9NQI6I57rdKn9croWVMbYFbLhJ+yJvmZIIHw==
 
 fastq@^1.6.0:
   version "1.15.0"
