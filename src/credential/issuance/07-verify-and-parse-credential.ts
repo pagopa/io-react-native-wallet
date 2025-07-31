@@ -56,6 +56,117 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
   sdJwt: SdJwt4VC;
 };
 
+// The data used to create localized names
+type DisplayData = { locale: string; name: string }[];
+
+// The resulting object of localized names { en: "Name", it: "Nome" }
+type LocalizedNames = Record<string, string>;
+
+// The core structure being built: a node containing the actual value and its localized names
+type PropertyNode<T> = {
+  value: T;
+  name: LocalizedNames;
+};
+
+// A path can consist of object keys, array indices, or null for mapping
+type Path = (string | number | null)[];
+
+// A union of all possible shapes. It can be a custom PropertyNode or a standard object/array structure
+type NodeOrStructure = Partial<PropertyNode<any>> | Record<string, any> | any[];
+
+// Helper to build localized names from the display data.
+const buildName = (display: DisplayData): LocalizedNames =>
+  display.reduce(
+    (names, { locale, name }) => ({ ...names, [locale]: name }),
+    {}
+  );
+
+/**
+ * Recursively constructs a nested object with descriptive properties from a path.
+ *
+ * @param currentObject - The object or array being built upon.
+ * @param path - The path segments to follow.
+ * @param sourceValue - The raw value to place at the end of the path.
+ * @param displayData - The data for generating localized names.
+ * @returns The new object or array structure.
+ */
+const createNestedProperty = (
+  currentObject: NodeOrStructure,
+  path: Path,
+  sourceValue: unknown, // Use `unknown` for type-safe input
+  displayData: DisplayData
+): NodeOrStructure => {
+  const [key, ...rest] = path;
+
+  // Case 1: Map over an array (key is null)
+  if (key === null) {
+    if (!Array.isArray(sourceValue)) return currentObject;
+
+    // We assert the type here because we know this branch handles PropertyNodes
+    const node = currentObject as Partial<PropertyNode<unknown[]>>;
+    const existingValue = Array.isArray(node.value) ? node.value : [];
+
+    const mappedArray = sourceValue.map((item, idx) =>
+      createNestedProperty(existingValue[idx] || {}, rest, item, displayData)
+    );
+
+    return {
+      ...node,
+      value: mappedArray,
+      name: node.name ?? buildName(displayData),
+    };
+  }
+
+  // Case 2: Handle an object key (key is a string)
+  if (typeof key === "string") {
+    if (rest.length === 0) {
+      const value =
+        typeof sourceValue === "object" &&
+        sourceValue !== null &&
+        !Array.isArray(sourceValue) &&
+        key in sourceValue
+          ? (sourceValue as Record<string, unknown>)[key]
+          : sourceValue;
+
+      return {
+        ...currentObject,
+        [key]: { value, name: buildName(displayData) },
+      };
+    }
+
+    const nextObject =
+      (currentObject as Record<string, NodeOrStructure>)[key] || {};
+    const nextValue =
+      typeof sourceValue === "object" &&
+      sourceValue !== null &&
+      !Array.isArray(sourceValue) &&
+      key in sourceValue
+        ? (sourceValue as Record<string, unknown>)[key]
+        : sourceValue;
+
+    return {
+      ...currentObject,
+      [key]: createNestedProperty(nextObject, rest, nextValue, displayData),
+    };
+  }
+
+  // Case 3: Handle a specific array index (key is a number)
+  if (typeof key === "number") {
+    const newArray = Array.isArray(currentObject) ? [...currentObject] : [];
+    const nextValue = Array.isArray(sourceValue) ? sourceValue[key] : undefined;
+
+    newArray[key] = createNestedProperty(
+      newArray[key] || {},
+      rest,
+      nextValue,
+      displayData
+    );
+    return newArray;
+  }
+
+  return currentObject;
+};
+
 const parseCredentialSdJwt = (
   // The credential configuration to use to parse the provided credential
   credentialConfig: CredentialConf,
@@ -89,81 +200,6 @@ const parseCredentialSdJwt = (
     throw new IoWalletError(message);
   }
 
-  // Helper to build localized names
-  const buildName = (display: { locale: string; name: string }[]) =>
-    display.reduce(
-      (names, { locale, name }) => ({ ...names, [locale]: name }),
-      {} as Record<string, string>
-    );
-
-  // Recursive helper to build a nested object structure from a given path
-  const applyPath = (
-    target: any,
-    path: (string | number | null)[],
-    value: any,
-    display: { locale: string; name: string }[]
-  ): any => {
-    const [key, ...rest] = path;
-
-    // Handle array paths (key === null)
-    // This means the current attribute is an array and we must map each element
-    if (key === null) {
-      if (!Array.isArray(value)) return target;
-      const existing = Array.isArray(target.value) ? target.value : [];
-
-      // Recursively apply the path for each element in the array
-      const arr = value.map((item, idx) =>
-        applyPath(existing[idx] || {}, rest, item, display)
-      );
-
-      return {
-        ...target,
-        value: arr,
-        // Add display names for the array container itself
-        name: target.name ?? buildName(display),
-      };
-    }
-
-    // Handle object keys
-    if (typeof key === "string") {
-      if (rest.length === 0) {
-        return {
-          ...target,
-          [key]: {
-            value:
-              typeof value === "object" &&
-              value !== null &&
-              !Array.isArray(value)
-                ? (value[key] ?? value)
-                : value,
-            name: buildName(display),
-          },
-        };
-      }
-
-      return {
-        ...target,
-        [key]: applyPath(
-          target?.[key] || {},
-          rest,
-          value[key] ?? value,
-          display
-        ),
-      };
-    }
-
-    // Handle array indexes
-    // This is used if a path explicitly defines a fixed array index
-    if (typeof key === "number") {
-      const arr = Array.isArray(target) ? [...target] : [];
-      arr[key] = applyPath(arr[key] || {}, rest, value?.[key], display);
-      return arr;
-    }
-
-    // Fallback
-    return target;
-  };
-
   const definedValues: ParsedCredential = {};
 
   for (const { path, display } of attrDefinitions) {
@@ -173,7 +209,12 @@ const parseCredentialSdJwt = (
     )?.[2];
 
     if (disclosureValue !== undefined) {
-      const enriched = applyPath(definedValues, path, disclosureValue, display);
+      const enriched = createNestedProperty(
+        definedValues,
+        path,
+        disclosureValue,
+        display
+      );
       Object.assign(definedValues, enriched);
     }
   }
