@@ -3,16 +3,16 @@ WARNING: This component is not referenced anywhere, but is used
 for development purposes. for development purposes. Don't REMOVE it!
 */
 import {
+  BodySmall,
   HStack,
   IOColors,
+  IOText,
   IconButton,
-  LabelSmall,
-  useTypographyFactory,
 } from "@pagopa/io-app-design-system";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
-import _ from "lodash";
+import { truncateObjectStrings } from "../../utils/strings";
 
 type ExpandableProps =
   | {
@@ -29,8 +29,6 @@ type Props = {
   data: any;
 } & ExpandableProps;
 
-const MAX_CHARACTERS = 256;
-
 /**
  * This component allows to print the content of an object in an elegant and readable way.
  * and to copy its content to the clipboard by pressing on the title.
@@ -42,54 +40,49 @@ export const DebugPrettyPrint = ({
   expandable = true,
   isExpanded = false,
 }: Props) => {
-  const [expanded, setExpanded] = React.useState(isExpanded);
-  const clipboardData = React.useMemo(() => JSON.stringify(data), [data]);
-  const prettyData = React.useMemo(() => {
-    try {
-      const json = JSON.parse(JSON.stringify(data));
-      return JSON.stringify(
-        _.cloneDeepWith(json, (value) =>
-          typeof value === "string"
-            ? _.truncate(value, { length: MAX_CHARACTERS })
-            : undefined
-        ),
-        null,
-        2
-      );
-    } catch (e) {
-      const value = JSON.stringify(data, null, 2);
-      return _.truncate(value, { length: MAX_CHARACTERS });
-    }
-  }, [data]);
+  const [expanded, setExpanded] = useState(isExpanded);
 
-  const content = React.useMemo(() => {
+  const content = useMemo(() => {
     if ((expandable && !expanded) || !expandable) {
       return null;
     }
+
     return (
       <View style={styles.content} pointerEvents="box-only">
-        <CustomBodyMonospace>{prettyData}</CustomBodyMonospace>
+        <IOText
+          font="DMMono"
+          size={12}
+          lineHeight={18}
+          color={"grey-700"}
+          weight="Medium"
+        >
+          {JSON.stringify(truncateObjectStrings(data), null, 2)}
+        </IOText>
       </View>
     );
-  }, [prettyData, expandable, expanded]);
+  }, [data, expandable, expanded]);
 
   return (
     <View testID="DebugPrettyPrintTestID" style={styles.container}>
       <View style={styles.header}>
-        <LabelSmall weight="Bold" color="white">
+        <BodySmall weight="Semibold" color="white">
           {title}
-        </LabelSmall>
+        </BodySmall>
         <HStack space={16}>
           <IconButton
             icon={"copy"}
             accessibilityLabel="copy"
-            onPress={() => clipboardSetStringWithFeedback(clipboardData)}
+            iconSize={20}
+            onPress={() =>
+              clipboardSetStringWithFeedback(JSON.stringify(data, null, 2))
+            }
             color="contrast"
           />
           {expandable && (
             <IconButton
-              icon={expanded ? "chevronTop" : "chevronBottom"}
-              accessibilityLabel="expand"
+              icon={expanded ? "eyeHide" : "eyeShow"}
+              accessibilityLabel="show"
+              iconSize={24}
               onPress={() => setExpanded((_) => !_)}
               color="contrast"
             />
@@ -100,15 +93,6 @@ export const DebugPrettyPrint = ({
     </View>
   );
 };
-
-const CustomBodyMonospace = (props: { children?: React.ReactNode }) =>
-  useTypographyFactory({
-    ...props,
-    defaultWeight: "Medium",
-    defaultColor: "bluegrey",
-    font: "DMMono",
-    fontStyle: { fontSize: 12, lineHeight: 18 },
-  });
 
 const styles = StyleSheet.create({
   container: {
