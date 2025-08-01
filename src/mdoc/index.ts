@@ -21,26 +21,38 @@ export const verify = async (
     throw new IoWalletError("Invalid mDoc");
   }
 
-  if (!issuerSigned.issuerAuth.unprotectedHeader.x5chain) {
+  if (
+    !issuerSigned.issuerAuth.unprotectedHeader?.x5chain &&
+    (!Array.isArray(issuerSigned.issuerAuth.unprotectedHeader.x5chain) ||
+      issuerSigned.issuerAuth.unprotectedHeader.x5chain.length === 0)
+  ) {
     throw new MissingX509CertsError("Missing x509 certificates");
   }
+  const x5chain =
+    issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
   // Verify the x5chain
-  await verifyX5chain(issuerSigned, x509CertRoot);
+  await verifyX5chain(x5chain, x509CertRoot);
+
+  const coseSign1 = issuerSigned.issuerAuth.rawValue;
+
+  if (!coseSign1) {
+    throw new IoWalletError("Missing coseSign1");
+  }
   // Once the x5chain is verified, the signatures verification can be performed
-  await verifySignatures(issuerSigned);
+  await verifyMdocSignature(coseSign1, x5chain[0]!);
 
   return { issuerSigned };
 };
 
 /**
- * This function checks whether the x5c certificate chain is valid against a specified Certificate Authority (CA)
+ * This function checks whether the x509 certificate chain is valid against a specified Certificate Authority (CA)
  *
- * @param issuerSigned The decoded mdoc
+ * @param x5chain The mdoc's x509 certificate chain
  * @param x509CertRoot The Trust Anchor CA
  * @param options Options for certificate validation
  */
 const verifyX5chain = async (
-  issuerSigned: CBOR.IssuerSigned,
+  x5chain: string[],
   x509CertRoot: string,
   options: X509CertificateOptions = {
     connectTimeout: 10000,
@@ -48,8 +60,6 @@ const verifyX5chain = async (
     requireCrl: true,
   }
 ) => {
-  const x5chain =
-    issuerSigned.issuerAuth.unprotectedHeader.x5chain!.map(b64utob64);
   const x509ValidationResult: CertificateValidationResult =
     await verifyCertificateChain(x5chain, x509CertRoot, options);
 
@@ -64,28 +74,20 @@ const verifyX5chain = async (
   }
 };
 /**
- * This function verifies that the signature is valid for all certificates in the x5c chain.
+ * This function verifies that the signature is valid for the given certificate.
  * If not, it throws an error
  *
- * @param issuerSigned The decoded mdoc
+ * @param coseSign1 The COSE-Sign1 object encoded in base64 or base64url
+ * @param cert The `x5chain`'s leaf certificate
  */
-const verifySignatures = async (issuerSigned: CBOR.IssuerSigned) => {
-  await Promise.all(
-    issuerSigned.issuerAuth.unprotectedHeader.x5chain!.map(async (cert) => {
-      const pemcert = convertBase64DerToPem(b64utob64(cert));
-      const jwk = getSigninJwkFromCert(pemcert);
+const verifyMdocSignature = async (coseSign1: string, cert: string) => {
+  const pemcert = convertBase64DerToPem(cert);
+  const jwk = getSigninJwkFromCert(pemcert);
 
-      jwk.x = b64utob64(jwk.x!);
-      jwk.y = b64utob64(jwk.y!);
+  jwk.x = b64utob64(jwk.x!);
+  jwk.y = b64utob64(jwk.y!);
 
-      console.info(b64utob64(issuerSigned.issuerAuth.rawValue!));
+  const signatureCorrect = await COSE.verify(coseSign1, jwk as PublicKey);
 
-      const signatureCorrect = await COSE.verify(
-        b64utob64(issuerSigned.issuerAuth.rawValue!),
-        jwk as PublicKey
-      ).catch((e: any) => console.error(e));
-
-      if (!signatureCorrect) throw new Error("Invalid mDoc signature");
-    })
-  );
+  if (!signatureCorrect) throw new Error("Invalid mDoc signature");
 };
