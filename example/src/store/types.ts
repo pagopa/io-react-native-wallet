@@ -37,7 +37,9 @@ export type SupportedCredentials =
   | "dc_sd_jwt_mDL"
   | "mso_mdoc_mDL"
   | "dc_sd_jwt_EuropeanDisabilityCard"
-  | "dc_sd_jwt_EuropeanHealthInsuranceCard";
+  | "dc_sd_jwt_EuropeanHealthInsuranceCard"
+  | "dc_sd_jwt_education_degree"
+  | "dc_sd_jwt_education_enrollment";
 
 /**
  * Type definition for the supported credentials without the PersonIdentificationData.

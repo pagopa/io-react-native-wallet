@@ -1,6 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { CredentialIssuerEntityConfiguration } from "../../../trust/types";
-import { pid } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { education_degree, pid } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { verifyAndParseCredential } from "..";
 
 type IssuerConf = CredentialIssuerEntityConfiguration["payload"]["metadata"];
@@ -143,6 +143,289 @@ describe("verifyAndParseCredential", () => {
       )
     ).rejects.toThrow(
       "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: Rv3W-EiKpvBTyk5yZxvrev-7MDB6SlzUCBo_CQjjddU"
+    );
+  });
+
+  it("verifies and parses a credential with nested array attributes (education_degrees)", async () => {
+    const eduCredentialCryptoContext: CryptoContext = {
+      getPublicKey: async () => ({
+        kty: "EC",
+        crv: "P-256",
+        kid: "uGonT0KmgS7yWfFsHrlC4UK4xqQUJWxo2Wrix9_03UA",
+        x: "NfD3cTWC4-tmrsKP0WSYYr262huexJdQ1D1OSRvoWd0",
+        y: "ciUroXK-KZLt-TpnYFpjCkeefOrurDya2AxK6GA5ANc",
+      }),
+      getSignature: async () => "",
+    };
+
+    const mockIssuerConfWithNested: IssuerConf = {
+      ...mockIssuerConf,
+      openid_credential_issuer: {
+        ...mockIssuerConf.openid_credential_issuer,
+        jwks: {
+          keys: [
+            {
+              kty: "EC",
+              use: "sig",
+              crv: "P-256",
+              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+              alg: "ES256",
+            },
+          ],
+        },
+        credential_configurations_supported: {
+          ...mockIssuerConf.openid_credential_issuer
+            .credential_configurations_supported,
+          dc_sd_jwt_education_degree: {
+            format: "dc+sd-jwt",
+            vct: "https://issuer.example.com/MyCredential",
+            scope: "EducationCredential",
+            claims: [
+              {
+                path: ["tax_id_code"],
+                display: [
+                  { locale: "it-IT", name: "Codice Fiscale" },
+                  { locale: "en-US", name: "Tax id code" },
+                ],
+              },
+              {
+                path: ["personal_administrative_number"],
+                display: [
+                  { locale: "it-IT", name: "ID ANPR" },
+                  { locale: "en-US", name: "Personal Administrative Number" },
+                ],
+              },
+              {
+                path: ["education_degrees", null],
+                display: [
+                  { name: "Elenco dei titoli di studio", locale: "it-IT" },
+                  { name: "List of education degrees", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "institute_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome dell'Istituto" },
+                  { locale: "en-US", name: "Institute name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "qualification_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome del titolo di studio" },
+                  { locale: "en-US", name: "Qualification name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "qualification_grade_value"],
+                display: [
+                  { locale: "it-IT", name: "Voto del titolo di studio" },
+                  { locale: "en-US", name: "Qualification grade value" },
+                ],
+              },
+              {
+                path: [
+                  "education_degrees",
+                  null,
+                  "academic_qualification_date",
+                ],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Data di conseguimento del titolo di studio",
+                  },
+                  { locale: "en-US", name: "Qualification date" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "programme_type_name"],
+                display: [
+                  { locale: "it-IT", name: "Tipologia del corso di laurea" },
+                  { locale: "en-US", name: "Program type name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "degree_class_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome della classe di laurea" },
+                  { locale: "en-US", name: "Degree class name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "degree_class"],
+                display: [
+                  { locale: "it-IT", name: "Codice della classe di laurea" },
+                  { locale: "en-US", name: "Degree class code" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "degree_course_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome del corso di laurea" },
+                  { locale: "en-US", name: "Degree course name" },
+                ],
+              },
+            ],
+            display: [],
+            credential_signing_alg_values_supported: ["ES256"],
+            cryptographic_binding_methods_supported: [],
+          },
+        },
+      },
+    };
+
+    const result = await verifyAndParseCredential(
+      mockIssuerConfWithNested,
+      education_degree,
+      "dc_sd_jwt_education_degree",
+      {
+        credentialCryptoContext: eduCredentialCryptoContext,
+      }
+    );
+
+    expect(result.parsedCredential).toEqual(
+      expect.objectContaining({
+        tax_id_code: {
+          value: "LVLDAA85T50G702B",
+          name: {
+            "it-IT": "Codice Fiscale",
+            "en-US": "Tax id code",
+          },
+        },
+        personal_administrative_number: {
+          value: "JF97265AX",
+          name: {
+            "it-IT": "ID ANPR",
+            "en-US": "Personal Administrative Number",
+          },
+        },
+        education_degrees: expect.objectContaining({
+          value: [
+            expect.objectContaining({
+              institute_name: {
+                value: "Università degli studi di Roma La Sapienza",
+                name: {
+                  "it-IT": "Nome dell'Istituto",
+                  "en-US": "Institute name",
+                },
+              },
+              qualification_name: {
+                value: " Dottore Magistrale",
+                name: {
+                  "it-IT": "Nome del titolo di studio",
+                  "en-US": "Qualification name",
+                },
+              },
+              qualification_grade_value: {
+                value: "71/110",
+                name: {
+                  "it-IT": "Voto del titolo di studio",
+                  "en-US": "Qualification grade value",
+                },
+              },
+              academic_qualification_date: {
+                value: "2024-01-24",
+                name: {
+                  "it-IT": "Data di conseguimento del titolo di studio",
+                  "en-US": "Qualification date",
+                },
+              },
+              programme_type_name: {
+                value: "Laurea Magistrale (DM 270/04)",
+                name: {
+                  "it-IT": "Tipologia del corso di laurea",
+                  "en-US": "Program type name",
+                },
+              },
+              degree_class_name: {
+                value: "Lettere",
+                name: {
+                  "it-IT": "Nome della classe di laurea",
+                  "en-US": "Degree class name",
+                },
+              },
+              degree_class: {
+                value: "5",
+                name: {
+                  "it-IT": "Codice della classe di laurea",
+                  "en-US": "Degree class code",
+                },
+              },
+              degree_course_name: {
+                value: "Lettere",
+                name: {
+                  "it-IT": "Nome del corso di laurea",
+                  "en-US": "Degree course name",
+                },
+              },
+            }),
+            expect.objectContaining({
+              institute_name: {
+                value: "Università degli studi di Roma La Sapienza",
+                name: {
+                  "it-IT": "Nome dell'Istituto",
+                  "en-US": "Institute name",
+                },
+              },
+              qualification_name: {
+                value: "Dottore",
+                name: {
+                  "it-IT": "Nome del titolo di studio",
+                  "en-US": "Qualification name",
+                },
+              },
+              qualification_grade_value: {
+                value: "95/110",
+                name: {
+                  "it-IT": "Voto del titolo di studio",
+                  "en-US": "Qualification grade value",
+                },
+              },
+              academic_qualification_date: {
+                value: "2021-01-24",
+                name: {
+                  "it-IT": "Data di conseguimento del titolo di studio",
+                  "en-US": "Qualification date",
+                },
+              },
+              programme_type_name: {
+                value: "Laurea Triennale (DM 509/99)",
+                name: {
+                  "it-IT": "Tipologia del corso di laurea",
+                  "en-US": "Program type name",
+                },
+              },
+              degree_class_name: {
+                value: "Scienze e tecnologie fisiche",
+                name: {
+                  "it-IT": "Nome della classe di laurea",
+                  "en-US": "Degree class name",
+                },
+              },
+              degree_class: {
+                value: "25",
+                name: {
+                  "it-IT": "Codice della classe di laurea",
+                  "en-US": "Degree class code",
+                },
+              },
+              degree_course_name: {
+                value: "Fisica",
+                name: {
+                  "it-IT": "Nome del corso di laurea",
+                  "en-US": "Degree course name",
+                },
+              },
+            }),
+          ],
+          name: {
+            "it-IT": "Elenco dei titoli di studio",
+            "en-US": "List of education degrees",
+          },
+        }),
+      })
     );
   });
 });
