@@ -8,12 +8,12 @@ PODS:
   - hermes-engine (0.78.3):
     - hermes-engine/Pre-built (= 0.78.3)
   - hermes-engine/Pre-built (0.78.3)
-  - IoReactNativeIso18013 (0.1.0):
+  - IoReactNativeIso18013 (0.3.0):
     - DoubleConversion
     - glog
     - hermes-engine
-    - IOWalletCBOR (~> 0.2.1)
-    - IOWalletProximity (~> 1.2.2)
+    - IOWalletCBOR (= 0.2.1)
+    - IOWalletProximity (= 1.3.0)
     - RCT-Folly (= 2024.11.18.00)
     - RCTRequired
     - RCTTypeSafety
@@ -32,7 +32,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - IOWalletCBOR (0.2.1)
-  - IOWalletProximity (1.2.2)
+  - IOWalletProximity (1.3.0)
   - JOSESwift (3.0.0)
   - OpenSSL-Universal (3.3.3001)
   - pagopa-io-react-native-crypto (1.2.3):
@@ -1791,6 +1791,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNPermissions (5.4.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNReactNativeHapticFeedback (2.3.3):
     - DoubleConversion
     - glog
@@ -2108,6 +2129,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2278,6 +2300,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
     :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
@@ -2299,9 +2323,9 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
-  IoReactNativeIso18013: 61fcfa2e20d34d2d2be2d3455aa980fc57bb947a
+  IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
   IOWalletCBOR: 92742ef1cbd1b627ba153d0c7c11b81ad22f45cc
-  IOWalletProximity: 55d5527de91a971dbcdbdda1838860c9860683ac
+  IOWalletProximity: 1836d6b5df0a64a97e09f355d15d5155f086f830
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   pagopa-io-react-native-crypto: aa7a368286a7c0aa9536325d1e49f956c4ce3f6b
@@ -2372,6 +2396,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 62fdbd7e63312228d4868779026248c2677911e1
   RNCClipboard: ba9fda8e2c9f003a29f7f66793069c4d0dada955
   RNGestureHandler: bb8e7019e9d33e099f5408a566485ceef0323070
+  RNPermissions: 2a8090dd863dc7a545b4b28d3adeade533045a52
   RNReactNativeHapticFeedback: 66c6b0cf19f5d9dae8be36b2336e1fe2a2e42566
   RNReanimated: e023bfbfba9b0b4b85db6a64d2fa8e4996d6839b
   RNScreens: 0d4cb9afe052607ad0aa71f645a88bb7c7f2e64c
@@ -2381,6 +2406,6 @@ SPEC CHECKSUMS:
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: eca8dd841b7cd47d82d66be58af8e3aeb819012f
 
-PODFILE CHECKSUM: a241bf104b2c24460c9a089f4975f8d4c91a5eae
+PODFILE CHECKSUM: a43114841ee92a8a3198054e6a66453b76f14856
 
 COCOAPODS: 1.15.2

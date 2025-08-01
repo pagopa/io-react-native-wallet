@@ -115,6 +115,7 @@ export const makeSelectAttestation = (format: Format) => (state: RootState) =>
 
 export const selectAttestationAsJwt = makeSelectAttestation("jwt");
 export const selectAttestationAsSdJwt = makeSelectAttestation("dc+sd-jwt");
+export const selectAttestationAsMdoc = makeSelectAttestation("mso_mdoc");
 
 /**
  * Checks if the Wallet Instance Attestation needs to be requested by
