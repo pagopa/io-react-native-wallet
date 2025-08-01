@@ -10,7 +10,6 @@ export type EvaluateIssuerTrust = (
   }
 ) => Promise<{
   issuerConf: CredentialIssuerEntityConfiguration["payload"]["metadata"];
-  authorityHints: CredentialIssuerEntityConfiguration["payload"]["authority_hints"];
 }>;
 
 /**
@@ -26,12 +25,9 @@ export const evaluateIssuerTrust: EvaluateIssuerTrust = async (
   issuerUrl,
   context = {}
 ) => {
-  const { issuerConf, authorityHints } =
-    await getCredentialIssuerEntityConfiguration(issuerUrl, {
-      appFetch: context.appFetch,
-    }).then(({ payload }) => ({
-      issuerConf: payload.metadata,
-      authorityHints: payload.authority_hints,
-    }));
-  return { issuerConf, authorityHints };
+  const issuerConf = await getCredentialIssuerEntityConfiguration(issuerUrl, {
+    appFetch: context.appFetch,
+  }).then(({ payload }) => payload.metadata);
+
+  return { issuerConf };
 };

@@ -1,6 +1,7 @@
 import {
   createCryptoContextFor,
   Credential,
+  Trust,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
@@ -148,7 +149,6 @@ export const getPidCieID = async ({
       issuerConf,
       credential,
       credential_configuration_id,
-      undefined, // TODO: pass authority hints
       { credentialCryptoContext }
     );
 
@@ -174,6 +174,7 @@ export const getPidCieID = async ({
  */
 export const getCredential = async ({
   credentialIssuerUrl,
+  trustAnchorUrl,
   redirectUri,
   credentialId,
   pid,
@@ -181,6 +182,7 @@ export const getCredential = async ({
   wiaCryptoContext,
 }: {
   credentialIssuerUrl: string;
+  trustAnchorUrl: string;
   redirectUri: string;
   credentialId: SupportedCredentialsWithoutPid;
   pid: PidResult;
@@ -201,7 +203,7 @@ export const getCredential = async ({
   const { issuerUrl, credentialId: credId } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf, authorityHints } =
+  const { issuerConf } =
     await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
 
   // Start user authorization
@@ -267,14 +269,19 @@ export const getCredential = async ({
     }
   );
 
+  const x509CertRoot =
+    format === "mso_mdoc"
+      ? await getTrustAnchorX509Certificate(trustAnchorUrl)
+      : undefined;
+
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
   const { parsedCredential } =
     await Credential.Issuance.verifyAndParseCredential(
       issuerConf,
       credential,
       credential_configuration_id,
-      authorityHints,
-      { credentialCryptoContext, ignoreMissingAttributes: true }
+      { credentialCryptoContext, ignoreMissingAttributes: true },
+      x509CertRoot
     );
 
   return {
@@ -286,6 +293,39 @@ export const getCredential = async ({
     credentialConfigurationId: credential_configuration_id,
     format,
   };
+};
+
+/**
+ * This function is for development use only and should not be used in production
+ *
+ * @param trustAnchorUrl The TA url
+ * @returns The base64 encoded Trust Anchor's CA
+ */
+const getTrustAnchorX509Certificate = async (trustAnchorUrl: string) => {
+  const trustAnchorEntityConfig =
+    await Trust.Build.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
+      appFetch,
+    });
+  const taHeaderKid = trustAnchorEntityConfig.header.kid;
+  const taSigningJwk = trustAnchorEntityConfig.payload.jwks.keys.find(
+    (key) => key.kid === taHeaderKid
+  );
+
+  if (!taSigningJwk) {
+    throw new Trust.Errors.FederationError(
+      `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' not found in Trust Anchor's JWKS.`,
+      { trustAnchorKid: taHeaderKid, reason: "JWK not found for header kid" }
+    );
+  }
+
+  if (taSigningJwk.x5c && taSigningJwk.x5c.length > 0 && taSigningJwk.x5c[0]) {
+    return taSigningJwk.x5c[0];
+  }
+
+  throw new Trust.Errors.FederationError(
+    `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' does not contain a valid 'x5c' certificate array.`,
+    { trustAnchorKid: taHeaderKid, reason: "Missing or empty x5c in JWK" }
+  );
 };
 
 /**
