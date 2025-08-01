@@ -8,11 +8,7 @@ import {
 } from "@pagopa/io-react-native-crypto";
 import { MissingX509CertsError, X509ValidationError } from "../trust/errors";
 import { IoWalletError } from "../utils/errors";
-import {
-  convertBase64DerToPem,
-  getSigningJwk,
-  parsePublicKey,
-} from "../utils/crypto";
+import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
 
 export const verify = async (
   token: string,
@@ -74,13 +70,11 @@ const verifyX5chain = async (
  * @param issuerSigned The decoded mdoc
  */
 const verifySignatures = async (issuerSigned: CBOR.IssuerSigned) => {
-  Promise.all(
+  await Promise.all(
     issuerSigned.issuerAuth.unprotectedHeader.x5chain!.map(async (cert) => {
       const pemcert = convertBase64DerToPem(b64utob64(cert));
-      const publickey = parsePublicKey(pemcert);
-      if (!publickey) throw new Error("Certificate not present in credential");
+      const jwk = getSigninJwkFromCert(pemcert);
 
-      const jwk = getSigningJwk(publickey);
       jwk.x = b64utob64(jwk.x!);
       jwk.y = b64utob64(jwk.y!);
 

@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { JWK } from "./jwk";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
+import { IoWalletError } from "./errors";
 
 /**
  * Create a CryptoContext bound to a key pair.
@@ -68,36 +69,31 @@ export const convertBase64DerToPem = (certificate: string): string =>
   `-----BEGIN CERTIFICATE-----\n${certificate}\n-----END CERTIFICATE-----`;
 
 /**
- * Parses the public key from a PEM-formatted certificate.
+ * Retrieves the signing JWK from a PEM-formatted certificate.
  *
  * @param pemCert - The PEM-formatted certificate.
- * @returns The public key object.
+ * @returns The signing JWK.
  * @throws Will throw an error if the public key is unsupported.
  */
-export const parsePublicKey = (
-  pemCert: string
-): RSAKey | KJUR.crypto.ECDSA | undefined => {
+export const getSigninJwkFromCert = (pemCert: string): JWK => {
   const x509 = new X509();
   x509.readCertPEM(pemCert);
   const publicKey = x509.getPublicKey();
 
+  console.log("INSTANCE OF RSA", publicKey instanceof RSAKey);
+  console.log("INSTANCE OF ECDSA", publicKey instanceof KJUR.crypto.ECDSA);
+
   if (publicKey instanceof RSAKey || publicKey instanceof KJUR.crypto.ECDSA) {
-    return publicKey;
+    return {
+      ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
+      use: "sig",
+    };
   }
 
-  return undefined;
+  throw new IoWalletError(
+    "Unable to find the signing key inside the PEM certificate"
+  );
 };
-
-/**
- * Retrieves the signing JWK from the public key.
- *
- * @param publicKey - The public key object.
- * @returns The signing JWK.
- */
-export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
-  ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
-  use: "sig",
-});
 
 /**
  * This function takes two {@link PublicKey} and evaluates and compares their thumbprints
