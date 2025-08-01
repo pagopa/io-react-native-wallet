@@ -59,12 +59,12 @@ export const withEphemeralKey = async <R>(
   return fn(ephemeralContext).finally(() => deleteKey(keytag));
 };
 /**
- * Converts a certificate string to PEM format.
+ * Converts a base64-encoded DER certificate to PEM format.
  *
- * @param certificate - The certificate string.
+ * @param certificate - The base64-encoded DER certificate.
  * @returns The PEM-formatted certificate.
  */
-export const convertCertToPem = (certificate: string): string =>
+export const convertBase64DerToPem = (certificate: string): string =>
   `-----BEGIN CERTIFICATE-----\n${certificate}\n-----END CERTIFICATE-----`;
 
 /**

@@ -9,7 +9,7 @@ import {
 import { MissingX509CertsError, X509ValidationError } from "../trust/errors";
 import { IoWalletError } from "../utils/errors";
 import {
-  convertCertToPem,
+  convertBase64DerToPem,
   getSigningJwk,
   parsePublicKey,
 } from "../utils/crypto";
@@ -76,7 +76,7 @@ const verifyX5chain = async (
 const verifySignatures = async (issuerSigned: CBOR.IssuerSigned) => {
   Promise.all(
     issuerSigned.issuerAuth.unprotectedHeader.x5chain!.map(async (cert) => {
-      const pemcert = convertCertToPem(b64utob64(cert));
+      const pemcert = convertBase64DerToPem(b64utob64(cert));
       const publickey = parsePublicKey(pemcert);
       if (!publickey) throw new Error("Certificate not present in credential");
 
