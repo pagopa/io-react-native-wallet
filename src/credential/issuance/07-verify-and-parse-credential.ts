@@ -119,24 +119,7 @@ const createNestedProperty = (
 
   // Case 2: Handle an object key (key is a string)
   if (typeof key === "string") {
-    if (rest.length === 0) {
-      const value =
-        typeof sourceValue === "object" &&
-        sourceValue !== null &&
-        !Array.isArray(sourceValue) &&
-        key in sourceValue
-          ? (sourceValue as Record<string, unknown>)[key]
-          : sourceValue;
-
-      return {
-        ...currentObject,
-        [key]: { value, name: buildName(displayData) },
-      };
-    }
-
-    const nextObject =
-      (currentObject as Record<string, NodeOrStructure>)[key] || {};
-    const nextValue =
+    const nextSourceValue =
       typeof sourceValue === "object" &&
       sourceValue !== null &&
       !Array.isArray(sourceValue) &&
@@ -144,9 +127,26 @@ const createNestedProperty = (
         ? (sourceValue as Record<string, unknown>)[key]
         : sourceValue;
 
+    // base case
+    if (rest.length === 0) {
+      return {
+        ...currentObject,
+        [key]: { value: nextSourceValue, name: buildName(displayData) },
+      };
+    }
+
+    // recursive step
+    const nextObject =
+      (currentObject as Record<string, NodeOrStructure>)[key] || {};
+
     return {
       ...currentObject,
-      [key]: createNestedProperty(nextObject, rest, nextValue, displayData),
+      [key]: createNestedProperty(
+        nextObject,
+        rest,
+        nextSourceValue,
+        displayData
+      ),
     };
   }
 
