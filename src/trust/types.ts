@@ -71,6 +71,10 @@ const SupportedCredentialMetadata = z.intersection(
   })
 );
 
+export type SupportedCredentialFormat = z.infer<
+  typeof SupportedCredentialMetadata
+>["format"];
+
 export type EntityStatement = z.infer<typeof EntityStatement>;
 export const EntityStatement = z.object({
   header: z.object({
