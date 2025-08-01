@@ -3,6 +3,7 @@ import {
   generate,
   getPublicKeyFixed,
   sign,
+  type PublicKey,
 } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
 import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
@@ -97,3 +98,21 @@ export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
   ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
   use: "sig",
 });
+
+/**
+ * This function takes two {@link PublicKey} and evaluates and compares their thumbprints
+ * @param key1 The first key
+ * @param key2 The second key
+ * @returns true if the keys' thumbprints are equal, false otherwise
+ */
+export const compareKeysByThumbprint = async (
+  key1: PublicKey,
+  key2: PublicKey
+) => {
+  //Parallel for optimization
+  const [thumbprint1, thumbprint2] = await Promise.all([
+    thumbprint(key1),
+    thumbprint(key2),
+  ]);
+  return thumbprint1 === thumbprint2;
+};

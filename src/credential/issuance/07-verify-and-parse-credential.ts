@@ -12,6 +12,8 @@ import { getParsedCredentialClaimKey } from "../../mdoc/utils";
 import { LogLevel, Logger } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
+import type { PublicKey } from "@pagopa/io-react-native-crypto";
+import { compareKeysByThumbprint } from "../../utils/crypto";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
 type CredentialConf =
@@ -319,12 +321,7 @@ async function verifyCredentialMDoc(
   x509CertRoot: string,
   holderBindingContext: CryptoContext
 ): Promise<DecodedMDocCredential> {
-  /**
-   * For the moment, being that issues in the crypto key generation
-   * have been found on Android, the check for the deviceKey inside
-   * of the mDoc is skipped, so we are not interested in the holderBindingKey
-   */
-  const [decodedCredential] =
+  const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
       verifyMdoc(rawCredential, x509CertRoot),
@@ -335,18 +332,14 @@ async function verifyCredentialMDoc(
     throw new IoWalletError("No MDOC credentials found!");
   }
 
-  /**
-   * For the moment, being that issues in the crypto key generation
-   * have been found on Android, the check for the deviceKey inside
-   * of the mDoc is skipped.
-   */
-  //const key = decodedCredential.mDoc.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
-  //
-  //if (!compareKeysByThumbprint(key, holderBindingKey as PublicKey)) {
-  //  throw new IoWalletError(
-  //    `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
-  //  );
-  //}
+  const key =
+    decodedCredential.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
+
+  if (!compareKeysByThumbprint(key, holderBindingKey as PublicKey)) {
+    throw new IoWalletError(
+      `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
+    );
+  }
 
   return decodedCredential;
 }
