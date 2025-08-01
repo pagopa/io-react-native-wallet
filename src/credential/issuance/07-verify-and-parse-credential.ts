@@ -334,7 +334,7 @@ async function verifyCredentialMDoc(
   const key =
     decodedCredential.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
 
-  if (!isSameThumbprint(key, holderBindingKey as PublicKey)) {
+  if (!(await isSameThumbprint(key, holderBindingKey as PublicKey))) {
     throw new IoWalletError(
       `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
     );
