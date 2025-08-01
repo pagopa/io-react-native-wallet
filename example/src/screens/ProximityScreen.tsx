@@ -11,6 +11,9 @@ import {
   generateAcceptedFields,
   requestBlePermissions,
   WELL_KNOWN_CREDENTIALS,
+  type EventsPayload,
+  type RequestedDocument,
+  type VerifierRequest,
 } from "../utils/proximity";
 import { addPadding } from "@pagopa/io-react-native-jwt";
 import { selectAttestationAsMdoc } from "../store/reducers/attestation";
@@ -20,6 +23,20 @@ import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { Trust } from "@pagopa/io-react-native-wallet";
 import appFetch from "../utils/fetch";
+
+const {
+  ErrorCode,
+  addListener,
+  close,
+  generateResponse,
+  getQrCodeString,
+  parseEventError,
+  parseVerifierRequest,
+  removeListener,
+  sendErrorResponse,
+  sendResponse,
+  start,
+} = ISO18013_5;
 
 /**
  * Proximity status enum to track the current state of the flow.
@@ -64,9 +81,9 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
     PROXIMITY_STATUS.STARTING
   );
   const [qrCode, setQrCode] = useState<string | null>(null);
-  const [request, setRequest] = useState<
-    ISO18013_5.VerifierRequest["request"] | null
-  >(null);
+  const [request, setRequest] = useState<VerifierRequest["request"] | null>(
+    null
+  );
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
   const { WALLET_TA_BASE_URL } = getEnv(env);
 
@@ -95,10 +112,8 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * Sends the required document to the verifier app.
    * @param verifierRequest - The request object received from the verifier app
    */
-  const sendDocument = async (
-    verifierRequest: ISO18013_5.VerifierRequest["request"]
-  ) => {
-    const documents: Array<ISO18013_5.RequestedDocument> = [
+  const sendDocument = async (verifierRequest: VerifierRequest["request"]) => {
+    const documents: Array<RequestedDocument> = [
       {
         alias: WIA_KEYTAG,
         docType: WELL_KNOWN_CREDENTIALS.wia,
@@ -121,8 +136,8 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
     const acceptedFields = generateAcceptedFields(verifierRequest);
     console.log(JSON.stringify(acceptedFields));
     console.log("Accepted fields:", JSON.stringify(acceptedFields));
-    const result = await ISO18013_5.generateResponse(documents, acceptedFields);
-    console.log("Response generated:", result);
+    const generatedResponse = await generateResponse(documents, acceptedFields);
+    console.log("Generated response:", generatedResponse);
 
     /**
      * Send the response to the verifier app.
@@ -131,7 +146,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
      * In order to start a new flow a new QR code must be generated.
      */
     console.log("Sending response to verifier app");
-    await ISO18013_5.sendResponse(result);
+    await sendResponse(generatedResponse);
 
     console.log("Response sent");
   };
@@ -142,17 +157,15 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   const closeFlow = useCallback(async (sendError: boolean = false) => {
     try {
       if (sendError) {
-        await ISO18013_5.sendErrorResponse(
-          ISO18013_5.ErrorCode.SESSION_TERMINATED
-        );
+        await sendErrorResponse(ErrorCode.SESSION_TERMINATED);
       }
       console.log("Cleaning up listeners and closing QR engagement");
-      ISO18013_5.removeListener("onDeviceConnected");
-      ISO18013_5.removeListener("onDeviceConnecting");
-      ISO18013_5.removeListener("onDeviceDisconnected");
-      ISO18013_5.removeListener("onDocumentRequestReceived");
-      ISO18013_5.removeListener("onError");
-      await ISO18013_5.close();
+      removeListener("onDeviceConnected");
+      removeListener("onDeviceConnecting");
+      removeListener("onDeviceDisconnected");
+      removeListener("onDocumentRequestReceived");
+      removeListener("onError");
+      await close();
       setQrCode(null);
       setRequest(null);
       setRpIsTrusted(false);
@@ -176,12 +189,12 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * @param data The error data
    */
   const onError = useCallback(
-    async (data: ISO18013_5.EventsPayload["onError"]) => {
+    async (data: EventsPayload["onError"]) => {
       try {
         if (!data || !data.error) {
           throw new Error("No error data received");
         }
-        const parsedError = ISO18013_5.parseEventError(data.error);
+        const parsedError = parseEventError(data.error);
         console.error(`onError: ${parsedError}`);
       } catch (e) {
         console.error("Error parsing onError data:", e);
@@ -197,17 +210,20 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * Sends an error response to the verifier app during the presentation.
    * @param errorCode The error code to be sent
    */
-  const sendError = useCallback(async (errorCode: ISO18013_5.ErrorCode) => {
-    try {
-      console.log("Sending error response to verifier app");
-      await ISO18013_5.sendErrorResponse(errorCode);
-      setStatus(PROXIMITY_STATUS.STOPPED);
-      console.log("Error response sent");
-    } catch (error) {
-      console.error("Error sending error response:", error);
-      Alert.alert("Failed to send error response");
-    }
-  }, []);
+  const sendError = useCallback(
+    async (errorCode: (typeof ErrorCode)[keyof typeof ErrorCode]) => {
+      try {
+        console.log("Sending error response to verifier app");
+        await sendErrorResponse(errorCode);
+        setStatus(PROXIMITY_STATUS.STOPPED);
+        console.log("Error response sent");
+      } catch (error) {
+        console.error("Error sending error response:", error);
+        Alert.alert("Failed to send error response");
+      }
+    },
+    []
+  );
 
   /**
    * Callback function to handle a new request received from the verifier app.
@@ -217,7 +233,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * @throws Error if the response generation fails
    */
   const onDocumentRequestReceived = useCallback(
-    async (payload: ISO18013_5.EventsPayload["onDocumentRequestReceived"]) => {
+    async (payload: EventsPayload["onDocumentRequestReceived"]) => {
       try {
         // A new request has been received
         console.log("onDocumentRequestReceived", payload);
@@ -229,7 +245,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         // Parse and verify the received request with the exposed function
         const parsedJson = JSON.parse(payload.data);
         console.log("Parsed JSON:", parsedJson);
-        const parsedRequest = ISO18013_5.parseVerifierRequest(parsedJson);
+        const parsedRequest = parseVerifierRequest(parsedJson);
         console.log("Parsed request:", JSON.stringify(parsedRequest));
         const isTrusted = Object.values(parsedRequest.request).every(
           (item) => item.isAuthenticated
@@ -240,7 +256,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         setStatus(PROXIMITY_STATUS.PRESENTING);
       } catch (error) {
         console.error("Error handling new device request:", error);
-        sendError(ISO18013_5.ErrorCode.SESSION_TERMINATED);
+        sendError(ErrorCode.SESSION_TERMINATED);
       }
     },
     [sendError]
@@ -271,22 +287,19 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
       return;
     }
     try {
-      await ISO18013_5.start({
+      await start({
         certificates: [x5c],
       }); // Peripheral mode
       // Register listeners
-      ISO18013_5.addListener("onDeviceConnecting", handleOnDeviceConnecting);
-      ISO18013_5.addListener("onDeviceConnected", handleOnDeviceConnected);
-      ISO18013_5.addListener(
-        "onDocumentRequestReceived",
-        onDocumentRequestReceived
-      );
-      ISO18013_5.addListener("onDeviceDisconnected", onDeviceDisconnected);
-      ISO18013_5.addListener("onError", onError);
+      addListener("onDeviceConnecting", handleOnDeviceConnecting);
+      addListener("onDeviceConnected", handleOnDeviceConnected);
+      addListener("onDocumentRequestReceived", onDocumentRequestReceived);
+      addListener("onDeviceDisconnected", onDeviceDisconnected);
+      addListener("onError", onError);
 
       // Generate the QR code string
       console.log("Generating QR code");
-      const qrString = await ISO18013_5.getQrCodeString();
+      const qrString = await getQrCodeString();
       console.log(`Generated QR code: ${qrString}`);
       setQrCode(qrString);
       setStatus(PROXIMITY_STATUS.STARTED);
@@ -334,25 +347,25 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
               onPress={() => sendDocument(request)}
             />
             <ModuleSummary
-              label={`Send error ${ISO18013_5.ErrorCode.CBOR_DECODING} (${
-                ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.CBOR_DECODING]
+              label={`Send error ${ErrorCode.CBOR_DECODING} (${
+                ErrorCode[ErrorCode.CBOR_DECODING]
               })`}
               icon="errorFilled"
-              onPress={() => sendError(ISO18013_5.ErrorCode.CBOR_DECODING)}
+              onPress={() => sendError(ErrorCode.CBOR_DECODING)}
             />
             <ModuleSummary
-              label={`Send error ${ISO18013_5.ErrorCode.SESSION_ENCRYPTION} (${
-                ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.SESSION_ENCRYPTION]
+              label={`Send error ${ErrorCode.SESSION_ENCRYPTION} (${
+                ErrorCode[ErrorCode.SESSION_ENCRYPTION]
               })`}
               icon="errorFilled"
-              onPress={() => sendError(ISO18013_5.ErrorCode.SESSION_ENCRYPTION)}
+              onPress={() => sendError(ErrorCode.SESSION_ENCRYPTION)}
             />
             <ModuleSummary
-              label={`Send error ${ISO18013_5.ErrorCode.SESSION_TERMINATED} (${
-                ISO18013_5.ErrorCode[ISO18013_5.ErrorCode.SESSION_TERMINATED]
+              label={`Send error ${ErrorCode.SESSION_TERMINATED} (${
+                ErrorCode[ErrorCode.SESSION_TERMINATED]
               })`}
               icon="errorFilled"
-              onPress={() => sendError(ISO18013_5.ErrorCode.SESSION_TERMINATED)}
+              onPress={() => sendError(ErrorCode.SESSION_TERMINATED)}
             />
           </>
         )}

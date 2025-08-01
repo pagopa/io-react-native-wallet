@@ -8,6 +8,26 @@ import {
   RESULTS,
 } from "react-native-permissions";
 
+/**
+ * Alias type for AcceptedFields
+ */
+export type AcceptedFields = ISO18013_5.AcceptedFields;
+
+/**
+ * Alias type for EventsPayload
+ */
+export type EventsPayload = ISO18013_5.EventsPayload;
+
+/**
+ * Alias type for RequestedDocument
+ */
+export type RequestedDocument = ISO18013_5.RequestedDocument;
+
+/**
+ * Alias type for VerifierRequest
+ */
+export type VerifierRequest = ISO18013_5.VerifierRequest;
+
 export const WELL_KNOWN_CREDENTIALS = {
   mdl: "org.iso.18013.5.1.mDL",
   wia: "org.iso.18013.5.1.IT.WalletAttestation",
@@ -53,41 +73,35 @@ export const requestBlePermissions = async (): Promise<boolean> => {
   }
 };
 
+interface NestedBooleanMap {
+  [key: string]: boolean | NestedBooleanMap;
+}
+
+const acceptAllFields = <T extends NestedBooleanMap>(input: T): T =>
+  Object.entries(input).reduce((acc, [key, value]) => {
+    if (typeof value === "boolean") {
+      return { ...acc, [key]: true };
+    } else if (typeof value === "object" && value !== null) {
+      return { ...acc, [key]: acceptAllFields(value) };
+    } else {
+      return { ...acc, [key]: value };
+    }
+  }, {} as T);
+
 /**
  * This function generates the accepted fields for the VerifierRequest and sets each requested field to true.
- * It copies the content of the request object, removes the `isAuthenticated` field and sets all other fields to true
- * simulating the full acceptance of the request.
+ * It removes the `isAuthenticated` field and sets all other fields to true simulating the full acceptance of the request.
+ *
  * @param request - The request object containing the requested fields
  * @returns A new object representing the accepted fields, with each requested field set to true
  */
 export const generateAcceptedFields = (
-  request: ISO18013_5.VerifierRequest["request"]
-): ISO18013_5.AcceptedFields => {
-  // Cycle through the requested credentials
-  const result: ISO18013_5.AcceptedFields = {};
-  for (const credentialKey in request) {
-    const credential = request[credentialKey];
-    if (!credential) {
-      continue;
-    }
-
-    // Cycle through the requested namespaces and the isAuthenticated field
-    const namespaces: ISO18013_5.AcceptedFields["credential"] = {};
-    for (const namespaceKey in credential) {
-      // Skip the isAuthenticated field
-      if (!credential[namespaceKey] || namespaceKey === "isAuthenticated") {
-        continue;
-      }
-
-      // Cycle through the requested fields and set them to true
-      const fields: ISO18013_5.AcceptedFields["credential"]["namespace"] = {};
-      for (const fieldKey in credential[namespaceKey]!) {
-        fields[fieldKey] = true;
-      }
-      namespaces[namespaceKey] = fields;
-    }
-    result[credentialKey] = namespaces;
-  }
-
-  return result;
-};
+  request: VerifierRequest["request"]
+): AcceptedFields =>
+  Object.entries(request).reduce(
+    (acc, [docType, { _isAuthenticated, ...namespaces }]) => ({
+      ...acc,
+      [docType]: acceptAllFields(namespaces),
+    }),
+    {}
+  );
