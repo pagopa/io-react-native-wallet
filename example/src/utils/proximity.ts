@@ -99,7 +99,7 @@ export const generateAcceptedFields = (
   request: VerifierRequest["request"]
 ): AcceptedFields =>
   Object.entries(request).reduce(
-    (acc, [docType, { _isAuthenticated, ...namespaces }]) => ({
+    (acc, [docType, { isAuthenticated: _, ...namespaces }]) => ({
       ...acc,
       [docType]: acceptAllFields(namespaces),
     }),
