@@ -21,8 +21,7 @@ import { WIA_KEYTAG } from "../utils/crypto";
 import { QrCodeImage } from "../components/QrCodeImage";
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
-import { Trust } from "@pagopa/io-react-native-wallet";
-import appFetch from "../utils/fetch";
+import { getTrustAnchorX509Certificate } from "../utils/credential";
 
 const {
   ErrorCode,
@@ -266,15 +265,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * Start utility function to start the proximity flow.
    */
   const startFlow = useCallback(async () => {
-    const trustAnchorEntityConfig =
-      await Trust.Build.getTrustAnchorEntityConfiguration(WALLET_TA_BASE_URL, {
-        appFetch,
-      });
-
-    const x5c = trustAnchorEntityConfig.payload.jwks.keys[0]?.x5c;
-    if (!x5c) {
-      throw new Error("No suitable x5c found in Trust Anchor JWKS.");
-    }
+    const x5c = [await getTrustAnchorX509Certificate(WALLET_TA_BASE_URL)];
 
     setStatus(PROXIMITY_STATUS.STARTING);
     const hasPermission = await requestBlePermissions();

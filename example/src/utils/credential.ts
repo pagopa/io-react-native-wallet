@@ -301,7 +301,7 @@ export const getCredential = async ({
  * @param trustAnchorUrl The TA url
  * @returns The base64 encoded Trust Anchor's CA
  */
-const getTrustAnchorX509Certificate = async (trustAnchorUrl: string) => {
+export const getTrustAnchorX509Certificate = async (trustAnchorUrl: string) => {
   const trustAnchorEntityConfig =
     await Trust.Build.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
       appFetch,
