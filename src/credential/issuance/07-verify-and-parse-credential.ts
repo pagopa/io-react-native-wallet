@@ -188,16 +188,17 @@ const parseCredentialMDoc = (
   // and filter the non present ones
   const attrsNotInDisclosures = attrDefinitions.filter(
     ([attrDefNamespace, attrKey]) =>
-      flatNamespaces.some(
+      !flatNamespaces.some(
         ([namespace, claim]) =>
           attrDefNamespace === namespace && attrKey === claim
       )
   );
+
   if (attrsNotInDisclosures.length > 0) {
     const missing = attrsNotInDisclosures
       .map(([, attrKey]) => attrKey)
       .join(", ");
-    const received = Object.keys(Object.values(flatNamespaces));
+    const received = flatNamespaces.map(([, attrKey]) => attrKey).join(", ");
 
     if (!ignoreMissingAttributes) {
       throw new IoWalletError(
