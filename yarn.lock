@@ -2779,7 +2779,7 @@
     serve-static "^1.16.2"
     ws "^6.2.3"
 
-"@react-native/eslint-config@^0.78.3":
+"@react-native/eslint-config@0.78.3":
   version "0.78.3"
   resolved "https://registry.yarnpkg.com/@react-native/eslint-config/-/eslint-config-0.78.3.tgz#281b09c3519b444cca40e8d54da11afef2d70ca9"
   integrity sha512-YcJsVfOHLgA9OXTfHPV0dSSVhk9Ceu+WzNl8m3mBB8oejEdkjM9VBDrArg64AGCzdRLAMbgiUrWy7vI47yNbmQ==
