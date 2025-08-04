@@ -171,7 +171,7 @@ const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details[0]!;
 
  // Obtain the credential
-const { credential } = await Credential.Issuance.obtainCredential(
+const { credential, format } = await Credential.Issuance.obtainCredential(
   issuerConf,
   accessToken,
   clientId,
@@ -186,6 +186,10 @@ const { credential } = await Credential.Issuance.obtainCredential(
   }
 );
 
+// The certificate below is required to perform the `x5chain` validation of credentials in `mdoc` format.
+// In a real-world scenario, it must be obtained from the appropriate endpoint exposed by the Trust Anchor
+const mockX509CertRoot = format === "mso_mdoc" ? "base64encodedX509CertRoot" : undefined
+
 /*
  * Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
  * WARNING: includeUndefinedAttributes should not be set to true in production in order to get only claims explicitly declared by the issuer.
@@ -199,7 +203,8 @@ const { parsedCredential } =
       credentialCryptoContext, 
       ignoreMissingAttributes: true,
       includeUndefinedAttributes: false 
-    }
+    },
+    mockX509CertRoot
   );
 
 const credentialType =

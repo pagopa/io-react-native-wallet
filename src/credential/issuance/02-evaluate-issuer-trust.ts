@@ -27,6 +27,7 @@ export const evaluateIssuerTrust: EvaluateIssuerTrust = async (
 ) => {
   const issuerConf = await getCredentialIssuerEntityConfiguration(issuerUrl, {
     appFetch: context.appFetch,
-  }).then((_) => _.payload.metadata);
+  }).then(({ payload }) => payload.metadata);
+
   return { issuerConf };
 };

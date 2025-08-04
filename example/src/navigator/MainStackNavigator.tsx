@@ -29,6 +29,7 @@ import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
 import { selectLoggingAddress } from "../store/reducers/environment";
 import { initLogging } from "../utils/logging";
 import { PresentationScreen } from "../screens/PresentationScreen";
+import { ProximityScreen } from "../screens/ProximityScreen";
 import {
   QrScannerScreen,
   type QrScannerScreenParams,
@@ -58,6 +59,7 @@ export type MainStackNavParamList = {
   Presentations: undefined;
   Trust: undefined;
   QrScanner: QrScannerScreenParams;
+  Proximity: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -155,6 +157,11 @@ export const MainStackNavigator = () => {
               name="QrScanner"
               component={QrScannerScreen}
               options={{ title: "Scan QR" }}
+            />
+            <Stack.Screen
+              name="Proximity"
+              component={ProximityScreen}
+              options={{ title: "Proximity" }}
             />
             <Stack.Screen
               name="Trustmark"

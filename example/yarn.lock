@@ -2023,15 +2023,22 @@
     react-native-safe-area-context "^5.4.1"
     react-native-svg "^15.12.0"
 
-"@pagopa/io-react-native-crypto@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.2.tgz#b7e6494e7eb40f2116d2f839031a8ba89209054c"
-  integrity sha512-s2M3c+xjpLYFyPJ2pMu+aePuWMMEMTHr5pONUZ66w/S7o+QnbRMpDjz+qaB57eCB6pBcGGY+iLXxD/JEXTxfZQ==
+"@pagopa/io-react-native-crypto@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
+  integrity sha512-Pmzr3N8YiF0JS+sYAOxiBYeBXfJq13NfCc7sTQ+RnYuT9GqgOKOLrF6YeJdv1VZ/YyLg2IhH7dAYiWueSAwj8g==
 
 "@pagopa/io-react-native-integrity@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.3.1.tgz#4dc23b221452b4101ea7a5bf35aedbe2e5a3a5fe"
   integrity sha512-ZQP58OSLSus8LbFRa8jHtGo2BoR2Jn8lY1SirhBCfk9qo2qLcwRwanZ5T/tzO9inFOaTxPCvPu7uMdSdi8uRUQ==
+
+"@pagopa/io-react-native-iso18013@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-iso18013/-/io-react-native-iso18013-0.3.0.tgz#390927aa40602f0f4f16f2aabcb8689b5e331112"
+  integrity sha512-s9EWE5pYDRoziPBt5OJ6bDK8DD4Q2hDvIsPlTzWRlZ0Ah3vXF29lN8mVyQlVwuP1J4IOn/sl+IpdArM0ZEG3xg==
+  dependencies:
+    zod "^3.25.67"
 
 "@pagopa/io-react-native-jwt@^2.1.0":
   version "2.1.0"
@@ -6584,6 +6591,11 @@ react-is@^19.0.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.1.0.tgz#805bce321546b7e14c084989c77022351bbdd11b"
   integrity sha512-Oe56aUPnkHyyDxxkvqtd7KkdQP5uIUfHxd5XTb3wE9d/kRnZLmKbDB0GWk919tdQ+mxxPtG6EAs6RMT6i1qtHg==
 
+react-native-dialog@^9.3.0:
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-dialog/-/react-native-dialog-9.3.0.tgz#9d745cc51653a1e2ae08076b46f11d99723c47f6"
+  integrity sha512-JEOJY/0AzTM9grIl0BL8o/IJPIJru7k5MPj9POTE9RRezUEtgn0YSvCpTlBtG0obWgOdzg2otMz1OQvMXS0wMQ==
+
 react-native-dotenv@^3.4.11:
   version "3.4.11"
   resolved "https://registry.yarnpkg.com/react-native-dotenv/-/react-native-dotenv-3.4.11.tgz#2e6c4eabd55d5f1bf109b3dd9141dadf9c55cdd4"
@@ -6631,6 +6643,11 @@ react-native-logs@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/react-native-logs/-/react-native-logs-5.3.0.tgz#49ad1ec1fd37a5ef90280cc3e27e7233727fc921"
   integrity sha512-tq4S0JFy06ggu1D/udYeV80qPy5koURNNcKrVJmv0Hf3x44akysctaE4ARybD5Pv7MnFD8fP1VFhycSLjqXHQw==
+
+react-native-permissions@^5.4.2:
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-5.4.2.tgz#206c0e440cff2ce047514995457bd73a9924fd8b"
+  integrity sha512-XNMoG1fxrB9q73MLn/ZfTaP7pS8qPu0KWypbeFKVTvoR+JJ3O7uedMOTH/mts9bTG+GKhShOoZ+k0CR63q9jwA==
 
 react-native-qrcode-svg@^6.3.15:
   version "6.3.15"
@@ -7988,3 +8005,8 @@ zod@^3.22.4:
   version "3.23.8"
   resolved "https://registry.npmjs.org/zod/-/zod-3.23.8.tgz"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
+
+zod@^3.25.67:
+  version "3.25.76"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
+  integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
