@@ -2321,8 +2321,8 @@ SPEC CHECKSUMS:
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: e053802577a711add20e45bbbf5dd1180b6ca62e
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
-  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
-  hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
+  glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
+  hermes-engine: b5c9cfbe6415f1b0b24759f2942c8f33e9af6347
   IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
   IOWalletCBOR: 92742ef1cbd1b627ba153d0c7c11b81ad22f45cc
   IOWalletProximity: 1836d6b5df0a64a97e09f355d15d5155f086f830
@@ -2344,8 +2344,8 @@ SPEC CHECKSUMS:
   React-debug: aea2894f3f71697ec8724c11db9c46c1574b21e4
   React-defaultsnativemodule: 391d2f28b5fad78891708732b56ae0c1db595b42
   React-domnativemodule: c1f8f824e8db089ee156eaaa7a1d761056f18f0e
-  React-Fabric: 6feaccc9047573cb5ee51791aa2db50d42f9469a
-  React-FabricComponents: 41b83f13155ae661afb4cf6655ea3981ad4a018f
+  React-Fabric: 78341bcff6c16f217bc90ec9b3564b34bee273fc
+  React-FabricComponents: dedc2cdd013488f850f6f4c068498f2537de22e0
   React-FabricImage: 3a61d9accfe3760caab45da3de5e9c9c2b05de03
   React-featureflags: c6de2182d6065b3239245820347947e2c1309feb
   React-featureflagsnativemodule: 18962463abf78262276779587da44031d0bbc468
@@ -2396,7 +2396,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 62fdbd7e63312228d4868779026248c2677911e1
   RNCClipboard: ba9fda8e2c9f003a29f7f66793069c4d0dada955
   RNGestureHandler: bb8e7019e9d33e099f5408a566485ceef0323070
-  RNPermissions: 2a8090dd863dc7a545b4b28d3adeade533045a52
+  RNPermissions: 754c23a13969f5301f33d9dbb3975f3ba186dfaa
   RNReactNativeHapticFeedback: 66c6b0cf19f5d9dae8be36b2336e1fe2a2e42566
   RNReanimated: e023bfbfba9b0b4b85db6a64d2fa8e4996d6839b
   RNScreens: 0d4cb9afe052607ad0aa71f645a88bb7c7f2e64c
