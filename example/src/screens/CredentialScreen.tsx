@@ -129,7 +129,7 @@ export const CredentialScreen = () => {
         isLoading: edState.isLoading,
         hasError: edState.hasError,
         isDone: edState.isDone,
-        icon: "archive",
+        icon: "messageLegal",
         isPresent: !!ed,
       },
 
@@ -144,7 +144,7 @@ export const CredentialScreen = () => {
         isLoading: eeState.isLoading,
         hasError: eeState.hasError,
         isDone: eeState.isDone,
-        icon: "archive",
+        icon: "messageLegal",
         isPresent: !!ee,
       },
     ],
