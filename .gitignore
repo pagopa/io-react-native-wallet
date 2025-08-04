@@ -55,11 +55,10 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 
-# BUCK
-buck-out/
-\.buckd/
+# Andorid
 android/app/libs
 android/keystores/debug.keystore
+.kotlin/
 
 # Expo
 .expo/
