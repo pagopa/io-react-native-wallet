@@ -79,9 +79,6 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
   x509.readCertPEM(pemCert);
   const publicKey = x509.getPublicKey();
 
-  console.log("INSTANCE OF RSA", publicKey instanceof RSAKey);
-  console.log("INSTANCE OF ECDSA", publicKey instanceof KJUR.crypto.ECDSA);
-
   if (publicKey instanceof RSAKey || publicKey instanceof KJUR.crypto.ECDSA) {
     return {
       ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
