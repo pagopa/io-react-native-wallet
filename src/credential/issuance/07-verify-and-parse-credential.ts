@@ -64,6 +64,117 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
   sdJwt: SdJwt4VC;
 };
 
+// The data used to create localized names
+type DisplayData = { locale: string; name: string }[];
+
+// The resulting object of localized names { en: "Name", it: "Nome" }
+type LocalizedNames = Record<string, string>;
+
+// The core structure being built: a node containing the actual value and its localized names
+type PropertyNode<T> = {
+  value: T;
+  name: LocalizedNames;
+};
+
+// A path can consist of object keys, array indices, or null for mapping
+type Path = (string | number | null)[];
+
+// A union of all possible shapes. It can be a custom PropertyNode or a standard object/array structure
+type NodeOrStructure = Partial<PropertyNode<any>> | Record<string, any> | any[];
+
+// Helper to build localized names from the display data.
+const buildName = (display: DisplayData): LocalizedNames =>
+  display.reduce(
+    (names, { locale, name }) => ({ ...names, [locale]: name }),
+    {}
+  );
+
+/**
+ * Recursively constructs a nested object with descriptive properties from a path.
+ *
+ * @param currentObject - The object or array being built upon.
+ * @param path - The path segments to follow.
+ * @param sourceValue - The raw value to place at the end of the path.
+ * @param displayData - The data for generating localized names.
+ * @returns The new object or array structure.
+ */
+const createNestedProperty = (
+  currentObject: NodeOrStructure,
+  path: Path,
+  sourceValue: unknown, // Use `unknown` for type-safe input
+  displayData: DisplayData
+): NodeOrStructure => {
+  const [key, ...rest] = path;
+
+  // Case 1: Map over an array (key is null)
+  if (key === null) {
+    if (!Array.isArray(sourceValue)) return currentObject;
+
+    // We assert the type here because we know this branch handles PropertyNodes
+    const node = currentObject as Partial<PropertyNode<unknown[]>>;
+    const existingValue = Array.isArray(node.value) ? node.value : [];
+
+    const mappedArray = sourceValue.map((item, idx) =>
+      createNestedProperty(existingValue[idx] || {}, rest, item, displayData)
+    );
+
+    return {
+      ...node,
+      value: mappedArray,
+      name: node.name ?? buildName(displayData),
+    };
+  }
+
+  // Case 2: Handle an object key (key is a string)
+  if (typeof key === "string") {
+    const nextSourceValue =
+      typeof sourceValue === "object" &&
+      sourceValue !== null &&
+      !Array.isArray(sourceValue) &&
+      key in sourceValue
+        ? (sourceValue as Record<string, unknown>)[key]
+        : sourceValue;
+
+    // base case
+    if (rest.length === 0) {
+      return {
+        ...currentObject,
+        [key]: { value: nextSourceValue, name: buildName(displayData) },
+      };
+    }
+
+    // recursive step
+    const nextObject =
+      (currentObject as Record<string, NodeOrStructure>)[key] || {};
+
+    return {
+      ...currentObject,
+      [key]: createNestedProperty(
+        nextObject,
+        rest,
+        nextSourceValue,
+        displayData
+      ),
+    };
+  }
+
+  // Case 3: Handle a specific array index (key is a number)
+  if (typeof key === "number") {
+    const newArray = Array.isArray(currentObject) ? [...currentObject] : [];
+    const nextValue = Array.isArray(sourceValue) ? sourceValue[key] : undefined;
+
+    newArray[key] = createNestedProperty(
+      newArray[key] || {},
+      rest,
+      nextValue,
+      displayData
+    );
+    return newArray;
+  }
+
+  return currentObject;
+};
+
 const parseCredentialSdJwt = (
   // The credential configuration to use to parse the provided credential
   credentialConfig: CredentialConf,
@@ -72,7 +183,7 @@ const parseCredentialSdJwt = (
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
   if (credentialConfig.format !== sdJwt.header.typ) {
-    const message = `Received credential is of an unknwown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
+    const message = `Received credential is of an unknown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
     Logger.log(LogLevel.ERROR, message);
     throw new IoWalletError(message);
   }
@@ -81,55 +192,40 @@ const parseCredentialSdJwt = (
     Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
+
   const attrDefinitions = credentialConfig.claims;
 
-  // the key of the attribute defintion must match the disclosure's name
+  // Validate that all attributes from the config exist in the disclosures
   const attrsNotInDisclosures = attrDefinitions.filter(
-    (definition) => !disclosures.some(([, name]) => name === definition.path[0]) // Ignore nested paths for now, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-15.html#name-claims-path-pointer
+    (definition) => !disclosures.some(([, name]) => name === definition.path[0])
   );
-  if (attrsNotInDisclosures.length > 0) {
+
+  if (attrsNotInDisclosures.length > 0 && !ignoreMissingAttributes) {
     const missing = attrsNotInDisclosures.map((_) => _.path[0]).join(", ");
-    const received = disclosures.map((_) => _[1 /* name */]).join(", ");
-    if (!ignoreMissingAttributes) {
-      const message = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
-      Logger.log(LogLevel.ERROR, message);
-      throw new IoWalletError(message);
-    }
+    const received = disclosures.map((_) => _[1]).join(", ");
+    const message = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
   }
 
-  // attributes that are defined in the issuer configuration
-  // and are present in the disclosure set
-  const definedValues = Object.fromEntries(
-    attrDefinitions
-      // retrieve the value from the disclosure set
-      .map(
-        ({ path, ...definition }) =>
-          [
-            path[0],
-            {
-              ...definition,
-              value: disclosures.find(
-                (_) => _[1 /* name */] === path[0]
-              )?.[2 /* value */],
-            },
-          ] as const
-      )
-      // add a human readable attribute name, with i18n, in the form { locale: name }
-      // example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
-      .map(
-        ([attrKey, { display, ...definition }]) =>
-          [
-            attrKey,
-            {
-              ...definition,
-              name: display.reduce(
-                (names, { locale, name }) => ({ ...names, [locale]: name }),
-                {} as Record<string, string>
-              ),
-            },
-          ] as const
-      )
-  );
+  const definedValues: ParsedCredential = {};
+
+  for (const { path, display } of attrDefinitions) {
+    const attrKey = path[0];
+    const disclosureValue = disclosures.find(
+      ([, name]) => name === attrKey
+    )?.[2];
+
+    if (disclosureValue !== undefined) {
+      const enriched = createNestedProperty(
+        definedValues,
+        path,
+        disclosureValue,
+        display
+      );
+      Object.assign(definedValues, enriched);
+    }
+  }
 
   if (includeUndefinedAttributes) {
     // attributes that are in the disclosure set
@@ -139,6 +235,7 @@ const parseCredentialSdJwt = (
         .filter((_) => !Object.keys(definedValues).includes(_[1]))
         .map(([, key, value]) => [key, { value, name: key }])
     );
+
     return {
       ...definedValues,
       ...undefinedValues,
