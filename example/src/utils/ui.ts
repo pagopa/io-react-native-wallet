@@ -9,6 +9,8 @@ export const iconByCredentialType: Record<
   mso_mdoc_mDL: "car",
   dc_sd_jwt_EuropeanDisabilityCard: "accessibility",
   dc_sd_jwt_EuropeanHealthInsuranceCard: "healthCard",
+  dc_sd_jwt_education_degree: "messageLegal",
+  dc_sd_jwt_education_enrollment: "messageLegal",
 };
 
 export const labelByCredentialType: Record<
@@ -19,4 +21,6 @@ export const labelByCredentialType: Record<
   dc_sd_jwt_mDL: "MDL",
   dc_sd_jwt_EuropeanDisabilityCard: "DC",
   dc_sd_jwt_EuropeanHealthInsuranceCard: "TS",
+  dc_sd_jwt_education_degree: "ED",
+  dc_sd_jwt_education_enrollment: "EE",
 };

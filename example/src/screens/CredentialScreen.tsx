@@ -43,6 +43,16 @@ export const CredentialScreen = () => {
     selectCredential("dc_sd_jwt_EuropeanHealthInsuranceCard")
   );
 
+  const edState = useAppSelector(
+    selectCredentialAsyncStatus("dc_sd_jwt_education_degree")
+  );
+  const ed = useAppSelector(selectCredential("dc_sd_jwt_education_degree"));
+
+  const eeState = useAppSelector(
+    selectCredentialAsyncStatus("dc_sd_jwt_education_enrollment")
+  );
+  const ee = useAppSelector(selectCredential("dc_sd_jwt_education_enrollment"));
+
   useDebugInfo({
     sd_jwt_mdlState,
     sd_jwt_mdl,
@@ -52,6 +62,10 @@ export const CredentialScreen = () => {
     dc,
     tsState,
     ts,
+    edState,
+    ed,
+    eeState,
+    ee,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -104,24 +118,61 @@ export const CredentialScreen = () => {
         icon: "healthCard",
         isPresent: !!ts,
       },
+      {
+        title: "Get credential (Education degrees in SD-JWT)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({
+              credentialType: "dc_sd_jwt_education_degree",
+            })
+          ),
+        isLoading: edState.isLoading,
+        hasError: edState.hasError,
+        isDone: edState.isDone,
+        icon: "messageLegal",
+        isPresent: !!ed,
+      },
+
+      {
+        title: "Get credential (Education enrollment in SD-JWT)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({
+              credentialType: "dc_sd_jwt_education_enrollment",
+            })
+          ),
+        isLoading: eeState.isLoading,
+        hasError: eeState.hasError,
+        isDone: eeState.isDone,
+        icon: "messageLegal",
+        isPresent: !!ee,
+      },
     ],
     [
-      dc,
-      dcState.hasError,
-      dcState.isDone,
-      dcState.isLoading,
-      mdoc_mdl,
-      mdoc_mdlState.hasError,
-      mdoc_mdlState.isDone,
-      mdoc_mdlState.isLoading,
-      sd_jwt_mdl,
+      sd_jwt_mdlState.isLoading,
       sd_jwt_mdlState.hasError,
       sd_jwt_mdlState.isDone,
-      sd_jwt_mdlState.isLoading,
-      ts,
+      sd_jwt_mdl,
+      mdoc_mdlState.isLoading,
+      mdoc_mdlState.hasError,
+      mdoc_mdlState.isDone,
+      mdoc_mdl,
+      dcState.isLoading,
+      dcState.hasError,
+      dcState.isDone,
+      dc,
+      tsState.isLoading,
       tsState.hasError,
       tsState.isDone,
-      tsState.isLoading,
+      ts,
+      edState.isLoading,
+      edState.hasError,
+      edState.isDone,
+      ed,
+      eeState.isLoading,
+      eeState.hasError,
+      eeState.isDone,
+      ee,
       dispatch,
     ]
   );
