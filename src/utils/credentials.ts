@@ -7,7 +7,7 @@ import { IoWalletError } from "./errors";
 import {
   LEGACY_SD_JWT,
   type SupportedSdJwtLegacyFormat,
-} from "src/sd-jwt/types";
+} from "../sd-jwt/types";
 
 const SD_JWT = ["dc+sd-jwt", LEGACY_SD_JWT];
 
