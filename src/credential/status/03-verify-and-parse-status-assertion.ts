@@ -17,12 +17,13 @@ import { Logger, LogLevel } from "../../utils/logging";
 import type { ObtainCredential } from "../issuance";
 import { extractJwkFromCredential } from "../../utils/credentials";
 import { isSameThumbprint } from "../../utils/jwk";
+import type { SupportedSdJwtLegacyFormat } from "../../sd-jwt/types";
 
 export type VerifyAndParseStatusAssertion = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   statusAssertion: Out<StatusAssertion>,
   credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"]
+  format: Out<ObtainCredential>["format"] | SupportedSdJwtLegacyFormat
 ) => Promise<{ parsedStatusAssertion: ParsedStatusAssertion }>;
 
 /**

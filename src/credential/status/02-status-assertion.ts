@@ -15,11 +15,12 @@ import {
 } from "../../utils/errors";
 import { Logger, LogLevel } from "../../utils/logging";
 import { extractJwkFromCredential } from "../../utils/credentials";
+import type { SupportedSdJwtLegacyFormat } from "../../sd-jwt/types";
 
 export type StatusAssertion = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"],
+  format: Out<ObtainCredential>["format"] | SupportedSdJwtLegacyFormat,
   context: {
     credentialCryptoContext: CryptoContext;
     wiaCryptoContext: CryptoContext;

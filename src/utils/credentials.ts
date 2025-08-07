@@ -4,8 +4,12 @@ import type { Out } from "./misc";
 import type { ObtainCredential } from "../credential/issuance";
 import type { JWK } from "./jwk";
 import { IoWalletError } from "./errors";
+import {
+  LEGACY_SD_JWT,
+  type SupportedSdJwtLegacyFormat,
+} from "../sd-jwt/types";
 
-const SD_JWT = ["vc+sd-jwt", "dc+sd-jwt"];
+const SD_JWT = ["dc+sd-jwt", LEGACY_SD_JWT];
 
 /**
  * Extracts a JWK from a credential.
@@ -15,7 +19,7 @@ const SD_JWT = ["vc+sd-jwt", "dc+sd-jwt"];
  */
 export const extractJwkFromCredential = async (
   credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"]
+  format: Out<ObtainCredential>["format"] | SupportedSdJwtLegacyFormat
 ): Promise<JWK> => {
   if (SD_JWT.includes(format)) {
     // 1. SD-JWT case
