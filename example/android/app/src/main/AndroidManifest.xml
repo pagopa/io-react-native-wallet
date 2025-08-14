@@ -5,6 +5,9 @@
             <data android:scheme="https" android:host="*" />
         </intent>
     </queries>
+    <!-- Required to access NFC hardware -->
+    <uses-permission android:name="android.permission.NFC" />
+    <!-- Required for authentication process -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Required for Bluetooth on Android >=12 or SDK >=31 -->
