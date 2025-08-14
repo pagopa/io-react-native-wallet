@@ -1,7 +1,14 @@
-import { H2 } from "@pagopa/io-app-design-system";
+import { H2, H3 } from "@pagopa/io-app-design-system";
 import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Modal, SafeAreaView, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   pidCiel3FlowReset,
   selectPidFlowParams,
@@ -32,6 +39,7 @@ export const useCie = (idpHint: string) => {
     setModalText(undefined);
     setAuthorizationUrl(undefined);
     dispatch(pidCiel3FlowReset());
+    CieManager.stopReading();
   }, [dispatch]);
 
   const handleOnError = useCallback(
@@ -108,6 +116,11 @@ export const useCie = (idpHint: string) => {
     dispatch(continuePidFlowThunk({ authRedirectUrl }));
   };
 
+  const handleCloseModal = () => {
+    Alert.alert(`❌ Modal closed`);
+    resetState();
+  };
+
   const components = (
     <>
       <CiePinDialog
@@ -133,6 +146,9 @@ export const useCie = (idpHint: string) => {
         <SafeAreaView>
           <View style={styles.modal}>
             {modalText && <H2 style={styles.modalText}>{modalText}</H2>}
+            <TouchableOpacity onPress={handleCloseModal}>
+              <H3 style={styles.modalText}>Press to close</H3>
+            </TouchableOpacity>
           </View>
           {authorizationUrl && (
             <View style={StyleSheet.absoluteFillObject}>
@@ -176,6 +192,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignContent: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    gap: 16,
   },
   modalText: {
     marginTop: 64,
