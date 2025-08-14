@@ -23,7 +23,34 @@ import { CieAuthorizationWebview } from "./CieAuthorizationWebView";
 import { CiePinDialog } from "./CiePinDialog";
 import type { CieWebViewError } from "./CieWebView";
 
-export const useCie = (idpHint: string) => {
+type UseCie = (
+  /**
+   * IDP hint for the authentication flow.
+   * This is used to prepare the PID flow parameters.
+   */
+  idpHint: string
+) => {
+  /**
+   * Components required to render the CIE flow instructions and webview.
+   * This includes the PIN input dialog, the CIE authentication webview,
+   * and the modal for displaying progress and errors.
+   */
+  components: JSX.Element;
+  /**
+   * Function to start the CIE identification process.
+   * It resets the state and shows the PIN input dialog.
+   */
+  startCieIdentification: () => void;
+};
+
+/**
+ * Custom hook to manage the CIE authentication flow.
+ * It handles NFC reading, PIN input, and webview interactions.
+ * @param idpHint The IDP hint for the authentication flow.
+ * @returns An object containing components for rendering the CIE flow
+ * and a function to start the CIE identification process.
+ */
+export const useCie: UseCie = (idpHint) => {
   const dispatch = useAppDispatch();
   const pidFlowParams = useAppSelector(selectPidFlowParams);
 
