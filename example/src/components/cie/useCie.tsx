@@ -37,7 +37,7 @@ export const useCie = (idpHint: string) => {
   const handleOnError = useCallback(
     (error: NfcError | CieWebViewError) => {
       resetState();
-      Alert.alert(`❌ ${JSON.stringify(error)}`);
+      Alert.alert(`❌ Error`, `${JSON.stringify(error)}`);
     },
     [resetState]
   );
@@ -46,6 +46,7 @@ export const useCie = (idpHint: string) => {
     const cleanup = [
       // Start listening for NFC events
       CieManager.addListener("onEvent", (event) => {
+        console.log("CIE event:", event);
         setModalText(
           "I'm reading the CIE. Do not remove it from the device\n" +
             getProgressEmojis(event.progress)
@@ -57,7 +58,7 @@ export const useCie = (idpHint: string) => {
       }),
       // Start listening for success
       CieManager.addListener("onSuccess", (url) => {
-        setModalText(undefined);
+        setModalText("Continue to the webview");
         setAuthorizationUrl(url);
       }),
     ];
@@ -133,14 +134,16 @@ export const useCie = (idpHint: string) => {
           <View style={styles.modal}>
             {modalText && <H2 style={styles.modalText}>{modalText}</H2>}
           </View>
+          {authorizationUrl && (
+            <View style={StyleSheet.absoluteFillObject}>
+              <CieAuthorizationWebview
+                authorizationUrl={authorizationUrl}
+                onAuthComplete={handleAuthenticationComplete}
+                onError={handleOnError}
+              />
+            </View>
+          )}
         </SafeAreaView>
-        {authorizationUrl && (
-          <CieAuthorizationWebview
-            authorizationUrl={authorizationUrl}
-            onAuthComplete={handleAuthenticationComplete}
-            onError={handleOnError}
-          />
-        )}
       </Modal>
     </>
   );
@@ -169,13 +172,14 @@ export const getProgressEmojis = (progress: number) => {
 
 const styles = StyleSheet.create({
   modal: {
-    margin: 24,
-    justifyContent: "center",
+    height: "100%",
     alignItems: "center",
     alignContent: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalText: {
+    marginTop: 64,
+    marginHorizontal: 24,
     textAlign: "center",
     backgroundColor: "red",
   },
