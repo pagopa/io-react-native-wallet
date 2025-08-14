@@ -1,4 +1,14 @@
-import { CieEvent, WebViewComponent } from "./component";
-import { CieError, CieErrorType } from "./error";
+import { CiePinDialog } from "./CiePinDialog";
+import { CieAuthenticationWebview } from "./CieAuthenticationWebView";
+import { CieAuthorizationWebview } from "./CieAuthorizationWebView";
+import { useCie } from "./useCie";
 
-export { WebViewComponent, CieError, CieErrorType, CieEvent };
+import type { CieWebViewError } from "./CieWebView";
+
+export {
+  useCie,
+  CiePinDialog,
+  CieAuthenticationWebview,
+  CieAuthorizationWebview,
+  type CieWebViewError,
+};
