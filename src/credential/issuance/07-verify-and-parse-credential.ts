@@ -131,7 +131,7 @@ const createNestedProperty = (
 
     if (isObject(sourceValue)) {
       // Skip processing when the key is not found within the claim object
-      if (!sourceValue[key]) return currentObject;
+      if (!(key in sourceValue)) return currentObject;
 
       nextSourceValue = sourceValue[key];
     }
