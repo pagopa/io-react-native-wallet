@@ -1,5 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { Out } from "../../utils/misc";
+import { isObject, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
@@ -127,13 +127,14 @@ const createNestedProperty = (
 
   // Case 2: Handle an object key (key is a string)
   if (typeof key === "string") {
-    const nextSourceValue =
-      typeof sourceValue === "object" &&
-      sourceValue !== null &&
-      !Array.isArray(sourceValue) &&
-      key in sourceValue
-        ? (sourceValue as Record<string, unknown>)[key]
-        : sourceValue;
+    let nextSourceValue = sourceValue;
+
+    if (isObject(sourceValue)) {
+      // Skip processing when the key is not found within the claim object
+      if (!(key in sourceValue)) return currentObject;
+
+      nextSourceValue = sourceValue[key];
+    }
 
     // base case
     if (rest.length === 0) {
