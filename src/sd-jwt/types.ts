@@ -21,6 +21,13 @@ export const Disclosure = z.tuple([
 ]);
 
 /**
+ * For backward compatibility reasons it is still necessary to support the legacy SD-JWT
+ * in a few flows (for instance status assertion and presentation of the old eID).
+ */
+export type SupportedSdJwtLegacyFormat = typeof LEGACY_SD_JWT;
+export const LEGACY_SD_JWT = "vc+sd-jwt";
+
+/**
  * Encoding depends on the serialization algorithm used when generating the disclosure tokens.
  * The SD-JWT reference itself take no decision about how to handle whitespaces in serialized objects.
  * For such reason, we may find conveninent to have encoded and decode values stored explicitly in the same structure.
@@ -44,7 +51,7 @@ const StatusAssertion = z.object({
 export type SdJwt4VC = z.infer<typeof SdJwt4VC>;
 export const SdJwt4VC = z.object({
   header: z.object({
-    typ: z.enum(["vc+sd-jwt", "dc+sd-jwt"]),
+    typ: z.enum(["dc+sd-jwt", LEGACY_SD_JWT]),
     alg: z.string(),
     kid: z.string(),
     trust_chain: z.array(z.string()).optional(),
@@ -62,7 +69,7 @@ export const SdJwt4VC = z.object({
         .union([
           // Credentials v1.0
           z.object({ status_assertion: StatusAssertion }),
-          // Credentials v0.7.1
+          // Legacy credentials v0.7.1
           z.object({ status_attestation: StatusAssertion }),
         ])
         .optional(),
