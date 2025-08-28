@@ -106,21 +106,9 @@ const presentationSlice = createSlice({
 export const { presentationReset } = presentationSlice.actions;
 
 /**
- * Configuration for the presentation slice to be persisted in the Redux store.
- * Only the keyTag is persisted to avoid regenerating the wallet presentation at each app launch.
- */
-const persistConfig: PersistConfig<PresentationState> = {
-  key: "presentation",
-  storage: AsyncStorage,
-};
-
-/**
  * Persisted reducer for the presentation slice.
  */
-export const presentationReducer = persistReducer(
-  persistConfig,
-  presentationSlice.reducer
-);
+export const presentationReducer = presentationSlice.reducer;
 
 /**
  * Selects the presentation state from the root state.
