@@ -130,10 +130,17 @@ const createNestedProperty = (
     let nextSourceValue = sourceValue;
 
     if (isObject(sourceValue)) {
-      // Skip processing when the key is not found within the claim object
-      if (!(key in sourceValue)) return currentObject;
+      // Check if current key exists in sourceValue
+      const hasKey = key in sourceValue;
+      // Check if any remaining string keys in the path exist in current sourceValue
+      // This handles nested object paths (unlike arrays which use null in the path)
+      const hasRestKey = rest.some(
+        (r) => typeof r === "string" && r in sourceValue
+      );
 
-      nextSourceValue = sourceValue[key];
+      // Skip processing if neither current key nor any future keys exist in the claim object
+      if (!hasKey && !hasRestKey) return currentObject;
+      if (hasKey) nextSourceValue = sourceValue[key];
     }
 
     // base case

@@ -1,6 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { CredentialIssuerEntityConfiguration } from "../../../trust/types";
-import { education_degree, mdl, pid } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { education_degree, mdl, pid, residency } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { verifyAndParseCredential } from "..";
 
 type IssuerConf = CredentialIssuerEntityConfiguration["payload"]["metadata"];
@@ -593,5 +593,173 @@ describe("verifyAndParseCredential", () => {
         name: { "it-IT": "Codici", "en-US": "Driving privileges" },
       },
     });
+  });
+
+  it("verifies and parses a credential with nested object attributes (residency)", async () => {
+    const residencyCryptoContext: CryptoContext = {
+      getPublicKey: async () => ({
+        kty: "EC",
+        crv: "P-256",
+        kid: "vUFSDAlxDSRvRvsGHsqw_2Mi9Ftkxnoqy4fp9vwN1EI",
+        x: "vmYlfIy-_sVEai7IIgo1JPNja6zPq9bGNw0YFrcwT80",
+        y: "ZowTYQQCB42ioO0l_NEFG42VmGunfM-p1pgTVFFAi28",
+      }),
+      getSignature: async () => "",
+    };
+
+    const mockIssuerConfWithNested: IssuerConf = {
+      ...mockIssuerConf,
+      openid_credential_issuer: {
+        ...mockIssuerConf.openid_credential_issuer,
+        jwks: {
+          keys: [
+            {
+              kty: "EC",
+              use: "sig",
+              crv: "P-256",
+              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+              alg: "ES256",
+            },
+          ],
+        },
+        credential_configurations_supported: {
+          ...mockIssuerConf.openid_credential_issuer
+            .credential_configurations_supported,
+          dc_sd_jwt_residency: {
+            format: "dc+sd-jwt",
+            vct: "https://issuer.example.com/MyCredential",
+            scope: "Residency",
+            claims: [
+              {
+                path: ["tax_id_code"],
+                display: [
+                  { locale: "it-IT", name: "Codice Fiscale" },
+                  { locale: "en-US", name: "Tax id code" },
+                ],
+              },
+              {
+                path: ["personal_administrative_number"],
+                display: [
+                  { locale: "it-IT", name: "ID ANPR" },
+                  { locale: "en-US", name: "Personal Administrative Number" },
+                ],
+              },
+              {
+                path: ["birth_date"],
+                display: [
+                  { locale: "it-IT", name: "Data di nascita" },
+                  { locale: "en-US", name: "Date of birth" },
+                ],
+              },
+              {
+                path: ["address"],
+                display: [
+                  { locale: "it-IT", name: "Indirizzo" },
+                  { locale: "en-US", name: "Address" },
+                ],
+              },
+              {
+                path: ["address", "locality"],
+                display: [
+                  { locale: "it-IT", name: "Località" },
+                  { locale: "en-US", name: "Locality" },
+                ],
+              },
+              {
+                path: ["address", "locality_fraction"],
+                display: [
+                  { locale: "it-IT", name: "Frazione" },
+                  { locale: "en-US", name: "Locality fraction" },
+                ],
+              },
+              {
+                path: ["address", "region"],
+                display: [
+                  { locale: "it-IT", name: "Regione" },
+                  { locale: "en-US", name: "Region" },
+                ],
+              },
+              {
+                path: ["address", "postal_code"],
+                display: [
+                  { locale: "it-IT", name: "CAP" },
+                  { locale: "en-US", name: "Postal Code" },
+                ],
+              },
+              {
+                path: ["address", "country"],
+                display: [
+                  { locale: "it-IT", name: "Paese" },
+                  { locale: "en-US", name: "Country" },
+                ],
+              },
+            ],
+            display: [],
+            credential_signing_alg_values_supported: ["ES256"],
+            cryptographic_binding_methods_supported: [],
+          },
+        },
+      },
+    };
+
+    const result = await verifyAndParseCredential(
+      mockIssuerConfWithNested,
+      residency,
+      "dc_sd_jwt_residency",
+      {
+        credentialCryptoContext: residencyCryptoContext,
+      }
+    );
+
+    expect(result.parsedCredential).toEqual(
+      expect.objectContaining({
+        tax_id_code: {
+          value: "LVLDAA85T50G702B",
+          name: {
+            "it-IT": "Codice Fiscale",
+            "en-US": "Tax id code",
+          },
+        },
+        personal_administrative_number: {
+          value: "JF97265AX",
+          name: {
+            "it-IT": "ID ANPR",
+            "en-US": "Personal Administrative Number",
+          },
+        },
+        birth_date: {
+          value: "1956-09-02",
+          name: {
+            "it-IT": "Data di nascita",
+            "en-US": "Date of birth",
+          },
+        },
+        address: expect.objectContaining({
+          locality: {
+            value: "PAVULLO NEL FRIGNANO",
+            name: {
+              "it-IT": "Località",
+              "en-US": "Locality",
+            },
+          },
+          region: {
+            value: "MO",
+            name: {
+              "it-IT": "Regione",
+              "en-US": "Region",
+            },
+          },
+          postal_code: {
+            value: "00100",
+            name: {
+              "it-IT": "CAP",
+              "en-US": "Postal Code",
+            },
+          },
+        }),
+      })
+    );
   });
 });
