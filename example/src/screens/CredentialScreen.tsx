@@ -72,7 +72,7 @@ export const CredentialScreen = () => {
     eeState,
     ee,
     resState,
-    res
+    res,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -166,7 +166,7 @@ export const CredentialScreen = () => {
         isDone: resState.isDone,
         icon: "messageLegal",
         isPresent: !!res,
-      }
+      },
     ],
     [
       sd_jwt_mdlState.isLoading,

@@ -1,6 +1,11 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { CredentialIssuerEntityConfiguration } from "../../../trust/types";
-import { education_degree, mdl, pid, residency } from "../../../sd-jwt/__mocks__/sd-jwt";
+import {
+  education_degree,
+  mdl,
+  pid,
+  residency,
+} from "../../../sd-jwt/__mocks__/sd-jwt";
 import { verifyAndParseCredential } from "..";
 
 type IssuerConf = CredentialIssuerEntityConfiguration["payload"]["metadata"];
