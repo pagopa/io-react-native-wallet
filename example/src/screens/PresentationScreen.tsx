@@ -30,7 +30,7 @@ export const PresentationScreen = () => {
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
-        title: "PID Remote Cross-Device",
+        title: "Remote Cross-Device",
         onPress: () =>
           navigation.navigate("QrScanner", {
             presentationBehavior: "acceptanceState",
@@ -41,7 +41,7 @@ export const PresentationScreen = () => {
         icon: "device",
       },
       {
-        title: "PID Remote Cross-Device (Refuse)",
+        title: "Remote Cross-Device (Refuse)",
         onPress: () =>
           navigation.navigate("QrScanner", {
             presentationBehavior: "refusalState",

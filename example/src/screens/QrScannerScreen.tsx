@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Text, View, Alert, StyleSheet } from "react-native";
 import {
   Camera,
@@ -23,6 +23,8 @@ export const QrScannerScreen = ({ route }: Props) => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState(false);
+  const hasScanned = useRef(false);
+  const [isActive, setIsActive] = useState(true);
 
   const device = useCameraDevice("back");
 
@@ -43,13 +45,18 @@ export const QrScannerScreen = ({ route }: Props) => {
   const codeScanner = useCodeScanner({
     codeTypes: ["qr", "ean-13"],
     onCodeScanned: (codes) => {
+      setIsActive(false);
+      if (hasScanned.current) {
+        // This guards from multiple scans
+        return;
+      }
+      hasScanned.current = true;
       dispatch(
         remoteCrossDevicePresentationThunk({
           qrcode: codes[0]?.value || "",
           allowed: presentationBehavior,
         })
       );
-
       navigation.goBack();
     },
   });
@@ -68,7 +75,7 @@ export const QrScannerScreen = ({ route }: Props) => {
         <Camera
           style={style.camera}
           device={device}
-          isActive={true} // optionally disable camera after scanning
+          isActive={isActive}
           codeScanner={codeScanner}
           audio={false}
         />
