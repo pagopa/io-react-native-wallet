@@ -1,8 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import { remoteCrossDevicePresentationThunk as remoteCrossDevicePresentationThunk } from "../../thunks/presentation";
-import { persistReducer, type PersistConfig } from "redux-persist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
 import type { RootState, AsyncStatus } from "../types";
 import { sessionReset } from "./sesssion";
