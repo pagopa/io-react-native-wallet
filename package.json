@@ -77,8 +77,8 @@
     "typescript": "5.0.4"
   },
   "peerDependencies": {
-    "@pagopa/io-react-native-iso18013": "*",
     "@pagopa/io-react-native-crypto": "*",
+    "@pagopa/io-react-native-iso18013": "*",
     "@pagopa/io-react-native-jwt": "*",
     "react": "*",
     "react-native": "*"
