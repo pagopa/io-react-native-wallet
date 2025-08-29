@@ -138,30 +138,32 @@ const createNestedProperty = (
         (r) => typeof r === "string" && r in sourceValue
       );
 
+      // Get or initialize the node corresponding to the current key
+      const node = (currentObject as Record<string, PropertyNode<unknown>>)[
+        key
+      ] ?? {
+        value: {},
+        name: buildName(displayData),
+      };
+
       // If there are no more keys in the path and the current key does not exist in the source
       // we create a node with an empty `value` object and a `name` with display data
       if (rest.length === 0 && !hasKey) {
         return {
           ...currentObject,
-          [key]: { value: {}, name: buildName(displayData) },
+          [key]: node,
         };
       }
 
       // If there is exactly one key left in the path and the next key exists in the source
       // we recursively insert the nested property inside the existing node
       if (rest.length === 1 && hasRestKey) {
-        const node = currentObject as Record<string, PropertyNode<unknown>>;
-        const existingKeyNode = node[key] ?? {
-          value: {},
-          name: buildName(displayData),
-        };
-
         return {
           ...currentObject,
           [key]: {
-            ...existingKeyNode,
+            ...node,
             value: createNestedProperty(
-              existingKeyNode.value || {},
+              node.value || {},
               rest,
               nextSourceValue,
               displayData
