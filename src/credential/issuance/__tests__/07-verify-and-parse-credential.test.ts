@@ -741,29 +741,35 @@ describe("verifyAndParseCredential", () => {
             "en-US": "Date of birth",
           },
         },
-        address: expect.objectContaining({
-          locality: {
-            value: "PAVULLO NEL FRIGNANO",
-            name: {
-              "it-IT": "Località",
-              "en-US": "Locality",
+        address: {
+          value: expect.objectContaining({
+            locality: {
+              value: "PAVULLO NEL FRIGNANO",
+              name: {
+                "it-IT": "Località",
+                "en-US": "Locality",
+              },
             },
-          },
-          region: {
-            value: "MO",
-            name: {
-              "it-IT": "Regione",
-              "en-US": "Region",
+            region: {
+              value: "MO",
+              name: {
+                "it-IT": "Regione",
+                "en-US": "Region",
+              },
             },
-          },
-          postal_code: {
-            value: "00100",
-            name: {
-              "it-IT": "CAP",
-              "en-US": "Postal Code",
+            postal_code: {
+              value: "00100",
+              name: {
+                "it-IT": "CAP",
+                "en-US": "Postal Code",
+              },
             },
+          }),
+          name: {
+            "it-IT": "Indirizzo",
+            "en-US": "Address",
           },
-        }),
+        },
       })
     );
   });
