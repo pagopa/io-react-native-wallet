@@ -130,10 +130,51 @@ const createNestedProperty = (
     let nextSourceValue = sourceValue;
 
     if (isObject(sourceValue)) {
-      // Skip processing when the key is not found within the claim object
-      if (!(key in sourceValue)) return currentObject;
+      // Check if current key exists in sourceValue
+      const hasKey = key in sourceValue;
+      // Check if any remaining string keys in the path exist in current sourceValue
+      // This handles nested object paths (unlike arrays which use null in the path)
+      const hasRestKey = rest.some(
+        (r) => typeof r === "string" && r in sourceValue
+      );
 
-      nextSourceValue = sourceValue[key];
+      // Get or initialize the node corresponding to the current key
+      const node = (currentObject as Record<string, PropertyNode<unknown>>)[
+        key
+      ] ?? {
+        value: {},
+        name: buildName(displayData),
+      };
+
+      // If there are no more keys in the path and the current key does not exist in the source
+      // we create a node with an empty `value` object and a `name` with display data
+      if (rest.length === 0 && !hasKey) {
+        return {
+          ...currentObject,
+          [key]: node,
+        };
+      }
+
+      // If there is exactly one key left in the path and the next key exists in the source
+      // we recursively insert the nested property inside the existing node
+      if (rest.length === 1 && hasRestKey) {
+        return {
+          ...currentObject,
+          [key]: {
+            ...node,
+            value: createNestedProperty(
+              node.value || {},
+              rest,
+              nextSourceValue,
+              displayData
+            ),
+          },
+        };
+      }
+
+      // Skip processing if neither current key nor any future keys exist in the claim object
+      if (!hasKey && !hasRestKey) return currentObject;
+      if (hasKey) nextSourceValue = sourceValue[key];
     }
 
     // base case
