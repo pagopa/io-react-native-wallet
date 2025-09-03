@@ -244,7 +244,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       issuerConf,
       credential,
       credential_configuration_id,
-      { credentialCryptoContext }
+      { credentialCryptoContext, ignoreMissingAttributes: true }
     );
 
   return {
