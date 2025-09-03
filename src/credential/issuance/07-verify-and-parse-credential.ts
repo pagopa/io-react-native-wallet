@@ -1,5 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { isObject, type Out } from "../../utils/misc";
+import { type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
@@ -13,6 +13,7 @@ import { LogLevel, Logger } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
+import { createNestedProperty } from "../../utils/nestedProperty";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
 type CredentialConf =
@@ -62,159 +63,6 @@ type ParsedCredential = {
 // handy alias
 type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
   sdJwt: SdJwt4VC;
-};
-
-// The data used to create localized names
-type DisplayData = { locale: string; name: string }[];
-
-// The resulting object of localized names { en: "Name", it: "Nome" }
-type LocalizedNames = Record<string, string>;
-
-// The core structure being built: a node containing the actual value and its localized names
-type PropertyNode<T> = {
-  value: T;
-  name: LocalizedNames;
-};
-
-// A path can consist of object keys, array indices, or null for mapping
-type Path = (string | number | null)[];
-
-// A union of all possible shapes. It can be a custom PropertyNode or a standard object/array structure
-type NodeOrStructure = Partial<PropertyNode<any>> | Record<string, any> | any[];
-
-// Helper to build localized names from the display data.
-const buildName = (display: DisplayData): LocalizedNames =>
-  display.reduce(
-    (names, { locale, name }) => ({ ...names, [locale]: name }),
-    {}
-  );
-
-/**
- * Recursively constructs a nested object with descriptive properties from a path.
- *
- * @param currentObject - The object or array being built upon.
- * @param path - The path segments to follow.
- * @param sourceValue - The raw value to place at the end of the path.
- * @param displayData - The data for generating localized names.
- * @returns The new object or array structure.
- */
-const createNestedProperty = (
-  currentObject: NodeOrStructure,
-  path: Path,
-  sourceValue: unknown, // Use `unknown` for type-safe input
-  displayData: DisplayData
-): NodeOrStructure => {
-  const [key, ...rest] = path;
-
-  // Case 1: Map over an array (key is null)
-  if (key === null) {
-    if (!Array.isArray(sourceValue)) return currentObject;
-
-    // We assert the type here because we know this branch handles PropertyNodes
-    const node = currentObject as Partial<PropertyNode<unknown[]>>;
-    const existingValue = Array.isArray(node.value) ? node.value : [];
-
-    const mappedArray = sourceValue.map((item, idx) =>
-      createNestedProperty(existingValue[idx] || {}, rest, item, displayData)
-    );
-
-    return {
-      ...node,
-      value: mappedArray,
-      name: node.name ?? buildName(displayData),
-    };
-  }
-
-  // Case 2: Handle an object key (key is a string)
-  if (typeof key === "string") {
-    let nextSourceValue = sourceValue;
-
-    if (isObject(sourceValue)) {
-      // Check if current key exists in sourceValue
-      const hasKey = key in sourceValue;
-      // Check if any remaining string keys in the path exist in current sourceValue
-      // This handles nested object paths (unlike arrays which use null in the path)
-      const hasRestKey = rest.some(
-        (r) => typeof r === "string" && r in sourceValue
-      );
-
-      // Get or initialize the node corresponding to the current key
-      const node = (currentObject as Record<string, PropertyNode<unknown>>)[
-        key
-      ] ?? {
-        value: {},
-        name: buildName(displayData),
-      };
-
-      // If there are no more keys in the path and the current key does not exist in the source
-      // we create a node with an empty `value` object and a `name` with display data
-      if (rest.length === 0 && !hasKey) {
-        return {
-          ...currentObject,
-          [key]: node,
-        };
-      }
-
-      // If there is exactly one key left in the path and the next key exists in the source
-      // we recursively insert the nested property inside the existing node
-      if (rest.length === 1 && hasRestKey) {
-        return {
-          ...currentObject,
-          [key]: {
-            ...node,
-            value: createNestedProperty(
-              node.value || {},
-              rest,
-              nextSourceValue,
-              displayData
-            ),
-          },
-        };
-      }
-
-      // Skip processing if neither current key nor any future keys exist in the claim object
-      if (!hasKey && !hasRestKey) return currentObject;
-      if (hasKey) nextSourceValue = sourceValue[key];
-    }
-
-    // base case
-    if (rest.length === 0) {
-      return {
-        ...currentObject,
-        [key]: { value: nextSourceValue, name: buildName(displayData) },
-      };
-    }
-
-    // recursive step
-    const nextObject =
-      (currentObject as Record<string, NodeOrStructure>)[key] || {};
-
-    return {
-      ...currentObject,
-      [key]: createNestedProperty(
-        nextObject,
-        rest,
-        nextSourceValue,
-        displayData
-      ),
-    };
-  }
-
-  // Case 3: Handle a specific array index (key is a number)
-  if (typeof key === "number") {
-    const newArray = Array.isArray(currentObject) ? [...currentObject] : [];
-    const nextValue = Array.isArray(sourceValue) ? sourceValue[key] : undefined;
-
-    newArray[key] = createNestedProperty(
-      newArray[key] || {},
-      rest,
-      nextValue,
-      displayData
-    );
-    return newArray;
-  }
-
-  return currentObject;
 };
 
 const parseCredentialSdJwt = (
