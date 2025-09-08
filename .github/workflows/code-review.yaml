@@ -16,18 +16,16 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
         with:
           fetch-depth: 2
 
-      - id: enable-corepack
-        shell: bash
-        run: corepack enable
-
-      - id: setup-node
-        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
+          cache: "yarn"
+          registry-url: "https://registry.npmjs.org/"
           node-version-file: ".node-version"
 
       - name: Install dependencies
