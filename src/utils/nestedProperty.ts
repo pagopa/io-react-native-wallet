@@ -68,13 +68,7 @@ const handleStringKeyCase = (
     );
 
     if (hasRestKey) {
-      return handleRestKey(
-        currentObject,
-        key,
-        rest,
-        sourceValue,
-        displayData
-      );
+      return handleRestKey(currentObject, key, rest, sourceValue, displayData);
     }
 
     // Skip processing when the key is not found within the claim object
