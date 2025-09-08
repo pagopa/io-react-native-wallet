@@ -58,57 +58,43 @@ const handleStringKeyCase = (
   displayData: DisplayData
 ): NodeOrStructure => {
   let nextSourceValue = sourceValue;
+  const isLeaf = rest.length === 0;
 
   if (isObject(sourceValue)) {
-    // Check if current key exists in sourceValue
-    const hasKey = key in sourceValue;
     // Check if any remaining string keys in the path exist in current sourceValue
     // This handles nested object paths (unlike arrays which use null in the path)
     const hasRestKey = rest.some(
       (r) => typeof r === "string" && r in sourceValue
     );
 
-    // Get or initialize the node corresponding to the current key
-    const node = (currentObject as Record<string, PropertyNode<unknown>>)[
-      key
-    ] ?? {
-      value: {},
-      name: buildName(displayData),
-    };
-
-    // If there are no more keys in the path and the current key does not exist in the source
-    // we create a node with an empty `value` object and a `name` with display data
-    if (rest.length === 0 && !hasKey) {
-      return {
-        ...currentObject,
-        [key]: node,
-      };
+    if (hasRestKey) {
+      return handleRestKey(
+        currentObject,
+        key,
+        rest,
+        sourceValue,
+        displayData
+      );
     }
 
-    // If there is exactly one key left in the path and the next key exists in the source
-    // we recursively insert the nested property inside the existing node
-    if (rest.length === 1 && hasRestKey) {
-      return {
-        ...currentObject,
-        [key]: {
-          ...node,
-          value: createNestedProperty(
-            node.value || {},
-            rest,
-            nextSourceValue,
-            displayData
-          ),
-        },
-      };
+    // Skip processing when the key is not found within the claim object
+    if (!(key in sourceValue)) {
+      // Leaf node: create a node with an empty value and display name
+      if (isLeaf) {
+        return {
+          ...currentObject,
+          [key]: { value: {}, name: buildName(displayData) },
+        };
+      }
+      // Skip processing when the key is not found within the claim object
+      return currentObject;
     }
 
-    // Skip processing if neither current key nor any future keys exist in the claim object
-    if (!hasKey && !hasRestKey) return currentObject;
-    if (hasKey) nextSourceValue = sourceValue[key];
+    nextSourceValue = sourceValue[key];
   }
 
   // base case
-  if (rest.length === 0) {
+  if (isLeaf) {
     return {
       ...currentObject,
       [key]: { value: nextSourceValue, name: buildName(displayData) },
@@ -187,4 +173,32 @@ export const createNestedProperty = (
     default:
       return currentObject;
   }
+};
+
+// Handles the case where the next key in the path exists in the source object
+const handleRestKey = (
+  currentObject: Record<string, any>,
+  key: string,
+  rest: Path,
+  sourceValue: Record<string, unknown>,
+  displayData: DisplayData
+): NodeOrStructure => {
+  const currentNode = currentObject[key] ?? {};
+  // Take the first key in the remaining path
+  const restKey = rest[0] as string;
+  const nextSourceValue = sourceValue[restKey];
+
+  // Merge the current node with the updated nested property for the remaining path.
+  return {
+    ...currentObject,
+    [key]: {
+      ...currentNode,
+      value: createNestedProperty(
+        currentNode.value ?? {},
+        rest,
+        nextSourceValue,
+        displayData
+      ),
+    },
+  };
 };
