@@ -1,10 +1,10 @@
 import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { decode, prepareVpToken } from "../../sd-jwt";
-import type { Disclosure } from "../../sd-jwt/types";
+import { LEGACY_SD_JWT, type Disclosure } from "../../sd-jwt/types";
 import type { RemotePresentation } from "./types";
 import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 /**
  * The purpose for the credential request by the RP.
@@ -97,7 +97,7 @@ const extractMissingCredentials = (
     const credential = originalQuery.credentials.find((c) => c.id === id);
     if (
       credential?.format !== "dc+sd-jwt" &&
-      credential?.format !== "vc+sd-jwt"
+      credential?.format !== LEGACY_SD_JWT
     ) {
       throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
     }
@@ -134,7 +134,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
       if (
         match.output.credential_format !== "dc+sd-jwt" &&
-        match.output.credential_format !== "vc+sd-jwt"
+        match.output.credential_format !== LEGACY_SD_JWT
       ) {
         throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
       }

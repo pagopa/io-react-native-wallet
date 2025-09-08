@@ -1,6 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { CredentialIssuerEntityConfiguration } from "../../../trust/types";
-import { education_degree, pid } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { education_degree, mdl, pid } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { verifyAndParseCredential } from "..";
 
 type IssuerConf = CredentialIssuerEntityConfiguration["payload"]["metadata"];
@@ -427,5 +427,171 @@ describe("verifyAndParseCredential", () => {
         }),
       })
     );
+  });
+
+  it("verifies and parses a credential with multiple nested attributes and missing keys", async () => {
+    const mockIssuerConfWithDeepNested: IssuerConf = {
+      ...mockIssuerConf,
+      openid_credential_issuer: {
+        ...mockIssuerConf.openid_credential_issuer,
+        credential_configurations_supported: {
+          dc_sd_jwt_mDL: {
+            format: "dc+sd-jwt",
+            vct: "https://issuer.example.com/MyCredential",
+            scope: "mDL",
+            display: [],
+            credential_signing_alg_values_supported: ["ES256"],
+            cryptographic_binding_methods_supported: [],
+            claims: [
+              {
+                path: ["driving_privileges", null],
+                display: [
+                  { name: "Codici", locale: "it-IT" },
+                  { name: "Driving privileges", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["driving_privileges", null, "vehicle_category_code"],
+                display: [
+                  { name: "Categoria", locale: "it-IT" },
+                  { name: "Category code", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["driving_privileges", null, "issue_date"],
+                display: [
+                  { name: "Data rilascio categoria", locale: "it-IT" },
+                  { name: "Category issue date", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["driving_privileges", null, "expiry_date"],
+                display: [
+                  { name: "Data di scadenza della categoria", locale: "it-IT" },
+                  { name: "Category expiry date", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["driving_privileges", null, "codes", null],
+                display: [
+                  {
+                    name: "Restrizioni e condizioni della categoria",
+                    locale: "it-IT",
+                  },
+                  { name: "Category conditions/restrictions", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["driving_privileges", null, "codes", null, "code"],
+                display: [
+                  { name: "Codice restrizione/condizione", locale: "it-IT" },
+                  { name: "Condition/restriction code", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["driving_privileges", null, "codes", null, "sign"],
+                display: [
+                  { name: "Segno restrizione/condizione", locale: "it-IT" },
+                  { name: "Condition/restriction sign", locale: "en-US" },
+                ],
+              },
+              {
+                path: ["driving_privileges", null, "codes", null, "value"],
+                display: [
+                  { name: "Valore restrizione/condizione", locale: "it-IT" },
+                  { name: "Condition/restriction value", locale: "en-US" },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const result = await verifyAndParseCredential(
+      mockIssuerConfWithDeepNested,
+      mdl.token,
+      "dc_sd_jwt_mDL",
+      { credentialCryptoContext }
+    );
+
+    expect(result.parsedCredential).toEqual({
+      driving_privileges: {
+        value: [
+          {
+            vehicle_category_code: {
+              value: "AM",
+              name: { "it-IT": "Categoria", "en-US": "Category code" },
+            },
+            issue_date: {
+              value: "2015-08-19",
+              name: {
+                "it-IT": "Data rilascio categoria",
+                "en-US": "Category issue date",
+              },
+            },
+            expiry_date: {
+              value: "2032-09-02",
+              name: {
+                "it-IT": "Data di scadenza della categoria",
+                "en-US": "Category expiry date",
+              },
+            },
+          },
+          {
+            vehicle_category_code: {
+              value: "B",
+              name: { "it-IT": "Categoria", "en-US": "Category code" },
+            },
+            issue_date: {
+              value: "2015-07-11",
+              name: {
+                "it-IT": "Data rilascio categoria",
+                "en-US": "Category issue date",
+              },
+            },
+            expiry_date: {
+              value: "2033-04-17",
+              name: {
+                "it-IT": "Data di scadenza della categoria",
+                "en-US": "Category expiry date",
+              },
+            },
+            codes: {
+              value: [
+                {
+                  code: {
+                    value: "01",
+                    name: {
+                      "it-IT": "Codice restrizione/condizione",
+                      "en-US": "Condition/restriction code",
+                    },
+                  },
+                  sign: {
+                    value: "02",
+                    name: {
+                      "it-IT": "Segno restrizione/condizione",
+                      "en-US": "Condition/restriction sign",
+                    },
+                  },
+                  value: {
+                    value: "Guida con lenti",
+                    name: {
+                      "it-IT": "Valore restrizione/condizione",
+                      "en-US": "Condition/restriction value",
+                    },
+                  },
+                },
+              ],
+              name: {
+                "it-IT": "Restrizioni e condizioni della categoria",
+                "en-US": "Category conditions/restrictions",
+              },
+            },
+          },
+        ],
+        name: { "it-IT": "Codici", "en-US": "Driving privileges" },
+      },
+    });
   });
 });

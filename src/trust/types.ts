@@ -71,6 +71,10 @@ const SupportedCredentialMetadata = z.intersection(
   })
 );
 
+/**
+ * Supported formats for credentials issued by the Issuer API 1.0,
+ * compliant with IT-Wallet technical specifications 1.0.
+ */
 export type SupportedCredentialFormat = z.infer<
   typeof SupportedCredentialMetadata
 >["format"];
