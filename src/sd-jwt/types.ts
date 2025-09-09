@@ -96,7 +96,8 @@ export const Verification = z.object({
   evidence: z.array(
     z.object({
       type: z.literal("vouch"),
-      time: z.string(),
+      // Support both string and UNIX timestamp for backward compatibility
+      time: z.union([z.string(), z.number()]),
       attestation: z.object({
         type: z.literal("digital_attestation"),
         reference_number: z.string(),
