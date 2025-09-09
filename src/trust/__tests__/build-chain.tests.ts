@@ -4,7 +4,7 @@ import {
   leafEntityConfiguration,
   leafEntityStatement,
   signed,
-  trustAnchorEntityConfiguration
+  trustAnchorEntityConfiguration,
 } from "../__mocks__/entity-statements";
 import { buildTrustChain } from "../build-chain";
 import { verifyTrustChain } from "../verify-chain";
