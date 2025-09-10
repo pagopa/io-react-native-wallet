@@ -92,7 +92,7 @@ export const TrustScreen = () => {
         id: "pagopa-rp",
         title: "Validate Trust Chain (PagoPA-RP)",
         relyingPartyUrls: {
-          prod: "",
+          prod: "https://foo11.blob.core.windows.net/rp-test",
           pre: "https://foo11.blob.core.windows.net/rp-test",
         },
         icon: "locked",
@@ -102,7 +102,7 @@ export const TrustScreen = () => {
         id: "reg-toscana-rp",
         title: "Validate Trust Chain (Reg-Toscana-RP)",
         relyingPartyUrls: {
-          prod: "",
+          prod: "https://auth.regione.toscana.it/r_toscan",
           pre: "https://lab.auth.regione.toscana.it/r_toscan",
         },
         icon: "locked",
