@@ -294,8 +294,7 @@ export async function buildTrustChain(
     const federationList = await getFederationList(federationListEndpoint, {
       appFetch,
     });
-    console.log("Federation List:", federationList);
-    console.log("RP url", relyingPartyEntityBaseUrl);
+
     if (!federationList.includes(relyingPartyEntityBaseUrl)) {
       throw new RelyingPartyNotAuthorizedError(
         "Relying Party entity base URL is not authorized by the Trust Anchor's federation list.",
