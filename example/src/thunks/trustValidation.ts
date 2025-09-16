@@ -24,15 +24,10 @@ export const validateTrustChainThunk = createAppAsyncThunk<
       appFetch,
     });
 
-  const trustAnchorKey = trustAnchorEntityConfig.payload.jwks.keys[0];
-  if (!trustAnchorKey) {
-    throw new Error("No suitable key found in Trust Anchor JWKS.");
-  }
-
   // This function internally gathers and performs initial verifications.
   const builtChainJwts = await Trust.Build.buildTrustChain(
     relyingPartyUrl,
-    trustAnchorKey,
+    trustAnchorEntityConfig,
     appFetch
   );
 

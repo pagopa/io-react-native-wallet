@@ -1,4 +1,3 @@
-import type { JWK } from "../utils/jwk";
 import {
   BuildTrustChainError,
   FederationListParseError,
@@ -266,39 +265,27 @@ export async function getFederationList(
  * Build a not-verified trust chain for a given Relying Party (RP) entity.
  *
  * @param relyingPartyEntityBaseUrl The base URL of the RP entity
- * @param trustAnchorKey The public key of the Trust Anchor (TA) entity
+ * @param trustAnchorConfig The entity configuration of the known trust anchor.
  * @param appFetch An optional instance of the http client to be used.
  * @returns A list of signed tokens that represent the trust chain, in the order of the chain (from the RP to the Trust Anchor)
  * @throws {FederationError} When an element of the chain fails to parse or other build steps fail.
  */
 export async function buildTrustChain(
   relyingPartyEntityBaseUrl: string,
-  trustAnchorKey: JWK,
+  trustAnchorConfig: TrustAnchorEntityConfiguration,
   appFetch: GlobalFetch["fetch"] = fetch
 ): Promise<string[]> {
-  // 1: Recursively gather the trust chain from the RP up to the Trust Anchor
-  const trustChain = await gatherTrustChain(
-    relyingPartyEntityBaseUrl,
-    appFetch
-  );
+  // 1: Verify if the RP is authorized by the Trust Anchor's federation list
+  // Extract the Trust Anchor's signing key and federation_list_endpoint
+  // (we assume the TA has only one key, as per spec)
+  const trustAnchorKey = trustAnchorConfig.payload.jwks.keys[0];
 
-  // 2: Trust Anchor signature verification
-  const trustAnchorJwt = trustChain[trustChain.length - 1];
-  if (!trustAnchorJwt) {
+  if (!trustAnchorKey) {
     throw new BuildTrustChainError(
-      "Cannot verify trust anchor: missing entity configuration in gathered chain.",
-      { relyingPartyUrl: relyingPartyEntityBaseUrl }
+      "Cannot verify trust anchor: missing signing key in entity configuration."
     );
   }
 
-  if (!trustAnchorKey.kid) {
-    throw new TrustAnchorKidMissingError();
-  }
-
-  await verify(trustAnchorJwt, trustAnchorKey.kid, [trustAnchorKey]);
-
-  // 3: Check the federation list
-  const trustAnchorConfig = EntityConfiguration.parse(decode(trustAnchorJwt));
   const federationListEndpoint =
     trustAnchorConfig.payload.metadata.federation_entity
       .federation_list_endpoint;
@@ -315,6 +302,26 @@ export async function buildTrustChain(
       );
     }
   }
+
+  // 1: Recursively gather the trust chain from the RP up to the Trust Anchor
+  const trustChain = await gatherTrustChain(
+    relyingPartyEntityBaseUrl,
+    appFetch
+  );
+  // 2: Trust Anchor signature verification
+  const chainTrustAnchorJwt = trustChain[trustChain.length - 1];
+  if (!chainTrustAnchorJwt) {
+    throw new BuildTrustChainError(
+      "Cannot verify trust anchor: missing entity configuration in gathered chain.",
+      { relyingPartyUrl: relyingPartyEntityBaseUrl }
+    );
+  }
+
+  if (!trustAnchorKey.kid) {
+    throw new TrustAnchorKidMissingError();
+  }
+
+  await verify(chainTrustAnchorJwt, trustAnchorKey.kid, [trustAnchorKey]);
 
   return trustChain;
 }
@@ -339,7 +346,6 @@ async function gatherTrustChain(
     appFetch,
   });
   const entityEC = EntityConfiguration.parse(decode(entityECJwt));
-
   if (isLeaf) {
     // Only push EC for the leaf
     chain.push(entityECJwt);
@@ -354,7 +360,6 @@ async function gatherTrustChain(
     }
     return chain;
   }
-
   const parentEntityBaseUrl = authorityHints[0]!;
 
   // Fetch parent EC
@@ -362,7 +367,6 @@ async function gatherTrustChain(
     appFetch,
   });
   const parentEC = EntityConfiguration.parse(decode(parentECJwt));
-
   // Fetch ES
   const federationFetchEndpoint =
     parentEC.payload.metadata.federation_entity.federation_fetch_endpoint;
@@ -372,7 +376,6 @@ async function gatherTrustChain(
       { entityBaseUrl, missingInEntityUrl: parentEntityBaseUrl }
     );
   }
-
   const entityStatementJwt = await getSignedEntityStatement(
     federationFetchEndpoint,
     entityBaseUrl,
