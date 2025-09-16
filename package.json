@@ -73,6 +73,7 @@
     "react": "19.0.0",
     "react-native": "0.78.3",
     "react-native-builder-bob": "^0.20.0",
+    "release-it": "^15.0.0",
     "typed-openapi": "^0.4.1",
     "typescript": "5.0.4"
   },
@@ -87,6 +88,23 @@
     "node": ">= 16.0.0"
   },
   "packageManager": "yarn@1.22.19",
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release version ${version}",
+      "tagName": "v${version}",
+      "changelog": "yarn auto-changelog --stdout --commit-limit false -u --template https://raw.githubusercontent.com/release-it/release-it/master/templates/changelog-compact.hbs"
+    },
+    "hooks": {
+      "after:bump": "yarn auto-changelog -p && git add ."
+    },
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {}
+  },
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
