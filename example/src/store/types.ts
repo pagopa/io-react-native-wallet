@@ -39,7 +39,8 @@ export type SupportedCredentials =
   | "dc_sd_jwt_EuropeanDisabilityCard"
   | "dc_sd_jwt_EuropeanHealthInsuranceCard"
   | "dc_sd_jwt_education_degree"
-  | "dc_sd_jwt_education_enrollment";
+  | "dc_sd_jwt_education_enrollment"
+  | "dc_sd_jwt_residency";
 
 /**
  * Type definition for the supported credentials without the PersonIdentificationData.

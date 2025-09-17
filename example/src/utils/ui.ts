@@ -11,6 +11,7 @@ export const iconByCredentialType: Record<
   dc_sd_jwt_EuropeanHealthInsuranceCard: "healthCard",
   dc_sd_jwt_education_degree: "messageLegal",
   dc_sd_jwt_education_enrollment: "messageLegal",
+  dc_sd_jwt_residency: "messageLegal",
 };
 
 export const labelByCredentialType: Record<
@@ -23,4 +24,5 @@ export const labelByCredentialType: Record<
   dc_sd_jwt_EuropeanHealthInsuranceCard: "TS",
   dc_sd_jwt_education_degree: "ED",
   dc_sd_jwt_education_enrollment: "EE",
+  dc_sd_jwt_residency: "RES",
 };

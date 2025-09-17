@@ -468,7 +468,23 @@ describe("evaluateDcqlQuery", () => {
         requiredDisclosures: [
           ["4d10ba615ed63a12", "document_number", "123456789"],
           ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
-          ["c4b40efadfcd3bdd", "driving_privileges", "B"],
+          [
+            "fJlSGpB8bZqgWJnGzaqvuA",
+            "driving_privileges",
+            [
+              {
+                issue_date: "2015-08-19",
+                vehicle_category_code: "AM",
+                expiry_date: "2032-09-02",
+              },
+              {
+                issue_date: "2015-07-11",
+                vehicle_category_code: "B",
+                expiry_date: "2033-04-17",
+                codes: [{ code: "01", sign: "02", value: "Guida con lenti" }],
+              },
+            ],
+          ],
         ],
       },
     ];
