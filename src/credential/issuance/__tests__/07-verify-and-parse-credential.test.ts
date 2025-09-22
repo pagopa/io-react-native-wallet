@@ -2,6 +2,7 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { CredentialIssuerEntityConfiguration } from "../../../trust/types";
 import {
   education_degree,
+  education_degree_with_missing_keys,
   mdl,
   pid,
   residency,
@@ -429,6 +430,228 @@ describe("verifyAndParseCredential", () => {
             "it-IT": "Elenco dei titoli di studio",
             "en-US": "List of education degrees",
           },
+        }),
+      })
+    );
+  });
+
+  it("verifies and parses a credential with optional claims (education_degrees)", async () => {
+    const eduCredentialCryptoContext: CryptoContext = {
+      getPublicKey: async () => ({
+        kty: "EC",
+        crv: "P-256",
+        kid: "uGonT0KmgS7yWfFsHrlC4UK4xqQUJWxo2Wrix9_03UA",
+        x: "NfD3cTWC4-tmrsKP0WSYYr262huexJdQ1D1OSRvoWd0",
+        y: "ciUroXK-KZLt-TpnYFpjCkeefOrurDya2AxK6GA5ANc",
+      }),
+      getSignature: async () => "",
+    };
+
+    const mockIssuerConfWithOptional: IssuerConf = {
+      ...mockIssuerConf,
+      openid_credential_issuer: {
+        ...mockIssuerConf.openid_credential_issuer,
+        jwks: {
+          keys: [
+            {
+              kty: "EC",
+              use: "sig",
+              crv: "P-256",
+              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+              alg: "ES256",
+            },
+          ],
+        },
+        credential_configurations_supported: {
+          ...mockIssuerConf.openid_credential_issuer
+            .credential_configurations_supported,
+          dc_sd_jwt_education_degree: {
+            format: "dc+sd-jwt",
+            vct: "https://ta.wallet.ipzs.it/schemas/v1.0.0/education_degree.json",
+            scope: "EducationCredential",
+            claims: [
+              {
+                path: ["education_degrees", null],
+                display: [
+                  { locale: "it-IT", name: "Elenco dei titoli di studio" },
+                  { locale: "en-US", name: "List of education degrees" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "institute_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome dell'Istituto" },
+                  { locale: "en-US", name: "Institute name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "qualification_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome del titolo di studio" },
+                  { locale: "en-US", name: "Qualification name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "qualification_grade_value"],
+                display: [
+                  { locale: "it-IT", name: "Voto del titolo di studio" },
+                  { locale: "en-US", name: "Qualification grade value" },
+                ],
+              },
+              {
+                path: [
+                  "education_degrees",
+                  null,
+                  "academic_qualification_date",
+                ],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Data di conseguimento del titolo di studio",
+                  },
+                  { locale: "en-US", name: "Qualification date" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "programme_type_name"],
+                display: [
+                  { locale: "it-IT", name: "Tipologia del corso di laurea" },
+                  { locale: "en-US", name: "Program type name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "degree_class_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome della classe di laurea" },
+                  { locale: "en-US", name: "Degree class name" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "degree_class"],
+                display: [
+                  { locale: "it-IT", name: "Codice della classe di laurea" },
+                  { locale: "en-US", name: "Degree class code" },
+                ],
+              },
+              {
+                path: ["education_degrees", null, "degree_course_name"],
+                display: [
+                  { locale: "it-IT", name: "Nome del corso di laurea" },
+                  { locale: "en-US", name: "Degree course name" },
+                ],
+              },
+            ],
+            display: [],
+            credential_signing_alg_values_supported: ["ES256"],
+            cryptographic_binding_methods_supported: [],
+          },
+        },
+      },
+    };
+
+    const result = await verifyAndParseCredential(
+      mockIssuerConfWithOptional,
+      education_degree_with_missing_keys,
+      "dc_sd_jwt_education_degree",
+      {
+        credentialCryptoContext: eduCredentialCryptoContext,
+      }
+    );
+
+    expect(result.parsedCredential).toEqual(
+      expect.objectContaining({
+        education_degrees: expect.objectContaining({
+          name: {
+            "it-IT": "Elenco dei titoli di studio",
+            "en-US": "List of education degrees",
+          },
+          value: [
+            // ---- Degree #1 (optional fields omitted) ----
+            expect.objectContaining({
+              institute_name: {
+                value: "Università degli studi di Roma La Sapienza",
+                name: {
+                  "it-IT": "Nome dell'Istituto",
+                  "en-US": "Institute name",
+                },
+              },
+              qualification_name: {
+                value: " Dottore Magistrale",
+                name: {
+                  "it-IT": "Nome del titolo di studio",
+                  "en-US": "Qualification name",
+                },
+              },
+              programme_type_name: {
+                value: "Laurea Magistrale (DM 270/04)",
+                name: {
+                  "it-IT": "Tipologia del corso di laurea",
+                  "en-US": "Program type name",
+                },
+              },
+              degree_course_name: {
+                value: "Lettere",
+                name: {
+                  "it-IT": "Nome del corso di laurea",
+                  "en-US": "Degree course name",
+                },
+              },
+              academic_qualification_date: {
+                value: "2024-01-24",
+                name: {
+                  "it-IT": "Data di conseguimento del titolo di studio",
+                  "en-US": "Qualification date",
+                },
+              },
+            }),
+            // ---- Degree #2 (degree_class_name present, others optional omitted) ----
+            expect.objectContaining({
+              institute_name: {
+                value: "Università degli studi di Roma La Sapienza",
+                name: {
+                  "it-IT": "Nome dell'Istituto",
+                  "en-US": "Institute name",
+                },
+              },
+              qualification_name: {
+                value: "Dottore",
+                name: {
+                  "it-IT": "Nome del titolo di studio",
+                  "en-US": "Qualification name",
+                },
+              },
+              programme_type_name: {
+                value: "Laurea Triennale (DM 509/99)",
+                name: {
+                  "it-IT": "Tipologia del corso di laurea",
+                  "en-US": "Program type name",
+                },
+              },
+              degree_course_name: {
+                value: "Fisica",
+                name: {
+                  "it-IT": "Nome del corso di laurea",
+                  "en-US": "Degree course name",
+                },
+              },
+              academic_qualification_date: {
+                value: "2021-01-24",
+                name: {
+                  "it-IT": "Data di conseguimento del titolo di studio",
+                  "en-US": "Qualification date",
+                },
+              },
+              degree_class_name: {
+                value: "Scienze e tecnologie fisiche",
+                name: {
+                  "it-IT": "Nome della classe di laurea",
+                  "en-US": "Degree class name",
+                },
+              },
+            }),
+          ],
         }),
       })
     );
