@@ -7,6 +7,7 @@ import "react-native-url-polyfill/auto";
 import * as Credential from "./credential";
 import * as PID from "./pid";
 import * as SdJwt from "./sd-jwt";
+import * as Mdoc from "./mdoc";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as Trust from "./trust";
@@ -18,6 +19,7 @@ import type { IntegrityContext } from "./utils/integrity";
 
 export {
   SdJwt,
+  Mdoc,
   PID,
   Credential,
   WalletInstanceAttestation,

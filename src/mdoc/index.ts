@@ -9,6 +9,7 @@ import {
 import { MissingX509CertsError, X509ValidationError } from "../trust/errors";
 import { IoWalletError } from "../utils/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
+export * from "./utils";
 
 export const verify = async (
   token: string,
