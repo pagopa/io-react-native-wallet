@@ -560,101 +560,97 @@ describe("verifyAndParseCredential", () => {
       }
     );
 
-    expect(result.parsedCredential).toEqual(
-      expect.objectContaining({
-        education_degrees: expect.objectContaining({
-          name: {
-            "it-IT": "Elenco dei titoli di studio",
-            "en-US": "List of education degrees",
+    expect(result.parsedCredential).toEqual({
+      education_degrees: {
+        name: {
+          "it-IT": "Elenco dei titoli di studio",
+          "en-US": "List of education degrees",
+        },
+        value: [
+          {
+            institute_name: {
+              value: "Università degli studi di Roma La Sapienza",
+              name: {
+                "it-IT": "Nome dell'Istituto",
+                "en-US": "Institute name",
+              },
+            },
+            qualification_name: {
+              value: " Dottore Magistrale",
+              name: {
+                "it-IT": "Nome del titolo di studio",
+                "en-US": "Qualification name",
+              },
+            },
+            programme_type_name: {
+              value: "Laurea Magistrale (DM 270/04)",
+              name: {
+                "it-IT": "Tipologia del corso di laurea",
+                "en-US": "Program type name",
+              },
+            },
+            degree_course_name: {
+              value: "Lettere",
+              name: {
+                "it-IT": "Nome del corso di laurea",
+                "en-US": "Degree course name",
+              },
+            },
+            academic_qualification_date: {
+              value: "2024-01-24",
+              name: {
+                "it-IT": "Data di conseguimento del titolo di studio",
+                "en-US": "Qualification date",
+              },
+            },
           },
-          value: [
-            // ---- Degree #1 (optional fields omitted) ----
-            expect.objectContaining({
-              institute_name: {
-                value: "Università degli studi di Roma La Sapienza",
-                name: {
-                  "it-IT": "Nome dell'Istituto",
-                  "en-US": "Institute name",
-                },
+          {
+            institute_name: {
+              value: "Università degli studi di Roma La Sapienza",
+              name: {
+                "it-IT": "Nome dell'Istituto",
+                "en-US": "Institute name",
               },
-              qualification_name: {
-                value: " Dottore Magistrale",
-                name: {
-                  "it-IT": "Nome del titolo di studio",
-                  "en-US": "Qualification name",
-                },
+            },
+            qualification_name: {
+              value: "Dottore",
+              name: {
+                "it-IT": "Nome del titolo di studio",
+                "en-US": "Qualification name",
               },
-              programme_type_name: {
-                value: "Laurea Magistrale (DM 270/04)",
-                name: {
-                  "it-IT": "Tipologia del corso di laurea",
-                  "en-US": "Program type name",
-                },
+            },
+            programme_type_name: {
+              value: "Laurea Triennale (DM 509/99)",
+              name: {
+                "it-IT": "Tipologia del corso di laurea",
+                "en-US": "Program type name",
               },
-              degree_course_name: {
-                value: "Lettere",
-                name: {
-                  "it-IT": "Nome del corso di laurea",
-                  "en-US": "Degree course name",
-                },
+            },
+            degree_course_name: {
+              value: "Fisica",
+              name: {
+                "it-IT": "Nome del corso di laurea",
+                "en-US": "Degree course name",
               },
-              academic_qualification_date: {
-                value: "2024-01-24",
-                name: {
-                  "it-IT": "Data di conseguimento del titolo di studio",
-                  "en-US": "Qualification date",
-                },
+            },
+            academic_qualification_date: {
+              value: "2021-01-24",
+              name: {
+                "it-IT": "Data di conseguimento del titolo di studio",
+                "en-US": "Qualification date",
               },
-            }),
-            // ---- Degree #2 (degree_class_name present, others optional omitted) ----
-            expect.objectContaining({
-              institute_name: {
-                value: "Università degli studi di Roma La Sapienza",
-                name: {
-                  "it-IT": "Nome dell'Istituto",
-                  "en-US": "Institute name",
-                },
+            },
+            degree_class_name: {
+              value: "Scienze e tecnologie fisiche",
+              name: {
+                "it-IT": "Nome della classe di laurea",
+                "en-US": "Degree class name",
               },
-              qualification_name: {
-                value: "Dottore",
-                name: {
-                  "it-IT": "Nome del titolo di studio",
-                  "en-US": "Qualification name",
-                },
-              },
-              programme_type_name: {
-                value: "Laurea Triennale (DM 509/99)",
-                name: {
-                  "it-IT": "Tipologia del corso di laurea",
-                  "en-US": "Program type name",
-                },
-              },
-              degree_course_name: {
-                value: "Fisica",
-                name: {
-                  "it-IT": "Nome del corso di laurea",
-                  "en-US": "Degree course name",
-                },
-              },
-              academic_qualification_date: {
-                value: "2021-01-24",
-                name: {
-                  "it-IT": "Data di conseguimento del titolo di studio",
-                  "en-US": "Qualification date",
-                },
-              },
-              degree_class_name: {
-                value: "Scienze e tecnologie fisiche",
-                name: {
-                  "it-IT": "Nome della classe di laurea",
-                  "en-US": "Degree class name",
-                },
-              },
-            }),
-          ],
-        }),
-      })
-    );
+            },
+          },
+        ],
+      },
+    });
   });
 
   it("verifies and parses a credential with multiple nested attributes and missing keys", async () => {
