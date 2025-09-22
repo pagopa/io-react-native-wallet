@@ -1,4 +1,5 @@
 import { JWK } from "../../../utils/jwk";
+import { pathInsert } from "../../../utils/misc";
 import * as z from "zod";
 
 // Display metadata for a credential, used by the issuer to
@@ -9,7 +10,7 @@ export const CredentialDisplay = z.object({
   locale: z.string(),
   logo: z
     .object({
-      url: z.string(),
+      uri: z.string(),
       alt_text: z.string(),
     })
     .optional(),
@@ -32,10 +33,28 @@ export type CredentialClaim = z.infer<typeof CredentialClaim>;
 export const CredentialClaim = z.object({
   mandatory: z.boolean(),
   display: z.array(CredentialClaimDisplay),
+  path: z.string().array(),
 });
 
 export type CredentialSdJwtClaims = z.infer<typeof CredentialSdJwtClaims>;
 export const CredentialSdJwtClaims = z.record(CredentialClaim);
+
+const CredentialConfigurationClaims = z
+  .array(CredentialClaim)
+  .transform((claimsRaw) => {
+    return claimsRaw
+      .map((v) => ({
+        path: v.path,
+        details: {
+          mandatory: v.mandatory,
+          display: v.display,
+        },
+      }))
+      .reduce(
+        (cumulated, entry) => pathInsert(cumulated, entry.path, entry.details),
+        {}
+      );
+  });
 
 export type CredentialConfigurationSupported = z.infer<
   typeof CredentialConfigurationSupported
@@ -48,12 +67,7 @@ export const CredentialConfigurationSupported = z.record(
     cryptographic_binding_methods_supported: z.array(z.string()),
     display: z.array(CredentialDisplay),
     format: CredentialFormat,
-    claims: z
-      .union([
-        CredentialSdJwtClaims,
-        z.record(z.string(), CredentialSdJwtClaims),
-      ])
-      .optional(),
+    claims: CredentialConfigurationClaims,
   })
 );
 
@@ -62,16 +76,40 @@ export const CredentialIssuerKeys = z.object({
   keys: z.array(JWK),
 });
 
+export type CredentialResponseEncryption = z.infer<
+  typeof CredentialResponseEncryption
+>;
+export const CredentialResponseEncryption = z.object({
+  alg_values_supported: z.string().array(),
+  enc_values_supported: z.string().array(),
+  encryption_required: z.boolean(),
+});
+
 export type CredentialIssuerConfiguration = z.infer<
   typeof CredentialIssuerConfiguration
 >;
 export const CredentialIssuerConfiguration = z.object({
   credential_configurations_supported: CredentialConfigurationSupported,
-  pushed_authorization_request_endpoint: z.string(),
-  dpop_signing_alg_values_supported: z.array(z.string()),
-  jwks: CredentialIssuerKeys,
   credential_issuer: z.string(),
+  credential_endpoint: z.string(),
+  nonce_endpoint: z.string().optional(),
+  batch_credential_issuance: z.object({
+    batch_size: z.number(),
+  }),
+  credential_response_encryption: CredentialResponseEncryption,
+});
+
+export type CredentialIssuerOauthAuthorizationServer = z.infer<
+  typeof CredentialIssuerOauthAuthorizationServer
+>;
+export const CredentialIssuerOauthAuthorizationServer = z.object({
   authorization_endpoint: z.string(),
   token_endpoint: z.string(),
-  credential_endpoint: z.string(),
+});
+
+export type CredentialIssuerOpenidCondiguration = z.infer<
+  typeof CredentialIssuerOauthAuthorizationServer
+>;
+export const CredentialIssuerOpenidCondiguration = z.object({
+  jwks_uri: z.string(),
 });

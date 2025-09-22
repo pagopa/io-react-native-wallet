@@ -1,9 +1,5 @@
 import { type StartFlow } from "./01-start-flow";
-import {
-  getIssuerConfig,
-  getIssuerConfigOIDFED,
-  type GetIssuerConfig,
-} from "./02-get-issuer-config";
+import { getIssuerConfig, type GetIssuerConfig } from "./02-get-issuer-config";
 import {
   startUserAuthorization,
   type StartUserAuthorization,
@@ -32,7 +28,6 @@ import * as Errors from "./errors";
 
 export {
   getIssuerConfig,
-  getIssuerConfigOIDFED,
   startUserAuthorization,
   buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
