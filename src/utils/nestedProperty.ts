@@ -25,7 +25,7 @@ const buildName = (display: DisplayData): LocalizedNames =>
     {}
   );
 
-// Handles the case where the path key is `null`
+// Handles the case where the path key is `null` (indicating an array)
 const handleNullKeyCase = (
   currentObject: NodeOrStructure,
   rest: Path,
@@ -39,7 +39,15 @@ const handleNullKeyCase = (
   const existingValue = Array.isArray(node.value) ? node.value : [];
 
   const mappedArray = sourceValue.map((item, idx) =>
-    createNestedProperty(existingValue[idx] || {}, rest, item, displayData)
+    // When mapping over an array, recursively call with `skipMissingLeaves` set to `true`.
+    // This tells the function to skip optional keys inside these array objects.
+    createNestedProperty(
+      existingValue[idx] || {},
+      rest,
+      item,
+      displayData,
+      true
+    )
   );
 
   return {
@@ -55,7 +63,8 @@ const handleStringKeyCase = (
   key: string,
   rest: Path,
   sourceValue: unknown,
-  displayData: DisplayData
+  displayData: DisplayData,
+  skipMissingLeaves: boolean
 ): NodeOrStructure => {
   let nextSourceValue = sourceValue;
   const isLeaf = rest.length === 0;
@@ -73,7 +82,13 @@ const handleStringKeyCase = (
 
     // Skip processing when the key is not found within the claim object
     if (!(key in sourceValue)) {
-      // Leaf node: create a node with an empty value and display name
+      // If the flag is set (we're inside an array), skip the missing key completely.
+      if (skipMissingLeaves) {
+        return currentObject;
+      }
+
+      // If the flag is NOT set, create the empty placeholder
+      // so that its children can be attached later.
       if (isLeaf) {
         return {
           ...currentObject,
@@ -101,7 +116,13 @@ const handleStringKeyCase = (
 
   return {
     ...currentObject,
-    [key]: createNestedProperty(nextObject, rest, nextSourceValue, displayData),
+    [key]: createNestedProperty(
+      nextObject,
+      rest,
+      nextSourceValue,
+      displayData,
+      skipMissingLeaves
+    ),
   };
 };
 
@@ -132,13 +153,15 @@ const handleNumberKeyCase = (
  * @param path - The path segments to follow.
  * @param sourceValue - The raw value to place at the end of the path.
  * @param displayData - The data for generating localized names.
+ * @param skipMissingLeaves - If true, skips optional keys when mapping over arrays.
  * @returns The new object or array structure.
  */
 export const createNestedProperty = (
   currentObject: NodeOrStructure,
   path: Path,
-  sourceValue: unknown, // Use `unknown` for type-safe input
-  displayData: DisplayData
+  sourceValue: unknown,
+  displayData: DisplayData,
+  skipMissingLeaves: boolean = false
 ): NodeOrStructure => {
   const [key, ...rest] = path;
 
@@ -152,7 +175,8 @@ export const createNestedProperty = (
         key as string,
         rest,
         sourceValue,
-        displayData
+        displayData,
+        skipMissingLeaves
       );
 
     case typeof key === "number":
@@ -178,11 +202,12 @@ const handleRestKey = (
   displayData: DisplayData
 ): NodeOrStructure => {
   const currentNode = currentObject[key] ?? {};
-  // Take the first key in the remaining path
   const restKey = rest[0] as string;
   const nextSourceValue = sourceValue[restKey];
+  if (typeof nextSourceValue === "undefined") {
+    return currentObject;
+  }
 
-  // Merge the current node with the updated nested property for the remaining path.
   return {
     ...currentObject,
     [key]: {
