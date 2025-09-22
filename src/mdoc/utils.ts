@@ -20,7 +20,7 @@ export const getParsedCredentialClaimKey = (namespace: string, key: string) =>
  * @param parsedCredential The parsed mdoc credential
  * @returns The verification claim or undefined if it wasn't found
  */
-export const getVerificationFromParsedCredential = async (
+export const getVerificationFromParsedCredential = (
   parsedCredential: Out<VerifyAndParseCredential>["parsedCredential"]
 ) => {
   const verificationKey = getParsedCredentialClaimKey(
