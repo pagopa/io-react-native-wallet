@@ -14,8 +14,7 @@ export interface AuthorizationContext {
  */
 export const AuthorizationResultShape = z.object({
   code: z.string(),
-  state: z.string(),
-  iss: z.string().optional(),
+  state: z.string().optional(),
 });
 
 /**

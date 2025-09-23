@@ -44,6 +44,13 @@ export const CredentialScreen = () => {
   );
   const badge = useAppSelector(selectCredential("mso_mdoc_CompanyBadge"));
 
+  const avState = useAppSelector(
+    selectCredentialAsyncStatus("eu.europa.ec.eudi.age_verification_mdoc")
+  );
+  const av = useAppSelector(
+    selectCredential("eu.europa.ec.eudi.age_verification_mdoc")
+  );
+
   useDebugInfo({
     mdlState,
     mdl,
@@ -121,6 +128,20 @@ export const CredentialScreen = () => {
         icon: "categJobOffers",
         isPresent: !!badge,
       },
+      {
+        title: "Get credential (AV)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({
+              credentialType: "eu.europa.ec.eudi.age_verification_mdoc",
+            })
+          ),
+        isLoading: avState.isLoading,
+        hasError: avState.hasError,
+        isDone: avState.isDone,
+        icon: "categJobOffers",
+        isPresent: !!av,
+      },
     ],
     [
       dc,
@@ -144,6 +165,10 @@ export const CredentialScreen = () => {
       badgeState.hasError,
       badgeState.isDone,
       badgeState.isLoading,
+      av,
+      avState.hasError,
+      avState.isDone,
+      avState.isLoading,
     ]
   );
 

@@ -44,6 +44,7 @@ const initialState: CredentialState = {
     EuropeanHealthInsuranceCard: undefined,
     "eu.europa.ec.eudi.hiid.1": undefined,
     mso_mdoc_CompanyBadge: undefined,
+    "eu.europa.ec.eudi.age_verification_mdoc": undefined,
   },
   credentialsAsyncStatus: {
     "org.iso.18013.5.1.mDL": asyncStatusInitial,
@@ -51,6 +52,7 @@ const initialState: CredentialState = {
     EuropeanHealthInsuranceCard: asyncStatusInitial,
     "eu.europa.ec.eudi.hiid.1": asyncStatusInitial,
     mso_mdoc_CompanyBadge: asyncStatusInitial,
+    "eu.europa.ec.eudi.age_verification_mdoc": asyncStatusInitial,
   },
   statusAttestation: {
     "org.iso.18013.5.1.mDL": undefined,
@@ -58,6 +60,7 @@ const initialState: CredentialState = {
     EuropeanHealthInsuranceCard: undefined,
     "eu.europa.ec.eudi.hiid.1": undefined,
     mso_mdoc_CompanyBadge: undefined,
+    "eu.europa.ec.eudi.age_verification_mdoc": undefined,
   },
   statusAttAsyncStatus: {
     "org.iso.18013.5.1.mDL": asyncStatusInitial,
@@ -65,6 +68,7 @@ const initialState: CredentialState = {
     EuropeanHealthInsuranceCard: asyncStatusInitial,
     "eu.europa.ec.eudi.hiid.1": asyncStatusInitial,
     mso_mdoc_CompanyBadge: asyncStatusInitial,
+    "eu.europa.ec.eudi.age_verification_mdoc": asyncStatusInitial,
   },
 };
 

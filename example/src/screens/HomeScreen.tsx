@@ -52,10 +52,7 @@ const HomeScreen = () => {
         label: "Credentials",
         description: "Obtain a credential with PID authentication",
         icon: "chevronRight",
-        onPress: () =>
-          pid && hasIntegrityKeyTag
-            ? navigation.navigate("Credentials")
-            : Alert.alert("Register a wallet instance and obtain a PID first"),
+        onPress: () => navigation.navigate("Credentials"),
       },
       // {
       //   label: "Status Attestation",

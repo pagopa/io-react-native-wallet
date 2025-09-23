@@ -31,18 +31,12 @@ export const getCredential = async ({
   credentialIssuerUrl,
   redirectUri,
   credentialType,
-  walletInstanceAttestation,
   wiaCryptoContext,
-  pid,
-  pidCryptoContext,
 }: {
   credentialIssuerUrl: string;
   redirectUri: string;
   credentialType: SupportedCredentialsWithoutPid;
-  walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
-  pid: string;
-  pidCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   // Create credential crypto context
   const credentialKeyTag = uuid.v4().toString();
@@ -61,52 +55,17 @@ export const getCredential = async ({
   const { issuerConf } = await Credential.Issuance.getIssuerConfig(issuerUrl);
 
   // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-    await Credential.Issuance.startUserAuthorization(
+
+  // Obtain the Authorization URL
+  const { authUrl, clientId, codeVerifier, credentialDefinition } =
+    await Credential.Issuance.buildAuthorizationUrl(
       issuerConf,
       credentialType,
       {
-        walletInstanceAttestation,
         redirectUri,
-        wiaCryptoContext,
         appFetch,
       }
     );
-
-  /**
-   * Temporary comments to permit issuing of mDL without PID presentation
-   * Replace with block code below which redirects to the issuer's authorization URL
-   * FIXME: [WLEO-267]
-   **/
-
-  // const requestObject =
-  //   await Credential.Issuance.getRequestedCredentialToBePresented(
-  //     issuerRequestUri,
-  //     clientId,
-  //     issuerConf,
-  //     appFetch
-  //   );
-
-  // The app here should ask the user to confirm the required data contained in the requestObject
-
-  // Complete the user authorization via form_post.jwt mode
-  // const { code } =
-  //   await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
-  //     requestObject,
-  //     { wiaCryptoContext, pidCryptoContext, pid, walletInstanceAttestation }
-  //   );
-  // Start user authorization
-
-  if (!pid || !pidCryptoContext) {
-    throw new Error("PID must not be empty!");
-  }
-
-  // Obtain the Authorization URL
-  const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
-    issuerRequestUri,
-    clientId,
-    issuerConf
-  );
 
   const supportsCustomTabs = await supportsInAppBrowser();
   if (!supportsCustomTabs) {
@@ -138,7 +97,6 @@ export const getCredential = async ({
     redirectUri,
     codeVerifier,
     {
-      walletInstanceAttestation,
       wiaCryptoContext,
       dPopCryptoContext,
       appFetch,

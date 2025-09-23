@@ -36,35 +36,19 @@ export type GetCredentialStatusAttestationThunkOutput = {
 export const getCredentialThunk = createAppAsyncThunk<
   CredentialResult,
   GetCredentialThunkInput
->("credential/credentialGet", async (args, { getState, dispatch }) => {
-  // Checks if the wallet instance attestation needs to be reuqested
-  if (shouldRequestAttestationSelector(getState())) {
-    await dispatch(getAttestationThunk());
-  }
+>("credential/credentialGet", async (args, _) => {
 
   // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestation(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const { credentialType } = args;
 
   // Get the PID from the store
-  const pid = selectPid(getState());
-  if (!pid) {
-    throw new Error("PID not found");
-  }
-  const pidCryptoContext = createCryptoContextFor(pid.keyTag);
   return await getCredential({
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
     redirectUri: REDIRECT_URI,
     credentialType,
-    walletInstanceAttestation,
     wiaCryptoContext,
-    pid: pid.credential,
-    pidCryptoContext,
   });
 });

@@ -3,7 +3,11 @@ import {
   AuthorizationResultShape,
   type AuthorizationResult,
 } from "../../utils/auth";
-import { hasStatusOrThrow, type Out } from "../../utils/misc";
+import {
+  generateRandomAlphaNumericString,
+  hasStatusOrThrow,
+  type Out,
+} from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
 import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
@@ -11,14 +15,17 @@ import type { GetIssuerConfig } from "./02-get-issuer-config";
 import {
   decode,
   encodeBase64,
+  sha256ToBase64,
   SignJWT,
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { RequestObject } from "../presentation/types";
 import uuid from "react-native-uuid";
 import { ResponseUriResultShape } from "./types";
+import { AuthorizationDetail } from "../../utils/par";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
+import type { StartFlow } from "./01-start-flow";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a urn:eu.europa.ec.eudi:pid:1.
@@ -46,13 +53,50 @@ export type GetRequestedCredentialToBePresented = (
 ) => Promise<RequestObject>;
 
 export type BuildAuthorizationUrl = (
-  issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
-  idpHint?: string
+  credentialType: Out<StartFlow>["credentialType"],
+  context: {
+    redirectUri: string;
+    appFetch?: GlobalFetch["fetch"];
+  }
 ) => Promise<{
   authUrl: string;
+  clientId: string;
+  codeVerifier: string;
+  credentialDefinition: AuthorizationDetail;
 }>;
+
+/**
+ * Ensures that the credential type requested is supported by the issuer and contained in the
+ * issuer configuration.
+ * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
+ * @param credentialType The type of the credential to be requested returned by {@link startFlow}
+ * @param context.wiaCryptoContext The Wallet Instance's crypto context
+ * @param context.walletInstanceAttestation The Wallet Instance's attestation
+ * @param context.redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
+ * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
+ * @returns The credential definition to be used in the request which includes the format and the type and its type
+ */
+const selectCredentialDefinition = (
+  issuerConf: Out<GetIssuerConfig>["issuerConf"],
+  credentialType: Out<StartFlow>["credentialType"]
+): AuthorizationDetail => {
+  const credential_configurations_supported =
+    issuerConf.credential_configurations_supported;
+
+  const [result] = Object.keys(credential_configurations_supported)
+    .filter((e) => e.includes(credentialType))
+    .map(() => ({
+      credential_configuration_id: credentialType,
+      type: "openid_credential" as const,
+    }));
+
+  if (!result) {
+    throw new Error(`No credential support the type '${credentialType}'`);
+  }
+
+  return result;
+};
 
 /**
  * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
@@ -64,22 +108,33 @@ export type BuildAuthorizationUrl = (
  * @returns An object containing the authorization URL
  */
 export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
-  issuerRequestUri,
-  clientId,
   issuerConf,
-  idpHint
+  credentialType,
+  ctx
 ) => {
+  const clientId = generateRandomAlphaNumericString(64);
   const authzRequestEndpoint = issuerConf.authorization_endpoint;
+  const codeVerifier = generateRandomAlphaNumericString(64);
+  const codeChallenge = await sha256ToBase64(codeVerifier);
+
+  const credentialDefinition = selectCredentialDefinition(
+    issuerConf,
+    credentialType
+  );
 
   const params = new URLSearchParams({
     client_id: clientId,
-    request_uri: issuerRequestUri,
-    ...(idpHint && { idphint: idpHint }),
+    response_type: "code",
+    scope: "proof_of_age",
+    code_challenge_method: "S256",
+    code_challenge: codeChallenge,
+    redirect_uri: ctx.redirectUri,
+    state: generateRandomAlphaNumericString(32)
   });
 
   const authUrl = `${authzRequestEndpoint}?${params}`;
 
-  return { authUrl };
+  return { authUrl, clientId, codeVerifier, credentialDefinition };
 };
 
 /**

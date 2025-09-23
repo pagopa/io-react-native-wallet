@@ -38,6 +38,7 @@ export type SupportedCredentials =
   | "EuropeanDisabilityCard"
   | "eu.europa.ec.eudi.hiid.1"
   | "EuropeanHealthInsuranceCard"
+  | "eu.europa.ec.eudi.age_verification_mdoc"
   | "mso_mdoc_CompanyBadge";
 
 /**
