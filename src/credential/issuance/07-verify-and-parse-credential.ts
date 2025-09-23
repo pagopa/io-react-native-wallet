@@ -9,7 +9,7 @@ import type { ObtainCredential } from "./06-obtain-credential";
 import { verify as verifyMdoc } from "../../mdoc";
 import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
 import { getParsedCredentialClaimKey } from "../../mdoc/utils";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
@@ -85,36 +85,69 @@ const parseCredentialSdJwt = (
 
   const attrDefinitions = credentialConfig.claims;
 
-  // Validate that all attributes from the config exist in the disclosures
-  const attrsNotInDisclosures = attrDefinitions.filter(
-    (definition) => !disclosures.some(([, name]) => name === definition.path[0])
-  );
+  // Validate that all attributes from the config exist in either disclosures OR payload
+  if (!ignoreMissingAttributes) {
+    const disclosedKeys = new Set(disclosures.map(([, name]) => name));
+    const payloadKeys = new Set(Object.keys(sdJwt.payload ?? {}));
 
-  if (attrsNotInDisclosures.length > 0 && !ignoreMissingAttributes) {
-    const missing = attrsNotInDisclosures.map((_) => _.path[0]).join(", ");
-    const received = disclosures.map((_) => _[1]).join(", ");
-    const message = `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`;
-    Logger.log(LogLevel.ERROR, message);
-    throw new IoWalletError(message);
+    const definedTopLevelKeys = new Set(
+      attrDefinitions.map((def) => def.path[0] as string)
+    );
+
+    const missingKeys = [...definedTopLevelKeys].filter(
+      (key) => !disclosedKeys.has(key) && !payloadKeys.has(key)
+    );
+
+    if (missingKeys.length > 0) {
+      throw new IoWalletError(
+        `Some attributes are missing in the credential. Missing: [${missingKeys.join(", ")}]`
+      );
+    }
   }
 
   const definedValues: ParsedCredential = {};
 
-  for (const { path, display } of attrDefinitions) {
-    const attrKey = path[0];
-    const disclosureValue = disclosures.find(
-      ([, name]) => name === attrKey
-    )?.[2];
+  // Group all schema definitions by their top-level key
+  const groupedDefinitions = attrDefinitions.reduce(
+    (acc, def) => {
+      const key = def.path[0] as string;
+      const group = acc[key];
+      if (group) {
+        group.push(def);
+      } else {
+        acc[key] = [def];
+      }
+      return acc;
+    },
+    {} as Record<string, typeof attrDefinitions>
+  );
 
-    if (disclosureValue !== undefined) {
-      const enriched = createNestedProperty(
-        definedValues,
-        path,
-        disclosureValue,
-        display
-      );
-      Object.assign(definedValues, enriched);
+  // Loop through each group
+  for (const topLevelKey in groupedDefinitions) {
+    const definitionsForThisKey = groupedDefinitions[topLevelKey];
+
+    if (!definitionsForThisKey) {
+      continue;
     }
+
+    const disclosureForThisKey = disclosures.find(
+      ([, name]) => name === topLevelKey
+    );
+
+    if (!disclosureForThisKey) {
+      continue;
+    }
+
+    const disclosureValue = disclosureForThisKey[2];
+
+    const tempObjectForGroup = definitionsForThisKey.reduce(
+      (acc, { path, display }) =>
+        createNestedProperty(acc, path, disclosureValue, display),
+      {}
+    );
+
+    // Merge the fully constructed object into the final result
+    Object.assign(definedValues, tempObjectForGroup);
   }
 
   if (includeUndefinedAttributes) {
@@ -134,6 +167,7 @@ const parseCredentialSdJwt = (
 
   return definedValues;
 };
+
 const parseCredentialMDoc = (
   // the list of supported credentials, as defined in the issuer configuration
   credentialConfig: CredentialConf,
@@ -294,7 +328,7 @@ async function verifyCredentialSdJwt(
  * and it's bound to the given key
  *
  * @param rawCredential The received credential
- * @param issuerKeys The set of public keys of the issuer,
+ * @param x509CertRoot The root certificate of the issuer,
  * which will be used to verify the signature
  * @param holderBindingContext The access to the holder's key
  *
