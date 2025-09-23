@@ -129,7 +129,7 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
     redirect_uri: ctx.redirectUri,
-    state: generateRandomAlphaNumericString(32)
+    state: generateRandomAlphaNumericString(32),
   });
 
   const authUrl = `${authzRequestEndpoint}?${params}`;

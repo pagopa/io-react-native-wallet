@@ -37,7 +37,6 @@ export const getCredentialThunk = createAppAsyncThunk<
   CredentialResult,
   GetCredentialThunkInput
 >("credential/credentialGet", async (args, _) => {
-
   // Gets the Wallet Instance Attestation from the persisted store
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
