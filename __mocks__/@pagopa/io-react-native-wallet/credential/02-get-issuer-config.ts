@@ -256,6 +256,7 @@ export const mockedKeys = {
 
 export const expectedResult = {
   issuerConf: {
+    batch_size : 30,
     credential_configurations_supported: {
       "eu.europa.ec.eudi.age_verification_mdoc": {
         claims: {

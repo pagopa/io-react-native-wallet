@@ -25,6 +25,7 @@ export type GetIssuerConfig = (
  */
 export type IssuerConfig = {
   credential_configurations_supported: CredentialConfigurationSupported;
+  batch_size : number;
   authorization_endpoint: string;
   token_endpoint: string;
   nonce_endpoint?: string;
@@ -78,6 +79,7 @@ const credentialIssuerRationalization = (
     issuerConf: {
       credential_configurations_supported:
         issuerMetadata.credential_configurations_supported,
+      batch_size : issuerMetadata.batch_credential_issuance.batch_size,
       authorization_endpoint: oauthServerMetadata.authorization_endpoint,
       token_endpoint: oauthServerMetadata.token_endpoint,
       credential_endpoint: issuerMetadata.credential_endpoint,
