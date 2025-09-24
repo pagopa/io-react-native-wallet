@@ -1,11 +1,6 @@
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
-import { createDPopToken } from "../../utils/dpop";
-import uuid from "react-native-uuid";
-import { createPopToken } from "../../utils/pop";
-import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
@@ -17,10 +12,7 @@ export type AuthorizeAccess = (
   clientId: Out<StartUserAuthorization>["clientId"],
   codeVerifier: Out<StartUserAuthorization>["codeVerifier"],
   context: {
-    walletInstanceAttestation: string;
     appFetch?: GlobalFetch["fetch"];
-    wiaCryptoContext: CryptoContext;
-    dPopCryptoContext: CryptoContext;
   }
 ) => Promise<{ accessToken: TokenResponse }>;
 
@@ -50,38 +42,9 @@ export const authorizeAccess: AuthorizeAccess = async (
   codeVerifier,
   context
 ) => {
-  const {
-    appFetch = fetch,
-    walletInstanceAttestation,
-    wiaCryptoContext,
-    dPopCryptoContext,
-  } = context;
-
-  const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
-  const parUrl = new URL(parEndpoint);
-  const aud = `${parUrl.protocol}//${parUrl.hostname}`;
-  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
-    .payload.cnf.jwk.kid;
+  const { appFetch = fetch } = context;
 
   const tokenUrl = issuerConf.token_endpoint;
-
-  const tokenRequestSignedDPop = await createDPopToken(
-    {
-      htm: "POST",
-      htu: tokenUrl,
-      jti: `${uuid.v4()}`,
-    },
-    dPopCryptoContext
-  );
-
-  const signedWiaPoP = await createPopToken(
-    {
-      jti: `${uuid.v4()}`,
-      aud,
-      iss,
-    },
-    wiaCryptoContext
-  );
 
   const requestBody = {
     client_id: clientId,
@@ -96,9 +59,6 @@ export const authorizeAccess: AuthorizeAccess = async (
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      DPoP: tokenRequestSignedDPop,
-      "OAuth-Client-Attestation": walletInstanceAttestation,
-      "OAuth-Client-Attestation-PoP": signedWiaPoP,
     },
     body: authorizationRequestFormBody.toString(),
   })

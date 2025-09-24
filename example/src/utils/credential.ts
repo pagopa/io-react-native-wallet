@@ -6,7 +6,6 @@ import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   CredentialResult,
   SupportedCredentialsWithoutPid,
@@ -31,12 +30,10 @@ export const getCredential = async ({
   credentialIssuerUrl,
   redirectUri,
   credentialType,
-  wiaCryptoContext,
 }: {
   credentialIssuerUrl: string;
   redirectUri: string;
   credentialType: SupportedCredentialsWithoutPid;
-  wiaCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   // Create credential crypto context
   const credentialKeyTag = uuid.v4().toString();
@@ -97,8 +94,6 @@ export const getCredential = async ({
     redirectUri,
     codeVerifier,
     {
-      wiaCryptoContext,
-      dPopCryptoContext,
       appFetch,
     }
   );

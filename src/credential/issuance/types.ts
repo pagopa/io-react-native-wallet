@@ -11,10 +11,6 @@ export type TokenResponse = z.infer<typeof TokenResponse>;
 
 export const TokenResponse = z.object({
   access_token: z.string(),
-  authorization_details: z.array(AuthorizationDetail),
-  // IT Wallet 1.0 remove c_nonce from token, mantain optional for compatibility with Potential
-  c_nonce: z.string().optional(),
-  c_nonce_expires_in: z.number().optional(),
   expires_in: z.number(),
   token_type: z.string(),
 });

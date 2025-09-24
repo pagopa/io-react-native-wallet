@@ -1,17 +1,9 @@
-import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
-import {
-  selectAttestation,
-  shouldRequestAttestationSelector,
-} from "../store/reducers/attestation";
 import type {
   CredentialResult,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import { getCredential } from "../utils/credential";
-import { WIA_KEYTAG } from "../utils/crypto";
-import { selectPid } from "../store/reducers/pid";
 import { createAppAsyncThunk } from "./utils";
-import { getAttestationThunk } from "./attestation";
 import { REDIRECT_URI, WALLET_EAA_PROVIDER_BASE_URL } from "@env";
 
 /**
@@ -39,8 +31,6 @@ export const getCredentialThunk = createAppAsyncThunk<
 >("credential/credentialGet", async (args, _) => {
   // Gets the Wallet Instance Attestation from the persisted store
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
   const { credentialType } = args;
 
   // Get the PID from the store
@@ -48,6 +38,5 @@ export const getCredentialThunk = createAppAsyncThunk<
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
     redirectUri: REDIRECT_URI,
     credentialType,
-    wiaCryptoContext,
   });
 });
