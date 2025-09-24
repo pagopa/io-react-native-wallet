@@ -6,9 +6,8 @@ describe("authorizeUserWithQueryMode", () => {
     const authRes = {
       code: "abcdefg",
       state: "123456",
-      iss: "123456",
     };
-    const authRedirectUrl = `test://cb?code=abcdefg&state=123456&iss=123456`;
+    const authRedirectUrl = `test://cb?code=abcdefg&state=123456`;
 
     const authResParsed =
       await completeUserAuthorizationWithQueryMode(authRedirectUrl);
