@@ -26,7 +26,7 @@ import { createSecureStorage } from "../storage";
 type CredentialState = {
   credentials: Record<
     SupportedCredentialsWithoutPid,
-    CredentialResult | undefined
+    CredentialResult[] | CredentialResult | undefined
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
   statusAttestation: Record<
@@ -93,11 +93,11 @@ const credentialSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(getCredentialThunk.fulfilled, (state, action) => {
-      const credentialType = action.payload.credentialType;
+      const credentialType = action.payload[0]?.credentialType;
       // Set the credential
-      state.credentials[credentialType] = action.payload;
+      state.credentials[credentialType!] = action.payload;
       // Set the status
-      state.credentialsAsyncStatus[credentialType] = {
+      state.credentialsAsyncStatus[credentialType!] = {
         ...asyncStatusInitial,
         isDone: true,
       };

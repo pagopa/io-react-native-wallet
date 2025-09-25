@@ -26,7 +26,7 @@ export type GetCredentialStatusAttestationThunkOutput = {
  * @returns The obtained credential result
  */
 export const getCredentialThunk = createAppAsyncThunk<
-  CredentialResult,
+  CredentialResult[],
   GetCredentialThunkInput
 >("credential/credentialGet", async (args, _) => {
   // Gets the Wallet Instance Attestation from the persisted store

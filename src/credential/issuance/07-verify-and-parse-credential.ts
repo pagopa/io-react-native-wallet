@@ -17,7 +17,7 @@ import { extractElementValueAsDate } from "../../mdoc/converters";
 
 export type VerifyAndParseCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
-  credential: Out<ObtainCredential>["credential"],
+  credential: Out<ObtainCredential>["credentials"][number]["credential"],
   format: Out<ObtainCredential>["format"],
   credentialType: string,
   context: {

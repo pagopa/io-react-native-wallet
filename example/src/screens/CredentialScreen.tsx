@@ -62,6 +62,8 @@ export const CredentialScreen = () => {
     healthId,
     badgeState,
     badge,
+    avState,
+    av,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(

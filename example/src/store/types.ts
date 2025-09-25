@@ -55,7 +55,7 @@ export type SupportedCredentialsWithoutPid = Exclude<
 type CredentialResultBase = {
   credential: Awaited<
     ReturnType<Credential.Issuance.ObtainCredential>
-  >["credential"];
+  >["credentials"][number]["credential"];
   parsedCredential: Awaited<
     ReturnType<Credential.Issuance.VerifyAndParseCredential>
   >["parsedCredential"];

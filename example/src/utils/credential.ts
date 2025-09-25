@@ -5,7 +5,6 @@ import {
 import uuid from "react-native-uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
-import { DPOP_KEYTAG, regenerateCryptoKey } from "../utils/crypto";
 import type {
   CredentialResult,
   SupportedCredentialsWithoutPid,
@@ -34,7 +33,7 @@ export const getCredential = async ({
   credentialIssuerUrl: string;
   redirectUri: string;
   credentialType: SupportedCredentialsWithoutPid;
-}): Promise<CredentialResult> => {
+}): Promise<CredentialResult[]> => {
   // Create credential crypto context
   const credentialKeyTag = uuid.v4().toString();
   await generate(credentialKeyTag);
@@ -83,10 +82,6 @@ export const getCredential = async ({
     );
   /* End of temporary block code */
 
-  // Generate the DPoP context which will be used for the whole issuance flow
-  await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
-
   const { accessToken } = await Credential.Issuance.authorizeAccess(
     issuerConf,
     code,
@@ -99,32 +94,35 @@ export const getCredential = async ({
   );
 
   // Obtain the credential
-  const { credential, format } = await Credential.Issuance.obtainCredential(
+  const { credentials, format } = await Credential.Issuance.obtainCredential(
     issuerConf,
     accessToken,
     clientId,
     credentialDefinition,
     {
       credentialCryptoContext,
-      dPopCryptoContext,
       appFetch,
     }
   );
 
-  // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
-  const { parsedCredential } =
-    await Credential.Issuance.verifyAndParseCredential(
-      issuerConf,
-      credential,
-      format,
-      credentialType,
-      { credentialCryptoContext, ignoreMissingAttributes: true }
-    );
+  return Promise.all(
+    credentials.map(async (credentialResult) => {
+      // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
+      const { parsedCredential } =
+        await Credential.Issuance.verifyAndParseCredential(
+          issuerConf,
+          credentialResult.credential,
+          format,
+          credentialType,
+          { credentialCryptoContext, ignoreMissingAttributes: true }
+        );
 
-  return {
-    parsedCredential,
-    credential,
-    keyTag: credentialKeyTag,
-    credentialType,
-  };
+      return {
+        parsedCredential,
+        credential: credentialResult.credential,
+        keyTag: credentialKeyTag,
+        credentialType,
+      };
+    })
+  );
 };

@@ -1,8 +1,4 @@
-import {
-  type CryptoContext,
-  sha256ToBase64,
-  SignJWT,
-} from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
@@ -15,8 +11,6 @@ import {
   ValidationFailed,
 } from "../../utils/errors";
 import { CredentialResponse, NonceResponse } from "./types";
-import { createDPopToken } from "../../utils/dpop";
-import uuid from "react-native-uuid";
 
 export type ObtainCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
@@ -27,11 +21,12 @@ export type ObtainCredential = (
     credential_identifier?: string;
   },
   context: {
-    dPopCryptoContext: CryptoContext;
     credentialCryptoContext: CryptoContext;
     appFetch?: GlobalFetch["fetch"];
   }
-) => Promise<CredentialResponse["credentials"][number] & { format: string }>;
+) => Promise<
+  { credentials: CredentialResponse["credentials"] } & { format: string }
+>;
 
 export const createNonceProof = async (
   nonce: string,
@@ -78,63 +73,49 @@ export const obtainCredential: ObtainCredential = async (
   credentialDefinition,
   context
 ) => {
-  const {
-    credentialCryptoContext,
-    appFetch = fetch,
-    dPopCryptoContext,
-  } = context;
+  const { credentialCryptoContext, appFetch = fetch } = context;
 
   const credentialUrl = issuerConf.credential_endpoint;
   const issuerUrl = issuerConf.issuer;
   const nonceUrl = issuerConf.nonce_endpoint;
 
-  // Fetch the nonce from the Credential Issuer
-  const { c_nonce } = nonceUrl
-    ? await appFetch(nonceUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-        .then(hasStatusOrThrow(200))
-        .then((res) => res.json())
-        .then((body) => NonceResponse.parse(body))
-    : accessToken;
-  if (!c_nonce) {
+  if (!nonceUrl) {
     throw new ValidationFailed({
       message:
         "Nonce Endpoint not found or access token does not contain the c_nonce",
     });
   }
 
-  /**
-   * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
-   * This is presented along with the access token to the Credential Endpoint as proof of possession of the private key used to sign the Access Token.
-   * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
-   */
-  const signedNonceProof = await createNonceProof(
-    c_nonce,
-    clientId,
-    issuerUrl,
-    credentialCryptoContext
-  );
+  const proofs = await Promise.all(
+    Array.from(Array(issuerConf.batch_size).keys()).map(async () => {
+      // Fetch the nonce from the Credential Issuer
+      const { c_nonce } = await appFetch(nonceUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then(hasStatusOrThrow(200))
+        .then((res) => res.json())
+        .then((body) => NonceResponse.parse(body));
+      if (!c_nonce) {
+        throw new ValidationFailed({
+          message:
+            "Nonce Endpoint not found or access token does not contain the c_nonce",
+        });
+      }
 
-  // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
-  const containsCredentialDefinition = accessToken.authorization_details.some(
-    (c) =>
-      c.credential_configuration_id ===
-        credentialDefinition.credential_configuration_id &&
-      (credentialDefinition.credential_identifier
-        ? c.credential_identifiers.includes(
-            credentialDefinition.credential_identifier
-          )
-        : true)
+      /**
+       * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
+       * This is presented along with the access token to the Credential Endpoint as proof of possession of the private key used to sign the Access Token.
+       * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
+       */
+      return createNonceProof(
+        c_nonce,
+        clientId,
+        issuerUrl,
+        credentialCryptoContext
+      );
+    })
   );
-
-  if (!containsCredentialDefinition) {
-    throw new ValidationFailed({
-      message:
-        "The access token response does not contain the requested credential",
-    });
-  }
 
   const credential =
     issuerConf.credential_configurations_supported[
@@ -158,27 +139,17 @@ export const obtainCredential: ObtainCredential = async (
 
   /** The credential request body */
   const credentialRequestFormBody = {
-    credential_identifier: credentialDefinition.credential_configuration_id,
-    proof: {
-      jwt: signedNonceProof,
-      proof_type: "jwt",
+    credential_configuration_id:
+      credentialDefinition.credential_configuration_id,
+    proofs: {
+      jwt: proofs,
     },
   };
 
-  const tokenRequestSignedDPop = await createDPopToken(
-    {
-      htm: "POST",
-      htu: credentialUrl,
-      jti: `${uuid.v4()}`,
-      ath: await sha256ToBase64(accessToken.access_token),
-    },
-    dPopCryptoContext
-  );
   const credentialRes = await appFetch(credentialUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      DPoP: tokenRequestSignedDPop,
       Authorization: `${accessToken.token_type} ${accessToken.access_token}`,
     },
     body: JSON.stringify(credentialRequestFormBody),
@@ -198,7 +169,7 @@ export const obtainCredential: ObtainCredential = async (
   // We support only one credential for now
   return {
     format,
-    ...credentialRes.data.credentials.at(0)!,
+    credentials: credentialRes.data.credentials,
   };
 };
 
