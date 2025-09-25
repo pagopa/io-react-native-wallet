@@ -52,9 +52,8 @@ export const getCredential = async ({
 
   // Start user authorization
 
-  // Obtain the Authorization URL
-  const { authUrl, clientId, codeVerifier, credentialDefinition } =
-    await Credential.Issuance.buildAuthorizationUrl(
+  const { request_uri, clientId, codeVerifier, credentialDefinition, state } =
+    await Credential.Issuance.startUserAuthorization(
       issuerConf,
       credentialType,
       {
@@ -62,6 +61,14 @@ export const getCredential = async ({
         appFetch,
       }
     );
+
+  // Obtain the Authorization URL
+  const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+    issuerConf,
+    request_uri,
+    clientId,
+    state
+  );
 
   const supportsCustomTabs = await supportsInAppBrowser();
   if (!supportsCustomTabs) {

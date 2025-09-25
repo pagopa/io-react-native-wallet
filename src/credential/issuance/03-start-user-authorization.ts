@@ -1,24 +1,27 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { ResponseMode } from "./types";
-import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
+import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
+import {
+  generateRandomAlphaNumericString,
+  hasStatusOrThrow,
+  type Out,
+} from "../../utils/misc";
 import type { StartFlow } from "./01-start-flow";
-import { AuthorizationDetail, makeParRequest } from "../../utils/par";
+import { AuthorizationDetail } from "../../utils/par";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
+import { IssuerResponseError } from "../../utils/errors";
 
 export type StartUserAuthorization = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   credentialType: Out<StartFlow>["credentialType"],
   context: {
-    wiaCryptoContext: CryptoContext;
-    walletInstanceAttestation: string;
     redirectUri: string;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<{
-  issuerRequestUri: string;
+  request_uri: string;
   clientId: string;
   codeVerifier: string;
   credentialDefinition: AuthorizationDetail;
+  state: string;
 }>;
 
 /**
@@ -54,23 +57,6 @@ const selectCredentialDefinition = (
 };
 
 /**
- * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
- * @param issuerConf The issuer configuration
- * @param credentialType The type of the credential to be requested
- * @returns The response mode to be used in the request, "query" for urn:eu.europa.ec.eudi:pid:1 and "form_post.jwt" for all other types.
- */
-const selectResponseMode = (
-  credentialType: Out<StartFlow>["credentialType"]
-): ResponseMode => {
-  const responseMode =
-    credentialType === "urn:eu.europa.ec.eudi:pid:1"
-      ? "query"
-      : "form_post.jwt";
-
-  return responseMode;
-};
-
-/**
  * WARNING: This function must be called after {@link getIssuerConfig} and {@link startFlow}. The next steam is {@link compeUserAuthorizationWithQueryMode} or {@link compeUserAuthorizationWithFormPostJwtMode}
  * Creates and sends a PAR request to the /as/par endpoint of the authorization server.
  * This starts the authentication flow to obtain an access token.
@@ -93,35 +79,42 @@ export const startUserAuthorization: StartUserAuthorization = async (
   credentialType,
   ctx
 ) => {
-  const {
-    wiaCryptoContext,
-    walletInstanceAttestation,
-    redirectUri,
-    appFetch = fetch,
-  } = ctx;
-
-  const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-  if (!clientId) {
-    throw new Error("No public key found");
-  }
+  const appFetch = ctx.appFetch ?? fetch;
+  const clientId = generateRandomAlphaNumericString(64);
+  const authzRequestEndpoint = issuerConf.pushed_authorization_request_endpoint;
   const codeVerifier = generateRandomAlphaNumericString(64);
-  const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
+  const codeChallenge = await sha256ToBase64(codeVerifier);
+
   const credentialDefinition = selectCredentialDefinition(
     issuerConf,
     credentialType
   );
-  const responseMode = selectResponseMode(credentialType);
 
-  const getPar = makeParRequest({ wiaCryptoContext, appFetch });
-  const issuerRequestUri = await getPar(
-    clientId,
-    codeVerifier,
-    redirectUri,
-    responseMode,
-    parEndpoint,
-    walletInstanceAttestation,
-    [credentialDefinition]
-  );
+  const state = generateRandomAlphaNumericString(32);
 
-  return { issuerRequestUri, clientId, codeVerifier, credentialDefinition };
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: "code",
+    scope: "eu.europa.ec.eudi.age_verification_mdoc",
+    code_challenge_method: "S256",
+    code_challenge: codeChallenge,
+    redirect_uri: ctx.redirectUri,
+    state,
+    resource: "https://issuer.ageverification.dev/",
+  });
+
+  const parUrl = authzRequestEndpoint;
+
+  const request_uri = await appFetch(parUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
+  })
+    .then(hasStatusOrThrow(201, IssuerResponseError))
+    .then((res) => res.json())
+    .then((result) => result.request_uri);
+
+  return { request_uri, clientId, codeVerifier, credentialDefinition, state };
 };

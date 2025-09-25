@@ -3,29 +3,10 @@ import {
   AuthorizationResultShape,
   type AuthorizationResult,
 } from "../../utils/auth";
-import {
-  generateRandomAlphaNumericString,
-  hasStatusOrThrow,
-  type Out,
-} from "../../utils/misc";
-import type { StartUserAuthorization } from "./03-start-user-authorization";
+import { type Out } from "../../utils/misc";
 import parseUrl from "parse-url";
-import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { GetIssuerConfig } from "./02-get-issuer-config";
-import {
-  decode,
-  encodeBase64,
-  sha256ToBase64,
-  SignJWT,
-  type CryptoContext,
-} from "@pagopa/io-react-native-jwt";
-import { RequestObject } from "../presentation/types";
-import uuid from "react-native-uuid";
-import { ResponseUriResultShape } from "./types";
-import { AuthorizationDetail } from "../../utils/par";
-import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
-import type { StartFlow } from "./01-start-flow";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a urn:eu.europa.ec.eudi:pid:1.
@@ -34,69 +15,14 @@ export type CompleteUserAuthorizationWithQueryMode = (
   authRedirectUrl: string
 ) => Promise<AuthorizationResult>;
 
-export type CompleteUserAuthorizationWithFormPostJwtMode = (
-  requestObject: Out<GetRequestedCredentialToBePresented>,
-  context: {
-    wiaCryptoContext: CryptoContext;
-    pidCryptoContext: CryptoContext;
-    pid: string;
-    walletInstanceAttestation: string;
-    appFetch?: GlobalFetch["fetch"];
-  }
-) => Promise<AuthorizationResult>;
-
-export type GetRequestedCredentialToBePresented = (
-  issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
-  clientId: Out<StartUserAuthorization>["clientId"],
-  issuerConf: Out<GetIssuerConfig>["issuerConf"],
-  appFetch?: GlobalFetch["fetch"]
-) => Promise<RequestObject>;
-
 export type BuildAuthorizationUrl = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
-  credentialType: Out<StartFlow>["credentialType"],
-  context: {
-    redirectUri: string;
-    appFetch?: GlobalFetch["fetch"];
-  }
+  request_uri: string,
+  client_id: string,
+  state: string
 ) => Promise<{
   authUrl: string;
-  clientId: string;
-  codeVerifier: string;
-  credentialDefinition: AuthorizationDetail;
 }>;
-
-/**
- * Ensures that the credential type requested is supported by the issuer and contained in the
- * issuer configuration.
- * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
- * @param credentialType The type of the credential to be requested returned by {@link startFlow}
- * @param context.wiaCryptoContext The Wallet Instance's crypto context
- * @param context.walletInstanceAttestation The Wallet Instance's attestation
- * @param context.redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
- * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @returns The credential definition to be used in the request which includes the format and the type and its type
- */
-const selectCredentialDefinition = (
-  issuerConf: Out<GetIssuerConfig>["issuerConf"],
-  credentialType: Out<StartFlow>["credentialType"]
-): AuthorizationDetail => {
-  const credential_configurations_supported =
-    issuerConf.credential_configurations_supported;
-
-  const [result] = Object.keys(credential_configurations_supported)
-    .filter((e) => e.includes(credentialType))
-    .map(() => ({
-      credential_configuration_id: credentialType,
-      type: "openid_credential" as const,
-    }));
-
-  if (!result) {
-    throw new Error(`No credential support the type '${credentialType}'`);
-  }
-
-  return result;
-};
 
 /**
  * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
@@ -109,32 +35,19 @@ const selectCredentialDefinition = (
  */
 export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
   issuerConf,
-  credentialType,
-  ctx
+  request_uri,
+  client_id,
+  state
 ) => {
-  const clientId = generateRandomAlphaNumericString(64);
-  const authzRequestEndpoint = issuerConf.authorization_endpoint;
-  const codeVerifier = generateRandomAlphaNumericString(64);
-  const codeChallenge = await sha256ToBase64(codeVerifier);
-
-  const credentialDefinition = selectCredentialDefinition(
-    issuerConf,
-    credentialType
-  );
-
   const params = new URLSearchParams({
-    client_id: clientId,
-    response_type: "code",
-    scope: "proof_of_age",
-    code_challenge_method: "S256",
-    code_challenge: codeChallenge,
-    redirect_uri: ctx.redirectUri,
-    state: generateRandomAlphaNumericString(32),
+    client_id,
+    state,
+    request_uri,
   });
 
-  const authUrl = `${authzRequestEndpoint}?${params}`;
+  const authUrl = `${issuerConf.authorization_endpoint}?${params}`;
 
-  return { authUrl, clientId, codeVerifier, credentialDefinition };
+  return { authUrl };
 };
 
 /**
@@ -149,165 +62,6 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
     const query = parseUrl(authRedirectUrl).query;
 
     return parseAuthorizationResponse(query);
-  };
-
-/**
- * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link completeUserAuthorizationWithFormPostJwtMode}.
- * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
- * It is used as a first step to complete the user authorization by obtaining the requested credential to be presented from the authorization server.
- * The information is obtained by performing a GET request to the authorization endpoint with request_uri and client_id parameters.
- * @param issuerRequestUri the URI of the issuer where the request is sent
- * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
- * @param appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {ValidationFailed} if an error while validating the response
- * @returns the request object which contains the credential to be presented in order to obtain the requested credential
- */
-export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePresented =
-  async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
-    const authzRequestEndpoint = issuerConf.authorization_endpoint;
-    const params = new URLSearchParams({
-      client_id: clientId,
-      request_uri: issuerRequestUri,
-    });
-
-    const requestObject = await appFetch(
-      `${authzRequestEndpoint}?${params.toString()}`,
-      { method: "GET" }
-    )
-      .then(hasStatusOrThrow(200, IssuerResponseError))
-      .then((res) => res.text())
-      .then((jws) => decode(jws))
-      .then((reqObj) => RequestObject.safeParse(reqObj.payload));
-
-    if (!requestObject.success) {
-      throw new ValidationFailed({
-        message: "Request Object validation failed",
-        reason: requestObject.error.message,
-      });
-    }
-    return requestObject.data;
-  };
-
-/**
- * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link completeUserAuthorizationWithFormPostJwtMode}.
- * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
- * It is used as a first step to complete the user authorization by obtaining the requested credential to be presented from the authorization server.
- * The information is obtained by performing a GET request to the authorization endpoint with request_uri and client_id parameters.
- * @param issuerRequestUri the URI of the issuer where the request is sent
- * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link getIssuerConfig}
- * @param context.walletInstanceAccestation the Wallet Instance's attestation to be presented
- * @param context.pid the PID to be presented
- * @param context.wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
- * @param context.pidCryptoContext The PID crypto context associated with the pid parameter
- * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @throws {ValidationFailed} if an error while validating the response
- * @returns the authorization response which contains code, state and iss
- */
-export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationWithFormPostJwtMode =
-  async (requestObject, ctx) => {
-    const {
-      wiaCryptoContext,
-      pidCryptoContext,
-      pid,
-      walletInstanceAttestation,
-      appFetch = fetch,
-    } = ctx;
-
-    const wiaWpToken = await new SignJWT(wiaCryptoContext)
-      .setProtectedHeader({
-        alg: "ES256",
-        typ: "JWT",
-      })
-      .setPayload({
-        vp: walletInstanceAttestation,
-        jti: uuid.v4().toString(),
-        nonce: requestObject.nonce,
-      })
-      .setIssuedAt()
-      .setExpirationTime("5m")
-      .setAudience(requestObject.response_uri)
-      .sign();
-
-    const pidWpToken = await new SignJWT(pidCryptoContext)
-      .setProtectedHeader({
-        alg: "ES256",
-        typ: "JWT",
-      })
-      .setPayload({
-        vp: pid,
-        jti: uuid.v4().toString(),
-        nonce: requestObject.nonce,
-      })
-      .setIssuedAt()
-      .setExpirationTime("5m")
-      .setAudience(requestObject.response_uri)
-      .sign();
-
-    /* The path parameter refers to the vp_token variable of the authzResponsePayload and must point to the plain credential which
-     * is cointaned in the `vp` property of the signed jwt token payload
-     */
-    const presentationSubmission = {
-      definition_id: `${uuid.v4()}`,
-      id: `${uuid.v4()}`,
-      descriptor_map: [
-        {
-          id: "urn:eu.europa.ec.eudi:pid:1",
-          path: "$.vp_token[0].vp",
-          format: "vc+sd-jwt",
-        },
-        {
-          id: "WalletAttestation",
-          path: "$.vp_token[1].vp",
-          format: "jwt",
-        },
-      ],
-    };
-
-    const authzResponsePayload = encodeBase64(
-      JSON.stringify({
-        state: requestObject.state,
-        presentation_submission: presentationSubmission,
-        vp_token: [pidWpToken, wiaWpToken],
-      })
-    );
-
-    // Note: according to the spec, the response should be encrypted with the public key of the RP however this is not implemented yet
-    // https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-signed-and-encrypted-response
-    // const rsaPublicJwk = chooseRSAPublicKeyToEncrypt(rpConf);
-    // const encrypted = await new EncryptJwe(authzResponsePayload, {
-    //   alg: "RSA-OAEP-256",
-    //   enc: "A256CBC-HS512",
-    //   kid: rsaPublicJwk.kid,
-    // }).encrypt(rsaPublicJwk);
-
-    const body = new URLSearchParams({
-      response: authzResponsePayload,
-    }).toString();
-    const resUriRes = await appFetch(requestObject.response_uri, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body,
-    })
-      .then(hasStatusOrThrow(200, IssuerResponseError))
-      .then((reqUri) => reqUri.json());
-
-    const responseUri = ResponseUriResultShape.safeParse(resUriRes);
-    if (!responseUri.success) {
-      throw new ValidationFailed({
-        message: "Response Uri validation failed",
-        reason: responseUri.error.message,
-      });
-    }
-
-    return await appFetch(responseUri.data.redirect_uri)
-      .then(hasStatusOrThrow(200, IssuerResponseError))
-      .then((res) => res.text())
-      .then(getJwtFromFormPost)
-      .then((cbRes) => parseAuthorizationResponse(cbRes.decodedJwt.payload));
   };
 
 /**
