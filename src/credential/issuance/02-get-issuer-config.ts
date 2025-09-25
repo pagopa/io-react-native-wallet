@@ -27,6 +27,7 @@ export type IssuerConfig = {
   credential_configurations_supported: CredentialConfigurationSupported;
   batch_size: number;
   authorization_endpoint: string;
+  pushed_authorization_request_endpoint: string;
   token_endpoint: string;
   nonce_endpoint?: string;
   credential_endpoint: string;
@@ -81,6 +82,8 @@ const credentialIssuerRationalization = (
         issuerMetadata.credential_configurations_supported,
       batch_size: issuerMetadata.batch_credential_issuance.batch_size,
       authorization_endpoint: oauthServerMetadata.authorization_endpoint,
+      pushed_authorization_request_endpoint:
+        oauthServerMetadata.pushed_authorization_request_endpoint,
       token_endpoint: oauthServerMetadata.token_endpoint,
       credential_endpoint: issuerMetadata.credential_endpoint,
       nonce_endpoint: issuerMetadata.nonce_endpoint,

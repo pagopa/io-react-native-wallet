@@ -105,6 +105,7 @@ export type CredentialIssuerOauthAuthorizationServer = z.infer<
 export const CredentialIssuerOauthAuthorizationServer = z.object({
   authorization_endpoint: z.string(),
   token_endpoint: z.string(),
+  pushed_authorization_request_endpoint: z.string(),
 });
 
 export type CredentialIssuerOpenidCondiguration = z.infer<
