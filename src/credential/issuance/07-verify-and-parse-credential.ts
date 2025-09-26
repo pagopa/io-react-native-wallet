@@ -451,21 +451,18 @@ const verifyAndParseCredentialMDoc: WithFormat<"mso_mdoc"> = async (
 
   const expirationDate = extractElementValueAsDate(
     parsedCredential?.expiry_date?.value as string
-  );
-  if (!expirationDate) {
-    throw new IoWalletError(`expirationDate must be present!!`);
-  }
+  ) ?? decoded.issuerSigned.issuerAuth.payload.validityInfo.validUntil ;
   expirationDate?.setDate(expirationDate.getDate() + 1);
 
   const maybeIssuedAt = extractElementValueAsDate(
     parsedCredential?.issue_date?.value as string
-  );
+  ) ?? decoded.issuerSigned.issuerAuth.payload.validityInfo.validFrom ;
   maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
 
   return {
     parsedCredential,
-    expiration: expirationDate ?? new Date(),
-    issuedAt: maybeIssuedAt ?? undefined,
+    expiration: expirationDate,
+    issuedAt: maybeIssuedAt,
   };
 };
 

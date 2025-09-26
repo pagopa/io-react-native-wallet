@@ -137,6 +137,14 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
+  const doctype = format === 'mso_mdoc' ? credential.scope : credential.vct
+  if (!doctype) {
+    throw new ValidationFailed({
+      message:
+        "The credential doesn't contain the doctype required by the issuer",
+    });
+  }
+
   /** The credential request body */
   const credentialRequestFormBody = {
     credential_configuration_id:
@@ -144,6 +152,8 @@ export const obtainCredential: ObtainCredential = async (
     proofs: {
       jwt: proofs,
     },
+    format,
+    doctype
   };
 
   const credentialRes = await appFetch(credentialUrl, {
