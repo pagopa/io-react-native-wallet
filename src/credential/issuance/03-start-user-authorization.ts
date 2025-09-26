@@ -95,12 +95,12 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const params = new URLSearchParams({
     client_id: clientId,
     response_type: "code",
-    scope: "eu.europa.ec.eudi.age_verification_mdoc",
+    scope : credentialType,
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
     redirect_uri: ctx.redirectUri,
     state,
-    resource: "https://issuer.ageverification.dev/",
+    resource: issuerConf.issuer,
   });
 
   const parUrl = authzRequestEndpoint;
