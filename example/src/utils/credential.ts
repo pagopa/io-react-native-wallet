@@ -101,16 +101,17 @@ export const getCredential = async ({
   );
 
   // Obtain the credential
-  const { credentials, format } = await Credential.Issuance.obtainCredential(
-    issuerConf,
-    accessToken,
-    clientId,
-    credentialDefinition,
-    {
-      credentialCryptoContext,
-      appFetch,
-    }
-  );
+  const { credentials, format, doctype } =
+    await Credential.Issuance.obtainCredential(
+      issuerConf,
+      accessToken,
+      clientId,
+      credentialDefinition,
+      {
+        credentialCryptoContext,
+        appFetch,
+      }
+    );
 
   return Promise.all(
     credentials.map(async (credentialResult) => {
@@ -129,6 +130,7 @@ export const getCredential = async ({
         credential: credentialResult.credential,
         keyTag: credentialKeyTag,
         credentialType,
+        doctype,
       };
     })
   );

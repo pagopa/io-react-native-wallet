@@ -61,6 +61,7 @@ type CredentialResultBase = {
   >["parsedCredential"];
   keyTag: string;
   credentialType: SupportedCredentials;
+  doctype: string;
 };
 
 /**

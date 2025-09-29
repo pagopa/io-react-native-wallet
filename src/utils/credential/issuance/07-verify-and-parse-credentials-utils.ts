@@ -83,6 +83,7 @@ export function buildMockMDOCTestScenario(
         claims: {
           "org.iso.18013.5.1": claims,
         },
+        doctype: "org.iso.18013.5.1.mDL",
       },
     },
     "org.iso.18013.5.1.mDL",
@@ -134,6 +135,7 @@ export function buildMockSDJWTTestScenario(
         vct: "urn:eu.europa.ec.eudi:pid:1",
         display: [],
         claims,
+        doctype: "eu.europa.ec.eudi.pid.1",
       },
     },
     {

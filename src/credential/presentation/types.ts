@@ -121,7 +121,7 @@ export const RequestObject = z.object({
   nonce: z.string(),
   response_uri: z.string(),
   response_type: z.literal("vp_token"),
-  response_mode: z.enum(["direct_post.jwt", "direct_post"]),
+  response_mode: z.literal("direct_post"),
   client_id: z.string(),
   client_id_scheme: z.string().optional(), // previous z.literal("entity_id"),
   client_metadata: z

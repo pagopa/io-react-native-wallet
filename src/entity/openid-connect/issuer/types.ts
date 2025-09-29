@@ -68,6 +68,7 @@ export const CredentialConfigurationSupported = z.record(
     display: z.array(CredentialDisplay),
     format: CredentialFormat,
     claims: CredentialConfigurationClaims,
+    doctype: z.string(),
   })
 );
 

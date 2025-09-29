@@ -1,13 +1,10 @@
 import { createAppAsyncThunk } from "./utils";
 import { Credential } from "@pagopa/io-react-native-wallet";
-import {
-  selectAttestation,
-  shouldRequestAttestationSelector,
-} from "../store/reducers/attestation";
-import { selectPid } from "../store/reducers/pid";
+import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
 import { selectCredentials } from "../store/reducers/credential";
 import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
+import type { RequestObject } from "src/credential/presentation/types";
 
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
@@ -19,9 +16,6 @@ export type RemoteCrossDevicePresentationThunkOutput = {
     ReturnType<Credential.Presentation.SendAuthorizationResponse>
   >;
 };
-export type RequestObject = Awaited<
-  ReturnType<Credential.Presentation.VerifyRequestObjectSignature>
->["requestObject"];
 type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[0];
 /**
  * Thunk to present credential.
@@ -35,66 +29,45 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     await dispatch(getAttestationThunk());
   }
 
-  // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestation(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
   const qrcode = args.qrcode;
   const url = new URL(qrcode);
-  const request_uri = url.searchParams.get("request_uri");
-  const client_id = url.searchParams.get("client_id");
-  if (!request_uri || !client_id) {
-    throw new Error("Invalid presentation link");
-  }
 
-  const { requestUri } = Credential.Presentation.startFlowFromQR(
-    request_uri,
-    client_id
-  );
-
-  const { requestObjectEncodedJwt } =
-    await Credential.Presentation.getRequestObject(requestUri);
-
-  const jwks = await Credential.Presentation.fetchJwksFromRequestObject(
-    requestObjectEncodedJwt
-  );
-
-  const { requestObject } =
-    await Credential.Presentation.verifyRequestObjectSignature(
-      requestObjectEncodedJwt,
-      jwks.keys
-    );
-
+  const requestObject = Credential.Presentation.startFlowFromQR(url);
   const credentialsSdJwt: [string, string, string][] = [];
+
   const credentialsMdoc: [string, string, string][] = [];
 
-  const pid = selectPid(getState());
-  if (!pid) {
-    throw new Error("PID not found");
-  }
-  credentialsSdJwt.push([pid.credentialType, pid.keyTag, pid.credential]);
-
   const credentials = selectCredentials(getState());
-  const mDL = credentials["org.iso.18013.5.1.mDL"];
+  const mDL = Array.isArray(credentials["org.iso.18013.5.1.mDL"])
+    ? credentials["org.iso.18013.5.1.mDL"][0]
+    : credentials["org.iso.18013.5.1.mDL"];
   if (mDL?.credential) {
-    credentialsMdoc.push([mDL.credentialType, mDL.keyTag, mDL.credential]);
+    credentialsMdoc.push([mDL.doctype, mDL.keyTag, mDL.credential]);
   }
-  const healthId = credentials["eu.europa.ec.eudi.hiid.1"];
+  const healthId = Array.isArray(credentials["eu.europa.ec.eudi.hiid.1"])
+    ? credentials["eu.europa.ec.eudi.hiid.1"][0]
+    : credentials["eu.europa.ec.eudi.hiid.1"];
   if (healthId?.credential) {
     credentialsMdoc.push([
-      healthId.credentialType,
+      healthId.doctype,
       healthId.keyTag,
       healthId.credential,
     ]);
   }
-  const badge = credentials.mso_mdoc_CompanyBadge;
+  const badge = Array.isArray(credentials.mso_mdoc_CompanyBadge)
+    ? credentials.mso_mdoc_CompanyBadge[0]
+    : credentials.mso_mdoc_CompanyBadge;
   if (badge?.credential) {
-    credentialsMdoc.push([
-      badge.credentialType,
-      badge.keyTag,
-      badge.credential,
-    ]);
+    credentialsMdoc.push([badge.doctype, badge.keyTag, badge.credential]);
+  }
+
+  const av = Array.isArray(
+    credentials["eu.europa.ec.eudi.age_verification_mdoc"]
+  )
+    ? credentials["eu.europa.ec.eudi.age_verification_mdoc"][0]
+    : credentials["eu.europa.ec.eudi.age_verification_mdoc"];
+  if (av?.credential) {
+    credentialsMdoc.push([av.doctype, av.keyTag, av.credential]);
   }
 
   if (requestObject.dcql_query) {
@@ -102,20 +75,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       args,
       requestObject,
       credentialsSdJwt,
-      credentialsMdoc,
-      jwks.keys
-    );
-
-    return { result: authResponse };
-  }
-
-  if (requestObject.presentation_definition) {
-    const authResponse = await handlePresentationDefinitionResponse(
-      args,
-      requestObject,
-      credentialsSdJwt,
-      credentialsMdoc,
-      jwks.keys
+      credentialsMdoc
     );
 
     return { result: authResponse };
@@ -131,8 +91,7 @@ const handleDcqlResponse = async (
   args: RemoteCrossDevicePresentationThunkInput,
   requestObject: RequestObject,
   credentialsSdJwt: [string, string, string][],
-  credentialsMdoc: [string, string, string][],
-  jwksKeys: any[]
+  credentialsMdoc: [string, string, string][]
 ) => {
   const evaluateDcqlQuery = await Credential.Presentation.evaluateDcqlQuery(
     requestObject.dcql_query as DcqlQuery,
@@ -161,87 +120,12 @@ const handleDcqlResponse = async (
     );
 
   return args.allowed === "acceptanceState"
-    ? await Credential.Presentation.sendAuthorizationResponseDcql(
-        requestObject,
-        jwksKeys,
-        remotePresentations
-      )
-    : await Credential.Presentation.sendAuthorizationErrorResponse(
-        requestObject,
-        "access_denied",
-        jwksKeys
-      );
-};
-
-/**
- * Helper method to prepare and send presentation authorization response
- */
-const handlePresentationDefinitionResponse = async (
-  args: RemoteCrossDevicePresentationThunkInput,
-  requestObject: RequestObject,
-  credentialsSdJwt: [string, string, string][],
-  credentialsMdoc: [string, string, string][],
-  jwksKeys: any[]
-) => {
-  const { presentationDefinition } =
-    await Credential.Presentation.fetchPresentDefinition(requestObject);
-
-  const evaluateInputDescriptors =
-    await Credential.Presentation.evaluateInputDescriptors(
-      presentationDefinition.input_descriptors,
-      credentialsSdJwt,
-      credentialsMdoc
-    );
-
-  const credentialAndInputDescriptor = evaluateInputDescriptors.map(
-    (evaluateInputDescriptor) => {
-      // Present only the mandatory claims
-      const format = Object.keys(
-        evaluateInputDescriptor.inputDescriptor.format || {}
-      )[0]! as "mso_mdoc" | "vc+sd-jwt" | "dc+sd-jwt";
-      return format === "mso_mdoc"
-        ? {
-            requestedClaims:
-              evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures,
-            credentialInputId: evaluateInputDescriptor.inputDescriptor.id,
-            credential: evaluateInputDescriptor.credential,
-            keyTag: evaluateInputDescriptor.keyTag,
-            format,
-            doctype: evaluateInputDescriptor.inputDescriptor.id,
-          }
-        : {
-            requestedClaims:
-              evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures,
-            credentialInputId: evaluateInputDescriptor.inputDescriptor.id,
-            credential: evaluateInputDescriptor.credential,
-            keyTag: evaluateInputDescriptor.keyTag,
-            format,
-          };
-    }
-  );
-
-  const authRequestObject = {
-    nonce: requestObject.nonce,
-    clientId: requestObject.client_id,
-    responseUri: requestObject.response_uri,
-  };
-
-  const remotePresentations =
-    await Credential.Presentation.prepareRemotePresentations(
-      credentialAndInputDescriptor,
-      authRequestObject
-    );
-
-  return args.allowed === "acceptanceState"
     ? await Credential.Presentation.sendAuthorizationResponse(
         requestObject,
-        presentationDefinition.id,
-        jwksKeys,
         remotePresentations
       )
     : await Credential.Presentation.sendAuthorizationErrorResponse(
         requestObject,
-        "access_denied",
-        jwksKeys
+        "access_denied"
       );
 };

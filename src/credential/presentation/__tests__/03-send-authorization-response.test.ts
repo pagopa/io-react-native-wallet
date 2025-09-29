@@ -1,15 +1,12 @@
 import {
-  choosePublicKeyToEncrypt,
   buildDirectPostBody,
-  buildDirectPostJwtBody,
   sendAuthorizationResponse,
   sendAuthorizationErrorResponse,
-} from "../08-send-authorization-response";
+} from "../03-send-authorization-response";
 
 // Mocks for external modules
 import { hasStatusOrThrow } from "../../../utils/misc";
 import type { RemotePresentation } from "../types";
-import { EncryptJwe } from "@pagopa/io-react-native-jwt";
 // We’ll use Jest’s mocking utilities here.
 // Adjust to your project’s actual structure.
 
@@ -41,19 +38,6 @@ jest.mock("@pagopa/io-react-native-jwt", () => {
   };
 });
 
-describe("chooseRSAPublicKeyToEncrypt", () => {
-  it("should choose the first RSA key with 'enc' use from the list", () => {
-    const mockKeys = [
-      { kid: "not-an-rsa-key", use: "sig", kty: "EC" },
-      { kid: "rsa-key-1", use: "enc", kty: "RSA" },
-      { kid: "rsa-key-2", use: "enc", kty: "RSA" },
-    ];
-
-    const chosenKey = choosePublicKeyToEncrypt(mockKeys as any);
-    expect(chosenKey).toEqual(mockKeys[1]);
-  });
-});
-
 describe("buildDirectPostBody", () => {
   it("should build the correct formBody string", async () => {
     const mockRequestObject = {
@@ -80,35 +64,6 @@ describe("buildDirectPostBody", () => {
   });
 });
 
-describe("buildDirectPostJwtBody", () => {
-  const mockRpJwKeys: any = [
-    { kid: "rsa-key-1", use: "enc", kty: "RSA" },
-    { kid: "something-else", use: "sig", kty: "EC" },
-  ];
-
-  it("should build the correct formBody string", async () => {
-    const mockRequestObject = {
-      state: "mock_state",
-      nonce: "mock_nonce",
-    };
-
-    const mockVpToken = "mock_vp_token";
-    const mockPresentationSubmission = { foo: "bar" };
-
-    const result = await buildDirectPostJwtBody(
-      mockRpJwKeys,
-      mockRequestObject as any,
-      {
-        vp_token: mockVpToken,
-        presentation_submission: mockPresentationSubmission,
-      }
-    );
-
-    // Should call chooseRSAPublicKeyToEncrypt and produce a "response=mock_encrypted_jwe"
-    expect(result).toBe("response=mock_encrypted_jwe&state=mock_state");
-  });
-});
-
 describe("sendAuthorizationResponse", () => {
   let mockFetch: jest.Mock;
   const mockRequestObject = {
@@ -122,16 +77,14 @@ describe("sendAuthorizationResponse", () => {
       input_descriptors: [{ id: "mock_descriptor_id" }],
     },
   };
-  const mockPresentationDefinitionId = "mock_presentation_definition_id";
   const mockRemotePresentation = {
     presentations: [
       {
-        inputDescriptor: { id: "descriptor1", format: "jwt" },
+        credentialId: "descriptor1",
         vpToken: "mock_vp_token",
       },
     ] as unknown as RemotePresentation[],
   } as unknown as RemotePresentation;
-  const mockRpJwKeys: any = [{ kid: "rsa-key-enc", use: "enc", kty: "RSA" }];
 
   beforeEach(() => {
     mockFetch = jest.fn();
@@ -146,8 +99,6 @@ describe("sendAuthorizationResponse", () => {
   it("should use buildDirectPostBody when response_mode is direct_post", async () => {
     const res = await sendAuthorizationResponse(
       mockRequestObject as any,
-      mockPresentationDefinitionId,
-      mockRpJwKeys,
       mockRemotePresentation,
       { appFetch: mockFetch }
     );
@@ -161,34 +112,6 @@ describe("sendAuthorizationResponse", () => {
     });
   });
 
-  it("should use buildDirectPostJwtBody when response_mode is direct_post.jwt", async () => {
-    const directPostJwtRequest = {
-      ...mockRequestObject,
-      response_mode: "direct_post.jwt",
-    };
-    const multipleRemotePresentation = {
-      presentations: [
-        ...mockRemotePresentation.presentations,
-        {
-          inputDescriptor: { id: "descriptor2", format: "jwt" },
-          vpToken: "mock_vp_token2",
-        },
-      ] as unknown as RemotePresentation[],
-    } as unknown as RemotePresentation;
-
-    await sendAuthorizationResponse(
-      directPostJwtRequest as any,
-      mockPresentationDefinitionId,
-      mockRpJwKeys,
-      multipleRemotePresentation,
-      { appFetch: mockFetch }
-    );
-
-    // Expect that the returned body is "response=mock_encrypted_jwe"
-    const [[, { body }]] = mockFetch.mock.calls;
-    expect(body).toContain("response=mock_encrypted_jwe");
-  });
-
   it("should handle multiple remote presentations by returning an array for vp_token", async () => {
     const directPostJwtRequest = {
       ...mockRequestObject,
@@ -198,7 +121,7 @@ describe("sendAuthorizationResponse", () => {
       presentations: [
         ...mockRemotePresentation.presentations,
         {
-          inputDescriptor: { id: "descriptor2", format: "jwt" },
+          credentialId: "descriptor2",
           vpToken: "mock_vp_token2",
         },
       ] as unknown as RemotePresentation[],
@@ -206,8 +129,6 @@ describe("sendAuthorizationResponse", () => {
 
     await sendAuthorizationResponse(
       directPostJwtRequest as any,
-      mockPresentationDefinitionId,
-      mockRpJwKeys,
       multipleRemotePresentations,
       { appFetch: mockFetch }
     );
@@ -215,10 +136,10 @@ describe("sendAuthorizationResponse", () => {
     const options = mockFetch.mock.calls[0][1];
     const params = new URLSearchParams(options.body);
     const vpTokenValue = params.get("vp_token");
-    expect(JSON.parse(vpTokenValue as string)).toEqual([
-      "mock_vp_token",
-      "mock_vp_token2",
-    ]);
+    expect(JSON.parse(vpTokenValue as string)).toEqual({
+      descriptor1 : "mock_vp_token",
+      descriptor2 : "mock_vp_token2",
+    });
   });
 });
 
@@ -235,7 +156,6 @@ describe("sendAuthorizationErrorResponse", () => {
       input_descriptors: [{ id: "mock_descriptor_id" }],
     },
   };
-  const mockRpJwKeys: any = [{ kid: "rsa-key-enc", use: "enc", kty: "RSA" }];
 
   beforeEach(() => {
     mockFetch = jest.fn();
@@ -247,21 +167,10 @@ describe("sendAuthorizationErrorResponse", () => {
     });
   });
 
-  it('should choose the first EC key with "enc" use from the list', () => {
-    const mockJwKeys: any = [
-      { kid: "rsa-key-enc", use: "enc", kty: "RSA" },
-      { kid: "ec-b-key-enc", use: "enc", kty: "EC", crv: "B-256" },
-      { kid: "ec-key-enc", use: "enc", kty: "EC", crv: "P-256" },
-    ];
-    const encPublicJwk = choosePublicKeyToEncrypt(mockJwKeys);
-    expect(encPublicJwk).toEqual(mockJwKeys[2]);
-  });
-
   it("should send an error code building the body using buildDirectPostBody", async () => {
     const res = await sendAuthorizationErrorResponse(
       mockRequestObject as any,
       "access_denied",
-      mockRpJwKeys,
       { appFetch: mockFetch }
     );
 
@@ -271,39 +180,6 @@ describe("sendAuthorizationErrorResponse", () => {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: `state=mock_state&error=access_denied`,
-    });
-  });
-
-  it("should send an error code building the body using buildDirectPostJwtBody", async () => {
-    const authbodyStringified = JSON.stringify({
-      error: "access_denied",
-      state: "mock_state",
-    });
-
-    const encPublicJwk = choosePublicKeyToEncrypt(mockRpJwKeys);
-    const encryptedResponse = await new EncryptJwe(authbodyStringified, {
-      alg: "RSA-OAEP-256",
-      enc: "A256CBC-HS512",
-      kid: encPublicJwk.kid,
-    }).encrypt(encPublicJwk);
-
-    const jwtPostRequest = {
-      ...mockRequestObject,
-      response_mode: "direct_post.jwt",
-    };
-    const res = await sendAuthorizationErrorResponse(
-      jwtPostRequest as any,
-      "access_denied",
-      mockRpJwKeys,
-      { appFetch: mockFetch }
-    );
-
-    expect(res).toEqual({ status: "ok", response_code: "200" });
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith("https://mock.rp/response", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `response=${encryptedResponse}&state=mock_state`,
     });
   });
 });

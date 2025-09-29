@@ -449,14 +449,14 @@ const verifyAndParseCredentialMDoc: WithFormat<"mso_mdoc"> = async (
     ignoreMissingAttributes
   );
 
-  const expirationDate = extractElementValueAsDate(
-    parsedCredential?.expiry_date?.value as string
-  ) ?? decoded.issuerSigned.issuerAuth.payload.validityInfo.validUntil ;
+  const expirationDate =
+    extractElementValueAsDate(parsedCredential?.expiry_date?.value as string) ??
+    decoded.issuerSigned.issuerAuth.payload.validityInfo.validUntil;
   expirationDate?.setDate(expirationDate.getDate() + 1);
 
-  const maybeIssuedAt = extractElementValueAsDate(
-    parsedCredential?.issue_date?.value as string
-  ) ?? decoded.issuerSigned.issuerAuth.payload.validityInfo.validFrom ;
+  const maybeIssuedAt =
+    extractElementValueAsDate(parsedCredential?.issue_date?.value as string) ??
+    decoded.issuerSigned.issuerAuth.payload.validityInfo.validFrom;
   maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
 
   return {

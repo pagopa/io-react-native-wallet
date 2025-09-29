@@ -95,7 +95,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const params = new URLSearchParams({
     client_id: clientId,
     response_type: "code",
-    scope : credentialType,
+    scope: credentialType,
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
     redirect_uri: ctx.redirectUri,

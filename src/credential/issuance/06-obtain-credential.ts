@@ -25,7 +25,10 @@ export type ObtainCredential = (
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<
-  { credentials: CredentialResponse["credentials"] } & { format: string }
+  { credentials: CredentialResponse["credentials"] } & {
+    format: string;
+    doctype: string;
+  }
 >;
 
 export const createNonceProof = async (
@@ -137,7 +140,7 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  const doctype = format === 'mso_mdoc' ? credential.scope : credential.vct
+  const doctype = format === "mso_mdoc" ? credential.scope : credential.vct;
   if (!doctype) {
     throw new ValidationFailed({
       message:
@@ -153,7 +156,7 @@ export const obtainCredential: ObtainCredential = async (
       jwt: proofs,
     },
     format,
-    doctype
+    doctype,
   };
 
   const credentialRes = await appFetch(credentialUrl, {
@@ -180,6 +183,7 @@ export const obtainCredential: ObtainCredential = async (
   return {
     format,
     credentials: credentialRes.data.credentials,
+    doctype: credential.doctype,
   };
 };
 

@@ -293,13 +293,17 @@ export const expectedResult = {
           },
         ],
         format: "mso_mdoc",
+        doctype: "eu.europa.ec.av.1",
         scope: "eu.europa.ec.eudi.age_verification_mdoc",
       },
     },
+    pushed_authorization_request_endpoint:
+      "https://issuer.ageverification.dev/pushed_authorizationv2",
     authorization_endpoint:
       "https://issuer.ageverification.dev/authorizationV3",
     token_endpoint: "https://issuer.ageverification.dev/token",
     credential_endpoint: "https://issuer.ageverification.dev/credential",
+    nonce_endpoint: "https://issuer.ageverification.dev/nonce",
     keys: [
       {
         kty: "RSA",
