@@ -11,7 +11,7 @@ export type PresentationParams = z.infer<typeof PresentationParams>;
 
 /**
  * The beginning of the presentation flow.
- * To be implemented accordind to the user touchpoint
+ * To be implemented according d to the user touchpoint
  *
  * @param params Presentation parameters, depending on the starting touchpoint
  * @returns The url for the Relying Party to connect with
