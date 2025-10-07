@@ -1,6 +1,6 @@
 import React from "react";
-import Dialog from "react-native-dialog";
 import { View } from "react-native";
+import Dialog from "react-native-dialog";
 
 type Props = {
   visible: boolean;
@@ -9,7 +9,7 @@ type Props = {
   onCancel: () => void;
 };
 
-export const PinDialog = ({
+export const CiePinDialog = ({
   visible,
   onConfirm,
   onCancel,
