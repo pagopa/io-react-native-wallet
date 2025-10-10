@@ -6,16 +6,9 @@ const validCredentialOffer: CredentialOffer = {
   credential_issuer: "https://issuer.example.com",
   credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
   grants: {
-    "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
-      "pre-authorized_code": "some-pre-authorized-code",
-      tx_code: {
-        length: 6,
-        input_mode: "numeric",
-        description: "Enter the 6-digit code",
-      },
-    },
     authorization_code: {
       issuer_state: "some-issuer-state",
+      authorization_server: "https://auth.example.com",
     },
   },
 };
