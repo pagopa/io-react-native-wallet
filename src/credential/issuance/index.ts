@@ -15,6 +15,8 @@ import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
 import {
   obtainCredential,
   type ObtainCredential,
+  type ContextWithKeyTag,
+  type CryptoContextFactory,
 } from "./06-obtain-credential";
 import {
   verifyAndParseCredential,
@@ -42,4 +44,6 @@ export type {
   AuthorizeAccess,
   ObtainCredential,
   VerifyAndParseCredential,
+  CryptoContextFactory,
+  ContextWithKeyTag
 };

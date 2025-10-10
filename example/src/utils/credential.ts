@@ -35,9 +35,17 @@ export const getCredential = async ({
   credentialType: SupportedCredentialsWithoutPid;
 }): Promise<CredentialResult[]> => {
   // Create credential crypto context
-  const credentialKeyTag = uuid.v4().toString();
-  await generate(credentialKeyTag);
-  const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+  const credentialCryptoContextFactory : Credential.Issuance.CryptoContextFactory = {
+    getContext : async () => {
+      const credentialKeyTag = uuid.v4().toString();
+      await generate(credentialKeyTag);
+      const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+      return {
+        keyTag : credentialKeyTag,
+        context : credentialCryptoContext
+      }
+    }
+  }
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
@@ -101,34 +109,37 @@ export const getCredential = async ({
   );
 
   // Obtain the credential
-  const { credentials, format, doctype } =
+  const { credentials, format, doctype, contexts : credentialCryptoContextsWithKeyTags } =
     await Credential.Issuance.obtainCredential(
       issuerConf,
       accessToken,
       clientId,
       credentialDefinition,
       {
-        credentialCryptoContext,
+        credentialCryptoContextFactory,
         appFetch,
       }
     );
 
   return Promise.all(
-    credentials.map(async (credentialResult) => {
+    credentials.map(async (credentialResult, idx) => {
       // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
+      const context = credentialCryptoContextsWithKeyTags[idx]?.context
+      const keyTag = credentialCryptoContextsWithKeyTags[idx]?.keyTag
+      if (!context || !keyTag) throw new Error("CTX NOT FOUND")
       const { parsedCredential } =
         await Credential.Issuance.verifyAndParseCredential(
           issuerConf,
           credentialResult.credential,
           format,
           credentialType,
-          { credentialCryptoContext, ignoreMissingAttributes: true }
+          { credentialCryptoContext : context, ignoreMissingAttributes: true }
         );
 
       return {
         parsedCredential,
         credential: credentialResult.credential,
-        keyTag: credentialKeyTag,
+        keyTag,
         credentialType,
         doctype,
       };

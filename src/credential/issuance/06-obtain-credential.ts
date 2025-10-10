@@ -12,6 +12,15 @@ import {
 } from "../../utils/errors";
 import { CredentialResponse, NonceResponse } from "./types";
 
+export type ContextWithKeyTag = {
+  context : CryptoContext,
+  keyTag : string
+}
+
+export type CryptoContextFactory = {
+  getContext : () => Promise<ContextWithKeyTag>
+}
+
 export type ObtainCredential = (
   issuerConf: Out<GetIssuerConfig>["issuerConf"],
   accessToken: Out<AuthorizeAccess>["accessToken"],
@@ -21,13 +30,14 @@ export type ObtainCredential = (
     credential_identifier?: string;
   },
   context: {
-    credentialCryptoContext: CryptoContext;
+    credentialCryptoContextFactory: CryptoContextFactory;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<
   { credentials: CredentialResponse["credentials"] } & {
     format: string;
     doctype: string;
+    contexts : ContextWithKeyTag[]
   }
 >;
 
@@ -76,7 +86,7 @@ export const obtainCredential: ObtainCredential = async (
   credentialDefinition,
   context
 ) => {
-  const { credentialCryptoContext, appFetch = fetch } = context;
+  const { credentialCryptoContextFactory, appFetch = fetch } = context;
 
   const credentialUrl = issuerConf.credential_endpoint;
   const issuerUrl = issuerConf.issuer;
@@ -89,34 +99,40 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  const proofs = await Promise.all(
-    Array.from(Array(issuerConf.batch_size).keys()).map(async () => {
-      // Fetch the nonce from the Credential Issuer
-      const { c_nonce } = await appFetch(nonceUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-        .then(hasStatusOrThrow(200))
-        .then((res) => res.json())
-        .then((body) => NonceResponse.parse(body));
-      if (!c_nonce) {
-        throw new ValidationFailed({
-          message:
-            "Nonce Endpoint not found or access token does not contain the c_nonce",
-        });
-      }
+  // Fetch the nonce from the Credential Issuer
+  const { c_nonce } = await appFetch(nonceUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.json())
+    .then((body) => NonceResponse.parse(body));
+  if (!c_nonce) {
+    throw new ValidationFailed({
+      message:
+        "Nonce Endpoint not found or access token does not contain the c_nonce",
+    });
+  }
 
+  const proofsWithContexts = await Promise.all(
+    Array.from(Array(issuerConf.batch_size).keys()).map(async () => {
+
+      const {keyTag, context : credentialCryptoContext} = await credentialCryptoContextFactory.getContext()
       /**
        * JWT proof token to bind the request nonce to the key that will bind the holder User with the Credential
        * This is presented along with the access token to the Credential Endpoint as proof of possession of the private key used to sign the Access Token.
        * @see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-proof-types
        */
-      return createNonceProof(
-        c_nonce,
-        clientId,
-        issuerUrl,
+      return {
+        proof : await createNonceProof(
+          c_nonce,
+          clientId,
+          issuerUrl,
+          credentialCryptoContext
+        ),
+        keyTag,
         credentialCryptoContext
-      );
+      }
     })
   );
 
@@ -153,7 +169,7 @@ export const obtainCredential: ObtainCredential = async (
     credential_configuration_id:
       credentialDefinition.credential_configuration_id,
     proofs: {
-      jwt: proofs,
+      jwt: proofsWithContexts.map(({proof}) => proof),
     },
     format,
     doctype,
@@ -179,10 +195,10 @@ export const obtainCredential: ObtainCredential = async (
     });
   }
 
-  // We support only one credential for now
   return {
     format,
     credentials: credentialRes.data.credentials,
+    contexts : proofsWithContexts.map(({keyTag, credentialCryptoContext}) => ({keyTag, context : credentialCryptoContext})),
     doctype: credential.doctype,
   };
 };
