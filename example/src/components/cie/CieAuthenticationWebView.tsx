@@ -20,7 +20,7 @@ type CieAuthenticationWebviewProps = {
 };
 
 /**
- * Webview used to fetch the authentication url to use a servide provider for the CIE authentication
+ * Webview used to fetch the authentication url to use a service provider for the CIE authentication
  * It displayes a loading spinner, with the webview working in the background
  */
 export const CieAuthenticationWebview = (
