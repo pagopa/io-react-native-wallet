@@ -38,7 +38,7 @@ Used for interactive flows where user authentication and consent are required at
 - **`issuer_state`** (optional): Binds the authorization request to a specific issuer context
 - **`authorization_server`** (optional): Identifies which authorization server to use when multiple are available
 
-### Pre-Authorized Code Flow  
+### Pre-Authorized Code Flow
 
 Used when the user has already been authenticated and authorized out-of-band. The issuer provides a pre-authorized code that can be exchanged directly for credentials.
 
@@ -50,22 +50,26 @@ Used when the user has already been authenticated and authorized out-of-band. Th
 
 When a transaction code is required for Pre-Authorized Code flow, the following parameters control the user experience:
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input_mode` | `"numeric"` \| `"text"` | Character set for the code (default: `"numeric"`) |
-| `length` | number | Expected code length to optimize input UI |
-| `description` | string | User guidance (max 300 chars) for obtaining the code |
+| Parameter     | Type                    | Description                                          |
+| ------------- | ----------------------- | ---------------------------------------------------- |
+| `input_mode`  | `"numeric"` \| `"text"` | Character set for the code (default: `"numeric"`)    |
+| `length`      | number                  | Expected code length to optimize input UI            |
+| `description` | string                  | User guidance (max 300 chars) for obtaining the code |
 
 ## Credential Offer Transmission
 
 ### By Value
+
 The complete Credential Offer is embedded in the URL parameter:
+
 ```
 openid-credential-offer://?credential_offer=%7B%22credential_issuer%22...
 ```
 
-### By Reference  
+### By Reference
+
 A URL points to an endpoint serving the Credential Offer:
+
 ```
 openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fserver.example.com%2Foffer
 ```
@@ -76,10 +80,10 @@ When using by reference, the Wallet fetches the offer via HTTP GET with `Accept:
 
 The following errors are mapped during credential offer processing:
 
-| Error | Description |
-|-------|-------------|
-| `InvalidQRCodeError` | The QR code format is invalid or doesn't contain valid credential offer parameters |
-| `InvalidCredentialOfferError` | The credential offer schema validation failed or contains invalid data |
+| Error                         | Description                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------- |
+| `InvalidQRCodeError`          | The QR code format is invalid or doesn't contain valid credential offer parameters |
+| `InvalidCredentialOfferError` | The credential offer schema validation failed or contains invalid data             |
 
 ## Examples
 
@@ -88,7 +92,8 @@ The following errors are mapped during credential offer processing:
 
 ```ts
 // Parse QR code or deep link
-const qrCode = "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
+const qrCode =
+  "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
 const { credential_offer_uri } = startFlowFromQR(qrCode);
 
 // Fetch the credential offer if by reference
@@ -97,7 +102,7 @@ const offer = await getCredentialOffer(credential_offer_uri, { appFetch });
 console.log(offer);
 // {
 //   credential_issuer: "https://issuer.example.com",
-//   credential_configuration_ids: ["UniversityDegree", "DriverLicense"], 
+//   credential_configuration_ids: ["UniversityDegree", "DriverLicense"],
 //   grants: {
 //     authorization_code: {
 //       issuer_state: "xyz123"
@@ -128,11 +133,11 @@ const offer: CredentialOffer = {
       "pre-authorized_code": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
       tx_code: {
         length: 4,
-        input_mode: "numeric", 
-        description: "Check your email for the verification code"
-      }
-    }
-  }
+        input_mode: "numeric",
+        description: "Check your email for the verification code",
+      },
+    },
+  },
 };
 
 // The user would need to:
@@ -152,15 +157,15 @@ const offer: CredentialOffer = {
   credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
   grants: {
     authorization_code: {
-      issuer_state: "af0ifjsldkj", 
-      authorization_server: "https://auth.dmv.example.gov"
-    }
-  }
+      issuer_state: "af0ifjsldkj",
+      authorization_server: "https://auth.dmv.example.gov",
+    },
+  },
 };
 
 // This would lead to:
 // 1. User authentication at the authorization server
-// 2. User consent for credential issuance  
+// 2. User consent for credential issuance
 // 3. Authorization code returned to wallet
 // 4. Wallet exchanges code for access token
 // 5. Wallet uses access token to request credential
