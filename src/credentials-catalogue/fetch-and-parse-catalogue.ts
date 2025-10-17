@@ -1,8 +1,8 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import { hasStatusOrThrow } from "../../utils/misc";
-import { IoWalletError } from "../../utils/errors";
+import { hasStatusOrThrow } from "../utils/misc";
+import { IoWalletError } from "../utils/errors";
 import { DigitalCredentialsCatalogue } from "./types";
-import { getTrustAnchorEntityConfiguration } from "../build-chain";
+import { getTrustAnchorEntityConfiguration } from "../trust/build-chain";
 
 type GetCatalogueContext = {
   appFetch?: GlobalFetch["fetch"];
