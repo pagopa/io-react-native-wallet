@@ -1,3 +1,4 @@
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { hasStatusOrThrow } from "../../utils/misc";
 import { DigitalCredentialsCatalogue } from "./types";
 
@@ -12,15 +13,23 @@ type GetCatalogueContext = {
  * @param context.appFetch (optional) fetch API implementation. Default: built-in fetch
  * @returns The Digital Credential Catalogue payload
  */
-export const getCatalogue = (
+export const fetchAndParseCatalogue = async (
   trustAnchorUrl: string,
   { appFetch = fetch }: GetCatalogueContext = {}
 ): Promise<DigitalCredentialsCatalogue["payload"]> => {
-  return appFetch(trustAnchorUrl, {
-    method: "GET",
-  })
+  const responseText = await appFetch(
+    `${trustAnchorUrl}/.well-known/credential-catalogue`,
+    { method: "GET" }
+  )
     .then(hasStatusOrThrow(200))
-    .then((res) => res.json())
-    .then(DigitalCredentialsCatalogue.parse)
-    .then(({ payload }) => payload);
+    .then((res) => res.text());
+
+  const responseJwt = decodeJwt(responseText);
+
+  const parsedDigitalCredentialsCatalogue = DigitalCredentialsCatalogue.parse({
+    header: responseJwt.protectedHeader,
+    payload: responseJwt.payload,
+  });
+
+  return parsedDigitalCredentialsCatalogue.payload;
 };

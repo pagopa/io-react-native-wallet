@@ -1,1 +1,1 @@
-export { getCatalogue } from "./get-catalogue";
+export { fetchAndParseCatalogue } from "./fetch-and-parse-catalogue";
