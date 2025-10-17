@@ -35,7 +35,7 @@ describe("startFlowFromQR", () => {
 
   it("should throw InvalidQRCodeError if not a valid credential offer deep link", () => {
     const payload = {
-      credential_issuer: "https://credential-issuer.example.com",
+      credential_issuer: "not-a-valid-url", // Invalid URL
       credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
       grants: {
         authorization_code: {

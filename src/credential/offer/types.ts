@@ -1,34 +1,11 @@
 import { z } from "zod";
 
 /**
- * Credential Offer Schema (IT Wallet)
- *
- * This schema models the Credential Offer as defined by the IT Wallet specification:
- * https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-issuance-endpoint.html
- *
- * The Credential Offer is delivered by the Credential Issuer to the Wallet via a URI query parameter `credential_offer`.
- * It contains the following mandatory fields:
- *
- * - credential_issuer: HTTPS URL uniquely identifying the Credential Issuer. Used by the Wallet to obtain issuer metadata.
- * - credential_configuration_ids: Array of strings, each specifying a unique identifier of the Credential described in the credential_configurations_supported map in the issuer metadata.
- * - grants: Object describing supported OAuth 2.0 grant types. MUST contain an authorization_code object with parameters:
- *   - authorization_server: HTTPS URL of the Authorization Server.
- *   - issuer_state: Optional string, present only in issuer-initiated flows. MUST match the value in the Credential Offer.
- *
- * See OpenID4VCI Section 4.1.1 and IT Wallet documentation for details.
- */
-
-/**
- * Authorization Code Grant schema
- * Parameters for OAuth 2.0 Authorization Code flow.
- *
- * Fields:
- * - issuer_state (optional): Present only in issuer-initiated flow. MUST match Credential Offer value.
- * - authorization_server: HTTPS URL of the Authorization Server.
+ * OAuth 2.0 Authorization Code flow parameters.
  */
 export const AuthorizationCodeGrantSchema = z.object({
-  issuer_state: z.string(),
-  authorization_server: z.string().url(),
+  issuer_state: z.string().optional(),
+  authorization_server: z.string().url().optional(),
 });
 
 export type AuthorizationCodeGrant = z.infer<
@@ -36,31 +13,47 @@ export type AuthorizationCodeGrant = z.infer<
 >;
 
 /**
- * Grants schema
- * Supported OAuth 2.0 grant types for Credential Offer.
- *
- * Fields:
- * - authorization_code: Parameters for Authorization Code Grant (see above).
+ * Transaction Code requirements for Pre-Authorized Code flow.
+ */
+export const TransactionCodeSchema = z.object({
+  input_mode: z.enum(["numeric", "text"]).optional(),
+  length: z.number().int().positive().optional(),
+  description: z.string().max(300).optional(),
+});
+
+export type TransactionCode = z.infer<typeof TransactionCodeSchema>;
+
+/**
+ * Pre-Authorized Code flow parameters.
+ */
+export const PreAuthorizedCodeGrantSchema = z.object({
+  "pre-authorized_code": z.string(),
+  tx_code: TransactionCodeSchema.optional(),
+  authorization_server: z.string().url().optional(),
+});
+
+export type PreAuthorizedCodeGrant = z.infer<
+  typeof PreAuthorizedCodeGrantSchema
+>;
+
+/**
+ * Supported grant types for Credential Offer.
  */
 export const GrantsSchema = z.object({
   authorization_code: AuthorizationCodeGrantSchema.optional(),
+  "urn:ietf:params:oauth:grant-type:pre-authorized_code":
+    PreAuthorizedCodeGrantSchema.optional(),
 });
 
 export type Grants = z.infer<typeof GrantsSchema>;
 
 /**
- * Credential Offer schema
- * Core object for initiating credential issuance (OpenID4VCI, IT Wallet).
- *
- * Fields:
- * - credential_issuer: HTTPS URL uniquely identifying the Credential Issuer.
- * - credential_configuration_ids: Array of unique credential configuration IDs.
- * - grants: Supported OAuth 2.0 grant types and parameters.
+ * Credential Offer object as defined in OpenID4VCI Section 4.1.1.
  */
 export const CredentialOfferSchema = z.object({
   credential_issuer: z.string().url(),
-  credential_configuration_ids: z.array(z.string()),
-  grants: GrantsSchema,
+  credential_configuration_ids: z.array(z.string()).min(1),
+  grants: GrantsSchema.optional(),
 });
 
 export type CredentialOffer = z.infer<typeof CredentialOfferSchema>;

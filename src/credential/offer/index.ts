@@ -4,6 +4,13 @@ import {
   type GetCredentialOffer,
 } from "./02-get-credential-offer";
 import * as Errors from "./errors";
+export type {
+  CredentialOffer,
+  Grants,
+  AuthorizationCodeGrant,
+  PreAuthorizedCodeGrant,
+  TransactionCode,
+} from "./types";
 
 export { Errors, getCredentialOffer, startFlowFromQR };
 export type { GetCredentialOffer, StartFlow };
