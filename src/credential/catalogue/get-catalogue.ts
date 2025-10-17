@@ -1,5 +1,5 @@
 import { hasStatusOrThrow } from "../../utils/misc";
-import { DigitalCredentialCatalogue } from "./types";
+import { DigitalCredentialsCatalogue } from "./types";
 
 type GetCatalogueContext = {
   appFetch?: GlobalFetch["fetch"];
@@ -15,12 +15,12 @@ type GetCatalogueContext = {
 export const getCatalogue = (
   trustAnchorUrl: string,
   { appFetch = fetch }: GetCatalogueContext = {}
-): Promise<DigitalCredentialCatalogue["payload"]> => {
+): Promise<DigitalCredentialsCatalogue["payload"]> => {
   return appFetch(trustAnchorUrl, {
     method: "GET",
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
-    .then(DigitalCredentialCatalogue.parse)
+    .then(DigitalCredentialsCatalogue.parse)
     .then(({ payload }) => payload);
 };

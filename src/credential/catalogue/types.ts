@@ -72,12 +72,12 @@ export const DigitalCredential = z.object({
 });
 
 /**
- * The Digital Credential Catalogue published by the Trust Anchor
+ * The Digital Credentials Catalogue published by the Trust Anchor
  *
  * @version 1.1.0
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.1.0/en/registry-catalogue.html
  */
-export const DigitalCredentialCatalogue = z.object({
+export const DigitalCredentialsCatalogue = z.object({
   header: z.object({
     typ: z.string(),
     alg: z.string(),
@@ -89,6 +89,6 @@ export const DigitalCredentialCatalogue = z.object({
     credentials: z.array(DigitalCredential),
   }),
 });
-export type DigitalCredentialCatalogue = z.infer<
-  typeof DigitalCredentialCatalogue
+export type DigitalCredentialsCatalogue = z.infer<
+  typeof DigitalCredentialsCatalogue
 >;
