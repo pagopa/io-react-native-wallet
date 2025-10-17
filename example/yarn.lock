@@ -2000,6 +2000,13 @@
     react-native-safe-area-context "^5.4.1"
     react-native-svg "^15.12.0"
 
+"@pagopa/io-react-native-cie@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cie/-/io-react-native-cie-1.1.2.tgz#f73be77dc280c52e0302fe92a25e93a4c1bc038e"
+  integrity sha512-v9xal9XYKeUfkX5B4K1JtpzLkHaTCgJ+6+FgpepP3Ni+CXFONm2w41AnRfd0UTc7hGTOF5by+saIcUylMVEhdQ==
+  dependencies:
+    zod "^3.24.4"
+
 "@pagopa/io-react-native-crypto@^1.2.3":
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
@@ -2029,11 +2036,6 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-secure-storage/-/io-react-native-secure-storage-0.2.0.tgz#386982f350fcefa7bf8dc56e26ff390a9c94db03"
   integrity sha512-nPdYOKa9DAMtmPanIOwyKzOJ6JpBINfLgOp3wzVT7pCOJPRo0FYHBwyt0nxrKufE42rz9z9Sh8K7Y0faB0kuMw==
-
-"@pagopa/react-native-cie@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@pagopa/react-native-cie/-/react-native-cie-1.4.2.tgz#65a5c2609e2129206480fc1bb082375c48478a05"
-  integrity sha512-UdV5Y5fvN+MxYK4SUY71HuDJpPSJKZmXNDPaQTnIvTHC+elMYAcKh3IlFgF72o2U+DW71aZd1rKNv6YIvR0Omw==
 
 "@react-native-async-storage/async-storage@^2.1.2":
   version "2.1.2"
@@ -6950,7 +6952,7 @@ zod@^3.22.4:
   resolved "https://registry.npmjs.org/zod/-/zod-3.23.8.tgz"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
 
-zod@^3.25.67:
+zod@^3.24.4, zod@^3.25.67:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
