@@ -217,7 +217,7 @@ export const pidReducer = persistReducer(persistConfig, pidSlice.reducer);
 
 /**
  * Selects the pid from the state.
- * @param credentialType - The type of the credential to select
+ * @param state - The root state of the Redux store
  * @returns the pid
  */
 export const selectPid = (state: RootState) => state.pid.pid;

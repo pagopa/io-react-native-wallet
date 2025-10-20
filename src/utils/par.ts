@@ -13,13 +13,30 @@ import { LogLevel, Logger } from "./logging";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
-  credential_configuration_id: z.string(),
-  format: z.union([z.literal("vc+sd-jwt"), z.literal("vc+mdoc-cbor")]),
   type: z.literal("openid_credential"),
+  credential_configuration_id: z.string(),
 });
 
 export type AuthorizationDetails = z.infer<typeof AuthorizationDetails>;
 export const AuthorizationDetails = z.array(AuthorizationDetail);
+
+export type ParResponse = z.infer<typeof ParResponse>;
+export const ParResponse = z.object({
+  request_uri: z.string(),
+  expires_in: z.number(),
+});
+
+type AuthDetailsOrScope =
+  | { authorizationDetails: AuthorizationDetails; scope?: string }
+  | { authorizationDetails?: AuthorizationDetails; scope: string };
+
+type ParRequestPayload = {
+  clientId: string;
+  codeVerifier: string;
+  redirectUri: string;
+  responseMode: string;
+  aud: string;
+} & AuthDetailsOrScope;
 
 /**
  * Make a PAR request to the issuer and return the response url
@@ -33,19 +50,19 @@ export const makeParRequest =
     appFetch: GlobalFetch["fetch"];
   }) =>
   async (
-    clientId: string,
-    codeVerifier: string,
-    redirectUri: string,
-    responseMode: string,
     parEndpoint: string,
     walletInstanceAttestation: string,
-    authorizationDetails: AuthorizationDetails,
-    assertionType: string
+    {
+      codeVerifier,
+      responseMode,
+      clientId,
+      redirectUri,
+      authorizationDetails,
+      scope,
+      aud,
+    }: ParRequestPayload
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
-
-    const parUrl = new URL(parEndpoint);
-    const aud = `${parUrl.protocol}//${parUrl.hostname}`;
 
     const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
       .payload.cnf.jwk.kid;
@@ -71,7 +88,7 @@ export const makeParRequest =
         The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
-        typ: "jwk",
+        typ: "jwt",
         kid: wiaPublicKey.kid,
       })
       .setPayload({
@@ -84,24 +101,20 @@ export const makeParRequest =
         state: generateRandomAlphaNumericString(32),
         code_challenge: codeChallenge,
         code_challenge_method: codeChallengeMethod,
-        authorization_details: authorizationDetails,
         redirect_uri: redirectUri,
-        client_assertion_type: assertionType,
-        client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
+        ...(authorizationDetails && {
+          authorization_details: authorizationDetails,
+        }),
+        ...(scope && { scope }),
       })
-      .setIssuedAt() //iat is set to now
+      .setIssuedAt() // iat is set to now
       .setExpirationTime("5min")
       .sign();
 
     /** The request body for the Pushed Authorization Request */
     var formBody = new URLSearchParams({
-      response_type: "code",
       client_id: clientId,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
       request: signedJwtForPar,
-      client_assertion_type: assertionType,
-      client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
     });
 
     Logger.log(
@@ -113,10 +126,13 @@ export const makeParRequest =
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        "OAuth-Client-Attestation": walletInstanceAttestation,
+        "OAuth-Client-Attestation-PoP": signedWiaPoP,
       },
       body: formBody.toString(),
     })
       .then(hasStatusOrThrow(201, IssuerResponseError))
       .then((res) => res.json())
+      .then(ParResponse.parse)
       .then((result) => result.request_uri);
   };

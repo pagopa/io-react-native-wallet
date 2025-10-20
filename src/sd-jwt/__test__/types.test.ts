@@ -1,11 +1,11 @@
-import { Disclosure, SdJwt4VC } from "../types";
+import { Disclosure, SdJwt4VC, Verification } from "../types";
 
 describe("SdJwt4VC", () => {
   it("should accept a valid token", () => {
     // example provided at https://italia.github.io/eidas-it-wallet-docs/en/pid-data-model.html
     const token = {
       header: {
-        typ: "vc+sd-jwt",
+        typ: "dc+sd-jwt",
         alg: "RS512",
         kid: "dB67gL7ck3TFiIAf7N6_7SHvqk0MDYMEQcoGGlkUAAw",
       },
@@ -21,7 +21,11 @@ describe("SdJwt4VC", () => {
         sub: "216f8946-9ecb-4819-9309-c076f34a7e11",
         _sd_alg: "sha-256",
         vct: "PersonIdentificationData",
+        "vct#integrity":
+          "13e25888ac7b8a3a6d61440da787fccc81654e61085732bcacd89b36aec32675",
         iss: "https://pidprovider.example.com",
+        issuing_country: "IT",
+        issuing_authority: "Istituto Poligrafico e Zecca dello Stato",
         cnf: {
           jwk: {
             kty: "EC",
@@ -33,7 +37,7 @@ describe("SdJwt4VC", () => {
         },
         exp: 1751107255,
         status: {
-          status_attestation: {
+          status_assertion: {
             credential_hash_alg: "sha-256",
           },
         },
@@ -69,5 +73,53 @@ describe("Disclosure", () => {
 
     const { success } = Disclosure.safeParse(value);
     expect(success).toBe(true);
+  });
+});
+
+describe("Verification.time", () => {
+  test.each([
+    ["ISO string", "2025-09-09T10:00:00Z"],
+    ["unix seconds", 1752122400],
+    ["unix milliseconds", 1752122400000],
+  ])("accepts %s", (_label, time) => {
+    const value = {
+      trust_framework: "eidas",
+      assurance_level: "high",
+      evidence: [
+        {
+          type: "vouch",
+          time,
+          attestation: {
+            type: "digital_attestation",
+            reference_number: "abc",
+            date_of_issuance: "2025-09-02",
+            voucher: { organization: "IPZS" },
+          },
+        },
+      ],
+    };
+
+    expect(Verification.safeParse(value).success).toBe(true);
+  });
+
+  it("rejects invalid type", () => {
+    const value = {
+      trust_framework: "eidas",
+      assurance_level: "high",
+      evidence: [
+        {
+          type: "vouch",
+          time: null,
+          attestation: {
+            type: "digital_attestation",
+            reference_number: "abc",
+            date_of_issuance: "2025-09-02",
+            voucher: { organization: "IPZS" },
+          },
+        },
+      ],
+    };
+
+    expect(Verification.safeParse(value).success).toBe(false);
   });
 });

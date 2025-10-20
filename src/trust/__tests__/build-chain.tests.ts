@@ -1,4 +1,3 @@
-import { buildTrustChain, verifyTrustChain } from "../index";
 import {
   intermediateEntityConfiguration,
   intermediateEntityStatement,
@@ -7,6 +6,8 @@ import {
   signed,
   trustAnchorEntityConfiguration,
 } from "../__mocks__/entity-statements";
+import { buildTrustChain } from "../build-chain";
+import { verifyTrustChain } from "../verify-chain";
 
 // Dummy base URLs aligned with our non‑regulatory examples
 const leafBaseUrl = "https://leaf.example";
@@ -77,15 +78,9 @@ beforeAll(async () => {
 
 describe("buildTrustChain", () => {
   it("builds a valid trust chain from leaf to trust anchor", async () => {
-    // Use the Trust Anchor key from trustAnchorEntityConfiguration.
-    const trustAnchorKey = trustAnchorEntityConfiguration.payload.jwks.keys[0];
-    if (!trustAnchorKey || !trustAnchorKey.kid) {
-      throw new Error("Missing kid in trust anchor key");
-    }
-
     const chain = await buildTrustChain(
       leafBaseUrl,
-      trustAnchorKey,
+      trustAnchorEntityConfiguration,
       customFetch
     );
 
@@ -98,16 +93,10 @@ describe("buildTrustChain", () => {
   });
 
   it("builds a valid trust chain from leaf to trust anchor and verifies it", async () => {
-    // Use the Trust Anchor key from trustAnchorEntityConfiguration.
-    const trustAnchorKey = trustAnchorEntityConfiguration.payload.jwks.keys[0];
-    if (!trustAnchorKey || !trustAnchorKey.kid) {
-      throw new Error("Missing kid in trust anchor key");
-    }
-
     // Build the chain of trust
     const chain = await buildTrustChain(
       leafBaseUrl,
-      trustAnchorKey,
+      trustAnchorEntityConfiguration,
       customFetch
     );
 

@@ -9,11 +9,12 @@ import {
 import { selectEnv } from "../store/reducers/environment";
 import type {
   CredentialResult,
+  SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import {
   getCredential,
-  getCredentialStatusAttestation,
+  getCredentialStatusAssertion,
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
@@ -30,21 +31,22 @@ type GetCredentialThunkInput = {
 };
 
 /**
- * Type definition for the input of the {@link getCredentialStatusAttestationThunk}.
+ * Type definition for the input of the {@link getCredentialStatusAssertionThunk}.
  */
-type GetCredentialStatusAttestationThunkInput = {
-  credentialType: SupportedCredentialsWithoutPid;
+type GetCredentialStatusAssertionThunkInput = {
+  credentialType: SupportedCredentials;
   credential: Out<Credential.Issuance.ObtainCredential>["credential"];
+  format: Out<Credential.Issuance.ObtainCredential>["format"];
   keyTag: string;
 };
 
 /**
- * Type definition for the output of the {@link getCredentialStatusAttestationThunk}.
+ * Type definition for the output of the {@link getCredentialStatusAssertionThunk}.
  */
-export type GetCredentialStatusAttestationThunkOutput = {
-  statusAttestation: Out<Credential.Status.StatusAttestation>["statusAttestation"];
-  parsedStatusAttestation: Out<Credential.Status.VerifyAndParseStatusAttestation>["parsedStatusAttestation"];
-  credentialType: SupportedCredentialsWithoutPid;
+export type GetCredentialStatusAssertionThunkOutput = {
+  statusAssertion: Out<Credential.Status.StatusAssertion>["statusAssertion"];
+  parsedStatusAssertion: Out<Credential.Status.VerifyAndParseStatusAssertion>["parsedStatusAssertion"];
+  credentialType: SupportedCredentials;
 };
 
 /**
@@ -72,7 +74,8 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   // Get env URLs
   const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
+  const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
+    getEnv(env);
 
   const { credentialType } = args;
 
@@ -81,39 +84,47 @@ export const getCredentialThunk = createAppAsyncThunk<
   if (!pid) {
     throw new Error("PID not found");
   }
-  const pidCryptoContext = createCryptoContextFor(pid.keyTag);
   return await getCredential({
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+    trustAnchorUrl: WALLET_TA_BASE_URL,
     redirectUri: REDIRECT_URI,
-    credentialType,
+    // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
+    // and we restrict `getCredential` to issuing only one credential at a time.
+    credentialId: credentialType,
+    pid: pid,
     walletInstanceAttestation,
     wiaCryptoContext,
-    pid: pid.credential,
-    pidCryptoContext,
   });
 });
 
 /**
- * Thunk to obtain a credential status attestation.
- * @param args.credentialType - TThe type of credential for which you want to obtain the status attestation.
+ * Thunk to obtain a credential status assertion.
+ * @param args.credentialType - TThe type of credential for which you want to obtain the status assertion.
  * @returns The obtained credential result
  */
-export const getCredentialStatusAttestationThunk = createAppAsyncThunk<
-  GetCredentialStatusAttestationThunkOutput,
-  GetCredentialStatusAttestationThunkInput
->("credential/statusAttestationGet", async (args, { getState }) => {
-  const { credential, keyTag, credentialType } = args;
+export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
+  GetCredentialStatusAssertionThunkOutput,
+  GetCredentialStatusAssertionThunkInput
+>("credential/statusAssertionGet", async (args, { getState }) => {
+  const { credential, format, keyTag, credentialType } = args;
 
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
+  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
-  const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL } = getEnv(env);
+  const env = getEnv(selectEnv(getState()));
 
-  return await getCredentialStatusAttestation(
-    WALLET_EAA_PROVIDER_BASE_URL,
+  const issuerUrl =
+    credentialType === "PersonIdentificationData"
+      ? env.WALLET_PID_PROVIDER_BASE_URL
+      : env.WALLET_EAA_PROVIDER_BASE_URL;
+
+  return await getCredentialStatusAssertion(
+    issuerUrl,
     credential,
+    format,
     credentialCryptoContext,
+    wiaCryptoContext,
     credentialType
   );
 });

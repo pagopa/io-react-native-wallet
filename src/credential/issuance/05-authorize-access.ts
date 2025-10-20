@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../utils/pop";
 import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { ASSERTION_TYPE } from "./const";
 import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { CompleteUserAuthorizationWithQueryMode } from "./04-complete-user-authorization";
@@ -47,7 +46,7 @@ export type AuthorizeAccess = (
 export const authorizeAccess: AuthorizeAccess = async (
   issuerConf,
   code,
-  clientId,
+  _,
   redirectUri,
   codeVerifier,
   context
@@ -58,11 +57,7 @@ export const authorizeAccess: AuthorizeAccess = async (
     wiaCryptoContext,
     dPopCryptoContext,
   } = context;
-
-  const parEndpoint =
-    issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
-  const parUrl = new URL(parEndpoint);
-  const aud = `${parUrl.protocol}//${parUrl.hostname}`;
+  const aud = issuerConf.openid_credential_issuer.credential_issuer;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
@@ -92,12 +87,9 @@ export const authorizeAccess: AuthorizeAccess = async (
 
   const requestBody = {
     grant_type: "authorization_code",
-    client_id: clientId,
     code,
-    redirect_uri: redirectUri,
     code_verifier: codeVerifier,
-    client_assertion_type: ASSERTION_TYPE,
-    client_assertion: walletInstanceAttestation + "~" + signedWiaPoP,
+    redirect_uri: redirectUri,
   };
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);
@@ -112,6 +104,8 @@ export const authorizeAccess: AuthorizeAccess = async (
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       DPoP: tokenRequestSignedDPop,
+      "OAuth-Client-Attestation": walletInstanceAttestation,
+      "OAuth-Client-Attestation-PoP": signedWiaPoP,
     },
     body: authorizationRequestFormBody.toString(),
   })

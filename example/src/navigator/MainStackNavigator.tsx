@@ -14,7 +14,7 @@ import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScree
 import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
 import { PidScreen } from "../screens/PidScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import { StatusAttestationScreen } from "../screens/StatusAttestationScreen";
+import { StatusAssertionScreen } from "../screens/StatusAssertionScreen";
 import {
   TrustmarkQrCodeScreen,
   TrustmarkScreen,
@@ -29,10 +29,12 @@ import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
 import { selectLoggingAddress } from "../store/reducers/environment";
 import { initLogging } from "../utils/logging";
 import { PresentationScreen } from "../screens/PresentationScreen";
+import { ProximityScreen } from "../screens/ProximityScreen";
 import {
   QrScannerScreen,
   type QrScannerScreenParams,
 } from "../screens/QrScannerScreen";
+import { TrustScreen } from "../screens/TrustScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -42,7 +44,7 @@ export type MainStackNavParamList = {
   WalletInstance: undefined;
   Pid: undefined;
   Credentials: undefined;
-  StatusAttestation: undefined;
+  StatusAssertion: undefined;
   Trustmark: undefined;
   TrustmarkQrCode: { credentialType: SupportedCredentialsWithoutPid };
   Login: undefined;
@@ -55,7 +57,9 @@ export type MainStackNavParamList = {
     redirectUri: string;
   };
   Presentations: undefined;
+  Trust: undefined;
   QrScanner: QrScannerScreenParams;
+  Proximity: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -135,9 +139,9 @@ export const MainStackNavigator = () => {
               options={{ title: "Test credentials issuance" }}
             />
             <Stack.Screen
-              name="StatusAttestation"
-              component={StatusAttestationScreen}
-              options={{ title: "Test credentials attestations" }}
+              name="StatusAssertion"
+              component={StatusAssertionScreen}
+              options={{ title: "Test credentials assertions" }}
             />
             <Stack.Screen
               name="Presentations"
@@ -145,9 +149,19 @@ export const MainStackNavigator = () => {
               options={{ title: "Presentation" }}
             />
             <Stack.Screen
+              name="Trust"
+              component={TrustScreen}
+              options={{ title: "Trust" }}
+            />
+            <Stack.Screen
               name="QrScanner"
               component={QrScannerScreen}
               options={{ title: "Scan QR" }}
+            />
+            <Stack.Screen
+              name="Proximity"
+              component={ProximityScreen}
+              options={{ title: "Proximity" }}
             />
             <Stack.Screen
               name="Trustmark"

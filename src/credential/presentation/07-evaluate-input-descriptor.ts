@@ -1,10 +1,10 @@
 import { InputDescriptor, type LegacyRemotePresentation } from "./types";
 import { SdJwt4VC, type DisclosureWithEncoded } from "../../sd-jwt/types";
 import { decode, prepareVpToken } from "../../sd-jwt";
-import { createCryptoContextFor } from "../../utils/crypto";
 import { JSONPath } from "jsonpath-plus";
 import { CredentialsNotFoundError, MissingDataError } from "./errors";
 import Ajv from "ajv";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 const ajv = new Ajv({ allErrors: true });
 const INDEX_CLAIM_NAME = 1;
@@ -23,13 +23,16 @@ export type EvaluateInputDescriptorSdJwt4VC = (
 
 export type EvaluateInputDescriptors = (
   descriptors: InputDescriptor[],
-  credentialsSdJwt: [string /* keyTag */, string /* credential */][]
+  credentialsSdJwt: [
+    CryptoContext /* cryptoContext */,
+    string /* credential */,
+  ][]
 ) => Promise<
   {
     evaluatedDisclosure: EvaluatedDisclosures;
     inputDescriptor: InputDescriptor;
     credential: string;
-    keyTag: string;
+    cryptoContext: CryptoContext;
   }[]
 >;
 
@@ -41,7 +44,7 @@ export type PrepareLegacyRemotePresentations = (
     requestedClaims: string[];
     inputDescriptor: InputDescriptor;
     credential: string;
-    keyTag: string;
+    cryptoContext: CryptoContext;
   }[],
   nonce: string,
   client_id: string
@@ -247,7 +250,7 @@ export const evaluateInputDescriptorForSdJwt4VC: EvaluateInputDescriptorSdJwt4VC
   };
 
 type DecodedCredentialSdJwt = {
-  keyTag: string;
+  cryptoContext: CryptoContext;
   credential: string;
   sdJwt: SdJwt4VC;
   disclosures: DisclosureWithEncoded[];
@@ -264,11 +267,11 @@ export const findCredentialSdJwt = (
   decodedSdJwtCredentials: DecodedCredentialSdJwt[]
 ): {
   matchedEvaluation: EvaluatedDisclosures;
-  matchedKeyTag: string;
   matchedCredential: string;
+  cryptoContext: CryptoContext;
 } => {
   for (const {
-    keyTag,
+    cryptoContext,
     credential,
     sdJwt,
     disclosures,
@@ -282,7 +285,7 @@ export const findCredentialSdJwt = (
 
       return {
         matchedEvaluation: evaluatedDisclosure,
-        matchedKeyTag: keyTag,
+        cryptoContext,
         matchedCredential: credential,
       };
     } catch {
@@ -319,14 +322,14 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
 ) => {
   // We need decode SD-JWT credentials for evaluation
   const decodedSdJwtCredentials =
-    credentialsSdJwt?.map(([keyTag, credential]) => {
+    credentialsSdJwt?.map(([cryptoContext, credential]) => {
       const { sdJwt, disclosures } = decode(credential);
-      return { keyTag, credential, sdJwt, disclosures };
+      return { cryptoContext, credential, sdJwt, disclosures };
     }) || [];
 
   return Promise.all(
     inputDescriptors.map(async (descriptor) => {
-      if (descriptor.format?.["vc+sd-jwt"]) {
+      if (descriptor.format?.["dc+sd-jwt"]) {
         if (!decodedSdJwtCredentials.length) {
           throw new CredentialsNotFoundError([
             {
@@ -336,14 +339,14 @@ export const evaluateInputDescriptors: EvaluateInputDescriptors = async (
           ]);
         }
 
-        const { matchedEvaluation, matchedKeyTag, matchedCredential } =
+        const { matchedEvaluation, cryptoContext, matchedCredential } =
           findCredentialSdJwt(descriptor, decodedSdJwtCredentials);
 
         return {
           evaluatedDisclosure: matchedEvaluation,
           inputDescriptor: descriptor,
           credential: matchedCredential,
-          keyTag: matchedKeyTag,
+          cryptoContext,
         };
       }
 
@@ -379,18 +382,18 @@ export const prepareLegacyRemotePresentations: PrepareLegacyRemotePresentations 
       credentialAndDescriptors.map(async (item) => {
         const descriptor = item.inputDescriptor;
 
-        if (descriptor.format?.["vc+sd-jwt"]) {
+        if (descriptor.format?.["dc+sd-jwt"]) {
           const { vp_token } = await prepareVpToken(nonce, client_id, [
             item.credential,
             item.requestedClaims,
-            createCryptoContextFor(item.keyTag),
+            item.cryptoContext,
           ]);
 
           return {
             requestedClaims: item.requestedClaims,
             inputDescriptor: descriptor,
             vpToken: vp_token,
-            format: "vc+sd-jwt",
+            format: "dc+sd-jwt",
           };
         }
 

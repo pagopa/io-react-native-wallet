@@ -1,18 +1,32 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { Out } from "../../utils/misc";
+import { type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
-import { SdJwt4VC } from "../../sd-jwt/types";
-import { verify as verifySdJwt } from "../../sd-jwt";
+import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
-import type { JWK } from "../../utils/jwk";
+import { isSameThumbprint, type JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { LogLevel, Logger } from "../../utils/logging";
+import { verify as verifyMdoc } from "../../mdoc";
+import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
+import { getParsedCredentialClaimKey } from "../../mdoc/utils";
+import { Logger, LogLevel } from "../../utils/logging";
+import { extractElementValueAsDate } from "../../mdoc/converter";
+import type { CBOR } from "@pagopa/io-react-native-iso18013";
+import type { PublicKey } from "@pagopa/io-react-native-crypto";
+import { createNestedProperty } from "../../utils/nestedProperty";
+
+type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
+type CredentialConf =
+  IssuerConf["openid_credential_issuer"]["credential_configurations_supported"][string];
+
+type DecodedMDocCredential = Out<typeof verifyMdoc> & {
+  issuerSigned: CBOR.IssuerSigned;
+};
 
 export type VerifyAndParseCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: IssuerConf,
   credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"],
+  credentialConfigurationId: string,
   context: {
     credentialCryptoContext: CryptoContext;
     /**
@@ -23,7 +37,8 @@ export type VerifyAndParseCredential = (
      * Include attributes that are not explicitly mapped in the issuer configuration.
      */
     includeUndefinedAttributes?: boolean;
-  }
+  },
+  x509CertRoot?: string
 ) => Promise<{
   parsedCredential: ParsedCredential;
   expiration: Date;
@@ -31,11 +46,9 @@ export type VerifyAndParseCredential = (
 }>;
 
 // The credential as a collection of attributes in plain value
-type ParsedCredential = Record<
+type ParsedCredential = {
   /** Attribute key */
-  string,
-  {
-    /** Human-readable name of the attribute */
+  [claim: string]: {
     name:
       | /* if i18n is provided */ Record<
           string /* locale */,
@@ -43,10 +56,9 @@ type ParsedCredential = Record<
         >
       | /* if no i18n is provided */ string
       | undefined; // Add undefined as a possible value for the name property
-    /** The actual value of the attribute */
     value: unknown;
-  }
->;
+  };
+};
 
 // handy alias
 type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
@@ -54,90 +66,89 @@ type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
 };
 
 const parseCredentialSdJwt = (
-  // the list of supported credentials, as defined in the issuer configuration
-  credentials_supported: Out<EvaluateIssuerTrust>["issuerConf"]["openid_credential_issuer"]["credential_configurations_supported"],
+  // The credential configuration to use to parse the provided credential
+  credentialConfig: CredentialConf,
   { sdJwt, disclosures }: DecodedSdJwtCredential,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const credentialSubject = credentials_supported[sdJwt.payload.vct];
-
-  if (!credentialSubject) {
-    Logger.log(
-      LogLevel.ERROR,
-      `Credential type not supported by the issuer: ${sdJwt.payload.vct}`
-    );
-    throw new IoWalletError("Credential type not supported by the issuer");
+  if (credentialConfig.format !== sdJwt.header.typ) {
+    const message = `Received credential is of an unknown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
   }
 
-  if (credentialSubject.format !== sdJwt.header.typ) {
-    Logger.log(
-      LogLevel.ERROR,
-      `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}'`
-    );
-    throw new IoWalletError(
-      `Received credential is of an unknwown type. Expected one of [${credentialSubject.format}], received '${sdJwt.header.typ}', `
-    );
-  }
-
-  // transfrom a record { key: value } in an iterable of pairs [key, value]
-  if (!credentialSubject.claims) {
+  if (!credentialConfig.claims) {
     Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
     throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
   }
-  const attrDefinitions = Object.entries(credentialSubject.claims);
 
-  // the key of the attribute defintion must match the disclosure's name
-  const attrsNotInDisclosures = attrDefinitions.filter(
-    ([attrKey]) => !disclosures.some(([, name]) => name === attrKey)
-  );
-  if (attrsNotInDisclosures.length > 0) {
-    const missing = attrsNotInDisclosures.map((_) => _[0 /* key */]).join(", ");
-    const received = disclosures.map((_) => _[1 /* name */]).join(", ");
-    if (!ignoreMissingAttributes) {
-      Logger.log(
-        LogLevel.ERROR,
-        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
-      );
+  const attrDefinitions = credentialConfig.claims;
+
+  // Validate that all attributes from the config exist in either disclosures OR payload
+  if (!ignoreMissingAttributes) {
+    const disclosedKeys = new Set(disclosures.map(([, name]) => name));
+    const payloadKeys = new Set(Object.keys(sdJwt.payload ?? {}));
+
+    const definedTopLevelKeys = new Set(
+      attrDefinitions.map((def) => def.path[0] as string)
+    );
+
+    const missingKeys = [...definedTopLevelKeys].filter(
+      (key) => !disclosedKeys.has(key) && !payloadKeys.has(key)
+    );
+
+    if (missingKeys.length > 0) {
       throw new IoWalletError(
-        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+        `Some attributes are missing in the credential. Missing: [${missingKeys.join(", ")}]`
       );
     }
   }
 
-  // attributes that are defined in the issuer configuration
-  // and are present in the disclosure set
-  const definedValues = Object.fromEntries(
-    attrDefinitions
-      // retrieve the value from the disclosure set
-      .map(
-        ([attrKey, definition]) =>
-          [
-            attrKey,
-            {
-              ...definition,
-              value: disclosures.find(
-                (_) => _[1 /* name */] === attrKey
-              )?.[2 /* value */],
-            },
-          ] as const
-      )
-      // add a human readable attribute name, with i18n, in the form { locale: name }
-      // example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
-      .map(
-        ([attrKey, { display, ...definition }]) =>
-          [
-            attrKey,
-            {
-              ...definition,
-              name: display.reduce(
-                (names, { locale, name }) => ({ ...names, [locale]: name }),
-                {} as Record<string, string>
-              ),
-            },
-          ] as const
-      )
+  const definedValues: ParsedCredential = {};
+
+  // Group all schema definitions by their top-level key
+  const groupedDefinitions = attrDefinitions.reduce(
+    (acc, def) => {
+      const key = def.path[0] as string;
+      const group = acc[key];
+      if (group) {
+        group.push(def);
+      } else {
+        acc[key] = [def];
+      }
+      return acc;
+    },
+    {} as Record<string, typeof attrDefinitions>
   );
+
+  // Loop through each group
+  for (const topLevelKey in groupedDefinitions) {
+    const definitionsForThisKey = groupedDefinitions[topLevelKey];
+
+    if (!definitionsForThisKey) {
+      continue;
+    }
+
+    const disclosureForThisKey = disclosures.find(
+      ([, name]) => name === topLevelKey
+    );
+
+    if (!disclosureForThisKey) {
+      continue;
+    }
+
+    const disclosureValue = disclosureForThisKey[2];
+
+    const tempObjectForGroup = definitionsForThisKey.reduce(
+      (acc, { path, display }) =>
+        createNestedProperty(acc, path, disclosureValue, display),
+      {}
+    );
+
+    // Merge the fully constructed object into the final result
+    Object.assign(definedValues, tempObjectForGroup);
+  }
 
   if (includeUndefinedAttributes) {
     // attributes that are in the disclosure set
@@ -147,6 +158,7 @@ const parseCredentialSdJwt = (
         .filter((_) => !Object.keys(definedValues).includes(_[1]))
         .map(([, key, value]) => [key, { value, name: key }])
     );
+
     return {
       ...definedValues,
       ...undefinedValues,
@@ -156,6 +168,124 @@ const parseCredentialSdJwt = (
   return definedValues;
 };
 
+const parseCredentialMDoc = (
+  // the list of supported credentials, as defined in the issuer configuration
+  credentialConfig: CredentialConf,
+  // credential_type: string,
+  { issuerSigned }: DecodedMDocCredential,
+  ignoreMissingAttributes: boolean = false,
+  includeUndefinedAttributes: boolean = false
+): ParsedCredential => {
+  if (!credentialConfig) {
+    throw new IoWalletError("Credential type not supported by the issuer");
+  }
+
+  if (!credentialConfig.claims) {
+    throw new IoWalletError("Missing claims in the credential subject");
+  }
+
+  const attrDefinitions = credentialConfig.claims.map<
+    [string, string, { name: string; locale: string }[]]
+  >(({ path: [namespace, attribute], display }) => [
+    namespace as string,
+    attribute as string,
+    display,
+  ]);
+
+  if (!issuerSigned.nameSpaces) {
+    throw new IoWalletError("Missing claims in the credential");
+  }
+
+  const flatNamespaces = Object.entries(issuerSigned.nameSpaces).flatMap(
+    ([namespace, values]) =>
+      values.map<[string, string, string]>((v) => [
+        namespace,
+        v.elementIdentifier,
+        v.elementValue,
+      ])
+  );
+
+  // Check that all mandatory attributes defined in the issuer configuration are present in the disclosure set
+  // and filter the non present ones
+  const attrsNotInDisclosures = attrDefinitions.filter(
+    ([attrDefNamespace, attrKey]) =>
+      !flatNamespaces.some(
+        ([namespace, claim]) =>
+          attrDefNamespace === namespace && attrKey === claim
+      )
+  );
+
+  if (attrsNotInDisclosures.length > 0) {
+    const missing = attrsNotInDisclosures
+      .map(([, attrKey]) => attrKey)
+      .join(", ");
+    const received = flatNamespaces.map(([, attrKey]) => attrKey).join(", ");
+
+    if (!ignoreMissingAttributes) {
+      throw new IoWalletError(
+        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+      );
+    }
+  }
+
+  // Attributes defined in the issuer configuration and present in the disclosure set
+  const definedValues = attrDefinitions
+    // Retrieve the value from the corresponding disclosure
+    .map(
+      ([attrDefNamespace, attrKey, display]) =>
+        [
+          attrDefNamespace,
+          attrKey,
+          {
+            display,
+            value: flatNamespaces.find(
+              ([namespace, name]) =>
+                attrDefNamespace === namespace && name === attrKey
+            )?.[2],
+          },
+        ] as const
+    )
+    //filter the not found elements
+    .filter(([_, __, definition]) => definition.value !== undefined)
+    // Add a human-readable attribute name, with i18n, in the form { locale: name }
+    // Example: { "it-IT": "Nome", "en-EN": "Name", "es-ES": "Nombre" }
+    .reduce<ParsedCredential>(
+      (acc, [attrDefNamespace, attrKey, { display, value }]) => ({
+        ...acc,
+        [getParsedCredentialClaimKey(attrDefNamespace, attrKey)]: {
+          value,
+          name: display.reduce(
+            (names, { locale, name }) => ({
+              ...names,
+              [locale]: name,
+            }),
+            {}
+          ),
+        },
+      }),
+      {}
+    );
+
+  if (includeUndefinedAttributes) {
+    const undefinedValues: ParsedCredential = Object.fromEntries(
+      Object.values(flatNamespaces)
+        .filter(
+          ([namespace, key]) =>
+            !definedValues[getParsedCredentialClaimKey(namespace, key)]
+        )
+        .map(([namespace, key, value]) => [
+          getParsedCredentialClaimKey(namespace, key),
+          { value, name: key },
+        ])
+    );
+    return {
+      ...definedValues,
+      ...undefinedValues,
+    };
+  }
+
+  return definedValues;
+};
 /**
  * Given a credential, verify it's in the supported format
  * and the credential is correctly signed
@@ -184,32 +314,61 @@ async function verifyCredentialSdJwt(
     ]);
 
   const { cnf } = decodedCredential.sdJwt.payload;
+  if (!(await isSameThumbprint(cnf.jwk, holderBindingKey as JWK))) {
+    const message = `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
+  }
 
-  if (!cnf.jwk.kid || cnf.jwk.kid !== holderBindingKey.kid) {
-    Logger.log(
-      LogLevel.ERROR,
-      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
-    );
+  return decodedCredential;
+}
+/**
+ * Given a credential, verify it's in the supported format
+ * and the credential is correctly signed
+ * and it's bound to the given key
+ *
+ * @param rawCredential The received credential
+ * @param x509CertRoot The root certificate of the issuer,
+ * which will be used to verify the signature
+ * @param holderBindingContext The access to the holder's key
+ *
+ * @throws If the signature verification fails
+ * @throws If the credential is not in the SdJwt4VC format
+ * @throws If the holder binding is not properly configured
+ *
+ */
+async function verifyCredentialMDoc(
+  rawCredential: string,
+  x509CertRoot: string,
+  holderBindingContext: CryptoContext
+): Promise<DecodedMDocCredential> {
+  const [decodedCredential, holderBindingKey] =
+    // parallel for optimization
+    await Promise.all([
+      verifyMdoc(rawCredential, x509CertRoot),
+      holderBindingContext.getPublicKey(),
+    ]);
+
+  if (!decodedCredential) {
+    throw new IoWalletError("No MDOC credentials found!");
+  }
+
+  const key =
+    decodedCredential.issuerSigned.issuerAuth.payload.deviceKeyInfo.deviceKey;
+
+  if (!(await isSameThumbprint(key, holderBindingKey as PublicKey))) {
     throw new IoWalletError(
-      `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${decodedCredential.sdJwt.payload.cnf.jwk.kid}`
+      `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
     );
   }
 
   return decodedCredential;
 }
 
-// utility type that specialize VerifyAndParseCredential for given format
-type WithFormat<Format extends Parameters<VerifyAndParseCredential>[2]> = (
-  _0: Parameters<VerifyAndParseCredential>[0],
-  _1: Parameters<VerifyAndParseCredential>[1],
-  _2: Format,
-  _3: Parameters<VerifyAndParseCredential>[3]
-) => ReturnType<VerifyAndParseCredential>;
-
-const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
+const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   issuerConf,
   credential,
-  _,
+  credentialConfigurationId,
   {
     credentialCryptoContext,
     ignoreMissingAttributes,
@@ -224,8 +383,21 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 
   Logger.log(LogLevel.DEBUG, `Decoded credential: ${JSON.stringify(decoded)}`);
 
+  const credentialConfig =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credentialConfigurationId
+    ];
+
+  if (!credentialConfig) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Credential type not supported by the issuer: ${credentialConfigurationId}`
+    );
+    throw new IoWalletError("Credential type not supported by the issuer");
+  }
+
   const parsedCredential = parseCredentialSdJwt(
-    issuerConf.openid_credential_issuer.credential_configurations_supported,
+    credentialConfig,
     decoded,
     ignoreMissingAttributes,
     includeUndefinedAttributes
@@ -247,11 +419,65 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
   };
 };
 
+const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
+  issuerConf,
+  credential,
+  credentialConfigurationId,
+  { credentialCryptoContext, ignoreMissingAttributes },
+  x509CertRoot
+) => {
+  if (!x509CertRoot) {
+    throw new IoWalletError("Missing x509CertRoot");
+  }
+
+  const decoded = await verifyCredentialMDoc(
+    credential,
+    x509CertRoot,
+    credentialCryptoContext
+  );
+
+  const credentialConfig =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credentialConfigurationId
+    ]!;
+  const parsedCredential = parseCredentialMDoc(
+    credentialConfig,
+    decoded,
+    ignoreMissingAttributes,
+    ignoreMissingAttributes
+  );
+
+  const expirationDate = extractElementValueAsDate(
+    parsedCredential?.[
+      getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "expiry_date")
+    ]?.value as string
+  );
+  if (!expirationDate) {
+    throw new IoWalletError(`expirationDate must be present!!`);
+  }
+  expirationDate.setDate(expirationDate.getDate() + 1);
+
+  const maybeIssuedAt = extractElementValueAsDate(
+    parsedCredential?.[
+      getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "issue_date")
+    ]?.value as string
+  );
+  maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
+
+  return {
+    parsedCredential,
+    credential,
+    credentialConfigurationId,
+    expiration: expirationDate,
+    issuedAt: maybeIssuedAt ?? undefined,
+  };
+};
+
 /**
  * Verify and parse an encoded credential.
  * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
  * @param credential The encoded credential returned by {@link obtainCredential}
- * @param format The format of the credentual returned by {@link obtainCredential}
+ * @param credentialConfigurationId The credential configuration ID that defines the provided credential
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
  * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
  * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
@@ -263,19 +489,40 @@ const verifyAndParseCredentialSdJwt: WithFormat<"vc+sd-jwt"> = async (
 export const verifyAndParseCredential: VerifyAndParseCredential = async (
   issuerConf,
   credential,
-  format,
-  context
+  credentialConfigurationId,
+  context,
+  x509CertRoot
 ) => {
-  if (format === "vc+sd-jwt") {
-    Logger.log(LogLevel.DEBUG, "Parsing credential in vc+sd-jwt format");
-    return verifyAndParseCredentialSdJwt(
-      issuerConf,
-      credential,
-      format,
-      context
-    );
-  }
+  const format =
+    issuerConf.openid_credential_issuer.credential_configurations_supported[
+      credentialConfigurationId
+    ]?.format;
 
-  Logger.log(LogLevel.ERROR, `Unsupported credential format: ${format}`);
-  throw new IoWalletError(`Unsupported credential format: ${format}`);
+  switch (format) {
+    case "dc+sd-jwt": {
+      Logger.log(LogLevel.DEBUG, "Parsing credential in dc+sd-jwt format");
+      return verifyAndParseCredentialSdJwt(
+        issuerConf,
+        credential,
+        credentialConfigurationId,
+        context
+      );
+    }
+    case "mso_mdoc": {
+      Logger.log(LogLevel.DEBUG, "Parsing credential in mso_mdoc format");
+      return verifyAndParseCredentialMDoc(
+        issuerConf,
+        credential,
+        credentialConfigurationId,
+        context,
+        x509CertRoot
+      );
+    }
+
+    default: {
+      const message = `Unsupported credential format: ${format}`;
+      Logger.log(LogLevel.ERROR, message);
+      throw new IoWalletError(message);
+    }
+  }
 };

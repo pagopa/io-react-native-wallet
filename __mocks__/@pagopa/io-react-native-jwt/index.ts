@@ -17,7 +17,16 @@ function mockHexToBase64(hexstring: string) {
   return btoa(g);
 }
 
-export const thumbprint = (_: any) => sha256ToBase64(JSON.stringify(_));
+export const thumbprint = (jwk: any) => {
+  const canonical = {
+    crv: jwk.crv,
+    kty: jwk.kty,
+    x: jwk.x,
+    y: jwk.y,
+  };
+  const canonicalJson = JSON.stringify(canonical);
+  return sha256ToBase64(canonicalJson);
+};
 
 export function removePadding(encoded: string): string {
   // eslint-disable-next-line no-div-regex

@@ -48,6 +48,8 @@ export const WalletInstanceAttestationRequestJwt = z.object({
   ),
 });
 
+// TODO: [SIW-2089] add type for Wallet Attestation in SD-JWT and MDOC format
+// See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/wallet-solution.html#wallet-attestation-issuance step 18
 export type WalletInstanceAttestationJwt = z.infer<
   typeof WalletInstanceAttestationJwt
 >;
@@ -56,7 +58,7 @@ export const WalletInstanceAttestationJwt = z.object({
     Jwt.shape.header,
     z.object({
       typ: z.literal("oauth-client-attestation+jwt"),
-      trust_chain: z.array(z.string()),
+      trust_chain: z.array(z.string()).optional(),
     })
   ),
   payload: z.intersection(

@@ -3,17 +3,18 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import { persistReducer, type PersistConfig } from "redux-persist";
+import { type PersistConfig, persistReducer } from "redux-persist";
 import {
-  getCredentialStatusAttestationThunk,
+  getCredentialStatusAssertionThunk,
+  type GetCredentialStatusAssertionThunkOutput,
   getCredentialThunk,
-  type GetCredentialStatusAttestationThunkOutput,
 } from "../../thunks/credential";
 import type {
+  AsyncStatus,
   CredentialResult,
   RootState,
+  SupportedCredentials,
   SupportedCredentialsWithoutPid,
-  AsyncStatus,
 } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { sessionReset } from "./sesssion";
@@ -29,8 +30,8 @@ import {
  * It contains:
  * - credentials: the obtained credentials which are persisted, except for the PID which is stored in the PID slice {@link pidSlice}
  * - credentialsState: the state of the async operation to get each credential
- * - statusAttestation: the status attestation for the credentials
- * - statusAttAsyncStatus: the state of the async operation to get each credential status attestation
+ * - statusAssertion: the status assertion for the credentials
+ * - statusAssertionAsyncStatus: the state of the async operation to get each credential status assertion
  */
 type CredentialState = {
   credentials: Record<
@@ -38,11 +39,11 @@ type CredentialState = {
     CredentialResult | undefined
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-  statusAttestation: Record<
-    SupportedCredentialsWithoutPid,
-    GetCredentialStatusAttestationThunkOutput | undefined
+  statusAssertion: Record<
+    SupportedCredentials,
+    GetCredentialStatusAssertionThunkOutput | undefined
   >;
-  statusAttAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
+  statusAssertionAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
   trustmark: Record<
     SupportedCredentialsWithoutPid,
     GetTrustmarkThunkOutput | undefined
@@ -53,40 +54,66 @@ type CredentialState = {
 // Initial state for the credential slice
 const initialState: CredentialState = {
   credentials: {
-    MDL: undefined,
-    EuropeanDisabilityCard: undefined,
-    EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_mDL: undefined,
+    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_EuropeanDisabilityCard: undefined,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
+    dc_sd_jwt_residency: undefined,
   },
   credentialsAsyncStatus: {
-    MDL: asyncStatusInitial,
-    EuropeanDisabilityCard: asyncStatusInitial,
-    EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
+    dc_sd_jwt_residency: asyncStatusInitial,
   },
-  statusAttestation: {
-    MDL: undefined,
-    EuropeanDisabilityCard: undefined,
-    EuropeanHealthInsuranceCard: undefined,
+  statusAssertion: {
+    PersonIdentificationData: undefined,
+    dc_sd_jwt_mDL: undefined,
+    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_EuropeanDisabilityCard: undefined,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
+    dc_sd_jwt_residency: undefined,
   },
-  statusAttAsyncStatus: {
-    MDL: asyncStatusInitial,
-    EuropeanDisabilityCard: asyncStatusInitial,
-    EuropeanHealthInsuranceCard: asyncStatusInitial,
+  statusAssertionAsyncStatus: {
+    PersonIdentificationData: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
+    dc_sd_jwt_residency: asyncStatusInitial,
   },
   trustmark: {
-    MDL: undefined,
-    EuropeanDisabilityCard: undefined,
-    EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_mDL: undefined,
+    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_EuropeanDisabilityCard: undefined,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
+    dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
+    dc_sd_jwt_residency: undefined,
   },
   trustmarkAsyncStatus: {
-    MDL: asyncStatusInitial,
-    EuropeanDisabilityCard: asyncStatusInitial,
-    EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
+    dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
+    dc_sd_jwt_residency: asyncStatusInitial,
   },
 };
 
 /**
- * Redux slice for the attestion state. It contains the credentials, the credential async operation state, the CiE L3 flow params,
- * the status attestation of the credentials and the status attestation async operation state.
+ * Redux slice for the credentials state. It contains the credentials, the credential async operation state, the CiE L3 flow params,
+ * the status assertions of the credentials and the status assertions async operation state.
  */
 const credentialSlice = createSlice({
   name: "credential",
@@ -156,51 +183,51 @@ const credentialSlice = createSlice({
     });
 
     /**
-     * Status Attestation Thunk
+     * Status Assertion Thunk
      */
 
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk resolves.
-     * Sets the status attestation and its state to isDone for the requested credential while resetting isLoading and hasError
+    /* Dispatched when a getCredentialStatusAssertionThunk thunk resolves.
+     * Sets the status assertion and its state to isDone for the requested credential while resetting isLoading and hasError
      * for the requested credential.
      */
     builder.addCase(
-      getCredentialStatusAttestationThunk.fulfilled,
+      getCredentialStatusAssertionThunk.fulfilled,
       (state, action) => {
         const credentialType = action.payload.credentialType;
         // Set the credential
-        state.statusAttestation[credentialType] = action.payload;
+        state.statusAssertion[credentialType] = action.payload;
         // Set the status
-        state.statusAttAsyncStatus[credentialType] = {
+        state.statusAssertionAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
           isDone: true,
         };
       }
     );
 
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk is pending.
-     * Sets the status attestation state to isLoading while resetting isDone and hasError
+    /* Dispatched when a getCredentialStatusAssertionThunk thunk is pending.
+     * Sets the status assertion state to isLoading while resetting isDone and hasError
      * for the requested credential.
      */
     builder.addCase(
-      getCredentialStatusAttestationThunk.pending,
+      getCredentialStatusAssertionThunk.pending,
       (state, action) => {
         const credentialType = action.meta.arg.credentialType;
-        state.statusAttAsyncStatus[credentialType] = {
+        state.statusAssertionAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
           isLoading: true,
         };
       }
     );
 
-    /* Dispatched when a getCredentialStatusAttestationThunk thunk rejected.
-     * Sets the status attestation state to hasError while resetting isLoading and hasError
+    /* Dispatched when a getCredentialStatusAssertionThunk thunk rejected.
+     * Sets the status assertion state to hasError while resetting isLoading and hasError
      * for the requested credential.
      */
     builder.addCase(
-      getCredentialStatusAttestationThunk.rejected,
+      getCredentialStatusAssertionThunk.rejected,
       (state, action) => {
         const credentialType = action.meta.arg.credentialType;
-        state.statusAttAsyncStatus[credentialType] = {
+        state.statusAssertionAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
           hasError: { status: true, error: action.error },
         };
@@ -311,22 +338,18 @@ export const selectCredentialAsyncStatus =
     state.credential.credentialsAsyncStatus[credentialType];
 
 /**
- * Selects the status attestation of a given credential.
- * @param credentialType - The type of the credential to select the status attestation
- * @returns the status attestation for the requested credential
+ * Selects the status assertions for all available credentials.
+ * @returns The status assertions keyed by credential
  */
-export const selectStatusAttestation =
-  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
-    state.credential.statusAttestation[credentialType];
+export const selectStatusAssertions = (state: RootState) =>
+  state.credential.statusAssertion;
 
 /**
- * Selects the state of the status attestation async operation of a given credential.
- * @param credentialType - The type of the credential to select the state
- * @returns the state of the async operation for the requested credential as {@link AsyncStatus}
+ * Selects the state of the status assertion async operation of all available credentials.
+ * @returns The state of the async operations keyed by credential {@link AsyncStatus}
  */
-export const selectStatusAttestationAsyncStatus =
-  (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
-    state.credential.statusAttAsyncStatus[credentialType];
+export const selectStatusAssertionAsyncStatuses = (state: RootState) =>
+  state.credential.statusAssertionAsyncStatus;
 
 /**
  * Selects the trustmark signed JWT from the trustmark state.

@@ -1,18 +1,20 @@
 import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
+import { pid, mdl, legacyPid } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { createCryptoContextFor } from "../../../utils/crypto";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 const pidKeyTag = "pidkeytag";
-const pidSdJwt =
-  "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2QiOlsiMHExRDVKbWF2NnBRYUVoX0pfRmN2X3VOTk1RSWdDeWhRT3hxbFk0bDNxVSIsIktDSi1BVk52ODhkLXhqNnNVSUFPSnhGbmJVaDNySFhES2tJSDFsRnFiUnMiLCJNOWxvOVl4RE5JWHJBcTJxV2VpQ0E0MHpwSl96WWZGZFJfNEFFQUxjUnRVIiwiY3pnalVrMG5xUkNzd1NoQ2hDamRTNkExLXY0N2RfcVRDU0ZJdklIaE1vSSIsIm5HblFyN2NsbTN0ZlRwOHlqTF91SHJEU090elIyUFZiOFM3R2VMZEFxQlEiLCJ4TklWd2xwU3NhWjhDSlNmMGd6NXhfNzVWUldXYzZWMW1scGVqZENycVVzIl0sInN1YiI6IjIxNmY4OTQ2LTllY2ItNDgxOS05MzA5LWMwNzZmMzRhN2UxMSIsIl9zZF9hbGciOiJzaGEtMjU2IiwidmN0IjoiUGVyc29uSWRlbnRpZmljYXRpb25EYXRhIiwiaXNzIjoiaHR0cHM6Ly9wcmUuZWlkLndhbGxldC5pcHpzLml0IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2Iiwia2lkIjoiUnYzVy1FaUtwdkJUeWs1eVp4dnJldi03TURCNlNselVDQm9fQ1FqamRkVSIsIngiOiIwV294N1F0eVBxQnlnMzVNSF9YeUNjbmQ1TGUtSm0wQVhIbFVnREJBMDNZIiwieSI6ImVFaFZ2ZzFKUHFOZDNEVFNhNG1HREdCbHdZNk5QLUVaYkxiTkZYU1h3SWcifX0sImV4cCI6MTc1MTU0NjU3Niwic3RhdHVzIjp7InN0YXR1c19hdHRlc3RhdGlvbiI6eyJjcmVkZW50aWFsX2hhc2hfYWxnIjoic2hhLTI1NiJ9fX0.qXHA2oqr8trX4fGxpxpUft2GX380TM3pzfo1MYAsDjUC8HsODA-4rdRWAvDe2zYP57x4tJU7eiABkd1Kmln9yQ~WyJrSkRFUDhFYU5URU1CRE9aelp6VDR3IiwidW5pcXVlX2lkIiwiVElOSVQtTFZMREFBODVUNTBHNzAyQiJd~WyJ6SUF5VUZ2UGZJcEUxekJxeEk1aGFRIiwiYmlydGhfZGF0ZSIsIjE5ODUtMTItMTAiXQ~WyJHcjNSM3MyOTBPa1FVbS1ORlR1OTZBIiwidGF4X2lkX2NvZGUiLCJUSU5JVC1MVkxEQUE4NVQ1MEc3MDJCIl0~WyJHeE9SYWxNQWVsZlowZWRGSmpqWVV3IiwiZ2l2ZW5fbmFtZSIsIkFkYSJd~WyJfdlY1UklrbDBJT0VYS290czlrdDF3IiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd~WyJDajV0Y2NSNzJKd3J6ZTJUVzRhLXdnIiwiaWF0IiwxNzIwMDEwNTc1XQ";
 const mdlKeyTag = "mdlkeytag";
-const mdlSdJwt =
-  "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KICAic3ViIjogIjlhOWQ4ZjBmLWVmZTctNDkzZS05Y2ViLTM2MjZlNWJmZDc4MyIsDQogICJ2Y3QiOiAiTURMIiwNCiAgImlzcyI6ICJodHRwczovL2VhYS53YWxsZXQuaXB6cy5pdCIsDQogICJjbmYiOiB7DQogICAgImp3ayI6IHsNCiAgICAgICJrdHkiOiAiRUMiLA0KICAgICAgImNydiI6ICJQLTI1NiIsDQogICAgICAia2lkIjogImlUOXRhdTZUNG1ZcGRFeC0tSzVIVkRwbnJud2poU3JsNTdfdE03Skw4QjAiLA0KICAgICAgIngiOiAiaDI5dFdma0NKNzNuSmJQNTFDNFNvdGRJMEN1dHRmUVMzU3Z0MHNlNmdGVSIsDQogICAgICAieSI6ICJtQmF2bGJpSkxGaEdzdUlKUno3d1lMaVcxNWdwaVdFRExqRTFnZlZoXzdrIg0KICAgIH0NCiAgfSwNCiAgImV4cCI6IDE3OTg3NTgwMDAsDQogICJzdGF0dXMiOiB7DQogICAgInN0YXR1c19hdHRlc3RhdGlvbiI6IHsNCiAgICAgICJjcmVkZW50aWFsX2hhc2hfYWxnIjogInNoYS0yNTYiDQogICAgfQ0KICB9LA0KICAiX3NkIjogWw0KICAgICIwWjJ2dEloV1d1TjhrNXZWa3I4eVBjbWREeDYtRkU2M0o2V29IYVJFOG8wIiwNCiAgICAiTGZST3hiVGtZRDNucXJNdDl4cXFIeG9lNjI5MHh6RS1nMm4xVk85MWF4SSIsDQogICAgIlFBVmJ6T25CX2FtSnFDdmJZWFNDRGFIU2NJRFZmak9yMDhpakdyQUpmMUEiLA0KICAgICJWc2YwSTE1dmlFenhWVlFNNDBpVFRId2pBYkxZb2p0WTR5UGh3RGM4LTdNIiwNCiAgICAiWlh5eWEwMDFxblFSek5YT2MyUVF4RV80THBGSTNSV1VXN1hzVW1SYjlTcyIsDQogICAgImFCaW1MYVJYOW1uWkRJbzFUMC1DRDVELWN5ZVZUZWhhclBHcEJvRGJTdjAiDQogIF0sDQogICJfc2RfYWxnIjogInNoYS0yNTYiDQp9.Ci9J8A_yKtISUA7VufKRcKaGF0K7-Pv6Dev2tkIw64C6kbxN3A68_jKkFZfa651zTpeBm6ovpHOouBPg92pkdg~WyJmZjAwNmU0MTExYzA4NmMyIiwiZmFtaWx5X25hbWUiLCJSb3NzaSJd~WyI4MDY5MjI3MjZlM2VhY2VkIiwiZ2l2ZW5fbmFtZSIsIk1hcmlvIl0~WyI4MmZiZWVjNmQ1NzhmZjJlIiwiYmlydGhfZGF0ZSIsIjAxLTAxLTE5OTAiXQ~WyI0ZDEwYmE2MTVlZDYzYTEyIiwiZG9jdW1lbnRfbnVtYmVyIiwiMTIzNDU2Nzg5Il0~WyJjNGI0MGVmYWRmY2QzYmRkIiwiZHJpdmluZ19wcml2aWxlZ2VzIiwiQiJd~WyJiZTdmZjg4M2I4ZDJiYzE1IiwicGxhY2Vfb2ZfYmlydGgiLCJSb21hIl0~";
+
+const pidCryptoContext = createCryptoContextFor(pidKeyTag);
+const mdlCryptoContext = createCryptoContextFor(mdlKeyTag);
 
 const credentials = [
-  [pidKeyTag, pidSdJwt],
-  [mdlKeyTag, mdlSdJwt],
-] as [string, string][];
+  [pidCryptoContext, pid.token],
+  [mdlCryptoContext, mdl.token],
+] as [CryptoContext, string][];
 
 describe("evaluateDcqlQuery", () => {
   it("should throw error when the DCQL query structure is invalid", () => {
@@ -20,7 +22,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PersonIdentificationData",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           // @ts-expect-error invalid query on purpose
           claims: [{ id: "tax_id_code", path: "tax_id_code" }],
         },
@@ -35,7 +37,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PersonIdentificationData",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           claims: [{ id: "tax_id_code", path: ["tax_id_code"] }],
           claim_sets: [["missing_claim", "tax_id_code"]],
         },
@@ -51,7 +53,7 @@ describe("evaluateDcqlQuery", () => {
         credentials: [
           {
             id: "PersonIdentificationData",
-            format: "vc+sd-jwt",
+            format: "dc+sd-jwt",
             meta: {
               vct_values: ["MissingPID"],
             },
@@ -65,7 +67,7 @@ describe("evaluateDcqlQuery", () => {
         credentials: [
           {
             id: "PersonIdentificationData",
-            format: "vc+sd-jwt",
+            format: "dc+sd-jwt",
             meta: {
               vct_values: ["MissingPID"],
             },
@@ -86,14 +88,14 @@ describe("evaluateDcqlQuery", () => {
         credentials: [
           {
             id: "IHaveThis",
-            format: "vc+sd-jwt",
+            format: "dc+sd-jwt",
             meta: {
               vct_values: ["PersonIdentificationData"],
             },
           },
           {
             id: "IDontHaveThis",
-            format: "vc+sd-jwt",
+            format: "dc+sd-jwt",
             meta: {
               vct_values: ["MissingCredential"],
             },
@@ -126,7 +128,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -144,8 +146,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
-        credential: pidSdJwt,
+        cryptoContext: pidCryptoContext,
+        credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -163,7 +165,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -175,7 +177,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "DrivingLicense",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -189,8 +191,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
-        credential: pidSdJwt,
+        cryptoContext: pidCryptoContext,
+        credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -201,8 +203,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "DrivingLicense",
         vct: "MDL",
-        keyTag: mdlKeyTag,
-        credential: mdlSdJwt,
+        cryptoContext: mdlCryptoContext,
+        credential: mdl.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
           ["4d10ba615ed63a12", "document_number", "123456789"],
@@ -218,7 +220,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -226,7 +228,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "optional",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["other_credential"],
           },
@@ -244,8 +246,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
-        credential: pidSdJwt,
+        cryptoContext: pidCryptoContext,
+        credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
@@ -262,7 +264,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -270,7 +272,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "MDL",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -288,8 +290,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
-        credential: pidSdJwt,
+        cryptoContext: pidCryptoContext,
+        credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
@@ -299,8 +301,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "MDL",
         vct: "MDL",
-        keyTag: mdlKeyTag,
-        credential: mdlSdJwt,
+        cryptoContext: mdlCryptoContext,
+        credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
         requiredDisclosures: [
           ["4d10ba615ed63a12", "document_number", "123456789"],
@@ -316,7 +318,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -328,7 +330,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "MDL",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -348,7 +350,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "optional",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["other_credential"],
           },
@@ -370,8 +372,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
-        credential: pidSdJwt,
+        cryptoContext: pidCryptoContext,
+        credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -382,8 +384,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "MDL",
         vct: "MDL",
-        keyTag: mdlKeyTag,
-        credential: mdlSdJwt,
+        cryptoContext: mdlCryptoContext,
+        credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
@@ -400,7 +402,7 @@ describe("evaluateDcqlQuery", () => {
       credentials: [
         {
           id: "PID",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
@@ -412,7 +414,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "MDL",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["MDL"],
           },
@@ -424,7 +426,7 @@ describe("evaluateDcqlQuery", () => {
         },
         {
           id: "optional",
-          format: "vc+sd-jwt",
+          format: "dc+sd-jwt",
           meta: {
             vct_values: ["other_credential"],
           },
@@ -445,8 +447,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
-        credential: pidSdJwt,
+        cryptoContext: pidCryptoContext,
+        credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
@@ -457,8 +459,8 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "MDL",
         vct: "MDL",
-        keyTag: mdlKeyTag,
-        credential: mdlSdJwt,
+        cryptoContext: mdlCryptoContext,
+        credential: mdl.token,
         purposes: [
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
@@ -466,7 +468,53 @@ describe("evaluateDcqlQuery", () => {
         requiredDisclosures: [
           ["4d10ba615ed63a12", "document_number", "123456789"],
           ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
-          ["c4b40efadfcd3bdd", "driving_privileges", "B"],
+          [
+            "fJlSGpB8bZqgWJnGzaqvuA",
+            "driving_privileges",
+            [
+              {
+                issue_date: "2015-08-19",
+                vehicle_category_code: "AM",
+                expiry_date: "2032-09-02",
+              },
+              {
+                issue_date: "2015-07-11",
+                vehicle_category_code: "B",
+                expiry_date: "2033-04-17",
+                codes: [{ code: "01", sign: "02", value: "Guida con lenti" }],
+              },
+            ],
+          ],
+        ],
+      },
+    ];
+
+    expect(result).toEqual(expected);
+  });
+
+  it("should work with older vc+sd-jwt credentials", () => {
+    const query: DcqlQuery.Input = {
+      credentials: [
+        {
+          id: "PID",
+          format: "vc+sd-jwt",
+          meta: {
+            vct_values: ["PersonIdentificationData"],
+          },
+          claims: [{ path: ["tax_id_code"] }],
+        },
+      ],
+    };
+    const result = evaluateDcqlQuery([[pidCryptoContext, legacyPid]], query);
+    const expected = [
+      {
+        id: "PID",
+        vct: "PersonIdentificationData",
+        cryptoContext: pidCryptoContext,
+        credential: legacyPid,
+        purposes: [{ required: true }],
+        requiredDisclosures: [
+          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
         ],
       },
     ];

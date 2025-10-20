@@ -1,4 +1,5 @@
-import { IoWalletError, serializeAttrs } from "../utils/errors"; // Ensure this path is correct
+import { IoWalletError, serializeAttrs } from "../utils/errors";
+import type { CertificateValidationStatus } from "@pagopa/io-react-native-crypto"; // Ensure this path is correct
 
 /**
  * Base class for all federation-specific errors.
@@ -99,6 +100,36 @@ export class MissingFederationFetchEndpointError extends FederationError {
   constructor(
     message: string,
     details: { entityBaseUrl: string; missingInEntityUrl: string }
+  ) {
+    super(message, details);
+  }
+}
+
+/**
+ * Error thrown when the X.509 certificate chain is missing in an entity's configuration.
+ */
+export class MissingX509CertsError extends FederationError {
+  code = "ERR_FED_MISSING_X509_CERTS";
+  constructor(message: string) {
+    super(message, undefined);
+  }
+}
+
+/**
+ * Error thrown when an X.509 certificate validation fails.
+ * This is used to indicate issues with the certificate chain or signature verification.
+ */
+export class X509ValidationError extends FederationError {
+  code = "ERR_FED_X509_VALIDATION_FAILED";
+  constructor(
+    message: string,
+    details?: {
+      tokenIndex?: number;
+      kid?: string;
+      x509ValidationStatus?: CertificateValidationStatus;
+      x509ErrorMessage?: string;
+      [key: string]: unknown;
+    }
   ) {
     super(message, details);
   }

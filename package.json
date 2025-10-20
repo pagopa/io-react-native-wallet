@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-react-native-wallet",
-  "version": "0.30.0",
+  "version": "2.2.0",
   "description": "Provide data structures, helpers and API for IO Wallet",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -30,7 +30,7 @@
     "test": "jest",
     "tsc": "tsc --noEmit",
     "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx",
-    "prepack": "bob build",
+    "prepack": "yarn generate && bob build",
     "release": "release-it",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install",
@@ -53,31 +53,34 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@pagopa/io-react-native-crypto": "^0.2.3",
+    "@pagopa/io-react-native-crypto": "^1.2.3",
+    "@pagopa/io-react-native-iso18013": "^0.3.0",
     "@pagopa/io-react-native-jwt": "^2.1.0",
-    "@react-native/eslint-config": "^0.75.5",
+    "@react-native/babel-preset": "0.78.3",
+    "@react-native/eslint-config": "0.78.3",
     "@rushstack/eslint-patch": "^1.3.2",
-    "@types/jest": "^28.1.2",
-    "@types/react": "^18.2.6",
+    "@types/jest": "^29.5.13",
+    "@types/jsrsasign": "^10.5.15",
+    "@types/react": "^19.0.0",
     "@types/react-native": "0.70.0",
     "@types/url-parse": "^1.4.11",
+    "auto-changelog": "^2.5.0",
     "del-cli": "^5.0.0",
     "eslint": "^8.4.1",
     "eslint-plugin-prettier": "^5.2.3",
     "jest": "^28.1.1",
     "pod-install": "^0.1.0",
     "prettier": "^3.5.3",
-    "react": "18.3.1",
-    "react-native": "0.75.5",
+    "react": "19.0.0",
+    "react-native": "0.78.3",
     "react-native-builder-bob": "^0.20.0",
+    "release-it": "^15.0.0",
     "typed-openapi": "^0.4.1",
     "typescript": "5.0.4"
   },
-  "resolutions": {
-    "@types/react": "^18.2.6"
-  },
   "peerDependencies": {
     "@pagopa/io-react-native-crypto": "*",
+    "@pagopa/io-react-native-iso18013": "*",
     "@pagopa/io-react-native-jwt": "*",
     "react": "*",
     "react-native": "*"
@@ -86,6 +89,23 @@
     "node": ">= 16.0.0"
   },
   "packageManager": "yarn@1.22.19",
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release version ${version}",
+      "tagName": "v${version}",
+      "changelog": "yarn auto-changelog --stdout --commit-limit false -u --template https://raw.githubusercontent.com/release-it/release-it/master/templates/changelog-compact.hbs"
+    },
+    "hooks": {
+      "after:bump": "yarn auto-changelog -p && git add ."
+    },
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {}
+  },
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
@@ -93,7 +113,7 @@
       "<rootDir>/lib/"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?@react-native|react-native|uuid)"
+      "node_modules/(?!(jest-)?@react-native|react-native|uuid|@pagopa/io-react-native-iso18013)"
     ],
     "setupFiles": [
       "<rootDir>/jestSetup.js"
@@ -118,6 +138,7 @@
     "js-base64": "^3.7.7",
     "js-sha256": "^0.9.0",
     "jsonpath-plus": "^10.2.0",
+    "jsrsasign": "^11.1.0",
     "parse-url": "^9.2.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-uuid": "^2.0.1",

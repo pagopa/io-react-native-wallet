@@ -1,19 +1,22 @@
 import {
-  WalletInstanceAttestation,
   createCryptoContextFor,
+  WalletInstanceAttestation,
 } from "@pagopa/io-react-native-wallet";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
-import { getIntegrityContext } from "../utils/integrity";
+import {
+  ensureIntegrityServiceIsReady,
+  getIntegrityContext,
+} from "../utils/integrity";
 import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
+import { isAndroid } from "../utils/device";
 
 type GetAttestationThunkOutput = Awaited<
   ReturnType<typeof WalletInstanceAttestation.getAttestation>
 >;
-
 /**
  * Thunk to obtain a new Wallet Instance Attestation.
  */
@@ -35,7 +38,11 @@ export const getAttestationThunk = createAppAsyncThunk<
 
   // Get env URLs
   const env = selectEnv(getState());
-  const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
+  const { WALLET_PROVIDER_BASE_URL, GOOGLE_CLOUD_PROJECT_NUMBER } = getEnv(env);
+  const googleCloudProjectNumber = isAndroid
+    ? GOOGLE_CLOUD_PROJECT_NUMBER
+    : undefined;
+  await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
 
   /**
    * Obtains a new Wallet Instance Attestation.

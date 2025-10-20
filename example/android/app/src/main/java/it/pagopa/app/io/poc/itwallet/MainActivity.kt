@@ -1,6 +1,7 @@
 package it.pagopa.app.io.poc.itwallet;
 
 import android.os.Bundle;
+import androidx.appcompat.app.AppCompatDelegate
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -22,10 +23,11 @@ class MainActivity : ReactActivity() {
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
   /**
-   Required by react-native-screens  
+   Required by react-native-screens
    https://reactnavigation.org/docs/getting-started/#installing-dependencies-into-a-bare-react-native-project
    */
    override fun onCreate(savedInstanceState: Bundle?) {
+    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
     super.onCreate(null)
   }
 }
