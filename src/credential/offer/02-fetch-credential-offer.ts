@@ -26,7 +26,7 @@ export type GetCredentialOffer = (
  * @throws {IssuerResponseError} If the HTTP response status is not 200.
  * @throws {InvalidCredentialOfferError} If the response does not match the expected schema.
  */
-export const getCredentialOffer: GetCredentialOffer = async (
+export const fetchCredentialOffer: GetCredentialOffer = async (
   uri: string,
   context = {}
 ) => {

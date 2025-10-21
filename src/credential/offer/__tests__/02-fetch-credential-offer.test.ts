@@ -1,4 +1,4 @@
-import { getCredentialOffer } from "../02-get-credential-offer";
+import { fetchCredentialOffer } from "../02-fetch-credential-offer";
 import { InvalidCredentialOfferError } from "../errors";
 import type { CredentialOffer } from "../types";
 
@@ -40,7 +40,7 @@ const context = {
   appFetch: mockFetch,
 };
 
-describe("getCredentialOffer", () => {
+describe("fetchCredentialOffer", () => {
   beforeEach(() => {
     mockFetch.mockClear();
   });
@@ -51,7 +51,7 @@ describe("getCredentialOffer", () => {
       json: () => Promise.resolve(validCredentialOffer),
     });
 
-    const result = await getCredentialOffer(
+    const result = await fetchCredentialOffer(
       "https://issuer.example.com/offer",
       context
     );
@@ -69,7 +69,7 @@ describe("getCredentialOffer", () => {
       json: () => Promise.resolve(validPreAuthorizedCredentialOffer),
     });
 
-    const result = await getCredentialOffer(
+    const result = await fetchCredentialOffer(
       "https://issuer.example.com/offer",
       context
     );
@@ -83,7 +83,7 @@ describe("getCredentialOffer", () => {
       json: () => Promise.resolve(minimalCredentialOffer),
     });
 
-    const result = await getCredentialOffer(
+    const result = await fetchCredentialOffer(
       "https://issuer.example.com/offer",
       context
     );
@@ -98,7 +98,7 @@ describe("getCredentialOffer", () => {
     });
 
     await expect(
-      getCredentialOffer("https://issuer.example.com/offer", context)
+      fetchCredentialOffer("https://issuer.example.com/offer", context)
     ).rejects.toThrow("Invalid JSON");
   });
 
@@ -113,7 +113,7 @@ describe("getCredentialOffer", () => {
     });
 
     await expect(
-      getCredentialOffer("https://issuer.example.com/offer", context)
+      fetchCredentialOffer("https://issuer.example.com/offer", context)
     ).rejects.toThrow(InvalidCredentialOfferError);
   });
 
@@ -128,7 +128,7 @@ describe("getCredentialOffer", () => {
     });
 
     await expect(
-      getCredentialOffer("https://issuer.example.com/offer", context)
+      fetchCredentialOffer("https://issuer.example.com/offer", context)
     ).rejects.toThrow(InvalidCredentialOfferError);
   });
 
@@ -143,7 +143,7 @@ describe("getCredentialOffer", () => {
     });
 
     await expect(
-      getCredentialOffer("https://issuer.example.com/offer", context)
+      fetchCredentialOffer("https://issuer.example.com/offer", context)
     ).rejects.toThrow(InvalidCredentialOfferError);
   });
 });

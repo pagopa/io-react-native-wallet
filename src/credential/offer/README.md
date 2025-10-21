@@ -19,7 +19,7 @@ sequenceDiagram
   U->>W: Scan QR / Click Link
   W->>W: startFlowFromQR: Parse offer parameters
   alt Credential Offer by Reference
-    W->>CI: getCredentialOffer: Fetch offer from URI
+    W->>CI: fetchCredentialOffer: Fetch offer from URI
     CI->>W: Return Credential Offer JSON
   end
   W->>W: Validate Credential Offer schema
@@ -97,7 +97,7 @@ const qrCode =
 const { credential_offer_uri } = startFlowFromQR(qrCode);
 
 // Fetch the credential offer if by reference
-const offer = await getCredentialOffer(credential_offer_uri, { appFetch });
+const offer = await fetchCredentialOffer(credential_offer_uri, { appFetch });
 
 console.log(offer);
 // {

@@ -1,8 +1,8 @@
 import { startFlowFromQR, type StartFlow } from "./01-start-flow";
 import {
-  getCredentialOffer,
+  fetchCredentialOffer,
   type GetCredentialOffer,
-} from "./02-get-credential-offer";
+} from "./02-fetch-credential-offer";
 import * as Errors from "./errors";
 export type {
   CredentialOffer,
@@ -12,5 +12,5 @@ export type {
   TransactionCode,
 } from "./types";
 
-export { Errors, getCredentialOffer, startFlowFromQR };
+export { Errors, fetchCredentialOffer, startFlowFromQR };
 export type { GetCredentialOffer, StartFlow };
