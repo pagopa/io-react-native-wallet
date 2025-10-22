@@ -4,7 +4,7 @@ import { stringToJSONSchema } from "../../utils/zod";
 import { InvalidQRCodeError } from "./errors";
 import { CredentialOfferSchema } from "./types";
 
-const CREDENTIAL_OFFER_SCHEMA = "openid-credential-offer://";
+const CREDENTIAL_OFFER_SCHEMES = ["openid-credential-offer://", "haip://"];
 const CREDENTIAL_OFFER_PARAM = "credential_offer";
 const CREDENTIAL_OFFER_URI_PARAM = "credential_offer_uri";
 
@@ -38,10 +38,12 @@ export type StartFlow = (encodedUrl: string) => CredentialOfferParams;
  * @throws If the provided encoded url is not valid
  */
 export const startFlowFromQR: StartFlow = (encodedUrl) => {
-  if (!encodedUrl.startsWith(CREDENTIAL_OFFER_SCHEMA)) {
-    throw new InvalidQRCodeError(
-      "Input must be an openid-credential-offer:// deeplink"
-    );
+  const hasValidScheme = CREDENTIAL_OFFER_SCHEMES.some((prefix) =>
+    encodedUrl.startsWith(prefix)
+  );
+
+  if (!hasValidScheme) {
+    throw new InvalidQRCodeError("Url must have one of the supported schemes");
   }
 
   const url = new URL(encodedUrl);
