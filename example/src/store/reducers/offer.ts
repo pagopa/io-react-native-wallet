@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { geCredentialOfferThunk } from "../../thunks/offer";
+import { getCredentialOfferThunk } from "../../thunks/offer";
 import { sessionReset } from "./sesssion";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
@@ -27,7 +27,7 @@ const credentialOfferSlice = createSlice({
   },
   extraReducers: (builder) => {
     // Dispatched when is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
-    builder.addCase(geCredentialOfferThunk.fulfilled, (state, action) => {
+    builder.addCase(getCredentialOfferThunk.fulfilled, (state, action) => {
       state.asyncStatus.isDone = true;
       state.offer = action.payload;
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
@@ -35,14 +35,14 @@ const credentialOfferSlice = createSlice({
     });
 
     // Dispatched when is pending. Sets the state to isLoading and resets isDone and hasError.
-    builder.addCase(geCredentialOfferThunk.pending, (state) => {
+    builder.addCase(getCredentialOfferThunk.pending, (state) => {
       state.asyncStatus.isLoading = true;
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
 
     // Dispatched when is rejected. Sets the state to hasError and resets isLoading and isDone.
-    builder.addCase(geCredentialOfferThunk.rejected, (state, action) => {
+    builder.addCase(getCredentialOfferThunk.rejected, (state, action) => {
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = { status: true, error: action.error };

@@ -8,7 +8,7 @@ export type GetCredentialOfferThunkInput = {
 
 export type GetCredentialOfferThunkOutput = Credential.Offer.CredentialOffer;
 
-export const geCredentialOfferThunk = createAppAsyncThunk<
+export const getCredentialOfferThunk = createAppAsyncThunk<
   GetCredentialOfferThunkOutput,
   GetCredentialOfferThunkInput
 >("credential/offerGet", async (args) => {

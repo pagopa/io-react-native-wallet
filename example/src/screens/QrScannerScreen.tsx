@@ -13,7 +13,7 @@ import { styles } from "../App";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { useAppDispatch } from "../store/utils";
-import { geCredentialOfferThunk } from "../thunks/offer";
+import { getCredentialOfferThunk } from "../thunks/offer";
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
 
 export type QrScannerScreenParams =
@@ -76,7 +76,7 @@ export const QrScannerScreen = ({ route }: Props) => {
           break;
         case "offer":
           dispatch(
-            geCredentialOfferThunk({
+            getCredentialOfferThunk({
               qrcode: codes[0]?.value || "",
             })
           );
