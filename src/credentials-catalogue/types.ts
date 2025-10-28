@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { UnixTime } from "../sd-jwt/types";
 
 const CredentialPurpose = z.object({
   id: z.string(),
@@ -87,6 +88,8 @@ export const DigitalCredentialsCatalogue = z.object({
     catalog_version: z.string(),
     taxonomy_uri: z.string().url(),
     credentials: z.array(DigitalCredential),
+    iat: UnixTime,
+    exp: UnixTime,
   }),
 });
 export type DigitalCredentialsCatalogue = z.infer<
