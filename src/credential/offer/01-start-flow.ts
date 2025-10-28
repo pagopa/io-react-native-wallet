@@ -21,7 +21,7 @@ const CredentialOfferParams = z.union([
 type CredentialOfferParams = z.infer<typeof CredentialOfferParams>;
 
 /**
- * The beginning of the credential offert flow.
+ * The beginning of the credential offer flow.
  * To be implemented according to the user touchpoint
  *
  * @param params Credential offer encoded url
