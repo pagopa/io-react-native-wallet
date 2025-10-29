@@ -117,17 +117,9 @@ configurations.all {
     }
 }
 
-
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
-    // Required by react-native-cie
-    implementation project(':react-native-cie')
-    implementation ("com.squareup.okhttp3:okhttp:4.9.2")
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.2'
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.3.41"
-    implementation 'com.google.guava:guava:31.1-jre'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
