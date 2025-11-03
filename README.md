@@ -184,12 +184,12 @@ graph TD;
     iorni[io-react-native-integrity]
     iornss[io-react-native-secure-storage]
     iornjwt[io-react-native-jwt]
-    rncie[react-native-cie]
+    iorncie[io-react-native-cie]
     rnw(react-native-webview)
 
     ioa --> iornw
     iornw --> iornjwt
-    iornw --> rncie
+    iornw --> iorncie
     iornw --> rnw
 
     subgraph IoApp Deps
@@ -202,7 +202,7 @@ graph TD;
 
     subgraph IoRnWallet Deps
       iornjwt
-      rncie
+      iorncie
       rnw
     end
 
