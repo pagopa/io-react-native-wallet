@@ -118,6 +118,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
       [credentialId],
+      { proofType: "none" },
       {
         walletInstanceAttestation,
         redirectUri: redirectUri,
@@ -208,12 +209,15 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   );
 
   const [pidCredentialDefinition] = credentialDefinition;
+  // Get the credential configuration ID for PID
+  const pidCredentialConfigId =
+    pidCredentialDefinition?.type === "openid_credential" &&
+    pidCredentialDefinition?.credential_configuration_id;
 
   const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details.find(
       (authDetails) =>
-        authDetails.credential_configuration_id ===
-        pidCredentialDefinition?.credential_configuration_id
+        authDetails.credential_configuration_id === pidCredentialConfigId
     ) ?? {};
 
   // Get the first credential_identifier from the access token's authorization details

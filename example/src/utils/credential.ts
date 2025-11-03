@@ -68,6 +68,7 @@ export const getPidCieID = async ({
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
       [credentialId],
+      { proofType: "none" },
       {
         walletInstanceAttestation,
         redirectUri,
@@ -120,7 +121,9 @@ export const getPidCieID = async ({
     accessToken.authorization_details.find(
       (authDetails) =>
         authDetails.credential_configuration_id ===
-        pidCredentialDefinition?.credential_configuration_id
+        (pidCredentialDefinition?.type === "openid_credential"
+          ? pidCredentialDefinition.credential_configuration_id
+          : undefined)
     ) ?? {};
 
   // Get the first credential_identifier from the access token's authorization details
@@ -203,17 +206,23 @@ export const getCredential = async ({
   const { issuerUrl, credentialId: credId } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } =
-    await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
+  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
+    issuerUrl
+  );
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier } =
-    await Credential.Issuance.startUserAuthorization(issuerConf, [credId], {
-      walletInstanceAttestation,
-      redirectUri,
-      wiaCryptoContext,
-      appFetch,
-    });
+    await Credential.Issuance.startUserAuthorization(
+      issuerConf,
+      [credId],
+      { proofType: "none" },
+      {
+        walletInstanceAttestation,
+        redirectUri,
+        wiaCryptoContext,
+        appFetch,
+      }
+    );
 
   const requestObject =
     await Credential.Issuance.getRequestedCredentialToBePresented(
