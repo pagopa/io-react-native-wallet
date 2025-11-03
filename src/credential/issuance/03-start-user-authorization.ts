@@ -9,6 +9,7 @@ import { LogLevel, Logger } from "../../utils/logging";
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialIds: string[],
+  proof: { proofType: "none" } | { proofType: "document"; idpHinting: string },
   context: {
     wiaCryptoContext: CryptoContext;
     walletInstanceAttestation: string;
@@ -114,21 +115,26 @@ const selectResponseMode = (
  * it is possible to use the same access token for the issuance of all requested credentials.
  * This is an HTTP POST request containing the Wallet Instance identifier (client id), the code challenge and challenge method as specified by PKCE according to RFC 9126
  * along with the WTE and its proof of possession (WTE-PoP).
- * Additionally, it includes a request object, which is a signed JWT encapsulating the type of digital credential requested (authorization_details),
- * the application session identifier on the Wallet Instance side (state),
+ * Additionally, it includes a request object, which is a signed JWT encapsulating the type of digital credential requested (authorization_details), challenge method and
+ * redirect URI for the document proof step (if L2 flow), the application session identifier on the Wallet Instance side (state),
  * the method (query or form_post.jwt) by which the Authorization Server
  * should transmit the Authorization Response containing the authorization code issued upon the end user's authentication (response_mode)
  * to the Wallet Instance's Token Endpoint to obtain the Access Token, and the redirectUri of the Wallet Instance where the Authorization Response
  * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
  * @param issuerConf The issuer configuration
  * @param credentialIds The credential configuration IDs to be requested
- * @param ctx The context object containing the Wallet Instance's cryptographic context, the Wallet Instance's attestation, the redirect URI and the fetch implementation
+ * @param proof The proof type to be used in the request: "none" for standard flows, "document" for L2+ with MRTD verification.
+ * @param ctx The context object containing;
+ *  - wiaCryptoContext: the Wallet Instance's cryptographic context
+ *  - walletInstanceAttestation: the Wallet Instance's attestation
+ *  - redirectUri: the redirect URI
+ *  - appFetch: (optional) the fetch implementation
  * @returns The URI to which the end user should be redirected to start the authentication flow, along with the client id, the code verifier and the credential definition(s)
  */
-
 export const startUserAuthorization: StartUserAuthorization = async (
   issuerConf,
   credentialIds,
+  proof,
   ctx
 ) => {
   const {
@@ -151,11 +157,22 @@ export const startUserAuthorization: StartUserAuthorization = async (
   const parEndpoint =
     issuerConf.oauth_authorization_server.pushed_authorization_request_endpoint;
   const aud = issuerConf.openid_credential_issuer.credential_issuer;
-  const credentialDefinition = credentialIds.map((c) =>
-    selectCredentialDefinition(issuerConf, c)
-  );
   const responseMode = selectResponseMode(issuerConf, credentialIds);
   const getPar = makeParRequest({ wiaCryptoContext, appFetch });
+
+  const credentialDefinition = [
+    ...credentialIds.map((c) => selectCredentialDefinition(issuerConf, c)),
+  ];
+
+  if (proof.proofType === "document") {
+    credentialDefinition.push({
+      type: "it_l2+document_proof",
+      idphinting: proof.idpHinting,
+      challenge_method: "mrtd+ias",
+      challenge_redirect_uri: redirectUri,
+    });
+  }
+
   const issuerRequestUri = await getPar(
     parEndpoint,
     walletInstanceAttestation,

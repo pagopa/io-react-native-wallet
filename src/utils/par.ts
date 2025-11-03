@@ -12,10 +12,18 @@ import { IssuerResponseError } from "./errors";
 import { LogLevel, Logger } from "./logging";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
-export const AuthorizationDetail = z.object({
-  type: z.literal("openid_credential"),
-  credential_configuration_id: z.string(),
-});
+export const AuthorizationDetail = z.union([
+  z.object({
+    type: z.literal("openid_credential"),
+    credential_configuration_id: z.string(),
+  }),
+  z.object({
+    type: z.literal("it_l2+document_proof"),
+    idphinting: z.string(),
+    challenge_method: z.literal("mrtd+ias"),
+    challenge_redirect_uri: z.string(),
+  }),
+]);
 
 export type AuthorizationDetails = z.infer<typeof AuthorizationDetails>;
 export const AuthorizationDetails = z.array(AuthorizationDetail);
