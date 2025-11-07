@@ -123,7 +123,7 @@ const selectResponseMode = (
  * should be delivered. The redirect is achived by using a custom URL scheme that the Wallet Instance is registered to handle.
  * @param issuerConf The issuer configuration
  * @param credentialIds The credential configuration IDs to be requested
- * @param proof The proof type to be used in the request: "none" for standard flows, "document" for L2+ with MRTD verification.
+ * @param proof The configuration for the proof to be used in the request: "none" for standard flows, "document" for L2+ with MRTD verification.
  * @param ctx The context object containing;
  *  - wiaCryptoContext: the Wallet Instance's cryptographic context
  *  - walletInstanceAttestation: the Wallet Instance's attestation
@@ -165,6 +165,12 @@ export const startUserAuthorization: StartUserAuthorization = async (
   ];
 
   if (proof.proofType === "document") {
+    /**
+     * When we requests a PID using eID Substantial Authentication with MRTD Verification, we must include
+     * an additional Authorization Details Object in the authorization_details
+     *
+     * See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-issuance-endpoint.html#pushed-authorization-request-endpoint
+     */
     credentialDefinition.push({
       type: "it_l2+document_proof",
       idphinting: proof.idpHinting,

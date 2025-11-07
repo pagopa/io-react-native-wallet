@@ -25,7 +25,7 @@ import type { ObtainCredential } from "../../../src/credential/issuance";
  * @param idpHint - The hint for the Identity Provider to use
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
- * @param credentialType - The type of the credential to obtain, which must be `PersonIdentificationData`
+ * @param withMRTDPoP - Whether proof of MRTD ownership is required
  * @returns The obtained credential result
  */
 export const getPidCieID = async ({
@@ -34,12 +34,14 @@ export const getPidCieID = async ({
   idpHint,
   walletInstanceAttestation,
   wiaCryptoContext,
+  withMRTDPoP,
 }: {
   pidIssuerUrl: string;
   redirectUri: string;
   idpHint: string;
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
+  withMRTDPoP?: boolean;
 }): Promise<PidResult> => {
   /*
    * Create credential crypto context for the PID
@@ -68,7 +70,9 @@ export const getPidCieID = async ({
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
       [credentialId],
-      { proofType: "none" },
+      withMRTDPoP
+        ? { proofType: "document", idpHinting: idpHint }
+        : { proofType: "none" },
       {
         walletInstanceAttestation,
         redirectUri,

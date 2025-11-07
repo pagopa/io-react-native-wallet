@@ -10,31 +10,31 @@ import { useSelector } from "react-redux";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
 import IdpLoginScreen from "../screens/login/IdpLoginScreen";
-import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScreen";
-import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
-import { PidScreen } from "../screens/PidScreen";
-import SettingsScreen from "../screens/SettingsScreen";
-import { StatusAssertionScreen } from "../screens/StatusAssertionScreen";
-import {
-  TrustmarkQrCodeScreen,
-  TrustmarkScreen,
-} from "../screens/TrustmarkScreen";
-import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
-import { setDebugVisibility } from "../store/reducers/debug";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
-import type { SupportedCredentialsWithoutPid } from "../store/types";
-import { useAppDispatch, useAppSelector } from "../store/utils";
-import { labelByCredentialType } from "../utils/ui";
 import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
-import { selectLoggingAddress } from "../store/reducers/environment";
-import { initLogging } from "../utils/logging";
+import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
+import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScreen";
+import { PidScreen } from "../screens/PidScreen";
 import { PresentationScreen } from "../screens/PresentationScreen";
 import { ProximityScreen } from "../screens/ProximityScreen";
 import {
   QrScannerScreen,
   type QrScannerScreenParams,
 } from "../screens/QrScannerScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import { StatusAssertionScreen } from "../screens/StatusAssertionScreen";
+import {
+  TrustmarkQrCodeScreen,
+  TrustmarkScreen,
+} from "../screens/TrustmarkScreen";
 import { TrustScreen } from "../screens/TrustScreen";
+import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
+import { setDebugVisibility } from "../store/reducers/debug";
+import { selectLoggingAddress } from "../store/reducers/environment";
+import { selectIoAuthToken } from "../store/reducers/sesssion";
+import type { SupportedCredentialsWithoutPid } from "../store/types";
+import { useAppDispatch, useAppSelector } from "../store/utils";
+import { initLogging } from "../utils/logging";
+import { labelByCredentialType } from "../utils/ui";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -50,7 +50,7 @@ export type MainStackNavParamList = {
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
-  PidSpidIdpSelection: undefined;
+  PidSpidIdpSelection: { withMRTDPoP?: boolean };
   Settings: undefined;
   PidSpidLogin: {
     authUrl: string;

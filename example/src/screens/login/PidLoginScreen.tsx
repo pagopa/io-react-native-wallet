@@ -1,10 +1,10 @@
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useAppDispatch } from "../../store/utils";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+import { useAppDispatch } from "../../store/utils";
 import { continuePidFlowThunk } from "../../thunks/pid";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidLogin">;

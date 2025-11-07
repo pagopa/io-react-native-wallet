@@ -38,6 +38,8 @@ const initialState: PidState = {
     spid: asyncStatusInitial,
     cieL2: asyncStatusInitial,
     cieL3: asyncStatusInitial,
+    spidL2Plus: asyncStatusInitial,
+    cieL2Plus: asyncStatusInitial,
   },
   pidFlowParams: undefined,
 };

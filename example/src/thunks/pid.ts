@@ -11,7 +11,7 @@ import {
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
-import type { PidAuthMethods, PidResult } from "../store/types";
+import type { PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -27,8 +27,8 @@ export const CIE_L3_REDIRECT_URI = "https://cie.callback";
  */
 type PreparePidFlowParamsThunkInput = {
   idpHint: string;
-  authMethod: PidAuthMethods;
   ciePin?: string;
+  withMRTDPoP?: boolean;
 };
 
 /**
@@ -68,6 +68,7 @@ export type PreparePidFlowParamsThunkOutput = {
  * @param args.idpHint The identity provider hint to use in the issuance flow.
  * @param args.authMethod The authentication method to use, either SPID or CIE L3.
  * @param args.ciePin The CIE PIN to use in the issuance flow (optional, only for CIE L3).
+ * @param args.withMRTDPoP Whether MRTD PoP is required (optional, only for L2+).
  * @returns The needed parameters to continue the issuance flow.
  */
 export const preparePidFlowParamsThunk = createAppAsyncThunk<
@@ -87,8 +88,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-  const { idpHint, ciePin } = args;
-
+  const { idpHint, ciePin, withMRTDPoP } = args;
   const isCie = args.idpHint.includes("servizicie") ? true : false;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
@@ -118,7 +118,9 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
       [credentialId],
-      { proofType: "none" },
+      withMRTDPoP
+        ? { proofType: "document", idpHinting: idpHint }
+        : { proofType: "none" },
       {
         walletInstanceAttestation,
         redirectUri: redirectUri,
