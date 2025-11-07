@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 import type { PidAuthMethods } from "../store/types";
 import { useAppDispatch } from "../store/utils";
 import { openUrlAndListenForAuthRedirect } from "../utils/openUrlAndListenForRedirect";
-import { pidCiel3FlowReset } from "../store/reducers/pid";
 import { continuePidFlowThunk, preparePidFlowParamsThunk } from "../thunks/pid";
 
-type UseCieID = (
+type UseCieId = (
   /**
    * IDP hint for the authentication flow.
    * This is used to prepare the PID flow parameters.
@@ -18,15 +17,8 @@ type UseCieID = (
   startCieIDIdentification: (authMetod: PidAuthMethods) => void;
 };
 
-export const useCieID: UseCieID = (idpHint) => {
+export const useCieId: UseCieId = (idpHint) => {
   const dispatch = useAppDispatch();
-  const signal = useRef<AbortSignal>(new AbortSignal());
-
-  useEffect(() => {
-    if (!signal.current.aborted) {
-      dispatch(pidCiel3FlowReset());
-    }
-  }, [dispatch, signal]);
 
   const startCieIDIdentification = useCallback(
     async (authMethod: PidAuthMethods) => {
@@ -39,8 +31,7 @@ export const useCieID: UseCieID = (idpHint) => {
 
       const { authRedirectUrl } = await openUrlAndListenForAuthRedirect(
         redirectUri,
-        authUrl,
-        signal.current
+        authUrl
       );
 
       dispatch(
@@ -49,7 +40,7 @@ export const useCieID: UseCieID = (idpHint) => {
         })
       );
     },
-    [dispatch, idpHint, signal]
+    [dispatch, idpHint]
   );
 
   return {

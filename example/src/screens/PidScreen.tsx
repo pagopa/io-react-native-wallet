@@ -6,7 +6,7 @@ import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import { useCie } from "../hooks/useCie";
-import { useCieID } from "../hooks/useCieId";
+import { useCieId } from "../hooks/useCieId";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectEnv } from "../store/reducers/environment";
@@ -32,7 +32,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const env = useAppSelector(selectEnv);
   const cieIdpHint = getCieIdpHint(env);
   const cie = useCie(cieIdpHint);
-  const cieID = useCieID(cieIdpHint);
+  const cieId = useCieId(cieIdpHint);
 
   const isEnvPre = env === "pre";
 
@@ -59,7 +59,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: "Get PID (CieID)",
-        onPress: () => cieID.startCieIDIdentification("cieL2"),
+        onPress: () => cieId.startCieIDIdentification("cieL2"),
         isLoading: pidCieL2State.isLoading,
         hasError: pidCieL2State.hasError,
         isDone: pidCieL2State.isDone,
@@ -91,7 +91,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: "Get PID (CieID + CIE)",
-        onPress: () => cieID.startCieIDIdentification("cieL2Plus"),
+        onPress: () => cieId.startCieIDIdentification("cieL2Plus"),
         isLoading: pidCieL2PlusState.isLoading,
         hasError: pidCieL2PlusState.hasError,
         isDone: pidCieL2PlusState.isDone,
@@ -120,7 +120,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       cieIdpHint,
       navigation,
       cie,
-      cieID,
+      cieId,
     ]
   );
 
