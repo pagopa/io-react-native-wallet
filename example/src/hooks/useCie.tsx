@@ -9,19 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  pidCiel3FlowReset,
-  selectPidFlowParams,
-} from "../../store/reducers/pid";
-import { useAppDispatch, useAppSelector } from "../../store/utils";
-import {
-  continuePidFlowThunk,
-  preparePidFlowParamsThunk,
-} from "../../thunks/pid";
-import { CieAuthenticationWebview } from "./CieAuthenticationWebView";
-import { CieAuthorizationWebview } from "./CieAuthorizationWebView";
-import { CiePinDialog } from "./CiePinDialog";
-import type { CieWebViewError } from "./CieWebView";
+import { CieAuthenticationWebview } from "../components/cie/CieAuthenticationWebView";
+import { CieAuthorizationWebview } from "../components/cie/CieAuthorizationWebView";
+import { CiePinDialog } from "../components/cie/CiePinDialog";
+import type { CieWebViewError } from "../components/cie/CieWebView";
+import { pidCiel3FlowReset, selectPidFlowParams } from "../store/reducers/pid";
+import { useAppDispatch, useAppSelector } from "../store/utils";
+import { continuePidFlowThunk, preparePidFlowParamsThunk } from "../thunks/pid";
 
 type UseCie = (
   /**

@@ -2,10 +2,10 @@ import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useMemo } from "react";
 import { FlatList } from "react-native";
-import { useCie } from "../components/cie";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
+import { useCie } from "../hooks/useCie";
 import { useCieID } from "../hooks/useCieId";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
