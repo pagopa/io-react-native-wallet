@@ -6,12 +6,12 @@ import { useCie } from "../components/cie";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
+import { useCieID } from "../hooks/useCieId";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
-import { useAppDispatch, useAppSelector } from "../store/utils";
-import { getPidCieIDThunk } from "../thunks/pidCieID";
+import { useAppSelector } from "../store/utils";
 import { getCieIdpHint } from "../utils/environment";
 
 type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
@@ -23,8 +23,6 @@ type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
  * @returns
  */
 export const PidScreen = ({ navigation }: ScreenProps) => {
-  const dispatch = useAppDispatch();
-
   const pidSpidState = useAppSelector(selectPidAsyncStatus("spid"));
   const pidCieL2State = useAppSelector(selectPidAsyncStatus("cieL2"));
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
@@ -34,6 +32,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const env = useAppSelector(selectEnv);
   const cieIdpHint = getCieIdpHint(env);
   const cie = useCie(cieIdpHint);
+  const cieID = useCieID(cieIdpHint);
 
   const isEnvPre = env === "pre";
 
@@ -60,13 +59,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: "Get PID (CieID)",
-        onPress: () =>
-          dispatch(
-            getPidCieIDThunk({
-              authMethod: "cieL2",
-              idpHint: cieIdpHint,
-            })
-          ),
+        onPress: () => cieID.startCieIDIdentification("cieL2"),
         isLoading: pidCieL2State.isLoading,
         hasError: pidCieL2State.hasError,
         isDone: pidCieL2State.isDone,
@@ -98,13 +91,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: "Get PID (CieID + CIE)",
-        onPress: () =>
-          dispatch(
-            getPidCieIDThunk({
-              authMethod: "cieL2Plus",
-              idpHint: cieIdpHint,
-            })
-          ),
+        onPress: () => cieID.startCieIDIdentification("cieL2Plus"),
         isLoading: pidCieL2PlusState.isLoading,
         hasError: pidCieL2PlusState.hasError,
         isDone: pidCieL2PlusState.isDone,
@@ -113,7 +100,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
     ],
     [
-      dispatch,
       pidSpidState.isLoading,
       pidSpidState.hasError,
       pidSpidState.isDone,
@@ -134,6 +120,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       cieIdpHint,
       navigation,
       cie,
+      cieID,
     ]
   );
 
