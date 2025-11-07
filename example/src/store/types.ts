@@ -91,6 +91,14 @@ export type PidAuthMethods =
   | "cieL2Plus";
 
 /**
+ * Authentication methods that require MRTD PoP.
+ */
+export const AUTH_METHODS_WITH_MRTD_POP: PidAuthMethods[] = [
+  "spidL2Plus",
+  "cieL2Plus",
+];
+
+/**
  * Possible environments in the store.
  */
 export type EnvType = "pre" | "prod";

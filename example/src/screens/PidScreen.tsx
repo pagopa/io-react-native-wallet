@@ -24,6 +24,7 @@ type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
  */
 export const PidScreen = ({ navigation }: ScreenProps) => {
   const dispatch = useAppDispatch();
+
   const pidSpidState = useAppSelector(selectPidAsyncStatus("spid"));
   const pidCieL2State = useAppSelector(selectPidAsyncStatus("cieL2"));
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
@@ -33,6 +34,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const env = useAppSelector(selectEnv);
   const cieIdpHint = getCieIdpHint(env);
   const cie = useCie(cieIdpHint);
+
   const isEnvPre = env === "pre";
 
   useDebugInfo({
@@ -47,7 +49,8 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
-        onPress: () => navigation.navigate("PidSpidIdpSelection", {}),
+        onPress: () =>
+          navigation.navigate("PidSpidIdpSelection", { authMethod: "spid" }),
         title: "Get PID (SPID)",
         isLoading: pidSpidState.isLoading,
         hasError: pidSpidState.hasError,
@@ -60,6 +63,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         onPress: () =>
           dispatch(
             getPidCieIDThunk({
+              authMethod: "cieL2",
               idpHint: cieIdpHint,
             })
           ),
@@ -83,7 +87,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       {
         onPress: () =>
           navigation.navigate("PidSpidIdpSelection", {
-            withMRTDPoP: true,
+            authMethod: "spidL2Plus",
           }),
         title: "Get PID (SPID + CIE)",
         isLoading: pidSpidL2PlusState.isLoading,
@@ -97,8 +101,8 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         onPress: () =>
           dispatch(
             getPidCieIDThunk({
+              authMethod: "cieL2Plus",
               idpHint: cieIdpHint,
-              withMRTDPoP: true,
             })
           ),
         isLoading: pidCieL2PlusState.isLoading,
@@ -109,6 +113,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
     ],
     [
+      dispatch,
       pidSpidState.isLoading,
       pidSpidState.hasError,
       pidSpidState.isDone,
@@ -128,7 +133,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       isEnvPre,
       cieIdpHint,
       navigation,
-      dispatch,
       cie,
     ]
   );

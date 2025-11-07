@@ -11,7 +11,11 @@ import {
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
-import type { PidResult } from "../store/types";
+import {
+  AUTH_METHODS_WITH_MRTD_POP,
+  type PidAuthMethods,
+  type PidResult,
+} from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -27,8 +31,8 @@ export const CIE_L3_REDIRECT_URI = "https://cie.callback";
  */
 type PreparePidFlowParamsThunkInput = {
   idpHint: string;
+  authMethod: PidAuthMethods;
   ciePin?: string;
-  withMRTDPoP?: boolean;
 };
 
 /**
@@ -88,7 +92,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-  const { idpHint, ciePin, withMRTDPoP } = args;
+  const { idpHint, authMethod, ciePin } = args;
   const isCie = args.idpHint.includes("servizicie") ? true : false;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
@@ -112,6 +116,9 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     issuerUrl,
     { appFetch }
   );
+
+  // Determine if MRTD PoP is needed
+  const withMRTDPoP = AUTH_METHODS_WITH_MRTD_POP.includes(authMethod);
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =

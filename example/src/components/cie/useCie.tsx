@@ -111,6 +111,7 @@ export const useCie: UseCie = (idpHint) => {
       setPinInputVisible(false);
       dispatch(
         preparePidFlowParamsThunk({
+          authMethod: "cieL3",
           idpHint,
           ciePin: pin,
         })
