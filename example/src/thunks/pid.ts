@@ -269,3 +269,23 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     format,
   };
 });
+
+export const initMrtdPoPThunk = createAppAsyncThunk<
+  {},
+  ContinuePidFlowThunkInput
+>("pid/initMrtdPoP", async (args, { getState }) => {
+  const { authRedirectUrl } = args;
+
+  const flowParams = selectPidFlowParams(getState());
+
+  if (!flowParams) {
+    throw new Error("Flow params not found");
+  }
+
+  const { challenge_info } =
+    await Credential.Issuance.parseMrtdPoPChallengeInfoFromAuthRedirect(
+      authRedirectUrl
+    );
+
+  return {};
+});

@@ -1,7 +1,9 @@
 import {
   AuthorizationErrorShape,
   AuthorizationResultShape,
+  MrtdPoPChallengeInfoResultShape,
   type AuthorizationResult,
+  type MrtdPoPChallengeInfoResult,
 } from "../../utils/auth";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
@@ -97,7 +99,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is a PersonIdentificationData, completing the user authorization with query mode`
+      `The requested credential is a PersonIdentificationData, completing the user authorization with query mode`
     );
     const query = parseUrl(authRedirectUrl).query;
 
@@ -328,3 +330,42 @@ const createAuthzResponsePayload = async ({
     .setExpirationTime("1h")
     .sign();
 };
+
+/**
+ * MRTD PoP
+ */
+
+export type ParseMrtdPoPChallengeInfoFromAuthRedirect = (
+  authRedirectUrl: string
+) => Promise<MrtdPoPChallengeInfoResult>;
+
+export const parseMrtdPoPChallengeInfoFromAuthRedirect: ParseMrtdPoPChallengeInfoFromAuthRedirect =
+  async (authRedirectUrl) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
+    );
+    const query = parseUrl(authRedirectUrl).query;
+
+    const challengeInfoResParsed =
+      MrtdPoPChallengeInfoResultShape.safeParse(query);
+    if (!challengeInfoResParsed.success) {
+      const authErr = AuthorizationErrorShape.safeParse(query);
+      if (!authErr.success) {
+        Logger.log(
+          LogLevel.ERROR,
+          `Error while parsing the authorization response: ${challengeInfoResParsed.error.message}`
+        );
+        throw new AuthorizationError(challengeInfoResParsed.error.message); // an error occured while parsing the result and the error
+      }
+      Logger.log(
+        LogLevel.ERROR,
+        `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+      );
+      throw new AuthorizationIdpError(
+        authErr.data.error,
+        authErr.data.error_description
+      );
+    }
+    return challengeInfoResParsed.data;
+  };

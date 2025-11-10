@@ -17,6 +17,8 @@ import {
   type GetRequestedCredentialToBePresented,
   type BuildAuthorizationUrl,
   getRequestedCredentialToBePresented,
+  parseMrtdPoPChallengeInfoFromAuthRedirect,
+  type ParseMrtdPoPChallengeInfoFromAuthRedirect,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
 import {
@@ -40,6 +42,7 @@ export {
   obtainCredential,
   verifyAndParseCredential,
   parseAuthorizationResponse,
+  parseMrtdPoPChallengeInfoFromAuthRedirect,
   Errors,
 };
 export type {
@@ -53,4 +56,5 @@ export type {
   AuthorizeAccess,
   ObtainCredential,
   VerifyAndParseCredential,
+  ParseMrtdPoPChallengeInfoFromAuthRedirect,
 };

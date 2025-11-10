@@ -35,3 +35,15 @@ export const AuthorizationErrorShape = z.object({
  * Type of the identification result.
  */
 export type AuthorizationResult = z.infer<typeof AuthorizationResultShape>;
+
+/**
+ * MRTD PoP Challenge Info response structure
+ */
+
+export const MrtdPoPChallengeInfoResultShape = z.object({
+  challenge_info: z.string(),
+});
+
+export type MrtdPoPChallengeInfoResult = z.infer<
+  typeof MrtdPoPChallengeInfoResultShape
+>;
