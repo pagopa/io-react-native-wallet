@@ -1,3 +1,4 @@
+export const useCieProof = () => {};
 import { H2, H3 } from "@pagopa/io-app-design-system";
 import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
 import React, { useCallback, useEffect, useState } from "react";
@@ -9,47 +10,34 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { CieAuthenticationWebview } from "../components/cie/CieAuthenticationWebView";
 import { CieAuthorizationWebview } from "../components/cie/CieAuthorizationWebView";
 import { CiePinDialog } from "../components/cie/CiePinDialog";
 import type { CieWebViewError } from "../components/cie/CieWebView";
-import { pidFlowReset, selectPidFlowParams } from "../store/reducers/pid";
+import { mrtdReset, selectMrtdChallengeData } from "../store/reducers/mrtd";
+import { pidFlowReset } from "../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import { continuePidFlowThunk, preparePidFlowParamsThunk } from "../thunks/pid";
+import { getProgressEmojis } from "./useCie";
 
-type UseCie = (
-  /**
-   * IDP hint for the authentication flow.
-   * This is used to prepare the PID flow parameters.
-   */
-  idpHint: string
-) => {
+type UseCieChallengeSign = () => {
   /**
    * Components required to render the CIE flow instructions and webview.
-   * This includes the PIN input dialog, the CIE authentication webview,
-   * and the modal for displaying progress and errors.
+   * This includes the CAN input dialog and the modal for displaying progress and errors.
    */
   components: JSX.Element;
-  /**
-   * Function to start the CIE identification process.
-   * It resets the state and shows the PIN input dialog.
-   */
-  startCieIdentification: () => void;
 };
 
 /**
  * Custom hook to manage the CIE authentication flow.
- * It handles NFC reading, PIN input, and webview interactions.
- * @param idpHint The IDP hint for the authentication flow.
+ * It handles NFC reading and CAN input.
  * @returns An object containing components for rendering the CIE flow
- * and a function to start the CIE identification process.
+ * and a function to start the CIE MRTD process.
  */
-export const useCie: UseCie = (idpHint) => {
+export const useCieChallengeSign: UseCieChallengeSign = () => {
   const dispatch = useAppDispatch();
-  const pidFlowParams = useAppSelector(selectPidFlowParams);
+  const { challenge } = useAppSelector(selectMrtdChallengeData());
 
   const [isPinInputVisible, setPinInputVisible] = useState(false);
-  const [pin, setPin] = useState("");
+  const [can, setCan] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalText, setModalText] = useState<string>();
   const [authorizationUrl, setAuthorizationUrl] = useState<string>();
@@ -59,6 +47,7 @@ export const useCie: UseCie = (idpHint) => {
     setIsModalVisible(false);
     setModalText(undefined);
     setAuthorizationUrl(undefined);
+    dispatch(mrtdReset());
     dispatch(pidFlowReset());
     CieManager.stopReading();
   }, [dispatch]);
@@ -70,6 +59,11 @@ export const useCie: UseCie = (idpHint) => {
     },
     [resetState]
   );
+
+  const handleClose = useCallback(() => {
+    Alert.alert(`❌ Challenge aborted`);
+    resetState();
+  }, [resetState]);
 
   useEffect(() => {
     const cleanup = [
@@ -86,10 +80,10 @@ export const useCie: UseCie = (idpHint) => {
         handleOnError(error);
       }),
       // Start listening for success
-      CieManager.addListener("onSuccess", (url) => {
-        setModalText("Continue to the webview");
-        setAuthorizationUrl(url);
-      }),
+      CieManager.addListener(
+        "onInternalAuthAndMRTDWithPaceSuccess",
+        (url) => {}
+      ),
     ];
 
     return () => {
@@ -100,65 +94,42 @@ export const useCie: UseCie = (idpHint) => {
     };
   }, [handleOnError]);
 
-  const handlePinConfirm = () => {
-    if (pin && pin.length === 8 && /^\d+$/.test(pin)) {
-      setPinInputVisible(false);
-      dispatch(
-        preparePidFlowParamsThunk({
-          authMethod: "cieL3",
-          idpHint,
-          ciePin: pin,
-        })
-      );
-    } else {
-      Alert.alert(`❌ Invalid CIE PIN`);
+  useEffect(() => {
+    if (challenge) {
+      setPinInputVisible(true);
     }
-  };
+  }, [challenge, handleOnError]);
 
-  const handlePinClose = () => {
-    resetState();
-  };
-
-  const startCieIdentification = () => {
-    resetState();
-    setPinInputVisible(true);
-  };
-
-  const handleAuthUrl = (url: string) => {
-    if (pidFlowParams && pidFlowParams.ciePin) {
-      CieManager.startReading(pidFlowParams.ciePin, url);
-      setIsModalVisible(true);
-      setModalText("Waiting for CIE card. Bring it closer to the NFC reader.");
+  const handlePinConfirm = async () => {
+    if (challenge === undefined) {
+      Alert.alert("❌ Missing MRTD Challenge");
+      return;
     }
+
+    if (!can || can.length !== 6 || !/^\d+$/.test(can)) {
+      Alert.alert(`❌ Invalid CIE CAN`);
+      return;
+    }
+
+    await CieManager.startInternalAuthAndMRTDReading(can, challenge, "base64");
+    setPinInputVisible(false);
+    setIsModalVisible(true);
+    setModalText("Waiting for CIE card. Bring it closer to the NFC reader.");
   };
 
   const handleAuthenticationComplete = (authRedirectUrl: string) => {
-    setIsModalVisible(false);
-    dispatch(continuePidFlowThunk({ authRedirectUrl }));
-  };
-
-  const handleCloseModal = () => {
-    Alert.alert(`❌ Modal closed`);
-    resetState();
+    // TODO
   };
 
   const components = (
     <>
       <CiePinDialog
-        type="PIN"
+        type="CAN"
         visible={isPinInputVisible}
-        onChangePin={setPin}
+        onChangePin={setCan}
         onConfirm={handlePinConfirm}
-        onCancel={handlePinClose}
+        onCancel={handleClose}
       />
-      {pidFlowParams && pidFlowParams.ciePin && (
-        <CieAuthenticationWebview
-          authenticationUrl={pidFlowParams.authUrl}
-          onSuccess={handleAuthUrl}
-          onError={handleOnError}
-        />
-      )}
-
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -168,7 +139,7 @@ export const useCie: UseCie = (idpHint) => {
         <SafeAreaView>
           <View style={styles.modal}>
             {modalText && <H2 style={styles.modalText}>{modalText}</H2>}
-            <TouchableOpacity onPress={handleCloseModal}>
+            <TouchableOpacity onPress={handleClose}>
               <H3 style={styles.modalText}>Press to close</H3>
             </TouchableOpacity>
           </View>
@@ -186,26 +157,7 @@ export const useCie: UseCie = (idpHint) => {
     </>
   );
 
-  return { components, startCieIdentification };
-};
-
-/**
- * Get the progress emojis based on the reading progress.
- * @param progress The reading progress value from 0 to 1.
- * @returns A string representing the progress bar with emojis,
- */
-export const getProgressEmojis = (progress: number) => {
-  // Clamp progress between 0 and 1
-  const clampedProgress = Math.max(0, Math.min(1, progress));
-
-  const totalDots = 12; // Length of the progress bar
-  const blueDots = Math.floor(clampedProgress * totalDots);
-  const whiteDots = totalDots - blueDots;
-
-  const fullEmoji = "■";
-  const emptyEmoji = "□";
-
-  return fullEmoji.repeat(blueDots) + emptyEmoji.repeat(whiteDots);
+  return { components };
 };
 
 const styles = StyleSheet.create({

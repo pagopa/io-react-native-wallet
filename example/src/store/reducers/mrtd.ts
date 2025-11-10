@@ -5,15 +5,18 @@ import { initPidMrtdChallengeThunk } from "../../thunks/mrtd";
 
 type MrtdState = {
   asyncStatus: AsyncStatus;
-  challenge?: string;
-  mrtd_auth_session?: string;
-  mrtd_pop_nonce?: string;
-  mrtd_val_pop_nonce?: string;
-  redirect_uri?: string;
+  challengeData: {
+    challenge?: string;
+    mrtd_auth_session?: string;
+    mrtd_pop_nonce?: string;
+    mrtd_val_pop_nonce?: string;
+    redirect_uri?: string;
+  };
 };
 
 const initialState: MrtdState = {
   asyncStatus: asyncStatusInitial,
+  challengeData: {},
 };
 
 const mrtdSlice = createSlice({
@@ -32,9 +35,10 @@ const mrtdSlice = createSlice({
       .addCase(initPidMrtdChallengeThunk.fulfilled, (state, action) => {
         state.asyncStatus.isLoading = false;
         state.asyncStatus.isDone = true;
-        state.challenge = action.payload.challenge;
-        state.mrtd_auth_session = action.payload.mrtd_auth_session;
-        state.mrtd_pop_nonce = action.payload.mrtd_pop_nonce;
+        state.challengeData.challenge = action.payload.challenge;
+        state.challengeData.mrtd_auth_session =
+          action.payload.mrtd_auth_session;
+        state.challengeData.mrtd_pop_nonce = action.payload.mrtd_pop_nonce;
       })
       .addCase(initPidMrtdChallengeThunk.rejected, (state, action) => {
         state.asyncStatus.isLoading = false;
@@ -47,7 +51,12 @@ const mrtdSlice = createSlice({
   },
 });
 
+export const { mrtdReset } = mrtdSlice.actions;
+
 export const mrtdReducer = mrtdSlice.reducer;
 
 export const selectMrtdAsyncStatus = () => (state: RootState) =>
   state.mrtd.asyncStatus;
+
+export const selectMrtdChallengeData = () => (state: RootState) =>
+  state.mrtd.challengeData;

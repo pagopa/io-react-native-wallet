@@ -6,6 +6,7 @@ import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import { useCie } from "../hooks/useCie";
+import { useCieChallengeSign } from "../hooks/useCieChallengeSign";
 import { useCieId } from "../hooks/useCieId";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
@@ -31,6 +32,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const cieIdpHint = getCieIdpHint(env);
   const cie = useCie(cieIdpHint);
   const cieId = useCieId(cieIdpHint);
+  const cieChallengeSign = useCieChallengeSign();
 
   const isEnvPre = env === "pre";
 
@@ -137,6 +139,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         )}
       />
       {cie.components}
+      {cieChallengeSign.components}
     </>
   );
 };

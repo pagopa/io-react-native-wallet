@@ -49,13 +49,10 @@ const pidSlice = createSlice({
   initialState,
   reducers: {
     pidReset: () => initialState,
-    pidCiel3FlowReset: (state) => ({
+    pidFlowReset: (state) => ({
       ...state,
       pidFlowParams: initialState.pidFlowParams,
-      pidAsyncStatus: {
-        ...state.pidAsyncStatus,
-        cieL3: asyncStatusInitial,
-      },
+      pidAsyncStatus: initialState.pidAsyncStatus,
     }),
   },
   extraReducers: (builder) => {
@@ -154,7 +151,7 @@ const pidSlice = createSlice({
 /**
  * Exports the actions for the pid slice.
  */
-export const { pidCiel3FlowReset } = pidSlice.actions;
+export const { pidFlowReset } = pidSlice.actions;
 
 /**
  * Persist configuration for the pid slice.
