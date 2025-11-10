@@ -335,11 +335,11 @@ const createAuthzResponsePayload = async ({
  * MRTD PoP
  */
 
-export type ParseMrtdPoPChallengeInfoFromAuthRedirect = (
+export type CompleteUserAuthorizationWithDocumentProof = (
   authRedirectUrl: string
 ) => Promise<MrtdPoPChallengeInfoResult>;
 
-export const parseMrtdPoPChallengeInfoFromAuthRedirect: ParseMrtdPoPChallengeInfoFromAuthRedirect =
+export const completeUserAuthorizationWithDocumentProof: CompleteUserAuthorizationWithDocumentProof =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -349,6 +349,7 @@ export const parseMrtdPoPChallengeInfoFromAuthRedirect: ParseMrtdPoPChallengeInf
 
     const challengeInfoResParsed =
       MrtdPoPChallengeInfoResultShape.safeParse(query);
+
     if (!challengeInfoResParsed.success) {
       const authErr = AuthorizationErrorShape.safeParse(query);
       if (!authErr.success) {

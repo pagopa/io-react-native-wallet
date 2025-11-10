@@ -8,7 +8,7 @@ import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
 import type { RootState, AsyncStatus } from "../types";
-import { sessionReset } from "./sesssion";
+import { sessionReset } from "./session";
 
 /**
  * State type definition for the wallet instance slice

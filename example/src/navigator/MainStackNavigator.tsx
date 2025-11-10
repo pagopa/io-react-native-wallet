@@ -30,11 +30,8 @@ import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
-import type {
-  PidAuthMethods,
-  SupportedCredentialsWithoutPid,
-} from "../store/types";
+import { selectIoAuthToken } from "../store/reducers/session";
+import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
@@ -53,12 +50,12 @@ export type MainStackNavParamList = {
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
-  PidSpidIdpSelection: { authMethod: PidAuthMethods };
+  PidSpidIdpSelection: { withMRTDPoP?: boolean };
   Settings: undefined;
   PidSpidLogin: {
-    authMethod: PidAuthMethods;
     authUrl: string;
     redirectUri: string;
+    withMRTDPoP?: boolean;
   };
   Presentations: undefined;
   Trust: undefined;

@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import type { PidAuthMethods } from "../store/types";
 import { useAppDispatch } from "../store/utils";
 import { openUrlAndListenForAuthRedirect } from "../utils/openUrlAndListenForRedirect";
 import { continuePidFlowThunk, preparePidFlowParamsThunk } from "../thunks/pid";
@@ -14,18 +13,19 @@ type UseCieId = (
   /**
    * Function to start the CieID identification process.
    */
-  startCieIDIdentification: (authMetod: PidAuthMethods) => void;
+  startCieIDIdentification: (withMRTDPoP?: boolean) => void;
 };
 
 export const useCieId: UseCieId = (idpHint) => {
   const dispatch = useAppDispatch();
 
   const startCieIDIdentification = useCallback(
-    async (authMethod: PidAuthMethods) => {
+    async (withMRTDPoP: boolean = false) => {
       const { authUrl, redirectUri } = await dispatch(
         preparePidFlowParamsThunk({
           idpHint,
-          authMethod,
+          authMethod: "cieL2",
+          withMRTDPoP,
         })
       ).unwrap();
 

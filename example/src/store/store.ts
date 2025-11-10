@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { sessionReducer } from "./reducers/sesssion";
+import { sessionReducer } from "./reducers/session";
 import {
   FLUSH,
   PAUSE,
@@ -17,6 +17,7 @@ import { environmentReducer } from "./reducers/environment";
 import { pidReducer } from "./reducers/pid";
 import { presentationReducer } from "./reducers/presentation";
 import { trustValidationReducer } from "./reducers/trustValidation";
+import { mrtdReducer } from "./reducers/mrtd";
 
 /**
  * Redux store configuration.
@@ -30,6 +31,7 @@ export const store = configureStore({
     attestation: attestationReducer,
     credential: credentialReducer,
     pid: pidReducer,
+    mrtd: mrtdReducer,
     presentation: presentationReducer,
     trustValidation: trustValidationReducer,
   },

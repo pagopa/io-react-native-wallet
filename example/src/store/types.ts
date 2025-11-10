@@ -83,20 +83,7 @@ export type PidResult = CredentialResultBase & {
 /**
  * Authentication methods for the PID authentication flow.
  */
-export type PidAuthMethods =
-  | "spid"
-  | "cieL2"
-  | "cieL3"
-  | "spidL2Plus"
-  | "cieL2Plus";
-
-/**
- * Authentication methods that require MRTD PoP.
- */
-export const AUTH_METHODS_WITH_MRTD_POP: PidAuthMethods[] = [
-  "spidL2Plus",
-  "cieL2Plus",
-];
+export type PidAuthMethods = "spid" | "cieL2" | "cieL3";
 
 /**
  * Possible environments in the store.

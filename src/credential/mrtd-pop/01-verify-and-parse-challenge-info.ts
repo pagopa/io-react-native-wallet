@@ -3,21 +3,19 @@ import { MrtdProofChallengeInfo } from "./types";
 
 export type VerifyAndParseChallengeInfo = (
   challengeInfoJwt: string
-) => Promise<{
-  htu: string;
-  htm: string;
-  mrtd_auth_session: string;
-  state: string;
-  mrtd_pop_jwt_nonce: string;
-}>;
+) => MrtdProofChallengeInfo["payload"];
 
-export const verifyAndParseChallengeInfo: VerifyAndParseChallengeInfo = async (
+export const verifyAndParseChallengeInfo: VerifyAndParseChallengeInfo = (
   challengeInfoJwt: string
 ) => {
   const challengeInfoDecoded = decodeJwt(challengeInfoJwt);
-  const { header, payload } =
-    MrtdProofChallengeInfo.parse(challengeInfoDecoded);
-  const { htu, htm, mrtd_auth_session, state, mrtd_pop_jwt_nonce } = payload;
 
-  return { htu, htm, mrtd_auth_session, state, mrtd_pop_jwt_nonce };
+  const challengeInfoParsed =
+    MrtdProofChallengeInfo.safeParse(challengeInfoDecoded);
+
+  if (!challengeInfoParsed.success) {
+    throw new Error("");
+  }
+
+  return challengeInfoParsed.data.payload;
 };

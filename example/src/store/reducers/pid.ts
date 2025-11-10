@@ -14,7 +14,7 @@ import type {
 } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
-import { sessionReset } from "./sesssion";
+import { sessionReset } from "./session";
 import type { PreparePidFlowParamsThunkOutput } from "example/src/thunks/pid";
 
 /**
@@ -37,8 +37,6 @@ const initialState: PidState = {
     spid: asyncStatusInitial,
     cieL2: asyncStatusInitial,
     cieL3: asyncStatusInitial,
-    spidL2Plus: asyncStatusInitial,
-    cieL2Plus: asyncStatusInitial,
   },
   pidFlowParams: undefined,
 };

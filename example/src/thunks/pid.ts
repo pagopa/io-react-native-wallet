@@ -11,11 +11,7 @@ import {
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
-import {
-  AUTH_METHODS_WITH_MRTD_POP,
-  type PidAuthMethods,
-  type PidResult,
-} from "../store/types";
+import { type PidAuthMethods, type PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -33,6 +29,7 @@ type PreparePidFlowParamsThunkInput = {
   idpHint: string;
   authMethod: PidAuthMethods;
   ciePin?: string;
+  withMRTDPoP?: boolean;
 };
 
 /**
@@ -64,6 +61,17 @@ export type PreparePidFlowParamsThunkOutput = {
   ciePin?: string;
 };
 
+export type InitPidMrtdChallengeOutput = {
+  challenge: string;
+  mrtd_auth_session: string;
+  mrtd_pop_nonce: string;
+};
+
+export type VerifyPidMrtdChallengeOutput = {
+  redirect_uri: string;
+  mrtd_val_pop_nonce: string;
+};
+
 /**
  * Thunk to prepare the parameters for the PID issuance flow.
  * It performs a partial issuance flow, starting from the issuance request to the user authorization.
@@ -92,7 +100,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-  const { idpHint, authMethod, ciePin } = args;
+  const { idpHint, ciePin, withMRTDPoP } = args;
   const isCie = args.idpHint.includes("servizicie") ? true : false;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
@@ -116,9 +124,6 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     issuerUrl,
     { appFetch }
   );
-
-  // Determine if MRTD PoP is needed
-  const withMRTDPoP = AUTH_METHODS_WITH_MRTD_POP.includes(authMethod);
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
@@ -268,24 +273,4 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     credentialConfigurationId: credential_configuration_id,
     format,
   };
-});
-
-export const initMrtdPoPThunk = createAppAsyncThunk<
-  {},
-  ContinuePidFlowThunkInput
->("pid/initMrtdPoP", async (args, { getState }) => {
-  const { authRedirectUrl } = args;
-
-  const flowParams = selectPidFlowParams(getState());
-
-  if (!flowParams) {
-    throw new Error("Flow params not found");
-  }
-
-  const { challenge_info } =
-    await Credential.Issuance.parseMrtdPoPChallengeInfoFromAuthRedirect(
-      authRedirectUrl
-    );
-
-  return {};
 });

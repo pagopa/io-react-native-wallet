@@ -5,6 +5,7 @@ import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { useAppDispatch } from "../../store/utils";
+import { initPidMrtdChallengeThunk } from "../../thunks/mrtd";
 import { continuePidFlowThunk } from "../../thunks/pid";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "PidSpidLogin">;
@@ -29,7 +30,7 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
  * navigation state changes to intercept the redirect URL, completing the PID issuance flow.
  */
 export default function PidSpidLoginScreen({ route, navigation }: Props) {
-  const { authUrl, redirectUri } = route.params;
+  const { authUrl, redirectUri, withMRTDPoP } = route.params;
   const originSchemasWhiteList = [
     "https://*",
     "http://*",
@@ -52,11 +53,24 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
     const { url } = navState;
     if (url.startsWith(redirectUri)) {
       try {
-        dispatch(
-          continuePidFlowThunk({
-            authRedirectUrl: url,
-          })
-        );
+        if (withMRTDPoP) {
+          /**
+           * If MRTD PoP is required, dispatch the initPidMrtdChallengeThunk to handle the MRTD PoP challenge.
+           * The PID flow will continue after the MRTD PoP challenge is successfully verified.
+           */
+          dispatch(
+            initPidMrtdChallengeThunk({
+              authRedirectUrl: url,
+            })
+          );
+        } else {
+          dispatch(
+            continuePidFlowThunk({
+              authRedirectUrl: url,
+            })
+          );
+        }
+
         navigation.goBack();
       } catch (error) {
         //In case of error, return to the previous screen

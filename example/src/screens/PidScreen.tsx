@@ -26,8 +26,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const pidSpidState = useAppSelector(selectPidAsyncStatus("spid"));
   const pidCieL2State = useAppSelector(selectPidAsyncStatus("cieL2"));
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
-  const pidSpidL2PlusState = useAppSelector(selectPidAsyncStatus("spidL2Plus"));
-  const pidCieL2PlusState = useAppSelector(selectPidAsyncStatus("cieL2Plus"));
   const pid = useAppSelector(selectPid);
   const env = useAppSelector(selectEnv);
   const cieIdpHint = getCieIdpHint(env);
@@ -40,16 +38,13 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
     pidSpidState,
     pidCieL2State,
     pidCieL3State,
-    pidSpidL2PlusState,
-    pidCieL2PlusState,
     pid,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
-        onPress: () =>
-          navigation.navigate("PidSpidIdpSelection", { authMethod: "spid" }),
+        onPress: () => navigation.navigate("PidSpidIdpSelection", {}),
         title: "Get PID (SPID)",
         isLoading: pidSpidState.isLoading,
         hasError: pidSpidState.hasError,
@@ -59,7 +54,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: "Get PID (CieID)",
-        onPress: () => cieId.startCieIDIdentification("cieL2"),
+        onPress: () => cieId.startCieIDIdentification(),
         isLoading: pidCieL2State.isLoading,
         hasError: pidCieL2State.hasError,
         isDone: pidCieL2State.isDone,
@@ -80,21 +75,21 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       {
         onPress: () =>
           navigation.navigate("PidSpidIdpSelection", {
-            authMethod: "spidL2Plus",
+            withMRTDPoP: true,
           }),
         title: "Get PID (SPID + CIE)",
-        isLoading: pidSpidL2PlusState.isLoading,
-        hasError: pidSpidL2PlusState.hasError,
-        isDone: pidSpidL2PlusState.isDone,
+        isLoading: pidSpidState.isLoading,
+        hasError: pidSpidState.hasError,
+        isDone: pidSpidState.isDone,
         isPresent: !!pid,
         icon: "fiscalCodeIndividual",
       },
       {
         title: "Get PID (CieID + CIE)",
-        onPress: () => cieId.startCieIDIdentification("cieL2Plus"),
-        isLoading: pidCieL2PlusState.isLoading,
-        hasError: pidCieL2PlusState.hasError,
-        isDone: pidCieL2PlusState.isDone,
+        onPress: () => cieId.startCieIDIdentification(true),
+        isLoading: pidCieL2State.isLoading,
+        hasError: pidCieL2State.hasError,
+        isDone: pidCieL2State.isDone,
         isPresent: !!pid,
         icon: "fiscalCodeIndividual",
       },
@@ -109,12 +104,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       pidCieL3State.isLoading,
       pidCieL3State.hasError,
       pidCieL3State.isDone,
-      pidSpidL2PlusState.isLoading,
-      pidSpidL2PlusState.hasError,
-      pidSpidL2PlusState.isDone,
-      pidCieL2PlusState.isLoading,
-      pidCieL2PlusState.hasError,
-      pidCieL2PlusState.isDone,
       pid,
       isEnvPre,
       cieIdpHint,

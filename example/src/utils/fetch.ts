@@ -1,5 +1,5 @@
 import { selectEnv } from "../store/reducers/environment";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { selectIoAuthToken } from "../store/reducers/session";
 import { store } from "../store/store";
 import { getEnv } from "./environment";
 
