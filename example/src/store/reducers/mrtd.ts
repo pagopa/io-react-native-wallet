@@ -1,22 +1,31 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
-import { initPidMrtdChallengeThunk } from "../../thunks/mrtd";
+import {
+  initPidMrtdChallengeThunk,
+  validatePidMrtdChallengeThunk,
+} from "../../thunks/mrtd";
+
+type MrtdFlowParams = {
+  challenge: string;
+  verifyUrl: string;
+  mrtd_auth_session: string;
+  mrtd_pop_nonce: string;
+};
+
+type MrtdValidationResult = {
+  mrtd_val_pop_nonce: string;
+  redirect_uri: string;
+};
 
 type MrtdState = {
   asyncStatus: AsyncStatus;
-  challengeData: {
-    challenge?: string;
-    mrtd_auth_session?: string;
-    mrtd_pop_nonce?: string;
-    mrtd_val_pop_nonce?: string;
-    redirect_uri?: string;
-  };
+  flowParams?: MrtdFlowParams;
+  validation?: MrtdValidationResult;
 };
 
 const initialState: MrtdState = {
   asyncStatus: asyncStatusInitial,
-  challengeData: {},
 };
 
 const mrtdSlice = createSlice({
@@ -35,10 +44,7 @@ const mrtdSlice = createSlice({
       .addCase(initPidMrtdChallengeThunk.fulfilled, (state, action) => {
         state.asyncStatus.isLoading = false;
         state.asyncStatus.isDone = true;
-        state.challengeData.challenge = action.payload.challenge;
-        state.challengeData.mrtd_auth_session =
-          action.payload.mrtd_auth_session;
-        state.challengeData.mrtd_pop_nonce = action.payload.mrtd_pop_nonce;
+        state.flowParams = action.payload;
       })
       .addCase(initPidMrtdChallengeThunk.rejected, (state, action) => {
         state.asyncStatus.isLoading = false;
@@ -47,6 +53,28 @@ const mrtdSlice = createSlice({
           status: true,
           error: action.error,
         };
+        state.flowParams = undefined;
+        state.validation = undefined;
+      })
+      .addCase(validatePidMrtdChallengeThunk.pending, (state) => {
+        state.asyncStatus.isLoading = true;
+        state.asyncStatus.isDone = false;
+        state.asyncStatus.hasError = { status: false, error: undefined };
+      })
+      .addCase(validatePidMrtdChallengeThunk.fulfilled, (state, action) => {
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.isDone = true;
+        state.validation = action.payload;
+      })
+      .addCase(validatePidMrtdChallengeThunk.rejected, (state, action) => {
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.isDone = false;
+        state.asyncStatus.hasError = {
+          status: true,
+          error: action.error,
+        };
+        state.flowParams = undefined;
+        state.validation = undefined;
       });
   },
 });
@@ -55,8 +83,10 @@ export const { mrtdReset } = mrtdSlice.actions;
 
 export const mrtdReducer = mrtdSlice.reducer;
 
-export const selectMrtdAsyncStatus = () => (state: RootState) =>
+export const selectMrtdAsyncStatus = (state: RootState) =>
   state.mrtd.asyncStatus;
 
-export const selectMrtdChallengeData = () => (state: RootState) =>
-  state.mrtd.challengeData;
+export const selectMrtdFlowParams = (state: RootState) => state.mrtd.flowParams;
+
+export const selectMrtdChallenge = (state: RootState) =>
+  state.mrtd.flowParams?.challenge;

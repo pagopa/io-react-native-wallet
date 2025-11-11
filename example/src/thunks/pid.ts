@@ -43,6 +43,7 @@ type ContinuePidFlowThunkInput = {
  * Type definition for the output of the {@link preparePidFlowParamsThunk}.
  */
 export type PreparePidFlowParamsThunkOutput = {
+  authMethod: PidAuthMethods;
   authUrl: string;
   issuerConf: Awaited<
     ReturnType<typeof Credential.Issuance.evaluateIssuerTrust>
@@ -100,7 +101,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-  const { idpHint, ciePin, withMRTDPoP } = args;
+  const { authMethod, idpHint, ciePin, withMRTDPoP } = args;
   const isCie = args.idpHint.includes("servizicie") ? true : false;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
@@ -150,6 +151,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   );
 
   return {
+    authMethod,
     authUrl,
     issuerConf,
     clientId,

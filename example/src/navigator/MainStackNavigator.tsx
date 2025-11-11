@@ -52,15 +52,15 @@ export type MainStackNavParamList = {
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
-  PidSpidIdpSelection: { withMRTDPoP?: boolean };
+  PidSpidIdpSelection: { withDocumentProof?: boolean };
   Settings: undefined;
   PidSpidLogin: {
     authUrl: string;
     redirectUri: string;
-    withMRTDPoP?: boolean;
+    withDocumentProof?: boolean;
   };
   CieAuthentication: undefined;
-  CieInternalAuthentication: undefined;
+  CieInternalAuthentication: { challenge: string };
   Presentations: undefined;
   Trust: undefined;
   QrScanner: QrScannerScreenParams;

@@ -16,6 +16,7 @@ import {
   preparePidFlowParamsThunk,
 } from "../../thunks/pid";
 import { getCieIdpHint } from "../../utils/environment";
+import { getProgressEmojis } from "../../utils/strings";
 
 type ScreenProps = NativeStackScreenProps<
   MainStackNavParamList,
@@ -30,7 +31,7 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPinInputVisible, setPinInputVisible] = useState(true);
   const [pin, setPin] = useState("");
-  const [modalText, setModalText] = useState<string>();
+  const [text, setText] = useState<string>();
   const [authorizationUrl, setAuthorizationUrl] = useState<string>();
 
   const handleOnError = useCallback(
@@ -46,7 +47,7 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
     const cleanup = [
       // Start listening for NFC events
       CieManager.addListener("onEvent", (event) => {
-        setModalText(
+        setText(
           "I'm reading the CIE. Do not remove it from the device\n" +
             getProgressEmojis(event.progress)
         );
@@ -57,7 +58,7 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
       }),
       // Start listening for success
       CieManager.addListener("onSuccess", (url) => {
-        setModalText("Continue to the webview");
+        setText("Continue to the webview");
         setAuthorizationUrl(url);
       }),
     ];
@@ -90,7 +91,7 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
     if (pidFlowParams && pidFlowParams.ciePin) {
       setIsLoading(false);
       CieManager.startReading(pidFlowParams.ciePin, url);
-      setModalText("Waiting for CIE card. Bring it closer to the NFC reader.");
+      setText("Waiting for CIE card. Bring it closer to the NFC reader.");
     }
   };
 
@@ -133,30 +134,11 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
           />
         </View>
       )}
-      <View style={styles.modal}>
-        {modalText && <H2 style={styles.modalText}>{modalText}</H2>}
+      <View style={styles.content}>
+        {text && <H2 style={styles.text}>{text}</H2>}
       </View>
     </SafeAreaView>
   );
-};
-
-/**
- * Get the progress emojis based on the reading progress.
- * @param progress The reading progress value from 0 to 1.
- * @returns A string representing the progress bar with emojis,
- */
-export const getProgressEmojis = (progress: number) => {
-  // Clamp progress between 0 and 1
-  const clampedProgress = Math.max(0, Math.min(1, progress));
-
-  const totalDots = 12; // Length of the progress bar
-  const blueDots = Math.floor(clampedProgress * totalDots);
-  const whiteDots = totalDots - blueDots;
-
-  const fullEmoji = "■";
-  const emptyEmoji = "□";
-
-  return fullEmoji.repeat(blueDots) + emptyEmoji.repeat(whiteDots);
 };
 
 const styles = StyleSheet.create({
@@ -165,13 +147,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modal: {
+  content: {
     height: "100%",
     alignItems: "center",
     alignContent: "center",
     gap: 16,
   },
-  modalText: {
+  text: {
     marginTop: 64,
     marginHorizontal: 24,
     textAlign: "center",

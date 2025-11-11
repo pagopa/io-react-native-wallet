@@ -16,6 +16,10 @@ import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./session";
 import type { PreparePidFlowParamsThunkOutput } from "example/src/thunks/pid";
+import {
+  initPidMrtdChallengeThunk,
+  validatePidMrtdChallengeThunk,
+} from "../../thunks/mrtd";
 
 /**
  * State type definition for the PID slice.
@@ -145,6 +149,26 @@ const pidSlice = createSlice({
 
     // Reset the pid state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
+
+    // Handle mrtd thunks rejections to reset pid state
+    builder.addCase(validatePidMrtdChallengeThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+      // Reset the flow params if an error occurs, you must start from scratch
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
+    builder.addCase(initPidMrtdChallengeThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+      // Reset the flow params if an error occurs, you must start from scratch
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
   },
 });
 

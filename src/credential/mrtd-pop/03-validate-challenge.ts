@@ -11,7 +11,7 @@ import {
   type MrtdPayload,
 } from "./types";
 
-export type VerifyChallenge = (
+export type ValidateChallenge = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   verifyUrl: string,
   mrtd_auth_session: string,
@@ -25,7 +25,7 @@ export type VerifyChallenge = (
   }
 ) => Promise<MrtdPopVerificationResult>;
 
-export const verifyChallenge: VerifyChallenge = async (
+export const validateChallenge: ValidateChallenge = async (
   issuerConf,
   verifyUrl,
   mrtd_auth_session,
@@ -55,20 +55,21 @@ export const verifyChallenge: VerifyChallenge = async (
 
   const { kid } = await wiaCryptoContext.getPublicKey();
 
-  const mrtd_validation_jwt = new SignJWT(wiaCryptoContext)
+  const mrtd_validation_jwt = await new SignJWT(wiaCryptoContext)
     .setProtectedHeader({
-      typ: "mrtd-ias+jwt",
+      typ: "mrtd‑ias+jwt",
       kid,
     })
     .setPayload({
+      jti: `${uuidv4()}`,
+      iss,
+      aud,
       document_type: "cie",
       mrtd,
       ias,
     })
-    .setIssuer(iss)
-    .setAudience(aud)
     .setIssuedAt()
-    .setExpirationTime("1h")
+    .setExpirationTime("5m")
     .sign();
 
   const requestBody = {

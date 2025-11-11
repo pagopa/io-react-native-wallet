@@ -25,7 +25,7 @@ export default function PidSpidIdpSelectionScreen({
   const dispatch = useAppDispatch();
   const env = useAppSelector(selectEnv);
   const idpsList = env === "pre" ? testIdps : idps; // Use test IDPs if the login is for PID auth in the pre environment, otherwise use the standard IDPs list
-  const { withMRTDPoP = false } = route.params;
+  const { withDocumentProof = false } = route.params;
 
   const handleIdpSelection = useCallback(
     async (idp: Idp) => {
@@ -39,20 +39,20 @@ export default function PidSpidIdpSelectionScreen({
             preparePidFlowParamsThunk({
               idpHint,
               authMethod: "spid",
-              withMRTDPoP,
+              withMRTDPoP: withDocumentProof,
             })
           ).unwrap();
           navigation.navigate("PidSpidLogin", {
             authUrl,
             redirectUri,
-            withMRTDPoP,
+            withDocumentProof,
           });
         } catch (error) {
           toast.error("Error during authentication");
         }
       }
     },
-    [navigation, dispatch, withMRTDPoP, toast]
+    [navigation, dispatch, withDocumentProof, toast]
   );
 
   return (

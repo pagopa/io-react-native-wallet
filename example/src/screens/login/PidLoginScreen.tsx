@@ -30,7 +30,7 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
  * navigation state changes to intercept the redirect URL, completing the PID issuance flow.
  */
 export default function PidSpidLoginScreen({ route, navigation }: Props) {
-  const { authUrl, redirectUri, withMRTDPoP } = route.params;
+  const { authUrl, redirectUri, withDocumentProof } = route.params;
   const originSchemasWhiteList = [
     "https://*",
     "http://*",
@@ -53,7 +53,7 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
     const { url } = navState;
     if (url.startsWith(redirectUri)) {
       try {
-        if (withMRTDPoP) {
+        if (withDocumentProof) {
           /**
            * If MRTD PoP is required, dispatch the initPidMrtdChallengeThunk to handle the MRTD PoP challenge.
            * The PID flow will continue after the MRTD PoP challenge is successfully verified.
