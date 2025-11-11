@@ -93,7 +93,10 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
 };
 
 /**
- * TODO documentation
+ * WARNING: his function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID, and the PID
+ * issuance requires a MRTD PoP challenge.
+ * @param authRedirectUrl The URL to which the end user should be redirected to start the MRTD PoP validation flow
+ * @returns the authorization response which contains the challenge
  */
 export const continueUserAuthorizationWithQueryModeChallenge: ContinueUserAuthorizationWithQueryModeChallenge =
   async (authRedirectUrl) => {
@@ -306,7 +309,11 @@ export const parseAuthorizationResponse = (
 };
 
 /**
- * TODO documentation
+ * Parse the authorization challenge response and return the result which contains the challenge.
+ * @throws {AuthorizationError} if an error occurs during the parsing process
+ * @throws {AuthorizationIdpError} if an error occurs during the parsing process and the error is related to the IDP
+ * @param authRes the authorization response to be parsed
+ * @returns the authorization result which contains the challenge
  */
 export const parseAuthorizationChallengeResponse = (
   authRes: unknown
