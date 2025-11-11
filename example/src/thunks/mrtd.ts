@@ -31,7 +31,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   const { issuerConf, walletInstanceAttestation } = flowParams;
 
   const { challenge_info } =
-    await Credential.Issuance.completeUserAuthorizationWithDocumentProof(
+    await Credential.Issuance.completeUserAuthorizationWithQueryModeChallenge(
       authRedirectUrl
     );
 

@@ -1,19 +1,18 @@
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { FlatList } from "react-native";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
-import { useCie } from "../hooks/useCie";
-import { useCieChallengeSign } from "../hooks/useCieChallengeSign";
-import { useCieId } from "../hooks/useCieId";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
-import { useAppSelector } from "../store/utils";
+import { useAppDispatch, useAppSelector } from "../store/utils";
+import { continuePidFlowThunk, preparePidFlowParamsThunk } from "../thunks/pid";
 import { getCieIdpHint } from "../utils/environment";
+import { openUrlAndListenForAuthRedirect } from "../utils/openUrlAndListenForRedirect";
 
 type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
 
@@ -24,15 +23,13 @@ type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
  * @returns
  */
 export const PidScreen = ({ navigation }: ScreenProps) => {
+  const dispatch = useAppDispatch();
   const pidSpidState = useAppSelector(selectPidAsyncStatus("spid"));
   const pidCieL2State = useAppSelector(selectPidAsyncStatus("cieL2"));
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
   const pid = useAppSelector(selectPid);
   const env = useAppSelector(selectEnv);
   const cieIdpHint = getCieIdpHint(env);
-  const cie = useCie(cieIdpHint);
-  const cieId = useCieId(cieIdpHint);
-  const cieChallengeSign = useCieChallengeSign();
 
   const isEnvPre = env === "pre";
 
@@ -43,6 +40,30 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
     pid,
   });
 
+  const startCieIDIdentification = useCallback(
+    async (withMRTDPoP: boolean = false) => {
+      const { authUrl, redirectUri } = await dispatch(
+        preparePidFlowParamsThunk({
+          idpHint: cieIdpHint,
+          authMethod: "cieL2",
+          withMRTDPoP,
+        })
+      ).unwrap();
+
+      const { authRedirectUrl } = await openUrlAndListenForAuthRedirect(
+        redirectUri,
+        authUrl
+      );
+
+      dispatch(
+        continuePidFlowThunk({
+          authRedirectUrl,
+        })
+      );
+    },
+    [dispatch, cieIdpHint]
+  );
+
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
@@ -52,26 +73,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         hasError: pidSpidState.hasError,
         isDone: pidSpidState.isDone,
         isPresent: !!pid,
-        icon: "fiscalCodeIndividual",
-      },
-      {
-        title: "Get PID (CieID)",
-        onPress: () => cieId.startCieIDIdentification(),
-        isLoading: pidCieL2State.isLoading,
-        hasError: pidCieL2State.hasError,
-        isDone: pidCieL2State.isDone,
-        isPresent: !!pid,
-        icon: "fiscalCodeIndividual",
-      },
-      {
-        title: "Get PID (CIE+PIN)",
-        onPress: () => cie.startCieIdentification(),
-        isCieUat: isEnvPre,
-        idpHint: cieIdpHint,
-        isPresent: !!pid,
-        isLoading: pidCieL3State.isLoading,
-        hasError: pidCieL3State.hasError,
-        isDone: pidCieL3State.isDone,
         icon: "fiscalCodeIndividual",
       },
       {
@@ -87,12 +88,32 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         icon: "fiscalCodeIndividual",
       },
       {
-        title: "Get PID (CieID + CIE)",
-        onPress: () => cieId.startCieIDIdentification(true),
+        title: "Get PID (CieID)",
+        onPress: () => startCieIDIdentification(),
         isLoading: pidCieL2State.isLoading,
         hasError: pidCieL2State.hasError,
         isDone: pidCieL2State.isDone,
         isPresent: !!pid,
+        icon: "fiscalCodeIndividual",
+      },
+      {
+        title: "Get PID (CieID + CIE)",
+        onPress: () => startCieIDIdentification(true),
+        isLoading: pidCieL2State.isLoading,
+        hasError: pidCieL2State.hasError,
+        isDone: pidCieL2State.isDone,
+        isPresent: !!pid,
+        icon: "fiscalCodeIndividual",
+      },
+      {
+        title: "Get PID (CIE+PIN)",
+        onPress: () => navigation.navigate("CieAuthentication"),
+        isCieUat: isEnvPre,
+        idpHint: cieIdpHint,
+        isPresent: !!pid,
+        isLoading: pidCieL3State.isLoading,
+        hasError: pidCieL3State.hasError,
+        isDone: pidCieL3State.isDone,
         icon: "fiscalCodeIndividual",
       },
     ],
@@ -110,36 +131,31 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       isEnvPre,
       cieIdpHint,
       navigation,
-      cie,
-      cieId,
+      startCieIDIdentification,
     ]
   );
 
   return (
-    <>
-      <FlatList
-        contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
-        }}
-        data={scenarios}
-        keyExtractor={(item, index) => `${item.title}-${index}`}
-        renderItem={({ item }) => (
-          <>
-            <TestScenario
-              onPress={item.onPress}
-              title={item.title}
-              isLoading={item.isLoading}
-              hasError={item.hasError}
-              isDone={item.isDone}
-              icon={item.icon}
-              isPresent={item.isPresent}
-            />
-            <VSpacer />
-          </>
-        )}
-      />
-      {cie.components}
-      {cieChallengeSign.components}
-    </>
+    <FlatList
+      contentContainerStyle={{
+        margin: IOVisualCostants.appMarginDefault,
+      }}
+      data={scenarios}
+      keyExtractor={(item, index) => `${item.title}-${index}`}
+      renderItem={({ item }) => (
+        <>
+          <TestScenario
+            onPress={item.onPress}
+            title={item.title}
+            isLoading={item.isLoading}
+            hasError={item.hasError}
+            isDone={item.isDone}
+            icon={item.icon}
+            isPresent={item.isPresent}
+          />
+          <VSpacer />
+        </>
+      )}
+    />
   );
 };

@@ -1,9 +1,9 @@
 import {
+  AuthorizationChallengeResultShape,
   AuthorizationErrorShape,
   AuthorizationResultShape,
-  MrtdPoPChallengeInfoResultShape,
+  type AuthorizationChallengeResult,
   type AuthorizationResult,
-  type MrtdPoPChallengeInfoResult,
 } from "../../utils/auth";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { StartUserAuthorization } from "./03-start-user-authorization";
@@ -29,6 +29,10 @@ import type { DcqlQuery } from "dcql";
 export type CompleteUserAuthorizationWithQueryMode = (
   authRedirectUrl: string
 ) => Promise<AuthorizationResult>;
+
+export type CompleteUserAuthorizationWithQueryModeChallenge = (
+  authRedirectUrl: string
+) => Promise<AuthorizationChallengeResult>;
 
 export type CompleteUserAuthorizationWithFormPostJwtMode = (
   requestObject: Out<GetRequestedCredentialToBePresented>,
@@ -104,6 +108,20 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
     const query = parseUrl(authRedirectUrl).query;
 
     return parseAuthorizationResponse(query);
+  };
+
+/**
+ * TODO documentation
+ */
+export const completeUserAuthorizationWithQueryModeChallenge: CompleteUserAuthorizationWithQueryModeChallenge =
+  async (authRedirectUrl) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
+    );
+    const query = parseUrl(authRedirectUrl).query;
+
+    return parseAuthorizationChallengeResponse(query);
   };
 
 /**
@@ -288,6 +306,34 @@ export const parseAuthorizationResponse = (
 };
 
 /**
+ * TODO documentation
+ */
+export const parseAuthorizationChallengeResponse = (
+  authRes: unknown
+): AuthorizationChallengeResult => {
+  const authResParsed = AuthorizationChallengeResultShape.safeParse(authRes);
+  if (!authResParsed.success) {
+    const authErr = AuthorizationErrorShape.safeParse(authRes);
+    if (!authErr.success) {
+      Logger.log(
+        LogLevel.ERROR,
+        `Error while parsing the authorization response: ${authResParsed.error.message}`
+      );
+      throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
+    }
+    Logger.log(
+      LogLevel.ERROR,
+      `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+    );
+    throw new AuthorizationIdpError(
+      authErr.data.error,
+      authErr.data.error_description
+    );
+  }
+  return authResParsed.data;
+};
+
+/**
  * Creates the authorization response payload to be sent.
  * This payload includes the state and the VP tokens for the presented credentials.
  * The payload is encoded in Base64.
@@ -330,43 +376,3 @@ const createAuthzResponsePayload = async ({
     .setExpirationTime("1h")
     .sign();
 };
-
-/**
- * MRTD PoP
- */
-
-export type CompleteUserAuthorizationWithDocumentProof = (
-  authRedirectUrl: string
-) => Promise<MrtdPoPChallengeInfoResult>;
-
-export const completeUserAuthorizationWithDocumentProof: CompleteUserAuthorizationWithDocumentProof =
-  async (authRedirectUrl) => {
-    Logger.log(
-      LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
-    );
-    const query = parseUrl(authRedirectUrl).query;
-
-    const challengeInfoResParsed =
-      MrtdPoPChallengeInfoResultShape.safeParse(query);
-
-    if (!challengeInfoResParsed.success) {
-      const authErr = AuthorizationErrorShape.safeParse(query);
-      if (!authErr.success) {
-        Logger.log(
-          LogLevel.ERROR,
-          `Error while parsing the authorization response: ${challengeInfoResParsed.error.message}`
-        );
-        throw new AuthorizationError(challengeInfoResParsed.error.message); // an error occured while parsing the result and the error
-      }
-      Logger.log(
-        LogLevel.ERROR,
-        `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
-      );
-      throw new AuthorizationIdpError(
-        authErr.data.error,
-        authErr.data.error_description
-      );
-    }
-    return challengeInfoResParsed.data;
-  };

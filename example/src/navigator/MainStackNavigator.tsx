@@ -7,6 +7,8 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
+import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthenticationScreen";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
 import IdpLoginScreen from "../screens/login/IdpLoginScreen";
@@ -57,6 +59,8 @@ export type MainStackNavParamList = {
     redirectUri: string;
     withMRTDPoP?: boolean;
   };
+  CieAuthentication: undefined;
+  CieInternalAuthentication: undefined;
   Presentations: undefined;
   Trust: undefined;
   QrScanner: QrScannerScreenParams;
@@ -128,6 +132,16 @@ export const MainStackNavigator = () => {
               name="PidSpidIdpSelection"
               component={PidSpidIdpSelectionScreen}
               options={{ title: "Test PID issuance" }}
+            />
+            <Stack.Screen
+              name="CieAuthentication"
+              component={CieAuthenticationScreen}
+              options={{ title: "CIE Authentication" }}
+            />
+            <Stack.Screen
+              name="CieInternalAuthentication"
+              component={CieInternalAuthenticationScreen}
+              options={{ title: "CIE Internal Authentication" }}
             />
             <Stack.Screen
               name="PidSpidLogin"

@@ -17,8 +17,8 @@ import {
   type GetRequestedCredentialToBePresented,
   type BuildAuthorizationUrl,
   getRequestedCredentialToBePresented,
-  completeUserAuthorizationWithDocumentProof,
-  type CompleteUserAuthorizationWithDocumentProof,
+  completeUserAuthorizationWithQueryModeChallenge,
+  type CompleteUserAuthorizationWithQueryModeChallenge,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
 import {
@@ -36,13 +36,13 @@ export {
   startUserAuthorization,
   buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
+  completeUserAuthorizationWithQueryModeChallenge,
   getRequestedCredentialToBePresented,
   completeUserAuthorizationWithFormPostJwtMode,
   authorizeAccess,
   obtainCredential,
   verifyAndParseCredential,
   parseAuthorizationResponse,
-  completeUserAuthorizationWithDocumentProof,
   Errors,
 };
 export type {
@@ -51,10 +51,10 @@ export type {
   StartUserAuthorization,
   BuildAuthorizationUrl,
   CompleteUserAuthorizationWithQueryMode,
+  CompleteUserAuthorizationWithQueryModeChallenge,
   GetRequestedCredentialToBePresented,
   CompleteUserAuthorizationWithFormPostJwtMode,
   AuthorizeAccess,
   ObtainCredential,
   VerifyAndParseCredential,
-  CompleteUserAuthorizationWithDocumentProof,
 };
