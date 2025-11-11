@@ -30,7 +30,7 @@ export type CompleteUserAuthorizationWithQueryMode = (
   authRedirectUrl: string
 ) => Promise<AuthorizationResult>;
 
-export type CompleteUserAuthorizationWithQueryModeChallenge = (
+export type ContinueUserAuthorizationWithQueryModeChallenge = (
   authRedirectUrl: string
 ) => Promise<AuthorizationChallengeResult>;
 
@@ -93,6 +93,20 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
 };
 
 /**
+ * TODO documentation
+ */
+export const continueUserAuthorizationWithQueryModeChallenge: ContinueUserAuthorizationWithQueryModeChallenge =
+  async (authRedirectUrl) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
+    );
+    const query = parseUrl(authRedirectUrl).query;
+
+    return parseAuthorizationChallengeResponse(query);
+  };
+
+/**
  * WARNING: This function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID.
  * Complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
  * This function parses the authorization redirect URL to extract the authorization response.
@@ -108,20 +122,6 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
     const query = parseUrl(authRedirectUrl).query;
 
     return parseAuthorizationResponse(query);
-  };
-
-/**
- * TODO documentation
- */
-export const completeUserAuthorizationWithQueryModeChallenge: CompleteUserAuthorizationWithQueryModeChallenge =
-  async (authRedirectUrl) => {
-    Logger.log(
-      LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
-    );
-    const query = parseUrl(authRedirectUrl).query;
-
-    return parseAuthorizationChallengeResponse(query);
   };
 
 /**

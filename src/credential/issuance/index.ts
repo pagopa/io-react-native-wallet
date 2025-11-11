@@ -8,17 +8,17 @@ import {
   type StartUserAuthorization,
 } from "./03-start-user-authorization";
 import {
+  continueUserAuthorizationWithQueryModeChallenge,
   completeUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
   parseAuthorizationResponse,
   buildAuthorizationUrl,
+  getRequestedCredentialToBePresented,
+  type ContinueUserAuthorizationWithQueryModeChallenge,
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
   type GetRequestedCredentialToBePresented,
   type BuildAuthorizationUrl,
-  getRequestedCredentialToBePresented,
-  completeUserAuthorizationWithQueryModeChallenge,
-  type CompleteUserAuthorizationWithQueryModeChallenge,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
 import {
@@ -36,7 +36,7 @@ export {
   startUserAuthorization,
   buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
-  completeUserAuthorizationWithQueryModeChallenge,
+  continueUserAuthorizationWithQueryModeChallenge,
   getRequestedCredentialToBePresented,
   completeUserAuthorizationWithFormPostJwtMode,
   authorizeAccess,
@@ -50,8 +50,8 @@ export type {
   EvaluateIssuerTrust,
   StartUserAuthorization,
   BuildAuthorizationUrl,
+  ContinueUserAuthorizationWithQueryModeChallenge,
   CompleteUserAuthorizationWithQueryMode,
-  CompleteUserAuthorizationWithQueryModeChallenge,
   GetRequestedCredentialToBePresented,
   CompleteUserAuthorizationWithFormPostJwtMode,
   AuthorizeAccess,

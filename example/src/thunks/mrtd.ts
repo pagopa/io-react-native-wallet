@@ -45,7 +45,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const { challenge_info } =
-    await Credential.Issuance.completeUserAuthorizationWithQueryModeChallenge(
+    await Credential.Issuance.continueUserAuthorizationWithQueryModeChallenge(
       authRedirectUrl
     );
 

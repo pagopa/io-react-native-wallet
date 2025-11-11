@@ -19,17 +19,24 @@ graph TD;
     C4[getRequestedCredentialToBePresented]
     C4.1[completeUserAuthorizationWithFormPostJwtMode]
     E4[completeUserAuthorizationWithQueryMode]
+    E5[continueUserAuthorizationWithQueryModeChallenge]
+    D@{ shape: procs, label: "MRTD PoP flow"}
     5[authorizeAccess]
     6[obtainCredential]
     7[verifyAndParseCredential]
     credSel{Is credential an eID?}
+    proofSel{Requires MRTD PoP?}
 
     0 --> 1
     1 --> 2
     2 --> 3
     3 --> credSel
-    credSel -->|Yes| E4
+    credSel -->|Yes| proofSel
     credSel -->|No| C4
+    proofSel --> |Yes| E5
+    proofSel --> |No| E4
+    E5 --> D
+    D --> E4
     C4 --> C4.1
     C4.1 --> 5
     E4 --> 5
@@ -41,12 +48,12 @@ graph TD;
 
 The following errors are mapped to a `IssuerResponseError` with specific codes.
 
-|HTTP Status|Error Code|Description|
-|-----------|----------|-----------|
-|`201 Created`|`ERR_CREDENTIAL_ISSUING_NOT_SYNCHRONOUS`| This response is returned by the credential issuer when the request has been queued because the credential cannot be issued synchronously. The consumer should try to obtain the credential at a later time. Although `201 Created` is not considered an error, it is mapped as an error in this context in order to handle the case where the credential issuance is not synchronous. This allows keeping the flow consistent and handle the case where the credential is not immediately available.|
-|`403 Forbidden`|`ERR_CREDENTIAL_INVALID_STATUS`|This response is returned by the credential issuer when the requested credential has an invalid status. It might contain more details in the `reason` property.|
-|`404 Not Found`|`ERR_CREDENTIAL_INVALID_STATUS`| This response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential. It might contain more details in the `reason` property.|
-|`*`|`ERR_ISSUER_GENERIC_ERROR`|This is a generic error code to map unexpected errors that occurred when interacting with the Issuer.|
+| HTTP Status     | Error Code                               | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `201 Created`   | `ERR_CREDENTIAL_ISSUING_NOT_SYNCHRONOUS` | This response is returned by the credential issuer when the request has been queued because the credential cannot be issued synchronously. The consumer should try to obtain the credential at a later time. Although `201 Created` is not considered an error, it is mapped as an error in this context in order to handle the case where the credential issuance is not synchronous. This allows keeping the flow consistent and handle the case where the credential is not immediately available. |
+| `403 Forbidden` | `ERR_CREDENTIAL_INVALID_STATUS`          | This response is returned by the credential issuer when the requested credential has an invalid status. It might contain more details in the `reason` property.                                                                                                                                                                                                                                                                                                                                       |
+| `404 Not Found` | `ERR_CREDENTIAL_INVALID_STATUS`          | This response is returned by the credential issuer when the authenticated user is not entitled to receive the requested credential. It might contain more details in the `reason` property.                                                                                                                                                                                                                                                                                                           |
+| `*`             | `ERR_ISSUER_GENERIC_ERROR`               | This is a generic error code to map unexpected errors that occurred when interacting with the Issuer.                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ## Strong authentication for eID issuance (Query Mode)
 
@@ -59,6 +66,17 @@ For CieID(L2) the IDP hint is `https://idserver.servizicie.interno.gov.it/idp/pr
 CIE+PIN(L3) requires a different flow due to the physical card presence. Helper functions are exposed to handle it and the documentation can be found [here](../../cie/README.md).
 
 The expected result from the authentication process is in provided in the query string as defined in the [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)](https://openid.net/specs/oauth-v2-jarm.html#name-response-mode-queryjwt).
+
+#### eID Substantial Authentication (L2+) with MRTD Verification
+
+This flow is used when the requested eID requires **eID Substantial Authentication (LoA3) with MRTD (Machine Readable Travel Document) Verification**. This method provides an alternative to CIEid LoA High authentication, requiring two distinct steps to complete the authorization:
+
+1. **Primary Authentication**: LoA3 electronic identification (SPID or CIEid L2).
+2. **MRTD Proof of Possession (PoP)**: Electronic document reading and cryptographic verification.
+
+This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithQueryModeChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completeUserAuthorizationWithQueryMode` function.
+
+Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](../mrtd-pop/README.md)
 
 ## Authentication through credentials (Form Post JWT Mode)
 
@@ -122,8 +140,8 @@ const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
 // Start user authorization
 const { issuerRequestUri, clientId, codeVerifier } =
   await Credential.Issuance.startUserAuthorization(
-    issuerConf, 
-    [credentialId], 
+    issuerConf,
+    [credentialId],
     {
       walletInstanceAttestation,
       redirectUri: REDIRECT_URI,
@@ -199,10 +217,10 @@ const { parsedCredential } =
     issuerConf,
     credential,
     credential_configuration_id,
-    { 
-      credentialCryptoContext, 
+    {
+      credentialCryptoContext,
       ignoreMissingAttributes: true,
-      includeUndefinedAttributes: false 
+      includeUndefinedAttributes: false
     },
     mockX509CertRoot
   );
