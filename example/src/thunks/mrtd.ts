@@ -20,8 +20,8 @@ type InitPidMrtdChallengeOutput = {
 };
 
 type VerifyPidMrtdChallengeInput = {
-  mrtd: Credential.MRTDPoP.MrtdPayload;
-  ias: Credential.MRTDPoP.IasPayload;
+  mrtd: Credential.Issuance.MRTDPoP.MrtdPayload;
+  ias: Credential.Issuance.MRTDPoP.IasPayload;
 };
 
 type VerifyPidMrtdChallengeOutput = {
@@ -53,14 +53,14 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
     htu: initUrl,
     mrtd_auth_session,
     mrtd_pop_jwt_nonce,
-  } = await Credential.MRTDPoP.verifyAndParseChallengeInfo(
+  } = await Credential.Issuance.MRTDPoP.verifyAndParseChallengeInfo(
     issuerConf,
     challenge_info,
     { wiaCryptoContext }
   );
 
   const { challenge, mrtd_pop_nonce, htu } =
-    await Credential.MRTDPoP.initChallenge(
+    await Credential.Issuance.MRTDPoP.initChallenge(
       issuerConf,
       initUrl,
       mrtd_auth_session,
@@ -103,7 +103,7 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const { mrtd_val_pop_nonce, redirect_uri } =
-    await Credential.MRTDPoP.validateChallenge(
+    await Credential.Issuance.MRTDPoP.validateChallenge(
       issuerConf,
       verifyUrl,
       mrtd_auth_session,

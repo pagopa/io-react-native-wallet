@@ -85,7 +85,7 @@ This flow is used when the requested eID requires **eID Substantial Authenticati
 
 This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithQueryModeChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completeUserAuthorizationWithQueryMode` function.
 
-Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](../mrtd-pop/README.md)
+Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/README.md)
 
 ## Authentication through credentials (Form Post JWT Mode)
 

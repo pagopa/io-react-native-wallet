@@ -30,8 +30,10 @@ import {
   type VerifyAndParseCredential,
 } from "./07-verify-and-parse-credential";
 import * as Errors from "./errors";
+import * as MRTDPoP from "./mrtd-pop";
 
 export {
+  MRTDPoP,
   evaluateIssuerTrust,
   startUserAuthorization,
   buildAuthorizationUrl,

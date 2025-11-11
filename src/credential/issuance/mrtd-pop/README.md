@@ -4,7 +4,7 @@
 
 The MRTD-PoP flow is used to prove possession of an MRTD (such as a CIE) during the issuance of high-assurance credentials. The process involves a challenge-response protocol between the wallet and the issuer, leveraging JWTs and cryptographic attestation.
 
-This flow is part of the [PID issuance flow](../issuance/README.md) and must be started after the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once MRTD PoP is completed, the PID issuance can continue with the `authorizeAccess` function with the data obtained with the challenge validation.
+This flow is part of the [PID issuance flow](../README.md) and must be started after the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once MRTD PoP is completed, the PID issuance can continue with the `authorizeAccess` function with the data obtained with the challenge validation.
 
 ## Sequence Diagram
 
@@ -16,14 +16,12 @@ graph TD;
     C[initChallenge]
     E[validateChallenge]
     end
-    D[CIE NFC interaction]
     F@{ shape: subproc, label: "completeUserAuthorizationWithQueryModeChallenge" }
 
 
     A -.-> B
     B --> C
-    C -->|challenge|D
-    D -->|signed challenge| E
+    C -->E
     E -.-> F
 
 ```

@@ -3,8 +3,8 @@ import {
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { MrtdProofChallengeInfo } from "./types";
-import type { EvaluateIssuerTrust } from "../issuance";
-import type { Out } from "../../utils/misc";
+import type { EvaluateIssuerTrust } from "../../issuance";
+import type { Out } from "../../../utils/misc";
 
 export type VerifyAndParseChallengeInfo = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],

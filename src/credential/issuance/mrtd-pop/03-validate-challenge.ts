@@ -1,10 +1,10 @@
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
-import { IssuerResponseError } from "../../utils/errors";
-import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import { createPopToken } from "../../utils/pop";
-import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
-import type { EvaluateIssuerTrust } from "../issuance";
+import { IssuerResponseError } from "../../../utils/errors";
+import { hasStatusOrThrow, type Out } from "../../../utils/misc";
+import { createPopToken } from "../../../utils/pop";
+import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
+import type { EvaluateIssuerTrust } from "../../issuance";
 import {
   MrtdPopVerificationResult,
   type IasPayload,
