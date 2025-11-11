@@ -9,7 +9,7 @@ export const MrtdProofChallengeInfo = z.object({
   }),
   payload: z.object({
     iss: z.string(),
-    // aud: z.string(),
+    aud: z.string(),
     iat: z.number(),
     exp: z.number(),
     status: z.literal("require_interaction"),
@@ -52,6 +52,7 @@ export type IasPayload = {
   ias_pk: string;
   sod_ias: string;
   challenge_signed: string;
+  nis: string;
 };
 
 export type MrtdPopVerificationResult = z.infer<

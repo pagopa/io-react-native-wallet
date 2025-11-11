@@ -42,6 +42,8 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   const { authRedirectUrl } = args;
   const { issuerConf, walletInstanceAttestation } = pidFlowParams;
 
+  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+
   const { challenge_info } =
     await Credential.Issuance.completeUserAuthorizationWithQueryModeChallenge(
       authRedirectUrl
@@ -51,9 +53,11 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
     htu: initUrl,
     mrtd_auth_session,
     mrtd_pop_jwt_nonce,
-  } = Credential.MRTDPoP.verifyAndParseChallengeInfo(challenge_info);
-
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  } = await Credential.MRTDPoP.verifyAndParseChallengeInfo(
+    issuerConf,
+    challenge_info,
+    { wiaCryptoContext }
+  );
 
   const { challenge, mrtd_pop_nonce, htu } =
     await Credential.MRTDPoP.initChallenge(

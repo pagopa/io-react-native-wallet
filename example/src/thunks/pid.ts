@@ -62,17 +62,6 @@ export type PreparePidFlowParamsThunkOutput = {
   ciePin?: string;
 };
 
-export type InitPidMrtdChallengeOutput = {
-  challenge: string;
-  mrtd_auth_session: string;
-  mrtd_pop_nonce: string;
-};
-
-export type VerifyPidMrtdChallengeOutput = {
-  redirect_uri: string;
-  mrtd_val_pop_nonce: string;
-};
-
 /**
  * Thunk to prepare the parameters for the PID issuance flow.
  * It performs a partial issuance flow, starting from the issuance request to the user authorization.

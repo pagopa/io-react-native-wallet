@@ -25,6 +25,21 @@ export type ValidateChallenge = (
   }
 ) => Promise<MrtdPopVerificationResult>;
 
+/**
+ * Validates the MRTD signed challenge by sending the MRTD and IAS payloads to the issuer.
+ * This function must be called after {@link initChallenge} and after obtaining the MRTD and IAS payloads
+ * through the CIE PACE process.
+ *
+ * @param issuerConf - The issuer configuration containing the JWKS for signature verification.
+ * @param verifyUrl - The endpoint to call to validate the challenge.
+ * @param mrtd_auth_session - Session identifier for session binding obtained from the MRTD Proof JWT.
+ * @param mrtd_pop_nonce - Nonce value obtained from the MRTD Proof JWT.
+ * @param mrtd - MRTD validation data containing Data Groups and SOD.
+ * @param ias - IAS validation data containing Anti-Cloning Public Key, and SOD.
+ * @param context - The context containing the WIA crypto context used to retrieve the client public key,
+ * the wallet instance attestation and an optional fetch implementation.
+ * @returns The MRTD PoP Verification Result containing the validation nonce and redirect URI to complete the flow.
+ */
 export const validateChallenge: ValidateChallenge = async (
   issuerConf,
   verifyUrl,
@@ -57,11 +72,10 @@ export const validateChallenge: ValidateChallenge = async (
 
   const mrtd_validation_jwt = await new SignJWT(wiaCryptoContext)
     .setProtectedHeader({
-      typ: "mrtd‑ias+jwt",
+      typ: "mrtd-ias+jwt",
       kid,
     })
     .setPayload({
-      jti: `${uuidv4()}`,
       iss,
       aud,
       document_type: "cie",
