@@ -15,6 +15,7 @@ import IdpLoginScreen from "../screens/login/IdpLoginScreen";
 import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
 import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
 import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScreen";
+import { OfferScreen } from "../screens/OfferScreen";
 import { PidScreen } from "../screens/PidScreen";
 import { PresentationScreen } from "../screens/PresentationScreen";
 import { ProximityScreen } from "../screens/ProximityScreen";
@@ -32,7 +33,7 @@ import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
-import { selectIoAuthToken } from "../store/reducers/session";
+import { selectIoAuthToken } from "../store/reducers/sesssion";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
@@ -65,6 +66,7 @@ export type MainStackNavParamList = {
   Trust: undefined;
   QrScanner: QrScannerScreenParams;
   Proximity: undefined;
+  CredentialOffer: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -191,6 +193,11 @@ export const MainStackNavigator = () => {
                   labelByCredentialType[route.params.credentialType]
                 } trustmark`,
               })}
+            />
+            <Stack.Screen
+              name="CredentialOffer"
+              component={OfferScreen}
+              options={{ title: "Credential Offer" }}
             />
             <Stack.Screen
               name="Settings"

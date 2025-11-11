@@ -18,6 +18,7 @@ import { pidReducer } from "./reducers/pid";
 import { presentationReducer } from "./reducers/presentation";
 import { trustValidationReducer } from "./reducers/trustValidation";
 import { mrtdReducer } from "./reducers/mrtd";
+import { credentialOfferReducer } from "./reducers/offer";
 
 /**
  * Redux store configuration.
@@ -34,6 +35,7 @@ export const store = configureStore({
     mrtd: mrtdReducer,
     presentation: presentationReducer,
     trustValidation: trustValidationReducer,
+    offer: credentialOfferReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

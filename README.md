@@ -155,6 +155,7 @@ Different flows are provided to perform common operations. Each flow is a set of
 - Credentail
   - [Issuance](./src/credential/issuance/README.md)
   - [MRTD PoP](./src/credential/mrtd-pop/README.md)
+  - [Offer](./src/credential/offer/README.md)
   - [Presentation](./src/credential/presentation/README.md) (TODO)
   - [Status](./src/credential/status/README.md)
   - [Trustmark](./src/credential/trustmark/README.md)
