@@ -19,13 +19,17 @@ graph TD;
     C4[getRequestedCredentialToBePresented]
     C4.1[completeUserAuthorizationWithFormPostJwtMode]
     E4[completeUserAuthorizationWithQueryMode]
-    E5[continueUserAuthorizationWithQueryModeChallenge]
-    D@{ shape: procs, label: "MRTD PoP flow"}
     5[authorizeAccess]
     6[obtainCredential]
     7[verifyAndParseCredential]
     credSel{Is credential an eID?}
     proofSel{Requires MRTD PoP?}
+    M1[continueUserAuthorizationWithMRTDPoPChallenge]
+    subgraph MRTD PoP
+    M2[verifyAndParseChallengeInfo]
+    M3[initChallenge]
+    M4[validateChallenge]
+    end
 
     0 --> 1
     1 --> 2
@@ -33,16 +37,21 @@ graph TD;
     3 --> credSel
     credSel -->|Yes| proofSel
     credSel -->|No| C4
-    proofSel --> |Yes| E5
+    proofSel --> |Yes| M1
     proofSel --> |No| E4
-    E5 --> D
-    D --> E4
     C4 --> C4.1
     C4.1 --> 5
     E4 --> 5
     5 --> 6
     6 --> 7
+
+    M1 --> M2
+    M2 --> M3
+    M3 --> M4
+    M4 --> E4
 ```
+
+````
 
 ## Mapped results
 
@@ -237,7 +246,7 @@ return {
   credentialType,
   credentialConfigurationId: credential_configuration_id,
 };
-```
+````
 
 </details>
 

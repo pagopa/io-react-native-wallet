@@ -30,7 +30,7 @@ export type CompleteUserAuthorizationWithQueryMode = (
   authRedirectUrl: string
 ) => Promise<AuthorizationResult>;
 
-export type ContinueUserAuthorizationWithQueryModeChallenge = (
+export type ContinueUserAuthorizationWithMRTDPoPChallenge = (
   authRedirectUrl: string
 ) => Promise<AuthorizationChallengeResult>;
 
@@ -98,7 +98,7 @@ export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
  * @param authRedirectUrl The URL to which the end user should be redirected to start the MRTD PoP validation flow
  * @returns the authorization response which contains the challenge
  */
-export const continueUserAuthorizationWithQueryModeChallenge: ContinueUserAuthorizationWithQueryModeChallenge =
+export const continueUserAuthorizationWithMRTDPoPChallenge: ContinueUserAuthorizationWithMRTDPoPChallenge =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -106,7 +106,26 @@ export const continueUserAuthorizationWithQueryModeChallenge: ContinueUserAuthor
     );
     const query = parseUrl(authRedirectUrl).query;
 
-    return parseAuthorizationChallengeResponse(query);
+    const authResParsed = AuthorizationChallengeResultShape.safeParse(query);
+    if (!authResParsed.success) {
+      const authErr = AuthorizationErrorShape.safeParse(query);
+      if (!authErr.success) {
+        Logger.log(
+          LogLevel.ERROR,
+          `Error while parsing the authorization response: ${authResParsed.error.message}`
+        );
+        throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
+      }
+      Logger.log(
+        LogLevel.ERROR,
+        `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+      );
+      throw new AuthorizationIdpError(
+        authErr.data.error,
+        authErr.data.error_description
+      );
+    }
+    return authResParsed.data;
   };
 
 /**
@@ -287,38 +306,6 @@ export const parseAuthorizationResponse = (
   authRes: unknown
 ): AuthorizationResult => {
   const authResParsed = AuthorizationResultShape.safeParse(authRes);
-  if (!authResParsed.success) {
-    const authErr = AuthorizationErrorShape.safeParse(authRes);
-    if (!authErr.success) {
-      Logger.log(
-        LogLevel.ERROR,
-        `Error while parsing the authorization response: ${authResParsed.error.message}`
-      );
-      throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
-    }
-    Logger.log(
-      LogLevel.ERROR,
-      `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
-    );
-    throw new AuthorizationIdpError(
-      authErr.data.error,
-      authErr.data.error_description
-    );
-  }
-  return authResParsed.data;
-};
-
-/**
- * Parse the authorization challenge response and return the result which contains the challenge.
- * @throws {AuthorizationError} if an error occurs during the parsing process
- * @throws {AuthorizationIdpError} if an error occurs during the parsing process and the error is related to the IDP
- * @param authRes the authorization response to be parsed
- * @returns the authorization result which contains the challenge
- */
-export const parseAuthorizationChallengeResponse = (
-  authRes: unknown
-): AuthorizationChallengeResult => {
-  const authResParsed = AuthorizationChallengeResultShape.safeParse(authRes);
   if (!authResParsed.success) {
     const authErr = AuthorizationErrorShape.safeParse(authRes);
     if (!authErr.success) {
