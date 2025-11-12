@@ -82,7 +82,7 @@ MRTD Verification is a sub-flow of the Issuance flow and is used when the reques
 1. **Primary Authentication**: LoA3 electronic identification (SPID or CIEid L2).
 2. **MRTD Proof of Possession (PoP)**: Electronic document reading and cryptographic verification.
 
-This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithQueryModeChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completeUserAuthorizationWithQueryMode` function.
+This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completeUserAuthorizationWithQueryMode` function.
 
 Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/REzADME.md)
 

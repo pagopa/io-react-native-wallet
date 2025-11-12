@@ -61,7 +61,7 @@ export type BuildAuthorizationUrl = (
 }>;
 
 /**
- * WARNING: his function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID, and the PID
+ * WARNING: this function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID, and the PID
  * issuance requires a MRTD PoP challenge.
  * @param authRedirectUrl The URL to which the end user should be redirected to start the MRTD PoP validation flow
  * @returns the authorization response which contains the challenge

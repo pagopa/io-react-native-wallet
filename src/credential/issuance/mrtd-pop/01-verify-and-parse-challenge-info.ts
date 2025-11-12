@@ -35,7 +35,7 @@ export const verifyAndParseChallengeInfo: VerifyAndParseChallengeInfo = async (
   challengeInfoJwt: string,
   { wiaCryptoContext }
 ) => {
-  // TODOP Validate JWT signature
+  // TODO Validate JWT signature
   /*   
   await verifyJwt(
     challengeInfoJwt,
