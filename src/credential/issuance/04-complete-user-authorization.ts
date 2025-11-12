@@ -61,38 +61,6 @@ export type BuildAuthorizationUrl = (
 }>;
 
 /**
- * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
- * Builds the authorization URL to which the end user should be redirected to continue the authentication flow.
- * @param issuerRequestUri the URI of the issuer where the request is sent
- * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param idpHint Unique identifier of the IDP selected by the user (optional)
- * @returns An object containing the authorization URL
- */
-export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
-  issuerRequestUri,
-  clientId,
-  issuerConf,
-  idpHint
-) => {
-  const authzRequestEndpoint =
-    issuerConf.oauth_authorization_server.authorization_endpoint;
-
-  const params = new URLSearchParams({
-    client_id: clientId,
-    request_uri: issuerRequestUri,
-  });
-
-  if (idpHint) {
-    params.append("idphint", idpHint);
-  }
-
-  const authUrl = `${authzRequestEndpoint}?${params}`;
-
-  return { authUrl };
-};
-
-/**
  * WARNING: his function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID, and the PID
  * issuance requires a MRTD PoP challenge.
  * @param authRedirectUrl The URL to which the end user should be redirected to start the MRTD PoP validation flow
@@ -127,6 +95,38 @@ export const continueUserAuthorizationWithMRTDPoPChallenge: ContinueUserAuthoriz
     }
     return authResParsed.data;
   };
+
+/**
+ * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
+ * Builds the authorization URL to which the end user should be redirected to continue the authentication flow.
+ * @param issuerRequestUri the URI of the issuer where the request is sent
+ * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
+ * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param idpHint Unique identifier of the IDP selected by the user (optional)
+ * @returns An object containing the authorization URL
+ */
+export const buildAuthorizationUrl: BuildAuthorizationUrl = async (
+  issuerRequestUri,
+  clientId,
+  issuerConf,
+  idpHint
+) => {
+  const authzRequestEndpoint =
+    issuerConf.oauth_authorization_server.authorization_endpoint;
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    request_uri: issuerRequestUri,
+  });
+
+  if (idpHint) {
+    params.append("idphint", idpHint);
+  }
+
+  const authUrl = `${authzRequestEndpoint}?${params}`;
+
+  return { authUrl };
+};
 
 /**
  * WARNING: This function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID.

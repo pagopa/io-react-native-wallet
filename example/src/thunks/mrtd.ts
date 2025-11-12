@@ -12,11 +12,11 @@ type InitPidMrtdChallengeInput = {
   authRedirectUrl: string;
 };
 
-type InitPidMrtdChallengeOutput = {
+export type InitPidMrtdChallengeOutput = {
   challenge: string;
   mrtd_auth_session: string;
   mrtd_pop_nonce: string;
-  verifyUrl: string;
+  validationUrl: string;
 };
 
 type VerifyPidMrtdChallengeInput = {
@@ -24,9 +24,8 @@ type VerifyPidMrtdChallengeInput = {
   ias: Credential.Issuance.MRTDPoP.IasPayload;
 };
 
-type VerifyPidMrtdChallengeOutput = {
-  mrtd_val_pop_nonce: string;
-  redirect_uri: string;
+export type VerifyPidMrtdChallengeOutput = {
+  callbackUrl: string;
 };
 
 export const initPidMrtdChallengeThunk = createAppAsyncThunk<
@@ -59,24 +58,27 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
     { wiaCryptoContext }
   );
 
-  const { challenge, mrtd_pop_nonce, htu } =
-    await Credential.Issuance.MRTDPoP.initChallenge(
-      issuerConf,
-      initUrl,
-      mrtd_auth_session,
-      mrtd_pop_jwt_nonce,
-      {
-        walletInstanceAttestation,
-        wiaCryptoContext,
-        appFetch,
-      }
-    );
+  const {
+    htu: validationUrl,
+    challenge,
+    mrtd_pop_nonce,
+  } = await Credential.Issuance.MRTDPoP.initChallenge(
+    issuerConf,
+    initUrl,
+    mrtd_auth_session,
+    mrtd_pop_jwt_nonce,
+    {
+      walletInstanceAttestation,
+      wiaCryptoContext,
+      appFetch,
+    }
+  );
 
   return {
     challenge,
     mrtd_auth_session,
     mrtd_pop_nonce,
-    verifyUrl: htu,
+    validationUrl,
   };
 });
 
@@ -98,14 +100,14 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
 
   const { ias, mrtd } = args;
   const { issuerConf, walletInstanceAttestation } = pidFlowParams;
-  const { verifyUrl, mrtd_auth_session, mrtd_pop_nonce } = mrtdFlowParams;
+  const { validationUrl, mrtd_auth_session, mrtd_pop_nonce } = mrtdFlowParams;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const { mrtd_val_pop_nonce, redirect_uri } =
     await Credential.Issuance.MRTDPoP.validateChallenge(
       issuerConf,
-      verifyUrl,
+      validationUrl,
       mrtd_auth_session,
       mrtd_pop_nonce,
       mrtd,
@@ -117,8 +119,13 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
       }
     );
 
-  return {
-    mrtd_val_pop_nonce,
+  const { callbackUrl } = await Credential.Issuance.buildChallengeCallbackUrl(
     redirect_uri,
+    mrtd_val_pop_nonce,
+    mrtd_auth_session
+  );
+
+  return {
+    callbackUrl,
   };
 });

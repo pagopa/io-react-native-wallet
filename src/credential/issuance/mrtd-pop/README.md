@@ -4,7 +4,7 @@
 
 The MRTD-PoP flow is used to prove possession of an MRTD (such as a CIE) during the issuance of high-assurance credentials. The process involves a challenge-response protocol between the wallet and the issuer, leveraging JWTs and cryptographic attestation.
 
-This flow is part of the [PID issuance flow](../README.md) and must be started after the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once MRTD PoP is completed, the PID issuance can continue with the `authorizeAccess` function with the data obtained with the challenge validation.
+This flow is part of the [PID issuance flow](../README.md) and must be started after the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once MRTD PoP is completed, the PID issuance flow must continue with the `completeUserAuthorizationWithQueryMode` function with the authorization url obtained from the validation.
 
 ## Sequence Diagram
 
@@ -29,43 +29,62 @@ graph TD;
 ## Example
 
 ```typescript
-import {
-  verifyAndParseChallengeInfo,
-  initChallenge,
-  validateChallenge,
-} from "./mrtd-pop";
-import type { MrtdPayload, IasPayload } from "./mrtd-pop/types";
-
-// 1. Verify and parse the challenge info JWT received from the issuer
-const challengeInfo = await verifyAndParseChallengeInfo(
+// Verify and parse challenge info and extract challenge data: initialization url, session and nonce
+const {
+  htu: initUrl,
+  mrtd_auth_session,
+  mrtd_pop_jwt_nonce,
+} = await Credential.Issuance.MRTDPoP.verifyAndParseChallengeInfo(
   issuerConf,
-  challengeInfoJwt,
+  challenge_info,
   { wiaCryptoContext }
 );
 
-// 2. Initialize the challenge with the issuer
-const challenge = await initChallenge(
+// Initialize challenge and obtain the challenge text to sign the CIE PACE protocol and validation url
+const {
+  htu: validationUrl,
+  challenge,
+  mrtd_pop_nonce,
+} = await Credential.Issuance.MRTDPoP.initChallenge(
   issuerConf,
-  challengeInfo.htu, // initUrl
-  challengeInfo.mrtd_auth_session,
-  challengeInfo.mrtd_pop_jwt_nonce,
-  { wiaCryptoContext, walletInstanceAttestation }
+  initUrl,
+  mrtd_auth_session,
+  mrtd_pop_jwt_nonce,
+  {
+    walletInstanceAttestation,
+    wiaCryptoContext,
+    appFetch,
+  }
 );
 
-// 3. After reading the MRTD (CIE) and obtaining the payloads:
-const mrtd: MrtdPayload = /* ... */;
-const ias: IasPayload = /* ... */;
+// CIE cryptographic interaction: you need to sign the challenge with the CIE through NFC interaction
+const { nis, mrtds } = /* NFC interactions functions */
 
-// 4. Validate the challenge with the issuer
-const verificationResult = await validateChallenge(
-  issuerConf,
-  challenge.htu, // verifyUrl
-  challengeInfo.mrtd_auth_session,
-  challenge.mrtd_pop_nonce,
-  mrtd,
-  ias,
-  { wiaCryptoContext, walletInstanceAttestation }
+// Validate challenge
+const { mrtd_val_pop_nonce, redirect_uri } =
+  await Credential.Issuance.MRTDPoP.validateChallenge(
+    issuerConf,
+    validationUrl,
+    mrtd_auth_session,
+    mrtd_pop_nonce,
+    mrtd,
+    ias,
+    {
+      walletInstanceAttestation,
+      wiaCryptoContext,
+      appFetch,
+    }
+  );
+
+// Build the callback url
+const { callbackUrl } = await Credential.Issuance.buildChallengeCallbackUrl(
+  redirect_uri,
+  mrtd_val_pop_nonce,
+  mrtd_auth_session
 );
 
-// Use the verificationResult to continue the PID issuance flow
+// The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
+const authRedirectUrl = /* From a browser or webview redirect */
+
+// Use the authRedirectUrl to continue the PID issuance flow
 ```

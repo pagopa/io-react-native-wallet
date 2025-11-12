@@ -121,7 +121,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
       issuerConf,
       [credentialId],
       withMRTDPoP
-        ? { proofType: "document", idpHinting: idpHint }
+        ? { proofType: "mrtd-pop", idpHinting: idpHint }
         : { proofType: "none" },
       {
         walletInstanceAttestation,

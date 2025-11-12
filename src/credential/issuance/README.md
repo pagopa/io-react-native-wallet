@@ -25,7 +25,7 @@ graph TD;
     credSel{Is credential an eID?}
     proofSel{Requires MRTD PoP?}
     M1[continueUserAuthorizationWithMRTDPoPChallenge]
-    subgraph MRTD PoP
+    subgraph MRTD PoP flow
     M2[verifyAndParseChallengeInfo]
     M3[initChallenge]
     M4[validateChallenge]
@@ -49,9 +49,8 @@ graph TD;
     M2 --> M3
     M3 --> M4
     M4 --> E4
-```
 
-````
+```
 
 ## Mapped results
 
@@ -78,14 +77,14 @@ The expected result from the authentication process is in provided in the query 
 
 #### eID Substantial Authentication (L2+) with MRTD Verification
 
-This flow is used when the requested eID requires **eID Substantial Authentication (LoA3) with MRTD (Machine Readable Travel Document) Verification**. This method provides an alternative to CIEid LoA High authentication, requiring two distinct steps to complete the authorization:
+MRTD Verification is a sub-flow of the Issuance flow and is used when the requested eID requires **eID Substantial Authentication (LoA3) with MRTD (Machine Readable Travel Document) Verification**. This method provides an alternative to CIEid LoA High authentication, requiring two distinct steps to complete the authorization:
 
 1. **Primary Authentication**: LoA3 electronic identification (SPID or CIEid L2).
 2. **MRTD Proof of Possession (PoP)**: Electronic document reading and cryptographic verification.
 
 This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithQueryModeChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completeUserAuthorizationWithQueryMode` function.
 
-Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/README.md)
+Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/REzADME.md)
 
 ## Authentication through credentials (Form Post JWT Mode)
 
@@ -151,6 +150,7 @@ const { issuerRequestUri, clientId, codeVerifier } =
   await Credential.Issuance.startUserAuthorization(
     issuerConf,
     [credentialId],
+    { proofType: "none" },
     {
       walletInstanceAttestation,
       redirectUri: REDIRECT_URI,
@@ -246,7 +246,7 @@ return {
   credentialType,
   credentialConfigurationId: credential_configuration_id,
 };
-````
+```
 
 </details>
 
@@ -312,6 +312,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
   await Credential.Issuance.startUserAuthorization(
     issuerConf,
     [credentialId], // Request authorization for one or more credentials
+    { proofType: "none" },
     {
       walletInstanceAttestation,
       redirectUri,
@@ -323,12 +324,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
 // Complete the authorization process with query mode with the authorizationContext which opens the browser
 const { code } =
   await Credential.Issuance.completeUserAuthorizationWithQueryMode(
-    issuerRequestUri,
-    clientId,
-    issuerConf,
-    idpHint,
-    redirectUri,
-    authorizationContext
+    issuerRequestUri
   );
 
 // Create DPoP context which will be used for the whole issuance flow
@@ -393,6 +389,120 @@ return {
   keyTag: credentialKeyTag,
   issuedAt,
   expiration
+};
+```
+
+The result of this flow is a raw credential and a parsed credential which must be stored securely in the wallet along with its crypto key.
+
+</details>
+
+<details>
+  <summary>eID issuance flow with MRTD PoP validation</summary>
+
+```ts
+/**
+ *
+ * Previous steps are the sames as the "eID issuance flow" example
+ *
+ */
+
+// Start user authorization indicating "mrtd-pop" as the proof type with the idpHint of the
+// chosen identification methos
+const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
+  await Credential.Issuance.startUserAuthorization(
+    issuerConf,
+    [credentialId],
+    { proofType: "mrtd-pop", idpHinting: idpHint },
+    {
+      walletInstanceAttestation,
+      redirectUri: redirectUri,
+      wiaCryptoContext,
+      appFetch,
+    }
+  );
+
+// Obtain the Authorization URL
+const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+  issuerRequestUri,
+  clientId,
+  issuerConf,
+  idpHint
+);
+
+// Extract challenge info from the Authorization URL
+const { challenge_info } =
+  await Credential.Issuance.continueUserAuthorizationWithMRTDPoPChallenge(
+    authUrl
+  );
+
+// Verify and parse challenge info and extract challenge data: initialization url, session and nonce
+const {
+  htu: initUrl,
+  mrtd_auth_session,
+  mrtd_pop_jwt_nonce,
+} = await Credential.Issuance.MRTDPoP.verifyAndParseChallengeInfo(
+  issuerConf,
+  challenge_info,
+  { wiaCryptoContext }
+);
+
+// Initialize challenge and obtain the challenge text to sign the CIE PACE protocol and validation url
+const {
+  htu: validationUrl,
+  challenge,
+  mrtd_pop_nonce,
+} = await Credential.Issuance.MRTDPoP.initChallenge(
+  issuerConf,
+  initUrl,
+  mrtd_auth_session,
+  mrtd_pop_jwt_nonce,
+  {
+    walletInstanceAttestation,
+    wiaCryptoContext,
+    appFetch,
+  }
+);
+
+// CIE cryptographic interaction: you need to sign the challenge with the CIE through NFC interaction
+const { nis, mrtds } = /* NFC interactions functions */
+
+// Validate challenge
+const { mrtd_val_pop_nonce, redirect_uri } =
+  await Credential.Issuance.MRTDPoP.validateChallenge(
+    issuerConf,
+    validationUrl,
+    mrtd_auth_session,
+    mrtd_pop_nonce,
+    mrtd,
+    ias,
+    {
+      walletInstanceAttestation,
+      wiaCryptoContext,
+      appFetch,
+    }
+  );
+
+// Build the callback url
+const { callbackUrl } = await Credential.Issuance.buildChallengeCallbackUrl(
+  redirect_uri,
+  mrtd_val_pop_nonce,
+  mrtd_auth_session
+);
+
+// The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
+const authRedirectUrl = /* From a browser or webview redirect */
+
+// Complete the authorization process with query mode using the returned callback url
+const { code } =
+  await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+    authRedirectUrl
+  );
+
+/**
+ *
+ * The next steps are the same as the "eID issuance flow" example
+ *
+ */
 };
 ```
 

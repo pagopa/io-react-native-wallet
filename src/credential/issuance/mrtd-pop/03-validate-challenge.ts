@@ -10,6 +10,7 @@ import {
   type IasPayload,
   type MrtdPayload,
 } from "./types";
+import type { VerifyAndParseChallengeInfo } from "./01-verify-and-parse-challenge-info";
 
 export type ValidateChallenge = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -24,6 +25,14 @@ export type ValidateChallenge = (
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<MrtdPopVerificationResult>;
+
+export type BuildChallengeCallbackUrl = (
+  redirectUri: Out<ValidateChallenge>["redirect_uri"],
+  valPopNonce: Out<ValidateChallenge>["mrtd_val_pop_nonce"],
+  authSession: Out<VerifyAndParseChallengeInfo>["mrtd_auth_session"]
+) => Promise<{
+  callbackUrl: string;
+}>;
 
 /**
  * Validates the MRTD signed challenge by sending the MRTD and IAS payloads to the issuer.
@@ -106,4 +115,26 @@ export const validateChallenge: ValidateChallenge = async (
 
   const verifyResultParsed = MrtdPopVerificationResult.parse(verifyResult);
   return verifyResultParsed;
+};
+
+/**
+ * WARNING: This function must be called after {@link validateChallenge}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
+ * Builds the callback URL to which the end user should be redirected to continue the authentication flow after the MRTD challenge validation.
+ * @param redirectUri - The redirect URI provided by the issuer aftyer the challenge validation to continue the authentication flow.
+ * @param valPopNonce - The MRTD validation PoP nonce obtained from the challenge validation response.
+ * @param authSession - The MRTD authentication session identifier used for session binding.
+ * @returns An object containing the callback URL
+ */
+export const buildChallengeCallbackUrl: BuildChallengeCallbackUrl = async (
+  redirectUri,
+  valPopNonce,
+  authSession
+) => {
+  const params = new URLSearchParams({
+    mrtd_val_pop_nonce: valPopNonce,
+    mrtd_auth_session: authSession,
+  });
+
+  const callbackUrl = `${redirectUri}?${params}`;
+  return { callbackUrl };
 };

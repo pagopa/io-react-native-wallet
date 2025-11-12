@@ -4,24 +4,14 @@ import { asyncStatusInitial } from "../utils";
 import {
   initPidMrtdChallengeThunk,
   validatePidMrtdChallengeThunk,
+  type InitPidMrtdChallengeOutput,
+  type VerifyPidMrtdChallengeOutput,
 } from "../../thunks/mrtd";
-
-type MrtdFlowParams = {
-  challenge: string;
-  verifyUrl: string;
-  mrtd_auth_session: string;
-  mrtd_pop_nonce: string;
-};
-
-type MrtdValidationResult = {
-  mrtd_val_pop_nonce: string;
-  redirect_uri: string;
-};
 
 type MrtdState = {
   asyncStatus: AsyncStatus;
-  flowParams?: MrtdFlowParams;
-  validation?: MrtdValidationResult;
+  flowParams?: InitPidMrtdChallengeOutput;
+  validation?: VerifyPidMrtdChallengeOutput;
 };
 
 const initialState: MrtdState = {
@@ -90,3 +80,6 @@ export const selectMrtdFlowParams = (state: RootState) => state.mrtd.flowParams;
 
 export const selectMrtdChallenge = (state: RootState) =>
   state.mrtd.flowParams?.challenge;
+
+export const selectMrtdChallengeCallbackUrl = (state: RootState) =>
+  state.mrtd.validation?.callbackUrl;

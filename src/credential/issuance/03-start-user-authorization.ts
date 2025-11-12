@@ -9,7 +9,7 @@ import { LogLevel, Logger } from "../../utils/logging";
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   credentialIds: string[],
-  proof: { proofType: "none" } | { proofType: "document"; idpHinting: string },
+  proof: { proofType: "none" } | { proofType: "mrtd-pop"; idpHinting: string },
   context: {
     wiaCryptoContext: CryptoContext;
     walletInstanceAttestation: string;
@@ -164,7 +164,7 @@ export const startUserAuthorization: StartUserAuthorization = async (
     ...credentialIds.map((c) => selectCredentialDefinition(issuerConf, c)),
   ];
 
-  if (proof.proofType === "document") {
+  if (proof.proofType === "mrtd-pop") {
     /**
      * When we requests a PID using eID Substantial Authentication with MRTD Verification, we must include
      * an additional Authorization Details Object in the authorization_details

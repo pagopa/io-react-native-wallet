@@ -49,6 +49,7 @@ describe("startUserAuthorization", () => {
     const result = await startUserAuthorization(
       mockIssuerConf,
       ["PersonIdentificationData"],
+      { proofType: "none" },
       {
         wiaCryptoContext: ephemeralContext,
         redirectUri: "https://redirect",
@@ -75,12 +76,17 @@ describe("startUserAuthorization", () => {
 
     const mockFetch = createMockFetch();
 
-    const result = await startUserAuthorization(mockIssuerConf, ["TS", "MDL"], {
-      wiaCryptoContext: ephemeralContext,
-      redirectUri: "https://redirect",
-      walletInstanceAttestation: mockWia,
-      appFetch: mockFetch,
-    });
+    const result = await startUserAuthorization(
+      mockIssuerConf,
+      ["TS", "MDL"],
+      { proofType: "none" },
+      {
+        wiaCryptoContext: ephemeralContext,
+        redirectUri: "https://redirect",
+        walletInstanceAttestation: mockWia,
+        appFetch: mockFetch,
+      }
+    );
 
     expect(result.issuerRequestUri).toEqual("https://issuer.example/123456");
     expect(result.credentialDefinition).toEqual([
@@ -109,6 +115,7 @@ describe("startUserAuthorization", () => {
       await startUserAuthorization(
         mockIssuerConf,
         ["PersonIdentificationData", "MDL"],
+        { proofType: "none" },
         {
           wiaCryptoContext: ephemeralContext,
           redirectUri: "https://redirect",
