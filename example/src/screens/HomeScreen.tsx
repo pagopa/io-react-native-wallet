@@ -11,7 +11,7 @@ import { Alert, FlatList, SafeAreaView } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectPid } from "../store/reducers/pid";
+import { selectPidSdJwt } from "../store/reducers/pid";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
 import { useAppSelector } from "../store/utils";
 
@@ -24,7 +24,7 @@ type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 const HomeScreen = () => {
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
-  const pid = useAppSelector(selectPid);
+  const pid = useAppSelector(selectPidSdJwt);
   const session = useAppSelector(selectIoAuthToken);
   const credentials = useAppSelector(selectCredentials);
 

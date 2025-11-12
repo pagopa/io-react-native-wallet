@@ -12,7 +12,7 @@ import TestScenario, {
 import { FlatList } from "react-native";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { selectPid } from "../store/reducers/pid";
+import { selectPidSdJwt } from "../store/reducers/pid";
 
 /**
  * This component (screen in a future PR) is used to test the status assertion functionalities for the credentials already obtained.
@@ -23,7 +23,7 @@ export const StatusAssertionScreen = () => {
   const statusAssertion = useAppSelector(selectStatusAssertions);
   const asyncStatus = useAppSelector(selectStatusAssertionAsyncStatuses);
 
-  const pid = useAppSelector(selectPid);
+  const pid = useAppSelector(selectPidSdJwt);
   const mDL = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
   const dc = useAppSelector(
     selectCredential("dc_sd_jwt_EuropeanDisabilityCard")

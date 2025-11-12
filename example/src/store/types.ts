@@ -33,7 +33,8 @@ export type AsyncStatus = {
  * This simplifies the type definition of the `credential` store.
  */
 export type SupportedCredentials =
-  | "PersonIdentificationData"
+  | "dc_sd_jwt_PersonIdentificationData"
+  | "mso_mdoc_PersonIdentificationData"
   | "dc_sd_jwt_mDL"
   | "mso_mdoc_mDL"
   | "dc_sd_jwt_EuropeanDisabilityCard"
@@ -47,7 +48,7 @@ export type SupportedCredentials =
  */
 export type SupportedCredentialsWithoutPid = Exclude<
   SupportedCredentials,
-  "PersonIdentificationData"
+  "dc_sd_jwt_PersonIdentificationData" | "mso_mdoc_PersonIdentificationData"
 >;
 
 /**
@@ -74,16 +75,27 @@ export type CredentialResult = CredentialResultBase & {
 };
 
 /**
+ * Type definition to represent the PID credentials in the store.
+ */
+export type PidType = {
+  sd_jwt: PidResult | undefined;
+  mso_mdoc: PidResult | undefined;
+};
+
+/**
  * Type definition to represent a PID result to be used in the store.
  */
 export type PidResult = CredentialResultBase & {
-  credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
+  credentialType: Extract<
+    SupportedCredentials,
+    "dc_sd_jwt_PersonIdentificationData" | "mso_mdoc_PersonIdentificationData"
+  >;
 };
 
 /**
  * Authentication methods for the PID authentication flow.
  */
-export type PidAuthMethods = "spid" | "cieL2" | "cieL3";
+export type PidAuthMethods = "spid" | "cieL2" | "cieL3" | "noAuth";
 
 /**
  * Possible environments in the store.
