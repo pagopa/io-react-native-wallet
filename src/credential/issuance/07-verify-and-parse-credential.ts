@@ -435,7 +435,8 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   credential,
   credentialConfigurationId,
   { credentialCryptoContext, ignoreMissingAttributes },
-  x509CertRoot
+  x509CertRoot,
+  x509CertVerificationOptions
 ) => {
   if (!x509CertRoot) {
     throw new IoWalletError("Missing x509CertRoot");
@@ -444,7 +445,8 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   const decoded = await verifyCredentialMDoc(
     credential,
     x509CertRoot,
-    credentialCryptoContext
+    credentialCryptoContext,
+    x509CertVerificationOptions
   );
 
   const credentialConfig =
@@ -508,7 +510,8 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   credential,
   credentialConfigurationId,
   context,
-  x509CertRoot
+  x509CertRoot,
+  x509CertVerificationOptions
 ) => {
   const format =
     issuerConf.openid_credential_issuer.credential_configurations_supported[
@@ -532,7 +535,8 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
         credential,
         credentialConfigurationId,
         context,
-        x509CertRoot
+        x509CertRoot,
+        x509CertVerificationOptions
       );
     }
 
