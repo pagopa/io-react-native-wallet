@@ -19,6 +19,8 @@ import {
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import type { PidResult, SupportedCredentials } from "../store/types";
+import { selectEnv } from "../store/reducers/environment";
+import { getEnv } from "../utils/environment";
 
 type getPidThunkInput = {
   credentialType: Extract<
@@ -44,6 +46,9 @@ export const getPidNoAuthThunk = createAppAsyncThunk<
 >(
   "pidNoAuth/flowParamsPrepare",
   async ({ credentialType }, { getState, dispatch }) => {
+    const env = selectEnv(getState());
+    const { REDIRECT_URI } = getEnv(env);
+
     // Checks if the wallet instance attestation needs to be reuqested
     if (shouldRequestAttestationSelector(getState())) {
       await dispatch(getAttestationThunk());
@@ -99,7 +104,7 @@ export const getPidNoAuthThunk = createAppAsyncThunk<
       throw new Error("Custom tabs are not supported");
     }
 
-    const baseRedirectUri = new URL("iowallet://cb").protocol.replace(":", "");
+    const baseRedirectUri = new URL(REDIRECT_URI).protocol.replace(":", "");
 
     // Open the authorization URL in the custom tab
     const authRedirectUrl = await openAuthenticationSession(
