@@ -1,5 +1,6 @@
 import { RelyingPartyResponseError } from "../../utils/errors";
 import { hasStatusOrThrow } from "../../utils/misc";
+import { LogLevel, Logger } from "../../utils/logging";
 import { RequestObjectWalletCapabilities } from "./types";
 
 export type GetRequestObject = (
@@ -54,6 +55,11 @@ export const getRequestObject: GetRequestObject = async (
   })
     .then(hasStatusOrThrow(200, RelyingPartyResponseError))
     .then((res) => res.text());
+
+  Logger.log(
+    LogLevel.DEBUG,
+    "Fetched Request Object JWT: " + requestObjectEncodedJwt
+  );
 
   return {
     requestObjectEncodedJwt,

@@ -7,7 +7,11 @@ import {
   getRequestObject,
   type GetRequestObject,
 } from "./03-get-request-object";
-import { getJwksFromConfig, type FetchJwks } from "./04-retrieve-rp-jwks";
+import {
+  getJwksFromConfig,
+  fetchJwksFromRequestObject,
+  type FetchJwks,
+} from "./04-retrieve-rp-jwks";
 import {
   verifyRequestObject,
   type VerifyRequestObject,
@@ -43,6 +47,7 @@ export {
   evaluateRelyingPartyTrust,
   getRequestObject,
   getJwksFromConfig,
+  fetchJwksFromRequestObject,
   verifyRequestObject,
   fetchPresentDefinition,
   evaluateInputDescriptors,

@@ -1,15 +1,18 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
-import { getJwksFromConfig } from "./04-retrieve-rp-jwks";
+import { getJwksFromConfig, type FetchJwks } from "./04-retrieve-rp-jwks";
 import type { RelyingPartyEntityConfiguration } from "../../trust/types";
+import type { Out } from "../../utils/misc";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
   context: {
+    jwkKeys: Out<FetchJwks>["keys"];
     clientId: string;
-    rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"];
-    rpSubject: string;
+    // rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"];
+    // rpSubject: string;
     state?: string;
   }
 ) => Promise<{ requestObject: RequestObject }>;
@@ -25,15 +28,22 @@ export type VerifyRequestObject = (
  */
 export const verifyRequestObject: VerifyRequestObject = async (
   requestObjectEncodedJwt,
-  { clientId, rpConf, rpSubject, state }
+  { clientId, jwkKeys, state }
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
-  const pubKey = getSigPublicKey(rpConf, requestObjectJwt.protectedHeader.kid);
+  // const pubKey = getSigPublicKey(rpConf, requestObjectJwt.protectedHeader.kid);
+  const pubKey = jwkKeys.find(({ use }) => use === "sig");
+
+  if (!pubKey) {
+    throw new InvalidRequestObjectError(
+      "The Request Object signature verification failed"
+    );
+  }
 
   try {
     // Standard claims are verified within `verify`
-    await verify(requestObjectEncodedJwt, pubKey, { issuer: clientId });
+    await verify(requestObjectEncodedJwt, pubKey);
   } catch (_) {
     throw new InvalidRequestObjectError(
       "The Request Object signature verification failed"
@@ -42,6 +52,7 @@ export const verifyRequestObject: VerifyRequestObject = async (
 
   const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
 
+  /*
   const isClientIdMatch =
     clientId === requestObject.client_id && clientId === rpSubject;
 
@@ -58,7 +69,12 @@ export const verifyRequestObject: VerifyRequestObject = async (
     throw new InvalidRequestObjectError(
       "The provided state does not match the Request Object's"
     );
-  }
+  } */
+
+  Logger.log(
+    LogLevel.DEBUG,
+    "Verified Request Object: " + JSON.stringify(requestObject, null, 2)
+  );
 
   return { requestObject };
 };
@@ -91,12 +107,12 @@ const validateRequestObjectShape = (payload: unknown): RequestObject => {
  * @returns The corresponding public key to verify the signature
  * @throws {InvalidRequestObjectError} when the key cannot be found
  */
-const getSigPublicKey = (
+const getSigPublicKey = async (
   rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
   kid: string | undefined
 ) => {
   try {
-    const { keys } = getJwksFromConfig(rpConf);
+    const { keys } = await getJwksFromConfig(rpConf);
 
     const pubKey = keys.find((k) => k.kid === kid);
 

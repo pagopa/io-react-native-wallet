@@ -70,12 +70,35 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       | "post",
   });
 
-  const { rpConf, subject } =
-    await Credential.Presentation.evaluateRelyingPartyTrust(qrParams.client_id);
+  if (qrParams.client_id.startsWith("x509_hash:")) {
+    const [, hash] = qrParams.client_id.split("x509_hash:");
+    console.log("x509_hash:", hash);
+  }
+
+  if (qrParams.client_id.startsWith("openid_federation:")) {
+    const { rpConf, subject } =
+      await Credential.Presentation.evaluateRelyingPartyTrust(
+        qrParams.client_id
+      );
+  }
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(qrParams.request_uri);
 
+  const { keys } = await Credential.Presentation.fetchJwksFromRequestObject(
+    requestObjectEncodedJwt
+  );
+
+  const ro = await Credential.Presentation.verifyRequestObject(
+    requestObjectEncodedJwt,
+    {
+      clientId: qrParams.client_id,
+      jwkKeys: keys,
+    }
+  );
+
+  return {};
+  /*
   const { requestObject } = await Credential.Presentation.verifyRequestObject(
     requestObjectEncodedJwt,
     {
@@ -118,7 +141,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     return processLegacyPresentation(requestObject, rpConf, credentialsSdJwt);
   }
 
-  throw new Error("Invalid request object");
+  throw new Error("Invalid request object"); */
 });
 
 // Presentation definition flow

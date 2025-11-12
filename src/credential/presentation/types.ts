@@ -1,6 +1,7 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { UnixTime } from "../../sd-jwt/types";
 import * as z from "zod";
+import { UnixTime } from "../../sd-jwt/types";
+import { JWKS } from "../../utils/jwk";
 
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
@@ -90,19 +91,26 @@ export const PresentationDefinition = z.object({
 
 export type RequestObject = z.infer<typeof RequestObject>;
 export const RequestObject = z.object({
-  iss: z.string(),
-  iat: UnixTime,
-  exp: UnixTime,
+  iss: z.string().optional(),
+  aud: z.string().optional(),
+  iat: UnixTime.optional(),
+  exp: UnixTime.optional(),
   state: z.string().optional(),
   nonce: z.string(),
   response_uri: z.string(),
-  request_uri_method: z.string().optional(),
   response_type: z.literal("vp_token"),
   response_mode: z.literal("direct_post.jwt"),
   client_id: z.string(),
   dcql_query: z.record(z.string(), z.any()).optional(), // Validation happens within the `dcql` library, no need to duplicate it here
   scope: z.string().optional(),
-  presentation_definition: PresentationDefinition.optional(),
+  client_metadata: z
+    .object({
+      jwks: JWKS.optional(),
+      jwks_uri: z.string().optional(),
+      encrypted_response_enc_values_supported: z.array(z.string()).optional(),
+      vp_formats_supported: z.record(z.string(), z.any()).optional(),
+    })
+    .optional(),
 });
 
 export type WalletMetadata = z.infer<typeof WalletMetadata>;
