@@ -30,10 +30,10 @@ export const StatusAssertionScreen = () => {
   );
 
   useDebugInfo({
-    pidStatusAssertionState: asyncStatus.PersonIdentificationData,
+    pidStatusAssertionState: asyncStatus.dc_sd_jwt_PersonIdentificationData,
     mdlStatusAssertionState: asyncStatus.dc_sd_jwt_mDL,
     dcStatusAssertionState: asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
-    pidStatusAssertion: statusAssertion.PersonIdentificationData,
+    pidStatusAssertion: statusAssertion.dc_sd_jwt_PersonIdentificationData,
     mdlStatusAssertion: statusAssertion.dc_sd_jwt_mDL,
     dcStatusAssertion: statusAssertion.dc_sd_jwt_EuropeanDisabilityCard,
   });
@@ -44,15 +44,15 @@ export const StatusAssertionScreen = () => {
       onPress: () =>
         dispatch(
           getCredentialStatusAssertionThunk({
-            credentialType: "PersonIdentificationData",
+            credentialType: "dc_sd_jwt_PersonIdentificationData",
             format: pid.format,
             credential: pid.credential,
             keyTag: pid.keyTag,
           })
         ),
-      ...asyncStatus.PersonIdentificationData,
+      ...asyncStatus.dc_sd_jwt_PersonIdentificationData,
       icon: "fiscalCodeIndividual",
-      isPresent: !!statusAssertion.PersonIdentificationData,
+      isPresent: !!statusAssertion.dc_sd_jwt_PersonIdentificationData,
     },
     mDL && {
       title: "Get Status Assertion (MDL)",
