@@ -1,9 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import {
-  remoteCrossDevicePresentationThunk as remoteCrossDevicePresentationThunk,
-  type RequestObject,
-} from "../../thunks/presentation";
+import { remoteCrossDevicePresentationThunk } from "../../thunks/presentation";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
@@ -18,8 +15,6 @@ import { sessionReset } from "./sesssion";
 type SinglePresentationState = {
   redirectUri: string | undefined;
   asyncStatus: AsyncStatus;
-  requestObject: RequestObject | undefined;
-  requestedClaims: string[] | undefined;
 };
 
 /**
@@ -42,14 +37,10 @@ export type PresentationStateKeys = keyof PresentationState;
 const initialState: PresentationState = {
   acceptanceState: {
     redirectUri: undefined,
-    requestObject: undefined,
-    requestedClaims: undefined,
     asyncStatus: { ...asyncStatusInitial },
   },
   refusalState: {
     redirectUri: undefined,
-    requestObject: undefined,
-    requestedClaims: undefined,
     asyncStatus: { ...asyncStatusInitial },
   },
 };
@@ -70,10 +61,6 @@ const presentationSlice = createSlice({
       (state, action) => {
         state[action.meta.arg.allowed].redirectUri =
           action.payload.authResponse.redirect_uri;
-        state[action.meta.arg.allowed].requestObject =
-          action.payload.requestObject;
-        state[action.meta.arg.allowed].requestedClaims =
-          action.payload.requestedClaims;
         state[action.meta.arg.allowed].asyncStatus.isDone = true;
         state[action.meta.arg.allowed].asyncStatus.isLoading =
           initialState[action.meta.arg.allowed].asyncStatus.isLoading;

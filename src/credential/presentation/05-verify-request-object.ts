@@ -33,7 +33,10 @@ export const verifyRequestObject: VerifyRequestObject = async (
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
   // const pubKey = getSigPublicKey(rpConf, requestObjectJwt.protectedHeader.kid);
-  const pubKey = jwkKeys.find(({ use }) => use === "sig");
+  // verify token signature to ensure the request object is authentic
+  const pubKey =
+    jwkKeys.find(({ kid }) => kid === requestObjectJwt.protectedHeader.kid) ||
+    jwkKeys.find(({ use }) => use === "sig");
 
   if (!pubKey) {
     throw new InvalidRequestObjectError(

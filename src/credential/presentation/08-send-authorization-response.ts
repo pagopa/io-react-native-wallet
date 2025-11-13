@@ -1,24 +1,30 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
-import uuid from "react-native-uuid";
-import { type FetchJwks, getJwksFromConfig } from "./04-retrieve-rp-jwks";
+import { type FetchJwks } from "./04-retrieve-rp-jwks";
 import type { VerifyRequestObject } from "./05-verify-request-object";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
-import { hasStatusOrThrow, type Out } from "../../utils/misc";
+import {
+  generateRandomAlphaNumericString,
+  hasStatusOrThrow,
+  type Out,
+} from "../../utils/misc";
 import {
   DirectAuthorizationBodyPayload,
   ErrorResponse,
-  type LegacyRemotePresentation,
+  type PrepareRemotePresentations,
   type RemotePresentation,
 } from "./types";
 import * as z from "zod";
 import type { JWK } from "../../utils/jwk";
 import {
+  IoWalletError,
   RelyingPartyResponseError,
   RelyingPartyResponseErrorCodes,
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
-import type { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { prepareVpToken } from "../../sd-jwt";
+import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+import { LogLevel, Logger } from "../../utils/logging";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -37,6 +43,9 @@ export const AuthorizationResponse = z.object({
  * Selects a public key (with `use = enc`) from the set of JWK keys
  * offered by the Relying Party (RP) for encryption.
  *
+ * Preference is given to EC keys (P-256 or P-384), followed by RSA keys,
+ * based on compatibility and common usage for encryption.
+ *
  * @param rpJwkKeys - The array of JWKs retrieved from the RP entity configuration.
  * @returns The first suitable public key found in the list.
  * @throws {NoSuitableKeysFoundInEntityConfiguration} If no suitable encryption key is found.
@@ -44,7 +53,18 @@ export const AuthorizationResponse = z.object({
 export const choosePublicKeyToEncrypt = (
   rpJwkKeys: Out<FetchJwks>["keys"]
 ): JWK => {
-  const encKey = rpJwkKeys.find((jwk) => jwk.use === "enc");
+  // First try to find RSA keys which are more commonly used for encryption
+  const encKeys = rpJwkKeys.filter((jwk) => jwk.use === "enc");
+
+  // Prioritize EC keys first, then fall back to RSA keys if needed
+  // io-react-native-jwt support only EC keys with P-256 or P-384 curves
+  const ecEncKeys = encKeys.filter(
+    (jwk) => jwk.kty === "EC" && (jwk.crv === "P-256" || jwk.crv === "P-384")
+  );
+  const rsaEncKeys = encKeys.filter((jwk) => jwk.kty === "RSA");
+
+  // Select the first available key based on priority
+  const encKey = ecEncKeys[0] || rsaEncKeys[0] || encKeys[0];
 
   if (encKey) {
     return encKey;
@@ -65,9 +85,10 @@ export const choosePublicKeyToEncrypt = (
  * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body, where `response` contains the encrypted JWE.
  */
 export const buildDirectPostJwtBody = async (
+  jwkKeys: Out<FetchJwks>["keys"],
   requestObject: Out<VerifyRequestObject>["requestObject"],
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  payload: DirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload,
+  generatedNonce?: string
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
@@ -76,23 +97,19 @@ export const buildDirectPostJwtBody = async (
     state: requestObject.state,
     ...payload,
   });
-  // Choose a suitable public key for encryption
-  const { keys } = getJwksFromConfig(rpConf);
-  const encPublicJwk = choosePublicKeyToEncrypt(keys);
+
+  const encPublicJwk = choosePublicKeyToEncrypt(jwkKeys);
+  const { client_metadata } = requestObject;
 
   // Encrypt the authorization payload
-  const {
-    authorization_encrypted_response_alg,
-    authorization_encrypted_response_enc,
-  } = rpConf.openid_credential_verifier;
+  const { encrypted_response_enc_values_supported } = client_metadata;
 
   const defaultAlg: Jwe["alg"] =
     encPublicJwk.kty === "EC" ? "ECDH-ES" : "RSA-OAEP-256";
 
   const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
-    alg: (authorization_encrypted_response_alg as Jwe["alg"]) || defaultAlg,
-    enc:
-      (authorization_encrypted_response_enc as Jwe["enc"]) || "A256CBC-HS512",
+    alg: defaultAlg,
+    enc: "A256CBC-HS512",
     kid: encPublicJwk.kid,
   }).encrypt(encPublicJwk);
 
@@ -135,70 +152,46 @@ export const buildDirectPostBody = async (
 /**
  * Type definition for the function that sends the authorization response
  * to the Relying Party, completing the presentation flow.
- * Use with `presentation_definition`.
- * @deprecated Use `sendAuthorizationResponse`
  */
-export type SendLegacyAuthorizationResponse = (
+export type SendAuthorizationResponseDcql = (
   requestObject: Out<VerifyRequestObject>["requestObject"],
-  presentationDefinitionId: string,
-  remotePresentations: LegacyRemotePresentation[],
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
+  jwkKeys: Out<FetchJwks>["keys"],
+  remotePresentation: RemotePresentation,
   context?: {
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<AuthorizationResponse>;
 
-/**
- * Sends the authorization response to the Relying Party (RP) using the specified `response_mode`.
- * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
- *
- * @param requestObject - The request details, including presentation requirements.
- * @param presentationDefinition - The definition of the expected presentation.
- * @param jwkKeys - Array of JWKs from the Relying Party for optional encryption.
- * @param presentation - Tuple with verifiable credential, claims, and crypto context.
- * @param context - Contains optional custom fetch implementation.
- * @returns Parsed and validated authorization response from the Relying Party.
- */
-export const sendLegacyAuthorizationResponse: SendLegacyAuthorizationResponse =
+export const sendAuthorizationResponseDcql: SendAuthorizationResponseDcql =
   async (
     requestObject,
-    presentationDefinitionId,
-    remotePresentations,
-    rpConf,
+    jwkKeys,
+    remotePresentation,
     { appFetch = fetch } = {}
   ): Promise<AuthorizationResponse> => {
-    /**
-     * 1. Prepare the VP token and presentation submission
-     * If there is only one credential, `vpToken` is a single string.
-     * If there are multiple credential, `vpToken` is an array of string.
-     **/
-    const vp_token =
-      remotePresentations?.length === 1
-        ? remotePresentations[0]?.vpToken
-        : remotePresentations.map(
-            (remotePresentation) => remotePresentation.vpToken
-          );
-
-    const descriptor_map = remotePresentations.map(
-      (remotePresentation, index) => ({
-        id: remotePresentation.inputDescriptor.id,
-        path: remotePresentations.length === 1 ? `$` : `$[${index}]`,
-        format: remotePresentation.format,
-      })
+    const { generatedNonce, presentations } = remotePresentation;
+    // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
+    const requestBody = await buildDirectPostJwtBody(
+      jwkKeys,
+      requestObject,
+      {
+        vp_token: presentations.reduce(
+          (acc, presentation) => ({
+            ...acc,
+            [presentation.credentialId]: presentation.vpToken,
+          }),
+          {} as Record<string, string>
+        ),
+      },
+      generatedNonce
     );
 
-    const presentation_submission = {
-      id: uuid.v4(),
-      definition_id: presentationDefinitionId,
-      descriptor_map,
-    };
+    Logger.log(
+      LogLevel.DEBUG,
+      `Sending Authorization Response to ${requestObject.response_uri} with body: ${requestBody}`
+    );
 
-    const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-      vp_token,
-      presentation_submission,
-    });
-
-    // 3. Send the authorization response via HTTP POST and validate the response
+    // 2. Send the authorization response via HTTP POST and validate the response
     return await appFetch(requestObject.response_uri, {
       method: "POST",
       headers: {
@@ -208,53 +201,9 @@ export const sendLegacyAuthorizationResponse: SendLegacyAuthorizationResponse =
     })
       .then(hasStatusOrThrow(200))
       .then((res) => res.json())
-      .then(AuthorizationResponse.parse);
+      .then(AuthorizationResponse.parse)
+      .catch(handleAuthorizationResponseError);
   };
-
-/**
- * Type definition for the function that sends the authorization response
- * to the Relying Party, completing the presentation flow.
- * Use with DCQL queries.
- */
-export type SendAuthorizationResponse = (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
-  remotePresentations: RemotePresentation[],
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  context?: {
-    appFetch?: GlobalFetch["fetch"];
-  }
-) => Promise<AuthorizationResponse>;
-
-export const sendAuthorizationResponse: SendAuthorizationResponse = async (
-  requestObject,
-  remotePresentations,
-  rpConf,
-  { appFetch = fetch } = {}
-): Promise<AuthorizationResponse> => {
-  // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
-  const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-    vp_token: remotePresentations.reduce(
-      (acc, presentation) => ({
-        ...acc,
-        [presentation.credentialId]: presentation.vpToken,
-      }),
-      {} as Record<string, string>
-    ),
-  });
-
-  // 2. Send the authorization response via HTTP POST and validate the response
-  return await appFetch(requestObject.response_uri, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: requestBody,
-  })
-    .then(hasStatusOrThrow(200))
-    .then((res) => res.json())
-    .then(AuthorizationResponse.parse)
-    .catch(handleAuthorizationResponseError);
-};
 
 /**
  * Type definition for the function that sends the authorization response
@@ -326,4 +275,61 @@ const handleAuthorizationResponseError = (e: unknown) => {
       message: "Unable to successfully send the Authorization Response",
     })
     .buildFrom(e);
+};
+
+/**
+ * Prepares remote presentations for a set of credentials.
+ *
+ * For each credential, this function:
+ * - Validates the credential format (currently supports 'mso_mdoc', 'vc+sd-jwt' or 'dc+sd-jwt').
+ * - Generates a verifiable presentation token (vpToken) using the appropriate method.
+ * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
+ *
+ * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
+ * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
+ * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
+ * @throws {CredentialNotFoundError} When the credential format is unsupported.
+ */
+export const prepareRemotePresentations: PrepareRemotePresentations = async (
+  credentials,
+  authRequestObject
+) => {
+  // In case of ISO 18013-7 we need a nonce, it shall have a minimum entropy of 16
+  const generatedNonce = generateRandomAlphaNumericString(16);
+
+  const presentations = await Promise.all(
+    credentials.map(async (item) => {
+      Logger.log(
+        LogLevel.DEBUG,
+        "Preparing presentation for: " + JSON.stringify(item, null, 2)
+      );
+
+      const { credentialInputId, format } = item;
+      if (format === "dc+sd-jwt") {
+        const { vp_token } = await prepareVpToken(
+          authRequestObject.nonce,
+          authRequestObject.clientId,
+          [
+            item.credential,
+            item.requestedClaims,
+            createCryptoContextFor(item.keyTag),
+          ]
+        );
+
+        return {
+          requestedClaims: item.requestedClaims.map(({ name }) => name),
+          credentialId: credentialInputId,
+          vpToken: vp_token,
+          format,
+        };
+      }
+
+      throw new IoWalletError(`${format} format is not supported.`);
+    })
+  );
+
+  return {
+    presentations,
+    generatedNonce,
+  };
 };

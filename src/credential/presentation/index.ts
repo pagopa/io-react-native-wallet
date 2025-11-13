@@ -28,15 +28,13 @@ import {
 } from "./07-evaluate-input-descriptor";
 import {
   evaluateDcqlQuery,
-  prepareRemotePresentations,
   type EvaluateDcqlQuery,
   type PrepareRemotePresentations,
 } from "./07-evaluate-dcql-query";
 import {
-  sendAuthorizationResponse,
-  type SendAuthorizationResponse,
-  sendLegacyAuthorizationResponse,
-  type SendLegacyAuthorizationResponse,
+  prepareRemotePresentations,
+  sendAuthorizationResponseDcql,
+  type SendAuthorizationResponseDcql,
   sendAuthorizationErrorResponse,
   type SendAuthorizationErrorResponse,
 } from "./08-send-authorization-response";
@@ -54,8 +52,7 @@ export {
   evaluateDcqlQuery,
   prepareLegacyRemotePresentations,
   prepareRemotePresentations,
-  sendAuthorizationResponse,
-  sendLegacyAuthorizationResponse,
+  sendAuthorizationResponseDcql,
   sendAuthorizationErrorResponse,
   Errors,
 };
@@ -70,7 +67,6 @@ export type {
   EvaluateDcqlQuery,
   PrepareLegacyRemotePresentations,
   PrepareRemotePresentations,
-  SendAuthorizationResponse,
-  SendLegacyAuthorizationResponse,
+  SendAuthorizationResponseDcql,
   SendAuthorizationErrorResponse,
 };

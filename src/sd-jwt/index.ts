@@ -193,7 +193,11 @@ export const prepareVpToken = async (
   vp_token: string;
 }> => {
   // Produce a VP token with only requested claims from the verifiable credential
-  const { token: vp } = await disclose(verifiableCredential, requestedClaims);
+  const requestedClaimNames = requestedClaims.map(({ name }) => name);
+  const { token: vp } = await disclose(
+    verifiableCredential,
+    requestedClaimNames
+  );
 
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
   const sd_hash = await sha256ToBase64(`${vp}~`);

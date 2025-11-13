@@ -14,16 +14,20 @@ import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { WIA_KEYTAG } from "../utils/crypto";
+import type { EvaluatedDisclosures } from "src/credential/presentation/07-evaluate-input-descriptor";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
 >["requestObject"];
-type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[1];
+type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[0];
 type RpConf = Awaited<
   ReturnType<Credential.Presentation.EvaluateRelyingPartyTrust>
 >["rpConf"];
 type AuthResponse = Awaited<
-  ReturnType<Credential.Presentation.SendAuthorizationResponse>
+  ReturnType<Credential.Presentation.SendAuthorizationResponseDcql>
+>;
+export type CredentialsToPresent = Awaited<
+  ReturnType<Credential.Presentation.EvaluateDcqlQuery>
 >;
 
 /**
@@ -44,7 +48,7 @@ export type RemoteCrossDevicePresentationThunkInput = {
 export type RemoteCrossDevicePresentationThunkOutput = {
   authResponse: AuthResponse;
   requestObject: RequestObject;
-  requestedClaims: string[];
+  credentialsToPresent: CredentialsToPresent;
 };
 
 /**
@@ -54,11 +58,6 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   RemoteCrossDevicePresentationThunkOutput,
   RemoteCrossDevicePresentationThunkInput
 >("presentation/remote", async (args, { getState, dispatch }) => {
-  // Checks if the wallet instance attestation needs to be requested
-  if (shouldRequestAttestationSelector(getState())) {
-    await dispatch(getAttestationThunk());
-  }
-
   const url = new URL(args.qrcode);
 
   const qrParams = Credential.Presentation.startFlowFromQR({
@@ -75,12 +74,12 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     console.log("x509_hash:", hash);
   }
 
-  if (qrParams.client_id.startsWith("openid_federation:")) {
+  /* if (qrParams.client_id.startsWith("openid_federation:")) {
     const { rpConf, subject } =
       await Credential.Presentation.evaluateRelyingPartyTrust(
         qrParams.client_id
       );
-  }
+  } */
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(qrParams.request_uri);
@@ -89,7 +88,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     requestObjectEncodedJwt
   );
 
-  const ro = await Credential.Presentation.verifyRequestObject(
+  const { requestObject } = await Credential.Presentation.verifyRequestObject(
     requestObjectEncodedJwt,
     {
       clientId: qrParams.client_id,
@@ -97,51 +96,52 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     }
   );
 
-  return {};
-  /*
-  const { requestObject } = await Credential.Presentation.verifyRequestObject(
-    requestObjectEncodedJwt,
-    {
-      rpConf,
-      clientId: qrParams.client_id,
-      rpSubject: subject,
-      state: qrParams.state,
-    }
-  );
-
   const pid = selectPid(getState());
-  if (!pid) {
-    throw new Error("PID not found");
-  }
-
-  const walletInstanceAttestation = selectAttestationAsSdJwt(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
-
   const credentials = selectCredentials(getState());
 
   const credentialsSdJwt = [
-    [createCryptoContextFor(pid.keyTag), pid.credential],
-    [createCryptoContextFor(WIA_KEYTAG), walletInstanceAttestation],
-    ...Object.values(credentials)
+    ...Object.values({ pid, ...credentials })
       .filter(isDefined)
-      .map((c) => [createCryptoContextFor(c.keyTag), c.credential]),
-  ] as [CryptoContext, string][];
+      .map((c) => [c.credentialType, c.keyTag, c.credential]),
+  ] as [string, string, string][];
 
-  if (requestObject.dcql_query && args.allowed === "refusalState") {
-    return processRefusedPresentation(requestObject);
-  }
+  const evaluatedDcqlQuery = await Credential.Presentation.evaluateDcqlQuery(
+    requestObject.dcql_query as DcqlQuery,
+    credentialsSdJwt
+  );
 
-  if (requestObject.dcql_query) {
-    return processPresentation(requestObject, rpConf, credentialsSdJwt);
-  }
+  const credentialsToPresent = evaluatedDcqlQuery.map(
+    ({ requiredDisclosures, id, ...rest }) => ({
+      ...rest,
+      credentialInputId: id,
+      requestedClaims: requiredDisclosures,
+    })
+  );
 
-  if (requestObject.presentation_definition) {
-    return processLegacyPresentation(requestObject, rpConf, credentialsSdJwt);
-  }
+  const authRequestObject = {
+    nonce: requestObject.nonce,
+    clientId: requestObject.client_id,
+    responseUri: requestObject.response_uri,
+  };
 
-  throw new Error("Invalid request object"); */
+  const remotePresentations =
+    await Credential.Presentation.prepareRemotePresentations(
+      credentialsToPresent,
+      authRequestObject
+    );
+
+  const authResponse =
+    await Credential.Presentation.sendAuthorizationResponseDcql(
+      requestObject,
+      keys,
+      remotePresentations
+    );
+
+  return {
+    authResponse,
+    requestObject,
+    credentialsToPresent: evaluatedDcqlQuery,
+  };
 });
 
 // Presentation definition flow
