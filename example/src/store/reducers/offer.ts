@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import { getCredentialOfferThunk } from "../../thunks/offer";
-import { sessionReset } from "./sesssion";
+import { sessionReset } from "./session";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
 import type { Credential } from "@pagopa/io-react-native-wallet";

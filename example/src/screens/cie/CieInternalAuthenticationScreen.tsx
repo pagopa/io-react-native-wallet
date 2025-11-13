@@ -1,4 +1,4 @@
-import { H2, LoadingSpinner } from "@pagopa/io-app-design-system";
+import { H2 } from "@pagopa/io-app-design-system";
 import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
@@ -7,13 +7,17 @@ import { useSelector } from "react-redux";
 import { CieAuthorizationWebview } from "../../components/cie/CieAuthorizationWebView";
 import { CiePinDialog } from "../../components/cie/CiePinDialog";
 import type { CieWebViewError } from "../../components/cie/CieWebView";
+import { useDebugInfo } from "../../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { pidFlowReset } from "../../store/reducers/pid";
 import { useAppDispatch } from "../../store/utils";
 import { validatePidMrtdChallengeThunk } from "../../thunks/mrtd";
 import { continuePidFlowThunk } from "../../thunks/pid";
 import { getProgressEmojis } from "../../utils/strings";
-import { selectMrtdChallengeCallbackUrl } from "./../../store/reducers/mrtd";
+import {
+  selectMrtdAsyncStatus,
+  selectMrtdChallengeCallbackUrl,
+} from "./../../store/reducers/mrtd";
 
 type ScreenProps = NativeStackScreenProps<
   MainStackNavParamList,
@@ -27,12 +31,17 @@ export const CieInternalAuthenticationScreen = ({
   const dispatch = useAppDispatch();
   const { challenge } = route.params;
 
-  const [isLoading, setIsLoading] = useState(false);
   const [isCanInputVisible, setCanInputVisible] = useState(true);
   const [can, setCan] = useState("");
-  const [text, setText] = useState<string>();
+  const [text, setText] = useState<string>("Waiting for CAN input...");
 
   const callbackUrl = useSelector(selectMrtdChallengeCallbackUrl);
+  const status = useSelector(selectMrtdAsyncStatus);
+
+  useDebugInfo({
+    callbackUrl,
+    status,
+  });
 
   const handleOnError = useCallback(
     (error: NfcError | CieWebViewError) => {
@@ -91,7 +100,7 @@ export const CieInternalAuthenticationScreen = ({
   const handleCanConfirm = useCallback(() => {
     if (can && can.length === 6 && /^\d+$/.test(can)) {
       setCanInputVisible(false);
-      setIsLoading(true);
+      setText("Waiting for the CIE");
       CieManager.startInternalAuthAndMRTDReading(can, challenge, "base64");
     } else {
       Alert.alert(`❌ Invalid CIE PIN`);
@@ -117,11 +126,6 @@ export const CieInternalAuthenticationScreen = ({
         onConfirm={handleCanConfirm}
         onCancel={handleCanClose}
       />
-      {isLoading && (
-        <View style={styles.progress}>
-          <LoadingSpinner size={48} />
-        </View>
-      )}
       {callbackUrl && (
         <View style={StyleSheet.absoluteFillObject}>
           <CieAuthorizationWebview

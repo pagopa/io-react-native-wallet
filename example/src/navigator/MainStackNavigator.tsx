@@ -33,7 +33,7 @@ import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { selectIoAuthToken } from "../store/reducers/session";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";

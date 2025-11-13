@@ -1,5 +1,6 @@
 import {
   decode as decodeJwt,
+  verify as verifyJwt,
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { MrtdProofChallengeInfo } from "./types";
@@ -31,17 +32,15 @@ export type VerifyAndParseChallengeInfo = (
  * or the JWT is expired/not yet valid.
  */
 export const verifyAndParseChallengeInfo: VerifyAndParseChallengeInfo = async (
-  _issuerConf,
+  issuerConf,
   challengeInfoJwt: string,
   { wiaCryptoContext }
 ) => {
-  // TODO Validate JWT signature
-  /*   
+  // Verify JWT signature
   await verifyJwt(
     challengeInfoJwt,
-    issuerConf.openid_credential_issuer.jwks.keys
-  ); 
-  */
+    issuerConf.oauth_authorization_server.jwks.keys
+  );
 
   // Decode JWT
   const challengeInfoDecoded = decodeJwt(challengeInfoJwt);
