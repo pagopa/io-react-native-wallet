@@ -1,5 +1,6 @@
 import { H2 } from "@pagopa/io-app-design-system";
 import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
+import { addPadding } from "@pagopa/io-react-native-jwt";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
@@ -71,17 +72,18 @@ export const CieInternalAuthenticationScreen = ({
         ({ mrtd_data, nis_data }) => {
           console.log("CIE Internal Auth Success Data:", mrtd_data, nis_data);
           dispatch(
+            // TODO CIE SDK must return data with correct encoding to avoid to use addPadding
             validatePidMrtdChallengeThunk({
               mrtd: {
-                dg1: mrtd_data.dg1,
-                dg11: mrtd_data.dg11,
-                sod_mrtd: mrtd_data.sod,
+                dg1: addPadding(mrtd_data.dg1),
+                dg11: addPadding(mrtd_data.dg11),
+                sod_mrtd: addPadding(mrtd_data.sod),
               },
               ias: {
-                sod_ias: nis_data.sod,
-                challenge_signed: nis_data.signedChallenge,
-                ias_pk: nis_data.publicKey,
-                nis: nis_data.nis,
+                sod_ias: addPadding(nis_data.sod),
+                challenge_signed: addPadding(nis_data.signedChallenge),
+                ias_pk: addPadding(nis_data.publicKey),
+                nis: addPadding(nis_data.nis),
               },
             })
           );
@@ -101,7 +103,7 @@ export const CieInternalAuthenticationScreen = ({
     if (can && can.length === 6 && /^\d+$/.test(can)) {
       setCanInputVisible(false);
       setText("Waiting for the CIE");
-      CieManager.startInternalAuthAndMRTDReading(can, challenge, "base64");
+      CieManager.startInternalAuthAndMRTDReading(can, challenge, "hex");
     } else {
       Alert.alert(`❌ Invalid CIE PIN`);
     }
