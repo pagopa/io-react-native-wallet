@@ -17,7 +17,7 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../types";
 import { asyncStatusInitial } from "../utils";
-import { sessionReset } from "./sesssion";
+import { sessionReset } from "./session";
 import { instanceReset } from "./instance";
 import { createSecureStorage } from "../storage";
 import {

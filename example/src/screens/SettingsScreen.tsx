@@ -1,7 +1,4 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useState } from "react";
-import { SafeAreaView, ScrollView } from "react-native";
-import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   ButtonSolid,
   H1,
@@ -9,20 +6,23 @@ import {
   ListItemAction,
   RadioGroup,
   TextInput,
+  useIOToast,
   VSpacer,
   type RadioItem,
-  useIOToast,
 } from "@pagopa/io-app-design-system";
+import React, { useState } from "react";
+import { SafeAreaView, ScrollView } from "react-native";
+import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   envSet,
   loggingAddressSet,
   selectEnv,
   selectLoggingAddress,
 } from "../store/reducers/environment";
-import { selectIoAuthToken, sessionReset } from "../store/reducers/sesssion";
-import { useDebugInfo } from "../hooks/useDebugInfo";
 import { instanceReset } from "../store/reducers/instance";
+import { selectIoAuthToken, sessionReset } from "../store/reducers/session";
 import type { EnvType } from "../store/types";
+import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
 

@@ -3,6 +3,7 @@ import { View } from "react-native";
 import Dialog from "react-native-dialog";
 
 type Props = {
+  type: "PIN" | "CAN";
   visible: boolean;
   onChangePin: (pin: string) => void;
   onConfirm: () => void;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export const CiePinDialog = ({
+  type = "PIN",
   visible,
   onConfirm,
   onCancel,
@@ -22,10 +24,10 @@ export const CiePinDialog = ({
         onBackdropPress={onCancel}
         onRequestClose={onCancel}
       >
-        <Dialog.Title>CIE Pin</Dialog.Title>
-        <Dialog.Description>Enter your CIE pin</Dialog.Description>
+        <Dialog.Title>CIE {type}</Dialog.Title>
+        <Dialog.Description>Enter your CIE {type}</Dialog.Description>
         <Dialog.CodeInput
-          codeLength={8}
+          codeLength={type === "PIN" ? 8 : 6}
           onCodeChange={onChangePin}
           autoFocus
           secureTextEntry

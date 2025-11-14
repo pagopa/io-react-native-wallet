@@ -6,7 +6,7 @@ import { createSecureStorage } from "../storage";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
-import { sessionReset } from "./sesssion";
+import { sessionReset } from "./session";
 
 // Supported Wallet Attestation formats
 type Format = Awaited<

@@ -7,6 +7,8 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
+import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthenticationScreen";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
 import IdpLoginScreen from "../screens/login/IdpLoginScreen";
@@ -31,7 +33,7 @@ import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { selectIoAuthToken } from "../store/reducers/session";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
@@ -51,12 +53,15 @@ export type MainStackNavParamList = {
   Login: undefined;
   IdpSelection: undefined;
   IdpLogin: { idp: string };
-  PidSpidIdpSelection: undefined;
+  PidSpidIdpSelection: { withDocumentProof?: boolean };
   Settings: undefined;
   PidSpidLogin: {
     authUrl: string;
     redirectUri: string;
+    withDocumentProof?: boolean;
   };
+  CieAuthentication: undefined;
+  CieInternalAuthentication: { challenge: string };
   Presentations: undefined;
   Trust: undefined;
   QrScanner: QrScannerScreenParams;
@@ -129,6 +134,16 @@ export const MainStackNavigator = () => {
               name="PidSpidIdpSelection"
               component={PidSpidIdpSelectionScreen}
               options={{ title: "Test PID issuance" }}
+            />
+            <Stack.Screen
+              name="CieAuthentication"
+              component={CieAuthenticationScreen}
+              options={{ title: "CIE Authentication" }}
+            />
+            <Stack.Screen
+              name="CieInternalAuthentication"
+              component={CieInternalAuthenticationScreen}
+              options={{ title: "CIE Internal Authentication" }}
             />
             <Stack.Screen
               name="PidSpidLogin"

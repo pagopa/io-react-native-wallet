@@ -1,6 +1,8 @@
 import {
+  AuthorizationChallengeResultShape,
   AuthorizationErrorShape,
   AuthorizationResultShape,
+  type AuthorizationChallengeResult,
   type AuthorizationResult,
 } from "../../utils/auth";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
@@ -28,6 +30,10 @@ export type CompleteUserAuthorizationWithQueryMode = (
   authRedirectUrl: string
 ) => Promise<AuthorizationResult>;
 
+export type ContinueUserAuthorizationWithMRTDPoPChallenge = (
+  authRedirectUrl: string
+) => Promise<AuthorizationChallengeResult>;
+
 export type CompleteUserAuthorizationWithFormPostJwtMode = (
   requestObject: Out<GetRequestedCredentialToBePresented>,
   pid: string,
@@ -53,6 +59,42 @@ export type BuildAuthorizationUrl = (
 ) => Promise<{
   authUrl: string;
 }>;
+
+/**
+ * WARNING: this function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID, and the PID
+ * issuance requires a MRTD PoP challenge.
+ * @param authRedirectUrl The URL to which the end user should be redirected to start the MRTD PoP validation flow
+ * @returns the authorization response which contains the challenge
+ */
+export const continueUserAuthorizationWithMRTDPoPChallenge: ContinueUserAuthorizationWithMRTDPoPChallenge =
+  async (authRedirectUrl) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
+    );
+    const query = parseUrl(authRedirectUrl).query;
+
+    const authResParsed = AuthorizationChallengeResultShape.safeParse(query);
+    if (!authResParsed.success) {
+      const authErr = AuthorizationErrorShape.safeParse(query);
+      if (!authErr.success) {
+        Logger.log(
+          LogLevel.ERROR,
+          `Error while parsing the authorization response: ${authResParsed.error.message}`
+        );
+        throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
+      }
+      Logger.log(
+        LogLevel.ERROR,
+        `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+      );
+      throw new AuthorizationIdpError(
+        authErr.data.error,
+        authErr.data.error_description
+      );
+    }
+    return authResParsed.data;
+  };
 
 /**
  * WARNING: This function must be called after {@link startUserAuthorization}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
@@ -97,7 +139,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationWi
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is a PersonIdentificationData, completing the user authorization with query mode`
+      `The requested credential is a PersonIdentificationData, completing the user authorization with query mode`
     );
     const query = parseUrl(authRedirectUrl).query;
 

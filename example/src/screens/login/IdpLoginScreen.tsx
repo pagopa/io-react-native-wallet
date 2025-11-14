@@ -1,12 +1,12 @@
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback } from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
-import { sessionSet } from "../../store/reducers/sesssion";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useAppDispatch, useAppSelector } from "../../store/utils";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { selectEnv } from "../../store/reducers/environment";
+import { sessionSet } from "../../store/reducers/session";
+import { useAppDispatch, useAppSelector } from "../../store/utils";
 import { getEnv } from "../../utils/environment";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "IdpLogin">;
