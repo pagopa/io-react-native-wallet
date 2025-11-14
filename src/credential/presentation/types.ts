@@ -187,14 +187,6 @@ export const ErrorResponse = z.enum([
 ]);
 
 /**
- * @deprecated Use `DirectAuthorizationBodyPayload`
- */
-const LegacyDirectAuthorizationBodyPayload = z.object({
-  vp_token: z.union([z.string(), z.array(z.string())]).optional(),
-  presentation_submission: z.record(z.string(), z.unknown()),
-});
-
-/**
  * Authorization Response payload sent to the Relying Party.
  */
 export type DirectAuthorizationBodyPayload = z.infer<
@@ -202,8 +194,7 @@ export type DirectAuthorizationBodyPayload = z.infer<
 >;
 export const DirectAuthorizationBodyPayload = z.union([
   z.object({
-    vp_token: z.record(z.string(), z.string()),
+    vp_token: z.record(z.string(), z.array(z.string())),
   }),
   z.object({ error: ErrorResponse, error_description: z.string() }),
-  LegacyDirectAuthorizationBodyPayload,
 ]);

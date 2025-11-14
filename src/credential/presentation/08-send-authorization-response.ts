@@ -99,17 +99,19 @@ export const buildDirectPostJwtBody = async (
   });
 
   const encPublicJwk = choosePublicKeyToEncrypt(jwkKeys);
-  const { client_metadata } = requestObject;
 
   // Encrypt the authorization payload
-  const { encrypted_response_enc_values_supported } = client_metadata;
+  const { encrypted_response_enc_values_supported = [] } =
+    requestObject.client_metadata ?? {};
 
   const defaultAlg: Jwe["alg"] =
     encPublicJwk.kty === "EC" ? "ECDH-ES" : "RSA-OAEP-256";
 
   const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
     alg: defaultAlg,
-    enc: "A256CBC-HS512",
+    enc:
+      (encrypted_response_enc_values_supported[0] as Jwe["enc"]) ||
+      "A256CBC-HS512",
     kid: encPublicJwk.kid,
   }).encrypt(encPublicJwk);
 
@@ -178,9 +180,9 @@ export const sendAuthorizationResponseDcql: SendAuthorizationResponseDcql =
         vp_token: presentations.reduce(
           (acc, presentation) => ({
             ...acc,
-            [presentation.credentialId]: presentation.vpToken,
+            [presentation.credentialId]: [presentation.vpToken],
           }),
-          {} as Record<string, string>
+          {} as Record<string, string[]>
         ),
       },
       generatedNonce
