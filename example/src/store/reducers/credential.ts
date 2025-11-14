@@ -72,7 +72,8 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: asyncStatusInitial,
   },
   statusAssertion: {
-    PersonIdentificationData: undefined,
+    dc_sd_jwt_PersonIdentificationData: undefined,
+    mso_mdoc_PersonIdentificationData: undefined,
     dc_sd_jwt_mDL: undefined,
     mso_mdoc_mDL: undefined,
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
@@ -82,7 +83,8 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: undefined,
   },
   statusAssertionAsyncStatus: {
-    PersonIdentificationData: asyncStatusInitial,
+    dc_sd_jwt_PersonIdentificationData: asyncStatusInitial,
+    mso_mdoc_PersonIdentificationData: asyncStatusInitial,
     dc_sd_jwt_mDL: asyncStatusInitial,
     mso_mdoc_mDL: asyncStatusInitial,
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,

@@ -7,11 +7,11 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import type { ComponentProps } from "react";
 import React, { useMemo } from "react";
-import { Alert, FlatList, SafeAreaView } from "react-native";
+import { Alert, FlatList, View } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectPid } from "../store/reducers/pid";
+import { selectPidSdJwt } from "../store/reducers/pid";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
 import { useAppSelector } from "../store/utils";
 
@@ -24,7 +24,7 @@ type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 const HomeScreen = () => {
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
-  const pid = useAppSelector(selectPid);
+  const pid = useAppSelector(selectPidSdJwt);
   const session = useAppSelector(selectIoAuthToken);
   const credentials = useAppSelector(selectCredentials);
 
@@ -97,6 +97,15 @@ const HomeScreen = () => {
             : Alert.alert("Obtain a credential first"),
       },
       {
+        label: "Credential Offer",
+        description: "Obtain a credential offer from QR code",
+        icon: "chevronRight",
+        onPress: () =>
+          pid
+            ? navigation.navigate("CredentialOffer")
+            : Alert.alert("Obtain a PID first"),
+      },
+      {
         label: "Settings",
         description: "Change the environment and logout",
         icon: "chevronRight",
@@ -107,7 +116,7 @@ const HomeScreen = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <FlatList
         contentContainerStyle={{
           margin: IOVisualCostants.appMarginDefault,
@@ -127,7 +136,7 @@ const HomeScreen = () => {
           </>
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

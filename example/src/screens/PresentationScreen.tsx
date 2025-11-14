@@ -35,6 +35,7 @@ export const PresentationScreen = () => {
         title: "PID Remote Cross-Device",
         onPress: () =>
           navigation.navigate("QrScanner", {
+            mode: "presentation",
             presentationBehavior: "acceptanceState",
           }),
         isLoading: acceptancePresentationState.isLoading,
@@ -48,6 +49,7 @@ export const PresentationScreen = () => {
         title: "PID Remote Cross-Device (Refuse)",
         onPress: () =>
           navigation.navigate("QrScanner", {
+            mode: "presentation",
             presentationBehavior: "refusalState",
           }),
         isLoading: refusalPresentationState.isLoading,

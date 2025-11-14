@@ -6,13 +6,18 @@ import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
 import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import { isSameThumbprint, type JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { verify as verifyMdoc } from "../../mdoc";
-import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
-import { getParsedCredentialClaimKey } from "../../mdoc/utils";
+import {
+  getMdocNamespaceForCredentialId,
+  getParsedCredentialClaimKey,
+  verify as verifyMdoc,
+} from "../../mdoc";
 import { Logger, LogLevel } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
-import type { PublicKey } from "@pagopa/io-react-native-crypto";
+import type {
+  PublicKey,
+  X509CertificateOptions,
+} from "@pagopa/io-react-native-crypto";
 import { createNestedProperty } from "../../utils/nestedProperty";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
@@ -38,7 +43,11 @@ export type VerifyAndParseCredential = (
      */
     includeUndefinedAttributes?: boolean;
   },
-  x509CertRoot?: string
+  x509CertRoot?: string,
+  /**
+   * Options for X.509 certificate validation
+   */
+  x509CertVerificationOptions?: X509CertificateOptions
 ) => Promise<{
   parsedCredential: ParsedCredential;
   expiration: Date;
@@ -331,6 +340,7 @@ async function verifyCredentialSdJwt(
  * @param x509CertRoot The root certificate of the issuer,
  * which will be used to verify the signature
  * @param holderBindingContext The access to the holder's key
+ * @param x509CertVerificationOptions Options for certificate validation
  *
  * @throws If the signature verification fails
  * @throws If the credential is not in the SdJwt4VC format
@@ -340,12 +350,13 @@ async function verifyCredentialSdJwt(
 async function verifyCredentialMDoc(
   rawCredential: string,
   x509CertRoot: string,
-  holderBindingContext: CryptoContext
+  holderBindingContext: CryptoContext,
+  x509CertVerificationOptions?: X509CertificateOptions
 ): Promise<DecodedMDocCredential> {
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
-      verifyMdoc(rawCredential, x509CertRoot),
+      verifyMdoc(rawCredential, x509CertRoot, x509CertVerificationOptions),
       holderBindingContext.getPublicKey(),
     ]);
 
@@ -424,7 +435,8 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   credential,
   credentialConfigurationId,
   { credentialCryptoContext, ignoreMissingAttributes },
-  x509CertRoot
+  x509CertRoot,
+  x509CertVerificationOptions
 ) => {
   if (!x509CertRoot) {
     throw new IoWalletError("Missing x509CertRoot");
@@ -433,7 +445,8 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   const decoded = await verifyCredentialMDoc(
     credential,
     x509CertRoot,
-    credentialCryptoContext
+    credentialCryptoContext,
+    x509CertVerificationOptions
   );
 
   const credentialConfig =
@@ -447,10 +460,16 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
     ignoreMissingAttributes
   );
 
+  const ns = getMdocNamespaceForCredentialId(credentialConfigurationId);
+  if (!ns) {
+    throw new IoWalletError(
+      `Cannot find namespace for credentialConfigurationId: ${credentialConfigurationId}`
+    );
+  }
+  console.log("PARSED CREDENTIAL", parsedCredential);
   const expirationDate = extractElementValueAsDate(
-    parsedCredential?.[
-      getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "expiry_date")
-    ]?.value as string
+    parsedCredential?.[getParsedCredentialClaimKey(ns, "expiry_date")]
+      ?.value as string
   );
   if (!expirationDate) {
     throw new IoWalletError(`expirationDate must be present!!`);
@@ -458,9 +477,8 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   expirationDate.setDate(expirationDate.getDate() + 1);
 
   const maybeIssuedAt = extractElementValueAsDate(
-    parsedCredential?.[
-      getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "issue_date")
-    ]?.value as string
+    parsedCredential?.[getParsedCredentialClaimKey(ns, "issue_date")]
+      ?.value as string
   );
   maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
 
@@ -478,6 +496,7 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
  * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
  * @param credential The encoded credential returned by {@link obtainCredential}
  * @param credentialConfigurationId The credential configuration ID that defines the provided credential
+ * @param x509CertRoot The root certificate of the issuer, used to verify mso_mdoc credentials
  * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
  * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
  * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
@@ -491,7 +510,8 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
   credential,
   credentialConfigurationId,
   context,
-  x509CertRoot
+  x509CertRoot,
+  x509CertVerificationOptions
 ) => {
   const format =
     issuerConf.openid_credential_issuer.credential_configurations_supported[
@@ -515,7 +535,8 @@ export const verifyAndParseCredential: VerifyAndParseCredential = async (
         credential,
         credentialConfigurationId,
         context,
-        x509CertRoot
+        x509CertRoot,
+        x509CertVerificationOptions
       );
     }
 
