@@ -124,6 +124,13 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - pagopa-io-react-native-login-utils (1.1.0):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - ReactCommon/turbomodule/core
   - pagopa-io-react-native-secure-storage (0.2.0):
     - DoubleConversion
     - glog
@@ -184,6 +191,7 @@ PODS:
     - React-RCTText (= 0.78.3)
     - React-RCTVibration (= 0.78.3)
   - React-callinvoker (0.78.3)
+  - React-Codegen (0.1.0)
   - React-Core (0.78.3):
     - glog
     - hermes-engine
@@ -2086,6 +2094,7 @@ DEPENDENCIES:
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-integrity (from `../node_modules/@pagopa/io-react-native-integrity`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
+  - "pagopa-io-react-native-login-utils (from `../node_modules/@pagopa/io-react-native-login-utils`)"
   - "pagopa-io-react-native-secure-storage (from `../node_modules/@pagopa/io-react-native-secure-storage`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -2168,6 +2177,7 @@ SPEC REPOS:
     - IOWalletProximity
     - JOSESwift
     - OpenSSL-Universal
+    - React-Codegen
     - SocketRocket
     - SwiftCBOR
 
@@ -2197,6 +2207,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@pagopa/io-react-native-integrity"
   pagopa-io-react-native-jwt:
     :path: "../node_modules/@pagopa/io-react-native-jwt"
+  pagopa-io-react-native-login-utils:
+    :path: "../node_modules/@pagopa/io-react-native-login-utils"
   pagopa-io-react-native-secure-storage:
     :path: "../node_modules/@pagopa/io-react-native-secure-storage"
   RCT-Folly:
@@ -2343,14 +2355,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 4cb898d0bf20404aab1850c656dcea009429d6c1
   CieSDK: ad23ec4b2f86c1e505030e68105ea509443d6706
-  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
+  DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: e053802577a711add20e45bbbf5dd1180b6ca62e
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
-  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
-  hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
+  glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
+  hermes-engine: b5c9cfbe6415f1b0b24759f2942c8f33e9af6347
   IoReactNativeCie: b85750a23a1945421e1c36053158e397387ea083
   IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
   IOWalletCBOR: 92742ef1cbd1b627ba153d0c7c11b81ad22f45cc
@@ -2360,6 +2372,7 @@ SPEC CHECKSUMS:
   pagopa-io-react-native-crypto: aa7a368286a7c0aa9536325d1e49f956c4ce3f6b
   pagopa-io-react-native-integrity: a4c4c7ebd2ea699e40536f969bd62371f82638c0
   pagopa-io-react-native-jwt: 5c0eac212ff06d4368b3949cd74649a5e8349a95
+  pagopa-io-react-native-login-utils: 7b60e216d6dcc50be8934de0735570b14f717932
   pagopa-io-react-native-secure-storage: ab6e73803b542d8d5f7259a7aa9f83b8e4896404
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: cf39863b43871c2031050605fb884019b6193910
@@ -2367,6 +2380,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: c9c9e64389bc545fc137030615b387ef1654dcee
   React: 14a80ea4f13387cfdaa4250b46fbfe19754c220c
   React-callinvoker: fed1dad5d6cf992c7b4b5fdbf1bf67fe2e8fb6c5
+  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
   React-Core: 3c803e7f3be6fa68e3dabcac283a5a5f87340a60
   React-CoreModules: 94d556b4055defb79278c3afba95e521998b9b3a
   React-cxxreact: 21c826a567199cc2d5797bd4cfe3c0d94bb3a7de

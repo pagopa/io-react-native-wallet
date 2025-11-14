@@ -34,10 +34,10 @@
 				<key>CFBundleTypeRole</key>
 				<string>Editor</string>
 				<key>CFBundleURLName</key>
-				<string>iowalletexample</string>
+				<string>iowallet</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>iowalletexample</string>
+					<string>iowallet</string>
 				</array>
 			</dict>
 		</array>

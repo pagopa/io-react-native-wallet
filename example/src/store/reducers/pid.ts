@@ -1,22 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { persistReducer, type PersistConfig } from "redux-persist";
+import { type PersistConfig, persistReducer } from "redux-persist";
 import {
   continuePidFlowThunk,
   preparePidFlowParamsThunk,
 } from "../../thunks/pid";
 
 import { createSecureStorage } from "../storage";
-import type {
-  AsyncStatus,
-  PidAuthMethods,
-  PidResult,
-  RootState,
-} from "../types";
+import type { AsyncStatus, PidAuthMethods, PidType, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./sesssion";
 import type { PreparePidFlowParamsThunkOutput } from "example/src/thunks/pid";
 import { getPidCieIDThunk } from "../../thunks/pidCieID";
+import { getPidNoAuthThunk } from "../../thunks/pidNoAuth";
 
 /**
  * State type definition for the PID slice.
@@ -26,18 +22,22 @@ import { getPidCieIDThunk } from "../../thunks/pidCieID";
  * - pidFlowParams: the parameters for the PID flow
  */
 type PidState = {
-  pid: PidResult | undefined;
+  pid: PidType;
   pidAsyncStatus: Record<PidAuthMethods, AsyncStatus>;
   pidFlowParams: PreparePidFlowParamsThunkOutput | undefined;
 };
 
 // Initial state for the pid slice
 const initialState: PidState = {
-  pid: undefined,
+  pid: {
+    sd_jwt: undefined,
+    mso_mdoc: undefined,
+  },
   pidAsyncStatus: {
     spid: asyncStatusInitial,
     cieL2: asyncStatusInitial,
     cieL3: asyncStatusInitial,
+    noAuth: asyncStatusInitial,
   },
   pidFlowParams: undefined,
 };
@@ -71,7 +71,7 @@ const pidSlice = createSlice({
     builder.addCase(getPidCieIDThunk.fulfilled, (state, action) => {
       const authMethod = action.meta.arg.authMethod;
       // Set the credential
-      state.pid = action.payload;
+      state.pid.sd_jwt = action.payload;
       // Set the status
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
@@ -150,7 +150,7 @@ const pidSlice = createSlice({
       state.pidFlowParams = initialState.pidFlowParams;
       const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
       const authMethod = cieL3IsLoading ? "cieL3" : "spid";
-      state.pid = action.payload;
+      state.pid.sd_jwt = action.payload;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isDone: true,
@@ -187,6 +187,32 @@ const pidSlice = createSlice({
       };
     });
 
+    /**
+     * PID NoAuth Thunk
+     */
+    builder.addCase(getPidNoAuthThunk.pending, (state) => {
+      state.pidAsyncStatus.noAuth = {
+        ...asyncStatusInitial,
+        isLoading: true,
+      };
+    });
+
+    builder.addCase(getPidNoAuthThunk.fulfilled, (state, action) => {
+      const key = action.payload.format === "dc+sd-jwt" ? "sd_jwt" : "mso_mdoc";
+      state.pid[key] = action.payload;
+      state.pidAsyncStatus.noAuth = {
+        ...asyncStatusInitial,
+        isDone: true,
+      };
+    });
+
+    builder.addCase(getPidNoAuthThunk.rejected, (state, action) => {
+      state.pidAsyncStatus.noAuth = {
+        ...asyncStatusInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
+
     // Reset the pid state when the instance is reset.
     builder.addCase(instanceReset, () => initialState);
 
@@ -216,11 +242,18 @@ const persistConfig: PersistConfig<PidState> = {
 export const pidReducer = persistReducer(persistConfig, pidSlice.reducer);
 
 /**
- * Selects the pid from the state.
+ * Selects the sd_jwt pid from the state.
  * @param state - The root state of the Redux store
  * @returns the pid
  */
-export const selectPid = (state: RootState) => state.pid.pid;
+export const selectPidSdJwt = (state: RootState) => state.pid.pid.sd_jwt;
+
+/**
+ * Selects the mdoc pid from the state.
+ * @param state - The root state of the Redux store
+ * @returns the pid
+ */
+export const selectPidMdoc = (state: RootState) => state.pid.pid.mso_mdoc;
 
 /**
  * Selects the state of the async operation for the pid.

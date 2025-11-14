@@ -251,7 +251,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     parsedCredential,
     credential,
     keyTag: credentialKeyTag,
-    credentialType: "PersonIdentificationData",
+    credentialType: "dc_sd_jwt_PersonIdentificationData",
     credentialConfigurationId: credential_configuration_id,
     format,
   };

@@ -2032,6 +2032,11 @@
     js-base64 "^3.7.7"
     zod "^3.22.4"
 
+"@pagopa/io-react-native-login-utils@^1.2.0-beta.0":
+  version "1.2.0-beta.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-login-utils/-/io-react-native-login-utils-1.2.0-beta.0.tgz#d698cb2b4b6b1796eeccfc4a01a00567592b0b24"
+  integrity sha512-JfhoBH6Sbx8yUb8hh6hV+5p7/mF896SeyCu+cEMoGFzb2EXEepjG8fr/QHOnXqGLQhh8mpLC3M/c/AAVkXNx3Q==
+
 "@pagopa/io-react-native-secure-storage@^0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-secure-storage/-/io-react-native-secure-storage-0.2.0.tgz#386982f350fcefa7bf8dc56e26ff390a9c94db03"

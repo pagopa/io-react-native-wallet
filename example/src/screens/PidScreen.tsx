@@ -9,10 +9,15 @@ import TestScenario, {
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectEnv } from "../store/reducers/environment";
-import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
+import {
+  selectPidAsyncStatus,
+  selectPidMdoc,
+  selectPidSdJwt,
+} from "../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { getPidCieIDThunk } from "../thunks/pidCieID";
 import { getCieIdpHint } from "../utils/environment";
+import { getPidNoAuthThunk } from "../thunks/pidNoAuth";
 
 type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
 
@@ -27,7 +32,9 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const pidSpidState = useAppSelector(selectPidAsyncStatus("spid"));
   const pidCieL2State = useAppSelector(selectPidAsyncStatus("cieL2"));
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
-  const pid = useAppSelector(selectPid);
+  const piNoAuthState = useAppSelector(selectPidAsyncStatus("noAuth"));
+  const pid = useAppSelector(selectPidSdJwt);
+  const pidMdoc = useAppSelector(selectPidMdoc);
   const env = useAppSelector(selectEnv);
   const cieIdpHint = getCieIdpHint(env);
   const cie = useCie(cieIdpHint);
@@ -37,6 +44,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
     pidSpidState,
     pidCieL2State,
     pidCieL3State,
+    pidCNoAuthState: piNoAuthState,
     pid,
   });
 
@@ -77,12 +85,41 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         isDone: pidCieL3State.isDone,
         icon: "fiscalCodeIndividual",
       },
+      {
+        title: "Get PID sd_jwt (No auth)",
+        onPress: () =>
+          dispatch(
+            getPidNoAuthThunk({
+              credentialType: "dc_sd_jwt_PersonIdentificationData",
+            })
+          ),
+        isPresent: !!pid,
+        isLoading: piNoAuthState.isLoading,
+        hasError: piNoAuthState.hasError,
+        isDone: piNoAuthState.isDone,
+        icon: "fiscalCodeIndividual",
+      },
+      {
+        title: "Get PID mso_mdoc (No auth)",
+        onPress: () =>
+          dispatch(
+            getPidNoAuthThunk({
+              credentialType: "mso_mdoc_PersonIdentificationData",
+            })
+          ),
+        isPresent: !!pidMdoc,
+        isLoading: piNoAuthState.isLoading,
+        hasError: piNoAuthState.hasError,
+        isDone: piNoAuthState.isDone,
+        icon: "fiscalCodeIndividual",
+      },
     ],
     [
       pidSpidState.isLoading,
       pidSpidState.hasError,
       pidSpidState.isDone,
       pid,
+      pidMdoc,
       pidCieL2State.isLoading,
       pidCieL2State.hasError,
       pidCieL2State.isDone,
@@ -91,6 +128,9 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       pidCieL3State.isLoading,
       pidCieL3State.hasError,
       pidCieL3State.isDone,
+      piNoAuthState.isLoading,
+      piNoAuthState.hasError,
+      piNoAuthState.isDone,
       navigation,
       dispatch,
       cie,
