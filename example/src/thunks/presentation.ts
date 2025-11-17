@@ -30,16 +30,6 @@ export type CredentialsToPresent = Awaited<
   ReturnType<Credential.Presentation.EvaluateDcqlQuery>
 >;
 
-/**
- * Type of the function to process the presentation request,
- * either when it uses DCQL queries or the legacy `presentation_definition`.
- */
-type ProcessPresentation = (
-  requestObject: RequestObject,
-  rpConf: RpConf,
-  credentialsSdJwt: [CryptoContext, string][]
-) => Promise<RemoteCrossDevicePresentationThunkOutput>;
-
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
   allowed: PresentationStateKeys;
@@ -70,15 +60,19 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   });
 
   if (qrParams.client_id.startsWith("x509_hash:")) {
-    const [, hash] = qrParams.client_id.split("x509_hash:");
-    console.log("x509_hash:", hash);
+    const [, hash] = qrParams.client_id.split(":");
+    console.log("x509_hash", hash);
   }
 
   /* if (qrParams.client_id.startsWith("openid_federation:")) {
-    const { rpConf, subject } =
-      await Credential.Presentation.evaluateRelyingPartyTrust(
-        qrParams.client_id
-      );
+    const [, entityId] = qrParams.client_id.split(":");
+    console.log("openid_federation", entityId);
+
+    const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(
+      entityId!
+    );
+
+    const { keys } = await Credential.Presentation.getJwksFromConfig(rpConf);
   } */
 
   const { requestObjectEncodedJwt } =
@@ -104,6 +98,10 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       .filter(isDefined)
       .map((c) => [c.credentialType, c.keyTag, c.credential]),
   ] as [string, string, string][];
+
+  if (args.allowed === "refusalState") {
+    return processRefusedPresentation(requestObject);
+  }
 
   const evaluatedDcqlQuery = await Credential.Presentation.evaluateDcqlQuery(
     requestObject.dcql_query as DcqlQuery,
@@ -144,100 +142,6 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   };
 });
 
-// Presentation definition flow
-const processLegacyPresentation: ProcessPresentation = async (
-  requestObject,
-  rpConf,
-  credentialsSdJwt
-) => {
-  const { presentationDefinition } =
-    await Credential.Presentation.fetchPresentDefinition(requestObject);
-
-  const evaluateInputDescriptors =
-    await Credential.Presentation.evaluateInputDescriptors(
-      presentationDefinition.input_descriptors,
-      credentialsSdJwt
-    );
-
-  const credentialAndInputDescriptor = evaluateInputDescriptors.map(
-    (evaluateInputDescriptor) => {
-      // Present only the mandatory claims
-      const requestedClaims =
-        evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures.map(
-          (item) => item.decoded[1]
-        );
-
-      return {
-        requestedClaims,
-        inputDescriptor: evaluateInputDescriptor.inputDescriptor,
-        credential: evaluateInputDescriptor.credential,
-        cryptoContext: evaluateInputDescriptor.cryptoContext,
-      };
-    }
-  );
-
-  const remotePresentations =
-    await Credential.Presentation.prepareLegacyRemotePresentations(
-      credentialAndInputDescriptor,
-      requestObject.nonce,
-      requestObject.client_id
-    );
-
-  const authResponse =
-    await Credential.Presentation.sendLegacyAuthorizationResponse(
-      requestObject,
-      presentationDefinition.id,
-      remotePresentations,
-      rpConf
-    );
-
-  return {
-    authResponse,
-    requestObject,
-    requestedClaims: credentialAndInputDescriptor.flatMap(
-      (c) => c.requestedClaims
-    ),
-  };
-};
-
-// DCQL flow
-const processPresentation: ProcessPresentation = async (
-  requestObject,
-  rpConf,
-  credentialsSdJwt
-) => {
-  const result = Credential.Presentation.evaluateDcqlQuery(
-    credentialsSdJwt,
-    requestObject.dcql_query as DcqlQuery
-  );
-
-  const credentialsToPresent = result.map(
-    ({ requiredDisclosures, ...rest }) => ({
-      ...rest,
-      requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
-    })
-  );
-
-  const remotePresentations =
-    await Credential.Presentation.prepareRemotePresentations(
-      credentialsToPresent,
-      requestObject.nonce,
-      requestObject.client_id
-    );
-
-  const authResponse = await Credential.Presentation.sendAuthorizationResponse(
-    requestObject,
-    remotePresentations,
-    rpConf
-  );
-
-  return {
-    authResponse,
-    requestObject,
-    requestedClaims: credentialsToPresent.flatMap((c) => c.requestedClaims),
-  };
-};
-
 // Mock an error in the presentation flow
 const processRefusedPresentation = async (requestObject: RequestObject) => {
   const authResponse =
@@ -248,5 +152,5 @@ const processRefusedPresentation = async (requestObject: RequestObject) => {
         errorDescription: "Mock error during request object validation",
       }
     );
-  return { authResponse, requestObject, requestedClaims: [] };
+  return { authResponse, requestObject, credentialsToPresent: [] };
 };
