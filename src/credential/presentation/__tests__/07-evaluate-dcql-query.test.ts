@@ -145,14 +145,15 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
     ];
@@ -190,25 +191,25 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "DrivingLicense",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ required: true }],
-        requiredDisclosures: [
-          ["4d10ba615ed63a12", "document_number", "123456789"],
-        ],
+        requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
 
@@ -245,13 +246,14 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
     ];
@@ -289,24 +291,24 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "MDL",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
-        requiredDisclosures: [
-          ["4d10ba615ed63a12", "document_number", "123456789"],
-        ],
+        requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
 
@@ -371,25 +373,27 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "MDL",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
-          ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
-          ["4d10ba615ed63a12", "document_number", "123456789"],
+          { name: "birth_date", value: "01-01-1990" },
+          { name: "document_number", value: "123456789" },
         ],
       },
     ];
@@ -446,18 +450,20 @@ describe("evaluateDcqlQuery", () => {
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "MDL",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
@@ -466,12 +472,11 @@ describe("evaluateDcqlQuery", () => {
           { description: "Extra services", required: false },
         ],
         requiredDisclosures: [
-          ["4d10ba615ed63a12", "document_number", "123456789"],
-          ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
-          [
-            "fJlSGpB8bZqgWJnGzaqvuA",
-            "driving_privileges",
-            [
+          { name: "document_number", value: "123456789" },
+          { name: "birth_date", value: "01-01-1990" },
+          {
+            name: "driving_privileges",
+            value: [
               {
                 issue_date: "2015-08-19",
                 vehicle_category_code: "AM",
@@ -484,7 +489,7 @@ describe("evaluateDcqlQuery", () => {
                 codes: [{ code: "01", sign: "02", value: "Guida con lenti" }],
               },
             ],
-          ],
+          },
         ],
       },
     ];

@@ -23,15 +23,13 @@ export type EvaluateDcqlQuery = (
   query: DcqlQuery.Input,
   credentialsSdJwt: [CryptoContext, string /* credential */][],
   credentialsMdoc?: [CryptoContext, string /* credential */][]
-) => Promise<
-  ({
-    id: string;
-    credential: string;
-    cryptoContext: CryptoContext;
-    requiredDisclosures: EvaluatedDisclosure[];
-    purposes: CredentialPurpose[];
-  } & CredentialFormat)[]
->;
+) => ({
+  id: string;
+  credential: string;
+  cryptoContext: CryptoContext;
+  requiredDisclosures: EvaluatedDisclosure[];
+  purposes: CredentialPurpose[];
+} & CredentialFormat)[];
 
 export type PrepareRemotePresentations = (
   credentials: {
@@ -110,7 +108,7 @@ const extractMissingCredentials = (
   });
 };
 
-export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
+export const evaluateDcqlQuery: EvaluateDcqlQuery = (
   query,
   credentialsSdJwt
 ) => {

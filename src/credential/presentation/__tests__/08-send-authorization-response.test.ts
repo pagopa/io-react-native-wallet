@@ -74,7 +74,9 @@ describe("buildDirectPostBody", () => {
     // URLSearchParams output should be 'state=mock_state&vp_token={"PID":"mock_vp_token"}'
     expect(result).toContain("state=mock_state");
     // Because JSON.stringify is used, check approximate structure:
-    expect(result).toContain("vp_token=%7B%22PID%22%3A%22mock_vp_token%22%7D");
+    expect(result).toContain(
+      "vp_token=%7B%22PID%22%3A%5B%22mock_vp_token%22%5D%7D"
+    );
   });
 });
 

@@ -76,7 +76,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     return processRefusedPresentation(requestObject);
   }
 
-  const evaluatedDcqlQuery = await Credential.Presentation.evaluateDcqlQuery(
+  const evaluatedDcqlQuery = Credential.Presentation.evaluateDcqlQuery(
     requestObject.dcql_query as DcqlQuery,
     credentialsSdJwt
   );

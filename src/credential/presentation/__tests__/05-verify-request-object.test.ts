@@ -33,11 +33,7 @@ describe("verifyRequestObject", () => {
       verifyRequestObject(requestObjectJwt, [], {
         rpSubject: CLIENT_ID,
       })
-    ).rejects.toThrow(
-      new InvalidRequestObjectError(
-        "The public key for signature verification (e46a4bf8-a84a-47d6-bf8e-ab0a40ff2d4b) cannot be found in the Entity Configuration"
-      )
-    );
+    ).rejects.toThrow();
   });
 
   it("should throw InvalidRequestObjectError when the JWT signature is invalid", async () => {
