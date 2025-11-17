@@ -23,7 +23,6 @@ import {
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
 import { prepareVpToken } from "../../sd-jwt";
-import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
 import { LogLevel, Logger } from "../../utils/logging";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
