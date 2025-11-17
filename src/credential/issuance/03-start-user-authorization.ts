@@ -4,7 +4,7 @@ import { generateRandomAlphaNumericString, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import type { StartFlow } from "./01-start-flow";
 import { AuthorizationDetail, makeParRequest } from "../../utils/par";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
 
 export type StartUserAuthorization = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],

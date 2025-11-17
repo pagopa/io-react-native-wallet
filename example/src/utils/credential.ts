@@ -156,7 +156,7 @@ export const getPidCieID = async ({
     parsedCredential,
     credential,
     keyTag: credentialKeyTag,
-    credentialType: "PersonIdentificationData",
+    credentialType: "dc_sd_jwt_PersonIdentificationData",
     credentialConfigurationId: credential_configuration_id,
     format,
   };
@@ -165,6 +165,7 @@ export const getPidCieID = async ({
 /**
  * Implements a flow to obtain a generic credential.
  * @param credentialIssuerUrl - The credential issuer URL
+ * @param trustAnchorUrl - The Trust Anchor URL
  * @param redirectUri - The redirect URI for the authorization flow
  * @param credentialId - The id of the credential to obtain
  * @param pid - The PID credential

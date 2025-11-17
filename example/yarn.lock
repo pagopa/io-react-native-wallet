@@ -2007,10 +2007,10 @@
   dependencies:
     zod "^3.24.4"
 
-"@pagopa/io-react-native-crypto@^1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
-  integrity sha512-Pmzr3N8YiF0JS+sYAOxiBYeBXfJq13NfCc7sTQ+RnYuT9GqgOKOLrF6YeJdv1VZ/YyLg2IhH7dAYiWueSAwj8g==
+"@pagopa/io-react-native-crypto@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.4.tgz#c7cc76a638edf6ebec74bb7a726c2c93c9bd2735"
+  integrity sha512-g0bNLIKVeUwmO3AnReJKqUGLg3rnrtt6rF0b1fYWLtTMX6FwCXc/folxYvujtkRCeuXhCg8WmmV+o/uLiCws2Q==
 
 "@pagopa/io-react-native-integrity@^0.3.1":
   version "0.3.1"
@@ -2031,6 +2031,11 @@
   dependencies:
     js-base64 "^3.7.7"
     zod "^3.22.4"
+
+"@pagopa/io-react-native-login-utils@^1.2.0-beta.0":
+  version "1.2.0-beta.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-login-utils/-/io-react-native-login-utils-1.2.0-beta.0.tgz#d698cb2b4b6b1796eeccfc4a01a00567592b0b24"
+  integrity sha512-JfhoBH6Sbx8yUb8hh6hV+5p7/mF896SeyCu+cEMoGFzb2EXEepjG8fr/QHOnXqGLQhh8mpLC3M/c/AAVkXNx3Q==
 
 "@pagopa/io-react-native-secure-storage@^0.2.0":
   version "0.2.0"

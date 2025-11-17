@@ -9,7 +9,7 @@ import {
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
-import { selectPid } from "../store/reducers/pid";
+import { selectPidSdJwt } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
@@ -86,7 +86,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     }
   );
 
-  const pid = selectPid(getState());
+  const pid = selectPidSdJwt(getState());
   if (!pid) {
     throw new Error("PID not found");
   }

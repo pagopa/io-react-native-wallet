@@ -18,7 +18,7 @@ import {
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
-import { selectPid } from "../store/reducers/pid";
+import { selectPidSdJwt } from "../store/reducers/pid";
 import type { Out } from "src/utils/misc";
 import { createAppAsyncThunk } from "./utils";
 import { getAttestationThunk } from "./attestation";
@@ -80,7 +80,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   const { credentialType } = args;
 
   // Get the PID from the store
-  const pid = selectPid(getState());
+  const pid = selectPidSdJwt(getState());
   if (!pid) {
     throw new Error("PID not found");
   }
@@ -115,7 +115,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   const env = getEnv(selectEnv(getState()));
 
   const issuerUrl =
-    credentialType === "PersonIdentificationData"
+    credentialType === "dc_sd_jwt_PersonIdentificationData"
       ? env.WALLET_PID_PROVIDER_BASE_URL
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 

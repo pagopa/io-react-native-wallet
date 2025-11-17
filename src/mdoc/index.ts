@@ -1,19 +1,21 @@
 import { CBOR, COSE } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 import {
-  verifyCertificateChain,
   type CertificateValidationResult,
   type PublicKey,
+  verifyCertificateChain,
   type X509CertificateOptions,
 } from "@pagopa/io-react-native-crypto";
 import { MissingX509CertsError, X509ValidationError } from "../trust/errors";
 import { IoWalletError } from "../utils/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
+
 export * from "./utils";
 
 export const verify = async (
   token: string,
-  x509CertRoot: string
+  x509CertRoot: string,
+  x509CertVerificationOptions?: X509CertificateOptions
 ): Promise<{ issuerSigned: CBOR.IssuerSigned }> => {
   // get decoded data
   const issuerSigned = await CBOR.decodeIssuerSigned(token);
@@ -32,7 +34,7 @@ export const verify = async (
   const x5chain =
     issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
   // Verify the x5chain
-  await verifyX5chain(x5chain, x509CertRoot);
+  await verifyX5chain(x5chain, x509CertRoot, x509CertVerificationOptions);
 
   const coseSign1 = issuerSigned.issuerAuth.rawValue;
 
