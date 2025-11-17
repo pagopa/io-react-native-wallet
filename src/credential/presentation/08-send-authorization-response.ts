@@ -154,7 +154,7 @@ export const buildDirectPostBody = async (
  * Type definition for the function that sends the authorization response
  * to the Relying Party, completing the presentation flow.
  */
-export type SendAuthorizationResponseDcql = (
+export type SendAuthorizationResponse = (
   requestObject: Out<VerifyRequestObject>["requestObject"],
   jwkKeys: Out<FetchJwks>["keys"],
   remotePresentation: RemotePresentation,
@@ -163,48 +163,47 @@ export type SendAuthorizationResponseDcql = (
   }
 ) => Promise<AuthorizationResponse>;
 
-export const sendAuthorizationResponseDcql: SendAuthorizationResponseDcql =
-  async (
-    requestObject,
+export const sendAuthorizationResponse: SendAuthorizationResponse = async (
+  requestObject,
+  jwkKeys,
+  remotePresentation,
+  { appFetch = fetch } = {}
+): Promise<AuthorizationResponse> => {
+  const { generatedNonce, presentations } = remotePresentation;
+  // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
+  const requestBody = await buildDirectPostJwtBody(
     jwkKeys,
-    remotePresentation,
-    { appFetch = fetch } = {}
-  ): Promise<AuthorizationResponse> => {
-    const { generatedNonce, presentations } = remotePresentation;
-    // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
-    const requestBody = await buildDirectPostJwtBody(
-      jwkKeys,
-      requestObject,
-      {
-        vp_token: presentations.reduce(
-          (acc, presentation) => ({
-            ...acc,
-            [presentation.credentialId]: [presentation.vpToken],
-          }),
-          {} as Record<string, string[]>
-        ),
-      },
-      generatedNonce
-    );
+    requestObject,
+    {
+      vp_token: presentations.reduce(
+        (acc, presentation) => ({
+          ...acc,
+          [presentation.credentialId]: [presentation.vpToken],
+        }),
+        {} as Record<string, string[]>
+      ),
+    },
+    generatedNonce
+  );
 
-    Logger.log(
-      LogLevel.DEBUG,
-      `Sending Authorization Response to ${requestObject.response_uri} with body: ${requestBody}`
-    );
+  Logger.log(
+    LogLevel.DEBUG,
+    `Sending Authorization Response to ${requestObject.response_uri} with body: ${requestBody}`
+  );
 
-    // 2. Send the authorization response via HTTP POST and validate the response
-    return await appFetch(requestObject.response_uri, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: requestBody,
-    })
-      .then(hasStatusOrThrow(200))
-      .then((res) => res.json())
-      .then(AuthorizationResponse.parse)
-      .catch(handleAuthorizationResponseError);
-  };
+  // 2. Send the authorization response via HTTP POST and validate the response
+  return await appFetch(requestObject.response_uri, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: requestBody,
+  })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.json())
+    .then(AuthorizationResponse.parse)
+    .catch(handleAuthorizationResponseError);
+};
 
 /**
  * Type definition for the function that sends the authorization response

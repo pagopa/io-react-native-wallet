@@ -1,7 +1,7 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
-import { getJwksFromConfig, type FetchJwks } from "./04-retrieve-rp-jwks";
+import { type FetchJwks } from "./04-retrieve-rp-jwks";
 import type { RelyingPartyEntityConfiguration } from "../../trust/types";
 import type { Out } from "../../utils/misc";
 import { LogLevel, Logger } from "../../utils/logging";
@@ -100,33 +100,6 @@ const validateRequestObjectShape = (payload: unknown): RequestObject => {
     "The Request Object cannot be parsed successfully",
     formatFlattenedZodErrors(requestObjectParse.error.flatten())
   );
-};
-
-/**
- * Get the public key to verify the Request Object's signature from the Relying Party's EC.
- *
- * @param rpConf The Relying Party's EC
- * @param kid The identifier of the key to find
- * @returns The corresponding public key to verify the signature
- * @throws {InvalidRequestObjectError} when the key cannot be found
- */
-const getSigPublicKey = async (
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  kid: string | undefined
-) => {
-  try {
-    const { keys } = await getJwksFromConfig(rpConf);
-
-    const pubKey = keys.find((k) => k.kid === kid);
-
-    if (!pubKey) throw new Error();
-
-    return pubKey;
-  } catch (_) {
-    throw new InvalidRequestObjectError(
-      `The public key for signature verification (${kid}) cannot be found in the Entity Configuration`
-    );
-  }
 };
 
 /**
