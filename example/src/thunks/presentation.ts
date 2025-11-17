@@ -5,7 +5,8 @@ import { selectPidSdJwt } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
 import type { RootState } from "../store/types";
-import type { JWK } from "src/utils/jwk";
+import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
+import { getAttestationThunk } from "./attestation";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
@@ -14,11 +15,11 @@ type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[0];
 type RpConf = Awaited<
   ReturnType<Credential.Presentation.EvaluateRelyingPartyTrust>
 >["rpConf"];
+type JwksKeys = Awaited<
+  ReturnType<typeof Credential.Presentation.getJwksFromConfig>
+>["keys"];
 type AuthResponse = Awaited<
   ReturnType<Credential.Presentation.SendAuthorizationResponse>
->;
-export type CredentialsToPresent = Awaited<
-  ReturnType<Credential.Presentation.EvaluateDcqlQuery>
 >;
 type QrCodeParams = ReturnType<Credential.Presentation.StartFlow>;
 
@@ -29,8 +30,6 @@ export type RemoteCrossDevicePresentationThunkInput = {
 
 export type RemoteCrossDevicePresentationThunkOutput = {
   authResponse: AuthResponse;
-  requestObject: RequestObject;
-  credentialsToPresent: CredentialsToPresent;
 };
 
 /**
@@ -39,7 +38,12 @@ export type RemoteCrossDevicePresentationThunkOutput = {
 export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   RemoteCrossDevicePresentationThunkOutput,
   RemoteCrossDevicePresentationThunkInput
->("presentation/remote", async (args, { getState }) => {
+>("presentation/remote", async (args, { getState, dispatch }) => {
+  // Checks if the wallet instance attestation needs to be requested
+  if (shouldRequestAttestationSelector(getState())) {
+    await dispatch(getAttestationThunk());
+  }
+
   const url = new URL(args.qrcode);
 
   const qrParams = Credential.Presentation.startFlowFromQR({
@@ -101,14 +105,12 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   return {
     authResponse,
-    requestObject,
-    credentialsToPresent: evaluatedDcqlQuery,
   };
 });
 
 type HandleAuthRequest = (qrParams: QrCodeParams) => Promise<{
   requestObject: RequestObject;
-  keys: JWK[];
+  keys: JwksKeys;
   rpConf?: RpConf;
 }>;
 
@@ -182,7 +184,7 @@ const processRefusedPresentation = async (requestObject: RequestObject) => {
         errorDescription: "Mock error during request object validation",
       }
     );
-  return { authResponse, requestObject, credentialsToPresent: [] };
+  return { authResponse };
 };
 
 const getCredentialsForPresentation = (state: RootState) => {
