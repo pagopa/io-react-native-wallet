@@ -119,11 +119,15 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
       }
     );
 
-  const { callbackUrl } = await Credential.Issuance.buildChallengeCallbackUrl(
-    redirect_uri,
-    mrtd_val_pop_nonce,
-    mrtd_auth_session
-  );
+  const { callbackUrl } =
+    await Credential.Issuance.MRTDPoP.buildChallengeCallbackUrl(
+      redirect_uri,
+      mrtd_val_pop_nonce,
+      mrtd_auth_session,
+      {
+        wiaCryptoContext,
+      }
+    );
 
   return {
     callbackUrl,

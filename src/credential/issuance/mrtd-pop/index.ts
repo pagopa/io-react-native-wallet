@@ -5,15 +5,23 @@ import {
 import { initChallenge, type InitChallenge } from "./02-init-challenge";
 import {
   validateChallenge,
+  buildChallengeCallbackUrl,
   type ValidateChallenge,
+  type BuildChallengeCallbackUrl,
 } from "./03-validate-challenge";
 import type { MrtdPayload, IasPayload } from "./types";
 
-export { verifyAndParseChallengeInfo, initChallenge, validateChallenge };
+export {
+  verifyAndParseChallengeInfo,
+  initChallenge,
+  validateChallenge,
+  buildChallengeCallbackUrl,
+};
 export type {
   VerifyAndParseChallengeInfo,
   InitChallenge,
   ValidateChallenge,
+  BuildChallengeCallbackUrl,
   MrtdPayload,
   IasPayload,
 };
