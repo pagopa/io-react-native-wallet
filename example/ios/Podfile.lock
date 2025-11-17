@@ -205,7 +205,6 @@ PODS:
     - React-RCTText (= 0.78.3)
     - React-RCTVibration (= 0.78.3)
   - React-callinvoker (0.78.3)
-  - React-Codegen (0.1.0)
   - React-Core (0.78.3):
     - glog
     - hermes-engine
@@ -2191,7 +2190,6 @@ SPEC REPOS:
     - IOWalletProximity
     - JOSESwift
     - OpenSSL-Universal
-    - React-Codegen
     - SocketRocket
     - SwiftCBOR
 
@@ -2394,7 +2392,6 @@ SPEC CHECKSUMS:
   RCTTypeSafety: c9c9e64389bc545fc137030615b387ef1654dcee
   React: 14a80ea4f13387cfdaa4250b46fbfe19754c220c
   React-callinvoker: fed1dad5d6cf992c7b4b5fdbf1bf67fe2e8fb6c5
-  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
   React-Core: 3c803e7f3be6fa68e3dabcac283a5a5f87340a60
   React-CoreModules: 94d556b4055defb79278c3afba95e521998b9b3a
   React-cxxreact: 21c826a567199cc2d5797bd4cfe3c0d94bb3a7de
