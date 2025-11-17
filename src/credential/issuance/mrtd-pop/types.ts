@@ -52,7 +52,6 @@ export type IasPayload = {
   ias_pk: string;
   sod_ias: string;
   challenge_signed: string;
-  nis: string;
 };
 
 export type MrtdPopVerificationResult = z.infer<

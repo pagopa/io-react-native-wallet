@@ -83,7 +83,6 @@ export const CieInternalAuthenticationScreen = ({
                 sod_ias: addPadding(nis_data.sod),
                 challenge_signed: addPadding(nis_data.signedChallenge),
                 ias_pk: addPadding(nis_data.publicKey),
-                nis: addPadding(nis_data.nis),
               },
             })
           );
