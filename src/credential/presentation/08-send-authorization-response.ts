@@ -282,7 +282,7 @@ const handleAuthorizationResponseError = (e: unknown) => {
  * Prepares remote presentations for a set of credentials.
  *
  * For each credential, this function:
- * - Validates the credential format (currently supports 'mso_mdoc', 'vc+sd-jwt' or 'dc+sd-jwt').
+ * - Validates the credential format (currently supports 'mso_mdoc' or 'dc+sd-jwt').
  * - Generates a verifiable presentation token (vpToken) using the appropriate method.
  * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
  *

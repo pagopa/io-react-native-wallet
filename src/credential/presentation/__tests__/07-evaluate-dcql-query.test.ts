@@ -491,34 +491,4 @@ describe("evaluateDcqlQuery", () => {
 
     expect(result).toEqual(expected);
   });
-
-  it("should work with older vc+sd-jwt credentials", () => {
-    const query: DcqlQuery.Input = {
-      credentials: [
-        {
-          id: "PID",
-          format: "vc+sd-jwt",
-          meta: {
-            vct_values: ["PersonIdentificationData"],
-          },
-          claims: [{ path: ["tax_id_code"] }],
-        },
-      ],
-    };
-    const result = evaluateDcqlQuery([[pidCryptoContext, legacyPid]], query);
-    const expected = [
-      {
-        id: "PID",
-        vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
-        credential: legacyPid,
-        purposes: [{ required: true }],
-        requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-        ],
-      },
-    ];
-
-    expect(result).toEqual(expected);
-  });
 });
