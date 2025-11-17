@@ -17,16 +17,6 @@ import {
   type VerifyRequestObject,
 } from "./05-verify-request-object";
 import {
-  fetchPresentDefinition,
-  type FetchPresentationDefinition,
-} from "./06-fetch-presentation-definition";
-import {
-  evaluateInputDescriptors,
-  prepareLegacyRemotePresentations,
-  type EvaluateInputDescriptors,
-  type PrepareLegacyRemotePresentations,
-} from "./07-evaluate-input-descriptor";
-import {
   evaluateDcqlQuery,
   type EvaluateDcqlQuery,
   type PrepareRemotePresentations,
@@ -47,10 +37,7 @@ export {
   getJwksFromConfig,
   fetchJwksFromRequestObject,
   verifyRequestObject,
-  fetchPresentDefinition,
-  evaluateInputDescriptors,
   evaluateDcqlQuery,
-  prepareLegacyRemotePresentations,
   prepareRemotePresentations,
   sendAuthorizationResponse,
   sendAuthorizationErrorResponse,
@@ -62,10 +49,7 @@ export type {
   GetRequestObject,
   FetchJwks,
   VerifyRequestObject,
-  FetchPresentationDefinition,
-  EvaluateInputDescriptors,
   EvaluateDcqlQuery,
-  PrepareLegacyRemotePresentations,
   PrepareRemotePresentations,
   SendAuthorizationResponse,
   SendAuthorizationErrorResponse,
