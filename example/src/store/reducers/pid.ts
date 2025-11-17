@@ -198,7 +198,8 @@ const pidSlice = createSlice({
     });
 
     builder.addCase(getPidNoAuthThunk.fulfilled, (state, action) => {
-      state.pid.mso_mdoc = action.payload;
+      const key = action.payload.format === "dc+sd-jwt" ? "sd_jwt" : "mso_mdoc";
+      state.pid[key] = action.payload;
       state.pidAsyncStatus.noAuth = {
         ...asyncStatusInitial,
         isDone: true,
