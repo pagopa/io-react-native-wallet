@@ -110,8 +110,7 @@ export const buildDirectPostJwtBody = async (
   const encryptedResponse = await new EncryptJwe(authzResponsePayload, {
     alg: defaultAlg,
     enc:
-      (encrypted_response_enc_values_supported[0] as Jwe["enc"]) ||
-      "A256CBC-HS512",
+      (encrypted_response_enc_values_supported[0] as Jwe["enc"]) || "A128GCM",
     kid: encPublicJwk.kid,
   }).encrypt(encPublicJwk);
 
