@@ -1,10 +1,13 @@
 import { z } from "zod";
 
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
-import { SignJWT, sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
-import { verifyDisclosure } from "./verifier";
+import {
+  decode as decodeJwt,
+  sha256ToBase64,
+  SignJWT,
+  verify as verifyJwt,
+} from "@pagopa/io-react-native-jwt";
+import { Disclosure, type DisclosureWithEncoded, SdJwt4VC } from "./types";
+import { reconstructDisclosures, verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
 import * as Errors from "./errors";
 import { Base64 } from "js-base64";
@@ -82,14 +85,27 @@ export const disclose = async (
   token: string,
   claims: string[]
 ): Promise<{ token: string; paths: { claim: string; path: string }[] }> => {
-  const [rawSdJwt, ...rawDisclosures] = token.split("~");
-  const { sdJwt, disclosures } = decode(token, SdJwt4VC);
+  const [rawSdJwt] = token.split("~");
 
-  // for each claim, return the path on which they are located in the SD-JWT token
+  const { sdJwt, disclosures: allDecodedDisclosures } = decode(token, SdJwt4VC);
+
+  // Consider only 3-value disclosures (claimName)
+  const getClaimName = (decodedDisclosure: Disclosure): string | undefined => {
+    if (decodedDisclosure.length === 3) {
+      return decodedDisclosure[1] as string;
+    }
+    return undefined;
+  };
+
+  const nominalDisclosures = allDecodedDisclosures.filter((d) => {
+    const name = getClaimName(d.decoded);
+    return name && claims.includes(name);
+  });
+
   const paths = await Promise.all(
     claims.map(async (claim) => {
-      const disclosure = disclosures.find(
-        ({ decoded: [, name] }) => name === claim
+      const disclosure = nominalDisclosures.find(
+        (d) => getClaimName(d.decoded) === claim
       );
 
       // check every claim represents a known disclosure
@@ -110,18 +126,8 @@ export const disclose = async (
     })
   );
 
-  // The disclosures in the new SD-JWT aligned with version 1.0
-  // include a trailing "~" character.
-  // To avoid parsing errors, it is necessary to filter the array
-  // to remove any empty strings
-  const filteredDisclosures = rawDisclosures.filter(Boolean).filter((d) => {
-    const {
-      decoded: [, name],
-    } = decodeDisclosure(d);
-    return claims.includes(name);
-  });
+  const filteredDisclosures = nominalDisclosures.map((d) => d.encoded);
 
-  // compose the final disclosed token
   const disclosedToken = [rawSdJwt, ...filteredDisclosures].join("~");
 
   return { token: disclosedToken, paths };
@@ -167,6 +173,30 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   return {
     sdJwt: decoded.sdJwt,
     disclosures: decoded.disclosures.map((d) => d.decoded),
+  };
+};
+
+export const verifyEudiwCredential = async <S extends z.ZodType<SdJwt4VC>>(
+  token: string,
+  customSchema?: S
+): Promise<{ sdJwt: z.infer<S>; disclosures: Disclosure[] }> => {
+  const decoded = decode(token, customSchema);
+
+  //Check disclosures in sd-jwt
+  const claims = [...decoded.sdJwt.payload._sd];
+  await Promise.all(
+    decoded.disclosures.map(
+      async (disclosure) => await verifyDisclosure(disclosure, claims)
+    )
+  );
+
+  const reconstructedDisclosures = await reconstructDisclosures(
+    decoded.disclosures
+  );
+
+  return {
+    sdJwt: decoded.sdJwt,
+    disclosures: reconstructedDisclosures.map((d) => d.decoded),
   };
 };
 

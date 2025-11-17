@@ -100,10 +100,7 @@ const HomeScreen = () => {
         label: "Credential Offer",
         description: "Obtain a credential offer from QR code",
         icon: "chevronRight",
-        onPress: () =>
-          pid
-            ? navigation.navigate("CredentialOffer")
-            : Alert.alert("Obtain a PID first"),
+        onPress: () => navigation.navigate("CredentialOffer"),
       },
       {
         label: "Settings",

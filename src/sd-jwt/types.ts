@@ -14,10 +14,13 @@ export const ObfuscatedDisclosures = z.object({ _sd: z.array(z.string()) });
  * @see https://vcstuff.github.io/draft-terbu-sd-jwt-vc/draft-terbu-oauth-sd-jwt-vc.html
  */
 export type Disclosure = z.infer<typeof Disclosure>;
-export const Disclosure = z.tuple([
-  /* salt */ z.string(),
-  /* claim name */ z.string(),
-  /* claim value */ z.unknown(),
+const ClaimDisclosureSchema = z.tuple([z.string(), z.string(), z.unknown()]);
+
+const ArrayItemDisclosureSchema = z.tuple([z.string(), z.unknown()]);
+
+export const Disclosure = z.union([
+  ClaimDisclosureSchema,
+  ArrayItemDisclosureSchema,
 ]);
 
 /**
@@ -44,6 +47,17 @@ const StatusAssertion = z.object({
   credential_hash_alg: z.literal("sha-256"),
 });
 
+const StatusIdentifierSchema = z.object({
+  identifier_list: z.object({
+    id: z.string(),
+    uri: z.string().url(),
+  }),
+  status_list: z.object({
+    idx: z.number().int(),
+    uri: z.string().url(),
+  }),
+});
+
 /**
  * Type for a Verifiable Credential in SD-JWT format.
  * It supports both the older and the new data model for backward compatibility.
@@ -53,7 +67,7 @@ export const SdJwt4VC = z.object({
   header: z.object({
     typ: z.enum(["dc+sd-jwt", LEGACY_SD_JWT]),
     alg: z.string(),
-    kid: z.string(),
+    kid: z.string().optional(),
     trust_chain: z.array(z.string()).optional(),
     x5c: z.array(z.string()).optional(),
     vctm: z.array(z.string()).optional(),
@@ -61,7 +75,7 @@ export const SdJwt4VC = z.object({
   payload: z.intersection(
     z.object({
       iss: z.string(),
-      sub: z.string(),
+      sub: z.string().optional(),
       iat: UnixTime.optional(),
       exp: UnixTime,
       _sd_alg: z.literal("sha-256"),
@@ -71,6 +85,10 @@ export const SdJwt4VC = z.object({
           z.object({ status_assertion: StatusAssertion }),
           // Legacy credentials v0.7.1
           z.object({ status_attestation: StatusAssertion }),
+          // Status Identifier
+          StatusIdentifierSchema,
+          // No status
+          z.undefined(),
         ])
         .optional(),
       cnf: z.object({

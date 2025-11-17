@@ -75,6 +75,13 @@ export type CredentialResult = CredentialResultBase & {
 };
 
 /**
+ * Type definition to represent a credential result to be used in the store.
+ */
+export type CredentialOfferResult = CredentialResultBase & {
+  credentialType: SupportedCredentials;
+};
+
+/**
  * Type definition to represent the PID credentials in the store.
  */
 export type PidType = {
