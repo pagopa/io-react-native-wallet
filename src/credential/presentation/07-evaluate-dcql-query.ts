@@ -9,6 +9,7 @@ import type {
   RemotePresentation,
 } from "./types";
 import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
+import { LogLevel, Logger } from "../../utils/logging";
 
 /**
  * The purpose for the credential request by the RP.
@@ -131,9 +132,15 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
     const queryResult = DcqlQuery.query(parsedQuery, credentials);
 
     if (!queryResult.canBeSatisfied) {
-      throw new CredentialsNotFoundError(
-        extractMissingCredentials(queryResult, parsedQuery)
+      const missingCredentials = extractMissingCredentials(
+        queryResult,
+        parsedQuery
       );
+      Logger.log(
+        LogLevel.ERROR,
+        "Missing credentials: " + JSON.stringify(missingCredentials)
+      );
+      throw new CredentialsNotFoundError(missingCredentials);
     }
 
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
