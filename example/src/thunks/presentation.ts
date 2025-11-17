@@ -1,20 +1,11 @@
 import { createAppAsyncThunk } from "./utils";
-import {
-  createCryptoContextFor,
-  Credential,
-} from "@pagopa/io-react-native-wallet";
-import {
-  selectAttestationAsSdJwt,
-  shouldRequestAttestationSelector,
-} from "../store/reducers/attestation";
-import { getAttestationThunk } from "./attestation";
+import { Credential } from "@pagopa/io-react-native-wallet";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPidSdJwt } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { WIA_KEYTAG } from "../utils/crypto";
-import type { EvaluatedDisclosures } from "src/credential/presentation/07-evaluate-input-descriptor";
+import type { RootState } from "../store/types";
+import type { JWK } from "src/utils/jwk";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
@@ -24,11 +15,12 @@ type RpConf = Awaited<
   ReturnType<Credential.Presentation.EvaluateRelyingPartyTrust>
 >["rpConf"];
 type AuthResponse = Awaited<
-  ReturnType<Credential.Presentation.SendAuthorizationResponseDcql>
+  ReturnType<Credential.Presentation.SendAuthorizationResponse>
 >;
 export type CredentialsToPresent = Awaited<
   ReturnType<Credential.Presentation.EvaluateDcqlQuery>
 >;
+type QrCodeParams = ReturnType<Credential.Presentation.StartFlow>;
 
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
@@ -47,7 +39,7 @@ export type RemoteCrossDevicePresentationThunkOutput = {
 export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   RemoteCrossDevicePresentationThunkOutput,
   RemoteCrossDevicePresentationThunkInput
->("presentation/remote", async (args, { getState, dispatch }) => {
+>("presentation/remote", async (args, { getState }) => {
   const url = new URL(args.qrcode);
 
   const qrParams = Credential.Presentation.startFlowFromQR({
@@ -59,45 +51,18 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       | "post",
   });
 
-  if (qrParams.client_id.startsWith("x509_hash:")) {
-    const [, hash] = qrParams.client_id.split(":");
-    console.log("x509_hash", hash);
+  const [clientIdPrefix] = qrParams.client_id.split(":");
+  const handleAuthRequest = clientIdPrefix
+    ? handleAuthRequestByClientId[clientIdPrefix]
+    : undefined;
+
+  if (!handleAuthRequest) {
+    throw new Error(`Unrecognized client_id: ${clientIdPrefix}`);
   }
 
-  /* if (qrParams.client_id.startsWith("openid_federation:")) {
-    const [, entityId] = qrParams.client_id.split(":");
-    console.log("openid_federation", entityId);
+  const { requestObject, keys } = await handleAuthRequest(qrParams);
 
-    const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(
-      entityId!
-    );
-
-    const { keys } = await Credential.Presentation.getJwksFromConfig(rpConf);
-  } */
-
-  const { requestObjectEncodedJwt } =
-    await Credential.Presentation.getRequestObject(qrParams.request_uri);
-
-  const { keys } = await Credential.Presentation.fetchJwksFromRequestObject(
-    requestObjectEncodedJwt
-  );
-
-  const { requestObject } = await Credential.Presentation.verifyRequestObject(
-    requestObjectEncodedJwt,
-    {
-      clientId: qrParams.client_id,
-      jwkKeys: keys,
-    }
-  );
-
-  const pid = selectPidSdJwt(getState());
-  const credentials = selectCredentials(getState());
-
-  const credentialsSdJwt = [
-    ...Object.values({ pid, ...credentials })
-      .filter(isDefined)
-      .map((c) => [c.credentialType, c.keyTag, c.credential]),
-  ] as [string, string, string][];
+  const { credentialsSdJwt } = getCredentialsForPresentation(getState());
 
   if (args.allowed === "refusalState") {
     return processRefusedPresentation(requestObject);
@@ -128,12 +93,11 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       authRequestObject
     );
 
-  const authResponse =
-    await Credential.Presentation.sendAuthorizationResponseDcql(
-      requestObject,
-      keys,
-      remotePresentations
-    );
+  const authResponse = await Credential.Presentation.sendAuthorizationResponse(
+    requestObject,
+    keys,
+    remotePresentations
+  );
 
   return {
     authResponse,
@@ -141,6 +105,72 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     credentialsToPresent: evaluatedDcqlQuery,
   };
 });
+
+type HandleAuthRequest = (qrParams: QrCodeParams) => Promise<{
+  requestObject: RequestObject;
+  keys: JWK[];
+  rpConf?: RpConf;
+}>;
+
+/**
+ * Handle the Authentication Request for clients with `openid_federation` prefix.
+ * @param qrParams The QR code
+ * @returns Request Object, JWKS, Verifier's EC
+ */
+const handleAuthRequestForOpenIdFederation: HandleAuthRequest = async (
+  qrParams
+) => {
+  const [, entityId] = qrParams.client_id.split(":");
+  console.log("openid_federation", entityId);
+
+  const { rpConf, subject } =
+    await Credential.Presentation.evaluateRelyingPartyTrust(entityId!);
+
+  if (entityId !== subject) {
+    throw new Error("The client ID must match the Entity Configuration's sub");
+  }
+
+  const { keys } = await Credential.Presentation.getJwksFromConfig(rpConf);
+
+  const { requestObjectEncodedJwt } =
+    await Credential.Presentation.getRequestObject(qrParams.request_uri);
+
+  const { requestObject } = await Credential.Presentation.verifyRequestObject(
+    requestObjectEncodedJwt,
+    keys
+  );
+
+  return { requestObject, keys, rpConf };
+};
+
+/**
+ * Handle the Authentication Request for clients with `x509_hash` prefix.
+ * @param qrParams The QR code
+ * @returns Request Object, JWKS
+ */
+const handleAuthRequestForX509Hash: HandleAuthRequest = async (qrParams) => {
+  const [, hash] = qrParams.client_id.split(":");
+  console.log("x509_hash", hash);
+
+  const { requestObjectEncodedJwt } =
+    await Credential.Presentation.getRequestObject(qrParams.request_uri);
+
+  const { keys } = await Credential.Presentation.fetchJwksFromRequestObject(
+    requestObjectEncodedJwt
+  );
+
+  const { requestObject } = await Credential.Presentation.verifyRequestObject(
+    requestObjectEncodedJwt,
+    keys
+  );
+
+  return { requestObject, keys };
+};
+
+const handleAuthRequestByClientId: Record<string, HandleAuthRequest> = {
+  x509_hash: handleAuthRequestForX509Hash,
+  openid_federation: handleAuthRequestForOpenIdFederation,
+};
 
 // Mock an error in the presentation flow
 const processRefusedPresentation = async (requestObject: RequestObject) => {
@@ -153,4 +183,19 @@ const processRefusedPresentation = async (requestObject: RequestObject) => {
       }
     );
   return { authResponse, requestObject, credentialsToPresent: [] };
+};
+
+const getCredentialsForPresentation = (state: RootState) => {
+  const pid = selectPidSdJwt(state);
+  const credentials = selectCredentials(state);
+
+  const credentialsSdJwt = [
+    ...Object.values({ pid, ...credentials })
+      .filter(isDefined)
+      .map((c) => [c.credentialType, c.keyTag, c.credential]),
+  ] as [string, string, string][];
+
+  return {
+    credentialsSdJwt,
+  };
 };

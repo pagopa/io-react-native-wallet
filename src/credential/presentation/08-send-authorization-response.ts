@@ -100,6 +100,7 @@ export const buildDirectPostJwtBody = async (
 
   const encPublicJwk = choosePublicKeyToEncrypt(jwkKeys);
 
+  // TODO: get encryption algorithm for openid_federation
   // Encrypt the authorization payload
   const { encrypted_response_enc_values_supported = [] } =
     requestObject.client_metadata ?? {};
@@ -301,7 +302,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
     credentials.map(async (item) => {
       Logger.log(
         LogLevel.DEBUG,
-        "Preparing presentation for: " + JSON.stringify(item, null, 2)
+        "Preparing presentation for: " + JSON.stringify(item)
       );
 
       const { credentialInputId, format } = item;

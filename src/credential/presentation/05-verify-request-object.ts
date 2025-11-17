@@ -2,37 +2,27 @@ import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
 import { type FetchJwks } from "./04-retrieve-rp-jwks";
-import type { RelyingPartyEntityConfiguration } from "../../trust/types";
 import type { Out } from "../../utils/misc";
 import { LogLevel, Logger } from "../../utils/logging";
 
 export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
-  context: {
-    jwkKeys: Out<FetchJwks>["keys"];
-    clientId: string;
-    // rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"];
-    // rpSubject: string;
-    state?: string;
-  }
+  jwkKeys: Out<FetchJwks>["keys"]
 ) => Promise<{ requestObject: RequestObject }>;
 
 /**
  * Function to verify the Request Object's validity, from the signature to the required properties.
  * @param requestObjectEncodedJwt The Request Object in JWT format
- * @param context.clientId The client ID to verify
- * @param context.rpConf The Entity Configuration of the Relying Party
- * @param context.state Optional state
+ * @param jwkKeys The JWKS to use for signature validation
  * @returns The verified Request Object
  * @throws {InvalidRequestObjectError} if the Request Object cannot be validated
  */
 export const verifyRequestObject: VerifyRequestObject = async (
   requestObjectEncodedJwt,
-  { clientId, jwkKeys, state }
+  jwkKeys
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
-  // const pubKey = getSigPublicKey(rpConf, requestObjectJwt.protectedHeader.kid);
   // verify token signature to ensure the request object is authentic
   const pubKey =
     jwkKeys.find(({ kid }) => kid === requestObjectJwt.protectedHeader.kid) ||
@@ -55,28 +45,9 @@ export const verifyRequestObject: VerifyRequestObject = async (
 
   const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
 
-  /*
-  const isClientIdMatch =
-    clientId === requestObject.client_id && clientId === rpSubject;
-
-  if (!isClientIdMatch) {
-    throw new InvalidRequestObjectError(
-      "Client ID does not match Request Object or Entity Configuration"
-    );
-  }
-
-  const isStateMatch =
-    state && requestObject.state ? state === requestObject.state : true;
-
-  if (!isStateMatch) {
-    throw new InvalidRequestObjectError(
-      "The provided state does not match the Request Object's"
-    );
-  } */
-
   Logger.log(
     LogLevel.DEBUG,
-    "Verified Request Object: " + JSON.stringify(requestObject, null, 2)
+    "Verified Request Object: " + JSON.stringify(requestObject)
   );
 
   return { requestObject };
