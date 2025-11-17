@@ -7,19 +7,26 @@ import { LogLevel, Logger } from "../../utils/logging";
 
 export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
-  jwkKeys: Out<FetchJwks>["keys"]
+  jwkKeys: Out<FetchJwks>["keys"],
+  optionalParams?: Partial<{
+    state: string;
+    rpSubject: string;
+  }>
 ) => Promise<{ requestObject: RequestObject }>;
 
 /**
  * Function to verify the Request Object's validity, from the signature to the required properties.
  * @param requestObjectEncodedJwt The Request Object in JWT format
  * @param jwkKeys The JWKS to use for signature validation
+ * @param optionalParams.rpSubject Optional Verifier's sub from Entity Configuration
+ * @param optionalParams.state Optional state
  * @returns The verified Request Object
  * @throws {InvalidRequestObjectError} if the Request Object cannot be validated
  */
 export const verifyRequestObject: VerifyRequestObject = async (
   requestObjectEncodedJwt,
-  jwkKeys
+  jwkKeys,
+  optionalParams = {}
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
@@ -44,6 +51,25 @@ export const verifyRequestObject: VerifyRequestObject = async (
   }
 
   const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
+
+  const { state, rpSubject } = optionalParams;
+  const isClientIdMatch = rpSubject
+    ? requestObject.client_id === rpSubject
+    : true;
+
+  if (!isClientIdMatch) {
+    throw new InvalidRequestObjectError(
+      "Client ID does not match Request Object or Entity Configuration"
+    );
+  }
+
+  const isStateMatch = state ? state === requestObject.state : true;
+
+  if (!isStateMatch) {
+    throw new InvalidRequestObjectError(
+      "The provided state does not match the Request Object's"
+    );
+  }
 
   Logger.log(
     LogLevel.DEBUG,

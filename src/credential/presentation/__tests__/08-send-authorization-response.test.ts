@@ -68,7 +68,7 @@ describe("buildDirectPostBody", () => {
     const mockVpToken = "mock_vp_token";
 
     const result = await buildDirectPostBody(mockRequestObject, {
-      vp_token: { PID: mockVpToken },
+      vp_token: { PID: [mockVpToken] },
     });
 
     // URLSearchParams output should be 'state=mock_state&vp_token={"PID":"mock_vp_token"}'
@@ -82,9 +82,13 @@ describe("buildDirectPostJwtBody", () => {
   it("should build the correct formBody string", async () => {
     const mockVpToken = "mock_vp_token";
 
-    const result = await buildDirectPostJwtBody(mockRequestObject, mockRpConf, {
-      vp_token: { PID: mockVpToken },
-    });
+    const result = await buildDirectPostJwtBody(
+      mockRpConf.openid_credential_verifier.jwks.keys,
+      mockRequestObject,
+      {
+        vp_token: { PID: [mockVpToken] },
+      }
+    );
 
     expect(result).toBe("response=mock_encrypted_jwe&state=mock_state");
   });
@@ -92,14 +96,16 @@ describe("buildDirectPostJwtBody", () => {
 
 describe("sendAuthorizationResponse", () => {
   const mockFetch = jest.fn();
-  const remotePresentations: RemotePresentation[] = [
-    {
-      requestedClaims: ["name", "surname"],
-      credentialId: "PID",
-      vpToken: "mock_vp_token",
-    },
-  ];
-
+  const remotePresentations: RemotePresentation = {
+    presentations: [
+      {
+        requestedClaims: ["name", "surname"],
+        credentialId: "PID",
+        vpToken: "mock_vp_token",
+        format: "dc+sd-jwt",
+      },
+    ],
+  };
   beforeEach(() => {
     mockFetch.mockReset();
   });
@@ -113,8 +119,8 @@ describe("sendAuthorizationResponse", () => {
 
     await sendAuthorizationResponse(
       mockRequestObject,
+      mockRpConf.openid_credential_verifier.jwks.keys,
       remotePresentations,
-      mockRpConf,
       { appFetch: mockFetch }
     );
 
@@ -142,8 +148,8 @@ describe("sendAuthorizationResponse", () => {
       try {
         await sendAuthorizationResponse(
           mockRequestObject,
+          mockRpConf.openid_credential_verifier.jwks.keys,
           remotePresentations,
-          mockRpConf,
           { appFetch: mockFetch }
         );
       } catch (error) {
