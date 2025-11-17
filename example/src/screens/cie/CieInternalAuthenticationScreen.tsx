@@ -1,21 +1,23 @@
 import { H2 } from "@pagopa/io-app-design-system";
 import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
-import { addPadding } from "@pagopa/io-react-native-jwt";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
+import type { WebViewNavigation } from "react-native-webview";
 import { useSelector } from "react-redux";
-import { CieAuthorizationWebview } from "../../components/cie/CieAuthorizationWebView";
 import { CiePinDialog } from "../../components/cie/CiePinDialog";
-import type { CieWebViewError } from "../../components/cie/CieWebView";
+import {
+  CieWebView,
+  type CieWebViewError,
+} from "../../components/cie/CieWebView";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { pidFlowReset } from "../../store/reducers/pid";
 import { useAppDispatch } from "../../store/utils";
 import { validatePidMrtdChallengeThunk } from "../../thunks/mrtd";
-import { continuePidFlowThunk } from "../../thunks/pid";
 import { getProgressEmojis } from "../../utils/strings";
 import {
+  mrtdReset,
   selectMrtdAsyncStatus,
   selectMrtdChallengeCallbackUrl,
 } from "./../../store/reducers/mrtd";
@@ -70,19 +72,17 @@ export const CieInternalAuthenticationScreen = ({
       CieManager.addListener(
         "onInternalAuthAndMRTDWithPaceSuccess",
         ({ mrtd_data, nis_data }) => {
-          console.log("CIE Internal Auth Success Data:", mrtd_data, nis_data);
           dispatch(
-            // TODO CIE SDK must return data with correct encoding to avoid to use addPadding
             validatePidMrtdChallengeThunk({
               mrtd: {
-                dg1: addPadding(mrtd_data.dg1),
-                dg11: addPadding(mrtd_data.dg11),
-                sod_mrtd: addPadding(mrtd_data.sod),
+                dg1: mrtd_data.dg1,
+                dg11: mrtd_data.dg11,
+                sod_mrtd: mrtd_data.sod,
               },
               ias: {
-                sod_ias: addPadding(nis_data.sod),
-                challenge_signed: addPadding(nis_data.signedChallenge),
-                ias_pk: addPadding(nis_data.publicKey),
+                sod_ias: nis_data.sod,
+                challenge_signed: nis_data.signedChallenge,
+                ias_pk: nis_data.publicKey,
               },
             })
           );
@@ -91,6 +91,7 @@ export const CieInternalAuthenticationScreen = ({
     ];
 
     return () => {
+      dispatch(mrtdReset());
       // Remove the event listener on exit
       cleanup.forEach((remove) => remove());
       // Ensure the reading is stopped when component unmounts
@@ -102,7 +103,7 @@ export const CieInternalAuthenticationScreen = ({
     if (can && can.length === 6 && /^\d+$/.test(can)) {
       setCanInputVisible(false);
       setText("Waiting for the CIE");
-      CieManager.startInternalAuthAndMRTDReading(can, challenge, "hex");
+      CieManager.startInternalAuthAndMRTDReading(can, challenge, "base64");
     } else {
       Alert.alert(`❌ Invalid CIE PIN`);
     }
@@ -113,9 +114,19 @@ export const CieInternalAuthenticationScreen = ({
     navigation.goBack();
   };
 
-  const handleAuthenticationComplete = (authRedirectUrl: string) => {
-    dispatch(continuePidFlowThunk({ authRedirectUrl }));
-    navigation.goBack();
+  const handleOnShouldStartLoadWithRequest = (
+    event: WebViewNavigation
+  ): boolean => {
+    console.log("CIE WebView Navigation Request:", event.url);
+    // dispatch(continuePidFlowThunk({ authRedirectUrl }));
+    // navigation.goBack();
+    return true;
+  };
+
+  const handleWebViewError = (event: CieWebViewError) => {
+    console.log("CIE WebView Error:", event);
+    // dispatch(continuePidFlowThunk({ authRedirectUrl }));
+    // navigation.goBack();
   };
 
   return (
@@ -129,10 +140,10 @@ export const CieInternalAuthenticationScreen = ({
       />
       {callbackUrl && (
         <View style={StyleSheet.absoluteFillObject}>
-          <CieAuthorizationWebview
-            authorizationUrl={callbackUrl}
-            onAuthComplete={handleAuthenticationComplete}
-            onError={handleOnError}
+          <CieWebView
+            source={{ uri: callbackUrl }}
+            onShouldStartLoadWithRequest={handleOnShouldStartLoadWithRequest}
+            onWebViewError={handleWebViewError}
           />
         </View>
       )}
