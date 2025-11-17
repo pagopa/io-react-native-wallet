@@ -21,21 +21,13 @@ type CredentialPurpose = {
 
 export type EvaluateDcqlQuery = (
   query: DcqlQuery.Input,
-  credentialsSdJwt: [
-    string /* type */,
-    string /* keyTag */,
-    string /* credential */,
-  ][],
-  credentialsMdoc?: [
-    string /* type */,
-    string /* keyTag */,
-    string /* credential */,
-  ][]
+  credentialsSdJwt: [CryptoContext, string /* credential */][],
+  credentialsMdoc?: [CryptoContext, string /* credential */][]
 ) => Promise<
   ({
     id: string;
     credential: string;
-    keyTag: string;
+    cryptoContext: CryptoContext;
     requiredDisclosures: EvaluatedDisclosure[];
     purposes: CredentialPurpose[];
   } & CredentialFormat)[]
@@ -66,8 +58,8 @@ type DcqlMatchFailure = Extract<
  * Convert a credential in SD-JWT format to an object with claims
  * for correct parsing by the `dcql` library.
  */
-const mapCredentialSdJwtToObj = (credentials: [string, string, string][]) =>
-  credentials.map(([, , jwt]) => {
+const mapCredentialSdJwtToObj = (credentials: [CryptoContext, string][]) =>
+  credentials.map(([, jwt]) => {
     const { sdJwt, disclosures } = decode(jwt);
     const credentialFormat = sdJwt.header.typ;
 
@@ -155,11 +147,11 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
         // Build an object vct:credentialJwt to map matched credentials to their JWT
         const credentialsSdJwtByVct = credentials.reduce(
           (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
-          {} as Record<string, [string, string, string]>
+          {} as Record<string, [CryptoContext, string /* credential */]>
         );
 
         const { vct, claims } = match.output;
-        const [, keyTag, credential] = credentialsSdJwtByVct[vct]!;
+        const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
 
         const requiredDisclosures = Object.values(claims).map((item) => {
           const [_, name, value] = item as [string, string, string];
@@ -169,7 +161,7 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
         return {
           id,
           vct,
-          keyTag,
+          cryptoContext,
           format: match.output.credential_format,
           credential,
           requiredDisclosures,

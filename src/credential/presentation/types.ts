@@ -57,7 +57,7 @@ export type PrepareRemotePresentations = (
     requestedClaims: EvaluatedDisclosure[];
     credentialInputId: string; // The credential ID descriptor in the presentation definition or DCQL query
     credential: string;
-    keyTag: string;
+    cryptoContext: CryptoContext;
   } & CredentialFormat)[],
   authRequestObject: {
     nonce: string;

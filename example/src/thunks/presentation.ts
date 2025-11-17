@@ -1,5 +1,9 @@
 import { createAppAsyncThunk } from "./utils";
-import { Credential } from "@pagopa/io-react-native-wallet";
+import {
+  Credential,
+  createCryptoContextFor,
+} from "@pagopa/io-react-native-wallet";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPidSdJwt } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
@@ -194,8 +198,8 @@ const getCredentialsForPresentation = (state: RootState) => {
   const credentialsSdJwt = [
     ...Object.values({ pid, ...credentials })
       .filter(isDefined)
-      .map((c) => [c.credentialType, c.keyTag, c.credential]),
-  ] as [string, string, string][];
+      .map((c) => [createCryptoContextFor(c.keyTag), c.credential]),
+  ] as [CryptoContext, string][];
 
   return {
     credentialsSdJwt,

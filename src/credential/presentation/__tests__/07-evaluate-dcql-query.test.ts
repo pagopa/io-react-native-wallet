@@ -1,7 +1,7 @@
 import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
-import { pid, mdl, legacyPid } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { pid, mdl } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { createCryptoContextFor } from "../../../utils/crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
@@ -29,7 +29,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
+    expect(() => evaluateDcqlQuery(query, credentials)).toThrowError(DcqlError);
   });
 
   it("should throw error when the DCQL is invalid", () => {
@@ -44,7 +44,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
+    expect(() => evaluateDcqlQuery(query, credentials)).toThrowError(DcqlError);
   });
 
   test.each([
@@ -115,7 +115,7 @@ describe("evaluateDcqlQuery", () => {
     "should throw error when no credential satisfies the DCQL query /%#",
     (dcqlQuery, expected) => {
       try {
-        evaluateDcqlQuery(credentials, dcqlQuery);
+        evaluateDcqlQuery(dcqlQuery, credentials);
       } catch (err) {
         expect(err).toBeInstanceOf(CredentialsNotFoundError);
         expect((err as CredentialsNotFoundError).details).toEqual(expected);
@@ -141,7 +141,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -186,7 +186,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -241,7 +241,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -285,7 +285,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -367,7 +367,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -442,7 +442,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",

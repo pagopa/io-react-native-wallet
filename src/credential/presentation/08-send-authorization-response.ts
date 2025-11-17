@@ -88,7 +88,7 @@ export const buildDirectPostJwtBody = async (
   jwkKeys: Out<FetchJwks>["keys"],
   requestObject: Out<VerifyRequestObject>["requestObject"],
   payload: DirectAuthorizationBodyPayload,
-  generatedNonce?: string
+  _generatedNonce?: string
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
@@ -310,11 +310,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         const { vp_token } = await prepareVpToken(
           authRequestObject.nonce,
           authRequestObject.clientId,
-          [
-            item.credential,
-            item.requestedClaims,
-            createCryptoContextFor(item.keyTag),
-          ]
+          [item.credential, item.requestedClaims, item.cryptoContext]
         );
 
         return {
