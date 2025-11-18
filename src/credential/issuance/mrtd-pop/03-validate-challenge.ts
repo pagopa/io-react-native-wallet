@@ -1,8 +1,4 @@
-import {
-  removePadding,
-  SignJWT,
-  type CryptoContext,
-} from "@pagopa/io-react-native-jwt";
+import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import { IssuerResponseError } from "../../../utils/errors";
 import { hasStatusOrThrow, type Out } from "../../../utils/misc";
@@ -33,10 +29,7 @@ export type ValidateChallenge = (
 export type BuildChallengeCallbackUrl = (
   redirectUri: Out<ValidateChallenge>["redirect_uri"],
   valPopNonce: Out<ValidateChallenge>["mrtd_val_pop_nonce"],
-  authSession: Out<VerifyAndParseChallengeInfo>["mrtd_auth_session"],
-  context: {
-    wiaCryptoContext: CryptoContext;
-  }
+  authSession: Out<VerifyAndParseChallengeInfo>["mrtd_auth_session"]
 ) => Promise<{
   callbackUrl: string;
 }>;
@@ -135,13 +128,10 @@ export const validateChallenge: ValidateChallenge = async (
 export const buildChallengeCallbackUrl: BuildChallengeCallbackUrl = async (
   redirectUri,
   valPopNonce,
-  authSession,
-  { wiaCryptoContext }
+  authSession
 ) => {
-  const signedPopNonce = await wiaCryptoContext.getSignature(valPopNonce);
-
   const params = new URLSearchParams({
-    mrtd_val_pop_nonce: removePadding(signedPopNonce),
+    mrtd_val_pop_nonce: valPopNonce,
     mrtd_auth_session: authSession,
   });
 

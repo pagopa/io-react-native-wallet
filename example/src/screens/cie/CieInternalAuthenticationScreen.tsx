@@ -3,7 +3,7 @@ import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
-import type { WebViewNavigation } from "react-native-webview";
+import { type WebViewNavigation } from "react-native-webview";
 import { useSelector } from "react-redux";
 import { CiePinDialog } from "../../components/cie/CiePinDialog";
 import {
@@ -15,6 +15,7 @@ import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { pidFlowReset } from "../../store/reducers/pid";
 import { useAppDispatch } from "../../store/utils";
 import { validatePidMrtdChallengeThunk } from "../../thunks/mrtd";
+import { continuePidFlowThunk } from "../../thunks/pid";
 import { getProgressEmojis } from "../../utils/strings";
 import {
   mrtdReset,
@@ -32,7 +33,7 @@ export const CieInternalAuthenticationScreen = ({
   navigation,
 }: ScreenProps) => {
   const dispatch = useAppDispatch();
-  const { challenge } = route.params;
+  const { challenge, redirectUri } = route.params;
 
   const [isCanInputVisible, setCanInputVisible] = useState(true);
   const [can, setCan] = useState("");
@@ -42,6 +43,8 @@ export const CieInternalAuthenticationScreen = ({
   const status = useSelector(selectMrtdAsyncStatus);
 
   useDebugInfo({
+    challenge,
+    redirectUri,
     callbackUrl,
     status,
   });
@@ -114,19 +117,21 @@ export const CieInternalAuthenticationScreen = ({
     navigation.goBack();
   };
 
-  const handleOnShouldStartLoadWithRequest = (
-    event: WebViewNavigation
-  ): boolean => {
-    console.log("CIE WebView Navigation Request:", event.url);
-    // dispatch(continuePidFlowThunk({ authRedirectUrl }));
-    // navigation.goBack();
-    return true;
-  };
-
-  const handleWebViewError = (event: CieWebViewError) => {
-    console.log("CIE WebView Error:", event);
-    // dispatch(continuePidFlowThunk({ authRedirectUrl }));
-    // navigation.goBack();
+  const handleNavigationStateChange = async (navState: WebViewNavigation) => {
+    const { url } = navState;
+    if (url.startsWith(redirectUri)) {
+      try {
+        dispatch(
+          continuePidFlowThunk({
+            authRedirectUrl: url,
+          })
+        );
+        navigation.goBack();
+      } catch (error) {
+        //In case of error, return to the previous screen
+        navigation.goBack();
+      }
+    }
   };
 
   return (
@@ -138,18 +143,24 @@ export const CieInternalAuthenticationScreen = ({
         onConfirm={handleCanConfirm}
         onCancel={handleCanClose}
       />
+      <View style={styles.content}>
+        {text && <H2 style={styles.text}>{text}</H2>}
+      </View>
       {callbackUrl && (
         <View style={StyleSheet.absoluteFillObject}>
           <CieWebView
             source={{ uri: callbackUrl }}
-            onShouldStartLoadWithRequest={handleOnShouldStartLoadWithRequest}
-            onWebViewError={handleWebViewError}
+            onNavigationStateChange={handleNavigationStateChange}
+            onWebViewError={handleOnError}
+            originWhitelist={[
+              "https://*",
+              "intent://*",
+              "http://*",
+              redirectUri,
+            ]}
           />
         </View>
       )}
-      <View style={styles.content}>
-        {text && <H2 style={styles.text}>{text}</H2>}
-      </View>
     </SafeAreaView>
   );
 };

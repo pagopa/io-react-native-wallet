@@ -1,25 +1,17 @@
 import { pipe } from "fp-ts/lib/function";
 import React, { type ComponentProps, createRef } from "react";
-import { Platform } from "react-native";
 import WebView from "react-native-webview";
 import type {
   WebViewErrorEvent,
   WebViewHttpErrorEvent,
   WebViewNavigationEvent,
 } from "react-native-webview/lib/WebViewTypes";
+import { defaultUserAgent } from "../../utils/useragent";
 
 export type CieWebViewError = {
   name: "WEB_VIEW_ERROR";
   message: string;
 };
-
-const iOSUserAgent =
-  "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
-const defaultUserAgent = Platform.select({
-  ios: iOSUserAgent,
-  default: undefined,
-});
-
 const AUTH_LINK_PATTERN = "lettura carta";
 
 /**

@@ -61,7 +61,7 @@ export type MainStackNavParamList = {
     withDocumentProof?: boolean;
   };
   CieAuthentication: undefined;
-  CieInternalAuthentication: { challenge: string };
+  CieInternalAuthentication: { redirectUri: string; challenge: string };
   Presentations: undefined;
   Trust: undefined;
   QrScanner: QrScannerScreenParams;

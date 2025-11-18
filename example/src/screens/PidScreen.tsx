@@ -13,7 +13,11 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectEnv } from "../store/reducers/environment";
 import { selectMrtdChallenge } from "../store/reducers/mrtd";
-import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
+import {
+  selectPid,
+  selectPidAsyncStatus,
+  selectPidFlowParams,
+} from "../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { continuePidFlowThunk, preparePidFlowParamsThunk } from "../thunks/pid";
 import { getCieIdpHint } from "../utils/environment";
@@ -34,6 +38,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
   const challenge = useAppSelector(selectMrtdChallenge);
   const pid = useAppSelector(selectPid);
+  const pidFlowParams = useAppSelector(selectPidFlowParams);
   const env = useAppSelector(selectEnv);
 
   const [withDocumentProof, setWithDocumentProof] = useState(true);
@@ -55,10 +60,14 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   );
 
   useEffect(() => {
-    if (challenge) {
-      navigation.navigate("CieInternalAuthentication", { challenge });
+    if (challenge && pidFlowParams) {
+      const { redirectUri } = pidFlowParams;
+      navigation.navigate("CieInternalAuthentication", {
+        redirectUri,
+        challenge,
+      });
     }
-  }, [navigation, challenge]);
+  }, [navigation, challenge, pidFlowParams]);
 
   const startCieIDIdentification = useCallback(async () => {
     const { authUrl, redirectUri } = await dispatch(
