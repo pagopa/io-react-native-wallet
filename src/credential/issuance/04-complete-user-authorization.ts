@@ -33,7 +33,7 @@ export type CompleteUserAuthorizationWithFormPostJwtMode = (
   pid: string,
   context: {
     wiaCryptoContext: CryptoContext;
-    pidCryptoContext: CryptoContext;
+    pidKeyTag: string;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<AuthorizationResult>;
@@ -171,7 +171,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
   async (
     requestObject,
     pid,
-    { wiaCryptoContext, pidCryptoContext, appFetch = fetch }
+    { wiaCryptoContext, pidKeyTag, appFetch = fetch }
   ) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -182,9 +182,9 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       throw new Error("Invalid request object");
     }
 
-    const dcqlQueryResult = Presentation.evaluateDcqlQuery(
+    const dcqlQueryResult = await Presentation.evaluateDcqlQuery(
       requestObject.dcql_query as DcqlQuery,
-      [[pidCryptoContext, pid]]
+      [[pidKeyTag, pid]]
     );
 
     const credentialsToPresent = dcqlQueryResult.map(

@@ -1,13 +1,10 @@
 import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { b64utob64 } from "jsrsasign";
+import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { decode } from "../../sd-jwt";
 import { type Disclosure } from "../../sd-jwt/types";
-import type {
-  CredentialFormat,
-  EvaluatedDisclosure,
-  RemotePresentation,
-} from "./types";
+import type { CredentialFormat, EvaluatedDisclosure } from "./types";
 import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
 import { LogLevel, Logger } from "../../utils/logging";
 
@@ -19,28 +16,21 @@ type CredentialPurpose = {
   description?: string;
 };
 
+type Credential4Dcql = [string /* keyTag */, string /* credential */];
+
 export type EvaluateDcqlQuery = (
   query: DcqlQuery.Input,
-  credentialsSdJwt: [CryptoContext, string /* credential */][],
-  credentialsMdoc?: [CryptoContext, string /* credential */][]
-) => ({
-  id: string;
-  credential: string;
-  cryptoContext: CryptoContext;
-  requiredDisclosures: EvaluatedDisclosure[];
-  purposes: CredentialPurpose[];
-} & CredentialFormat)[];
-
-export type PrepareRemotePresentations = (
-  credentials: {
+  credentialsSdJwt: Credential4Dcql[],
+  credentialsMdoc?: Credential4Dcql[]
+) => Promise<
+  ({
     id: string;
     credential: string;
-    cryptoContext: CryptoContext;
-    requestedClaims: string[];
-  }[],
-  nonce: string,
-  clientId: string
-) => Promise<RemotePresentation[]>;
+    keyTag: string;
+    requiredDisclosures: EvaluatedDisclosure[];
+    purposes: CredentialPurpose[];
+  } & CredentialFormat)[]
+>;
 
 type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
@@ -56,12 +46,13 @@ type DcqlMatchFailure = Extract<
  * Convert a credential in SD-JWT format to an object with claims
  * for correct parsing by the `dcql` library.
  */
-const mapCredentialSdJwtToObj = (credentials: [CryptoContext, string][]) =>
-  credentials.map(([, jwt]) => {
-    const { sdJwt, disclosures } = decode(jwt);
+const mapCredentialSdJwtToObj = (credentials: Credential4Dcql[]) =>
+  credentials.map((credential) => {
+    const { sdJwt, disclosures } = decode(credential[1]);
     const credentialFormat = sdJwt.header.typ;
 
     return {
+      original_credential: credential,
       vct: sdJwt.payload.vct,
       credential_format: credentialFormat,
       claims: disclosures.reduce(
@@ -73,6 +64,45 @@ const mapCredentialSdJwtToObj = (credentials: [CryptoContext, string][]) =>
       ),
     };
   });
+
+/**
+ * Convert a credential in Mdoc format to an object with claims
+ * for correct parsing by the `dcql` library.
+ */
+const mapCredentialsMdocToObj = async (credentialsMdoc: Credential4Dcql[]) => {
+  return await Promise.all(
+    credentialsMdoc.map(async (credential) => {
+      const issuerSigned = await CBOR.decodeIssuerSigned(
+        b64utob64(credential[1])
+      );
+
+      const namespaces = Object.entries(issuerSigned.nameSpaces).reduce(
+        (acc, [ns, nsClaims]) => {
+          const flattenNsClaims = Object.entries(nsClaims).reduce(
+            (ac, [, el]) => ({
+              ...ac,
+              [el.elementIdentifier]: el.elementValue,
+            }),
+            {} as Record<string, unknown>
+          );
+
+          return {
+            ...acc,
+            [ns]: flattenNsClaims,
+          };
+        },
+        {} as Record<string, unknown>
+      );
+
+      return {
+        original_credential: credential,
+        credential_format: "mso_mdoc",
+        doctype: issuerSigned.issuerAuth.payload.docType || "missing_doctype",
+        namespaces,
+      };
+    })
+  );
+};
 
 /**
  * Extract only successful matches from the DCQL query result.
@@ -108,11 +138,24 @@ const extractMissingCredentials = (
   });
 };
 
-export const evaluateDcqlQuery: EvaluateDcqlQuery = (
+export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
   query,
-  credentialsSdJwt
+  credentialsSdJwt,
+  credentialsMdoc = []
 ) => {
-  const credentials = mapCredentialSdJwtToObj(credentialsSdJwt);
+  const credentials = [
+    ...mapCredentialSdJwtToObj(credentialsSdJwt),
+    ...(await mapCredentialsMdocToObj(credentialsMdoc)),
+  ];
+
+  // Build a dictionary <id>:<credential> to map DCQL matches with the raw credential
+  const credentialsById = credentials.reduce(
+    (acc, c) => ({
+      ...acc,
+      ["vct" in c ? c.vct : c.doctype]: c.original_credential,
+    }),
+    {} as Record<string, Credential4Dcql>
+  );
 
   try {
     // Validate the query
@@ -142,14 +185,8 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
         }));
 
       if (match.output.credential_format === "dc+sd-jwt") {
-        // Build an object vct:credentialJwt to map matched credentials to their JWT
-        const credentialsSdJwtByVct = credentials.reduce(
-          (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
-          {} as Record<string, [CryptoContext, string /* credential */]>
-        );
-
         const { vct, claims } = match.output;
-        const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
+        const [keyTag, credential] = credentialsById[vct]!;
 
         const requiredDisclosures = Object.values(claims).map((item) => {
           const [_, name, value] = item as [string, string, string];
@@ -159,13 +196,42 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
         return {
           id,
           vct,
-          cryptoContext,
+          keyTag,
           format: match.output.credential_format,
           credential,
           requiredDisclosures,
           // When it is a match but no credential_sets are found, the credential is required by default
-          // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
+          // See https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-6.4.2
           purposes: purposes ?? [{ required: true }],
+        };
+      }
+
+      if (match.output.credential_format === "mso_mdoc") {
+        const { doctype, namespaces } = match.output;
+        const [keyTag, credential] = credentialsById[doctype]!;
+
+        const requiredDisclosures = Object.entries(namespaces).reduce(
+          (acc, [ns, nsClaims]) => [
+            ...acc,
+            ...Object.entries(nsClaims).map(([claimName]) => ({
+              namespace: ns,
+              name: claimName,
+              value: nsClaims[claimName],
+            })),
+          ],
+          [] as EvaluatedDisclosure[]
+        );
+
+        return {
+          id,
+          keyTag,
+          format: match.output.credential_format,
+          credential,
+          requiredDisclosures,
+          // When it is a match but no credential_sets are found, the credential is required by default
+          // See https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-6.4.2
+          purposes: purposes ?? [{ required: true }],
+          doctype,
         };
       }
 

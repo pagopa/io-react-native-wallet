@@ -1,4 +1,5 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
+import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
 import { type FetchJwks } from "./04-retrieve-rp-jwks";
 import type { VerifyRequestObject } from "./05-verify-request-object";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
@@ -24,6 +25,7 @@ import {
 } from "../../utils/errors";
 import { prepareVpToken } from "../../sd-jwt";
 import { LogLevel, Logger } from "../../utils/logging";
+import { prepareVpTokenMdoc } from "../../mdoc";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -305,11 +307,16 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
       );
 
       const { credentialInputId, format } = item;
+
       if (format === "dc+sd-jwt") {
         const { vp_token } = await prepareVpToken(
           authRequestObject.nonce,
           authRequestObject.clientId,
-          [item.credential, item.requestedClaims, item.cryptoContext]
+          [
+            item.credential,
+            item.requestedClaims,
+            createCryptoContextFor(item.keyTag),
+          ]
         );
 
         return {
@@ -317,6 +324,29 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
           credentialId: credentialInputId,
           vpToken: vp_token,
           format,
+        };
+      }
+
+      if (format === "mso_mdoc") {
+        const { vp_token } = await prepareVpTokenMdoc(
+          authRequestObject.nonce,
+          generatedNonce,
+          authRequestObject.clientId,
+          authRequestObject.responseUri,
+          item.doctype,
+          item.keyTag,
+          [
+            item.credential,
+            item.requestedClaims,
+            createCryptoContextFor(item.keyTag),
+          ]
+        );
+
+        return {
+          requestedClaims: item.requestedClaims.map(({ name }) => name),
+          credentialId: credentialInputId,
+          vpToken: vp_token,
+          format: "mso_mdoc",
         };
       }
 

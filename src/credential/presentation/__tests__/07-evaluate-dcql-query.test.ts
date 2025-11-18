@@ -2,22 +2,17 @@ import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
 import { pid, mdl } from "../../../sd-jwt/__mocks__/sd-jwt";
-import { createCryptoContextFor } from "../../../utils/crypto";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
 
-const pidCryptoContext = createCryptoContextFor(pidKeyTag);
-const mdlCryptoContext = createCryptoContextFor(mdlKeyTag);
-
 const credentials = [
-  [pidCryptoContext, pid.token],
-  [mdlCryptoContext, mdl.token],
-] as [CryptoContext, string][];
+  [pidKeyTag, pid.token],
+  [mdlKeyTag, mdl.token],
+] as [string, string][];
 
 describe("evaluateDcqlQuery", () => {
-  it("should throw error when the DCQL query structure is invalid", () => {
+  it("should throw error when the DCQL query structure is invalid", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -29,10 +24,12 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(query, credentials)).toThrowError(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError
+    );
   });
 
-  it("should throw error when the DCQL is invalid", () => {
+  it("should throw error when the DCQL is invalid", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -44,7 +41,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(query, credentials)).toThrowError(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError
+    );
   });
 
   test.each([
@@ -113,9 +112,9 @@ describe("evaluateDcqlQuery", () => {
     ],
   ] as Array<[DcqlQuery.Input, Array<NotFoundDetail>]>)(
     "should throw error when no credential satisfies the DCQL query /%#",
-    (dcqlQuery, expected) => {
+    async (dcqlQuery, expected) => {
       try {
-        evaluateDcqlQuery(dcqlQuery, credentials);
+        await evaluateDcqlQuery(dcqlQuery, credentials);
       } catch (err) {
         expect(err).toBeInstanceOf(CredentialsNotFoundError);
         expect((err as CredentialsNotFoundError).details).toEqual(expected);
@@ -123,7 +122,7 @@ describe("evaluateDcqlQuery", () => {
     }
   );
 
-  it("should work correctly with a simple query", () => {
+  it("should work correctly with a simple query", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -141,13 +140,13 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
@@ -161,7 +160,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with multiple simple queries", () => {
+  it("should work correctly with multiple simple queries", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -187,13 +186,13 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ required: true }],
         requiredDisclosures: [
@@ -206,7 +205,7 @@ describe("evaluateDcqlQuery", () => {
         id: "DrivingLicense",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ required: true }],
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
@@ -216,7 +215,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with missing optional credentials", () => {
+  it("should work correctly with missing optional credentials", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -242,13 +241,13 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -261,7 +260,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with available optional credentials", () => {
+  it("should work correctly with available optional credentials", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -287,13 +286,13 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -305,7 +304,7 @@ describe("evaluateDcqlQuery", () => {
         id: "MDL",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
@@ -315,7 +314,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with a complex query", () => {
+  it("should work correctly with a complex query", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -369,13 +368,13 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -388,7 +387,7 @@ describe("evaluateDcqlQuery", () => {
         id: "MDL",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -401,7 +400,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with multiple matching credential_sets", () => {
+  it("should work correctly with multiple matching credential_sets", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -446,13 +445,13 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
@@ -465,7 +464,7 @@ describe("evaluateDcqlQuery", () => {
         id: "MDL",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [
           { description: "Identification", required: true },
