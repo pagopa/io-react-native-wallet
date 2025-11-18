@@ -37,8 +37,6 @@ export const OfferScreen = () => {
     };
   }, [dispatch]);
 
-  // OfferScreen.tsx
-
   useEffect(() => {
     if (
       credentialOfferState.isDone &&
