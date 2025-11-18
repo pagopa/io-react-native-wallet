@@ -58,7 +58,7 @@ PODS:
   - IOWalletProximity (1.3.0)
   - JOSESwift (3.0.0)
   - OpenSSL-Universal (3.3.3001)
-  - pagopa-io-react-native-crypto (1.2.3):
+  - pagopa-io-react-native-crypto (1.2.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2412,7 +2412,7 @@ SPEC CHECKSUMS:
   IOWalletProximity: 1836d6b5df0a64a97e09f355d15d5155f086f830
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
-  pagopa-io-react-native-crypto: aa7a368286a7c0aa9536325d1e49f956c4ce3f6b
+  pagopa-io-react-native-crypto: 9e7e7f59a8c9a3c75157407d75b09edbf5ee47e1
   pagopa-io-react-native-integrity: a4c4c7ebd2ea699e40536f969bd62371f82638c0
   pagopa-io-react-native-jwt: 5c0eac212ff06d4368b3949cd74649a5e8349a95
   pagopa-io-react-native-login-utils: 5df139d5cbcae0e3d16a46024316df95c1862cba
