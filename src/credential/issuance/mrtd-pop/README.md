@@ -6,6 +6,8 @@ The MRTD-PoP flow is used to prove possession of an MRTD (such as a CIE) during 
 
 This flow is part of the [PID issuance flow](../README.md) and must be started after the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once MRTD PoP is completed, the PID issuance flow must continue with the `completeUserAuthorizationWithQueryMode` function with the authorization url obtained from the validation.
 
+> **⚠️ Important**: The entire flow must be initiated and concluded within the same web context (e.g., the same WebView instance) to maintain session continuity. Using different contexts (such as switching between an external browser and a WebView) will result in session loss and authentication failures due to cookie/session mismatch (JSESSIONID).
+
 ## Sequence Diagram
 
 ```mermaid
