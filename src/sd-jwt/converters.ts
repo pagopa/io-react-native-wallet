@@ -1,4 +1,5 @@
 import type { Disclosure } from "./types";
+import type { SdDisclosure } from "../credential/offer/types";
 
 export function getValueFromDisclosures(
   disclosures: Disclosure[],
@@ -21,4 +22,15 @@ export function getValueFromDisclosures(
     // It's definitely a string
     return value;
   }
+}
+
+export function getValueFromDisclosuresEudi(
+  disclosures: SdDisclosure[],
+  claimName: string
+) {
+  const disc = disclosures.find((d) => d.key === claimName);
+  if (!disc) return undefined;
+
+  // If already an object or array or primitive → return it
+  return disc.value;
 }

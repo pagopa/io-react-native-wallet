@@ -7,7 +7,7 @@ import {
   verify as verifyJwt,
 } from "@pagopa/io-react-native-jwt";
 import { Disclosure, type DisclosureWithEncoded, SdJwt4VC } from "./types";
-import { reconstructDisclosures, verifyDisclosure } from "./verifier";
+import { verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
 import * as Errors from "./errors";
 import { Base64 } from "js-base64";
@@ -173,30 +173,6 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
   return {
     sdJwt: decoded.sdJwt,
     disclosures: decoded.disclosures.map((d) => d.decoded),
-  };
-};
-
-export const verifyEudiwCredential = async <S extends z.ZodType<SdJwt4VC>>(
-  token: string,
-  customSchema?: S
-): Promise<{ sdJwt: z.infer<S>; disclosures: Disclosure[] }> => {
-  const decoded = decode(token, customSchema);
-
-  //Check disclosures in sd-jwt
-  const claims = [...decoded.sdJwt.payload._sd];
-  await Promise.all(
-    decoded.disclosures.map(
-      async (disclosure) => await verifyDisclosure(disclosure, claims)
-    )
-  );
-
-  const reconstructedDisclosures = await reconstructDisclosures(
-    decoded.disclosures
-  );
-
-  return {
-    sdJwt: decoded.sdJwt,
-    disclosures: reconstructedDisclosures.map((d) => d.decoded),
   };
 };
 

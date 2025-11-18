@@ -9,6 +9,7 @@
     "pods": "pod-install --quiet"
   },
   "dependencies": {
+    "@craftzdog/react-native-buffer": "^6.1.1",
     "@pagopa/io-app-design-system": "5.8.0",
     "@pagopa/io-react-native-cie": "^1.1.2",
     "@pagopa/io-react-native-crypto": "^1.2.3",
@@ -22,6 +23,8 @@
     "@react-navigation/native": "^7.0.15",
     "@react-navigation/native-stack": "^7.2.1",
     "@reduxjs/toolkit": "^2.2.7",
+    "@sd-jwt/crypto-browser": "^0.17.0",
+    "@sd-jwt/crypto-nodejs": "^0.17.0",
     "@types/lodash": "^4.17.7",
     "add": "^2.0.6",
     "fp-ts": "^2.16.9",
@@ -37,6 +40,8 @@
     "react-native-logs": "^5.3.0",
     "react-native-permissions": "^5.4.2",
     "react-native-qrcode-svg": "^6.3.15",
+    "react-native-quick-base64": "^2.2.2",
+    "react-native-quick-crypto": "^0.7.17",
     "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "^5.3.0",
     "react-native-screens": "^4.9.1",

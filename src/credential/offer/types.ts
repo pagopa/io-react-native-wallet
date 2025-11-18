@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 /**
  * OAuth 2.0 Authorization Code flow parameters.
@@ -190,3 +190,86 @@ export const CredentialIssuerMetadataSchema = z.object({
 export type CredentialIssuerMetadata = z.infer<
   typeof CredentialIssuerMetadataSchema
 >;
+
+// === Disclosure ============================================================
+
+export const SdDisclosureSchema = z.object({
+  salt: z.string(),
+  key: z.string().optional(),
+  value: z.unknown(),
+  _digest: z.string().optional(),
+  _encoded: z.string().optional(),
+});
+
+export type SdDisclosure = z.infer<typeof SdDisclosureSchema>;
+
+// === JWT ===================================================================
+
+export const SdJwtHeaderSchema = z.object({
+  alg: z.string(),
+  typ: z.string(),
+  kid: z.string().optional(),
+  trust_chain: z.array(z.string()).optional(),
+  x5c: z.array(z.string()).optional(),
+  vctm: z.array(z.string()).optional(),
+});
+
+export const SdJwtPayloadSchema = z
+  .object({
+    iss: z.string(),
+    iat: z.number().optional(),
+    exp: z.number(),
+    vct: z.string(),
+    _sd_alg: z.literal("sha-256"),
+    _sd: z.array(z.string()),
+    cnf: z.object({
+      jwk: z.record(z.unknown()),
+    }),
+
+    status: z
+      .object({
+        identifier_list: z.object({
+          id: z.string(),
+          uri: z.string(),
+        }),
+        status_list: z.object({
+          idx: z.number(),
+          uri: z.string(),
+        }),
+      })
+      .optional(),
+
+    issuing_authority: z.string().optional(),
+    issuing_country: z.string().optional(),
+
+    "vct#integrity": z.string().optional(),
+
+    sub: z.string().optional(),
+  })
+  .passthrough();
+
+export const SdJwtCoreSchema = z.object({
+  header: SdJwtHeaderSchema,
+  payload: SdJwtPayloadSchema,
+  signature: z.string(),
+  encoded: z.string(),
+});
+
+// === KB JWT ================================================================
+
+export const SdKbJwtSchema = z.object({
+  header: z.record(z.unknown()),
+  payload: z.record(z.unknown()),
+  signature: z.string(),
+  encoded: z.string(),
+});
+
+// === SD-JWT DECODED ========================================================
+
+export const SdJwtDecodedSchema = z.object({
+  jwt: SdJwtCoreSchema,
+  disclosures: z.array(SdDisclosureSchema),
+  kbJwt: SdKbJwtSchema.optional(),
+});
+
+export type SdJwtDecoded = z.infer<typeof SdJwtDecodedSchema>;
