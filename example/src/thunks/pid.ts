@@ -91,7 +91,6 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
   const { authMethod, idpHint, ciePin, withMRTDPoP } = args;
-  const isCie = args.idpHint.includes("servizicie") ? true : false;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
@@ -99,7 +98,8 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const env = selectEnv(getState());
   const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
 
-  const redirectUri = isCie ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
+  const redirectUri =
+    args.authMethod === "cieL3" ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({

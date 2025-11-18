@@ -4,7 +4,7 @@ import {
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FlatList } from "react-native";
 import TestScenario, {
   type TestScenarioProp,
@@ -19,9 +19,8 @@ import {
   selectPidFlowParams,
 } from "../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import { continuePidFlowThunk, preparePidFlowParamsThunk } from "../thunks/pid";
+import { getPidCieIDThunk } from "../thunks/pidCieID";
 import { getCieIdpHint } from "../utils/environment";
-import { openUrlAndListenForAuthRedirect } from "../utils/openUrlAndListenForRedirect";
 
 type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
 
@@ -69,27 +68,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
     }
   }, [navigation, challenge, pidFlowParams]);
 
-  const startCieIDIdentification = useCallback(async () => {
-    const { authUrl, redirectUri } = await dispatch(
-      preparePidFlowParamsThunk({
-        idpHint: getCieIdpHint(env),
-        authMethod: "cieL2",
-        withMRTDPoP: withDocumentProof,
-      })
-    ).unwrap();
-
-    const { authRedirectUrl } = await openUrlAndListenForAuthRedirect(
-      redirectUri,
-      authUrl
-    );
-
-    dispatch(
-      continuePidFlowThunk({
-        authRedirectUrl,
-      })
-    );
-  }, [dispatch, withDocumentProof, env]);
-
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
@@ -106,7 +84,14 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: `Get PID (CieID${withDocumentProof ? " + CIE" : ""})`,
-        onPress: () => startCieIDIdentification(),
+        onPress: () =>
+          dispatch(
+            getPidCieIDThunk({
+              idpHint: getCieIdpHint(env),
+              authMethod: "cieL2",
+              withMRTDPoP: withDocumentProof,
+            })
+          ),
         isLoading: pidCieL2State.isLoading,
         hasError: pidCieL2State.hasError,
         isDone: pidCieL2State.isDone,
@@ -126,6 +111,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
     ],
     [
+      dispatch,
       pidSpidState.isLoading,
       pidSpidState.hasError,
       pidSpidState.isDone,
@@ -139,7 +125,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       env,
       navigation,
       withDocumentProof,
-      startCieIDIdentification,
     ]
   );
 

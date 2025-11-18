@@ -58,9 +58,8 @@ export const getCredential = async ({
   const { issuerUrl, credentialId: credId } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-    issuerUrl
-  );
+  const { issuerConf } =
+    await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier } =

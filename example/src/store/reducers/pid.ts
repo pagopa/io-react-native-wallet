@@ -15,11 +15,12 @@ import type {
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./session";
-import type { PreparePidFlowParamsThunkOutput } from "example/src/thunks/pid";
+import type { PreparePidFlowParamsThunkOutput } from "../../thunks/pid";
 import {
   initPidMrtdChallengeThunk,
   validatePidMrtdChallengeThunk,
 } from "../../thunks/mrtd";
+import { getPidCieIDThunk } from "../../thunks/pidCieID";
 
 /**
  * State type definition for the PID slice.
@@ -60,6 +61,34 @@ const pidSlice = createSlice({
     }),
   },
   extraReducers: (builder) => {
+    /**
+     * PID CieID Thunk
+     */
+
+    /*
+     * Dispatched when a get pid async thunk is pending.
+     * Sets the pid state to isLoading while resetting isDone and hasError.
+     */
+    builder.addCase(getPidCieIDThunk.pending, (state, action) => {
+      const authMethod = action.meta.arg.authMethod;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        isLoading: true,
+      };
+    });
+
+    /*
+     * Dispatched when a get pid async thunk rejected.
+     * Sets the pid state to hasError while resetting isLoading and hasError.
+     */
+    builder.addCase(getPidCieIDThunk.rejected, (state, action) => {
+      const authMethod = action.meta.arg.authMethod;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
+
     /**
      * PID flow Params Thunk
      */
