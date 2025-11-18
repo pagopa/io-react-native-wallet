@@ -120,7 +120,7 @@ export const validateChallenge: ValidateChallenge = async (
 /**
  * WARNING: This function must be called after {@link validateChallenge}. The generated authUrl must be used to open a browser or webview capable of catching the redirectSchema to perform a get request to the authorization endpoint.
  * Builds the callback URL to which the end user should be redirected to continue the authentication flow after the MRTD challenge validation.
- * @param redirectUri - The redirect URI provided by the issuer aftyer the challenge validation to continue the authentication flow.
+ * @param redirectUri - The redirect URI provided by the issuer after the challenge validation to continue the authentication flow.
  * @param valPopNonce - The MRTD validation PoP nonce obtained from the challenge validation response.
  * @param authSession - The MRTD authentication session identifier used for session binding.
  * @returns An object containing the callback URL

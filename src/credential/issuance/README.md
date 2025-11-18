@@ -84,7 +84,7 @@ MRTD Verification is a sub-flow of the Issuance flow and is used when the reques
 
 This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completeUserAuthorizationWithQueryMode` function.
 
-Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/REzADME.md)
+Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/README.md)
 
 ## Authentication through credentials (Form Post JWT Mode)
 
@@ -407,7 +407,7 @@ The result of this flow is a raw credential and a parsed credential which must b
  */
 
 // Start user authorization indicating "mrtd-pop" as the proof type with the idpHint of the
-// chosen identification methos
+// chosen identification method
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
   await Credential.Issuance.startUserAuthorization(
     issuerConf,
