@@ -20,7 +20,6 @@ import {
   initPidMrtdChallengeThunk,
   validatePidMrtdChallengeThunk,
 } from "../../thunks/mrtd";
-import { getPidCieIDThunk } from "../../thunks/pidCieID";
 
 /**
  * State type definition for the PID slice.
@@ -62,34 +61,6 @@ const pidSlice = createSlice({
   },
   extraReducers: (builder) => {
     /**
-     * PID CieID Thunk
-     */
-
-    /*
-     * Dispatched when a get pid async thunk is pending.
-     * Sets the pid state to isLoading while resetting isDone and hasError.
-     */
-    builder.addCase(getPidCieIDThunk.pending, (state, action) => {
-      const authMethod = action.meta.arg.authMethod;
-      state.pidAsyncStatus[authMethod] = {
-        ...asyncStatusInitial,
-        isLoading: true,
-      };
-    });
-
-    /*
-     * Dispatched when a get pid async thunk rejected.
-     * Sets the pid state to hasError while resetting isLoading and hasError.
-     */
-    builder.addCase(getPidCieIDThunk.rejected, (state, action) => {
-      const authMethod = action.meta.arg.authMethod;
-      state.pidAsyncStatus[authMethod] = {
-        ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
-      };
-    });
-
-    /**
      * PID flow Params Thunk
      */
 
@@ -120,8 +91,8 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(preparePidFlowParamsThunk.rejected, (state, action) => {
-      state.pidFlowParams = initialState.pidFlowParams;
       const authMethod = action.meta.arg.authMethod;
+      state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
@@ -133,9 +104,9 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(continuePidFlowThunk.fulfilled, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       state.pidFlowParams = initialState.pidFlowParams;
-      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
-      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
       state.pid = action.payload;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
@@ -148,9 +119,9 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(continuePidFlowThunk.pending, (state) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       // Redundant as already set by preparePidFlowParams but we want to be explicit and set the loading state
-      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
-      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isLoading: true,
@@ -162,11 +133,10 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(continuePidFlowThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       // Reset the flow params if an error occurs, you must start from scratch
       state.pidFlowParams = initialState.pidFlowParams;
-      const authMethod = action.meta.arg.authRedirectUrl.includes("cie")
-        ? "cieL3"
-        : "spid";
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
@@ -180,8 +150,9 @@ const pidSlice = createSlice({
     builder.addCase(sessionReset, () => initialState);
 
     // Handle mrtd thunks rejections to reset pid state
-    builder.addCase(validatePidMrtdChallengeThunk.rejected, (state, action) => {
+    builder.addCase(initPidMrtdChallengeThunk.rejected, (state, action) => {
       const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       // Reset the flow params if an error occurs, you must start from scratch
       state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {
@@ -189,8 +160,9 @@ const pidSlice = createSlice({
         hasError: { status: true, error: action.error },
       };
     });
-    builder.addCase(initPidMrtdChallengeThunk.rejected, (state, action) => {
+    builder.addCase(validatePidMrtdChallengeThunk.rejected, (state, action) => {
       const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       // Reset the flow params if an error occurs, you must start from scratch
       state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {

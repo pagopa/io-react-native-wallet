@@ -4,7 +4,7 @@ import {
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList } from "react-native";
 import TestScenario, {
   type TestScenarioProp,
@@ -19,7 +19,7 @@ import {
   selectPidFlowParams,
 } from "../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import { getPidCieIDThunk } from "../thunks/pidCieID";
+import { preparePidFlowParamsThunk } from "../thunks/pid";
 import { getCieIdpHint } from "../utils/environment";
 
 type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
@@ -68,6 +68,22 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
     }
   }, [navigation, challenge, pidFlowParams]);
 
+  const handleCieIdIdentification = useCallback(async () => {
+    const { authUrl, redirectUri } = await dispatch(
+      preparePidFlowParamsThunk({
+        idpHint: getCieIdpHint(env),
+        authMethod: "cieL2",
+        withMRTDPoP: withDocumentProof,
+      })
+    ).unwrap();
+
+    navigation.navigate("CieIdAuthentication", {
+      authUrl,
+      redirectUri,
+      withDocumentProof,
+    });
+  }, [dispatch, env, navigation, withDocumentProof]);
+
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
@@ -84,14 +100,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: `Get PID (CieID${withDocumentProof ? " + CIE" : ""})`,
-        onPress: () =>
-          dispatch(
-            getPidCieIDThunk({
-              idpHint: getCieIdpHint(env),
-              authMethod: "cieL2",
-              withMRTDPoP: withDocumentProof,
-            })
-          ),
+        onPress: handleCieIdIdentification,
         isLoading: pidCieL2State.isLoading,
         hasError: pidCieL2State.hasError,
         isDone: pidCieL2State.isDone,
@@ -111,7 +120,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
     ],
     [
-      dispatch,
+      handleCieIdIdentification,
       pidSpidState.isLoading,
       pidSpidState.hasError,
       pidSpidState.isDone,

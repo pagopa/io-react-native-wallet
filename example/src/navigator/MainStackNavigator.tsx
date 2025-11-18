@@ -8,6 +8,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
+import { CieIdAuthenticationScreen } from "../screens/cie/CieIdAuthenticationScreen";
 import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthenticationScreen";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -61,6 +62,11 @@ export type MainStackNavParamList = {
     withDocumentProof?: boolean;
   };
   CieAuthentication: undefined;
+  CieIdAuthentication: {
+    authUrl: string;
+    redirectUri: string;
+    withDocumentProof?: boolean;
+  };
   CieInternalAuthentication: { redirectUri: string; challenge: string };
   Presentations: undefined;
   Trust: undefined;
@@ -139,6 +145,11 @@ export const MainStackNavigator = () => {
               name="CieAuthentication"
               component={CieAuthenticationScreen}
               options={{ title: "CIE Authentication" }}
+            />
+            <Stack.Screen
+              name="CieIdAuthentication"
+              component={CieIdAuthenticationScreen}
+              options={{ title: "CieID Authentication" }}
             />
             <Stack.Screen
               name="CieInternalAuthentication"
