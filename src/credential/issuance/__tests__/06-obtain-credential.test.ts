@@ -1,7 +1,6 @@
 import type { CredentialIssuerEntityConfiguration } from "src/trust/types";
 import { obtainCredential } from "../06-obtain-credential";
 import type { TokenResponse } from "../types";
-import type { AuthorizationDetail } from "src/utils/par";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import process from "node:process";
 
@@ -16,7 +15,10 @@ describe("obtainCredential", () => {
     dPopCryptoContext: CryptoContext;
     appFetch: jest.Mock;
   };
-  let mockCredentialDefinition: AuthorizationDetail;
+  let mockCredentialDefinition: {
+    credential_configuration_id: string;
+    credential_identifier?: string;
+  };
   let mockIssuerConf: IssuerConf;
   let mockAccessToken: TokenResponse;
   const mockClientId = "client_id";
@@ -61,7 +63,6 @@ describe("obtainCredential", () => {
 
     mockCredentialDefinition = {
       credential_configuration_id: "mock_credential_configuration_id",
-      type: "openid_credential",
     };
 
     mockIssuerConf = {
