@@ -5,7 +5,13 @@ import {
   sign,
 } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
-import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import {
+  thumbprint,
+  type CryptoContext,
+  removePadding,
+} from "@pagopa/io-react-native-jwt";
+import { sha256 } from "js-sha256";
+import { Buffer } from "buffer";
 import { JWK } from "./jwk";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { IoWalletError } from "./errors";
@@ -89,4 +95,15 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
   throw new IoWalletError(
     "Unable to find the signing key inside the PEM certificate"
   );
+};
+
+/**
+ * Calculate the SHA-256 hash of a binary array and encode it in base64url.
+ * @param binary The binary data to hash
+ * @returns A base64url string
+ */
+export const sha256ToBase64UrlFromBinary = (binary: ArrayBuffer): string => {
+  const hash = sha256.create();
+  hash.update(binary);
+  return removePadding(Buffer.from(hash.array()).toString("base64"));
 };

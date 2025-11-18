@@ -1,9 +1,11 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
+import { Buffer } from "buffer";
 import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
 import { type FetchJwks } from "./04-retrieve-rp-jwks";
 import type { Out } from "../../utils/misc";
 import { LogLevel, Logger } from "../../utils/logging";
+import { sha256ToBase64UrlFromBinary } from "../../utils/crypto";
 
 export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
@@ -11,6 +13,7 @@ export type VerifyRequestObject = (
   optionalParams?: Partial<{
     state: string;
     rpSubject: string;
+    x509Hash: string;
   }>
 ) => Promise<{ requestObject: RequestObject }>;
 
@@ -52,23 +55,16 @@ export const verifyRequestObject: VerifyRequestObject = async (
 
   const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
 
-  const { state, rpSubject } = optionalParams;
-  const isClientIdMatch = rpSubject
-    ? requestObject.client_id === rpSubject
-    : true;
+  const { state, rpSubject, x509Hash } = optionalParams;
 
-  if (!isClientIdMatch) {
-    throw new InvalidRequestObjectError(
-      "Client ID does not match Request Object or Entity Configuration"
-    );
+  if (state) {
+    validateState(requestObject, state);
   }
-
-  const isStateMatch = state ? state === requestObject.state : true;
-
-  if (!isStateMatch) {
-    throw new InvalidRequestObjectError(
-      "The provided state does not match the Request Object's"
-    );
+  if (rpSubject) {
+    validateSubject(requestObject, rpSubject);
+  }
+  if (x509Hash) {
+    validateX509Hash(requestObjectJwt.protectedHeader.x5c, x509Hash);
   }
 
   Logger.log(
@@ -97,6 +93,36 @@ const validateRequestObjectShape = (payload: unknown): RequestObject => {
     "The Request Object cannot be parsed successfully",
     formatFlattenedZodErrors(requestObjectParse.error.flatten())
   );
+};
+
+const validateSubject = (requestObject: RequestObject, sub: string) => {
+  if (requestObject.client_id !== sub) {
+    throw new InvalidRequestObjectError(
+      "Client ID does not match Request Object or Entity Configuration"
+    );
+  }
+};
+
+const validateState = (requestObject: RequestObject, state: string) => {
+  if (requestObject.state !== state) {
+    throw new InvalidRequestObjectError(
+      "The provided state does not match the Request Object's"
+    );
+  }
+};
+
+const validateX509Hash = (certChain: string[] | undefined, hash: string) => {
+  if (!certChain) {
+    throw new InvalidRequestObjectError("Missing x5c certificate chain");
+  }
+  // TODO: get the leaf certificate properly
+  const cert = Buffer.from(certChain[0]!, "base64");
+  const calculatedHash = sha256ToBase64UrlFromBinary(cert);
+  if (hash !== calculatedHash) {
+    throw new InvalidRequestObjectError(
+      "x509_hash does not match the hash of the x5c leaf certificate"
+    );
+  }
 };
 
 /**

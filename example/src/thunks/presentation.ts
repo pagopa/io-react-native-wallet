@@ -155,8 +155,8 @@ const handleAuthRequestForOpenIdFederation: HandleAuthRequest = async (
  * @returns Request Object, JWKS
  */
 const handleAuthRequestForX509Hash: HandleAuthRequest = async (qrParams) => {
-  const [, hash] = qrParams.client_id.split(":");
-  console.log("x509_hash", hash);
+  const [, x509Hash] = qrParams.client_id.split(":");
+  console.log("x509_hash", x509Hash);
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(qrParams.request_uri);
@@ -167,7 +167,8 @@ const handleAuthRequestForX509Hash: HandleAuthRequest = async (qrParams) => {
 
   const { requestObject } = await Credential.Presentation.verifyRequestObject(
     requestObjectEncodedJwt,
-    keys
+    keys,
+    { x509Hash }
   );
 
   return { requestObject, keys };
