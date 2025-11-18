@@ -9,7 +9,11 @@ import TestScenario, {
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectEnv } from "../store/reducers/environment";
-import { selectPidAsyncStatus, selectPidSdJwt } from "../store/reducers/pid";
+import {
+  selectPidAsyncStatus,
+  selectPidMdoc,
+  selectPidSdJwt,
+} from "../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { getPidCieIDThunk } from "../thunks/pidCieID";
 import { getCieIdpHint } from "../utils/environment";
@@ -30,6 +34,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
   const piNoAuthState = useAppSelector(selectPidAsyncStatus("noAuth"));
   const pid = useAppSelector(selectPidSdJwt);
+  const pidMdoc = useAppSelector(selectPidMdoc);
   const env = useAppSelector(selectEnv);
   const cieIdpHint = getCieIdpHint(env);
   const cie = useCie(cieIdpHint);
@@ -102,7 +107,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
               credentialType: "mso_mdoc_PersonIdentificationData",
             })
           ),
-        isPresent: !!pid,
+        isPresent: !!pidMdoc,
         isLoading: piNoAuthState.isLoading,
         hasError: piNoAuthState.hasError,
         isDone: piNoAuthState.isDone,
