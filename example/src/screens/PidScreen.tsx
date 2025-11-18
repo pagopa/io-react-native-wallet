@@ -130,6 +130,7 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       piNoAuthState.isLoading,
       piNoAuthState.hasError,
       piNoAuthState.isDone,
+      pidMdoc,
       navigation,
       dispatch,
       cie,
