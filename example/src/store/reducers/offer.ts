@@ -2,7 +2,21 @@ import { createSlice } from "@reduxjs/toolkit";
 import { sessionReset } from "./sesssion";
 import type { AsyncStatus, CredentialOfferResult, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
-import { getCredentialOfferFlowThunk } from "../../thunks/offer";
+import {
+  getCredentialOfferFlowThunk,
+  getCredentialOfferRequestedParams,
+} from "../../thunks/offer";
+import type {
+  CredentialIssuerMetadata,
+  CredentialOffer,
+  GrantTypeSelection,
+} from "../../../../src/credential/offer";
+
+type CredentialOfferDetails = {
+  offer: CredentialOffer;
+  grant: GrantTypeSelection;
+  issuerConf: CredentialIssuerMetadata;
+};
 
 /**
  * The Credential Offer slice state.
@@ -11,11 +25,13 @@ import { getCredentialOfferFlowThunk } from "../../thunks/offer";
 type CredentialOfferState = {
   result?: CredentialOfferResult;
   asyncStatus: AsyncStatus;
+  details?: CredentialOfferDetails;
 };
 
 const initialState: CredentialOfferState = {
   result: undefined,
   asyncStatus: asyncStatusInitial,
+  details: undefined,
 };
 
 /**
@@ -53,6 +69,33 @@ const credentialOfferSlice = createSlice({
         state.result = undefined;
       })
 
+      // === Fulfilled ===
+      .addCase(getCredentialOfferRequestedParams.fulfilled, (state, action) => {
+        state.asyncStatus.isDone = true;
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.hasError = initialState.asyncStatus.hasError;
+        state.details = action.payload;
+        state.result = undefined;
+      })
+
+      // === Pending ===
+      .addCase(getCredentialOfferRequestedParams.pending, (state) => {
+        state.asyncStatus.isLoading = true;
+        state.asyncStatus.isDone = false;
+        state.asyncStatus.hasError = initialState.asyncStatus.hasError;
+        state.details = undefined;
+        state.result = undefined;
+      })
+
+      // === Rejected ===
+      .addCase(getCredentialOfferRequestedParams.rejected, (state, action) => {
+        state.asyncStatus.isDone = true;
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.hasError = { status: true, error: action.error };
+        state.details = undefined;
+        state.result = undefined;
+      })
+
       // === Reset on session reset ===
       .addCase(sessionReset, () => initialState);
   },
@@ -66,3 +109,5 @@ export const selectCredentialOfferResult = (state: RootState) =>
   state.offer.result;
 export const selectCredentialOfferStatus = (state: RootState) =>
   state.offer.asyncStatus;
+export const selectCredentialOfferDetails = (state: RootState) =>
+  state.offer.details;

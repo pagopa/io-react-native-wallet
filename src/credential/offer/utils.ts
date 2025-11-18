@@ -4,10 +4,12 @@ import {
 } from "../../utils/misc";
 import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 import {
+  type ASMetadata,
+  ASMetadataSchema,
   type CredentialIssuerMetadata,
   CredentialIssuerMetadataSchema,
 } from "./types";
-import { IoWalletError } from "../../utils/errors";
+import { IoWalletError, IssuerResponseError } from "../../utils/errors";
 
 /**
  * Fetch and validate the Credential Issuer metadata
@@ -42,6 +44,36 @@ export async function getCredentialIssuerMetadata(
       return result.data;
     });
 }
+
+/**
+ * Fetches the Authorization Server metadata from the given AS URL.
+ * @param authenticSourceBaseUrl - The URL of the Authorization Server.
+ * @param appFetch - Optional fetch API implementation.
+ * @returns The parsed AS metadata as a validated object.
+ * @throws If the fetched metadata is invalid.
+ */
+export const getAuthenticSourceMetadata = async (
+  authenticSourceBaseUrl: string,
+  appFetch: GlobalFetch["fetch"]
+): Promise<ASMetadata> => {
+  const url = new URL(authenticSourceBaseUrl);
+  url.pathname = url.pathname.endsWith("/")
+    ? url.pathname + ".well-known/openid-configuration"
+    : url.pathname + "/.well-known/openid-configuration";
+
+  const response = await appFetch(url.toString(), {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  })
+    .then(hasStatusOrThrow(200, IssuerResponseError))
+    .then((res) => res.json());
+
+  const metadata = ASMetadataSchema.safeParse(response);
+  if (!metadata.success) {
+    throw new Error(`Invalid AS metadata: ${metadata.error.message}`);
+  }
+  return metadata.data;
+};
 
 /**
  * Generates a PKCE code verifier and its corresponding code challenge.

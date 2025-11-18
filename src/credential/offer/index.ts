@@ -16,6 +16,8 @@ import {
   prepareAuthorization,
 } from "./05-prepare-authorization";
 
+import { authorizePreAuthorizedAccess } from "./06-pre-authorized-access";
+
 import { authorizeAccess } from "./06-authorize-access";
 import { obtainCredential } from "./07-obtain-credential";
 import { verifyAndParseCredential } from "./08-verify-and-parse-credential";
@@ -38,6 +40,7 @@ export {
   selectGrantType,
   prepareAuthorization,
   authorizeAccess,
+  authorizePreAuthorizedAccess,
   obtainCredential,
   verifyAndParseCredential,
   Errors,

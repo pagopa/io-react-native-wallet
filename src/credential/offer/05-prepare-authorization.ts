@@ -4,44 +4,9 @@ import {
   generateRandomAlphaNumericString,
   hasStatusOrThrow,
 } from "../../utils/misc";
-import {
-  type ASMetadata,
-  ASMetadataSchema,
-  type CredentialIssuerMetadata,
-  type CredentialOffer,
-} from "./types";
+import { type CredentialIssuerMetadata, type CredentialOffer } from "./types";
 import type { GrantTypeSelection } from "./04-select-grant-type";
-import { generatePkce } from "./utils";
-
-/**
- * Fetches the Authorization Server metadata from the given AS URL.
- * @param asUrl - The URL of the Authorization Server.
- * @param appFetch - Optional fetch API implementation.
- * @returns The parsed AS metadata as a validated object.
- * @throws If the fetched metadata is invalid.
- */
-const fetchASMetadata = async (
-  asUrl: string,
-  appFetch: GlobalFetch["fetch"]
-): Promise<ASMetadata> => {
-  const url = new URL(asUrl);
-  url.pathname = url.pathname.endsWith("/")
-    ? url.pathname + ".well-known/openid-configuration"
-    : url.pathname + "/.well-known/openid-configuration";
-
-  const response = await appFetch(url.toString(), {
-    method: "GET",
-    headers: { Accept: "application/json" },
-  })
-    .then(hasStatusOrThrow(200, IssuerResponseError))
-    .then((res) => res.json());
-
-  const metadata = ASMetadataSchema.safeParse(response);
-  if (!metadata.success) {
-    throw new Error(`Invalid AS metadata: ${metadata.error.message}`);
-  }
-  return metadata.data;
-};
+import { generatePkce, getAuthenticSourceMetadata } from "./utils";
 
 type AuthRequestDetails = {
   clientId: string;
@@ -84,7 +49,7 @@ export const prepareAuthorization = async (
   }
 
   // Fetch AS metadata required for authorization request
-  const asMetadata = await fetchASMetadata(
+  const asMetadata = await getAuthenticSourceMetadata(
     grantSelection.authorization_server,
     appFetch
   );
