@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"; // 👈 Importa useCallback
+import React, { useCallback, useState } from "react";
 import { OfferTxCodeDialog } from "./OfferTxCodeDialog";
 import { Alert } from "react-native";
 
