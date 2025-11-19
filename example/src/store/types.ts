@@ -41,7 +41,8 @@ export type SupportedCredentials =
   | "dc_sd_jwt_EuropeanHealthInsuranceCard"
   | "dc_sd_jwt_education_degree"
   | "dc_sd_jwt_education_enrollment"
-  | "dc_sd_jwt_residency";
+  | "dc_sd_jwt_residency"
+  | "ec.europa.ec.eudi.pid_vc_sd_jwt";
 
 /**
  * Type definition for the supported credentials without the PersonIdentificationData.

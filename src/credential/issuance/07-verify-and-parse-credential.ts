@@ -162,19 +162,8 @@ const parseCredentialSdJwt = (
   if (includeUndefinedAttributes) {
     const undefinedValues = Object.fromEntries(
       disclosures
-        .filter((_) => {
-          const key = _.length === 3 ? _[1] : undefined;
-          return key && !Object.keys(definedValues).includes(key);
-        })
-        .map((_) => {
-          if (_.length === 3) {
-            const [, key, value] = _;
-            return [key, { value, name: key }];
-          } else {
-            const [, value] = _;
-            return [String(value), { value, name: String(value) }];
-          }
-        })
+        .filter((_) => !Object.keys(definedValues).includes(_[1]))
+        .map(([, key, value]) => [key, { value, name: key }])
     );
 
     return {

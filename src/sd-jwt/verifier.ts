@@ -7,9 +7,6 @@ export const verifyDisclosure = async (
   { encoded, decoded }: DisclosureWithEncoded,
   claims: ObfuscatedDisclosures["_sd"]
 ) => {
-  if (decoded.length === 2) {
-    return;
-  }
   let hash = await sha256ToBase64(encoded);
   if (!claims.includes(hash)) {
     throw new ValidationFailed({
