@@ -1993,10 +1993,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pagopa/io-app-design-system@5.8.0":
-  version "5.8.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-app-design-system/-/io-app-design-system-5.8.0.tgz#a4f22c78cb556e12e2d96c4ee0445f294b373204"
-  integrity sha512-5e0G4HAObSTxQrpGaSO3tTXmJ1/9jlOHU2LYPlNzewp7LaYeAgcirIUyU+6uQXPvmwEYASzrlJfUY0JEciG+gw==
+"@pagopa/io-app-design-system@5.11.11":
+  version "5.11.11"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-app-design-system/-/io-app-design-system-5.11.11.tgz#5920b2283c845dbb4daeaf61c7805ec4ddf46bec"
+  integrity sha512-pNYsXwTmy1qj2sjsVNjirQvrIJu8VcUjXZKXH4NAToed7aKXCu7NHOp4aXMHrr8NgbQFmqLQ9en9+ZGG45R3Gw==
   dependencies:
     auto-changelog "^2.4.0"
     lodash "^4.17.21"

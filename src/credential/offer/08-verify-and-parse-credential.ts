@@ -20,9 +20,7 @@ import { SDJwtInstance } from "@sd-jwt/core";
 import { digest } from "@sd-jwt/crypto-nodejs";
 import { type SdJwtDecoded, SdJwtDecodedSchema } from "./types";
 import {
-  assignPath,
   buildName,
-  findValueForPath,
   resolveNestedDisclosureValue,
 } from "../../utils/parserUtils";
 
@@ -58,65 +56,147 @@ type ParsedCredential = {
   };
 };
 
-export function parseCredentialSdJwt(
+export const parseCredentialSdJwt = (
+  // The credential configuration to use to parse the provided credential
   credentialConfig: CredentialConf,
-  decoded: SdJwtDecoded,
-  ignoreMissingAttributes = false
-): ParsedCredential {
-  if (!credentialConfig.credential_metadata) {
-    throw new IoWalletError("Credential metadata is missing");
+  { jwt, disclosures }: SdJwtDecoded,
+  ignoreMissingAttributes: boolean = false,
+  includeUndefinedAttributes: boolean = false
+): ParsedCredential => {
+  if (credentialConfig.format !== jwt.header.typ) {
+    const message = `Received credential is of an unknown type. Expected one of [${credentialConfig.format}], received '${jwt.header.typ}'`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
   }
 
-  const claims = credentialConfig.credential_metadata.claims;
-  if (!claims) {
+  if (!credentialConfig.credential_metadata) {
+    Logger.log(LogLevel.ERROR, "Missing credential metadata");
+    throw new IoWalletError("Missing credential metadata");
+  }
+
+  if (!credentialConfig.credential_metadata.claims) {
+    Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
     throw new IoWalletError("Missing claims in the credential subject");
   }
 
-  const disclosures = decoded.disclosures;
+  const attrDefinitions = credentialConfig.credential_metadata.claims;
 
-  const out: ParsedCredential = {};
-  const missingMandatory: string[] = [];
+  if (!ignoreMissingAttributes) {
+    const disclosedKeys = new Set(disclosures.map(({ key }) => key));
+    const payloadKeys = new Set(Object.keys(jwt.payload ?? {}));
 
-  for (const claim of claims) {
-    const path = claim.path;
-    const rawValue = findValueForPath(disclosures, path);
-    const isMissing = rawValue === undefined;
+    const definedTopLevelKeys = new Set(
+      attrDefinitions.map((def) => def.path[0] as string)
+    );
 
-    const isMandatory = claim.mandatory === true;
+    const missingKeys = [...definedTopLevelKeys].filter(
+      (key) => !disclosedKeys.has(key) && !payloadKeys.has(key)
+    );
 
-    if (isMissing && isMandatory && !ignoreMissingAttributes) {
-      missingMandatory.push(path.join("."));
+    if (missingKeys.length > 0) {
+      throw new IoWalletError(
+        `Some attributes are missing in the credential. Missing: [${missingKeys.join(", ")}]`
+      );
+    }
+  }
+
+  const definedValues: ParsedCredential = {};
+
+  const groupedDefinitions = attrDefinitions.reduce(
+    (acc, def) => {
+      const key = def.path[0] as string;
+      const group = acc[key];
+
+      if (def.path.length === 1) {
+        acc[key] = {
+          definition: def,
+          nested: group?.nested || [],
+        };
+      } else {
+        const parentKey = def.path[0] as string;
+        acc[parentKey] = acc[parentKey] || {
+          definition: undefined,
+          nested: [],
+        };
+        acc[parentKey]!.nested.push(def);
+      }
+      return acc;
+    },
+    {} as Record<string, { definition?: any; nested: any[] }>
+  );
+
+  for (const topLevelKey in groupedDefinitions) {
+    const obj = groupedDefinitions[topLevelKey];
+
+    if (!obj) {
+      throw new IoWalletError(`Unknown type "${topLevelKey}"`);
+    }
+    const { definition: topLevelDef, nested: nestedDefs } = obj;
+
+    const disclosureForThisKey = disclosures.find(
+      ({ key }) => key === topLevelKey
+    );
+
+    if (!disclosureForThisKey) {
       continue;
     }
 
-    if (isMissing) {
-      continue;
-    }
-
-    const resolvedValue = resolveNestedDisclosureValue(disclosures, rawValue);
+    const resolvedValue = resolveNestedDisclosureValue(
+      disclosures,
+      disclosureForThisKey.value
+    );
 
     if (
-      resolvedValue &&
-      typeof resolvedValue === "object" &&
-      Object.keys(resolvedValue).length === 0
+      Object.keys(resolvedValue).length > 0 &&
+      (nestedDefs.length > 0 || typeof resolvedValue === "object")
     ) {
-      continue;
+      if (nestedDefs.length > 0) {
+        const mappedNestedValue: Record<string, unknown> = {};
+
+        for (const nestedDef of nestedDefs) {
+          const nestedKey = nestedDef.path[1] as string;
+
+          if (Object.prototype.hasOwnProperty.call(resolvedValue, nestedKey)) {
+            mappedNestedValue[nestedKey] = {
+              value: (resolvedValue as any)[nestedKey],
+              name: buildName(nestedDef.display),
+            };
+          }
+        }
+
+        definedValues[topLevelKey] = {
+          value: mappedNestedValue,
+          name: buildName(topLevelDef.display),
+        };
+      } else {
+        definedValues[topLevelKey] = {
+          value: resolvedValue,
+          name: buildName(topLevelDef.display),
+        };
+      }
+    } else if (resolvedValue !== undefined) {
+      definedValues[topLevelKey] = {
+        value: resolvedValue,
+        name: buildName(obj.definition.display),
+      };
     }
-
-    assignPath(out, path, {
-      value: resolvedValue,
-      name: buildName(claim.display),
-    });
   }
 
-  if (missingMandatory.length > 0) {
-    throw new IoWalletError(
-      "Missing mandatory attributes: " + missingMandatory.join(", ")
+  if (includeUndefinedAttributes) {
+    const undefinedValues = Object.fromEntries(
+      disclosures
+        .filter((_) => !Object.keys(definedValues).includes(_.salt))
+        .map(({ key, value }) => [key, { value, name: key }])
     );
+
+    return {
+      ...definedValues,
+      ...undefinedValues,
+    };
   }
 
-  return out;
-}
+  return definedValues;
+};
 
 const parseCredentialMDoc = (
   credentialConfig: CredentialConf,

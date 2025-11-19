@@ -1,4 +1,8 @@
-import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import {
+  IOVisualCostants,
+  ModuleCredential,
+  VSpacer,
+} from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { FlatList, type ListRenderItemInfo, View } from "react-native";
@@ -8,6 +12,7 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   credentialOfferReset,
   selectCredentialOfferDetails,
+  selectCredentialOfferResult,
   selectCredentialOfferState,
 } from "../store/reducers/offer";
 import { useAppDispatch, useAppSelector } from "../store/utils";
@@ -18,16 +23,15 @@ export const OfferScreen = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
 
-  const { asyncStatus: credentialOfferState, result } = useAppSelector(
+  const { asyncStatus: credentialOfferState } = useAppSelector(
     selectCredentialOfferState
   );
-
+  const credentialOfferResult = useAppSelector(selectCredentialOfferResult);
   const credentialOfferDetails = useAppSelector(selectCredentialOfferDetails);
 
   useDebugInfo({
     credentialOfferState,
-    credentialOfferDetails,
-    result,
+    credentialOfferResult,
   });
   const { component, requestTxCode } = useOffer();
 
@@ -41,7 +45,7 @@ export const OfferScreen = () => {
     if (
       credentialOfferState.isDone &&
       credentialOfferDetails &&
-      !result &&
+      !credentialOfferResult &&
       !credentialOfferState.isLoading
     ) {
       const { grant, offer: offerData, issuerConf } = credentialOfferDetails;
@@ -73,7 +77,7 @@ export const OfferScreen = () => {
     credentialOfferState.isDone,
     credentialOfferState.isLoading,
     credentialOfferDetails,
-    result,
+    credentialOfferResult,
     dispatch,
     requestTxCode,
   ]);
@@ -90,7 +94,7 @@ export const OfferScreen = () => {
         hasError: credentialOfferState.hasError,
         isDone: credentialOfferState.isDone,
         icon: "qrCode",
-        isPresent: !!result,
+        isPresent: !!credentialOfferResult,
         successMessage: "OK",
       },
     ],
@@ -98,7 +102,7 @@ export const OfferScreen = () => {
       credentialOfferState.isLoading,
       credentialOfferState.hasError,
       credentialOfferState.isDone,
-      result,
+      credentialOfferResult,
       navigation,
     ]
   );
@@ -121,6 +125,17 @@ export const OfferScreen = () => {
         ItemSeparatorComponent={VSpacer}
       />
       {component}
+      <View
+        style={{
+          margin: IOVisualCostants.appMarginDefault,
+        }}
+      >
+        <ModuleCredential
+          label="Explore Credentials"
+          icon={"archive"}
+          onPress={() => navigation.navigate("ExploreCredentials")}
+        />
+      </View>
     </View>
   );
 };

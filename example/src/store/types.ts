@@ -41,8 +41,7 @@ export type SupportedCredentials =
   | "dc_sd_jwt_EuropeanHealthInsuranceCard"
   | "dc_sd_jwt_education_degree"
   | "dc_sd_jwt_education_enrollment"
-  | "dc_sd_jwt_residency"
-  | "ec.europa.ec.eudi.pid_vc_sd_jwt";
+  | "dc_sd_jwt_residency";
 
 /**
  * Type definition for the supported credentials without the PersonIdentificationData.
@@ -79,7 +78,7 @@ export type CredentialResult = CredentialResultBase & {
  * Type definition to represent a credential result to be used in the store.
  */
 export type CredentialOfferResult = CredentialResultBase & {
-  credentialType: SupportedCredentials;
+  credentialType: string;
 };
 
 /**

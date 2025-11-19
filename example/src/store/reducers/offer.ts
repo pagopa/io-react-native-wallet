@@ -75,7 +75,6 @@ const credentialOfferSlice = createSlice({
         state.asyncStatus.isLoading = false;
         state.asyncStatus.hasError = initialState.asyncStatus.hasError;
         state.details = action.payload;
-        state.result = undefined;
       })
 
       // === Pending ===

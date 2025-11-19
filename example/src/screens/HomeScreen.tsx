@@ -63,6 +63,12 @@ const HomeScreen = () => {
             : Alert.alert("Register a wallet instance and obtain a PID first"),
       },
       {
+        label: "EU Credentials",
+        description: "Explore obtained European credentials",
+        icon: "chevronRight",
+        onPress: () => navigation.navigate("ExploreCredentials"),
+      },
+      {
         label: "Presentations",
         description: "Present credentials to a verifier",
         icon: "chevronRight",

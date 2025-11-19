@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.1.1",
-    "@pagopa/io-app-design-system": "5.8.0",
+    "@pagopa/io-app-design-system": "5.11.11",
     "@pagopa/io-react-native-cie": "^1.1.2",
     "@pagopa/io-react-native-crypto": "^1.2.4",
     "@pagopa/io-react-native-integrity": "^0.3.1",

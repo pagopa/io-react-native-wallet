@@ -11,6 +11,7 @@ import {
 } from "../../thunks/credential";
 import type {
   AsyncStatus,
+  CredentialOfferResult,
   CredentialResult,
   RootState,
   SupportedCredentials,
@@ -24,6 +25,7 @@ import {
   getTrustmarkThunk,
   type GetTrustmarkThunkOutput,
 } from "../../thunks/trustmark";
+import { getCredentialOfferFlowThunk } from "../../thunks/offer";
 
 /**
  * State type definition for the credential slice.
@@ -38,6 +40,7 @@ type CredentialState = {
     SupportedCredentialsWithoutPid,
     CredentialResult | undefined
   >;
+  europeanCredentials: Record<string, CredentialOfferResult | undefined>;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
   statusAssertion: Record<
     SupportedCredentials,
@@ -111,6 +114,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_enrollment: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
   },
+  europeanCredentials: {},
 };
 
 /**
@@ -122,6 +126,14 @@ const credentialSlice = createSlice({
   initialState,
   reducers: {
     credentialReset: () => initialState,
+
+    /**
+     * Removes a european credential from the store given its credential id
+     */
+    removeEuropeanCredential: (state, action: PayloadAction<string>) => {
+      const credentialIdToDelete = action.payload;
+      delete state.europeanCredentials[credentialIdToDelete];
+    },
 
     /**
      * Removes a trustmark from the store given a credential type
@@ -279,6 +291,15 @@ const credentialSlice = createSlice({
       };
     });
 
+    /*
+     * Dispatched when a get credential offer flow async thunk resolves.
+     * Sets the obtained european credential.
+     */
+    builder.addCase(getCredentialOfferFlowThunk.fulfilled, (state, action) => {
+      const credentialType = action.payload.credentialType as string;
+      state.europeanCredentials[credentialType] = action.payload;
+    });
+
     // Reset the credential state when the instance is reset.
     builder.addCase(instanceReset, () => initialState);
 
@@ -290,7 +311,8 @@ const credentialSlice = createSlice({
 /**
  * Exports the actions for the credential slice.
  */
-export const { credentialReset, trustmarkReset } = credentialSlice.actions;
+export const { credentialReset, trustmarkReset, removeEuropeanCredential } =
+  credentialSlice.actions;
 
 /**
  * Persist configuration for the credential slice.
@@ -299,7 +321,7 @@ export const { credentialReset, trustmarkReset } = credentialSlice.actions;
 const persistConfig: PersistConfig<CredentialState> = {
   key: "credential",
   storage: createSecureStorage(),
-  whitelist: ["credentials"],
+  whitelist: ["credentials", "europeanCredentials"],
 };
 
 /**
@@ -368,3 +390,11 @@ export const selectTrustmark =
 export const selectTrustmarkAsyncStatus =
   (credentialType: SupportedCredentialsWithoutPid) => (state: RootState) =>
     state.credential.trustmarkAsyncStatus[credentialType];
+
+/**
+ * Selects the european credentials from the credential state.
+ * @param state - The root state of the Redux store
+ * @returns the european credentials
+ */
+export const selectEuropeanCredentials = (state: RootState) =>
+  state.credential.europeanCredentials;
