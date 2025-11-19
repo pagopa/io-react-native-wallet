@@ -42,8 +42,12 @@ export const QrScannerScreen = ({ route }: Props) => {
 
   useEffect(() => {
     (async () => {
-      const cameraPermission = await Camera.requestCameraPermission();
-      if (cameraPermission.toString() === "granted") {
+      let status = Camera.getCameraPermissionStatus();
+      if (status !== "granted") {
+        status = await Camera.requestCameraPermission();
+      }
+
+      if (status === "granted") {
         setHasPermission(true);
       } else {
         Alert.alert("Error", "Camera permission not granted!");

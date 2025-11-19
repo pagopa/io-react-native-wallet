@@ -1,11 +1,16 @@
 import React, { useMemo } from "react";
-import { FlatList, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 import { selectEuropeanCredentials } from "../store/reducers/credential";
 import CredentialDetailCard from "../components/CredentialDetailCard";
 import type { EuropeanCredentialWithId } from "../store/types";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const ExploreCredentials = () => {
+  const { bottom } = useSafeAreaInsets();
   const credentialsRecord = useSelector(selectEuropeanCredentials);
 
   const data = useMemo(() => {
@@ -38,7 +43,7 @@ const ExploreCredentials = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingBottom: bottom }]}>
       <Text style={styles.header}>Credentials ({data.length})</Text>
       <FlatList
         data={data}
@@ -46,7 +51,7 @@ const ExploreCredentials = () => {
         keyExtractor={(item) => item.key}
         contentContainerStyle={styles.listContent}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
