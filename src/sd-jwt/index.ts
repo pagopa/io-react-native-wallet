@@ -85,27 +85,14 @@ export const disclose = async (
   token: string,
   claims: string[]
 ): Promise<{ token: string; paths: { claim: string; path: string }[] }> => {
-  const [rawSdJwt] = token.split("~");
+  const [rawSdJwt, ...rawDisclosures] = token.split("~");
+  const { sdJwt, disclosures } = decode(token, SdJwt4VC);
 
-  const { sdJwt, disclosures: allDecodedDisclosures } = decode(token, SdJwt4VC);
-
-  // Consider only 3-value disclosures (claimName)
-  const getClaimName = (decodedDisclosure: Disclosure): string | undefined => {
-    if (decodedDisclosure.length === 3) {
-      return decodedDisclosure[1] as string;
-    }
-    return undefined;
-  };
-
-  const nominalDisclosures = allDecodedDisclosures.filter((d) => {
-    const name = getClaimName(d.decoded);
-    return name && claims.includes(name);
-  });
-
+  // for each claim, return the path on which they are located in the SD-JWT token
   const paths = await Promise.all(
     claims.map(async (claim) => {
-      const disclosure = nominalDisclosures.find(
-        (d) => getClaimName(d.decoded) === claim
+      const disclosure = disclosures.find(
+        ({ decoded: [, name] }) => name === claim
       );
 
       // check every claim represents a known disclosure
@@ -126,8 +113,18 @@ export const disclose = async (
     })
   );
 
-  const filteredDisclosures = nominalDisclosures.map((d) => d.encoded);
+  // The disclosures in the new SD-JWT aligned with version 1.0
+  // include a trailing "~" character.
+  // To avoid parsing errors, it is necessary to filter the array
+  // to remove any empty strings
+  const filteredDisclosures = rawDisclosures.filter(Boolean).filter((d) => {
+    const {
+      decoded: [, name],
+    } = decodeDisclosure(d);
+    return claims.includes(name);
+  });
 
+  // compose the final disclosed token
   const disclosedToken = [rawSdJwt, ...filteredDisclosures].join("~");
 
   return { token: disclosedToken, paths };
