@@ -11,6 +11,7 @@ import { isDefined } from "../utils/misc";
 import type { RootState } from "../store/types";
 import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
+import { verifierCertificates } from "../utils/presentation";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
@@ -160,6 +161,11 @@ const handleAuthRequestForX509Hash: HandleAuthRequest = async (qrParams) => {
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(qrParams.request_uri);
+
+  await Credential.Presentation.verifyAuthRequestCertificateChain(
+    requestObjectEncodedJwt,
+    { caRootCerts: verifierCertificates.map((c) => c.certificate) }
+  );
 
   const { keys } = await Credential.Presentation.fetchJwksFromRequestObject(
     requestObjectEncodedJwt

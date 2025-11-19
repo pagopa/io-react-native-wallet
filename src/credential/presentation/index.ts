@@ -7,6 +7,7 @@ import {
   getRequestObject,
   type GetRequestObject,
 } from "./03-get-request-object";
+import { verifyAuthRequestCertificateChain } from "./04-verify-certificate-chain";
 import {
   getJwksFromConfig,
   fetchJwksFromRequestObject,
@@ -41,6 +42,7 @@ export {
   prepareRemotePresentations,
   sendAuthorizationResponse,
   sendAuthorizationErrorResponse,
+  verifyAuthRequestCertificateChain,
   Errors,
 };
 export type {
