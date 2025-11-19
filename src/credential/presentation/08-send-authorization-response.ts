@@ -1,6 +1,6 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
-import { type FetchJwks } from "./04-retrieve-rp-jwks";
-import type { VerifyRequestObject } from "./05-verify-request-object";
+import { type FetchJwks } from "./05-retrieve-rp-jwks";
+import type { VerifyRequestObject } from "./06-verify-request-object";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import {
   generateRandomAlphaNumericString,

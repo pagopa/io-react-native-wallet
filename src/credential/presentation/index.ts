@@ -12,11 +12,11 @@ import {
   getJwksFromConfig,
   fetchJwksFromRequestObject,
   type FetchJwks,
-} from "./04-retrieve-rp-jwks";
+} from "./05-retrieve-rp-jwks";
 import {
   verifyRequestObject,
   type VerifyRequestObject,
-} from "./05-verify-request-object";
+} from "./06-verify-request-object";
 import {
   evaluateDcqlQuery,
   type EvaluateDcqlQuery,
