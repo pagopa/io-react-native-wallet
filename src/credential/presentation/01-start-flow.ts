@@ -32,7 +32,7 @@ export type StartFlow = (params: {
 export const startFlowFromQR: StartFlow = (params) => {
   Logger.log(
     LogLevel.DEBUG,
-    "Starting presentation flow with params: " + JSON.stringify(params, null, 2)
+    "Starting presentation flow with params: " + JSON.stringify(params)
   );
 
   const result = PresentationParams.safeParse({

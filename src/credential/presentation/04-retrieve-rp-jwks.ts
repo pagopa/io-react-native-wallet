@@ -174,7 +174,7 @@ export const fetchJwksFromRequestObject: FetchJwks<
 
   Logger.log(
     LogLevel.DEBUG,
-    "Got JWKS from Request Object" + JSON.stringify(jwks, null, 2)
+    "Got JWKS from Request Object" + JSON.stringify(jwks)
   );
 
   return { keys: jwks };
