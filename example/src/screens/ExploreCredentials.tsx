@@ -1,25 +1,29 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { FlatList, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 import { selectEuropeanCredentials } from "../store/reducers/credential";
-import { useDebugInfo } from "../hooks/useDebugInfo";
 import CredentialDetailCard from "../components/CredentialDetailCard";
+import type { EuropeanCredentialWithId } from "../store/types";
 
 const ExploreCredentials = () => {
   const credentialsRecord = useSelector(selectEuropeanCredentials);
 
-  useDebugInfo({
-    credentialsRecord,
-  });
+  const data = useMemo(() => {
+    const allCredentials = Object.values(credentialsRecord)
+      .flat()
+      .filter((cred) => cred !== undefined);
 
-  const data = Object.keys(credentialsRecord)
-    .map((key) => ({
-      key: key,
-      credential: credentialsRecord[key],
-    }))
-    .filter((item) => item.credential !== undefined);
+    return allCredentials.map((cred) => ({
+      key: cred.id,
+      credential: cred,
+    }));
+  }, [credentialsRecord]);
 
-  const renderItem = ({ item }: { item: { key: string; credential: any } }) => {
+  const renderItem = ({
+    item,
+  }: {
+    item: { key: string; credential: EuropeanCredentialWithId };
+  }) => {
     return <CredentialDetailCard item={item} />;
   };
 

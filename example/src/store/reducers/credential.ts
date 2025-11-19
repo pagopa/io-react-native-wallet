@@ -11,8 +11,9 @@ import {
 } from "../../thunks/credential";
 import type {
   AsyncStatus,
-  CredentialOfferResult,
   CredentialResult,
+  EuropeanCredentialWithId,
+  RemoveEuropeanCredentialPayload,
   RootState,
   SupportedCredentials,
   SupportedCredentialsWithoutPid,
@@ -26,6 +27,7 @@ import {
   type GetTrustmarkThunkOutput,
 } from "../../thunks/trustmark";
 import { getCredentialOfferFlowThunk } from "../../thunks/offer";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * State type definition for the credential slice.
@@ -40,7 +42,7 @@ type CredentialState = {
     SupportedCredentialsWithoutPid,
     CredentialResult | undefined
   >;
-  europeanCredentials: Record<string, CredentialOfferResult | undefined>;
+  europeanCredentials: Record<string, Array<EuropeanCredentialWithId>>;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
   statusAssertion: Record<
     SupportedCredentials,
@@ -130,9 +132,22 @@ const credentialSlice = createSlice({
     /**
      * Removes a european credential from the store given its credential id
      */
-    removeEuropeanCredential: (state, action: PayloadAction<string>) => {
-      const credentialIdToDelete = action.payload;
-      delete state.europeanCredentials[credentialIdToDelete];
+    removeEuropeanCredential: (
+      state,
+      action: PayloadAction<RemoveEuropeanCredentialPayload>
+    ) => {
+      const { type, id } = action.payload;
+
+      const credentialsOfType = state.europeanCredentials[type];
+      if (credentialsOfType) {
+        state.europeanCredentials[type] = credentialsOfType.filter(
+          (cred) => cred.id !== id
+        );
+
+        if (state.europeanCredentials[type]!.length === 0) {
+          delete state.europeanCredentials[type];
+        }
+      }
     },
 
     /**
@@ -297,7 +312,18 @@ const credentialSlice = createSlice({
      */
     builder.addCase(getCredentialOfferFlowThunk.fulfilled, (state, action) => {
       const credentialType = action.payload.credentialType as string;
-      state.europeanCredentials[credentialType] = action.payload;
+      const uniqueId = uuidv4();
+
+      const newCredential: EuropeanCredentialWithId = {
+        ...action.payload,
+        id: uniqueId,
+      };
+
+      if (!state.europeanCredentials[credentialType]) {
+        state.europeanCredentials[credentialType] = [];
+      }
+
+      state.europeanCredentials[credentialType]!.push(newCredential);
     });
 
     // Reset the credential state when the instance is reset.
@@ -392,9 +418,11 @@ export const selectTrustmarkAsyncStatus =
     state.credential.trustmarkAsyncStatus[credentialType];
 
 /**
- * Selects the european credentials from the credential state.
+ * Selects the european credentials from the credential state and flattens them into an array.
  * @param state - The root state of the Redux store
- * @returns the european credentials
+ * @returns a flat array of all EuropeanCredentialWithId
  */
 export const selectEuropeanCredentials = (state: RootState) =>
-  state.credential.europeanCredentials;
+  Object.values(
+    state.credential.europeanCredentials
+  ).flat() as Array<EuropeanCredentialWithId>;

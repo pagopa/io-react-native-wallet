@@ -75,6 +75,13 @@ export type CredentialResult = CredentialResultBase & {
 };
 
 /**
+ * Type definition to represent a European credential result with an UUID to be used in the store.
+ */
+export type EuropeanCredentialWithId = CredentialOfferResult & {
+  id: string; //uuid
+};
+
+/**
  * Type definition to represent a credential result to be used in the store.
  */
 export type CredentialOfferResult = CredentialResultBase & {
@@ -108,3 +115,11 @@ export type PidAuthMethods = "spid" | "cieL2" | "cieL3" | "noAuth";
  * Possible environments in the store.
  */
 export type EnvType = "pre" | "prod";
+
+/**
+ * Payload type for removing a European credential from the store.
+ */
+export type RemoveEuropeanCredentialPayload = {
+  type: string;
+  id: string;
+};

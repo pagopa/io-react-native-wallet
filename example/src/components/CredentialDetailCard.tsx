@@ -11,6 +11,7 @@ import { useDispatch } from "react-redux";
 import { addPadding } from "@pagopa/io-react-native-jwt";
 import { removeEuropeanCredential } from "../store/reducers/credential";
 import { Icon } from "@pagopa/io-app-design-system";
+import type { EuropeanCredentialWithId } from "../store/types";
 
 type CredentialAttribute = {
   value: any;
@@ -92,14 +93,15 @@ const formatCredentialValue = (
 };
 
 interface CredentialDetailCardProps {
-  item: { key: string; credential: any };
+  item: { key: string; credential: EuropeanCredentialWithId };
 }
 
 const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
   item,
 }) => {
   const cred = item.credential;
-  const parsedCred: ParsedCredential | undefined = cred.parsedCredential;
+  const parsedCred: ParsedCredential =
+    cred.parsedCredential as ParsedCredential;
   const attributes = parsedCred ? Object.entries(parsedCred) : [];
 
   const dispatch = useDispatch();
@@ -117,7 +119,12 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            dispatch(removeEuropeanCredential(item.key));
+            dispatch(
+              removeEuropeanCredential({
+                type: item.credential.credentialType,
+                id: item.key,
+              })
+            );
           },
         },
       ]
@@ -127,7 +134,13 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
   return (
     <View style={styles.card}>
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>ID: {item.key}</Text>
+        <View>
+          <Text style={styles.title}>UUID: {item.key}</Text>
+          <Text style={styles.title}>
+            Credential ID: {item.credential.credentialType}
+          </Text>
+        </View>
+
         <TouchableOpacity onPress={handleDeletion}>
           <Icon size={24} name="trashcan" color={"error-500"} />
         </TouchableOpacity>
@@ -266,13 +279,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#003366",
     flexShrink: 1,
+    maxWidth: 250,
+    marginBottom: 10,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "bold",
     marginTop: 5,
     marginBottom: 5,
@@ -324,10 +339,12 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   metadata: {
-    fontSize: 12,
+    marginTop: 5,
+    fontSize: 14,
     color: "#888",
   },
   metadataLabel: {
+    fontSize: 14,
     fontWeight: "bold",
   },
   divider: {
