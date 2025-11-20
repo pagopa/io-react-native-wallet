@@ -427,7 +427,7 @@ const selectEuropeanCredentialsRecord = (state: RootState) =>
 /**
  * Selects the european credentials from the credential state and flattens them into an array.
  * Memoized to prevent unnecessary re-renders.
- * * @param state - The root state of the Redux store
+ * @param state - The root state of the Redux store
  * @returns a flat array of all EuropeanCredentialWithId
  */
 export const selectEuropeanCredentials = createSelector(
