@@ -8,15 +8,17 @@ import {
   type StartUserAuthorization,
 } from "./03-start-user-authorization";
 import {
+  continueUserAuthorizationWithMRTDPoPChallenge,
   completeUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
   parseAuthorizationResponse,
   buildAuthorizationUrl,
+  getRequestedCredentialToBePresented,
+  type ContinueUserAuthorizationWithMRTDPoPChallenge,
   type CompleteUserAuthorizationWithQueryMode,
   type CompleteUserAuthorizationWithFormPostJwtMode,
   type GetRequestedCredentialToBePresented,
   type BuildAuthorizationUrl,
-  getRequestedCredentialToBePresented,
 } from "./04-complete-user-authorization";
 import { authorizeAccess, type AuthorizeAccess } from "./05-authorize-access";
 import {
@@ -28,12 +30,15 @@ import {
   type VerifyAndParseCredential,
 } from "./07-verify-and-parse-credential";
 import * as Errors from "./errors";
+import * as MRTDPoP from "./mrtd-pop";
 
 export {
+  MRTDPoP,
   evaluateIssuerTrust,
   startUserAuthorization,
   buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
+  continueUserAuthorizationWithMRTDPoPChallenge,
   getRequestedCredentialToBePresented,
   completeUserAuthorizationWithFormPostJwtMode,
   authorizeAccess,
@@ -47,6 +52,7 @@ export type {
   EvaluateIssuerTrust,
   StartUserAuthorization,
   BuildAuthorizationUrl,
+  ContinueUserAuthorizationWithMRTDPoPChallenge,
   CompleteUserAuthorizationWithQueryMode,
   GetRequestedCredentialToBePresented,
   CompleteUserAuthorizationWithFormPostJwtMode,

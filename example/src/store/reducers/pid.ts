@@ -14,9 +14,12 @@ import type {
 } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
-import { sessionReset } from "./sesssion";
-import type { PreparePidFlowParamsThunkOutput } from "example/src/thunks/pid";
-import { getPidCieIDThunk } from "../../thunks/pidCieID";
+import { sessionReset } from "./session";
+import type { PreparePidFlowParamsThunkOutput } from "../../thunks/pid";
+import {
+  initPidMrtdChallengeThunk,
+  validatePidMrtdChallengeThunk,
+} from "../../thunks/mrtd";
 
 /**
  * State type definition for the PID slice.
@@ -50,59 +53,13 @@ const pidSlice = createSlice({
   initialState,
   reducers: {
     pidReset: () => initialState,
-    pidCiel3FlowReset: (state) => ({
+    pidFlowReset: (state) => ({
       ...state,
       pidFlowParams: initialState.pidFlowParams,
-      pidAsyncStatus: {
-        ...state.pidAsyncStatus,
-        cieL3: asyncStatusInitial,
-      },
+      pidAsyncStatus: initialState.pidAsyncStatus,
     }),
   },
   extraReducers: (builder) => {
-    /**
-     * PID CieID Thunk
-     */
-
-    /*
-     * Dispatched when a get pid async thunk resolves.
-     * Sets the obtained pid and its state to isDone.
-     */
-    builder.addCase(getPidCieIDThunk.fulfilled, (state, action) => {
-      const authMethod = action.meta.arg.authMethod;
-      // Set the credential
-      state.pid = action.payload;
-      // Set the status
-      state.pidAsyncStatus[authMethod] = {
-        ...asyncStatusInitial,
-        isDone: true,
-      };
-    });
-
-    /*
-     * Dispatched when a get pid async thunk is pending.
-     * Sets the pid state to isLoading while resetting isDone and hasError.
-     */
-    builder.addCase(getPidCieIDThunk.pending, (state, action) => {
-      const authMethod = action.meta.arg.authMethod;
-      state.pidAsyncStatus[authMethod] = {
-        ...asyncStatusInitial,
-        isLoading: true,
-      };
-    });
-
-    /*
-     * Dispatched when a get pid async thunk rejected.
-     * Sets the pid state to hasError while resetting isLoading and hasError.
-     */
-    builder.addCase(getPidCieIDThunk.rejected, (state, action) => {
-      const authMethod = action.meta.arg.authMethod;
-      state.pidAsyncStatus[authMethod] = {
-        ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
-      };
-    });
-
     /**
      * PID flow Params Thunk
      */
@@ -134,8 +91,8 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(preparePidFlowParamsThunk.rejected, (state, action) => {
-      state.pidFlowParams = initialState.pidFlowParams;
       const authMethod = action.meta.arg.authMethod;
+      state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
@@ -147,9 +104,9 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(continuePidFlowThunk.fulfilled, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       state.pidFlowParams = initialState.pidFlowParams;
-      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
-      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
       state.pid = action.payload;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
@@ -162,9 +119,9 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(continuePidFlowThunk.pending, (state) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       // Redundant as already set by preparePidFlowParams but we want to be explicit and set the loading state
-      const cieL3IsLoading = state.pidAsyncStatus.cieL3.isLoading;
-      const authMethod = cieL3IsLoading ? "cieL3" : "spid";
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         isLoading: true,
@@ -176,11 +133,10 @@ const pidSlice = createSlice({
      * for the requested credential.
      */
     builder.addCase(continuePidFlowThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
       // Reset the flow params if an error occurs, you must start from scratch
       state.pidFlowParams = initialState.pidFlowParams;
-      const authMethod = action.meta.arg.authRedirectUrl.includes("cie")
-        ? "cieL3"
-        : "spid";
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
         hasError: { status: true, error: action.error },
@@ -192,13 +148,35 @@ const pidSlice = createSlice({
 
     // Reset the pid state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
+
+    // Handle mrtd thunks rejections to reset pid state
+    builder.addCase(initPidMrtdChallengeThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
+      // Reset the flow params if an error occurs, you must start from scratch
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
+    builder.addCase(validatePidMrtdChallengeThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
+      // Reset the flow params if an error occurs, you must start from scratch
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
   },
 });
 
 /**
  * Exports the actions for the pid slice.
  */
-export const { pidCiel3FlowReset } = pidSlice.actions;
+export const { pidFlowReset } = pidSlice.actions;
 
 /**
  * Persist configuration for the pid slice.

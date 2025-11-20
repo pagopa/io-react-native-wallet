@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { asyncStatusInitial } from "../utils";
 import type { AsyncStatus, RootState } from "../types";
-import { sessionReset } from "./sesssion";
+import { sessionReset } from "./session";
 import type { ParsedToken } from "../../../../src/trust/utils";
 import { validateTrustChainThunk } from "../../thunks/trustValidation";
 

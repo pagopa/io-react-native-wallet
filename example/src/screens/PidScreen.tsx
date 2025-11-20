@@ -1,17 +1,25 @@
-import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import {
+  ContentWrapper,
+  ListItemSwitch,
+  VSpacer,
+} from "@pagopa/io-app-design-system";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList } from "react-native";
-import { useCie } from "../components/cie";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import { selectEnv } from "../store/reducers/environment";
-import { selectPid, selectPidAsyncStatus } from "../store/reducers/pid";
+import { selectMrtdChallenge } from "../store/reducers/mrtd";
+import {
+  selectPid,
+  selectPidAsyncStatus,
+  selectPidFlowParams,
+} from "../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import { getPidCieIDThunk } from "../thunks/pidCieID";
+import { preparePidFlowParamsThunk } from "../thunks/pid";
 import { getCieIdpHint } from "../utils/environment";
 
 type ScreenProps = NativeStackScreenProps<MainStackNavParamList, "Pid">;
@@ -27,24 +35,63 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
   const pidSpidState = useAppSelector(selectPidAsyncStatus("spid"));
   const pidCieL2State = useAppSelector(selectPidAsyncStatus("cieL2"));
   const pidCieL3State = useAppSelector(selectPidAsyncStatus("cieL3"));
+  const challenge = useAppSelector(selectMrtdChallenge);
   const pid = useAppSelector(selectPid);
+  const pidFlowParams = useAppSelector(selectPidFlowParams);
   const env = useAppSelector(selectEnv);
-  const cieIdpHint = getCieIdpHint(env);
-  const cie = useCie(cieIdpHint);
-  const isEnvPre = env === "pre";
+
+  const [withDocumentProof, setWithDocumentProof] = useState(true);
 
   useDebugInfo({
     pidSpidState,
     pidCieL2State,
     pidCieL3State,
+    challenge,
     pid,
   });
+
+  const isLoading = useMemo(
+    () =>
+      pidSpidState.isLoading ||
+      pidCieL2State.isLoading ||
+      pidCieL3State.isLoading,
+    [pidSpidState.isLoading, pidCieL2State.isLoading, pidCieL3State.isLoading]
+  );
+
+  useEffect(() => {
+    if (challenge && pidFlowParams) {
+      const { redirectUri } = pidFlowParams;
+      navigation.navigate("CieInternalAuthentication", {
+        redirectUri,
+        challenge,
+      });
+    }
+  }, [navigation, challenge, pidFlowParams]);
+
+  const handleCieIdIdentification = useCallback(async () => {
+    const { authUrl, redirectUri } = await dispatch(
+      preparePidFlowParamsThunk({
+        idpHint: getCieIdpHint(env),
+        authMethod: "cieL2",
+        withMRTDPoP: withDocumentProof,
+      })
+    ).unwrap();
+
+    navigation.navigate("CieIdAuthentication", {
+      authUrl,
+      redirectUri,
+      withDocumentProof,
+    });
+  }, [dispatch, env, navigation, withDocumentProof]);
 
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
       {
-        onPress: () => navigation.navigate("PidSpidIdpSelection"),
-        title: "Get PID (SPID)",
+        onPress: () =>
+          navigation.navigate("PidSpidIdpSelection", {
+            withDocumentProof,
+          }),
+        title: `Get PID (SPID${withDocumentProof ? " + CIE" : ""})`,
         isLoading: pidSpidState.isLoading,
         hasError: pidSpidState.hasError,
         isDone: pidSpidState.isDone,
@@ -52,14 +99,8 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
         icon: "fiscalCodeIndividual",
       },
       {
-        title: "Get PID (CIE L2)",
-        onPress: () =>
-          dispatch(
-            getPidCieIDThunk({
-              idpHint: cieIdpHint,
-              authMethod: "cieL2",
-            })
-          ),
+        title: `Get PID (CieID${withDocumentProof ? " + CIE" : ""})`,
+        onPress: handleCieIdIdentification,
         isLoading: pidCieL2State.isLoading,
         hasError: pidCieL2State.hasError,
         isDone: pidCieL2State.isDone,
@@ -68,9 +109,9 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
       {
         title: "Get PID (CIE+PIN)",
-        onPress: () => cie.startCieIdentification(),
-        isCieUat: isEnvPre,
-        idpHint: cieIdpHint,
+        onPress: () => navigation.navigate("CieAuthentication"),
+        isCieUat: env === "pre",
+        idpHint: getCieIdpHint(env),
         isPresent: !!pid,
         isLoading: pidCieL3State.isLoading,
         hasError: pidCieL3State.hasError,
@@ -79,30 +120,34 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
       },
     ],
     [
+      handleCieIdIdentification,
       pidSpidState.isLoading,
       pidSpidState.hasError,
       pidSpidState.isDone,
-      pid,
       pidCieL2State.isLoading,
       pidCieL2State.hasError,
       pidCieL2State.isDone,
-      isEnvPre,
-      cieIdpHint,
       pidCieL3State.isLoading,
       pidCieL3State.hasError,
       pidCieL3State.isDone,
+      pid,
+      env,
       navigation,
-      dispatch,
-      cie,
+      withDocumentProof,
     ]
   );
 
   return (
-    <>
+    <ContentWrapper>
+      <VSpacer />
+      <ListItemSwitch
+        label="Use document proof"
+        disabled={isLoading}
+        value={withDocumentProof}
+        onSwitchValueChange={setWithDocumentProof}
+      />
+      <VSpacer />
       <FlatList
-        contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
-        }}
         data={scenarios}
         keyExtractor={(item, index) => `${item.title}-${index}`}
         renderItem={({ item }) => (
@@ -120,7 +165,6 @@ export const PidScreen = ({ navigation }: ScreenProps) => {
           </>
         )}
       />
-      {cie.components}
-    </>
+    </ContentWrapper>
   );
 };

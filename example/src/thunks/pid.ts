@@ -11,7 +11,7 @@ import {
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
-import type { PidAuthMethods, PidResult } from "../store/types";
+import { type PidAuthMethods, type PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -29,6 +29,7 @@ type PreparePidFlowParamsThunkInput = {
   idpHint: string;
   authMethod: PidAuthMethods;
   ciePin?: string;
+  withMRTDPoP?: boolean;
 };
 
 /**
@@ -42,6 +43,7 @@ type ContinuePidFlowThunkInput = {
  * Type definition for the output of the {@link preparePidFlowParamsThunk}.
  */
 export type PreparePidFlowParamsThunkOutput = {
+  authMethod: PidAuthMethods;
   authUrl: string;
   issuerConf: Awaited<
     ReturnType<typeof Credential.Issuance.evaluateIssuerTrust>
@@ -68,6 +70,7 @@ export type PreparePidFlowParamsThunkOutput = {
  * @param args.idpHint The identity provider hint to use in the issuance flow.
  * @param args.authMethod The authentication method to use, either SPID or CIE L3.
  * @param args.ciePin The CIE PIN to use in the issuance flow (optional, only for CIE L3).
+ * @param args.withMRTDPoP Whether MRTD PoP is required (optional, only for L2+).
  * @returns The needed parameters to continue the issuance flow.
  */
 export const preparePidFlowParamsThunk = createAppAsyncThunk<
@@ -87,9 +90,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-  const { idpHint, ciePin } = args;
-
-  const isCie = args.idpHint.includes("servizicie") ? true : false;
+  const { authMethod, idpHint, ciePin, withMRTDPoP } = args;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
@@ -97,7 +98,8 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const env = selectEnv(getState());
   const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
 
-  const redirectUri = isCie ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
+  const redirectUri =
+    args.authMethod === "cieL3" ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
 
   // Start the issuance flow
   const startFlow: Credential.Issuance.StartFlow = () => ({
@@ -118,6 +120,9 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     await Credential.Issuance.startUserAuthorization(
       issuerConf,
       [credentialId],
+      withMRTDPoP
+        ? { proofType: "mrtd-pop", idpHinting: idpHint }
+        : { proofType: "none" },
       {
         walletInstanceAttestation,
         redirectUri: redirectUri,
@@ -135,6 +140,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   );
 
   return {
+    authMethod,
     authUrl,
     issuerConf,
     clientId,
@@ -208,12 +214,15 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   );
 
   const [pidCredentialDefinition] = credentialDefinition;
+  // Get the credential configuration ID for PID
+  const pidCredentialConfigId =
+    pidCredentialDefinition?.type === "openid_credential" &&
+    pidCredentialDefinition?.credential_configuration_id;
 
   const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details.find(
       (authDetails) =>
-        authDetails.credential_configuration_id ===
-        pidCredentialDefinition?.credential_configuration_id
+        authDetails.credential_configuration_id === pidCredentialConfigId
     ) ?? {};
 
   // Get the first credential_identifier from the access token's authorization details

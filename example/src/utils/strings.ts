@@ -61,3 +61,22 @@ export const truncateObjectStrings = <T extends TruncatableValue>(
 
   return value;
 };
+
+/**
+ * Returns a string representing a progress bar with emojis
+ * @param progress The progress value from 0 to 1.
+ * @param totalDots The total number of dots in the progress bar. Default is 12.
+ * @returns A string representing the progress bar with emojis,
+ */
+export const getProgressEmojis = (progress: number, totalDots: number = 12) => {
+  // Clamp progress between 0 and 1
+  const clampedProgress = Math.max(0, Math.min(1, progress));
+
+  const blueDots = Math.floor(clampedProgress * totalDots);
+  const whiteDots = totalDots - blueDots;
+
+  const fullEmoji = "■";
+  const emptyEmoji = "□";
+
+  return fullEmoji.repeat(blueDots) + emptyEmoji.repeat(whiteDots);
+};

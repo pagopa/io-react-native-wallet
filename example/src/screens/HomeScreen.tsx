@@ -12,7 +12,7 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectPid } from "../store/reducers/pid";
-import { selectIoAuthToken } from "../store/reducers/sesssion";
+import { selectIoAuthToken } from "../store/reducers/session";
 import { useAppSelector } from "../store/utils";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;

@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
-import type { AsyncStatus } from "../store/types";
 import {
   Badge,
   IOIcons,
   ModuleCredential,
   useIOToast,
 } from "@pagopa/io-app-design-system";
+import React, { useCallback, useEffect, useState } from "react";
+import type { AsyncStatus } from "../store/types";
 
 export type TestScenarioProp = {
   title: string;
