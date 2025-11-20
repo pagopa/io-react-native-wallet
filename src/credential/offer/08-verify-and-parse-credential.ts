@@ -126,8 +126,7 @@ export const parseCredentialSdJwt = (
         localizedNames = key;
       }
 
-      let processedValue: unknown = value;
-
+      let processedValue: unknown;
       if (value && typeof value === "object" && !Array.isArray(value)) {
         processedValue = processObject(
           value as Record<string, unknown>,
