@@ -2434,11 +2434,6 @@
     redux-thunk "^3.1.0"
     reselect "^5.1.0"
 
-"@sd-jwt/crypto-browser@^0.17.0":
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/@sd-jwt/crypto-browser/-/crypto-browser-0.17.0.tgz#49e2d62cf4c18e8201e1a99b0bc1e9baf299952c"
-  integrity sha512-txl+AcjkMGAlYVMjiN+FzIqzegTPIfn2A9xYH86iatmK/iNj96wDX+ZOg3uXhr3WNil6SlVEpuRUVKfa9pDlRA==
-
 "@sd-jwt/crypto-nodejs@^0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@sd-jwt/crypto-nodejs/-/crypto-nodejs-0.17.0.tgz#e6d2997b591160d5f14fe934d5fa14d0c4bf4eeb"
