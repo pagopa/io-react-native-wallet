@@ -65,8 +65,6 @@ export const authorizePreAuthorizedAccess = async (
 
   const preAuthorizedCode = grantSelection["pre-authorized_code"];
 
-  console.log("preAuthorizedCode:", preAuthorizedCode);
-
   const requestBody = {
     grant_type: "urn:ietf:params:oauth:grant-type:pre-authorized_code",
     "pre-authorized_code": preAuthorizedCode,
