@@ -6,6 +6,7 @@ import {
 import { MrtdProofChallengeInfo } from "./types";
 import type { EvaluateIssuerTrust } from "../../issuance";
 import type { Out } from "../../../utils/misc";
+import { IoWalletError } from "../../../utils/errors";
 
 export type VerifyAndParseChallengeInfo = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -49,20 +50,20 @@ export const verifyAndParseChallengeInfo: VerifyAndParseChallengeInfo = async (
   const challengeInfoParsed =
     MrtdProofChallengeInfo.safeParse(challengeInfoDecoded);
   if (!challengeInfoParsed.success) {
-    throw new Error("Malformed challenge info.");
+    throw new IoWalletError("Malformed challenge info.");
   }
   const payload = challengeInfoParsed.data.payload;
 
   // Verify aud claim
   const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
   if (payload.aud !== clientId) {
-    throw new Error("aud claim does not match client_id.");
+    throw new IoWalletError("aud claim does not match client_id.");
   }
 
   // Verify iat and exp
   const now = Math.floor(Date.now() / 1000);
   if (payload.iat > now || payload.exp < now) {
-    throw new Error("JWT is not valid (issued in future or expired).");
+    throw new IoWalletError("JWT is not valid (issued in future or expired).");
   }
 
   return payload;
