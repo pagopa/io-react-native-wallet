@@ -1,23 +1,41 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-import { getCredentialOfferThunk } from "../../thunks/offer";
 import { sessionReset } from "./sesssion";
-import type { AsyncStatus, RootState } from "../types";
+import type { AsyncStatus, CredentialOfferResult, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
-import type { Credential } from "@pagopa/io-react-native-wallet";
+import {
+  getCredentialOfferFlowThunk,
+  getCredentialOfferRequestedParams,
+} from "../../thunks/offer";
+import type {
+  CredentialIssuerMetadata,
+  CredentialOffer,
+  GrantTypeSelection,
+} from "../../../../src/credential/offer";
 
-type CredentialOfferState = {
-  offer?: Credential.Offer.CredentialOffer;
-  asyncStatus: AsyncStatus;
-};
-
-const initialState: CredentialOfferState = {
-  offer: undefined,
-  asyncStatus: asyncStatusInitial,
+type CredentialOfferDetails = {
+  offer: CredentialOffer;
+  grant: GrantTypeSelection;
+  issuerConf: CredentialIssuerMetadata;
 };
 
 /**
- * Redux slice for the presentation state which contains the key tag used to register the wallet presentation.
+ * The Credential Offer slice state.
+ * Tracks the asynchronous status and the result of a credential offer issuance.
+ */
+type CredentialOfferState = {
+  result?: CredentialOfferResult;
+  asyncStatus: AsyncStatus;
+  details?: CredentialOfferDetails;
+};
+
+const initialState: CredentialOfferState = {
+  result: undefined,
+  asyncStatus: asyncStatusInitial,
+  details: undefined,
+};
+
+/**
+ * Redux slice handling the OpenID4VCI Credential Offer flow.
  */
 const credentialOfferSlice = createSlice({
   name: "offer",
@@ -26,38 +44,69 @@ const credentialOfferSlice = createSlice({
     credentialOfferReset: () => initialState,
   },
   extraReducers: (builder) => {
-    // Dispatched when is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
-    builder.addCase(getCredentialOfferThunk.fulfilled, (state, action) => {
-      state.asyncStatus.isDone = true;
-      state.offer = action.payload;
-      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
-      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
-    });
+    builder
+      // === Fulfilled ===
+      .addCase(getCredentialOfferFlowThunk.fulfilled, (state, action) => {
+        state.asyncStatus.isDone = true;
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.hasError = initialState.asyncStatus.hasError;
+        state.result = action.payload;
+      })
 
-    // Dispatched when is pending. Sets the state to isLoading and resets isDone and hasError.
-    builder.addCase(getCredentialOfferThunk.pending, (state) => {
-      state.asyncStatus.isLoading = true;
-      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
-      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
-    });
+      // === Pending ===
+      .addCase(getCredentialOfferFlowThunk.pending, (state) => {
+        state.asyncStatus.isLoading = true;
+        state.asyncStatus.isDone = false;
+        state.asyncStatus.hasError = initialState.asyncStatus.hasError;
+        state.result = undefined;
+      })
 
-    // Dispatched when is rejected. Sets the state to hasError and resets isLoading and isDone.
-    builder.addCase(getCredentialOfferThunk.rejected, (state, action) => {
-      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
-      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
-      state.asyncStatus.hasError = { status: true, error: action.error };
-    });
+      // === Rejected ===
+      .addCase(getCredentialOfferFlowThunk.rejected, (state, action) => {
+        state.asyncStatus.isDone = false;
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.hasError = { status: true, error: action.error };
+        state.result = undefined;
+      })
 
-    // Reset the attestation state when the session is reset.
-    builder.addCase(sessionReset, () => initialState);
+      // === Fulfilled ===
+      .addCase(getCredentialOfferRequestedParams.fulfilled, (state, action) => {
+        state.asyncStatus.isDone = true;
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.hasError = initialState.asyncStatus.hasError;
+        state.details = action.payload;
+      })
+
+      // === Pending ===
+      .addCase(getCredentialOfferRequestedParams.pending, (state) => {
+        state.asyncStatus.isLoading = true;
+        state.asyncStatus.isDone = false;
+        state.asyncStatus.hasError = initialState.asyncStatus.hasError;
+        state.details = undefined;
+        state.result = undefined;
+      })
+
+      // === Rejected ===
+      .addCase(getCredentialOfferRequestedParams.rejected, (state, action) => {
+        state.asyncStatus.isDone = true;
+        state.asyncStatus.isLoading = false;
+        state.asyncStatus.hasError = { status: true, error: action.error };
+        state.details = undefined;
+        state.result = undefined;
+      })
+
+      // === Reset on session reset ===
+      .addCase(sessionReset, () => initialState);
   },
 });
 
-/**
- * Exports the actions for the presentation slice.
- */
 export const { credentialOfferReset } = credentialOfferSlice.actions;
-
 export const credentialOfferReducer = credentialOfferSlice.reducer;
 
 export const selectCredentialOfferState = (state: RootState) => state.offer;
+export const selectCredentialOfferResult = (state: RootState) =>
+  state.offer.result;
+export const selectCredentialOfferStatus = (state: RootState) =>
+  state.offer.asyncStatus;
+export const selectCredentialOfferDetails = (state: RootState) =>
+  state.offer.details;
