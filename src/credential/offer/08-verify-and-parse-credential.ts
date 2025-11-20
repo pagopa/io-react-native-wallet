@@ -289,7 +289,10 @@ async function verifyCredentialMDoc(
 const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   issuerConf,
   credential,
-  credentialConfigurationId
+  credentialConfigurationId,
+  _context,
+  _x509CertRoot,
+  _x509CertVerificationOptions
 ) => {
   // Create SD-JWT instance with the appropriate hasher
   const sdJwtInstance = new SDJwtInstance({
@@ -319,34 +322,22 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   }
 
   const parsedCredential = parseCredentialSdJwt(credentialConfig, claims);
-  const maybeIssuedAt = claims.iat;
 
   Logger.log(
     LogLevel.DEBUG,
     `Parsed credential: ${JSON.stringify(parsedCredential)}`
   );
 
-  Logger.log(
-    LogLevel.DEBUG,
-    `Credential expiration (exp): ${new Date((claims.exp as number) * 1000)}`
-  );
-
-  Logger.log(
-    LogLevel.DEBUG,
-    `Credential issued at (iat): ${
-      typeof maybeIssuedAt === "number"
-        ? new Date(maybeIssuedAt * 1000)
-        : "undefined"
-    }`
-  );
+  if (typeof claims.exp !== "number") {
+    throw new IoWalletError("Invalid or missing expiration claim (exp)");
+  }
+  const expiration = new Date(claims.exp * 1000);
 
   return {
     parsedCredential,
-    expiration: new Date((claims.exp as number) * 1000),
+    expiration,
     issuedAt:
-      typeof maybeIssuedAt === "number"
-        ? new Date(maybeIssuedAt * 1000)
-        : undefined,
+      typeof claims.iat === "number" ? new Date(claims.iat * 1000) : undefined,
   };
 };
 

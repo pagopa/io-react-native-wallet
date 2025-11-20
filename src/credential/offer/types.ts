@@ -111,7 +111,7 @@ const CredentialDisplaySchema = z.object({
   name: z.string(),
 });
 
-export type CredentialDisplay = z.infer<typeof ClaimDisplaySchema>;
+export type CredentialDisplay = z.infer<typeof CredentialDisplaySchema>;
 
 const CredentialMetadataSchema = z.object({
   claims: z.array(ClaimSchema).optional(),
