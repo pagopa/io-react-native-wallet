@@ -32,7 +32,6 @@ export async function getCredentialIssuerMetadata(
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
     .then((json) => {
-      console.log(json);
       const result = CredentialIssuerMetadataSchema.safeParse(json);
 
       if (!result.success) {
