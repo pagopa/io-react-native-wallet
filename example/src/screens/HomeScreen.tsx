@@ -72,10 +72,7 @@ const HomeScreen = () => {
         label: "Presentations",
         description: "Present credentials to a verifier",
         icon: "chevronRight",
-        onPress: () =>
-          pid
-            ? navigation.navigate("Presentations")
-            : Alert.alert("Obtain a PID first"),
+        onPress: () => navigation.navigate("Presentations"),
       },
       {
         label: "Trust Federation",
