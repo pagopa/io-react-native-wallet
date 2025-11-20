@@ -98,6 +98,8 @@ const ClaimSchema = z.object({
   value_type: z.string().optional(),
 });
 
+export type ClaimDef = z.infer<typeof ClaimSchema>;
+
 const LogoSchema = z.object({
   alt_text: z.string(),
   uri: z.string(),
@@ -108,6 +110,8 @@ const CredentialDisplaySchema = z.object({
   logo: LogoSchema.optional(),
   name: z.string(),
 });
+
+export type CredentialDisplay = z.infer<typeof ClaimDisplaySchema>;
 
 const CredentialMetadataSchema = z.object({
   claims: z.array(ClaimSchema).optional(),
@@ -149,6 +153,10 @@ const CredentialConfigurationSchema = z.object({
   policy: PolicySchema.optional(),
   vct: z.string().optional(),
 });
+
+export type CredentialConfiguration = z.infer<
+  typeof CredentialConfigurationSchema
+>;
 
 const BatchCredentialIssuanceSchema = z.object({
   batch_size: z.number().optional(),

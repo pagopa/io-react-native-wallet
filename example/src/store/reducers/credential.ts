@@ -418,11 +418,23 @@ export const selectTrustmarkAsyncStatus =
     state.credential.trustmarkAsyncStatus[credentialType];
 
 /**
- * Selects the european credentials from the credential state and flattens them into an array.
+ * Selects the european credentials record from the credential state.
  * @param state - The root state of the Redux store
+ */
+const selectEuropeanCredentialsRecord = (state: RootState) =>
+  state.credential.europeanCredentials;
+
+/**
+ * Selects the european credentials from the credential state and flattens them into an array.
+ * Memoized to prevent unnecessary re-renders.
+ * * @param state - The root state of the Redux store
  * @returns a flat array of all EuropeanCredentialWithId
  */
-export const selectEuropeanCredentials = (state: RootState) =>
-  Object.values(
-    state.credential.europeanCredentials
-  ).flat() as Array<EuropeanCredentialWithId>;
+export const selectEuropeanCredentials = createSelector(
+  [selectEuropeanCredentialsRecord],
+  (europeanCredentialsRecord) => {
+    return Object.values(
+      europeanCredentialsRecord
+    ).flat() as Array<EuropeanCredentialWithId>;
+  }
+);
