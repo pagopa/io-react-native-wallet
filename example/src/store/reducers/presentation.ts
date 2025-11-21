@@ -68,7 +68,6 @@ const presentationSlice = createSlice({
       const credentialIdx = state.selectedCredentialIds.findIndex(
         (id) => id === action.payload
       );
-      console.log(action.payload);
       if (credentialIdx === -1) {
         state.selectedCredentialIds.push(action.payload);
       } else {
