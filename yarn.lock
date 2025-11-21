@@ -3008,7 +3008,7 @@
     "@sd-jwt/types" "0.17.0"
     "@sd-jwt/utils" "0.17.0"
 
-"@sd-jwt/present@0.17.0", "@sd-jwt/present@^0.17.0":
+"@sd-jwt/present@0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@sd-jwt/present/-/present-0.17.0.tgz#23ba9ffbf064f4c25234bdf57fabfe0fe9754155"
   integrity sha512-qh226z4H76uMVfFfqvltV9d0oz2N9S2REURy2HcVFKhsa1fSYZXdKkhg4S102iwp9fEELEPyCnLkW26+qwWLcg==
@@ -4675,7 +4675,7 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
-dcql@^2.0.1:
+dcql@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/dcql/-/dcql-2.0.1.tgz#eeff904b68d599e52262e541ce76d8d759737811"
   integrity sha512-qf0Xv8bayL5YzyAH+F9ujE28tuETsoaMIWbYc1xjjUTmEL/UtlimZDQVl1Q7jbfbJ3+eGmAwJr0yIwCWeswA7A==
