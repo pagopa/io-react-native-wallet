@@ -76,20 +76,24 @@ const getDcqlQueryFailedMatches = (result: DcqlQueryResult) =>
   ) as [string, DcqlMatchFailure][];
 
 /**
- * Extract missing credentials from the DCQL query result.
- * Note: here we are assuming a failed match is a missing credential,
- * but there might be other reasons for its failure.
+ * Extract issues related to failed credentials
  */
-const extractMissingCredentials = (
-  queryResult: DcqlQueryResult,
-  originalQuery: DcqlQuery
+const extractFailedCredentialsIssues = (
+  queryResult: DcqlQueryResult
 ): NotFoundDetail[] => {
-  return getDcqlQueryFailedMatches(queryResult).map(([id]) => {
-    const credential = originalQuery.credentials.find((c) => c.id === id);
-    if (credential?.format !== "dc+sd-jwt") {
-      throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
-    }
-    return { id, vctValues: credential.meta?.vct_values };
+  return getDcqlQueryFailedMatches(queryResult).map(([id, match]) => {
+    const issues = match.failed_credentials?.flatMap((c) => {
+      if ("issues" in c.meta) {
+        return Object.values(c.meta.issues).flat() as string[];
+      }
+      if (c.claims.failed_claim_sets) {
+        return c.claims.failed_claim_sets.flatMap(
+          (cs) => Object.values(cs.issues).flat() as string[]
+        );
+      }
+      return [];
+    });
+    return { id, issues };
   });
 };
 
@@ -107,15 +111,14 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
     const queryResult = DcqlQuery.query(parsedQuery, credentials);
 
     if (!queryResult.can_be_satisfied) {
-      const missingCredentials = extractMissingCredentials(
-        queryResult,
-        parsedQuery
-      );
-      Logger.log(
-        LogLevel.ERROR,
-        "Missing credentials: " + JSON.stringify(missingCredentials)
-      );
-      throw new CredentialsNotFoundError(missingCredentials);
+      const issues = extractFailedCredentialsIssues(queryResult);
+      for (const issue of issues) {
+        Logger.log(
+          LogLevel.ERROR,
+          "Cannot satisfy DCQL: " + JSON.stringify(issue)
+        );
+      }
+      throw new CredentialsNotFoundError(issues);
     }
 
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
