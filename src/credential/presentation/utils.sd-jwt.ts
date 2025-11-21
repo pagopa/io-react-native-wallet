@@ -72,15 +72,10 @@ export const mapCredentialsSdJwtToObj = async (
  */
 export const getClaimsFromDcqlMatch = (
   match: DcqlQueryResult.CredentialMatch
-): EvaluatedDisclosure[] => {
-  const validClaims = match.valid_credentials?.[0]?.claims?.valid_claims;
-
-  if (!validClaims) return [];
-
-  return validClaims.flatMap((c) =>
+): EvaluatedDisclosure[] =>
+  getValidClaims(match).flatMap((c) =>
     Object.entries(c.output).map(([name, value]) => ({ name, value }))
   );
-};
 
 /**
  * Recursively convert a claim path to a {@link PresentationFrame} for `@sd-jwt/present`
@@ -136,14 +131,12 @@ export const getPresentationFrameFromDcqlMatch = (
     originalQuery.credentials.find(({ id }) => id === match.credential_query_id)
       ?.claims ?? [];
 
-  const validClaims = match.valid_credentials?.[0]?.claims?.valid_claims;
-
-  if (!validClaims || queryClaims.length === 0) return {};
+  if (queryClaims.length === 0) return {};
 
   const typedQueryClaims = queryClaims as DcqlClaimsQuery.W3cAndSdJwtVc[];
 
   // Build a presentation frame from each claim's path
-  return validClaims.reduce(
+  return getValidClaims(match).reduce(
     (acc, c) => ({
       ...acc,
       ...pathToPresentationFrame(
@@ -153,4 +146,25 @@ export const getPresentationFrameFromDcqlMatch = (
     }),
     {}
   );
+};
+
+const getValidClaims = (match: DcqlQueryResult.CredentialMatch) => {
+  const validClaims = match.valid_credentials?.[0]?.claims?.valid_claims;
+
+  if (!validClaims) return [];
+
+  const [validClaimSet] =
+    match.valid_credentials?.[0]?.claims?.valid_claim_sets ?? [];
+
+  // If there is a valid claim set, only claims from that set must be disclosed
+  // We select claims in the order they are defined in the set
+  if (validClaimSet) {
+    return (
+      validClaimSet.valid_claim_indexes?.map(
+        (i) => validClaims.find((c) => c.claim_index === i)!
+      ) ?? []
+    );
+  }
+
+  return validClaims;
 };

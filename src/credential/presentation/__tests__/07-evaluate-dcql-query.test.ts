@@ -17,7 +17,7 @@ const credentials = [
 ] as [CryptoContext, string][];
 
 describe("evaluateDcqlQuery", () => {
-  it("should throw error when the DCQL query structure is invalid", () => {
+  it("should throw error when the DCQL query structure is invalid", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -29,10 +29,12 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(query, credentials)).toThrowError(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError
+    );
   });
 
-  it("should throw error when the DCQL is invalid", () => {
+  it("should throw error when the DCQL is invalid", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -44,7 +46,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(query, credentials)).toThrowError(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError
+    );
   });
 
   test.each([
@@ -113,9 +117,9 @@ describe("evaluateDcqlQuery", () => {
     ],
   ] as Array<[DcqlQuery.Input, Array<NotFoundDetail>]>)(
     "should throw error when no credential satisfies the DCQL query /%#",
-    (dcqlQuery, expected) => {
+    async (dcqlQuery, expected) => {
       try {
-        evaluateDcqlQuery(dcqlQuery, credentials);
+        await evaluateDcqlQuery(dcqlQuery, credentials);
       } catch (err) {
         expect(err).toBeInstanceOf(CredentialsNotFoundError);
         expect((err as CredentialsNotFoundError).details).toEqual(expected);
@@ -123,7 +127,7 @@ describe("evaluateDcqlQuery", () => {
     }
   );
 
-  it("should work correctly with a simple query", () => {
+  it("should work correctly with a simple query", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -141,7 +145,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -150,6 +154,11 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -161,7 +170,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with multiple simple queries", () => {
+  it("should work correctly with multiple simple queries", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -187,7 +196,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -196,6 +205,11 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -209,6 +223,7 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ required: true }],
+        presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
@@ -216,7 +231,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with missing optional credentials", () => {
+  it("should work correctly with missing optional credentials", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -242,7 +257,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -251,6 +266,7 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
@@ -261,7 +277,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with available optional credentials", () => {
+  it("should work correctly with available optional credentials", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -287,7 +303,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -296,6 +312,7 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
@@ -308,6 +325,7 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
+        presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
@@ -315,7 +333,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with a complex query", () => {
+  it("should work correctly with a complex query", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -369,7 +387,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -378,6 +396,11 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -391,6 +414,7 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { birth_date: true, document_number: true },
         requiredDisclosures: [
           { name: "birth_date", value: "01-01-1990" },
           { name: "document_number", value: "123456789" },
@@ -401,7 +425,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with multiple matching credential_sets", () => {
+  it("should work correctly with multiple matching credential_sets", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -446,7 +470,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
@@ -455,6 +479,11 @@ describe("evaluateDcqlQuery", () => {
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -471,6 +500,11 @@ describe("evaluateDcqlQuery", () => {
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
         ],
+        presentationFrame: {
+          document_number: true,
+          birth_date: true,
+          driving_privileges: true,
+        },
         requiredDisclosures: [
           { name: "document_number", value: "123456789" },
           { name: "birth_date", value: "01-01-1990" },
