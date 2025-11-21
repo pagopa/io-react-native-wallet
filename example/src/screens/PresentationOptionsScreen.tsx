@@ -36,11 +36,14 @@ export const PresentationOptionsScreen = () => {
     selectedCredentialIds,
   });
 
-  const getDescription = (credential: EuropeanCredentialWithId) => {
-    if (credential.format === "dc+sd-jwt") {
-      return `${credential.parsedCredential.issuing_authority?.value} | ${credential.parsedCredential.issuing_country?.value}`;
+  const getDescription = ({
+    format,
+    parsedCredential,
+  }: EuropeanCredentialWithId) => {
+    if (format === "dc+sd-jwt") {
+      return `${parsedCredential.issuing_authority?.value} | ${parsedCredential.issuing_country?.value}`;
     }
-    return `${credential.parsedCredential["org.iso.18013.5.1:issuing_authority"]?.value} | ${credential.parsedCredential["org.iso.18013.5.1:issuing_country"]?.value}`;
+    return `${parsedCredential["org.iso.18013.5.1:issuing_authority"]?.value} | ${parsedCredential["org.iso.18013.5.1:issuing_country"]?.value}`;
   };
 
   return (
