@@ -100,10 +100,7 @@ export const pathToPresentationFrame = (
     const [maybeArrayClaim] = Object.values(claim);
     if (Array.isArray(maybeArrayClaim)) {
       return maybeArrayClaim.reduce(
-        (acc, _, i) => ({
-          ...acc,
-          [i]: pathToPresentationFrame(rest, maybeArrayClaim[i]),
-        }),
+        (acc, c, i) => ({ ...acc, [i]: pathToPresentationFrame(rest, c) }),
         {}
       );
     }
