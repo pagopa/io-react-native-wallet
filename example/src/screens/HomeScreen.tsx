@@ -72,7 +72,7 @@ const HomeScreen = () => {
         label: "Presentations",
         description: "Present credentials to a verifier",
         icon: "chevronRight",
-        onPress: () => navigation.navigate("Presentations"),
+        onPress: () => navigation.navigate("PresentationOptions"),
       },
       {
         label: "Trust Federation",

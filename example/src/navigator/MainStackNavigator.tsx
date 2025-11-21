@@ -37,6 +37,7 @@ import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
 import ExploreCredentials from "../screens/ExploreCredentials";
+import { PresentationOptionsScreen } from "../screens/PresentationOptionsScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -60,6 +61,7 @@ export type MainStackNavParamList = {
     redirectUri: string;
   };
   Presentations: undefined;
+  PresentationOptions: undefined;
   Trust: undefined;
   QrScanner: QrScannerScreenParams;
   Proximity: undefined;
@@ -151,6 +153,11 @@ export const MainStackNavigator = () => {
               name="Presentations"
               component={PresentationScreen}
               options={{ title: "Presentation" }}
+            />
+            <Stack.Screen
+              name="PresentationOptions"
+              component={PresentationOptionsScreen}
+              options={{ title: "Presentation Options" }}
             />
             <Stack.Screen
               name="Trust"

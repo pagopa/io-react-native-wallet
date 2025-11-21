@@ -4,8 +4,10 @@ import {
   createCryptoContextFor,
 } from "@pagopa/io-react-native-wallet";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { PresentationStateKeys } from "../store/reducers/presentation";
-import { selectEuropeanCredentials } from "../store/reducers/credential";
+import {
+  selectCredentialsForPresentation,
+  type PresentationStateKeys,
+} from "../store/reducers/presentation";
 import type { RootState } from "../store/types";
 import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
@@ -27,7 +29,7 @@ type QrCodeParams = ReturnType<Credential.Presentation.StartFlow>;
 
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
-  allowed: PresentationStateKeys;
+  allowed: Exclude<PresentationStateKeys, "selectedCredentialIds">;
 };
 
 export type RemoteCrossDevicePresentationThunkOutput = {
@@ -190,7 +192,7 @@ const processRefusedPresentation = async (requestObject: RequestObject) => {
 };
 
 const getEuropeanCredentialsForPresentation = (state: RootState) => {
-  const credentials = selectEuropeanCredentials(state);
+  const credentials = selectCredentialsForPresentation(state);
 
   const credentialsSdJwt: [CryptoContext, string][] = credentials
     .filter((c) => c.format === "dc+sd-jwt")
