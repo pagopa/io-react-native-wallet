@@ -8,10 +8,15 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useDebugInfo } from "../hooks/useDebugInfo";
 
 const ExploreCredentials = () => {
   const { bottom } = useSafeAreaInsets();
   const credentialsRecord = useSelector(selectEuropeanCredentials);
+
+  useDebugInfo({
+    credentialsRecord,
+  });
 
   const data = useMemo(() => {
     const allCredentials = Object.values(credentialsRecord)

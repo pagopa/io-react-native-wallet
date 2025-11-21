@@ -263,6 +263,8 @@ export const SdJwtCoreSchema = z.object({
   encoded: z.string(),
 });
 
+export type SdJwtCore = z.infer<typeof SdJwtCoreSchema>;
+
 // === KB JWT ================================================================
 
 export const SdKbJwtSchema = z.object({

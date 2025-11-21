@@ -3017,7 +3017,7 @@
     "@sd-jwt/types" "0.17.0"
     "@sd-jwt/utils" "0.17.0"
 
-"@sd-jwt/types@0.17.0":
+"@sd-jwt/types@0.17.0", "@sd-jwt/types@^0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@sd-jwt/types/-/types-0.17.0.tgz#3dde7136de12a56e6b3bbd234593b3cc8488f0a0"
   integrity sha512-XMZprAzSst+ze6JXoMttV3zrUNTL9VFAzHWChENTlFuh9tM6gy+/hJjFyTO0RVO0SRRNl2c7eMeYu7byLMj6Jg==

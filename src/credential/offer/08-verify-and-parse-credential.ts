@@ -17,8 +17,17 @@ import type {
 import type { EvaluateIssuerMetadataFromOffer } from "./03-evaluate-issuer-metadata";
 import type { ObtainCredential } from "./07-obtain-credential";
 import { SDJwtInstance } from "@sd-jwt/core";
-import { digest } from "@sd-jwt/crypto-nodejs";
-import type { ClaimDef, CredentialDisplay } from "./types";
+import { digest, ES256 } from "@sd-jwt/crypto-nodejs";
+import {
+  type ClaimDef,
+  type CredentialDisplay,
+  SdJwtCoreSchema,
+} from "./types";
+import {
+  convertBase64DerToPem,
+  getSigningJwk,
+  parsePublicKey,
+} from "../../utils/crypto";
 
 const NON_DISCLOSABLE_CLAIMS = [
   "status",
@@ -298,16 +307,50 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
     hasher: digest,
   });
 
-  // Decode and obtain the SD-JWT credential claims
-  const claims = (await sdJwtInstance.getClaims(credential)) as Record<
-    string,
-    unknown
-  >;
+  const { jwt } = await sdJwtInstance.decode(credential);
 
-  // TODO: verify signature with issuer's public keys
+  const parsedJwt = SdJwtCoreSchema.parse(jwt);
+
+  if (!parsedJwt.header.x5c) {
+    Logger.log(LogLevel.ERROR, "Missing x5c in SD-JWT header");
+    throw new IoWalletError("Missing x5c in SD-JWT header");
+  }
+
+  const x5cFromCredential = parsedJwt.header.x5c[0];
+
+  if (!x5cFromCredential) {
+    Logger.log(LogLevel.ERROR, "x5c array in SD-JWT header is empty");
+    throw new IoWalletError("x5c array in SD-JWT header is empty");
+  }
+
+  const pKey = parsePublicKey(convertBase64DerToPem(x5cFromCredential));
+
+  if (!pKey) {
+    Logger.log(
+      LogLevel.ERROR,
+      "Unable to parse the public key from the x5c certificate"
+    );
+    throw new IoWalletError(
+      "Unable to parse the public key from the x5c certificate"
+    );
+  }
+
+  const jwk = getSigningJwk(pKey);
+
+  // Re-create SD-JWT instance with verifier
+  sdJwtInstance.config({
+    hasher: digest,
+    verifier: await ES256.getVerifier(jwk),
+  });
+
+  const parsedCredentialRaw = await sdJwtInstance.validate(credential);
+
   // TODO: parse claims schema
 
-  Logger.log(LogLevel.DEBUG, `Decoded claims: ${JSON.stringify(claims)}`);
+  Logger.log(
+    LogLevel.DEBUG,
+    `Parsed credential raw: ${JSON.stringify(parsedCredentialRaw)}`
+  );
 
   const credentialConfig =
     issuerConf.credential_configurations_supported[credentialConfigurationId];
@@ -319,6 +362,8 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
     );
     throw new IoWalletError("Credential type not supported by the issuer");
   }
+
+  const claims = parsedCredentialRaw.payload as Record<string, unknown>;
 
   const parsedCredential = parseCredentialSdJwt(credentialConfig, claims);
 
