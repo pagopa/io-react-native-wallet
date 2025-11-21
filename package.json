@@ -139,7 +139,6 @@
   },
   "dependencies": {
     "@sd-jwt/present": "^0.17.0",
-    "buffer": "^6.0.3",
     "dcql": "^2.0.1",
     "js-base64": "^3.7.7",
     "js-sha256": "^0.9.0",
