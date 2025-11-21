@@ -126,7 +126,6 @@ const handleAuthRequestForOpenIdFederation: HandleAuthRequest = async (
   qrParams
 ) => {
   const [, entityId] = qrParams.client_id.split(":");
-  console.log("openid_federation", entityId);
 
   const { rpConf, subject } =
     await Credential.Presentation.evaluateRelyingPartyTrust(entityId!);
@@ -155,7 +154,6 @@ const handleAuthRequestForOpenIdFederation: HandleAuthRequest = async (
  */
 const handleAuthRequestForX509Hash: HandleAuthRequest = async (qrParams) => {
   const [, x509Hash] = qrParams.client_id.split(":");
-  console.log("x509_hash", x509Hash);
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(qrParams.request_uri);

@@ -42,7 +42,9 @@ export const PresentationScreen = () => {
         hasError: acceptancePresentationState.hasError,
         isDone: acceptancePresentationState.isDone,
         icon: "qrCode",
-        isPresent: !!presentationDetails.redirectUri,
+        isPresent:
+          !!presentationDetails.redirectUri ||
+          acceptancePresentationState.isDone,
         successMessage: "OK",
       },
       {
