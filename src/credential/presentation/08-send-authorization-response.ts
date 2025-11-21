@@ -309,7 +309,7 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         const { vp_token } = await prepareVpToken(
           authRequestObject.nonce,
           authRequestObject.clientId,
-          [item.credential, item.requestedClaims, item.cryptoContext]
+          [item.credential, item.presentationFrame, item.cryptoContext]
         );
 
         return {
