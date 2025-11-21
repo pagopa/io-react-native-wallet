@@ -3008,7 +3008,7 @@
     "@sd-jwt/types" "0.17.0"
     "@sd-jwt/utils" "0.17.0"
 
-"@sd-jwt/present@0.17.0":
+"@sd-jwt/present@0.17.0", "@sd-jwt/present@^0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@sd-jwt/present/-/present-0.17.0.tgz#23ba9ffbf064f4c25234bdf57fabfe0fe9754155"
   integrity sha512-qh226z4H76uMVfFfqvltV9d0oz2N9S2REURy2HcVFKhsa1fSYZXdKkhg4S102iwp9fEELEPyCnLkW26+qwWLcg==
@@ -3017,7 +3017,7 @@
     "@sd-jwt/types" "0.17.0"
     "@sd-jwt/utils" "0.17.0"
 
-"@sd-jwt/types@0.17.0":
+"@sd-jwt/types@0.17.0", "@sd-jwt/types@^0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@sd-jwt/types/-/types-0.17.0.tgz#3dde7136de12a56e6b3bbd234593b3cc8488f0a0"
   integrity sha512-XMZprAzSst+ze6JXoMttV3zrUNTL9VFAzHWChENTlFuh9tM6gy+/hJjFyTO0RVO0SRRNl2c7eMeYu7byLMj6Jg==
@@ -4675,12 +4675,12 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
-dcql@^0.2.21:
-  version "0.2.21"
-  resolved "https://registry.yarnpkg.com/dcql/-/dcql-0.2.21.tgz#57acff9c02cbe2d704ccf687542eb86897766ac1"
-  integrity sha512-X4oorKCSp9ieyIed/m7r4kBTu7kbWoXU4w/93HqNQNe0eyNdU+Rrl9xCErjiogD9oEFLzSLhLJsagto6NRgMlg==
+dcql@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/dcql/-/dcql-2.0.1.tgz#eeff904b68d599e52262e541ce76d8d759737811"
+  integrity sha512-qf0Xv8bayL5YzyAH+F9ujE28tuETsoaMIWbYc1xjjUTmEL/UtlimZDQVl1Q7jbfbJ3+eGmAwJr0yIwCWeswA7A==
   dependencies:
-    valibot "1.0.0-beta.8"
+    valibot "1.1.0"
 
 debug@2.6.9, debug@^2.2.0, debug@^2.6.9:
   version "2.6.9"
@@ -11102,10 +11102,10 @@ v8-to-istanbul@^9.0.1:
     "@types/istanbul-lib-coverage" "^2.0.1"
     convert-source-map "^1.6.0"
 
-valibot@1.0.0-beta.8:
-  version "1.0.0-beta.8"
-  resolved "https://registry.yarnpkg.com/valibot/-/valibot-1.0.0-beta.8.tgz#670bbdef4affd58bb71a5e5bd2fe4d1ea535770f"
-  integrity sha512-OPAwJZtowb0j91b+bd77+ny7D1VVzsCzD7Jl9waLUlMprTsfI9Y3HHbW3hAQD7wKDKHsmGEesuiYWaYvcZL2wg==
+valibot@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/valibot/-/valibot-1.1.0.tgz#873bb1af9e1577391690307bfe0520bd1360ec2d"
+  integrity sha512-Nk8lX30Qhu+9txPYTwM0cFlWLdPFsFr6LblzqIySfbZph9+BFsAHsNvHOymEviUepeIW6KFHzpX8TKhbptBXXw==
 
 validate-npm-package-license@^3.0.1:
   version "3.0.4"
