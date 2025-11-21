@@ -1,14 +1,11 @@
 import React from "react";
-
 import { useNavigation } from "@react-navigation/native";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-
 import {
   selectCredentialIdsForPresentation,
   toggleCredentialId,
 } from "../store/reducers/presentation";
 import { selectEuropeanCredentials } from "../store/reducers/credential";
-
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   Body,
