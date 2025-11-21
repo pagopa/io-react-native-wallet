@@ -104,6 +104,7 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
   item,
 }) => {
   const [status, setStatus] = React.useState<number | null>(null);
+  const [statusError, setStatusError] = React.useState<string | null>(null);
   const cred = item.credential;
   const parsedCred: ParsedCredential =
     cred.parsedCredential as ParsedCredential;
@@ -112,18 +113,15 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
   const dispatch = useDispatch();
 
   const verifyStatusList = useCallback(async (credentialRaw: string) => {
-    const reference = getStatusListFromJWT(credentialRaw);
-
-    // download the status list
-    const list = await fetch(reference.uri);
-
-    const response = await list.text();
-
-    //extract the status list
-    const statusList = getListFromStatusListJWT(response);
-
-    //get the status of a specific entry
-    setStatus(statusList.getStatus(reference.idx));
+    try {
+      const reference = getStatusListFromJWT(credentialRaw);
+      const list = await fetch(reference.uri);
+      const response = await list.text();
+      const statusList = getListFromStatusListJWT(response);
+      setStatus(statusList.getStatus(reference.idx));
+    } catch (error) {
+      setStatusError(JSON.stringify(error));
+    }
   }, []);
 
   const handleDeletion = () => {
@@ -175,11 +173,19 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
       </Text>
 
       <View style={styles.divider} />
+      {status !== null && (
+        <Text>
+          <Text style={styles.metadataLabel}>Status: </Text>
+          {status}
+        </Text>
+      )}
 
-      <Text>
-        <Text style={styles.metadataLabel}>Status: </Text>
-        {status}
-      </Text>
+      {statusError && (
+        <Text style={{ color: "red" }}>
+          <Text style={styles.metadataLabel}>Status Error: </Text>
+          {statusError}
+        </Text>
+      )}
       <Text style={styles.subtitle}>Credential Data:</Text>
 
       {attributes.length > 0 ? (
