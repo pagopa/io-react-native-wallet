@@ -40,7 +40,7 @@ export const mapCredentialsToObj = async (
         },
         {} as DcqlMdocCredential["namespaces"]
       );
-      console.log(issuerSigned);
+
       return {
         credential_format: "mso_mdoc",
         doctype: issuerSigned.issuerAuth.payload.docType || "missing_doctype",
