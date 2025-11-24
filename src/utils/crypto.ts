@@ -5,13 +5,8 @@ import {
   sign,
 } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
-import {
-  thumbprint,
-  type CryptoContext,
-  removePadding,
-} from "@pagopa/io-react-native-jwt";
-import { sha256 } from "js-sha256";
-import { Buffer } from "buffer";
+import QuickCrypto from "react-native-quick-crypto";
+import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { JWK } from "./jwk";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { IoWalletError } from "./errors";
@@ -103,7 +98,7 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
  * @returns A base64url string
  */
 export const sha256ToBase64UrlFromBinary = (binary: ArrayBuffer): string => {
-  const hash = sha256.create();
+  const hash = QuickCrypto.createHash("sha-256");
   hash.update(binary);
-  return removePadding(Buffer.from(hash.array()).toString("base64"));
+  return hash.digest("base64url");
 };

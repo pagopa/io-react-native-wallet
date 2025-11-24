@@ -36,6 +36,7 @@ import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
+import ExploreCredentials from "../screens/ExploreCredentials";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -53,6 +54,7 @@ export type MainStackNavParamList = {
   IdpLogin: { idp: string };
   PidSpidIdpSelection: undefined;
   Settings: undefined;
+  ExploreCredentials: undefined;
   PidSpidLogin: {
     authUrl: string;
     redirectUri: string;
@@ -188,6 +190,11 @@ export const MainStackNavigator = () => {
               name="Settings"
               component={SettingsScreen}
               options={{ title: "Settings" }}
+            />
+            <Stack.Screen
+              name="ExploreCredentials"
+              component={ExploreCredentials}
+              options={{ title: "ExploreCredentials" }}
             />
           </Stack.Group>
         ) : (

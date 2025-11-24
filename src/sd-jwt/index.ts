@@ -1,14 +1,19 @@
 import { z } from "zod";
 
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
-import { SignJWT, sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
-import { verifyDisclosure } from "./verifier";
-import type { JWK } from "../utils/jwk";
-import * as Errors from "./errors";
+import {
+  decode as decodeJwt,
+  sha256ToBase64,
+  SignJWT,
+  verify as verifyJwt,
+} from "@pagopa/io-react-native-jwt";
+import { present } from "@sd-jwt/present";
+import { digest } from "@sd-jwt/crypto-nodejs";
 import { Base64 } from "js-base64";
+import { Disclosure, type DisclosureWithEncoded, SdJwt4VC } from "./types";
 import { type Presentation } from "../credential/presentation/types";
+import type { JWK } from "../utils/jwk";
+import { verifyDisclosure } from "./verifier";
+import * as Errors from "./errors";
 
 export * from "./utils";
 
@@ -188,19 +193,15 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
 export const prepareVpToken = async (
   nonce: string,
   client_id: string,
-  [verifiableCredential, requestedClaims, cryptoContext]: Presentation
+  [verifiableCredential, presentationFrame, cryptoContext]: Presentation
 ): Promise<{
   vp_token: string;
 }> => {
   // Produce a VP token with only requested claims from the verifiable credential
-  const requestedClaimNames = requestedClaims.map(({ name }) => name);
-  const { token: vp } = await disclose(
-    verifiableCredential,
-    requestedClaimNames
-  );
+  const vp = await present(verifiableCredential, presentationFrame, digest);
 
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
-  const sd_hash = await sha256ToBase64(`${vp}~`);
+  const sd_hash = await sha256ToBase64(vp);
 
   const kbJwt = await new SignJWT(cryptoContext)
     .setProtectedHeader({
@@ -214,9 +215,8 @@ export const prepareVpToken = async (
     .setAudience(client_id)
     .setIssuedAt()
     .sign();
-
   // <Issuer-signed JWT>~<Disclosure 1>~...~<Disclosure N>~<KB-JWT>
-  const vp_token = [vp, kbJwt].join("~");
+  const vp_token = [vp, kbJwt].join("");
 
   return { vp_token };
 };

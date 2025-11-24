@@ -20,7 +20,7 @@ export type GetCredentialOffer = (
  * is invalid or does not conform to the schema, an error is logged and an
  * `InvalidCredentialOfferError` is thrown.
  *
- * @param credentialOfferUri - The URI from which to fetch the credential offer.
+ * @param uri - The URI from which to fetch the credential offer.
  * @param context - Optional context object that may provide a custom `appFetch` implementation.
  * @returns The validated credential offer data.
  * @throws {IssuerResponseError} If the HTTP response status is not 200.

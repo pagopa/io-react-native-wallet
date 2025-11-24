@@ -5,8 +5,7 @@ import {
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
-import type { ComponentProps } from "react";
-import React, { useMemo } from "react";
+import React, { type ComponentProps, useMemo } from "react";
 import { Alert, FlatList, View } from "react-native";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredentials } from "../store/reducers/credential";
@@ -64,13 +63,16 @@ const HomeScreen = () => {
             : Alert.alert("Register a wallet instance and obtain a PID first"),
       },
       {
+        label: "EU Credentials",
+        description: "Explore obtained European credentials",
+        icon: "chevronRight",
+        onPress: () => navigation.navigate("ExploreCredentials"),
+      },
+      {
         label: "Presentations",
         description: "Present credentials to a verifier",
         icon: "chevronRight",
-        onPress: () =>
-          pid
-            ? navigation.navigate("Presentations")
-            : Alert.alert("Obtain a PID first"),
+        onPress: () => navigation.navigate("Presentations"),
       },
       {
         label: "Trust Federation",
@@ -100,10 +102,7 @@ const HomeScreen = () => {
         label: "Credential Offer",
         description: "Obtain a credential offer from QR code",
         icon: "chevronRight",
-        onPress: () =>
-          pid
-            ? navigation.navigate("CredentialOffer")
-            : Alert.alert("Obtain a PID first"),
+        onPress: () => navigation.navigate("CredentialOffer"),
       },
       {
         label: "Settings",
@@ -112,7 +111,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, hasSomeCredential]
+    [navigation, hasIntegrityKeyTag, pid, hasSomeCredential]
   );
 
   return (

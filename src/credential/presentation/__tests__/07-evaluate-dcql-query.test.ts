@@ -59,7 +59,7 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "PersonIdentificationData", vctValues: ["MissingPID"] }],
+      [{ id: "PersonIdentificationData", issues: expect.any(Array) }],
     ],
     [
       {
@@ -80,7 +80,7 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "PersonIdentificationData", vctValues: ["MissingPID"] }],
+      [{ id: "PersonIdentificationData", issues: expect.any(Array) }],
     ],
     [
       {
@@ -108,7 +108,7 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "IDontHaveThis", vctValues: ["MissingCredential"] }],
+      [{ id: "IDontHaveThis", issues: expect.any(Array) }],
     ],
   ] as Array<[DcqlQuery.Input, Array<NotFoundDetail>]>)(
     "should throw error when no credential satisfies the DCQL query /%#",
@@ -149,6 +149,11 @@ describe("evaluateDcqlQuery", () => {
         keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -195,6 +200,11 @@ describe("evaluateDcqlQuery", () => {
         keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -208,6 +218,7 @@ describe("evaluateDcqlQuery", () => {
         keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ required: true }],
+        presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
@@ -250,6 +261,7 @@ describe("evaluateDcqlQuery", () => {
         keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
@@ -295,6 +307,7 @@ describe("evaluateDcqlQuery", () => {
         keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
@@ -307,6 +320,7 @@ describe("evaluateDcqlQuery", () => {
         keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
+        presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
@@ -377,6 +391,11 @@ describe("evaluateDcqlQuery", () => {
         keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -390,6 +409,7 @@ describe("evaluateDcqlQuery", () => {
         keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { birth_date: true, document_number: true },
         requiredDisclosures: [
           { name: "birth_date", value: "01-01-1990" },
           { name: "document_number", value: "123456789" },
@@ -454,6 +474,11 @@ describe("evaluateDcqlQuery", () => {
         keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
@@ -470,6 +495,11 @@ describe("evaluateDcqlQuery", () => {
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
         ],
+        presentationFrame: {
+          document_number: true,
+          birth_date: true,
+          driving_privileges: true,
+        },
         requiredDisclosures: [
           { name: "document_number", value: "123456789" },
           { name: "birth_date", value: "01-01-1990" },
