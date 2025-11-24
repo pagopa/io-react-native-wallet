@@ -102,7 +102,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SwiftCBOR
     - Yoga
-  - pagopa-io-react-native-jwt (2.1.0):
+  - pagopa-io-react-native-jwt (2.2.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2414,7 +2414,7 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   pagopa-io-react-native-crypto: 9e7e7f59a8c9a3c75157407d75b09edbf5ee47e1
   pagopa-io-react-native-integrity: a4c4c7ebd2ea699e40536f969bd62371f82638c0
-  pagopa-io-react-native-jwt: 5c0eac212ff06d4368b3949cd74649a5e8349a95
+  pagopa-io-react-native-jwt: 1371ea1a1da0a600a939958e57244bfc0e08b58d
   pagopa-io-react-native-login-utils: 5df139d5cbcae0e3d16a46024316df95c1862cba
   pagopa-io-react-native-secure-storage: ab6e73803b542d8d5f7259a7aa9f83b8e4896404
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82

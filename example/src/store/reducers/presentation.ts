@@ -3,7 +3,6 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-
 import { remoteCrossDevicePresentationThunk } from "../../thunks/presentation";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
