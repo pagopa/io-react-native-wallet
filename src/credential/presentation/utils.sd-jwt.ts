@@ -9,6 +9,7 @@ import type {
   DcqlQueryResult,
 } from "dcql";
 import { IoWalletError } from "../../utils/errors";
+import { isObject } from "../../utils/misc";
 import type { SdJwtDecoded } from "../offer/types";
 import type { EvaluatedDisclosure, PresentationFrame } from "./types";
 
@@ -133,16 +134,17 @@ export const getPresentationFrameFromDcqlMatch = (
   const typedQueryClaims = queryClaims as DcqlClaimsQuery.W3cAndSdJwtVc[];
 
   // Build a presentation frame from each claim's path
-  return getValidClaims(match).reduce(
-    (acc, c) => ({
-      ...acc,
-      ...pathToPresentationFrame(
-        typedQueryClaims[c.claim_index]!.path,
-        c.output
-      ),
-    }),
-    {}
-  );
+  return getValidClaims(match).reduce((acc, c) => {
+    const pf = pathToPresentationFrame(
+      typedQueryClaims[c.claim_index]!.path,
+      c.output
+    );
+    // Merge objects with the same key to not lose objects that are already in the accumulator
+    for (const [key, value] of Object.entries(pf)) {
+      acc[key] = isObject(value) ? Object.assign(value, acc[key]) : value;
+    }
+    return acc;
+  }, {} as PresentationFrame);
 };
 
 const getValidClaims = (match: DcqlQueryResult.CredentialMatch) => {
