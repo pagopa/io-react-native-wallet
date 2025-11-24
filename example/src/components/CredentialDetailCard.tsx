@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   Alert,
   Image,
@@ -12,6 +12,10 @@ import { addPadding } from "@pagopa/io-react-native-jwt";
 import { removeEuropeanCredential } from "../store/reducers/credential";
 import { Icon } from "@pagopa/io-app-design-system";
 import type { EuropeanCredentialWithId } from "../store/types";
+import {
+  getListFromStatusListJWT,
+  getStatusListFromJWT,
+} from "@sd-jwt/jwt-status-list";
 
 type CredentialAttribute = {
   value: any;
@@ -99,12 +103,26 @@ interface CredentialDetailCardProps {
 const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
   item,
 }) => {
+  const [status, setStatus] = React.useState<number | null>(null);
+  const [statusError, setStatusError] = React.useState<string | null>(null);
   const cred = item.credential;
   const parsedCred: ParsedCredential =
     cred.parsedCredential as ParsedCredential;
   const attributes = parsedCred ? Object.entries(parsedCred) : [];
 
   const dispatch = useDispatch();
+
+  const verifyStatusList = useCallback(async (credentialRaw: string) => {
+    try {
+      const reference = getStatusListFromJWT(credentialRaw);
+      const list = await fetch(reference.uri);
+      const response = await list.text();
+      const statusList = getListFromStatusListJWT(response);
+      setStatus(statusList.getStatus(reference.idx));
+    } catch (error) {
+      setStatusError(JSON.stringify(error));
+    }
+  }, []);
 
   const handleDeletion = () => {
     Alert.alert(
@@ -131,6 +149,10 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
     );
   };
 
+  useEffect(() => {
+    verifyStatusList(cred.credential);
+  }, [cred.credential, verifyStatusList]);
+
   return (
     <View style={styles.card}>
       <View style={styles.headerContainer}>
@@ -151,7 +173,19 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
       </Text>
 
       <View style={styles.divider} />
+      {status !== null && (
+        <Text>
+          <Text style={styles.metadataLabel}>Status: </Text>
+          {status}
+        </Text>
+      )}
 
+      {statusError && (
+        <Text style={{ color: "red" }}>
+          <Text style={styles.metadataLabel}>Status Error: </Text>
+          {statusError}
+        </Text>
+      )}
       <Text style={styles.subtitle}>Credential Data:</Text>
 
       {attributes.length > 0 ? (

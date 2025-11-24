@@ -93,6 +93,38 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
 };
 
 /**
+ * Parses the public key from a PEM-formatted certificate.
+ *
+ * @param pemCert - The PEM-formatted certificate.
+ * @returns The public key object.
+ * @throws Will throw an error if the public key is unsupported.
+ */
+export const parsePublicKey = (
+  pemCert: string
+): RSAKey | KJUR.crypto.ECDSA | undefined => {
+  const x509 = new X509();
+  x509.readCertPEM(pemCert);
+  const publicKey = x509.getPublicKey();
+
+  if (publicKey instanceof RSAKey || publicKey instanceof KJUR.crypto.ECDSA) {
+    return publicKey;
+  }
+
+  return undefined;
+};
+
+/**
+ * Retrieves the signing JWK from the public key.
+ *
+ * @param publicKey - The public key object.
+ * @returns The signing JWK.
+ */
+export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
+  ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
+  use: "sig",
+});
+
+/**
  * Calculate the SHA-256 hash of a binary array and encode it in base64url.
  * @param binary The binary data to hash
  * @returns A base64url string

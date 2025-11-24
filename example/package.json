@@ -24,6 +24,7 @@
     "@react-navigation/native-stack": "^7.2.1",
     "@reduxjs/toolkit": "^2.2.7",
     "@sd-jwt/crypto-nodejs": "^0.17.0",
+    "@sd-jwt/jwt-status-list": "^0.17.0",
     "@types/lodash": "^4.17.7",
     "add": "^2.0.6",
     "fp-ts": "^2.16.9",
