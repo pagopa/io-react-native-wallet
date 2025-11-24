@@ -38,9 +38,18 @@ export const PresentationOptionsScreen = () => {
     parsedCredential,
   }: EuropeanCredentialWithId) => {
     if (format === "dc+sd-jwt") {
-      return `${parsedCredential.issuing_authority?.value} | ${parsedCredential.issuing_country?.value}`;
+      return `${parsedCredential.issuing_authority?.value} | ${
+        parsedCredential.issuing_country?.value
+      }`;
     }
-    return `${parsedCredential["org.iso.18013.5.1:issuing_authority"]?.value} | ${parsedCredential["org.iso.18013.5.1:issuing_country"]?.value}`;
+    const claimKeys = Object.keys(parsedCredential);
+    const issAuthorityKey =
+      claimKeys.find((key) => key.endsWith("issuing_authority")) ?? "-";
+    const issCountryKey =
+      claimKeys.find((key) => key.endsWith("issuing_country")) ?? "-";
+    return `${parsedCredential[issAuthorityKey]?.value} | ${
+      parsedCredential[issCountryKey]?.value
+    }`;
   };
 
   return (
