@@ -1,39 +1,52 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
+import { Buffer } from "buffer";
 import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
-import { getJwksFromConfig } from "./04-retrieve-rp-jwks";
-import type { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { type FetchJwks } from "./04-retrieve-rp-jwks";
+import type { Out } from "../../utils/misc";
+import { LogLevel, Logger } from "../../utils/logging";
+import { sha256ToBase64UrlFromBinary } from "../../utils/crypto";
 
 export type VerifyRequestObject = (
   requestObjectEncodedJwt: string,
-  context: {
-    clientId: string;
-    rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"];
+  jwkKeys: Out<FetchJwks>["keys"],
+  optionalParams?: Partial<{
+    state: string;
     rpSubject: string;
-    state?: string;
-  }
+    x509Hash: string;
+  }>
 ) => Promise<{ requestObject: RequestObject }>;
 
 /**
  * Function to verify the Request Object's validity, from the signature to the required properties.
  * @param requestObjectEncodedJwt The Request Object in JWT format
- * @param context.clientId The client ID to verify
- * @param context.rpConf The Entity Configuration of the Relying Party
- * @param context.state Optional state
+ * @param jwkKeys The JWKS to use for signature validation
+ * @param optionalParams.rpSubject Optional Verifier's sub from Entity Configuration
+ * @param optionalParams.state Optional state
  * @returns The verified Request Object
  * @throws {InvalidRequestObjectError} if the Request Object cannot be validated
  */
 export const verifyRequestObject: VerifyRequestObject = async (
   requestObjectEncodedJwt,
-  { clientId, rpConf, rpSubject, state }
+  jwkKeys,
+  optionalParams = {}
 ) => {
   const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
-  const pubKey = getSigPublicKey(rpConf, requestObjectJwt.protectedHeader.kid);
+  // verify token signature to ensure the request object is authentic
+  const pubKey =
+    jwkKeys.find(({ kid }) => kid === requestObjectJwt.protectedHeader.kid) ||
+    jwkKeys.find(({ use }) => use === "sig");
+
+  if (!pubKey) {
+    throw new InvalidRequestObjectError(
+      "The Request Object signature verification failed"
+    );
+  }
 
   try {
     // Standard claims are verified within `verify`
-    await verify(requestObjectEncodedJwt, pubKey, { issuer: clientId });
+    await verify(requestObjectEncodedJwt, pubKey);
   } catch (_) {
     throw new InvalidRequestObjectError(
       "The Request Object signature verification failed"
@@ -42,23 +55,22 @@ export const verifyRequestObject: VerifyRequestObject = async (
 
   const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
 
-  const isClientIdMatch =
-    clientId === requestObject.client_id && clientId === rpSubject;
+  const { state, rpSubject, x509Hash } = optionalParams;
 
-  if (!isClientIdMatch) {
-    throw new InvalidRequestObjectError(
-      "Client ID does not match Request Object or Entity Configuration"
-    );
+  if (state) {
+    validateState(requestObject, state);
+  }
+  if (rpSubject) {
+    validateSubject(requestObject, rpSubject);
+  }
+  if (x509Hash) {
+    validateX509Hash(requestObjectJwt.protectedHeader.x5c, x509Hash);
   }
 
-  const isStateMatch =
-    state && requestObject.state ? state === requestObject.state : true;
-
-  if (!isStateMatch) {
-    throw new InvalidRequestObjectError(
-      "The provided state does not match the Request Object's"
-    );
-  }
+  Logger.log(
+    LogLevel.DEBUG,
+    "Verified Request Object: " + JSON.stringify(requestObject)
+  );
 
   return { requestObject };
 };
@@ -83,29 +95,32 @@ const validateRequestObjectShape = (payload: unknown): RequestObject => {
   );
 };
 
-/**
- * Get the public key to verify the Request Object's signature from the Relying Party's EC.
- *
- * @param rpConf The Relying Party's EC
- * @param kid The identifier of the key to find
- * @returns The corresponding public key to verify the signature
- * @throws {InvalidRequestObjectError} when the key cannot be found
- */
-const getSigPublicKey = (
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  kid: string | undefined
-) => {
-  try {
-    const { keys } = getJwksFromConfig(rpConf);
-
-    const pubKey = keys.find((k) => k.kid === kid);
-
-    if (!pubKey) throw new Error();
-
-    return pubKey;
-  } catch (_) {
+const validateSubject = (requestObject: RequestObject, sub: string) => {
+  if (requestObject.client_id !== sub) {
     throw new InvalidRequestObjectError(
-      `The public key for signature verification (${kid}) cannot be found in the Entity Configuration`
+      "Client ID does not match Request Object or Entity Configuration"
+    );
+  }
+};
+
+const validateState = (requestObject: RequestObject, state: string) => {
+  if (requestObject.state !== state) {
+    throw new InvalidRequestObjectError(
+      "The provided state does not match the Request Object's"
+    );
+  }
+};
+
+const validateX509Hash = (certChain: string[] | undefined, hash: string) => {
+  if (!certChain) {
+    throw new InvalidRequestObjectError("Missing x5c certificate chain");
+  }
+  // TODO: get the leaf certificate properly
+  const cert = Buffer.from(certChain[0]!, "base64");
+  const calculatedHash = sha256ToBase64UrlFromBinary(cert);
+  if (hash !== calculatedHash) {
+    throw new InvalidRequestObjectError(
+      "x509_hash does not match the hash of the x5c leaf certificate"
     );
   }
 };

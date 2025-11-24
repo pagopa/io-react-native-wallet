@@ -17,14 +17,14 @@ describe("fetchJwksFromConfig", () => {
     jest.resetAllMocks();
   });
 
-  it("should return JWKS from a valid configuration", () => {
+  it("should return JWKS from a valid configuration", async () => {
     const mockConfig = {
       openid_credential_verifier: {
         jwks: { keys: [{ kid: "key1" }, { kid: "key2" }] },
       },
     };
 
-    const result = getJwksFromConfig(
+    const result = await getJwksFromConfig(
       mockConfig as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
     );
 
@@ -34,18 +34,18 @@ describe("fetchJwksFromConfig", () => {
     });
   });
 
-  it("should throw an error if JWKS is not found in the configuration", () => {
+  it("should throw an error if JWKS is not found in the configuration", async () => {
     const mockConfigMissingJWKS = {
       openid_credential_verifier: {
         // JWKS is missing here
       },
     };
 
-    expect(() =>
+    await expect(
       getJwksFromConfig(
         mockConfigMissingJWKS as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
       )
-    ).toThrow("JWKS not found in Relying Party configuration.");
+    ).rejects.toThrow("JWKS not found in Relying Party configuration.");
   });
 
   it("should throw an error if JWKS.keys is not an array", async () => {
@@ -55,10 +55,10 @@ describe("fetchJwksFromConfig", () => {
       },
     };
 
-    expect(() =>
+    await expect(
       getJwksFromConfig(
         mockConfigInvalidJWKS as unknown as RelyingPartyEntityConfiguration["payload"]["metadata"]
       )
-    ).toThrow("JWKS not found in Relying Party configuration.");
+    ).rejects.toThrow("JWKS not found in Relying Party configuration.");
   });
 });

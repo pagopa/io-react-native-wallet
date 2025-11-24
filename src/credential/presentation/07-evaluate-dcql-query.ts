@@ -1,10 +1,19 @@
 import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { decode, prepareVpToken } from "../../sd-jwt";
-import { LEGACY_SD_JWT, type Disclosure } from "../../sd-jwt/types";
-import type { RemotePresentation } from "./types";
+import type {
+  CredentialFormat,
+  EvaluatedDisclosure,
+  RemotePresentation,
+  PresentationFrame,
+} from "./types";
 import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
+import { LogLevel, Logger } from "../../utils/logging";
+import {
+  getPresentationFrameFromDcqlMatch,
+  getClaimsFromDcqlMatch,
+  mapCredentialsSdJwtToObj,
+} from "./utils.sd-jwt";
 
 /**
  * The purpose for the credential request by the RP.
@@ -15,16 +24,19 @@ type CredentialPurpose = {
 };
 
 export type EvaluateDcqlQuery = (
+  query: DcqlQuery.Input,
   credentialsSdJwt: [CryptoContext, string /* credential */][],
-  query: DcqlQuery.Input
-) => {
-  id: string;
-  vct: string;
-  credential: string;
-  cryptoContext: CryptoContext;
-  requiredDisclosures: Disclosure[];
-  purposes: CredentialPurpose[];
-}[];
+  credentialsMdoc?: [CryptoContext, string /* credential */][]
+) => Promise<
+  ({
+    id: string;
+    credential: string;
+    cryptoContext: CryptoContext;
+    requiredDisclosures: EvaluatedDisclosure[];
+    presentationFrame: PresentationFrame;
+    purposes: CredentialPurpose[];
+  } & CredentialFormat)[]
+>;
 
 export type PrepareRemotePresentations = (
   credentials: {
@@ -48,27 +60,6 @@ type DcqlMatchFailure = Extract<
 >;
 
 /**
- * Convert a credential in JWT format to an object with claims
- * for correct parsing by the `dcql` library.
- */
-const mapCredentialToObject = (jwt: string) => {
-  const { sdJwt, disclosures } = decode(jwt);
-  const credentialFormat = sdJwt.header.typ;
-
-  return {
-    vct: sdJwt.payload.vct,
-    credential_format: credentialFormat,
-    claims: disclosures.reduce(
-      (acc, disclosure) => ({
-        ...acc,
-        [disclosure.decoded[1]]: disclosure.decoded,
-      }),
-      {} as Record<string, Disclosure>
-    ),
-  };
-};
-
-/**
  * Extract only successful matches from the DCQL query result.
  */
 const getDcqlQueryMatches = (result: DcqlQueryResult) =>
@@ -85,33 +76,33 @@ const getDcqlQueryFailedMatches = (result: DcqlQueryResult) =>
   ) as [string, DcqlMatchFailure][];
 
 /**
- * Extract missing credentials from the DCQL query result.
- * Note: here we are assuming a failed match is a missing credential,
- * but there might be other reasons for its failure.
+ * Extract issues related to failed credentials
  */
-const extractMissingCredentials = (
-  queryResult: DcqlQueryResult,
-  originalQuery: DcqlQuery
+const extractFailedCredentialsIssues = (
+  queryResult: DcqlQueryResult
 ): NotFoundDetail[] => {
-  return getDcqlQueryFailedMatches(queryResult).map(([id]) => {
-    const credential = originalQuery.credentials.find((c) => c.id === id);
-    if (
-      credential?.format !== "dc+sd-jwt" &&
-      credential?.format !== LEGACY_SD_JWT
-    ) {
-      throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
-    }
-    return { id, vctValues: credential.meta?.vct_values };
+  return getDcqlQueryFailedMatches(queryResult).map(([id, match]) => {
+    const issues = match.failed_credentials?.flatMap((c) => {
+      if ("issues" in c.meta) {
+        return Object.values(c.meta.issues).flat() as string[];
+      }
+      if (c.claims.failed_claim_sets) {
+        return c.claims.failed_claim_sets.flatMap(
+          (cs) => Object.values(cs.issues).flat() as string[]
+        );
+      }
+      return [];
+    });
+    return { id, issues };
   });
 };
 
-export const evaluateDcqlQuery: EvaluateDcqlQuery = (
-  credentialsSdJwt,
-  query
+export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
+  query,
+  credentialsSdJwt
 ) => {
-  const credentials = credentialsSdJwt.map(([, credential]) =>
-    mapCredentialToObject(credential)
-  );
+  const credentials = await mapCredentialsSdJwtToObj(credentialsSdJwt);
+
   try {
     // Validate the query
     const parsedQuery = DcqlQuery.parse(query);
@@ -119,27 +110,18 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
 
     const queryResult = DcqlQuery.query(parsedQuery, credentials);
 
-    if (!queryResult.canBeSatisfied) {
-      throw new CredentialsNotFoundError(
-        extractMissingCredentials(queryResult, parsedQuery)
-      );
+    if (!queryResult.can_be_satisfied) {
+      const issues = extractFailedCredentialsIssues(queryResult);
+      for (const issue of issues) {
+        Logger.log(
+          LogLevel.ERROR,
+          "Cannot satisfy DCQL: " + JSON.stringify(issue)
+        );
+      }
+      throw new CredentialsNotFoundError(issues);
     }
 
-    // Build an object vct:credentialJwt to map matched credentials to their JWT
-    const credentialsSdJwtByVct = credentials.reduce(
-      (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
-      {} as Record<string, [CryptoContext, string /* credential */]>
-    );
-
     return getDcqlQueryMatches(queryResult).map(([id, match]) => {
-      if (
-        match.output.credential_format !== "dc+sd-jwt" &&
-        match.output.credential_format !== LEGACY_SD_JWT
-      ) {
-        throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
-      }
-      const { vct, claims } = match.output;
-
       const purposes = queryResult.credential_sets
         ?.filter((set) => set.matching_options?.flat().includes(id))
         ?.map<CredentialPurpose>((credentialSet) => ({
@@ -147,18 +129,41 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
           required: Boolean(credentialSet.required),
         }));
 
-      const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
-      const requiredDisclosures = Object.values(claims) as Disclosure[];
-      return {
-        id,
-        vct,
-        cryptoContext,
-        credential,
-        requiredDisclosures,
-        // When it is a match but no credential_sets are found, the credential is required by default
-        // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
-        purposes: purposes ?? [{ required: true }],
-      };
+      const matchOutput = match.valid_credentials[0]?.meta.output;
+
+      if (matchOutput?.credential_format === "dc+sd-jwt") {
+        // Build an object vct:credentialJwt to map matched credentials to their JWT
+        const credentialsSdJwtByVct = credentials.reduce(
+          (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
+          {} as Record<string, [CryptoContext, string /* credential */]>
+        );
+
+        const { vct } = matchOutput;
+        const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
+
+        const requiredDisclosures = getClaimsFromDcqlMatch(match);
+        const presentationFrame = getPresentationFrameFromDcqlMatch(
+          match,
+          parsedQuery
+        );
+
+        return {
+          id,
+          vct,
+          cryptoContext,
+          format: matchOutput.credential_format,
+          credential,
+          requiredDisclosures,
+          presentationFrame,
+          // When it is a match but no credential_sets are found, the credential is required by default
+          // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
+          purposes: purposes ?? [{ required: true }],
+        };
+      }
+
+      throw new Error(
+        `Unsupported credential format: ${matchOutput?.credential_format}`
+      );
     });
   } catch (error) {
     // Invalid DCQL query structure. Remap to `DcqlError` for consistency.
@@ -173,26 +178,4 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     // Let other errors propagate so they can be caught with `err instanceof DcqlError`
     throw error;
   }
-};
-
-export const prepareRemotePresentations: PrepareRemotePresentations = async (
-  credentials,
-  nonce,
-  clientId
-) => {
-  return Promise.all(
-    credentials.map(async (item) => {
-      const { vp_token } = await prepareVpToken(nonce, clientId, [
-        item.credential,
-        item.requestedClaims,
-        item.cryptoContext,
-      ]);
-
-      return {
-        credentialId: item.id,
-        requestedClaims: item.requestedClaims,
-        vpToken: vp_token,
-      };
-    })
-  );
 };

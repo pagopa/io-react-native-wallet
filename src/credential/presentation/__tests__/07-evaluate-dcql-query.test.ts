@@ -1,7 +1,7 @@
 import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
-import { pid, mdl, legacyPid } from "../../../sd-jwt/__mocks__/sd-jwt";
+import { pid, mdl } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { createCryptoContextFor } from "../../../utils/crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
@@ -17,7 +17,7 @@ const credentials = [
 ] as [CryptoContext, string][];
 
 describe("evaluateDcqlQuery", () => {
-  it("should throw error when the DCQL query structure is invalid", () => {
+  it("should throw error when the DCQL query structure is invalid", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -29,10 +29,12 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError
+    );
   });
 
-  it("should throw error when the DCQL is invalid", () => {
+  it("should throw error when the DCQL is invalid", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -44,7 +46,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError
+    );
   });
 
   test.each([
@@ -60,7 +64,7 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "PersonIdentificationData", vctValues: ["MissingPID"] }],
+      [{ id: "PersonIdentificationData", issues: expect.any(Array) }],
     ],
     [
       {
@@ -81,7 +85,7 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "PersonIdentificationData", vctValues: ["MissingPID"] }],
+      [{ id: "PersonIdentificationData", issues: expect.any(Array) }],
     ],
     [
       {
@@ -109,13 +113,13 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "IDontHaveThis", vctValues: ["MissingCredential"] }],
+      [{ id: "IDontHaveThis", issues: expect.any(Array) }],
     ],
   ] as Array<[DcqlQuery.Input, Array<NotFoundDetail>]>)(
     "should throw error when no credential satisfies the DCQL query /%#",
-    (dcqlQuery, expected) => {
+    async (dcqlQuery, expected) => {
       try {
-        evaluateDcqlQuery(credentials, dcqlQuery);
+        await evaluateDcqlQuery(dcqlQuery, credentials);
       } catch (err) {
         expect(err).toBeInstanceOf(CredentialsNotFoundError);
         expect((err as CredentialsNotFoundError).details).toEqual(expected);
@@ -123,7 +127,7 @@ describe("evaluateDcqlQuery", () => {
     }
   );
 
-  it("should work correctly with a simple query", () => {
+  it("should work correctly with a simple query", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -141,18 +145,24 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
     ];
@@ -160,7 +170,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with multiple simple queries", () => {
+  it("should work correctly with multiple simple queries", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -186,36 +196,42 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "DrivingLicense",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ required: true }],
-        requiredDisclosures: [
-          ["4d10ba615ed63a12", "document_number", "123456789"],
-        ],
+        presentationFrame: { document_number: true },
+        requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
 
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with missing optional credentials", () => {
+  it("should work correctly with missing optional credentials", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -241,17 +257,19 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
     ];
@@ -259,7 +277,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with available optional credentials", () => {
+  it("should work correctly with available optional credentials", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -285,35 +303,37 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "MDL",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
-        requiredDisclosures: [
-          ["4d10ba615ed63a12", "document_number", "123456789"],
-        ],
+        presentationFrame: { document_number: true },
+        requiredDisclosures: [{ name: "document_number", value: "123456789" }],
       },
     ];
 
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with a complex query", () => {
+  it("should work correctly with a complex query", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -367,29 +387,37 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "MDL",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: { birth_date: true, document_number: true },
         requiredDisclosures: [
-          ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
-          ["4d10ba615ed63a12", "document_number", "123456789"],
+          { name: "birth_date", value: "01-01-1990" },
+          { name: "document_number", value: "123456789" },
         ],
       },
     ];
@@ -397,7 +425,7 @@ describe("evaluateDcqlQuery", () => {
     expect(result).toEqual(expected);
   });
 
-  it("should work correctly with multiple matching credential_sets", () => {
+  it("should work correctly with multiple matching credential_sets", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
@@ -442,22 +470,29 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = evaluateDcqlQuery(credentials, query);
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         id: "PID",
+        format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         cryptoContext: pidCryptoContext,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
+        presentationFrame: {
+          tax_id_code: true,
+          given_name: true,
+          family_name: true,
+        },
         requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
-          ["GxORalMAelfZ0edFJjjYUw", "given_name", "Ada"],
-          ["_vV5RIkl0IOEXKots9kt1w", "family_name", "Lovelace"],
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "given_name", value: "Ada" },
+          { name: "family_name", value: "Lovelace" },
         ],
       },
       {
         id: "MDL",
+        format: "dc+sd-jwt",
         vct: "MDL",
         cryptoContext: mdlCryptoContext,
         credential: mdl.token,
@@ -465,13 +500,17 @@ describe("evaluateDcqlQuery", () => {
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
         ],
+        presentationFrame: {
+          document_number: true,
+          birth_date: true,
+          driving_privileges: true,
+        },
         requiredDisclosures: [
-          ["4d10ba615ed63a12", "document_number", "123456789"],
-          ["82fbeec6d578ff2e", "birth_date", "01-01-1990"],
-          [
-            "fJlSGpB8bZqgWJnGzaqvuA",
-            "driving_privileges",
-            [
+          { name: "document_number", value: "123456789" },
+          { name: "birth_date", value: "01-01-1990" },
+          {
+            name: "driving_privileges",
+            value: [
               {
                 issue_date: "2015-08-19",
                 vehicle_category_code: "AM",
@@ -484,37 +523,7 @@ describe("evaluateDcqlQuery", () => {
                 codes: [{ code: "01", sign: "02", value: "Guida con lenti" }],
               },
             ],
-          ],
-        ],
-      },
-    ];
-
-    expect(result).toEqual(expected);
-  });
-
-  it("should work with older vc+sd-jwt credentials", () => {
-    const query: DcqlQuery.Input = {
-      credentials: [
-        {
-          id: "PID",
-          format: "vc+sd-jwt",
-          meta: {
-            vct_values: ["PersonIdentificationData"],
           },
-          claims: [{ path: ["tax_id_code"] }],
-        },
-      ],
-    };
-    const result = evaluateDcqlQuery([[pidCryptoContext, legacyPid]], query);
-    const expected = [
-      {
-        id: "PID",
-        vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
-        credential: legacyPid,
-        purposes: [{ required: true }],
-        requiredDisclosures: [
-          ["Gr3R3s290OkQUm-NFTu96A", "tax_id_code", "TINIT-LVLDAA85T50G702B"],
         ],
       },
     ];

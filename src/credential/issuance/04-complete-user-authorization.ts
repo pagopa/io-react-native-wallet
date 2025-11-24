@@ -182,27 +182,31 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       throw new Error("Invalid request object");
     }
 
-    const dcqlQueryResult = Presentation.evaluateDcqlQuery(
-      [[pidCryptoContext, pid]],
-      requestObject.dcql_query as DcqlQuery
+    const dcqlQueryResult = await Presentation.evaluateDcqlQuery(
+      requestObject.dcql_query as DcqlQuery,
+      [[pidCryptoContext, pid]]
     );
 
     const credentialsToPresent = dcqlQueryResult.map(
-      ({ requiredDisclosures, ...rest }) => ({
+      ({ requiredDisclosures, id, ...rest }) => ({
         ...rest,
-        requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
+        credentialInputId: id,
+        requestedClaims: requiredDisclosures,
       })
     );
 
-    const remotePresentations = await Presentation.prepareRemotePresentations(
+    const { presentations } = await Presentation.prepareRemotePresentations(
       credentialsToPresent,
-      requestObject.nonce,
-      requestObject.client_id
+      {
+        nonce: requestObject.nonce,
+        clientId: requestObject.client_id,
+        responseUri: requestObject.response_uri,
+      }
     );
 
     const authzResponsePayload = await createAuthzResponsePayload({
       state: requestObject.state,
-      remotePresentations,
+      remotePresentations: presentations,
       wiaCryptoContext,
     });
 
@@ -299,7 +303,7 @@ const createAuthzResponsePayload = async ({
   wiaCryptoContext,
 }: {
   state?: string;
-  remotePresentations: RemotePresentation[];
+  remotePresentations: RemotePresentation["presentations"];
   wiaCryptoContext: CryptoContext;
 }): Promise<string> => {
   const { kid } = await wiaCryptoContext.getPublicKey();

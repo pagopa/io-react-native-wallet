@@ -5,7 +5,8 @@ import {
   sign,
 } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
-import { type CryptoContext, thumbprint } from "@pagopa/io-react-native-jwt";
+import QuickCrypto from "react-native-quick-crypto";
+import { thumbprint, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { JWK } from "./jwk";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { IoWalletError } from "./errors";
@@ -122,3 +123,14 @@ export const getSigningJwk = (publicKey: RSAKey | KJUR.crypto.ECDSA): JWK => ({
   ...JWK.parse(KEYUTIL.getJWKFromKey(publicKey)),
   use: "sig",
 });
+
+/**
+ * Calculate the SHA-256 hash of a binary array and encode it in base64url.
+ * @param binary The binary data to hash
+ * @returns A base64url string
+ */
+export const sha256ToBase64UrlFromBinary = (binary: ArrayBuffer): string => {
+  const hash = QuickCrypto.createHash("sha-256");
+  hash.update(binary);
+  return hash.digest("base64url");
+};

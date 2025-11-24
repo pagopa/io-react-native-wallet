@@ -1,11 +1,12 @@
 import * as z from "zod";
 import { InvalidQRCodeError } from "./errors";
+import { Logger, LogLevel } from "../../utils/logging";
 
 const PresentationParams = z.object({
   client_id: z.string().nonempty(),
   request_uri: z.string().url(),
   request_uri_method: z.enum(["get", "post"]),
-  state: z.string().optional(),
+  state: z.string().optional().nullable(),
 });
 export type PresentationParams = z.infer<typeof PresentationParams>;
 
@@ -29,6 +30,11 @@ export type StartFlow = (params: {
  * @throws If the provided parameters are not valid
  */
 export const startFlowFromQR: StartFlow = (params) => {
+  Logger.log(
+    LogLevel.DEBUG,
+    "Starting presentation flow with params: " + JSON.stringify(params, null, 2)
+  );
+
   const result = PresentationParams.safeParse({
     ...params,
     request_uri_method: params.request_uri_method ?? "get",
