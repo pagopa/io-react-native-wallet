@@ -2774,10 +2774,10 @@
   dependencies:
     zod "^3.25.67"
 
-"@pagopa/io-react-native-jwt@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-2.1.0.tgz#a25efcf58d4efddb48db05053321d2ed79b69a74"
-  integrity sha512-KLesesGbDmQorBiqx6rMTh0gRMfTNv6JT8yHOIU89maESWkR0bjt/s0eBKyz45uWoBuPY2NmAq/Aubk/aEjHsQ==
+"@pagopa/io-react-native-jwt@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-2.2.0.tgz#4403381b049c297f5664f5e80eee563cd44e57b4"
+  integrity sha512-eQsOJ8syRHMfXlvK41hvXwBb0tk622J8+PHByzOX2hpAm7dg+qy5FfDE2W5xX5VLUXf18EwKeVcKkPJezNttLg==
   dependencies:
     js-base64 "^3.7.7"
     zod "^3.22.4"
