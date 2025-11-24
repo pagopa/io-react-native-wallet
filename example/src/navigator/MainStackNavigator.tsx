@@ -6,6 +6,7 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
+import { StatusBar } from "react-native";
 import { useSelector } from "react-redux";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -104,6 +105,7 @@ export const MainStackNavigator = () => {
 
   return (
     <NavigationContainer theme={lightTheme}>
+      <StatusBar barStyle="dark-content" />
       <Stack.Navigator>
         {ioAuthToken ? (
           /*
