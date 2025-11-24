@@ -105,7 +105,7 @@ export const prepareVpTokenMdoc = async (
   responseUri: string,
   docType: string,
   keyTag: string,
-  [verifiableCredential, requestedClaims]: Presentation
+  [verifiableCredential, presentationFrame]: Presentation
 ): Promise<{
   vp_token: string;
 }> => {
@@ -118,22 +118,7 @@ export const prepareVpTokenMdoc = async (
     },
   ];
 
-  /* we map each requested claim as for ex. { "org.iso.18013.5.1.mDL": { "org.iso.18013.5.1": { <claim-name>: true, ... }}} for selective disclosure */
-  const fieldRequestedAndAccepted = JSON.stringify({
-    [docType]: requestedClaims.reduce<Record<string, unknown>>(
-      (acc, { name, namespace }) => {
-        if (namespace) {
-          acc[namespace] ??= {};
-          const existingNamespace = acc[namespace] as Record<string, boolean>;
-          existingNamespace[name] = true;
-        } else {
-          acc[name] = true;
-        }
-        return acc;
-      },
-      {} as Record<string, unknown>
-    ),
-  });
+  const fieldRequestedAndAccepted = JSON.stringify(presentationFrame);
 
   /* clientId,responseUri,requestNonce are retrieved by Auth Request Object */
   /* create DeviceResponse as { documents: { docType, issuerSigned, deviceSigned }, version, status } */

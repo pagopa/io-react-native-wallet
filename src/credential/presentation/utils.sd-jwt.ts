@@ -1,4 +1,3 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { SDJwtInstance, type SDJwt } from "@sd-jwt/core";
 import { getClaims } from "@sd-jwt/decode";
 import { digest } from "@sd-jwt/crypto-nodejs";
@@ -12,6 +11,11 @@ import { IoWalletError } from "../../utils/errors";
 import { isObject } from "../../utils/misc";
 import type { SdJwtDecoded } from "../offer/types";
 import type { EvaluatedDisclosure, PresentationFrame } from "./types";
+import { getValidDcqlClaims, type Credential4Dcql } from "./utils";
+
+type CustomDcqlSdJwtVcCredential = DcqlSdJwtVcCredential & {
+  original_credential: Credential4Dcql;
+};
 
 /**
  * List of claims to remove from the SD-JWT before evaluating the DCQL query.
@@ -45,23 +49,24 @@ const getClaimsFromDecodedSdJwt = async (decodedRawSdJwt: SDJwt) => {
  * @param credentials The raw SD-JWT credentials
  * @returns List of `dcql` compatible objects
  */
-export const mapCredentialsSdJwtToObj = async (
-  credentials: [CryptoContext, string][]
-): Promise<DcqlSdJwtVcCredential[]> => {
+export const mapCredentialsToObj = async (
+  credentials: Credential4Dcql[]
+): Promise<CustomDcqlSdJwtVcCredential[]> => {
   const sdJwt = new SDJwtInstance<SdJwtDecoded>({
     hasher: digest,
   });
 
   return Promise.all(
-    credentials.map(async ([, credential]) => {
-      const decodedRawSdJwt = await sdJwt.decode(credential);
+    credentials.map(async (credential) => {
+      const decodedRawSdJwt = await sdJwt.decode(credential[1]);
       const claims = await getClaimsFromDecodedSdJwt(decodedRawSdJwt);
       return {
         vct: decodedRawSdJwt.jwt?.payload?.vct as string,
         credential_format: "dc+sd-jwt",
         cryptographic_holder_binding: true,
         claims,
-      } satisfies DcqlSdJwtVcCredential;
+        original_credential: credential,
+      } satisfies CustomDcqlSdJwtVcCredential;
     })
   );
 };
@@ -74,7 +79,7 @@ export const mapCredentialsSdJwtToObj = async (
 export const getClaimsFromDcqlMatch = (
   match: DcqlQueryResult.CredentialMatch
 ): EvaluatedDisclosure[] =>
-  getValidClaims(match).flatMap((c) =>
+  getValidDcqlClaims(match).flatMap((c) =>
     Object.entries(c.output).map(([name, value]) => ({ name, value }))
   );
 
@@ -134,7 +139,7 @@ export const getPresentationFrameFromDcqlMatch = (
   const typedQueryClaims = queryClaims as DcqlClaimsQuery.W3cAndSdJwtVc[];
 
   // Build a presentation frame from each claim's path
-  return getValidClaims(match).reduce((acc, c) => {
+  return getValidDcqlClaims(match).reduce((acc, c) => {
     const pf = pathToPresentationFrame(
       typedQueryClaims[c.claim_index]!.path,
       c.output
@@ -145,25 +150,4 @@ export const getPresentationFrameFromDcqlMatch = (
     }
     return acc;
   }, {} as PresentationFrame);
-};
-
-const getValidClaims = (match: DcqlQueryResult.CredentialMatch) => {
-  const validClaims = match.valid_credentials?.[0]?.claims?.valid_claims;
-
-  if (!validClaims) return [];
-
-  const [validClaimSet] =
-    match.valid_credentials?.[0]?.claims?.valid_claim_sets ?? [];
-
-  // If there is a valid claim set, only claims from that set must be disclosed
-  // We select claims in the order they are defined in the set
-  if (validClaimSet) {
-    return (
-      validClaimSet.valid_claim_indexes?.map(
-        (i) => validClaims.find((c) => c.claim_index === i)!
-      ) ?? []
-    );
-  }
-
-  return validClaims;
 };

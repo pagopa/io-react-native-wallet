@@ -64,7 +64,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const { requestObject, keys } = await handleAuthRequest(qrParams);
 
-  const { credentialsSdJwt } =
+  const { credentialsSdJwt, credentialsMdoc } =
     getEuropeanCredentialsForPresentation(getState());
 
   if (args.allowed === "refusalState") {
@@ -76,13 +76,6 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     credentialsSdJwt,
     credentialsMdoc
   );
-  const credentialsToPresent = evaluatedDcqlQuery.map(
-    ({ requiredDisclosures, id, ...rest }) => ({
-      ...rest,
-      credentialInputId: id,
-      requestedClaims: requiredDisclosures,
-    })
-  );
 
   const authRequestObject = {
     nonce: requestObject.nonce,
@@ -92,7 +85,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const remotePresentations =
     await Credential.Presentation.prepareRemotePresentations(
-      credentialsToPresent,
+      evaluatedDcqlQuery,
       authRequestObject
     );
 
