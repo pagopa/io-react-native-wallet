@@ -72,6 +72,7 @@ export const TokenResponseSchema = z.object({
   c_nonce: z.string().optional(),
   c_nonce_expires_in: z.number().optional(),
   authorization_details: z.any().optional(),
+  state: z.string().optional(),
   scope: z.string().optional(),
 });
 

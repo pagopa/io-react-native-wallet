@@ -37,6 +37,7 @@ export const prepareAuthorization = async (
     );
   }
 
+  // If details.offer.credential_configuration_ids is not present, discover the id from metadata and show the user what is available
   const allIdsAreSupported = offer.credential_configuration_ids.every(
     (idFromOffer) => {
       // Check if that ID exists as a key in the metadata's supported object
@@ -57,6 +58,8 @@ export const prepareAuthorization = async (
   // Generate PKCE parameters
   const { codeVerifier, codeChallenge } = await generatePkce();
   const state = generateRandomAlphaNumericString(32);
+  // Send issuer_state if provided in the grant selection
+  const issuerState = grantSelection.issuer_state;
 
   // Build authorization request parameters
   const requestBody = {
@@ -68,6 +71,7 @@ export const prepareAuthorization = async (
     code_challenge_method: "S256",
     scope: offer.credential_configuration_ids.join(" "),
     resource: issuerConf.credential_issuer,
+    ...(issuerState ? { issuer_state: issuerState } : {}),
   };
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);
@@ -86,7 +90,9 @@ export const prepareAuthorization = async (
         body: authorizationRequestFormBody.toString(),
       }
     )
-      .then(hasStatusOrThrow(200, IssuerResponseError))
+      // https://www.rfc-editor.org/rfc/rfc9126.html#section-2.2
+      // 201 is the only accepted success status code for PAR but some implementations may still use 200
+      .then(hasStatusOrThrow([200, 201], IssuerResponseError))
       .then((res) => res.json());
 
     if (!parResponse.request_uri || !parResponse.expires_in) {
