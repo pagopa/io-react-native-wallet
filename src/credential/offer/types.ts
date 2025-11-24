@@ -72,6 +72,7 @@ export const TokenResponseSchema = z.object({
   c_nonce: z.string().optional(),
   c_nonce_expires_in: z.number().optional(),
   authorization_details: z.any().optional(),
+  state: z.string().optional(),
   scope: z.string().optional(),
 });
 
@@ -98,6 +99,8 @@ const ClaimSchema = z.object({
   value_type: z.string().optional(),
 });
 
+export type ClaimDef = z.infer<typeof ClaimSchema>;
+
 const LogoSchema = z.object({
   alt_text: z.string(),
   uri: z.string(),
@@ -108,6 +111,8 @@ const CredentialDisplaySchema = z.object({
   logo: LogoSchema.optional(),
   name: z.string(),
 });
+
+export type CredentialDisplay = z.infer<typeof CredentialDisplaySchema>;
 
 const CredentialMetadataSchema = z.object({
   claims: z.array(ClaimSchema).optional(),
@@ -149,6 +154,10 @@ const CredentialConfigurationSchema = z.object({
   policy: PolicySchema.optional(),
   vct: z.string().optional(),
 });
+
+export type CredentialConfiguration = z.infer<
+  typeof CredentialConfigurationSchema
+>;
 
 const BatchCredentialIssuanceSchema = z.object({
   batch_size: z.number().optional(),
@@ -254,6 +263,8 @@ export const SdJwtCoreSchema = z.object({
   signature: z.string(),
   encoded: z.string(),
 });
+
+export type SdJwtCore = z.infer<typeof SdJwtCoreSchema>;
 
 // === KB JWT ================================================================
 
