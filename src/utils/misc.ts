@@ -1,6 +1,6 @@
 import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
 import { sha256 } from "js-sha256";
-import { LogLevel, Logger } from "./logging";
+import { Logger, LogLevel } from "./logging";
 
 /**
  * Check if a response is in the expected status, otherwise throw an error
@@ -10,20 +10,27 @@ import { LogLevel, Logger } from "./logging";
  * @returns The given response object
  */
 export const hasStatusOrThrow =
-  (status: number, customError?: typeof UnexpectedStatusCodeError) =>
+  (status: number | number[], customError?: typeof UnexpectedStatusCodeError) =>
   async (res: Response): Promise<Response> => {
-    if (res.status !== status) {
+    const expected = Array.isArray(status) ? status : [status];
+
+    if (!expected.includes(res.status)) {
       const ErrorClass = customError ?? UnexpectedStatusCodeError;
-      Logger.log(
-        LogLevel.ERROR,
-        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`
-      );
+      const actualStatus = res.status;
+      const url = res.url;
+
+      const message = `Http request failed. Expected ${expected.join(" or ")}, got ${actualStatus}, url: ${url}`;
+
+      Logger.log(LogLevel.ERROR, message);
+      const reason = await parseRawHttpResponse(res);
+
       throw new ErrorClass({
-        message: `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
-        statusCode: res.status,
-        reason: await parseRawHttpResponse(res), // Pass the response body as reason so the original error can surface
+        message,
+        statusCode: actualStatus,
+        reason,
       });
     }
+
     return res;
   };
 

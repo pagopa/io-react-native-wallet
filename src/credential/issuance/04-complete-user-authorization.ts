@@ -187,16 +187,8 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       [[pidKeyTag, pid]]
     );
 
-    const credentialsToPresent = dcqlQueryResult.map(
-      ({ requiredDisclosures, id, ...rest }) => ({
-        ...rest,
-        credentialInputId: id,
-        requestedClaims: requiredDisclosures,
-      })
-    );
-
     const { presentations } = await Presentation.prepareRemotePresentations(
-      credentialsToPresent,
+      dcqlQueryResult,
       {
         nonce: requestObject.nonce,
         clientId: requestObject.client_id,
