@@ -20,7 +20,7 @@ type CustomDcqlSdJwtVcCredential = DcqlSdJwtVcCredential & {
 /**
  * List of claims to remove from the SD-JWT before evaluating the DCQL query.
  */
-const NON_DISCLOSABLE_CLAIMS = ["status", "cnf", "iat", "exp"];
+const NON_DISCLOSABLE_CLAIMS = ["status", "cnf", "exp"];
 
 /**
  * Extract claims from disclosures for use in `dcql` library.
