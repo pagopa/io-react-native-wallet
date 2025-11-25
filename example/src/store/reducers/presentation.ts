@@ -1,11 +1,18 @@
-import { createSlice } from "@reduxjs/toolkit";
-
+import {
+  createSelector,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import { remoteCrossDevicePresentationThunk } from "../../thunks/presentation";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
 import type { RootState, AsyncStatus } from "../types";
 import { sessionReset } from "./sesssion";
+import {
+  removeEuropeanCredential,
+  selectEuropeanCredentials,
+} from "./credential";
 
 /**
  * State type definition for a single presentaion scenario
@@ -20,10 +27,12 @@ type SinglePresentationState = {
 /**
  * State type definition for the presentation slice
  * the state contains :
+ * - selectedCredentialIds: UUIDs of credentials to use for presentation
  * - acceptanceState : {@link SinglePresentationState}
  * - refusalState : {@link SinglePresentationState}
  */
 type PresentationState = {
+  selectedCredentialIds: string[];
   acceptanceState: SinglePresentationState;
   refusalState: SinglePresentationState;
 };
@@ -35,6 +44,7 @@ export type PresentationStateKeys = keyof PresentationState;
 
 // Initial state for the presentation slice
 const initialState: PresentationState = {
+  selectedCredentialIds: [],
   acceptanceState: {
     redirectUri: undefined,
     asyncStatus: { ...asyncStatusInitial },
@@ -53,6 +63,16 @@ const presentationSlice = createSlice({
   initialState,
   reducers: {
     presentationReset: () => initialState,
+    toggleCredentialId: (state, action: PayloadAction<string>) => {
+      const credentialIdx = state.selectedCredentialIds.findIndex(
+        (id) => id === action.payload
+      );
+      if (credentialIdx === -1) {
+        state.selectedCredentialIds.push(action.payload);
+      } else {
+        state.selectedCredentialIds.splice(credentialIdx, 1);
+      }
+    },
   },
   extraReducers: (builder) => {
     // Dispatched when is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
@@ -95,6 +115,13 @@ const presentationSlice = createSlice({
       }
     );
 
+    // Remove the ID from the list when the corresponding credentials is removed
+    builder.addCase(removeEuropeanCredential, (state, action) => {
+      state.selectedCredentialIds = state.selectedCredentialIds.filter(
+        (id) => id !== action.payload.id
+      );
+    });
+
     // Reset the attestation state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
   },
@@ -103,7 +130,8 @@ const presentationSlice = createSlice({
 /**
  * Exports the actions for the presentation slice.
  */
-export const { presentationReset } = presentationSlice.actions;
+export const { presentationReset, toggleCredentialId } =
+  presentationSlice.actions;
 
 /**
  * Configuration for the presentation slice to be persisted in the Redux store.
@@ -137,3 +165,19 @@ export const selectPresentationAcceptanceState = (state: RootState) =>
  */
 export const selectPresentationRefusalState = (state: RootState) =>
   state.presentation.refusalState;
+
+/**
+ * Selects the IDs of credentials to use for presentation.
+ */
+export const selectCredentialIdsForPresentation = (state: RootState) =>
+  state.presentation.selectedCredentialIds;
+
+/**
+ * Selects the credential records that will be used for presentation.
+ */
+export const selectCredentialsForPresentation = createSelector(
+  selectCredentialIdsForPresentation,
+  selectEuropeanCredentials,
+  (idsToSelect, credentials) =>
+    credentials.filter((c) => idsToSelect.includes(c.id))
+);

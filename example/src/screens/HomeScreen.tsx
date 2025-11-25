@@ -7,12 +7,14 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import React, { type ComponentProps, useMemo } from "react";
 import { Alert, FlatList, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectPidSdJwt } from "../store/reducers/pid";
 import { selectIoAuthToken } from "../store/reducers/sesssion";
 import { useAppSelector } from "../store/utils";
+import { selectEuropeanCredentials } from "../store/reducers/credential";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
 
@@ -21,11 +23,13 @@ type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;
  * This includes interacting with the wallet instance provider, issuing a PID and a credential, get their status attestation and more.
  */
 const HomeScreen = () => {
+  const { bottom } = useSafeAreaInsets();
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
   const pid = useAppSelector(selectPidSdJwt);
   const session = useAppSelector(selectIoAuthToken);
   const credentials = useAppSelector(selectCredentials);
+  const europeanCredentials = useAppSelector(selectEuropeanCredentials);
 
   useDebugInfo({
     session,
@@ -72,7 +76,10 @@ const HomeScreen = () => {
         label: "Presentations",
         description: "Present credentials to a verifier",
         icon: "chevronRight",
-        onPress: () => navigation.navigate("Presentations"),
+        onPress: () =>
+          europeanCredentials.length > 0
+            ? navigation.navigate("PresentationOptions")
+            : Alert.alert("Obtain EU credentials first"),
       },
       {
         label: "Trust Federation",
@@ -111,11 +118,17 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [navigation, hasIntegrityKeyTag, pid, hasSomeCredential]
+    [
+      navigation,
+      hasIntegrityKeyTag,
+      pid,
+      hasSomeCredential,
+      europeanCredentials,
+    ]
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, marginBottom: bottom }}>
       <FlatList
         contentContainerStyle={{
           margin: IOVisualCostants.appMarginDefault,
@@ -123,16 +136,14 @@ const HomeScreen = () => {
         data={sections}
         keyExtractor={(item, index) => `${item.label}-${index}`}
         ListFooterComponent={<VSpacer size={32} />}
+        ItemSeparatorComponent={VSpacer}
         renderItem={({ item }) => (
-          <>
-            <ModuleSummary
-              label={item.label}
-              description={item.description}
-              icon={item.icon}
-              onPress={item.onPress}
-            />
-            <VSpacer />
-          </>
+          <ModuleSummary
+            label={item.label}
+            description={item.description}
+            icon={item.icon}
+            onPress={item.onPress}
+          />
         )}
       />
     </View>
