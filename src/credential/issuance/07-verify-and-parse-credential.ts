@@ -160,8 +160,6 @@ const parseCredentialSdJwt = (
   }
 
   if (includeUndefinedAttributes) {
-    // attributes that are in the disclosure set
-    // but are not defined in the issuer configuration
     const undefinedValues = Object.fromEntries(
       disclosures
         .filter((_) => !Object.keys(definedValues).includes(_[1]))
@@ -466,7 +464,7 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
       `Cannot find namespace for credentialConfigurationId: ${credentialConfigurationId}`
     );
   }
-  console.log("PARSED CREDENTIAL", parsedCredential);
+
   const expirationDate = extractElementValueAsDate(
     parsedCredential?.[getParsedCredentialClaimKey(ns, "expiry_date")]
       ?.value as string

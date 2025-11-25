@@ -5,16 +5,16 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import {
   Camera,
+  type Code,
   useCameraDevice,
   useCodeScanner,
-  type Code,
 } from "react-native-vision-camera";
 import { styles } from "../App";
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { useAppDispatch } from "../store/utils";
-import { getCredentialOfferThunk } from "../thunks/offer";
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
+import { getCredentialOfferRequestedParams } from "../thunks/offer";
 
 export type QrScannerScreenParams =
   | {
@@ -38,11 +38,16 @@ export const QrScannerScreen = ({ route }: Props) => {
   // It is necessary to avoid multiple scans of the same barcode
   const scannerReactivateTimeoutHandler = useRef<NodeJS.Timeout>(undefined);
   const [isResting, setIsResting] = useState(false);
+  const isScanningRef = useRef(false);
 
   useEffect(() => {
     (async () => {
-      const cameraPermission = await Camera.requestCameraPermission();
-      if (cameraPermission.toString() === "granted") {
+      let status = Camera.getCameraPermissionStatus();
+      if (status !== "granted") {
+        status = await Camera.requestCameraPermission();
+      }
+
+      if (status === "granted") {
         setHasPermission(true);
       } else {
         Alert.alert("Error", "Camera permission not granted!");
@@ -52,15 +57,18 @@ export const QrScannerScreen = ({ route }: Props) => {
 
   const handleCodeScanned = useCallback(
     (codes: Code[]) => {
-      if (isResting) {
+      if (isScanningRef.current) {
         // Barcode scanner is disabled, skip
         return;
       }
+
+      isScanningRef.current = true;
 
       // After a scan (even if not successful) the camera is disabled for 1 second
       // to avoid multiple scans of the same barcode
       setIsResting(true);
       scannerReactivateTimeoutHandler.current = setTimeout(() => {
+        isScanningRef.current = false;
         setIsResting(false);
       }, 1000);
 
@@ -76,7 +84,7 @@ export const QrScannerScreen = ({ route }: Props) => {
           break;
         case "offer":
           dispatch(
-            getCredentialOfferThunk({
+            getCredentialOfferRequestedParams({
               qrcode: codes[0]?.value || "",
             })
           );
@@ -84,7 +92,7 @@ export const QrScannerScreen = ({ route }: Props) => {
           break;
       }
     },
-    [isResting, dispatch, navigation, route.params]
+    [dispatch, navigation, route.params]
   );
 
   /**

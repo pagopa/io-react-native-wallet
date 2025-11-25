@@ -182,7 +182,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       throw new Error("Invalid request object");
     }
 
-    const dcqlQueryResult = Presentation.evaluateDcqlQuery(
+    const dcqlQueryResult = await Presentation.evaluateDcqlQuery(
       requestObject.dcql_query as DcqlQuery,
       [[pidCryptoContext, pid]]
     );

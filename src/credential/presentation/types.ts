@@ -19,11 +19,19 @@ export type CredentialFormat =
     };
 
 /**
+ * An object that defines claims to disclose. Nested claims must use a nested structure.
+ * @example { name: true, address: { country: true } }
+ */
+export type PresentationFrame = {
+  [k: string]: boolean | undefined | PresentationFrame;
+};
+
+/**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.
  */
 export type Presentation = [
   /* verified credential token */ string,
-  /* claims */ EvaluatedDisclosure[],
+  /* claims */ PresentationFrame,
   /* the context for the key associated to the credential */ CryptoContext,
 ];
 
@@ -55,6 +63,7 @@ export type RemotePresentation = {
 export type PrepareRemotePresentations = (
   credentials: ({
     requestedClaims: EvaluatedDisclosure[];
+    presentationFrame: PresentationFrame;
     credentialInputId: string; // The credential ID descriptor in the presentation definition or DCQL query
     credential: string;
     cryptoContext: CryptoContext;

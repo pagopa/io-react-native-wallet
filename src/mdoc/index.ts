@@ -33,6 +33,7 @@ export const verify = async (
   }
   const x5chain =
     issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
+  console.log(x5chain);
   // Verify the x5chain
   await verifyX5chain(x5chain, x509CertRoot, x509CertVerificationOptions);
 

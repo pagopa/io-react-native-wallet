@@ -5,13 +5,11 @@ import {
 } from "@pagopa/io-react-native-wallet";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
-import { selectPidSdJwt } from "../store/reducers/pid";
-import { selectCredentials } from "../store/reducers/credential";
-import { isDefined } from "../utils/misc";
+import { selectEuropeanCredentials } from "../store/reducers/credential";
 import type { RootState } from "../store/types";
 import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
-import { getAttestationThunk } from "./attestation";
 import { verifierCertificates } from "../utils/presentation";
+import { getAttestationThunk } from "./attestation";
 
 export type RequestObject = Awaited<
   ReturnType<Credential.Presentation.VerifyRequestObject>
@@ -71,13 +69,14 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const { requestObject, keys } = await handleAuthRequest(qrParams);
 
-  const { credentialsSdJwt } = getCredentialsForPresentation(getState());
+  const { credentialsSdJwt } =
+    getEuropeanCredentialsForPresentation(getState());
 
   if (args.allowed === "refusalState") {
     return processRefusedPresentation(requestObject);
   }
 
-  const evaluatedDcqlQuery = Credential.Presentation.evaluateDcqlQuery(
+  const evaluatedDcqlQuery = await Credential.Presentation.evaluateDcqlQuery(
     requestObject.dcql_query as DcqlQuery,
     credentialsSdJwt
   );
@@ -128,7 +127,6 @@ const handleAuthRequestForOpenIdFederation: HandleAuthRequest = async (
   qrParams
 ) => {
   const [, entityId] = qrParams.client_id.split(":");
-  console.log("openid_federation", entityId);
 
   const { rpConf, subject } =
     await Credential.Presentation.evaluateRelyingPartyTrust(entityId!);
@@ -157,7 +155,6 @@ const handleAuthRequestForOpenIdFederation: HandleAuthRequest = async (
  */
 const handleAuthRequestForX509Hash: HandleAuthRequest = async (qrParams) => {
   const [, x509Hash] = qrParams.client_id.split(":");
-  console.log("x509_hash", x509Hash);
 
   const { requestObjectEncodedJwt } =
     await Credential.Presentation.getRequestObject(qrParams.request_uri);
@@ -198,15 +195,12 @@ const processRefusedPresentation = async (requestObject: RequestObject) => {
   return { authResponse };
 };
 
-const getCredentialsForPresentation = (state: RootState) => {
-  const pid = selectPidSdJwt(state);
-  const credentials = selectCredentials(state);
+const getEuropeanCredentialsForPresentation = (state: RootState) => {
+  const credentials = selectEuropeanCredentials(state);
 
-  const credentialsSdJwt = [
-    ...Object.values({ pid, ...credentials })
-      .filter(isDefined)
-      .map((c) => [createCryptoContextFor(c.keyTag), c.credential]),
-  ] as [CryptoContext, string][];
+  const credentialsSdJwt: [CryptoContext, string][] = credentials
+    .filter((c) => c.format === "dc+sd-jwt")
+    .map((c) => [createCryptoContextFor(c.keyTag), c.credential]);
 
   return {
     credentialsSdJwt,

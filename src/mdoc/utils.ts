@@ -10,6 +10,8 @@ import type { Out } from "../utils/misc";
 const CREDENTIAL_NAMESPACE_MAP: Record<string, string> = {
   mso_mdoc_mDL: "org.iso.18013.5.1",
   mso_mdoc_PersonIdentificationData: "eu.europa.ec.eudi.pid.1",
+  "eu.europa.ec.eudi.pid_mdoc": "eu.europa.ec.eudi.pid.1",
+  "eu.europa.ec.eudi.mdl_mdoc": "org.iso.18013.5.1",
 };
 
 /**

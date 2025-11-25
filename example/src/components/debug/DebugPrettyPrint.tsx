@@ -5,9 +5,9 @@ for development purposes. for development purposes. Don't REMOVE it!
 import {
   BodySmall,
   HStack,
+  IconButton,
   IOColors,
   IOText,
-  IconButton,
 } from "@pagopa/io-app-design-system";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -50,7 +50,7 @@ export const DebugPrettyPrint = ({
     return (
       <View style={styles.content} pointerEvents="box-only">
         <IOText
-          font="DMMono"
+          font="FiraCode"
           size={12}
           lineHeight={18}
           color={"grey-700"}

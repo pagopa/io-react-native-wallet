@@ -12,9 +12,13 @@ module.exports = function (api) {
           extensions: [".tsx", ".ts", ".js", ".json"],
           alias: {
             [pak.name]: path.join(__dirname, "..", pak.source),
+            crypto: "react-native-quick-crypto",
+            stream: "readable-stream",
+            buffer: "@craftzdog/react-native-buffer",
           },
         },
       ],
+
       ["module:react-native-dotenv"],
       "react-native-reanimated/plugin",
     ],
