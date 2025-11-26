@@ -1,5 +1,5 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
-import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+import { createCryptoContextFor } from "../../utils/crypto";
 import { type FetchJwks } from "./04-retrieve-rp-jwks";
 import type { VerifyRequestObject } from "./05-verify-request-object";
 import type { EvaluateDcqlQuery } from "./07-evaluate-dcql-query";
