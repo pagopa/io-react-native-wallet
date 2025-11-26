@@ -6,6 +6,7 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
+import { StatusBar } from "react-native";
 import { useSelector } from "react-redux";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -37,6 +38,7 @@ import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
 import ExploreCredentials from "../screens/ExploreCredentials";
+import { PresentationOptionsScreen } from "../screens/PresentationOptionsScreen";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -60,6 +62,7 @@ export type MainStackNavParamList = {
     redirectUri: string;
   };
   Presentations: undefined;
+  PresentationOptions: undefined;
   Trust: undefined;
   QrScanner: QrScannerScreenParams;
   Proximity: undefined;
@@ -102,6 +105,7 @@ export const MainStackNavigator = () => {
 
   return (
     <NavigationContainer theme={lightTheme}>
+      <StatusBar barStyle="dark-content" />
       <Stack.Navigator>
         {ioAuthToken ? (
           /*
@@ -151,6 +155,11 @@ export const MainStackNavigator = () => {
               name="Presentations"
               component={PresentationScreen}
               options={{ title: "Presentation" }}
+            />
+            <Stack.Screen
+              name="PresentationOptions"
+              component={PresentationOptionsScreen}
+              options={{ title: "Presentation Options" }}
             />
             <Stack.Screen
               name="Trust"

@@ -19,7 +19,10 @@ import { getCredentialOfferRequestedParams } from "../thunks/offer";
 export type QrScannerScreenParams =
   | {
       mode: "presentation";
-      presentationBehavior: PresentationStateKeys;
+      presentationBehavior: Exclude<
+        PresentationStateKeys,
+        "selectedCredentialIds"
+      >;
     }
   | {
       mode: "offer";
