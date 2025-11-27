@@ -195,5 +195,5 @@ export const selectMdocCredentialsForPresentation = createSelector(
  */
 export const selectMdocCredentialForPresentation = createSelector(
   selectCredentialsForPresentation,
-  (credentials) => credentials.filter((c) => c.format === "mso_mdoc")[0]
+  (credentials) => credentials.find((c) => c.format === "mso_mdoc")
 );
