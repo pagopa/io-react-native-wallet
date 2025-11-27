@@ -3,8 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet } from "react-native";
 import { CBOR, ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { useAppSelector } from "../store/utils";
-import type { CredentialOfferResult, EnvType } from "../store/types";
+import type { CredentialOfferResult } from "../store/types";
 import {
   type EventsPayload,
   generateAcceptedFields,
@@ -14,9 +13,6 @@ import {
 } from "../utils/proximity";
 import { addPadding } from "@pagopa/io-react-native-jwt";
 import { QrCodeImage } from "../components/QrCodeImage";
-import { selectEnv } from "../store/reducers/environment";
-import { getEnv } from "../utils/environment";
-import { getTrustAnchorX509Certificate } from "../utils/credential";
 import { store } from "../store/store";
 import { selectMdocCredentialForPresentation } from "../store/reducers/presentation";
 import { b64utob64 } from "jsrsasign";
@@ -51,22 +47,20 @@ enum PROXIMITY_STATUS {
 
 export const ProximityScreen = () => {
   const state = store.getState();
-  const env = useAppSelector(selectEnv);
   const credential = selectMdocCredentialForPresentation(state);
 
   if (!credential) {
     return <></>;
   }
 
-  return <ContentView credential={credential} env={env} />;
+  return <ContentView credential={credential} />;
 };
 
 type ContentViewProps = {
   credential: CredentialOfferResult;
-  env: EnvType;
 };
 
-const ContentView = ({ credential, env }: ContentViewProps) => {
+const ContentView = ({ credential }: ContentViewProps) => {
   const [status, setStatus] = useState<PROXIMITY_STATUS>(
     PROXIMITY_STATUS.STARTING
   );
@@ -74,7 +68,6 @@ const ContentView = ({ credential, env }: ContentViewProps) => {
   const [request, setRequest] = useState<VerifierRequest["request"] | null>(
     null
   );
-  const { WALLET_TA_BASE_URL } = getEnv(env);
 
   useDebugInfo({
     credential,
@@ -248,8 +241,6 @@ const ContentView = ({ credential, env }: ContentViewProps) => {
    * Start utility function to start the proximity flow.
    */
   const startFlow = useCallback(async () => {
-    const x5c = [await getTrustAnchorX509Certificate(WALLET_TA_BASE_URL)];
-
     setStatus(PROXIMITY_STATUS.STARTING);
     const hasPermission = await requestBlePermissions();
     if (!hasPermission) {
@@ -262,7 +253,7 @@ const ContentView = ({ credential, env }: ContentViewProps) => {
     }
     try {
       await start({
-        certificates: [x5c],
+        certificates: [],
       }); // Peripheral mode
       // Register listeners
       addListener("onDeviceConnecting", handleOnDeviceConnecting);
@@ -282,12 +273,7 @@ const ContentView = ({ credential, env }: ContentViewProps) => {
       Alert.alert("Failed to initialize QR engagement");
       setStatus(PROXIMITY_STATUS.STOPPED);
     }
-  }, [
-    WALLET_TA_BASE_URL,
-    onDeviceDisconnected,
-    onDocumentRequestReceived,
-    onError,
-  ]);
+  }, [onDeviceDisconnected, onDocumentRequestReceived, onError]);
 
   /**
    * Starts the proximity flow and stops it on unmount.
