@@ -23,7 +23,7 @@ export const PresentationScreen = () => {
   const { asyncStatus: refusalPresentationState } = useAppSelector(
     selectPresentationRefusalState
   );
-  const credentials = selectMdocCredentialsForPresentation(state);
+  const mdocCredentials = selectMdocCredentialsForPresentation(state);
 
   useDebugInfo({
     acceptancePresentationState,
@@ -64,7 +64,7 @@ export const PresentationScreen = () => {
       {
         title: "Proximity",
         onPress: () =>
-          credentials.length === 1
+          mdocCredentials.length === 1
             ? navigation.navigate("Proximity")
             : Alert.alert("Select a single MDOC credential for presentation"),
         isLoading: refusalPresentationState.isLoading,
@@ -75,7 +75,7 @@ export const PresentationScreen = () => {
     ],
     [
       navigation,
-      credentials.length,
+      mdocCredentials.length,
       acceptancePresentationState.hasError,
       acceptancePresentationState.isDone,
       acceptancePresentationState.isLoading,
