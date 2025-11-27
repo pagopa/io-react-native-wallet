@@ -1,27 +1,25 @@
-import { ModuleSummary } from "@pagopa/io-app-design-system";
+import { Body, ModuleSummary, VStack } from "@pagopa/io-app-design-system";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet } from "react-native";
-import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
-import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
+import { CBOR, ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { useAppSelector } from "../store/utils";
-import { selectCredential } from "../store/reducers/credential";
-import type { CredentialResult, EnvType } from "../store/types";
+import type { CredentialOfferResult, EnvType } from "../store/types";
 import {
+  type EventsPayload,
   generateAcceptedFields,
   requestBlePermissions,
-  WELL_KNOWN_CREDENTIALS,
-  type EventsPayload,
   type RequestedDocument,
   type VerifierRequest,
 } from "../utils/proximity";
 import { addPadding } from "@pagopa/io-react-native-jwt";
-import { selectAttestationAsMdoc } from "../store/reducers/attestation";
-import { WIA_KEYTAG } from "../utils/crypto";
 import { QrCodeImage } from "../components/QrCodeImage";
 import { selectEnv } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { getTrustAnchorX509Certificate } from "../utils/credential";
+import { store } from "../store/store";
+import { selectMdocCredentialForPresentation } from "../store/reducers/presentation";
+import { b64utob64 } from "jsrsasign";
 
 const {
   ErrorCode,
@@ -52,30 +50,23 @@ enum PROXIMITY_STATUS {
 }
 
 export const ProximityScreen = () => {
-  const walletAttestationMdoc = useAppSelector(selectAttestationAsMdoc);
-  const mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
+  const state = store.getState();
   const env = useAppSelector(selectEnv);
+  const credential = selectMdocCredentialForPresentation(state);
 
-  if (!walletAttestationMdoc || !mDL) {
+  if (!credential) {
     return <></>;
   }
 
-  return (
-    <ContentView
-      attestation={walletAttestationMdoc}
-      credential={mDL}
-      env={env}
-    />
-  );
+  return <ContentView credential={credential} env={env} />;
 };
 
 type ContentViewProps = {
-  attestation: string;
-  credential: CredentialResult;
+  credential: CredentialOfferResult;
   env: EnvType;
 };
 
-const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
+const ContentView = ({ credential, env }: ContentViewProps) => {
   const [status, setStatus] = useState<PROXIMITY_STATUS>(
     PROXIMITY_STATUS.STARTING
   );
@@ -83,13 +74,16 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   const [request, setRequest] = useState<VerifierRequest["request"] | null>(
     null
   );
-  const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
   const { WALLET_TA_BASE_URL } = getEnv(env);
 
   useDebugInfo({
-    attestation,
     credential,
   });
+
+  const getDocType = async (mdoc: string): Promise<string> => {
+    const issuerSigned = await CBOR.decodeIssuerSigned(b64utob64(mdoc));
+    return issuerSigned.issuerAuth.payload.docType || "missing_doctype";
+  };
 
   /**
    * Callback function to handle device connection.
@@ -114,13 +108,8 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   const sendDocument = async (verifierRequest: VerifierRequest["request"]) => {
     const documents: Array<RequestedDocument> = [
       {
-        alias: WIA_KEYTAG,
-        docType: WELL_KNOWN_CREDENTIALS.wia,
-        issuerSignedContent: addPadding(attestation),
-      },
-      {
         alias: credential.keyTag,
-        docType: WELL_KNOWN_CREDENTIALS.mdl,
+        docType: await getDocType(credential.credential),
         issuerSignedContent: addPadding(credential.credential),
       },
     ];
@@ -167,7 +156,6 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
       await close();
       setQrCode(null);
       setRequest(null);
-      setRpIsTrusted(false);
       setStatus(PROXIMITY_STATUS.STOPPED);
     } catch (e) {
       console.log("Error closing the proximity flow", e);
@@ -246,12 +234,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         console.log("Parsed JSON:", parsedJson);
         const parsedRequest = parseVerifierRequest(parsedJson);
         console.log("Parsed request:", JSON.stringify(parsedRequest));
-        const isTrusted = Object.values(parsedRequest.request).every(
-          (item) => item.isAuthenticated
-        );
-        console.log("RP is trusted:", isTrusted);
         setRequest(parsedRequest.request);
-        setRpIsTrusted(isTrusted);
         setStatus(PROXIMITY_STATUS.PRESENTING);
       } catch (error) {
         console.error("Error handling new device request:", error);
@@ -328,10 +311,6 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         )}
         {status === PROXIMITY_STATUS.PRESENTING && request && (
           <>
-            <IOAlert
-              variant={rpIsTrusted ? "success" : "error"}
-              content={rpIsTrusted ? "Trusted RP" : "Untrusted RP"}
-            />
             <ModuleSummary
               label="Send document"
               icon="documentAdd"

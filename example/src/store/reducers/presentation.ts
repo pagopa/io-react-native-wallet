@@ -4,10 +4,10 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { remoteCrossDevicePresentationThunk } from "../../thunks/presentation";
-import { persistReducer, type PersistConfig } from "redux-persist";
+import { type PersistConfig, persistReducer } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
-import type { RootState, AsyncStatus } from "../types";
+import type { AsyncStatus, RootState } from "../types";
 import { sessionReset } from "./sesssion";
 import {
   removeEuropeanCredential,
@@ -180,4 +180,20 @@ export const selectCredentialsForPresentation = createSelector(
   selectEuropeanCredentials,
   (idsToSelect, credentials) =>
     credentials.filter((c) => idsToSelect.includes(c.id))
+);
+
+/**
+ * Selects the mDoc credentials that will be used for presentation.
+ */
+export const selectMdocCredentialsForPresentation = createSelector(
+  selectCredentialsForPresentation,
+  (credentials) => credentials.filter((c) => c.format === "mso_mdoc")
+);
+
+/**
+ * Selects the FIRST mDoc credential that will be used for presentation.
+ */
+export const selectMdocCredentialForPresentation = createSelector(
+  selectCredentialsForPresentation,
+  (credentials) => credentials.filter((c) => c.format === "mso_mdoc")[0]
 );
