@@ -1,4 +1,4 @@
-import { CBOR, COSE } from "@pagopa/io-react-native-iso18013";
+import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 import {
   type CertificateValidationResult,
@@ -6,9 +6,11 @@ import {
   verifyCertificateChain,
   type X509CertificateOptions,
 } from "@pagopa/io-react-native-crypto";
+import { removePadding } from "@pagopa/io-react-native-jwt";
 import { MissingX509CertsError, X509ValidationError } from "../trust/errors";
 import { IoWalletError } from "../utils/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
+import { type Presentation } from "../credential/presentation/types";
 
 export * from "./utils";
 
@@ -94,4 +96,42 @@ const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   const signatureCorrect = await COSE.verify(coseSign1, jwk as PublicKey);
 
   if (!signatureCorrect) throw new Error("Invalid mDoc signature");
+};
+
+export const prepareVpTokenMdoc = async (
+  requestNonce: string,
+  generatedNonce: string,
+  clientId: string,
+  responseUri: string,
+  docType: string,
+  keyTag: string,
+  [verifiableCredential, presentationFrame]: Presentation
+): Promise<{
+  vp_token: string;
+}> => {
+  /* verifiableCredential is a IssuerSigned structure */
+  const documents = [
+    {
+      issuerSignedContent: b64utob64(verifiableCredential),
+      alias: keyTag,
+      docType,
+    },
+  ];
+
+  const fieldRequestedAndAccepted = JSON.stringify(presentationFrame);
+
+  /* clientId,responseUri,requestNonce are retrieved by Auth Request Object */
+  /* create DeviceResponse as { documents: { docType, issuerSigned, deviceSigned }, version, status } */
+  const vp_token = await ISO18013_7.generateOID4VPDeviceResponse(
+    clientId,
+    responseUri,
+    requestNonce,
+    generatedNonce,
+    documents,
+    fieldRequestedAndAccepted
+  );
+
+  return {
+    vp_token: removePadding(vp_token),
+  };
 };

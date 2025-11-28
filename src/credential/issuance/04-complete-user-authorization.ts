@@ -33,7 +33,7 @@ export type CompleteUserAuthorizationWithFormPostJwtMode = (
   pid: string,
   context: {
     wiaCryptoContext: CryptoContext;
-    pidCryptoContext: CryptoContext;
+    pidKeyTag: string;
     appFetch?: GlobalFetch["fetch"];
   }
 ) => Promise<AuthorizationResult>;
@@ -171,7 +171,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
   async (
     requestObject,
     pid,
-    { wiaCryptoContext, pidCryptoContext, appFetch = fetch }
+    { wiaCryptoContext, pidKeyTag, appFetch = fetch }
   ) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -184,19 +184,11 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
 
     const dcqlQueryResult = await Presentation.evaluateDcqlQuery(
       requestObject.dcql_query as DcqlQuery,
-      [[pidCryptoContext, pid]]
-    );
-
-    const credentialsToPresent = dcqlQueryResult.map(
-      ({ requiredDisclosures, id, ...rest }) => ({
-        ...rest,
-        credentialInputId: id,
-        requestedClaims: requiredDisclosures,
-      })
+      [[pidKeyTag, pid]]
     );
 
     const { presentations } = await Presentation.prepareRemotePresentations(
-      credentialsToPresent,
+      dcqlQueryResult,
       {
         nonce: requestObject.nonce,
         clientId: requestObject.client_id,

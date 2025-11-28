@@ -12,6 +12,7 @@ export type EvaluatedDisclosure = {
 export type CredentialFormat =
   | {
       format: "dc+sd-jwt";
+      vct: string;
     }
   | {
       format: "mso_mdoc";

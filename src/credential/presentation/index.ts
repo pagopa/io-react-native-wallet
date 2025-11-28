@@ -20,9 +20,9 @@ import {
 import {
   evaluateDcqlQuery,
   type EvaluateDcqlQuery,
-  type PrepareRemotePresentations,
 } from "./07-evaluate-dcql-query";
 import {
+  type PrepareRemotePresentations,
   prepareRemotePresentations,
   sendAuthorizationResponse,
   type SendAuthorizationResponse,

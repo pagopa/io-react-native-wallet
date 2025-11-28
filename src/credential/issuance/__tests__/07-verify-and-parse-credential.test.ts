@@ -7,7 +7,7 @@ import {
   pid,
   residency,
 } from "../../../sd-jwt/__mocks__/sd-jwt";
-import { verifyAndParseCredential } from "..";
+import { verifyAndParseCredential } from "../07-verify-and-parse-credential";
 
 type IssuerConf = CredentialIssuerEntityConfiguration["payload"]["metadata"];
 
