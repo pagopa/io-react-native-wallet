@@ -52,7 +52,6 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
 
         // MDOC
         if (credential.format === "mso_mdoc") {
-          console.log(credential.parsedCredential);
           const decoded = await CBOR.decode(credential.credential as any);
           const statusListEntry = decoded?.issuerAuth?.payload?.status
             ?.status_list as StatusListEntry;
