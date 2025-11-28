@@ -15,86 +15,14 @@ import type { EuropeanCredentialWithId } from "../store/types";
 import {
   getListFromStatusListJWT,
   getStatusListFromJWT,
+  type StatusListEntry,
 } from "@sd-jwt/jwt-status-list";
-
-type CredentialAttribute = {
-  value: any;
-  name: { en: string };
-};
-
-type ParsedCredential = Record<string, CredentialAttribute>;
-
-type FormattedDrivingPrivileges = {
-  Category: string;
-  Issued: string;
-  Expires: string;
-  Restrictions?: string;
-};
-
-const formatDrivingPrivileges = (
-  privileges: any
-): FormattedDrivingPrivileges => {
-  if (typeof privileges !== "object" || privileges === null) {
-    return {
-      Category: String(privileges),
-      Issued: "N/D",
-      Expires: "N/D",
-    };
-  }
-
-  const output: FormattedDrivingPrivileges = {
-    Category: privileges.vehicle_category_code || "N/D",
-    Issued: privileges.issue_date || "N/D",
-    Expires: privileges.expiry_date || "N/D",
-  };
-
-  if (
-    privileges.codes &&
-    Array.isArray(privileges.codes) &&
-    privileges.codes.length > 0
-  ) {
-    output.Restrictions = privileges.codes
-      .map(
-        (code: any) =>
-          `${code.code} (${code.value}${code.sign ? ` - ${code.sign}` : ""})`
-      )
-      .join(", ");
-  }
-
-  return output;
-};
-
-const formatCredentialValue = (
-  key: string,
-  attribute: CredentialAttribute
-): any => {
-  const { value } = attribute;
-
-  if (key === "org.iso.18013.5.1:driving_privileges") {
-    return formatDrivingPrivileges(value);
-  }
-
-  if (typeof value === "object" && value !== null) {
-    if (Array.isArray(value)) {
-      return value.join(", ");
-    }
-
-    const isMappedClaim = Object.values(value).some(
-      (v) =>
-        typeof v === "object" && v !== null && Object.keys(v).includes("value")
-    );
-
-    if (isMappedClaim) {
-      return value;
-    }
-
-    return Object.values(value)
-      .filter((v) => v !== null && v !== undefined)
-      .join(", ");
-  }
-
-  return String(value);
-};
+import { CBOR } from "@pagopa/io-react-native-iso18013";
+import {
+  type CredentialAttribute,
+  formatCredentialValue,
+  type ParsedCredential,
+} from "./utils/decoder";
 
 interface CredentialDetailCardProps {
   item: { key: string; credential: EuropeanCredentialWithId };
@@ -112,18 +40,74 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
 
   const dispatch = useDispatch();
 
-  const verifyStatusList = useCallback(async (credentialRaw: string) => {
-    try {
-      const reference = getStatusListFromJWT(credentialRaw);
-      const list = await fetch(reference.uri);
-      const response = await list.text();
-      const statusList = getListFromStatusListJWT(response);
-      setStatus(statusList.getStatus(reference.idx));
-    } catch (error) {
-      setStatusError(JSON.stringify(error));
-    }
-  }, []);
+  // Function to verify status list of the credential
+  const verifyStatusList = useCallback(
+    async (credential: EuropeanCredentialWithId) => {
+      setStatus(null);
+      setStatusError(null);
 
+      try {
+        let uri: string | undefined;
+        let idx: number | undefined;
+
+        // MDOC
+        if (credential.format === "mso_mdoc") {
+          const decoded = await CBOR.decode(credential.credential as any);
+          const statusListEntry = decoded?.issuerAuth?.payload?.status
+            ?.status_list as StatusListEntry;
+
+          if (!statusListEntry) {
+            setStatusError("Status list reference not found in credential");
+            return;
+          }
+
+          uri = statusListEntry.uri;
+          idx = statusListEntry.idx;
+        } else {
+          // SD-JWT
+          const statusListEntry = getStatusListFromJWT(credential.credential);
+
+          if (!statusListEntry) {
+            setStatusError("Status list reference not found in JWT");
+            return;
+          }
+
+          uri = statusListEntry.uri;
+          idx = statusListEntry.idx;
+        }
+
+        if (!uri) {
+          setStatusError("Invalid status list reference");
+          return;
+        }
+
+        const response = await fetch(uri, {
+          headers: {
+            Accept: "*/*",
+          },
+        });
+
+        if (!response.ok) {
+          setStatusError(
+            `Unable to fetch status list (HTTP ${response.status}).`
+          );
+          return;
+        }
+
+        const jwtText = await response.text();
+        const statusList = getListFromStatusListJWT(jwtText);
+
+        const statusEntry = statusList.getStatus(idx);
+        setStatus(statusEntry);
+      } catch (error) {
+        console.error("verifyStatusList error:", error);
+        setStatusError(error instanceof Error ? error.message : String(error));
+      }
+    },
+    [setStatus, setStatusError]
+  );
+
+  // Function to handle deletion of the credential
   const handleDeletion = () => {
     Alert.alert(
       "Delete Credential",
@@ -150,8 +134,8 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
   };
 
   useEffect(() => {
-    verifyStatusList(cred.credential);
-  }, [cred.credential, verifyStatusList]);
+    verifyStatusList(cred);
+  }, [cred, verifyStatusList]);
 
   return (
     <View style={styles.card}>
