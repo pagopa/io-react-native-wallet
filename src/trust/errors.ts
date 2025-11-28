@@ -5,9 +5,11 @@ import type { CertificateValidationStatus } from "@pagopa/io-react-native-crypto
  * Base class for all federation-specific errors.
  */
 export class FederationError extends IoWalletError {
+  public readonly details: Record<string, unknown> | undefined;
   constructor(message: string, details?: Record<string, unknown>) {
     super(details ? serializeAttrs({ message, ...details }) : message);
     this.name = this.constructor.name;
+    this.details = details;
   }
 }
 
