@@ -15,7 +15,9 @@ import type { EuropeanCredentialWithId } from "../store/types";
 import {
   getListFromStatusListJWT,
   getStatusListFromJWT,
+  type StatusListEntry,
 } from "@sd-jwt/jwt-status-list";
+import { CBOR } from "@pagopa/io-react-native-iso18013";
 
 type CredentialAttribute = {
   value: any;
@@ -112,17 +114,68 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
 
   const dispatch = useDispatch();
 
-  const verifyStatusList = useCallback(async (credentialRaw: string) => {
-    try {
-      const reference = getStatusListFromJWT(credentialRaw);
-      const list = await fetch(reference.uri);
-      const response = await list.text();
-      const statusList = getListFromStatusListJWT(response);
-      setStatus(statusList.getStatus(reference.idx));
-    } catch (error) {
-      setStatusError(JSON.stringify(error));
-    }
-  }, []);
+  // Function to verify status list of the credential
+  const verifyStatusList = useCallback(
+    async (credential: EuropeanCredentialWithId) => {
+      setStatus(null);
+      setStatusError(null);
+
+      try {
+        let uri: string | undefined;
+        let idx: number | undefined;
+
+        // MDOC
+        if (credential.format === "mso_mdoc") {
+          const decoded = await CBOR.decode(credential.credential as any);
+          const statusListEntry = decoded?.issuerAuth?.payload?.status
+            ?.status_list as StatusListEntry;
+
+          if (!statusListEntry) {
+            setStatusError("Status list endpoint not found in credential");
+            return;
+          }
+
+          uri = statusListEntry.uri;
+          idx = statusListEntry.idx;
+        } else {
+          // SD-JWT
+          const statusListEntry = getStatusListFromJWT(credential.credential);
+
+          if (!statusListEntry) {
+            setStatusError("Status list reference not found in JWT");
+            return;
+          }
+
+          uri = statusListEntry.uri;
+          idx = statusListEntry.idx;
+        }
+
+        if (!uri) {
+          setStatusError("Invalid status list reference");
+          return;
+        }
+
+        const response = await fetch(uri);
+
+        if (!response.ok) {
+          setStatusError(
+            `Unable to fetch status list (HTTP ${response.status}).`
+          );
+          return;
+        }
+
+        const jwtText = await response.text();
+        const statusList = getListFromStatusListJWT(jwtText);
+
+        const statusEntry = statusList.getStatus(idx);
+        setStatus(statusEntry);
+      } catch (error) {
+        console.error("verifyStatusList error:", error);
+        setStatusError(error instanceof Error ? error.message : String(error));
+      }
+    },
+    [setStatus, setStatusError]
+  );
 
   const handleDeletion = () => {
     Alert.alert(
@@ -150,7 +203,7 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
   };
 
   useEffect(() => {
-    verifyStatusList(cred.credential);
+    verifyStatusList(cred);
   }, [cred.credential, verifyStatusList]);
 
   return (
