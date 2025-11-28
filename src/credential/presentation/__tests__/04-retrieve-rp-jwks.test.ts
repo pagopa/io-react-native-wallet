@@ -1,6 +1,6 @@
 // fetchJwks.test.ts
 
-import { getJwksFromConfig } from "../04-retrieve-rp-jwks";
+import { getJwksFromConfig } from "../05-retrieve-rp-jwks";
 import { RelyingPartyEntityConfiguration } from "../../../trust/types";
 
 // Mock the RelyingPartyEntityConfiguration

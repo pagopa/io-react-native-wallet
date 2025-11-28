@@ -7,15 +7,16 @@ import {
   getRequestObject,
   type GetRequestObject,
 } from "./03-get-request-object";
+import { verifyAuthRequestCertificateChain } from "./04-verify-certificate-chain";
 import {
   getJwksFromConfig,
   fetchJwksFromRequestObject,
   type FetchJwks,
-} from "./04-retrieve-rp-jwks";
+} from "./05-retrieve-rp-jwks";
 import {
   verifyRequestObject,
   type VerifyRequestObject,
-} from "./05-verify-request-object";
+} from "./06-verify-request-object";
 import {
   evaluateDcqlQuery,
   type EvaluateDcqlQuery,
@@ -41,6 +42,7 @@ export {
   prepareRemotePresentations,
   sendAuthorizationResponse,
   sendAuthorizationErrorResponse,
+  verifyAuthRequestCertificateChain,
   Errors,
 };
 export type {

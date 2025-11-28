@@ -2,7 +2,7 @@ import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { Buffer } from "buffer";
 import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
-import { type FetchJwks } from "./04-retrieve-rp-jwks";
+import { type FetchJwks } from "./05-retrieve-rp-jwks";
 import type { Out } from "../../utils/misc";
 import { LogLevel, Logger } from "../../utils/logging";
 import { sha256ToBase64UrlFromBinary } from "../../utils/crypto";
