@@ -204,7 +204,7 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
 
   useEffect(() => {
     verifyStatusList(cred);
-  }, [cred.credential, verifyStatusList]);
+  }, [cred, verifyStatusList]);
 
   return (
     <View style={styles.card}>
