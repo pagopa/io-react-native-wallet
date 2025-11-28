@@ -58,7 +58,7 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
             ?.status_list as StatusListEntry;
 
           if (!statusListEntry) {
-            setStatusError("Status list endpoint not found in credential");
+            setStatusError("Status list reference not found in credential");
             return;
           }
 
