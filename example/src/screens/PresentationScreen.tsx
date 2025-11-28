@@ -6,22 +6,24 @@ import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import {
+  selectMdocCredentialsForPresentation,
   selectPresentationAcceptanceState,
   selectPresentationRefusalState,
 } from "../store/reducers/presentation";
-import { selectCredential } from "../store/reducers/credential";
 
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { store } from "../store/store";
 
 export const PresentationScreen = () => {
+  const state = store.getState();
   const navigation = useNavigation();
   const { asyncStatus: acceptancePresentationState, ...presentationDetails } =
     useAppSelector(selectPresentationAcceptanceState);
   const { asyncStatus: refusalPresentationState } = useAppSelector(
     selectPresentationRefusalState
   );
-  const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
+  const mdocCredentials = selectMdocCredentialsForPresentation(state);
 
   useDebugInfo({
     acceptancePresentationState,
@@ -60,11 +62,11 @@ export const PresentationScreen = () => {
         icon: "qrCode",
       },
       {
-        title: "mDL Proximity",
+        title: "Proximity",
         onPress: () =>
-          mdoc_mDL
+          mdocCredentials.length === 1
             ? navigation.navigate("Proximity")
-            : Alert.alert("Obtain a mDL first"),
+            : Alert.alert("Select a single MDOC credential for presentation"),
         isLoading: refusalPresentationState.isLoading,
         hasError: refusalPresentationState.hasError,
         isDone: refusalPresentationState.isDone,
@@ -73,7 +75,7 @@ export const PresentationScreen = () => {
     ],
     [
       navigation,
-      mdoc_mDL,
+      mdocCredentials.length,
       acceptancePresentationState.hasError,
       acceptancePresentationState.isDone,
       acceptancePresentationState.isLoading,
