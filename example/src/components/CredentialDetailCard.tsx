@@ -81,7 +81,11 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
           return;
         }
 
-        const response = await fetch(uri);
+        const response = await fetch(uri, {
+          headers: {
+            Accept: "*/*",
+          },
+        });
 
         if (!response.ok) {
           setStatusError(
