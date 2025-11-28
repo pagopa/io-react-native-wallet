@@ -30,17 +30,17 @@ const config = {
       acc[name] = path.join(__dirname, "node_modules", name);
       return acc;
     }, {}),
-  },
 
-  resolveRequest: (context, moduleName, platform) => {
-    if (moduleName === "crypto") {
-      return context.resolveRequest(
-        context,
-        "react-native-quick-crypto",
-        platform
-      );
-    }
-    return context.resolveRequest(context, moduleName, platform);
+    resolveRequest: (context, moduleName, platform) => {
+      if (moduleName === "crypto") {
+        return context.resolveRequest(
+          context,
+          "react-native-quick-crypto",
+          platform
+        );
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    },
   },
 
   transformer: {
