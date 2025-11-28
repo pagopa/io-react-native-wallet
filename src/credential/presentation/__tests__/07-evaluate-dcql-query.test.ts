@@ -2,19 +2,14 @@ import { DcqlError, type DcqlQuery } from "dcql";
 import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
 import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
 import { pid, mdl } from "../../../sd-jwt/__mocks__/sd-jwt";
-import { createCryptoContextFor } from "../../../utils/crypto";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
 
-const pidCryptoContext = createCryptoContextFor(pidKeyTag);
-const mdlCryptoContext = createCryptoContextFor(mdlKeyTag);
-
 const credentials = [
-  [pidCryptoContext, pid.token],
-  [mdlCryptoContext, mdl.token],
-] as [CryptoContext, string][];
+  [pidKeyTag, pid.token],
+  [mdlKeyTag, mdl.token],
+] as [string, string][];
 
 describe("evaluateDcqlQuery", () => {
   it("should throw error when the DCQL query structure is invalid", async () => {
@@ -151,7 +146,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ required: true }],
         presentationFrame: {
@@ -202,7 +197,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ required: true }],
         presentationFrame: {
@@ -220,7 +215,7 @@ describe("evaluateDcqlQuery", () => {
         id: "DrivingLicense",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ required: true }],
         presentationFrame: { document_number: true },
@@ -263,7 +258,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { given_name: true, family_name: true },
@@ -309,7 +304,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { given_name: true, family_name: true },
@@ -322,7 +317,7 @@ describe("evaluateDcqlQuery", () => {
         id: "MDL",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ description: "Extra services", required: false }],
         presentationFrame: { document_number: true },
@@ -393,7 +388,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: {
@@ -411,7 +406,7 @@ describe("evaluateDcqlQuery", () => {
         id: "MDL",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { birth_date: true, document_number: true },
@@ -476,7 +471,7 @@ describe("evaluateDcqlQuery", () => {
         id: "PID",
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
-        cryptoContext: pidCryptoContext,
+        keyTag: pidKeyTag,
         credential: pid.token,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: {
@@ -494,7 +489,7 @@ describe("evaluateDcqlQuery", () => {
         id: "MDL",
         format: "dc+sd-jwt",
         vct: "MDL",
-        cryptoContext: mdlCryptoContext,
+        keyTag: mdlKeyTag,
         credential: mdl.token,
         purposes: [
           { description: "Identification", required: true },

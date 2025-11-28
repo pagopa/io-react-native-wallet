@@ -1,9 +1,5 @@
 import { createAppAsyncThunk } from "./utils";
-import {
-  Credential,
-  createCryptoContextFor,
-} from "@pagopa/io-react-native-wallet";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { Credential } from "@pagopa/io-react-native-wallet";
 import {
   selectCredentialsForPresentation,
   type PresentationStateKeys,
@@ -71,7 +67,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const { requestObject, keys } = await handleAuthRequest(qrParams);
 
-  const { credentialsSdJwt } =
+  const { credentialsSdJwt, credentialsMdoc } =
     getEuropeanCredentialsForPresentation(getState());
 
   if (args.allowed === "refusalState") {
@@ -80,15 +76,8 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const evaluatedDcqlQuery = await Credential.Presentation.evaluateDcqlQuery(
     requestObject.dcql_query as DcqlQuery,
-    credentialsSdJwt
-  );
-
-  const credentialsToPresent = evaluatedDcqlQuery.map(
-    ({ requiredDisclosures, id, ...rest }) => ({
-      ...rest,
-      credentialInputId: id,
-      requestedClaims: requiredDisclosures,
-    })
+    credentialsSdJwt,
+    credentialsMdoc
   );
 
   const authRequestObject = {
@@ -99,7 +88,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const remotePresentations =
     await Credential.Presentation.prepareRemotePresentations(
-      credentialsToPresent,
+      evaluatedDcqlQuery,
       authRequestObject
     );
 
@@ -200,11 +189,17 @@ const processRefusedPresentation = async (requestObject: RequestObject) => {
 const getEuropeanCredentialsForPresentation = (state: RootState) => {
   const credentials = selectCredentialsForPresentation(state);
 
-  const credentialsSdJwt: [CryptoContext, string][] = credentials
-    .filter((c) => c.format === "dc+sd-jwt")
-    .map((c) => [createCryptoContextFor(c.keyTag), c.credential]);
+  const credentialsSdJwt: [string, string][] = [];
+  const credentialsMdoc: [string, string][] = [];
+
+  for (const c of credentials) {
+    const destination =
+      c.format === "dc+sd-jwt" ? credentialsSdJwt : credentialsMdoc;
+    destination.push([c.keyTag, c.credential]);
+  }
 
   return {
     credentialsSdJwt,
+    credentialsMdoc,
   };
 };

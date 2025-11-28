@@ -1,6 +1,8 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
+import { createCryptoContextFor } from "../../utils/crypto";
 import { type FetchJwks } from "./05-retrieve-rp-jwks";
 import type { VerifyRequestObject } from "./06-verify-request-object";
+import type { EvaluateDcqlQuery } from "./07-evaluate-dcql-query";
 import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
 import {
   generateRandomAlphaNumericString,
@@ -10,7 +12,6 @@ import {
 import {
   DirectAuthorizationBodyPayload,
   ErrorResponse,
-  type PrepareRemotePresentations,
   type RemotePresentation,
 } from "./types";
 import * as z from "zod";
@@ -24,6 +25,7 @@ import {
 } from "../../utils/errors";
 import { prepareVpToken } from "../../sd-jwt";
 import { LogLevel, Logger } from "../../utils/logging";
+import { prepareVpTokenMdoc } from "../../mdoc";
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
@@ -277,6 +279,15 @@ const handleAuthorizationResponseError = (e: unknown) => {
     .buildFrom(e);
 };
 
+export type PrepareRemotePresentations = (
+  credentials: Out<EvaluateDcqlQuery>,
+  authRequestObject: {
+    nonce: string;
+    clientId: string;
+    responseUri: string;
+  }
+) => Promise<RemotePresentation>;
+
 /**
  * Prepares remote presentations for a set of credentials.
  *
@@ -304,19 +315,47 @@ export const prepareRemotePresentations: PrepareRemotePresentations = async (
         "Preparing presentation for: " + JSON.stringify(item)
       );
 
-      const { credentialInputId, format } = item;
+      const { format } = item;
+
       if (format === "dc+sd-jwt") {
         const { vp_token } = await prepareVpToken(
           authRequestObject.nonce,
           authRequestObject.clientId,
-          [item.credential, item.presentationFrame, item.cryptoContext]
+          [
+            item.credential,
+            item.presentationFrame,
+            createCryptoContextFor(item.keyTag),
+          ]
         );
 
         return {
-          requestedClaims: item.requestedClaims.map(({ name }) => name),
-          credentialId: credentialInputId,
+          requestedClaims: item.requiredDisclosures.map(({ name }) => name),
+          credentialId: item.id,
           vpToken: vp_token,
           format,
+        };
+      }
+
+      if (format === "mso_mdoc") {
+        const { vp_token } = await prepareVpTokenMdoc(
+          authRequestObject.nonce,
+          generatedNonce,
+          authRequestObject.clientId,
+          authRequestObject.responseUri,
+          item.doctype,
+          item.keyTag,
+          [
+            item.credential,
+            item.presentationFrame,
+            createCryptoContextFor(item.keyTag),
+          ]
+        );
+
+        return {
+          requestedClaims: item.requiredDisclosures.map(({ name }) => name),
+          credentialId: item.id,
+          vpToken: vp_token,
+          format: "mso_mdoc",
         };
       }
 
