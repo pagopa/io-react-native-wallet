@@ -18,85 +18,11 @@ import {
   type StatusListEntry,
 } from "@sd-jwt/jwt-status-list";
 import { CBOR } from "@pagopa/io-react-native-iso18013";
-
-type CredentialAttribute = {
-  value: any;
-  name: { en: string };
-};
-
-type ParsedCredential = Record<string, CredentialAttribute>;
-
-type FormattedDrivingPrivileges = {
-  Category: string;
-  Issued: string;
-  Expires: string;
-  Restrictions?: string;
-};
-
-const formatDrivingPrivileges = (
-  privileges: any
-): FormattedDrivingPrivileges => {
-  if (typeof privileges !== "object" || privileges === null) {
-    return {
-      Category: String(privileges),
-      Issued: "N/D",
-      Expires: "N/D",
-    };
-  }
-
-  const output: FormattedDrivingPrivileges = {
-    Category: privileges.vehicle_category_code || "N/D",
-    Issued: privileges.issue_date || "N/D",
-    Expires: privileges.expiry_date || "N/D",
-  };
-
-  if (
-    privileges.codes &&
-    Array.isArray(privileges.codes) &&
-    privileges.codes.length > 0
-  ) {
-    output.Restrictions = privileges.codes
-      .map(
-        (code: any) =>
-          `${code.code} (${code.value}${code.sign ? ` - ${code.sign}` : ""})`
-      )
-      .join(", ");
-  }
-
-  return output;
-};
-
-const formatCredentialValue = (
-  key: string,
-  attribute: CredentialAttribute
-): any => {
-  const { value } = attribute;
-
-  if (key === "org.iso.18013.5.1:driving_privileges") {
-    return formatDrivingPrivileges(value);
-  }
-
-  if (typeof value === "object" && value !== null) {
-    if (Array.isArray(value)) {
-      return value.join(", ");
-    }
-
-    const isMappedClaim = Object.values(value).some(
-      (v) =>
-        typeof v === "object" && v !== null && Object.keys(v).includes("value")
-    );
-
-    if (isMappedClaim) {
-      return value;
-    }
-
-    return Object.values(value)
-      .filter((v) => v !== null && v !== undefined)
-      .join(", ");
-  }
-
-  return String(value);
-};
+import {
+  type CredentialAttribute,
+  formatCredentialValue,
+  type ParsedCredential,
+} from "./utils/decoder";
 
 interface CredentialDetailCardProps {
   item: { key: string; credential: EuropeanCredentialWithId };
@@ -126,6 +52,7 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
 
         // MDOC
         if (credential.format === "mso_mdoc") {
+          console.log(credential.parsedCredential);
           const decoded = await CBOR.decode(credential.credential as any);
           const statusListEntry = decoded?.issuerAuth?.payload?.status
             ?.status_list as StatusListEntry;
@@ -177,6 +104,7 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
     [setStatus, setStatusError]
   );
 
+  // Function to handle deletion of the credential
   const handleDeletion = () => {
     Alert.alert(
       "Delete Credential",
