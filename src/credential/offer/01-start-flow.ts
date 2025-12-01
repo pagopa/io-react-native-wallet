@@ -4,7 +4,12 @@ import { stringToJSONSchema } from "../../utils/zod";
 import { InvalidQRCodeError } from "./errors";
 import { CredentialOfferSchema } from "./types";
 
-const CREDENTIAL_OFFER_SCHEMES = ["openid-credential-offer://", "haip://"];
+const CREDENTIAL_OFFER_SCHEMES = [
+  "openid-credential-offer://",
+  "haip://",
+  "haip-vp://",
+  "haip-vci://",
+];
 const CREDENTIAL_OFFER_PARAM = "credential_offer";
 const CREDENTIAL_OFFER_URI_PARAM = "credential_offer_uri";
 
