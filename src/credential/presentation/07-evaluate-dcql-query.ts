@@ -105,7 +105,9 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = async (
 
   try {
     // Validate the query
-    const parsedQuery = DcqlQuery.parse(query);
+    const parsedQuery = DcqlQuery.parse(
+      mdocUtils.ensurePidAttributesCompliance(query)
+    );
     DcqlQuery.validate(parsedQuery);
 
     const queryResult = DcqlQuery.query(parsedQuery, credentials);
