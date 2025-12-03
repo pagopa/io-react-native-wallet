@@ -126,7 +126,7 @@ export const prepareVpTokenMdoc = async (
     requestNonce,
     generatedNonce,
     documents,
-    presentationFrame
+    presentationFrame as ISO18013_7.AcceptedFields
   );
 
   return {
