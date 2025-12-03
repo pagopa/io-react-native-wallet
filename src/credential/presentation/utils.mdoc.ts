@@ -1,6 +1,6 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
-import type { DcqlMdocCredential, DcqlQueryResult } from "dcql";
+import type { DcqlMdocCredential, DcqlQuery, DcqlQueryResult } from "dcql";
 import type { EvaluatedDisclosure, PresentationFrame } from "./types";
 import { getValidDcqlClaims, type Credential4Dcql } from "./utils";
 
@@ -92,3 +92,40 @@ export const getPresentationFrameFromClaims = (
     return acc;
   }, {} as PresentationFrame),
 });
+
+/**
+ * Mapping of data identifiers to attribute identifiers according to the PID rulebook,
+ * section "ISO/IEC 18013-5-compliant encoding of PID".
+ */
+const dataToAttributeIdentifiers: Record<string, string> = {
+  birth_place: "place_of_birth",
+};
+
+/**
+ * Ensure the data identifiers requested for mdoc PID are compliant
+ * with the attribute identifiers of the actual credential.
+ * @see https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#3-isoiec-18013-5-compliant-encoding-of-pid
+ * @param dcql The original DCQL query
+ * @returns The compliant DCQL query
+ */
+export const ensurePidAttributesCompliance = (dcql: DcqlQuery.Input) => {
+  for (const credential of dcql.credentials) {
+    if (
+      credential.format === "mso_mdoc" &&
+      credential.meta?.doctype_value?.match(/pid/i) &&
+      credential.claims
+    ) {
+      credential.claims = credential.claims.map((claim) =>
+        "path" in claim
+          ? {
+              ...claim,
+              path: claim.path.map(
+                (p) => dataToAttributeIdentifiers[p] ?? p
+              ) as [string, string],
+            }
+          : claim
+      );
+    }
+  }
+  return dcql;
+};
