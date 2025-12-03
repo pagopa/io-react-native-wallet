@@ -1,6 +1,6 @@
 PODS:
   - boost (1.84.0)
-  - CieSDK (0.1.11)
+  - CieSDK (0.1.15)
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
   - FBLazyVector (0.78.3)
@@ -31,12 +31,12 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - IoReactNativeIso18013 (0.3.0):
+  - IoReactNativeIso18013 (0.7.0):
     - DoubleConversion
     - glog
     - hermes-engine
     - IOWalletCBOR (= 0.2.1)
-    - IOWalletProximity (= 1.3.0)
+    - IOWalletProximity (= 1.3.2)
     - RCT-Folly (= 2024.11.18.00)
     - RCTRequired
     - RCTTypeSafety
@@ -55,7 +55,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - IOWalletCBOR (0.2.1)
-  - IOWalletProximity (1.3.0)
+  - IOWalletProximity (1.3.2)
   - JOSESwift (3.0.0)
   - OpenSSL-Universal (3.3.3001)
   - pagopa-io-react-native-crypto (1.2.4):
@@ -2398,18 +2398,18 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: 4cb898d0bf20404aab1850c656dcea009429d6c1
-  CieSDK: ad23ec4b2f86c1e505030e68105ea509443d6706
-  DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  CieSDK: 0891f74b7fca198d1eebbe811c5ac929084b4fed
+  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: e053802577a711add20e45bbbf5dd1180b6ca62e
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
-  glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
-  hermes-engine: b5c9cfbe6415f1b0b24759f2942c8f33e9af6347
+  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
+  hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
   IoReactNativeCie: b85750a23a1945421e1c36053158e397387ea083
-  IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
+  IoReactNativeIso18013: c63dff3eda5f3d5b0d91cfeb620c4caddc17a29a
   IOWalletCBOR: 92742ef1cbd1b627ba153d0c7c11b81ad22f45cc
-  IOWalletProximity: 1836d6b5df0a64a97e09f355d15d5155f086f830
+  IOWalletProximity: e083adfe98d4071e8d7c14d4283174dfbbb626bb
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   pagopa-io-react-native-crypto: 9e7e7f59a8c9a3c75157407d75b09edbf5ee47e1

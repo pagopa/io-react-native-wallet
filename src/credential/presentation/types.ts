@@ -2,6 +2,7 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import * as z from "zod";
 import { UnixTime } from "../../sd-jwt/types";
 import { JWKS } from "../../utils/jwk";
+import { ISO18013_7 } from "@pagopa/io-react-native-iso18013";
 
 export type EvaluatedDisclosure = {
   namespace?: string;
@@ -23,9 +24,11 @@ export type CredentialFormat =
  * An object that defines claims to disclose. Nested claims must use a nested structure.
  * @example { name: true, address: { country: true } }
  */
-export type PresentationFrame = {
-  [k: string]: boolean | undefined | PresentationFrame;
-};
+export type PresentationFrame =
+  | {
+      [k: string]: boolean | undefined | PresentationFrame;
+    }
+  | ISO18013_7.AcceptedFields;
 
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.

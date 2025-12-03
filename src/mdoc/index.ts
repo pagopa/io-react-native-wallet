@@ -118,8 +118,6 @@ export const prepareVpTokenMdoc = async (
     },
   ];
 
-  const fieldRequestedAndAccepted = JSON.stringify(presentationFrame);
-
   /* clientId,responseUri,requestNonce are retrieved by Auth Request Object */
   /* create DeviceResponse as { documents: { docType, issuerSigned, deviceSigned }, version, status } */
   const vp_token = await ISO18013_7.generateOID4VPDeviceResponse(
@@ -128,7 +126,7 @@ export const prepareVpTokenMdoc = async (
     requestNonce,
     generatedNonce,
     documents,
-    fieldRequestedAndAccepted
+    presentationFrame
   );
 
   return {
