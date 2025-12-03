@@ -23,9 +23,7 @@ const {
   close,
   generateResponse,
   getQrCodeString,
-  parseEventError,
   parseVerifierRequest,
-  removeListener,
   sendErrorResponse,
   sendResponse,
   start,
@@ -141,11 +139,6 @@ const ContentView = ({ credential }: ContentViewProps) => {
         await sendErrorResponse(ErrorCode.SESSION_TERMINATED);
       }
       console.log("Cleaning up listeners and closing QR engagement");
-      removeListener("onDeviceConnected");
-      removeListener("onDeviceConnecting");
-      removeListener("onDeviceDisconnected");
-      removeListener("onDocumentRequestReceived");
-      removeListener("onError");
       await close();
       setQrCode(null);
       setRequest(null);
@@ -174,8 +167,7 @@ const ContentView = ({ credential }: ContentViewProps) => {
         if (!data || !data.error) {
           throw new Error("No error data received");
         }
-        const parsedError = parseEventError(data.error);
-        console.error(`onError: ${parsedError}`);
+        console.error(`onError: ${data.error}`);
       } catch (e) {
         console.error("Error parsing onError data:", e);
       } finally {
