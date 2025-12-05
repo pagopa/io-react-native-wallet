@@ -152,18 +152,27 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.metadata}>
-        <Text style={styles.metadataLabel}>Format:</Text> {cred.format || "N/D"}
-      </Text>
+      <View style={styles.metadata}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={styles.metadataLabel}>Format: </Text>
+          <Text style={styles.metadataInfo}>{cred.format || "N/D"}</Text>
+        </View>
 
+        {status !== null && (
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.metadataLabel}>Status: </Text>
+            <Text
+              style={[
+                styles.metadataInfo,
+                status === 0 ? { color: "green" } : { color: "red" },
+              ]}
+            >
+              {status === 0 ? "Valid" : "Revoked"}
+            </Text>
+          </View>
+        )}
+      </View>
       <View style={styles.divider} />
-      {status !== null && (
-        <Text>
-          <Text style={styles.metadataLabel}>Status: </Text>
-          {status}
-        </Text>
-      )}
-
       {statusError && (
         <Text style={{ color: "red" }}>
           <Text style={styles.metadataLabel}>Status Error: </Text>
@@ -361,12 +370,16 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   metadata: {
+    gap: 6,
     marginTop: 5,
-    fontSize: 14,
-    color: "#888",
   },
   metadataLabel: {
+    color: "#003366",
     fontSize: 14,
+    fontWeight: "bold",
+  },
+  metadataInfo: {
+    fontSize: 16,
     fontWeight: "bold",
   },
   divider: {
