@@ -175,8 +175,12 @@ const CredentialDetailCard: React.FC<CredentialDetailCardProps> = ({
       {attributes.length > 0 ? (
         attributes.map(([key, attribute]) => {
           const formattedValue = formatCredentialValue(key, attribute);
-
-          if (key === "org.iso.18013.5.1:portrait") {
+          console.log(key);
+          if (
+            key === "org.iso.18013.5.1:portrait" ||
+            key === "org.iso.18013.5.1:signature_usual_mark" ||
+            key === "eu.europa.ec.eudi.pid.1:portrait"
+          ) {
             return (
               <View key={key} style={styles.imageClaimRow}>
                 <Text style={styles.detailLabel}>
