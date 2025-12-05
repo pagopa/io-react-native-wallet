@@ -56,7 +56,7 @@ export type VerifyAndParseCredential = (
     ignoreMissingAttributes?: boolean;
     includeUndefinedAttributes?: boolean;
   },
-  x509CertRoot?: string,
+  x509CertsRoot?: string[],
   x509CertVerificationOptions?: X509CertificateOptions
 ) => Promise<{
   parsedCredential: ParsedCredential;
@@ -269,12 +269,12 @@ const parseCredentialMDoc = (
 
 async function verifyCredentialMDoc(
   rawCredential: string,
-  x509CertRoot: string,
+  x509CertsRoot: string[],
   holderBindingContext: CryptoContext,
   x509CertVerificationOptions?: X509CertificateOptions
 ): Promise<DecodedMDocCredential> {
   const [decodedCredential, holderBindingKey] = await Promise.all([
-    verifyMdoc(rawCredential, x509CertRoot, x509CertVerificationOptions),
+    verifyMdoc(rawCredential, x509CertsRoot, x509CertVerificationOptions),
     holderBindingContext.getPublicKey(),
   ]);
 
@@ -390,16 +390,16 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredential = async (
   credential,
   credentialConfigurationId,
   { credentialCryptoContext, ignoreMissingAttributes },
-  x509CertRoot,
+  x509CertsRoot,
   x509CertVerificationOptions
 ) => {
-  if (!x509CertRoot) {
-    throw new IoWalletError("Missing x509CertRoot");
+  if (!x509CertsRoot) {
+    throw new IoWalletError("Missing x509 certificates");
   }
 
   const decoded = await verifyCredentialMDoc(
     credential,
-    x509CertRoot,
+    x509CertsRoot,
     credentialCryptoContext,
     x509CertVerificationOptions
   );

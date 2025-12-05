@@ -14,9 +14,29 @@ import { type Presentation } from "../credential/presentation/types";
 
 export * from "./utils";
 
+/**
+ * Verifies the x5chain against multiple root certificates.
+ * @param x5chain - The x5chain from the mdoc
+ * @param certificates - The array of root certificates to verify against
+ * @param x509CertVerificationOptions - Optional verification options
+ * @returns A promise that resolves to true if at least one verification is successful
+ */
+async function verifyCertificates(
+  x5chain: string[],
+  certificates: string[],
+  x509CertVerificationOptions?: X509CertificateOptions
+) {
+  const verificationPromises = certificates.map((cert) =>
+    verifyX5chain(x5chain, cert, x509CertVerificationOptions)
+  );
+
+  const results = await Promise.allSettled(verificationPromises);
+  return results.some((result) => result.status === "fulfilled");
+}
+
 export const verify = async (
   token: string,
-  x509CertRoot: string,
+  x509CertsRoot: string[],
   x509CertVerificationOptions?: X509CertificateOptions
 ): Promise<{ issuerSigned: CBOR.IssuerSigned }> => {
   // get decoded data
@@ -35,9 +55,8 @@ export const verify = async (
   }
   const x5chain =
     issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
-  console.log(x5chain);
-  // Verify the x5chain
-  await verifyX5chain(x5chain, x509CertRoot, x509CertVerificationOptions);
+  // Verify the x5chain for at least one of the provided root certificates
+  await verifyCertificates(x5chain, x509CertsRoot, x509CertVerificationOptions);
 
   const coseSign1 = issuerSigned.issuerAuth.rawValue;
 
