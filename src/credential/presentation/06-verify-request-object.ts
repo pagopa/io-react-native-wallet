@@ -4,7 +4,7 @@ import { InvalidRequestObjectError } from "./errors";
 import { RequestObject } from "./types";
 import { type FetchJwks } from "./05-retrieve-rp-jwks";
 import type { Out } from "../../utils/misc";
-import { LogLevel, Logger } from "../../utils/logging";
+import { Logger, LogLevel } from "../../utils/logging";
 import { sha256ToBase64UrlFromBinary } from "../../utils/crypto";
 
 export type VerifyRequestObject = (
@@ -39,6 +39,7 @@ export const verifyRequestObject: VerifyRequestObject = async (
     jwkKeys.find(({ use }) => use === "sig");
 
   if (!pubKey) {
+    console.log("pubKey not found for Request Object verification", pubKey);
     throw new InvalidRequestObjectError(
       "The Request Object signature verification failed"
     );
@@ -47,7 +48,8 @@ export const verifyRequestObject: VerifyRequestObject = async (
   try {
     // Standard claims are verified within `verify`
     await verify(requestObjectEncodedJwt, pubKey);
-  } catch (_) {
+  } catch (e) {
+    console.log("TEST CHIAVE NON VALIDA", e);
     throw new InvalidRequestObjectError(
       "The Request Object signature verification failed"
     );

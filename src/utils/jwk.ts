@@ -20,7 +20,7 @@ export const JWK = z.object({
   /** JWK "kty" (Key Type) Parameter.
    * This attribute is required to discriminate the
    * type of EC/RSA algorithm */
-  kty: z.union([z.literal("RSA"), z.literal("EC")]),
+  kty: z.union([z.literal("RSA"), z.literal("EC"), z.literal("OKP")]),
   n: z.string().optional(),
   p: z.string().optional(),
   q: z.string().optional(),
