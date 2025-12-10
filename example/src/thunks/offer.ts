@@ -23,7 +23,7 @@ import type {
   CredentialOfferResult,
   SupportedCredentials,
 } from "../store/types";
-import { verifierCertificates } from "../utils/presentation";
+import { issuerCertificates } from "../utils/issuance";
 
 export type GetCredentialOfferRequestedParamsFlowThunkInput = {
   qrcode: string;
@@ -157,7 +157,7 @@ export const getCredentialOfferFlowThunk = createAppAsyncThunk<
           ignoreMissingAttributes: true,
           includeUndefinedAttributes: true,
         },
-        verifierCertificates.map((c) => c.certificate),
+        issuerCertificates,
         {
           connectTimeout: 10000,
           readTimeout: 10000,

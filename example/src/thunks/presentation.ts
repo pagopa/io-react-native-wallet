@@ -1,8 +1,8 @@
 import { createAppAsyncThunk } from "./utils";
 import { Credential } from "@pagopa/io-react-native-wallet";
 import {
-  selectCredentialsForPresentation,
   type PresentationStateKeys,
+  selectCredentialsForPresentation,
 } from "../store/reducers/presentation";
 import type { RootState } from "../store/types";
 import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
@@ -152,7 +152,7 @@ const handleAuthRequestForX509Hash: HandleAuthRequest = async (qrParams) => {
 
   await Credential.Presentation.verifyAuthRequestCertificateChain(
     requestObjectEncodedJwt,
-    { caRootCerts: verifierCertificates.map((c) => c.certificate) }
+    { caRootCerts: verifierCertificates }
   );
 
   const { keys } = await Credential.Presentation.fetchJwksFromRequestObject(
