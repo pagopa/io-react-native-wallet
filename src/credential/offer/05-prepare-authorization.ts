@@ -30,7 +30,6 @@ export const prepareAuthorization = async (
 ): Promise<AuthorizationResult> => {
   const { appFetch = fetch } = context;
   const { clientId, redirectUri, offer, grantSelection, issuerConf } = details;
-
   if (!grantSelection.authorization_server) {
     throw new IoWalletError(
       "Authorization server URL is missing in grant selection"
@@ -49,9 +48,13 @@ export const prepareAuthorization = async (
     throw new IoWalletError("Found unsupported credential configuration IDs");
   }
 
-  // Fetch AS metadata required for authorization request
+  let authorizationServerUrl = details.issuerConf.authorization_servers?.[0];
+  if (!authorizationServerUrl) {
+    authorizationServerUrl = details.issuerConf.credential_issuer;
+  }
+
   const asMetadata = await getAuthenticSourceMetadata(
-    grantSelection.authorization_server,
+    authorizationServerUrl,
     appFetch
   );
 
@@ -61,6 +64,24 @@ export const prepareAuthorization = async (
   // Send issuer_state if provided in the grant selection
   const issuerState = grantSelection.issuer_state;
 
+  const configurationId = offer.credential_configuration_ids[0];
+
+  if (!configurationId) {
+    throw new IoWalletError(
+      "No credential configuration ID found in the offer"
+    );
+  }
+
+  const scope =
+    details.issuerConf.credential_configurations_supported[configurationId]
+      ?.scope;
+
+  if (!scope) {
+    throw new IoWalletError(
+      `Scope not defined for credential configuration ID: ${configurationId}`
+    );
+  }
+
   // Build authorization request parameters
   const requestBody = {
     response_type: "code",
@@ -69,10 +90,12 @@ export const prepareAuthorization = async (
     code_challenge: codeChallenge,
     state: state,
     code_challenge_method: "S256",
-    scope: offer.credential_configuration_ids.join(" "),
+    scope,
     resource: issuerConf.credential_issuer,
     ...(issuerState ? { issuer_state: issuerState } : {}),
   };
+
+  console.log(requestBody);
 
   const authorizationRequestFormBody = new URLSearchParams(requestBody);
 

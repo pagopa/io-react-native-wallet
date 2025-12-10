@@ -21,9 +21,18 @@ export const evaluateIssuerMetadataFromOffer: EvaluateIssuerMetadataFromOffer =
 
     // The issuer URL provided in the Credential Offer
     const issuerUrl = credentialOffer.credential_issuer;
-    const issuerConf = await getCredentialIssuerMetadata(issuerUrl, {
-      appFetch,
-    });
+    let issuerConf: CredentialIssuerMetadata;
+    try {
+      issuerConf = await getCredentialIssuerMetadata(issuerUrl, {
+        appFetch,
+      });
+      console.log(issuerConf);
+    } catch (error) {
+      console.log(error);
+      throw new Error(
+        `Failed to fetch or validate issuer metadata from ${issuerUrl}: ${error}`
+      );
+    }
 
     return { issuerConf };
   };

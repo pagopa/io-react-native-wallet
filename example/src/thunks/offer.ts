@@ -54,10 +54,13 @@ export const getCredentialOfferRequestedParams = createAppAsyncThunk<
         appFetch,
       })
     : credential_offer;
-
   if (!offer) {
     throw new Error("Invalid credential offer");
   }
+
+  console.log("Credential Offer Uri:", credential_offer);
+  console.log("Credential Offer:", offer);
+  console.log("Credential Offer auth code:", offer.grants?.authorization_code);
 
   const { issuerConf } = await Credential.Offer.evaluateIssuerMetadataFromOffer(
     offer,
@@ -65,6 +68,8 @@ export const getCredentialOfferRequestedParams = createAppAsyncThunk<
       appFetch,
     }
   );
+
+  console.log("Issuer Configuration:", issuerConf);
 
   const grant = Credential.Offer.selectGrantType(offer);
   return {
