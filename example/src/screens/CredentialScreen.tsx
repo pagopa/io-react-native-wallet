@@ -58,6 +58,18 @@ export const CredentialScreen = () => {
   );
   const res = useAppSelector(selectCredential("dc_sd_jwt_residency"));
 
+  const edipState = useAppSelector(
+    selectCredentialAsyncStatus("dc_sd_jwt_education_diploma")
+  );
+  const edip = useAppSelector(selectCredential("dc_sd_jwt_education_diploma"));
+
+  const edatState = useAppSelector(
+    selectCredentialAsyncStatus("dc_sd_jwt_education_attestation")
+  );
+  const edat = useAppSelector(
+    selectCredential("dc_sd_jwt_education_attestation")
+  );
+
   useDebugInfo({
     sd_jwt_mdlState,
     sd_jwt_mdl,
@@ -73,6 +85,10 @@ export const CredentialScreen = () => {
     ee,
     resState,
     res,
+    edipState,
+    edip,
+    edatState,
+    edat,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
@@ -167,6 +183,34 @@ export const CredentialScreen = () => {
         icon: "messageLegal",
         isPresent: !!res,
       },
+      {
+        title: "Get credential (Education diploma in SD-JWT)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({
+              credentialType: "dc_sd_jwt_education_diploma",
+            })
+          ),
+        isLoading: edipState.isLoading,
+        hasError: edipState.hasError,
+        isDone: edipState.isDone,
+        icon: "messageLegal",
+        isPresent: !!edip,
+      },
+      {
+        title: "Get credential (Education attestation in SD-JWT)",
+        onPress: () =>
+          dispatch(
+            getCredentialThunk({
+              credentialType: "dc_sd_jwt_education_attestation",
+            })
+          ),
+        isLoading: edatState.isLoading,
+        hasError: edatState.hasError,
+        isDone: edatState.isDone,
+        icon: "messageLegal",
+        isPresent: !!edat,
+      },
     ],
     [
       sd_jwt_mdlState.isLoading,
@@ -197,6 +241,14 @@ export const CredentialScreen = () => {
       resState.hasError,
       resState.isDone,
       res,
+      edipState.isLoading,
+      edipState.hasError,
+      edipState.isDone,
+      edip,
+      edatState.isLoading,
+      edatState.hasError,
+      edatState.isDone,
+      edat,
       dispatch,
     ]
   );
