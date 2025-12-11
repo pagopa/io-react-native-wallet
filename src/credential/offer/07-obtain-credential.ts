@@ -108,21 +108,10 @@ export const obtainCredential: ObtainCredential = async (
 
   Logger.log(LogLevel.DEBUG, `Signed nonce proof: ${signedNonceProof}`);
 
-  let credentialRequestFormBody;
-
-  // Handle batch credential issuance (we need to handle multiple proofs)
-  if (issuerConf.batch_credential_issuance?.batch_size) {
-    credentialRequestFormBody = {
-      credential_configuration_id: credential_configuration_id,
-      proofs: { jwt: [signedNonceProof], proof_type: "jwt" },
-    };
-    // Single credential issuance
-  } else {
-    credentialRequestFormBody = {
-      credential_configuration_id: credential_configuration_id,
-      proof: { jwt: signedNonceProof, proof_type: "jwt" },
-    };
-  }
+  const credentialRequestFormBody = {
+    credential_configuration_id: credential_configuration_id,
+    proofs: { jwt: [signedNonceProof], proof_type: "jwt" },
+  };
 
   Logger.log(
     LogLevel.DEBUG,
@@ -150,7 +139,7 @@ export const obtainCredential: ObtainCredential = async (
     },
     body: JSON.stringify(credentialRequestFormBody),
   })
-    .then(hasStatusOrThrow(200))
+    .then(hasStatusOrThrow([200, 202]))
     .then((res) => res.json())
     .then((body) => CredentialResponse.safeParse(body))
     .catch(handleObtainCredentialError);
