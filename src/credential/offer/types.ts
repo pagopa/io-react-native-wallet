@@ -237,14 +237,18 @@ export const SdJwtPayloadSchema = z
 
     status: z
       .object({
-        identifier_list: z.object({
-          id: z.string(),
-          uri: z.string(),
-        }),
-        status_list: z.object({
-          idx: z.number(),
-          uri: z.string(),
-        }),
+        identifier_list: z
+          .object({
+            id: z.string(),
+            uri: z.string(),
+          })
+          .optional(),
+        status_list: z
+          .object({
+            idx: z.number(),
+            uri: z.string(),
+          })
+          .optional(),
       })
       .optional(),
 
