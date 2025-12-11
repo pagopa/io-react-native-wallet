@@ -75,6 +75,7 @@ export const parseCredentialSdJwt = (
   credentialConfig: CredentialConf,
   parsedCredentialRaw: Record<string, unknown>
 ): ParsedCredential => {
+  console.log("Test parsing");
   // Validate credential configuration
   if (!credentialConfig.credential_metadata) {
     Logger.log(LogLevel.ERROR, "Missing credential metadata");
@@ -364,7 +365,7 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
   }
 
   const claims = parsedCredentialRaw.payload as Record<string, unknown>;
-
+  console.log(claims);
   const parsedCredential = parseCredentialSdJwt(credentialConfig, claims);
 
   Logger.log(

@@ -58,10 +58,6 @@ export const getCredentialOfferRequestedParams = createAppAsyncThunk<
     throw new Error("Invalid credential offer");
   }
 
-  console.log("Credential Offer Uri:", credential_offer);
-  console.log("Credential Offer:", offer);
-  console.log("Credential Offer auth code:", offer.grants?.authorization_code);
-
   const { issuerConf } = await Credential.Offer.evaluateIssuerMetadataFromOffer(
     offer,
     {
@@ -151,6 +147,8 @@ export const getCredentialOfferFlowThunk = createAppAsyncThunk<
         dPopCryptoContext,
       }
     );
+
+    console.log("Obtained Credential Response", credentialResponse);
 
     const { parsedCredential } =
       await Credential.Offer.verifyAndParseCredential(
