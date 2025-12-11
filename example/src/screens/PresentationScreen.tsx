@@ -1,7 +1,6 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useMemo } from "react";
 import { Alert, FlatList, type ListRenderItemInfo } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useAppSelector } from "../store/utils";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
@@ -10,9 +9,10 @@ import {
   selectPresentationAcceptanceState,
   selectPresentationRefusalState,
 } from "../store/reducers/presentation";
+import { useAppSelector } from "../store/utils";
 
-import { useDebugInfo } from "../hooks/useDebugInfo";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { useDebugInfo } from "../hooks/useDebugInfo";
 import { store } from "../store/store";
 
 export const PresentationScreen = () => {
@@ -28,7 +28,7 @@ export const PresentationScreen = () => {
   useDebugInfo({
     acceptancePresentationState,
     refusalPresentationState,
-    presentationDetails,
+    ...presentationDetails,
   });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
