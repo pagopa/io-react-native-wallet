@@ -2,9 +2,15 @@ import { hasStatusOrThrow, type Out } from "../../../utils/misc";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../../utils/pop";
+import { Logger, LogLevel } from "../../../utils/logging";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
 import type { EvaluateIssuerTrust } from "../../issuance";
-import { IssuerResponseError } from "../../../utils/errors";
+import {
+  IssuerResponseError,
+  IssuerResponseErrorCodes,
+  ResponseErrorBuilder,
+  UnexpectedStatusCodeError,
+} from "../../../utils/errors";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { MrtdPoPChallenge } from "./types";
 
@@ -72,11 +78,27 @@ export const initChallenge: InitChallenge = async (
     },
     body: JSON.stringify(requestBody),
   })
-    .then(hasStatusOrThrow(202, IssuerResponseError))
-    .then((res) => res.text());
+    .then(hasStatusOrThrow(202))
+    .then((res) => res.text())
+    .catch(handleInitChallengeError);
 
   const mrtdPoPChallengeDecoded = decodeJwt(mrtdPoPChallengeJwt);
   const { payload } = MrtdPoPChallenge.parse(mrtdPoPChallengeDecoded);
 
   return payload;
+};
+
+const handleInitChallengeError = (e: unknown) => {
+  Logger.log(LogLevel.ERROR, `Failed to get MRTD challenge: ${e}`);
+
+  if (!(e instanceof UnexpectedStatusCodeError)) {
+    throw e;
+  }
+
+  throw new ResponseErrorBuilder(IssuerResponseError)
+    .handle("*", {
+      code: IssuerResponseErrorCodes.MrtdChallengeInitRequestFailed,
+      message: "Unable to initialize MRTD challenge",
+    })
+    .buildFrom(e);
 };
