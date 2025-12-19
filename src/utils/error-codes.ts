@@ -16,6 +16,10 @@ export const IssuerResponseErrorCodes = {
    * Error code thrown when an error occurs while obtaining a status attestation for a credential.
    */
   StatusAttestationRequestFailed: "ERR_STATUS_ATTESTATION_REQUEST_FAILED",
+  /**
+   * Error code thrown when an error occurs while initializing the MRTD challenge.
+   */
+  MrtdChallengeInitRequestFailed: "ERR_MRTD_CHALLENGE_INIT_REQUEST_FAILED",
 } as const;
 
 export const WalletProviderResponseErrorCodes = {
