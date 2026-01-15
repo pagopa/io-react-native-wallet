@@ -41,3 +41,34 @@ export type NonceResponse = z.infer<typeof NonceResponse>;
 export const NonceResponse = z.object({
   c_nonce: z.string(),
 });
+
+/**
+ * The AS Metadata related to credential issuance.
+ */
+
+const ClaimDisplaySchema = z.object({
+  locale: z.string(),
+  name: z.string(),
+});
+
+const ClaimSchema = z.object({
+  display: z.array(ClaimDisplaySchema).optional(),
+  mandatory: z.boolean().optional(),
+  path: z.array(z.union([z.string(), z.number(), z.null()])),
+  value_type: z.string().optional(),
+});
+
+export type ClaimDef = z.infer<typeof ClaimSchema>;
+
+const LogoSchema = z.object({
+  alt_text: z.string().optional(),
+  uri: z.string(),
+});
+
+const CredentialDisplaySchema = z.object({
+  locale: z.string(),
+  logo: LogoSchema.optional(),
+  name: z.string(),
+});
+
+export type CredentialDisplay = z.infer<typeof CredentialDisplaySchema>;
