@@ -293,6 +293,7 @@ async function verifyCredentialSdJwt(
   issuerKeys: JWK[],
   holderBindingContext: CryptoContext
 ): Promise<SDJwt> {
+  // TODO: change verification using sd-jwt library with 1.3.x update
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
@@ -313,6 +314,7 @@ async function verifyCredentialSdJwt(
 
   return await sdJwtInstance.decode(rawCredential);
 }
+
 /**
  * Given a credential, verify it's in the supported format
  * and the credential is correctly signed
