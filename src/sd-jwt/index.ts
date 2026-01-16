@@ -1,9 +1,12 @@
 import { z } from "zod";
 
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
-import { SignJWT, sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-import { Disclosure, SdJwt4VC, type DisclosureWithEncoded } from "./types";
+import {
+  decode as decodeJwt,
+  sha256ToBase64,
+  SignJWT,
+  verify as verifyJwt,
+} from "@pagopa/io-react-native-jwt";
+import { Disclosure, type DisclosureWithEncoded, SdJwt4VC } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
 import * as Errors from "./errors";
@@ -122,8 +125,7 @@ export const disclose = async (
   });
 
   // compose the final disclosed token
-  const disclosedToken = [rawSdJwt, ...filteredDisclosures].join("~");
-
+  const disclosedToken = [rawSdJwt, ...filteredDisclosures, ""].join("~");
   return { token: disclosedToken, paths };
 };
 
