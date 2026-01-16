@@ -79,44 +79,27 @@ const parseCredentialSdJwt = (
   // Check that all mandatory attributes defined in the issuer configuration are present in the credential
   if (!ignoreMissingAttributes) {
     const missingPaths: string[] = [];
+    const rootKeysToVerify = new Set(
+      claimsMetadata
+        .map((c) => c.path[0])
+        .filter((p): p is string => p !== null)
+    );
 
-    for (const claim of claimsMetadata) {
-      let current: unknown = parsedCredentialRaw;
-      let pathFound = true;
-
-      for (const part of claim.path) {
-        if (part === null) break;
-
-        if (
-          typeof current === "object" &&
-          current !== null &&
-          part in (current as Record<string, unknown>)
-        ) {
-          current = (current as Record<string, unknown>)[part];
-        } else {
-          pathFound = false;
-          break;
-        }
-      }
-
-      if (!pathFound) {
-        missingPaths.push(
-          claim.path.filter((p): p is string => p !== null).join(".")
-        );
+    for (const rootKey of rootKeysToVerify) {
+      if (!(rootKey in parsedCredentialRaw)) {
+        missingPaths.push(rootKey);
       }
     }
 
     if (missingPaths.length > 0) {
       const missing = missingPaths.join(", ");
       const received = Object.keys(parsedCredentialRaw).join(", ");
-
       throw new IoWalletError(
         `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
       );
     }
   }
 
-  // Helper to get display metadata for a given path in the credential
   const getDisplayMetadata = (currentPath: (string | null)[]) => {
     return claimsMetadata.find((claim) => {
       const cleanConfigPath = claim.path.filter((p) => p !== null);
@@ -130,12 +113,12 @@ const parseCredentialSdJwt = (
   };
 
   const processValue = (value: unknown, path: (string | null)[]): unknown => {
-    // Array
+    // Handle arrays
     if (Array.isArray(value)) {
       return value.map((item: unknown) => processValue(item, [...path, null]));
     }
 
-    // Object
+    // Handle objects
     if (typeof value === "object" && value !== null) {
       const result: ParsedCredential = {};
       const obj = value as Record<string, unknown>;
@@ -149,7 +132,6 @@ const parseCredentialSdJwt = (
         }
 
         let localizedNames: ParsedCredential[string]["name"] = key;
-
         if (displayDefinition) {
           const nameMap: Record<string, string> = {};
           for (const entry of displayDefinition) {
@@ -166,7 +148,7 @@ const parseCredentialSdJwt = (
       return result;
     }
 
-    // Value
+    // Handle primitive values
     return value;
   };
 
