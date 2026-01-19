@@ -85,6 +85,8 @@
     "@pagopa/io-react-native-crypto": "*",
     "@pagopa/io-react-native-iso18013": "*",
     "@pagopa/io-react-native-jwt": "*",
+    "@sd-jwt/core": "^0.18.0",
+    "@sd-jwt/types": "^0.18.0",
     "react": "*",
     "react-native": "*",
     "react-native-quick-crypto": "*"
