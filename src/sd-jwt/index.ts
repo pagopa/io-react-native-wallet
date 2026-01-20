@@ -125,7 +125,7 @@ export const disclose = async (
   });
 
   // compose the final disclosed token
-  const disclosedToken = [rawSdJwt, ...filteredDisclosures, ""].join("~");
+  const disclosedToken = [rawSdJwt, ...filteredDisclosures].join("~");
   return { token: disclosedToken, paths };
 };
 

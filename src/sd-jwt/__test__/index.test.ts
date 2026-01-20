@@ -128,7 +128,7 @@ describe("disclose", () => {
   it("should encode a valid sdjwt (multiple claims)", async () => {
     const result = await disclose(token, ["iat", "family_name"]);
     const expected = {
-      token: `${signed}~WyJfdlY1UklrbDBJT0VYS290czlrdDF3IiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd~WyJDajV0Y2NSNzJKd3J6ZTJUVzRhLXdnIiwiaWF0IiwxNzIwMDEwNTc1XQ~`,
+      token: `${signed}~WyJfdlY1UklrbDBJT0VYS290czlrdDF3IiwiZmFtaWx5X25hbWUiLCJMb3ZlbGFjZSJd~WyJDajV0Y2NSNzJKd3J6ZTJUVzRhLXdnIiwiaWF0IiwxNzIwMDEwNTc1XQ`,
       paths: [
         {
           claim: "iat",
