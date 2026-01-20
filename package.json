@@ -145,7 +145,6 @@
     "jsonpath-plus": "^10.2.0",
     "jsrsasign": "^11.1.0",
     "parse-url": "^9.2.0",
-    "react-native-quick-crypto": "^0.7.17",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-uuid": "^2.0.1",
     "uuid": "^11.0.3",
