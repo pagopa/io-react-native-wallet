@@ -105,10 +105,7 @@ const parseCredentialSdJwt = (
     return claimsMetadata.find((claim) => {
       const cleanConfigPath = claim.path.filter((p) => p !== null);
 
-      if (cleanConfigPath.length !== cleanCurrentPath.length) return false;
-      return cleanConfigPath.every(
-        (part, index) => part === cleanCurrentPath[index]
-      );
+      return cleanConfigPath.join(".") === cleanCurrentPath.join(".");
     })?.display;
   };
 
