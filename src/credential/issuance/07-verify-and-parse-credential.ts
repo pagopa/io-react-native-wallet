@@ -101,9 +101,9 @@ const parseCredentialSdJwt = (
   }
 
   const getDisplayMetadata = (currentPath: (string | null)[]) => {
+    const cleanCurrentPath = currentPath.filter((p) => p !== null);
     return claimsMetadata.find((claim) => {
       const cleanConfigPath = claim.path.filter((p) => p !== null);
-      const cleanCurrentPath = currentPath.filter((p) => p !== null);
 
       if (cleanConfigPath.length !== cleanCurrentPath.length) return false;
       return cleanConfigPath.every(
