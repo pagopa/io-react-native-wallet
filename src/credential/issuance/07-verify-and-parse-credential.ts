@@ -5,15 +5,15 @@ import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
 import { isSameThumbprint, type JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { verify as verifyMdoc } from "../../mdoc";
+import { getParsedCredentialClaimKey, verify as verifyMdoc } from "../../mdoc";
 import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
-import { getParsedCredentialClaimKey } from "../../mdoc/utils";
 import { Logger, LogLevel } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import { type SDJwt, SDJwtInstance } from "@sd-jwt/core";
 import { digest } from "@sd-jwt/crypto-nodejs";
+import { isPathEqual, isPrefixOf } from "../../utils/parser";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
 type CredentialConf =
@@ -82,7 +82,7 @@ const parseCredentialSdJwt = (
     const rootKeysToVerify = new Set(
       claimsMetadata
         .map((c) => c.path[0])
-        .filter((p): p is string => p !== null)
+        .filter((p): p is string => typeof p === "string")
     );
 
     for (const rootKey of rootKeysToVerify) {
@@ -100,56 +100,99 @@ const parseCredentialSdJwt = (
     }
   }
 
-  const getDisplayMetadata = (currentPath: (string | null)[]) => {
-    const cleanCurrentPath = currentPath.filter((p) => p !== null);
-    return claimsMetadata.find((claim) => {
-      const cleanConfigPath = claim.path.filter((p) => p !== null);
+  /**
+   * Helper to find display metadata for any given path
+   */
+  const getDisplayNames = (
+    path: (string | number | null)[]
+  ): Record<string, string> | undefined => {
+    const match = claimsMetadata.find((c) => isPathEqual(c.path, path));
+    if (!match) return undefined;
 
-      return cleanConfigPath.join(".") === cleanCurrentPath.join(".");
-    })?.display;
+    const nameMap: Record<string, string> = {};
+    for (const entry of match.display) {
+      nameMap[entry.locale] = entry.name;
+    }
+    return nameMap;
   };
 
-  const processValue = (value: unknown, path: (string | null)[]): unknown => {
-    // Handle arrays
-    if (Array.isArray(value)) {
-      return value.map((item: unknown) => processValue(item, [...path, null]));
+  /**
+   * Recursive function to build the localized structure
+   */
+  const processLevel = (
+    currentData: unknown,
+    currentPath: (string | number | null)[]
+  ): unknown => {
+    // Handle Arrays
+    if (Array.isArray(currentData)) {
+      return currentData.map((item) =>
+        processLevel(item, [...currentPath, null])
+      );
     }
 
-    // Handle objects
-    if (typeof value === "object" && value !== null) {
-      const result: ParsedCredential = {};
-      const obj = value as Record<string, unknown>;
+    // Handle Objects
+    if (typeof currentData !== "object" || currentData === null) {
+      return currentData;
+    }
 
-      for (const [key, val] of Object.entries(obj)) {
-        const currentPath = [...path, key];
-        const displayDefinition = getDisplayMetadata(currentPath);
+    const dataObj = currentData as Record<string, unknown>;
+    const result: ParsedCredential = {};
+    const processedKeys = new Set<string | number>();
 
-        if (!displayDefinition && !includeUndefinedAttributes) {
-          continue;
+    // Identify unique keys in config at this level
+    const configKeysAtThisLevel: (string | number)[] = [];
+    for (const claim of claimsMetadata) {
+      // Check if the claim path starts with the current path
+      if (isPrefixOf(currentPath, claim.path)) {
+        const nextPart = claim.path[currentPath.length];
+        if (
+          (typeof nextPart === "string" || typeof nextPart === "number") &&
+          !configKeysAtThisLevel.includes(nextPart)
+        ) {
+          configKeysAtThisLevel.push(nextPart);
         }
-
-        let localizedNames: ParsedCredential[string]["name"] = key;
-        if (displayDefinition) {
-          const nameMap: Record<string, string> = {};
-          for (const entry of displayDefinition) {
-            nameMap[entry.locale] = entry.name;
-          }
-          localizedNames = nameMap;
-        }
-
-        result[key] = {
-          name: localizedNames,
-          value: processValue(val, currentPath),
-        };
       }
-      return result;
     }
 
-    // Handle primitive values
-    return value;
+    // Process keys
+    for (const key of configKeysAtThisLevel) {
+      const stringKey = key.toString();
+      const dataValue = dataObj[stringKey];
+      if (dataValue === undefined) continue;
+
+      const newPath = [...currentPath, key];
+
+      let localizedNames = getDisplayNames(newPath);
+
+      // Fallback for arrays
+      if (!localizedNames && Array.isArray(dataValue)) {
+        localizedNames = getDisplayNames([...newPath, null]);
+      }
+
+      result[stringKey] = {
+        name: localizedNames || stringKey,
+        value: processLevel(dataValue, newPath),
+      };
+
+      processedKeys.add(key);
+    }
+
+    // Handle Undefined Attributes
+    if (includeUndefinedAttributes) {
+      for (const [key, value] of Object.entries(dataObj)) {
+        if (!processedKeys.has(key)) {
+          result[key] = {
+            name: key,
+            value: value,
+          };
+        }
+      }
+    }
+
+    return result;
   };
 
-  return processValue(parsedCredentialRaw, []) as ParsedCredential;
+  return processLevel(parsedCredentialRaw, []) as ParsedCredential;
 };
 
 const parseCredentialMDoc = (
