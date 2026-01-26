@@ -89,7 +89,7 @@ describe("verifyAndParseCredential", () => {
   it("verifies and parses a valid SD-JWT credential", async () => {
     const result = await verifyAndParseCredential(
       mockIssuerConf,
-      pid.token,
+      pid.token + "~",
       "mock_valid_sd_jwt_cred",
       { credentialCryptoContext }
     );

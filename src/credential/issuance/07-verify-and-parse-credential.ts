@@ -3,17 +3,17 @@ import { type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { IoWalletError } from "../../utils/errors";
 import { SdJwt4VC, verify as verifySdJwt } from "../../sd-jwt";
-import { getValueFromDisclosures } from "../../sd-jwt/converters";
 import { isSameThumbprint, type JWK } from "../../utils/jwk";
 import type { ObtainCredential } from "./06-obtain-credential";
-import { verify as verifyMdoc } from "../../mdoc";
+import { getParsedCredentialClaimKey, verify as verifyMdoc } from "../../mdoc";
 import { MDOC_DEFAULT_NAMESPACE } from "../../mdoc/const";
-import { getParsedCredentialClaimKey } from "../../mdoc/utils";
 import { Logger, LogLevel } from "../../utils/logging";
 import { extractElementValueAsDate } from "../../mdoc/converter";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
-import { createNestedProperty } from "../../utils/nestedProperty";
+import { type SDJwt, SDJwtInstance } from "@sd-jwt/core";
+import { digest } from "@sd-jwt/crypto-nodejs";
+import { isPathEqual, isPrefixOf } from "../../utils/parser";
 
 type IssuerConf = Out<EvaluateIssuerTrust>["issuerConf"];
 type CredentialConf =
@@ -60,112 +60,139 @@ type ParsedCredential = {
   };
 };
 
-// handy alias
-type DecodedSdJwtCredential = Out<typeof verifySdJwt> & {
-  sdJwt: SdJwt4VC;
-};
-
+/**
+ * Parse a Sd-Jwt credential according to the issuer configuration
+ * @param credentialConfig - the list of supported credentials, as defined in the issuer configuration with their claims metadata
+ * @param parsedCredentialRaw - the raw parsed credential
+ * @param ignoreMissingAttributes - skip error when attributes declared in the issuer configuration are not found within disclosures
+ * @param includeUndefinedAttributes - include attributes not explicitly declared in the issuer configuration
+ * @returns The parsed credential with attributes in plain value
+ */
 const parseCredentialSdJwt = (
-  // The credential configuration to use to parse the provided credential
   credentialConfig: CredentialConf,
-  { sdJwt, disclosures }: DecodedSdJwtCredential,
+  parsedCredentialRaw: Record<string, unknown>,
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  if (credentialConfig.format !== sdJwt.header.typ) {
-    const message = `Received credential is of an unknown type. Expected one of [${credentialConfig.format}], received '${sdJwt.header.typ}'`;
-    Logger.log(LogLevel.ERROR, message);
-    throw new IoWalletError(message);
-  }
+  const claimsMetadata = credentialConfig.claims || [];
 
-  if (!credentialConfig.claims) {
-    Logger.log(LogLevel.ERROR, "Missing claims in the credential subject");
-    throw new IoWalletError("Missing claims in the credential subject"); // TODO [SIW-1268]: should not be optional
-  }
-
-  const attrDefinitions = credentialConfig.claims;
-
-  // Validate that all attributes from the config exist in either disclosures OR payload
+  // Check that all mandatory attributes defined in the issuer configuration are present in the credential
   if (!ignoreMissingAttributes) {
-    const disclosedKeys = new Set(disclosures.map(([, name]) => name));
-    const payloadKeys = new Set(Object.keys(sdJwt.payload ?? {}));
-
-    const definedTopLevelKeys = new Set(
-      attrDefinitions.map((def) => def.path[0] as string)
+    const missingPaths: string[] = [];
+    const rootKeysToVerify = new Set(
+      claimsMetadata
+        .map((c) => c.path[0])
+        .filter((p): p is string => typeof p === "string")
     );
 
-    const missingKeys = [...definedTopLevelKeys].filter(
-      (key) => !disclosedKeys.has(key) && !payloadKeys.has(key)
-    );
+    for (const rootKey of rootKeysToVerify) {
+      if (!(rootKey in parsedCredentialRaw)) {
+        missingPaths.push(rootKey);
+      }
+    }
 
-    if (missingKeys.length > 0) {
+    if (missingPaths.length > 0) {
+      const missing = missingPaths.join(", ");
+      const received = Object.keys(parsedCredentialRaw).join(", ");
       throw new IoWalletError(
-        `Some attributes are missing in the credential. Missing: [${missingKeys.join(", ")}]`
+        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
       );
     }
   }
 
-  const definedValues: ParsedCredential = {};
+  /**
+   * Helper to find display metadata for any given path
+   */
+  const getDisplayNames = (
+    path: (string | number | null)[]
+  ): Record<string, string> | undefined => {
+    const match = claimsMetadata.find((c) => isPathEqual(c.path, path));
+    if (!match) return undefined;
 
-  // Group all schema definitions by their top-level key
-  const groupedDefinitions = attrDefinitions.reduce(
-    (acc, def) => {
-      const key = def.path[0] as string;
-      const group = acc[key];
-      if (group) {
-        group.push(def);
-      } else {
-        acc[key] = [def];
+    const nameMap: Record<string, string> = {};
+    for (const entry of match.display) {
+      nameMap[entry.locale] = entry.name;
+    }
+    return nameMap;
+  };
+
+  /**
+   * Recursive function to build the localized structure
+   */
+  const processLevel = (
+    currentData: unknown,
+    currentPath: (string | number | null)[]
+  ): unknown => {
+    // Handle Arrays
+    if (Array.isArray(currentData)) {
+      return currentData.map((item) =>
+        processLevel(item, [...currentPath, null])
+      );
+    }
+
+    // Handle Objects
+    if (typeof currentData !== "object" || currentData === null) {
+      return currentData;
+    }
+
+    const dataObj = currentData as Record<string, unknown>;
+    const result: ParsedCredential = {};
+    const processedKeys = new Set<string | number>();
+
+    // Identify unique keys in config at this level
+    const configKeysAtThisLevel: (string | number)[] = [];
+    for (const claim of claimsMetadata) {
+      // Check if the claim path starts with the current path
+      if (isPrefixOf(currentPath, claim.path)) {
+        const nextPart = claim.path[currentPath.length];
+        if (
+          (typeof nextPart === "string" || typeof nextPart === "number") &&
+          !configKeysAtThisLevel.includes(nextPart)
+        ) {
+          configKeysAtThisLevel.push(nextPart);
+        }
       }
-      return acc;
-    },
-    {} as Record<string, typeof attrDefinitions>
-  );
-
-  // Loop through each group
-  for (const topLevelKey in groupedDefinitions) {
-    const definitionsForThisKey = groupedDefinitions[topLevelKey];
-
-    if (!definitionsForThisKey) {
-      continue;
     }
 
-    const disclosureForThisKey = disclosures.find(
-      ([, name]) => name === topLevelKey
-    );
+    // Process keys
+    for (const key of configKeysAtThisLevel) {
+      const stringKey = key.toString();
+      const dataValue = dataObj[stringKey];
+      if (dataValue === undefined) continue;
 
-    if (!disclosureForThisKey) {
-      continue;
+      const newPath = [...currentPath, key];
+
+      let localizedNames = getDisplayNames(newPath);
+
+      // Fallback for arrays
+      if (!localizedNames && Array.isArray(dataValue)) {
+        localizedNames = getDisplayNames([...newPath, null]);
+      }
+
+      result[stringKey] = {
+        name: localizedNames || stringKey,
+        value: processLevel(dataValue, newPath),
+      };
+
+      processedKeys.add(key);
     }
 
-    const disclosureValue = disclosureForThisKey[2];
+    // Handle Undefined Attributes
+    if (includeUndefinedAttributes) {
+      for (const [key, value] of Object.entries(dataObj)) {
+        if (!processedKeys.has(key)) {
+          result[key] = {
+            name: key,
+            value: value,
+          };
+        }
+      }
+    }
 
-    const tempObjectForGroup = definitionsForThisKey.reduce(
-      (acc, { path, display }) =>
-        createNestedProperty(acc, path, disclosureValue, display),
-      {}
-    );
+    return result;
+  };
 
-    // Merge the fully constructed object into the final result
-    Object.assign(definedValues, tempObjectForGroup);
-  }
-
-  if (includeUndefinedAttributes) {
-    // attributes that are in the disclosure set
-    // but are not defined in the issuer configuration
-    const undefinedValues = Object.fromEntries(
-      disclosures
-        .filter((_) => !Object.keys(definedValues).includes(_[1]))
-        .map(([, key, value]) => [key, { value, name: key }])
-    );
-
-    return {
-      ...definedValues,
-      ...undefinedValues,
-    };
-  }
-
-  return definedValues;
+  return processLevel(parsedCredentialRaw, []) as ParsedCredential;
 };
 
 const parseCredentialMDoc = (
@@ -305,7 +332,8 @@ async function verifyCredentialSdJwt(
   rawCredential: string,
   issuerKeys: JWK[],
   holderBindingContext: CryptoContext
-): Promise<DecodedSdJwtCredential> {
+): Promise<SDJwt> {
+  // TODO: change verification using sd-jwt library with 1.3.x update
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
@@ -320,8 +348,13 @@ async function verifyCredentialSdJwt(
     throw new IoWalletError(message);
   }
 
-  return decodedCredential;
+  const sdJwtInstance = new SDJwtInstance({
+    hasher: digest,
+  });
+
+  return await sdJwtInstance.decode(rawCredential);
 }
+
 /**
  * Given a credential, verify it's in the supported format
  * and the credential is correctly signed
@@ -396,26 +429,37 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredential = async (
     throw new IoWalletError("Credential type not supported by the issuer");
   }
 
+  const parsedCredentialRaw = (await decoded.getClaims(digest)) as Record<
+    string,
+    unknown
+  >;
+
   const parsedCredential = parseCredentialSdJwt(
     credentialConfig,
-    decoded,
+    parsedCredentialRaw,
     ignoreMissingAttributes,
     includeUndefinedAttributes
   );
-  const maybeIssuedAt = getValueFromDisclosures(decoded.disclosures, "iat");
+
+  const issuedAt =
+    typeof parsedCredentialRaw.iat === "number"
+      ? new Date(parsedCredentialRaw.iat * 1000)
+      : undefined;
+
+  if (typeof parsedCredentialRaw.exp !== "number") {
+    throw new IoWalletError("Invalid or missing expiration claim (exp)");
+  }
+  const expiration = new Date(parsedCredentialRaw.exp * 1000);
 
   Logger.log(
     LogLevel.DEBUG,
-    `Parsed credential: ${JSON.stringify(parsedCredential)}\nIssued at: ${maybeIssuedAt}`
+    `Parsed credential: ${JSON.stringify(parsedCredential)}\nIssued at: ${issuedAt}`
   );
 
   return {
     parsedCredential,
-    expiration: new Date(decoded.sdJwt.payload.exp * 1000),
-    issuedAt:
-      typeof maybeIssuedAt === "number"
-        ? new Date(maybeIssuedAt * 1000)
-        : undefined,
+    expiration,
+    issuedAt,
   };
 };
 
