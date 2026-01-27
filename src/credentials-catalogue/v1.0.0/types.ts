@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { UnixTime } from "../sd-jwt/types";
 
 const CredentialPurpose = z.object({
   id: z.string(),
@@ -27,7 +26,7 @@ const AuthenticSource = z.object({
   organization_name: z.string(),
   organization_code: z.string(),
   organization_country: z.string(),
-  source_type: z.enum(["public", "private"]),
+  source_type: z.string(),
   contacts: z.array(z.string()).optional(),
   homepage_uri: z.string().optional(),
   logo_uri: z.string().optional(),
@@ -78,7 +77,7 @@ export const DigitalCredential = z.object({
  * @version 1.1.0
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.1.0/en/registry-catalogue.html
  */
-export const DigitalCredentialsCatalogue = z.object({
+export const DigitalCredentialsCatalogueJwt = z.object({
   header: z.object({
     typ: z.string(),
     alg: z.string(),
@@ -88,10 +87,10 @@ export const DigitalCredentialsCatalogue = z.object({
     catalog_version: z.string(),
     taxonomy_uri: z.string().url(),
     credentials: z.array(DigitalCredential),
-    iat: UnixTime,
-    exp: UnixTime,
+    iat: z.number(),
+    exp: z.number(),
   }),
 });
-export type DigitalCredentialsCatalogue = z.infer<
-  typeof DigitalCredentialsCatalogue
+export type DigitalCredentialsCatalogueJwt = z.infer<
+  typeof DigitalCredentialsCatalogueJwt
 >;
