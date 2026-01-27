@@ -10,9 +10,10 @@ import {
   VSpacer,
   RadioButtonLabel,
   type RadioItem,
+  BodySmall,
 } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import type { ItwVersion } from "@pagopa/io-react-native-wallet";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
@@ -29,6 +30,7 @@ import type { EnvType } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const itwVersions: ItwVersion[] = ["1.0.0", "1.3.3"];
 
@@ -85,8 +87,9 @@ const HomeScreen = () => {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
+    <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <VSpacer size={8} />
         <H1>Environment</H1>
         <RadioGroup
           type="radioListItem"
@@ -97,6 +100,9 @@ const HomeScreen = () => {
         />
         <VSpacer />
         <H1>IT-Wallet version</H1>
+        <BodySmall>
+          Change the version of IT-Wallet technical specifications.
+        </BodySmall>
         <View style={styles.itwVersion}>
           {itwVersions.map((version) => (
             <RadioButtonLabel
@@ -137,14 +143,16 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    margin: IOVisualCostants.appMarginDefault,
+  },
+  scrollViewContent: {
+    paddingHorizontal: IOVisualCostants.appMarginDefault
   },
   itwVersion: {
     flexDirection: "row",
     gap: 24,
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: 16,
+    marginBottom: 24,
   },
 });
