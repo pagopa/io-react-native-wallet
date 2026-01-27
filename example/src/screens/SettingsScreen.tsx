@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import {
   ButtonSolid,
   H1,
@@ -147,7 +146,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollViewContent: {
-    paddingHorizontal: IOVisualCostants.appMarginDefault
+    paddingHorizontal: IOVisualCostants.appMarginDefault,
   },
   itwVersion: {
     flexDirection: "row",
