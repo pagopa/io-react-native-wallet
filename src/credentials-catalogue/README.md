@@ -8,8 +8,12 @@ The module allows:
 ## Usage
 
 ```ts
-// Fetch the catalogue
 const TRUST_ANCHOR_BASE_URL = "https://pre.ta.wallet.ipzs.it";
+
+// Instantiate the SDK with a specific version
+const wallet = new IoWallet({ version: "1.0.0" });
+
+// Fetch the catalogue
 const credentialsCatalogue =
-  await CredentialsCatalogue.fetchAndParseCatalogue(TRUST_ANCHOR_BASE_URL);
+  await wallet.CredentialsCatalogue.fetchAndParseCatalogue(TRUST_ANCHOR_BASE_URL);
 ```
