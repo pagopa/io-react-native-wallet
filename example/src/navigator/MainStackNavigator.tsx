@@ -32,6 +32,7 @@ import {
 } from "../screens/TrustmarkScreen";
 import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
+import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
 import { selectIoAuthToken } from "../store/reducers/session";
@@ -73,6 +74,7 @@ export type MainStackNavParamList = {
   QrScanner: QrScannerScreenParams;
   Proximity: undefined;
   CredentialOffer: undefined;
+  CredentialsCatalogue: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -209,6 +211,11 @@ export const MainStackNavigator = () => {
               name="CredentialOffer"
               component={OfferScreen}
               options={{ title: "Credential Offer" }}
+            />
+            <Stack.Screen
+              name="CredentialsCatalogue"
+              component={CredentialsCatalogueScreen}
+              options={{ title: "Credentials Catalogue" }}
             />
             <Stack.Screen
               name="Settings"

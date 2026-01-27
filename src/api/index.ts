@@ -6,7 +6,7 @@ export type ItwVersion = "1.0.0" | "1.3.3";
  * The Wallet public API.
  */
 export interface IoWalletApi {
-  CredentialsCatalogue: CredentialsCatalogue.Api;
+  CredentialsCatalogue: CredentialsCatalogue.CredentialsCatalogueApi;
 }
 
 /**

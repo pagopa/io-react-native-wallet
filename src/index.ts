@@ -17,8 +17,6 @@ import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import { createCryptoContextFor } from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
 
-export { IoWallet } from "./IoWallet";
-
 export {
   SdJwt,
   Mdoc,
@@ -36,3 +34,10 @@ export {
 };
 
 export type { IntegrityContext, AuthorizationContext };
+
+// Export API types only
+export type * from "./api";
+export type * as CredentialsCatalogue from "./credentials-catalogue/api";
+
+// Export SDK entrypoint
+export { IoWallet } from "./IoWallet";

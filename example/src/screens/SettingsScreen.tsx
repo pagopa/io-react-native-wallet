@@ -8,16 +8,20 @@ import {
   TextInput,
   useIOToast,
   VSpacer,
+  RadioButtonLabel,
   type RadioItem,
 } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView } from "react-native";
+import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
+import type { ItwVersion } from "@pagopa/io-react-native-wallet";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   envSet,
   loggingAddressSet,
   selectEnv,
   selectLoggingAddress,
+  setItwVersion,
+  selectItwVersion,
 } from "../store/reducers/environment";
 import { instanceReset } from "../store/reducers/instance";
 import { selectIoAuthToken, sessionReset } from "../store/reducers/session";
@@ -25,6 +29,8 @@ import type { EnvType } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
+
+const itwVersions: ItwVersion[] = ["1.0.0", "1.3.3"];
 
 /**
  * Settings screen component which allows to change the environment and manage the session.
@@ -34,6 +40,7 @@ const HomeScreen = () => {
   const env = useAppSelector(selectEnv);
   const session = useAppSelector(selectIoAuthToken);
   const currentDebugAddress = useAppSelector(selectLoggingAddress);
+  const itwVersion = useAppSelector(selectItwVersion);
   const [selectedEnv, setSelectedEnv] = useState<EnvType>(env);
   const [debugAddress, setDebugAddress] = useState<string>(
     currentDebugAddress || ""
@@ -78,9 +85,7 @@ const HomeScreen = () => {
   });
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, margin: IOVisualCostants.appMarginDefault }}
-    >
+    <SafeAreaView style={styles.container}>
       <ScrollView>
         <H1>Environment</H1>
         <RadioGroup
@@ -91,6 +96,19 @@ const HomeScreen = () => {
           onPress={toggleEnvionment}
         />
         <VSpacer />
+        <H1>IT-Wallet version</H1>
+        <View style={styles.itwVersion}>
+          {itwVersions.map((version) => (
+            <RadioButtonLabel
+              key={version}
+              label={`v${version}`}
+              checked={version === itwVersion}
+              onValueChange={() =>
+                dispatch(setItwVersion(version as ItwVersion))
+              }
+            />
+          ))}
+        </View>
         <H1>Logging Server</H1>
         <VSpacer size={8} />
         <TextInput
@@ -117,3 +135,16 @@ const HomeScreen = () => {
 };
 
 export default HomeScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    margin: IOVisualCostants.appMarginDefault,
+  },
+  itwVersion: {
+    flexDirection: "row",
+    gap: 24,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+});

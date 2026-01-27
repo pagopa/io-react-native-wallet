@@ -310,8 +310,6 @@ export class UnimplementedFeatureError extends Error {
   code = "ERR_IO_WALLET_UNIMPLEMENTED_FEATURE";
 
   constructor(feature: string, version: string) {
-    super(
-      `Missing implementation for "${feature}" aligned with version ${version}`
-    );
+    super(`Missing v${version} compatible implementation for "${feature}"`);
   }
 }

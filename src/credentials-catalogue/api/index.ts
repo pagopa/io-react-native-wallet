@@ -17,3 +17,5 @@ export interface CredentialsCatalogueApi {
     ctx?: FetchContext
   ): Promise<DigitalCredentialsCatalogue>;
 }
+
+export { type DigitalCredentialsCatalogue };
