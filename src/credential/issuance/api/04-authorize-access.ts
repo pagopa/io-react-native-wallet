@@ -10,8 +10,8 @@ export interface AuthorizeAccessApi {
    * The DPoP Proof JWT is generated according to the section 4.3 of the DPoP RFC 9449 specification.
    * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
    * @param code The authorization code returned by {@link completeUserAuthorizationWithQueryMode} or {@link completeUserAuthorizationWithFormPost}
-   * @param redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
    * @param clientId The client id returned by {@link startUserAuthorization}
+   * @param redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
    * @param codeVerifier The code verifier returned by {@link startUserAuthorization}
    * @param context.walletInstanceAttestation The Wallet Instance's attestation
    * @param context.wiaCryptoContext The Wallet Instance's crypto context
@@ -24,8 +24,8 @@ export interface AuthorizeAccessApi {
   authorizeAccess(
     issuerConf: IssuerConfig,
     code: string,
-    redirectUri: string,
     clientId: string,
+    redirectUri: string,
     codeVerifier: string,
     context: {
       walletInstanceAttestation: string;
