@@ -1,6 +1,6 @@
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import type { StartUserAuthorization } from "./03-start-user-authorization";
+import type { StartUserAuthorization } from "./v1.0.0/03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
 import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../utils/pop";
