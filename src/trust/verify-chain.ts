@@ -1,8 +1,5 @@
-import {
-  EntityConfiguration,
-  EntityStatement,
-  TrustAnchorEntityConfiguration,
-} from "./types";
+import { EntityStatement } from "./common/types";
+
 import { JWK } from "../utils/jwk";
 import * as z from "zod";
 import {
@@ -10,7 +7,7 @@ import {
   getTrustAnchorX509Certificate,
   type ParsedToken,
   verify,
-} from "./utils";
+} from "./common/utils";
 import {
   FederationError,
   MissingFederationFetchEndpointError,
@@ -19,7 +16,7 @@ import {
   TrustChainRenewalError,
   TrustChainTokenMissingError,
   X509ValidationError,
-} from "./errors";
+} from "./common/errors";
 import {
   type CertificateValidationResult,
   verifyCertificateChain,
@@ -28,7 +25,12 @@ import {
 import {
   getSignedEntityConfiguration,
   getSignedEntityStatement,
-} from "./build-chain";
+} from "./common/utils";
+// TODO: decouple from specific version types
+import {
+  EntityConfiguration,
+  TrustAnchorEntityConfiguration,
+} from "./v1.0.0/types";
 
 // The first element of the chain is supposed to be the Entity Configuration for the document issuer
 const FirstElementShape = EntityConfiguration;
