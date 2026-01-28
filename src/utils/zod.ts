@@ -26,3 +26,6 @@ export const stringToJSONSchema = z
       return z.NEVER;
     }
   });
+
+export const UnixTime = z.number().min(0).max(2147483647000);
+export type UnixTime = z.infer<typeof UnixTime>;

@@ -1,8 +1,6 @@
 import { JWK } from "../utils/jwk";
+import { UnixTime } from "../utils/zod";
 import { z } from "zod";
-
-export const UnixTime = z.number().min(0).max(2147483647000);
-export type UnixTime = z.infer<typeof UnixTime>;
 
 export type ObfuscatedDisclosures = z.infer<typeof ObfuscatedDisclosures>;
 export const ObfuscatedDisclosures = z.object({ _sd: z.array(z.string()) });

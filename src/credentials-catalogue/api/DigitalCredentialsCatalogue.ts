@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { UnixTime } from "../../utils/zod";
 
 const CredentialPurpose = z.object({
   id: z.string(),
@@ -71,8 +72,8 @@ export const DigitalCredential = z.object({
 export const DigitalCredentialsCatalogue = z.object({
   taxonomy_uri: z.string().url(),
   credentials: z.array(DigitalCredential),
-  iat: z.number(),
-  exp: z.number(),
+  iat: UnixTime,
+  exp: UnixTime,
 });
 export type DigitalCredentialsCatalogue = z.infer<
   typeof DigitalCredentialsCatalogue
