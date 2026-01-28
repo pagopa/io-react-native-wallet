@@ -1,22 +1,22 @@
-import z from "zod";
+import * as z from "zod";
 
 /**
  * Create a mapper to convert data from type I to type O.
  *
  * By default only static type checking is applied when mapping types.
- * To include runtime validation, provide zod schemas for I and O.
+ * To include runtime validation, provide zod schemas for both I and O.
  *
  * @param mapper The mapping function
- * @param config.inputSchema The schema to validate the input before mapping (optional)
- * @param config.outputSchema The schema to validate the mapped input (optional)
+ * @param config.inputSchema The schema to validate the input before mapping (required when config is provided)
+ * @param config.outputSchema The schema to validate the mapped input (required when config is provided)
  * @returns A function to convert I to O
  *
  * @example
  * // Type checking only
- * createAdapter<TypeA, TypeB>(mapper)
+ * createMapper<TypeA, TypeB>(mapper)
  *
  * // Type checking with runtime validation
- * createAdapter(mapper, {
+ * createMapper(mapper, {
  *   inputSchema: TypeA,
  *   outputSchema: TypeB
  * })

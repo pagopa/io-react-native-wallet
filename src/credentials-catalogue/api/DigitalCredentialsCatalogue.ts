@@ -46,6 +46,10 @@ const Claim = z.object({
   display_name: z.string(),
 });
 
+/**
+ * Unified shape for a Digital Credential in the catalogue, regardless of IT-Wallet version.
+ * Please note that some of the version-specific properties might be missing in this representation.
+ */
 export const DigitalCredential = z.object({
   version: z.string(),
   credential_type: z.string(),

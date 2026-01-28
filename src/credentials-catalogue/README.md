@@ -8,6 +8,8 @@ The module allows:
 ## Usage
 
 ```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+
 const TRUST_ANCHOR_BASE_URL = "https://pre.ta.wallet.ipzs.it";
 
 // Instantiate the SDK with a specific version
