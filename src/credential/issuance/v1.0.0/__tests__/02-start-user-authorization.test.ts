@@ -1,7 +1,7 @@
 import { generate } from "@pagopa/io-react-native-crypto";
 import { createCryptoContextFor } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
-import type { EvaluateIssuerTrust } from "../../issuance/02-evaluate-issuer-trust";
+import type { EvaluateIssuerTrustApi } from "../api/01-evaluate-issuer-trust";
 import { startUserAuthorization } from "..";
 import { decode } from "@pagopa/io-react-native-jwt";
 
@@ -17,7 +17,9 @@ const mockIssuerConf = {
       TS: {},
     },
   },
-} as unknown as Out<EvaluateIssuerTrust>["issuerConf"];
+} as unknown as Out<
+  EvaluateIssuerTrustApi["evaluateIssuerTrust"]
+>["issuerConf"];
 
 const createMockFetch = () =>
   jest.fn().mockResolvedValue({
