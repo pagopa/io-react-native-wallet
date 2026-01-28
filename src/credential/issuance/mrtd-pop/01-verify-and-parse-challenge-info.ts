@@ -1,70 +1,40 @@
 import {
   decode as decodeJwt,
   verify as verifyJwt,
-  type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
-import { MrtdProofChallengeInfo } from "./types";
-import type { EvaluateIssuerTrust } from "../../issuance";
-import type { Out } from "../../../utils/misc";
 import { IoWalletError } from "../../../utils/errors";
+import type { MRTDPoPApi } from "../api/mrtd-pop";
+import { MrtdProofChallengeInfoJwt } from "./types";
 
-export type VerifyAndParseChallengeInfo = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  challengeInfoJwt: string,
-  context: {
-    wiaCryptoContext: CryptoContext;
-  }
-) => Promise<MrtdProofChallengeInfo["payload"]>;
+export const verifyAndParseChallengeInfo: MRTDPoPApi["verifyAndParseChallengeInfo"] =
+  async (issuerConf, challengeInfoJwt: string, { wiaCryptoContext }) => {
+    // Verify JWT signature
+    await verifyJwt(challengeInfoJwt, issuerConf.keys);
 
-/**
- * Verifies and parses the payload of a MRTD Proof Challenge Info JWT obtained after the primary authentication.
- *
- * This function performs the following steps:
- * 1. Validates the JWT signature using the issuer's JWKS.
- * 2. Decodes the JWT and parses its structure according to the {@link MrtdProofChallengeInfo} schema.
- * 3. Verifies that the `aud` claim matches the client's public key ID.
- * 4. Checks that the JWT is not expired and was not issued in the future.
- *
- * @param issuerConf - The issuer configuration containing the JWKS for signature verification.
- * @param challengeInfoJwt - The JWT string representing the MRTD Proof Challenge Info.
- * @param context - The context containing the WIA crypto context used to retrieve the client public key.
- * @returns The parsed payload of the MRTD Proof Challenge Info JWT.
- * @throws {Error} If the JWT signature is invalid, the structure is malformed, the `aud` claim does not match,
- * or the JWT is expired/not yet valid.
- */
-export const verifyAndParseChallengeInfo: VerifyAndParseChallengeInfo = async (
-  issuerConf,
-  challengeInfoJwt: string,
-  { wiaCryptoContext }
-) => {
-  // Verify JWT signature
-  await verifyJwt(
-    challengeInfoJwt,
-    issuerConf.oauth_authorization_server.jwks.keys
-  );
+    // Decode JWT
+    const challengeInfoDecoded = decodeJwt(challengeInfoJwt);
 
-  // Decode JWT
-  const challengeInfoDecoded = decodeJwt(challengeInfoJwt);
+    // Parse and validate structure
+    const challengeInfoParsed =
+      MrtdProofChallengeInfoJwt.safeParse(challengeInfoDecoded);
+    if (!challengeInfoParsed.success) {
+      throw new IoWalletError("Malformed challenge info.");
+    }
+    const payload = challengeInfoParsed.data.payload;
 
-  // Parse and validate structure
-  const challengeInfoParsed =
-    MrtdProofChallengeInfo.safeParse(challengeInfoDecoded);
-  if (!challengeInfoParsed.success) {
-    throw new IoWalletError("Malformed challenge info.");
-  }
-  const payload = challengeInfoParsed.data.payload;
+    // Verify aud claim
+    const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
+    if (payload.aud !== clientId) {
+      throw new IoWalletError("aud claim does not match client_id.");
+    }
 
-  // Verify aud claim
-  const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
-  if (payload.aud !== clientId) {
-    throw new IoWalletError("aud claim does not match client_id.");
-  }
+    // Verify iat and exp
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.iat > now || payload.exp < now) {
+      throw new IoWalletError(
+        "JWT is not valid (issued in future or expired)."
+      );
+    }
 
-  // Verify iat and exp
-  const now = Math.floor(Date.now() / 1000);
-  if (payload.iat > now || payload.exp < now) {
-    throw new IoWalletError("JWT is not valid (issued in future or expired).");
-  }
-
-  return payload;
-};
+    return payload;
+  };
