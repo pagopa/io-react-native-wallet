@@ -12,3 +12,6 @@ export interface IssuanceApi
     AuthorizeAccessApi,
     ObtainCredentialApi,
     VerifyAndParseCredentialApi {}
+
+export type { IssuerConfig } from "./IssuerConfig";
+export type * from "./types";
