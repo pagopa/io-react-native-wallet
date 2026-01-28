@@ -6,7 +6,7 @@ import {
   type AuthorizationResult,
 } from "../../utils/auth";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { StartUserAuthorization } from "./03-start-user-authorization";
+import type { StartUserAuthorization } from "./v1.0.0/03-start-user-authorization";
 import parseUrl from "parse-url";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
