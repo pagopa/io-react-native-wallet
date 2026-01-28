@@ -3,5 +3,5 @@ import { type CredentialsCatalogueApi as Api } from "../api";
 
 export const fetchAndParseCatalogue: Api["fetchAndParseCatalogue"] =
   async () => {
-    throw new UnimplementedFeatureError(fetchAndParseCatalogue.name, "1.3.3");
+    throw new UnimplementedFeatureError("fetchAndParseCatalogue", "1.3.3");
   };

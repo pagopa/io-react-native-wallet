@@ -21,19 +21,27 @@ import * as z from "zod";
  *   outputSchema: TypeB
  * })
  */
-export const createMapper = <I, O>(
+export function createMapper<I, O>(mapper: (input: I) => O): (input: I) => O;
+export function createMapper<I, O>(
+  mapper: (input: I) => O,
+  config: {
+    inputSchema: z.ZodType<I>;
+    outputSchema: z.ZodType<O>;
+  }
+): (input: unknown) => O;
+export function createMapper<I, O>(
   mapper: (input: I) => O,
   config?: {
     inputSchema: z.ZodType<I>;
     outputSchema: z.ZodType<O>;
   }
-) => {
+) {
   if (!config) {
-    return mapper as (input: unknown) => O;
+    return mapper;
   }
 
   const { inputSchema, outputSchema } = config;
 
   return (input: unknown) =>
     inputSchema.transform(mapper).pipe(outputSchema).parse(input);
-};
+}

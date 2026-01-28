@@ -306,7 +306,7 @@ export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
  * Error thrown when the library does not implement
  * a feature aligned with the specified version.
  */
-export class UnimplementedFeatureError extends Error {
+export class UnimplementedFeatureError extends IoWalletError {
   code = "ERR_IO_WALLET_UNIMPLEMENTED_FEATURE";
 
   constructor(feature: string, version: string) {
