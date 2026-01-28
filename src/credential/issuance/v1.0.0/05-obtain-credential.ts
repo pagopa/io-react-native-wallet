@@ -6,7 +6,7 @@ import {
 import type { AuthorizeAccess } from "./05-authorize-access";
 import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { StartUserAuthorization } from "./03-start-user-authorization";
+import type { StartUserAuthorization } from "./v1.0.0/03-start-user-authorization";
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
