@@ -100,7 +100,7 @@ export const RequestObject = z.object({
   response_type: z.literal("vp_token"),
   response_mode: z.literal("direct_post.jwt"),
   client_id: z.string(),
-  dcql_query: z.record(z.string(), z.any()).optional(), // Validation happens within the `dcql` library, no need to duplicate it here
+  dcql_query: z.record(z.string(), z.any()), // Validation happens within the `dcql` library, no need to duplicate it here
   scope: z.string().optional(),
   presentation_definition: PresentationDefinition.optional(),
 });
