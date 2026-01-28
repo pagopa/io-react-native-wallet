@@ -50,7 +50,7 @@ export const IssuerConfig = z.object({
   pushed_authorization_request_endpoint: z.string(),
   authorization_endpoint: z.string(),
   token_endpoint: z.string(),
-  nonce_endpoint: z.string().optional(),
+  nonce_endpoint: z.string(),
   status_assertion_endpoint: z.string().optional(),
   credential_endpoint: z.string(),
   keys: z.array(JWK),
