@@ -4,6 +4,7 @@ import { type CompleteUserAuthorizationApi } from "./03-complete-user-authorizat
 import { type AuthorizeAccessApi } from "./04-authorize-access";
 import { type ObtainCredentialApi } from "./05-obtain-credential";
 import { type VerifyAndParseCredentialApi } from "./06-verify-and-parse-credential";
+import { type MRTDPoPApi } from "./mrtd-pop";
 
 export interface IssuanceApi
   extends EvaluateIssuerTrustApi,
@@ -11,7 +12,9 @@ export interface IssuanceApi
     CompleteUserAuthorizationApi,
     AuthorizeAccessApi,
     ObtainCredentialApi,
-    VerifyAndParseCredentialApi {}
+    VerifyAndParseCredentialApi {
+  MRTDPoP: MRTDPoPApi;
+}
 
 export type { IssuerConfig } from "./IssuerConfig";
 export type * from "./types";
