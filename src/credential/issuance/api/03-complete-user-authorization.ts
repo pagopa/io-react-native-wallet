@@ -8,6 +8,7 @@ import type { IssuerConfig } from "./IssuerConfig";
 // Simplified request object for issuance
 type RequestedCredential = {
   dcql_query: Record<string, unknown>;
+  response_uri: string;
   nonce: string;
   client_id: string;
   state?: string;
