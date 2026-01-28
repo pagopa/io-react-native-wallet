@@ -1,10 +1,9 @@
-import { AuthorizationError, AuthorizationIdpError } from "../errors";
+import { AuthorizationError, AuthorizationIdpError } from "../../errors";
 import {
   buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
-} from "../04-complete-user-authorization";
-import type { Out } from "src/utils/misc";
-import type { EvaluateIssuerTrust } from "src/credential/status";
+} from "../03-complete-user-authorization";
+import type { IssuerConfig } from "../..";
 
 describe("authorizeUserWithQueryMode", () => {
   it("should return the authorization result when the authorization server responds with a valid response", async () => {
@@ -57,10 +56,8 @@ describe("buildAuthorizationUrl", () => {
       "issuerRequestUri",
       "clientId",
       {
-        oauth_authorization_server: {
-          authorization_endpoint: "https://issuer.com/authorize",
-        },
-      } as Out<EvaluateIssuerTrust>["issuerConf"],
+        authorization_endpoint: "https://issuer.com/authorize",
+      } as IssuerConfig,
       "idpHint"
     );
 
@@ -75,10 +72,8 @@ describe("buildAuthorizationUrl", () => {
       "issuerRequestUri",
       "clientId",
       {
-        oauth_authorization_server: {
-          authorization_endpoint: "https://issuer.com/authorize",
-        },
-      } as Out<EvaluateIssuerTrust>["issuerConf"]
+        authorization_endpoint: "https://issuer.com/authorize",
+      } as IssuerConfig
     );
 
     expect(authUrl).toMatchObject({

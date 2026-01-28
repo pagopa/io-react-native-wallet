@@ -1,15 +1,13 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { CredentialIssuerEntityConfiguration } from "../../../trust/types";
 import {
   education_degree,
   education_degree_with_missing_keys,
   mdl,
   pid,
   residency,
-} from "../../../sd-jwt/__mocks__/sd-jwt";
-import { verifyAndParseCredential } from "..";
-
-type IssuerConf = CredentialIssuerEntityConfiguration["payload"]["metadata"];
+} from "../../../../sd-jwt/__mocks__/sd-jwt";
+import { verifyAndParseCredential } from "../06-verify-and-parse-credential";
+import type { IssuerConfig } from "../../api";
 
 describe("verifyAndParseCredential", () => {
   const credentialCryptoContext: CryptoContext = {
@@ -22,66 +20,61 @@ describe("verifyAndParseCredential", () => {
     getSignature: async () => "",
   };
 
-  const mockIssuerConf: IssuerConf = {
-    openid_credential_issuer: {
-      credential_endpoint: "https://issuer.example.com/credential",
-      nonce_endpoint: "https://issuer.example.com/nonce",
-      jwks: {
-        keys: [
+  const mockIssuerConf: IssuerConfig = {
+    credential_endpoint: "https://issuer.example.com/credential",
+    nonce_endpoint: "https://issuer.example.com/nonce",
+
+    keys: [
+      {
+        kty: "EC",
+        use: "sig",
+        alg: "ES256",
+        kid: "-F_6Uga8n3VegjY2U7YUHK1zLoaD-NPTc63RMISnLaw",
+        crv: "P-256",
+        x: "CoQdxuFhVn2pZQ7CmaGmezYQdEEP6wFxWU_XACxMAMA",
+        y: "6ppJM8poetjY6z0IDdQHuFMbQMwgKJl7eH3_FN0taZQ",
+      },
+    ],
+    credential_configurations_supported: {
+      mock_invalid_cred: {
+        // @ts-expect-error unsupported format
+        format: "unknown",
+      },
+      mock_valid_sd_jwt_cred: {
+        format: "dc+sd-jwt",
+        display: [],
+        vct: "https://issuer.example.com/MyCredential",
+        scope: "MyCredential",
+        claims: [
           {
-            kty: "EC",
-            use: "sig",
-            alg: "ES256",
-            kid: "-F_6Uga8n3VegjY2U7YUHK1zLoaD-NPTc63RMISnLaw",
-            crv: "P-256",
-            x: "CoQdxuFhVn2pZQ7CmaGmezYQdEEP6wFxWU_XACxMAMA",
-            y: "6ppJM8poetjY6z0IDdQHuFMbQMwgKJl7eH3_FN0taZQ",
+            path: ["given_name"],
+            display: [
+              { locale: "it-IT", name: "Nome" },
+              { locale: "en-US", name: "First Name" },
+            ],
+          },
+          {
+            path: ["family_name"],
+            display: [
+              { locale: "it-IT", name: "Cognome" },
+              { locale: "en-US", name: "Family Name" },
+            ],
+          },
+          {
+            path: ["birth_date"],
+            display: [
+              { locale: "it-IT", name: "Data di nascita" },
+              { locale: "en-US", name: "Date of birth" },
+            ],
+          },
+          {
+            path: ["tax_id_code"],
+            display: [
+              { locale: "it-IT", name: "Codice fiscale" },
+              { locale: "en-US", name: "Tax ID code" },
+            ],
           },
         ],
-      },
-      credential_configurations_supported: {
-        mock_invalid_cred: {
-          // @ts-expect-error unsupported format
-          format: "unknown",
-        },
-        mock_valid_sd_jwt_cred: {
-          format: "dc+sd-jwt",
-          vct: "https://issuer.example.com/MyCredential",
-          scope: "MyCredential",
-          claims: [
-            {
-              path: ["given_name"],
-              display: [
-                { locale: "it-IT", name: "Nome" },
-                { locale: "en-US", name: "First Name" },
-              ],
-            },
-            {
-              path: ["family_name"],
-              display: [
-                { locale: "it-IT", name: "Cognome" },
-                { locale: "en-US", name: "Family Name" },
-              ],
-            },
-            {
-              path: ["birth_date"],
-              display: [
-                { locale: "it-IT", name: "Data di nascita" },
-                { locale: "en-US", name: "Date of birth" },
-              ],
-            },
-            {
-              path: ["tax_id_code"],
-              display: [
-                { locale: "it-IT", name: "Codice fiscale" },
-                { locale: "en-US", name: "Tax ID code" },
-              ],
-            },
-          ],
-          display: [],
-          credential_signing_alg_values_supported: [],
-          cryptographic_binding_methods_supported: [],
-        },
       },
     },
   };
@@ -164,120 +157,109 @@ describe("verifyAndParseCredential", () => {
       getSignature: async () => "",
     };
 
-    const mockIssuerConfWithNested: IssuerConf = {
+    const mockIssuerConfWithNested: IssuerConfig = {
       ...mockIssuerConf,
-      openid_credential_issuer: {
-        ...mockIssuerConf.openid_credential_issuer,
-        jwks: {
-          keys: [
+      keys: [
+        {
+          kty: "EC",
+          use: "sig",
+          crv: "P-256",
+          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+          alg: "ES256",
+        },
+      ],
+
+      credential_configurations_supported: {
+        ...mockIssuerConf.credential_configurations_supported,
+        dc_sd_jwt_education_degree: {
+          format: "dc+sd-jwt",
+          vct: "https://issuer.example.com/MyCredential",
+          scope: "EducationCredential",
+          claims: [
             {
-              kty: "EC",
-              use: "sig",
-              crv: "P-256",
-              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-              alg: "ES256",
+              path: ["tax_id_code"],
+              display: [
+                { locale: "it-IT", name: "Codice Fiscale" },
+                { locale: "en-US", name: "Tax id code" },
+              ],
+            },
+            {
+              path: ["personal_administrative_number"],
+              display: [
+                { locale: "it-IT", name: "ID ANPR" },
+                { locale: "en-US", name: "Personal Administrative Number" },
+              ],
+            },
+            {
+              path: ["education_degrees", null],
+              display: [
+                { name: "Elenco dei titoli di studio", locale: "it-IT" },
+                { name: "List of education degrees", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "institute_name"],
+              display: [
+                { locale: "it-IT", name: "Nome dell'Istituto" },
+                { locale: "en-US", name: "Institute name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "qualification_name"],
+              display: [
+                { locale: "it-IT", name: "Nome del titolo di studio" },
+                { locale: "en-US", name: "Qualification name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "qualification_grade_value"],
+              display: [
+                { locale: "it-IT", name: "Voto del titolo di studio" },
+                { locale: "en-US", name: "Qualification grade value" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "academic_qualification_date"],
+              display: [
+                {
+                  locale: "it-IT",
+                  name: "Data di conseguimento del titolo di studio",
+                },
+                { locale: "en-US", name: "Qualification date" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "programme_type_name"],
+              display: [
+                { locale: "it-IT", name: "Tipologia del corso di laurea" },
+                { locale: "en-US", name: "Program type name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "degree_class_name"],
+              display: [
+                { locale: "it-IT", name: "Nome della classe di laurea" },
+                { locale: "en-US", name: "Degree class name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "degree_class"],
+              display: [
+                { locale: "it-IT", name: "Codice della classe di laurea" },
+                { locale: "en-US", name: "Degree class code" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "degree_course_name"],
+              display: [
+                { locale: "it-IT", name: "Nome del corso di laurea" },
+                { locale: "en-US", name: "Degree course name" },
+              ],
             },
           ],
-        },
-        credential_configurations_supported: {
-          ...mockIssuerConf.openid_credential_issuer
-            .credential_configurations_supported,
-          dc_sd_jwt_education_degree: {
-            format: "dc+sd-jwt",
-            vct: "https://issuer.example.com/MyCredential",
-            scope: "EducationCredential",
-            claims: [
-              {
-                path: ["tax_id_code"],
-                display: [
-                  { locale: "it-IT", name: "Codice Fiscale" },
-                  { locale: "en-US", name: "Tax id code" },
-                ],
-              },
-              {
-                path: ["personal_administrative_number"],
-                display: [
-                  { locale: "it-IT", name: "ID ANPR" },
-                  { locale: "en-US", name: "Personal Administrative Number" },
-                ],
-              },
-              {
-                path: ["education_degrees", null],
-                display: [
-                  { name: "Elenco dei titoli di studio", locale: "it-IT" },
-                  { name: "List of education degrees", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "institute_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome dell'Istituto" },
-                  { locale: "en-US", name: "Institute name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "qualification_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome del titolo di studio" },
-                  { locale: "en-US", name: "Qualification name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "qualification_grade_value"],
-                display: [
-                  { locale: "it-IT", name: "Voto del titolo di studio" },
-                  { locale: "en-US", name: "Qualification grade value" },
-                ],
-              },
-              {
-                path: [
-                  "education_degrees",
-                  null,
-                  "academic_qualification_date",
-                ],
-                display: [
-                  {
-                    locale: "it-IT",
-                    name: "Data di conseguimento del titolo di studio",
-                  },
-                  { locale: "en-US", name: "Qualification date" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "programme_type_name"],
-                display: [
-                  { locale: "it-IT", name: "Tipologia del corso di laurea" },
-                  { locale: "en-US", name: "Program type name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "degree_class_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome della classe di laurea" },
-                  { locale: "en-US", name: "Degree class name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "degree_class"],
-                display: [
-                  { locale: "it-IT", name: "Codice della classe di laurea" },
-                  { locale: "en-US", name: "Degree class code" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "degree_course_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome del corso di laurea" },
-                  { locale: "en-US", name: "Degree course name" },
-                ],
-              },
-            ],
-            display: [],
-            credential_signing_alg_values_supported: ["ES256"],
-            cryptographic_binding_methods_supported: [],
-          },
+          display: [],
         },
       },
     };
@@ -447,106 +429,96 @@ describe("verifyAndParseCredential", () => {
       getSignature: async () => "",
     };
 
-    const mockIssuerConfWithOptional: IssuerConf = {
+    const mockIssuerConfWithOptional: IssuerConfig = {
       ...mockIssuerConf,
-      openid_credential_issuer: {
-        ...mockIssuerConf.openid_credential_issuer,
-        jwks: {
-          keys: [
+
+      keys: [
+        {
+          kty: "EC",
+          use: "sig",
+          crv: "P-256",
+          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+          alg: "ES256",
+        },
+      ],
+
+      credential_configurations_supported: {
+        ...mockIssuerConf.credential_configurations_supported,
+        dc_sd_jwt_education_degree: {
+          format: "dc+sd-jwt",
+          vct: "https://ta.wallet.ipzs.it/schemas/v1.0.0/education_degree.json",
+          scope: "EducationCredential",
+          claims: [
             {
-              kty: "EC",
-              use: "sig",
-              crv: "P-256",
-              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-              alg: "ES256",
+              path: ["education_degrees", null],
+              display: [
+                { locale: "it-IT", name: "Elenco dei titoli di studio" },
+                { locale: "en-US", name: "List of education degrees" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "institute_name"],
+              display: [
+                { locale: "it-IT", name: "Nome dell'Istituto" },
+                { locale: "en-US", name: "Institute name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "qualification_name"],
+              display: [
+                { locale: "it-IT", name: "Nome del titolo di studio" },
+                { locale: "en-US", name: "Qualification name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "qualification_grade_value"],
+              display: [
+                { locale: "it-IT", name: "Voto del titolo di studio" },
+                { locale: "en-US", name: "Qualification grade value" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "academic_qualification_date"],
+              display: [
+                {
+                  locale: "it-IT",
+                  name: "Data di conseguimento del titolo di studio",
+                },
+                { locale: "en-US", name: "Qualification date" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "programme_type_name"],
+              display: [
+                { locale: "it-IT", name: "Tipologia del corso di laurea" },
+                { locale: "en-US", name: "Program type name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "degree_class_name"],
+              display: [
+                { locale: "it-IT", name: "Nome della classe di laurea" },
+                { locale: "en-US", name: "Degree class name" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "degree_class"],
+              display: [
+                { locale: "it-IT", name: "Codice della classe di laurea" },
+                { locale: "en-US", name: "Degree class code" },
+              ],
+            },
+            {
+              path: ["education_degrees", null, "degree_course_name"],
+              display: [
+                { locale: "it-IT", name: "Nome del corso di laurea" },
+                { locale: "en-US", name: "Degree course name" },
+              ],
             },
           ],
-        },
-        credential_configurations_supported: {
-          ...mockIssuerConf.openid_credential_issuer
-            .credential_configurations_supported,
-          dc_sd_jwt_education_degree: {
-            format: "dc+sd-jwt",
-            vct: "https://ta.wallet.ipzs.it/schemas/v1.0.0/education_degree.json",
-            scope: "EducationCredential",
-            claims: [
-              {
-                path: ["education_degrees", null],
-                display: [
-                  { locale: "it-IT", name: "Elenco dei titoli di studio" },
-                  { locale: "en-US", name: "List of education degrees" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "institute_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome dell'Istituto" },
-                  { locale: "en-US", name: "Institute name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "qualification_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome del titolo di studio" },
-                  { locale: "en-US", name: "Qualification name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "qualification_grade_value"],
-                display: [
-                  { locale: "it-IT", name: "Voto del titolo di studio" },
-                  { locale: "en-US", name: "Qualification grade value" },
-                ],
-              },
-              {
-                path: [
-                  "education_degrees",
-                  null,
-                  "academic_qualification_date",
-                ],
-                display: [
-                  {
-                    locale: "it-IT",
-                    name: "Data di conseguimento del titolo di studio",
-                  },
-                  { locale: "en-US", name: "Qualification date" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "programme_type_name"],
-                display: [
-                  { locale: "it-IT", name: "Tipologia del corso di laurea" },
-                  { locale: "en-US", name: "Program type name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "degree_class_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome della classe di laurea" },
-                  { locale: "en-US", name: "Degree class name" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "degree_class"],
-                display: [
-                  { locale: "it-IT", name: "Codice della classe di laurea" },
-                  { locale: "en-US", name: "Degree class code" },
-                ],
-              },
-              {
-                path: ["education_degrees", null, "degree_course_name"],
-                display: [
-                  { locale: "it-IT", name: "Nome del corso di laurea" },
-                  { locale: "en-US", name: "Degree course name" },
-                ],
-              },
-            ],
-            display: [],
-            credential_signing_alg_values_supported: ["ES256"],
-            cryptographic_binding_methods_supported: [],
-          },
+          display: [],
         },
       },
     };
@@ -654,80 +626,77 @@ describe("verifyAndParseCredential", () => {
   });
 
   it("verifies and parses a credential with multiple nested attributes and missing keys", async () => {
-    const mockIssuerConfWithDeepNested: IssuerConf = {
+    const mockIssuerConfWithDeepNested: IssuerConfig = {
       ...mockIssuerConf,
-      openid_credential_issuer: {
-        ...mockIssuerConf.openid_credential_issuer,
-        credential_configurations_supported: {
-          dc_sd_jwt_mDL: {
-            format: "dc+sd-jwt",
-            vct: "https://issuer.example.com/MyCredential",
-            scope: "mDL",
-            display: [],
-            credential_signing_alg_values_supported: ["ES256"],
-            cryptographic_binding_methods_supported: [],
-            claims: [
-              {
-                path: ["driving_privileges", null],
-                display: [
-                  { name: "Codici", locale: "it-IT" },
-                  { name: "Driving privileges", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["driving_privileges", null, "vehicle_category_code"],
-                display: [
-                  { name: "Categoria", locale: "it-IT" },
-                  { name: "Category code", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["driving_privileges", null, "issue_date"],
-                display: [
-                  { name: "Data rilascio categoria", locale: "it-IT" },
-                  { name: "Category issue date", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["driving_privileges", null, "expiry_date"],
-                display: [
-                  { name: "Data di scadenza della categoria", locale: "it-IT" },
-                  { name: "Category expiry date", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["driving_privileges", null, "codes", null],
-                display: [
-                  {
-                    name: "Restrizioni e condizioni della categoria",
-                    locale: "it-IT",
-                  },
-                  { name: "Category conditions/restrictions", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["driving_privileges", null, "codes", null, "code"],
-                display: [
-                  { name: "Codice restrizione/condizione", locale: "it-IT" },
-                  { name: "Condition/restriction code", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["driving_privileges", null, "codes", null, "sign"],
-                display: [
-                  { name: "Segno restrizione/condizione", locale: "it-IT" },
-                  { name: "Condition/restriction sign", locale: "en-US" },
-                ],
-              },
-              {
-                path: ["driving_privileges", null, "codes", null, "value"],
-                display: [
-                  { name: "Valore restrizione/condizione", locale: "it-IT" },
-                  { name: "Condition/restriction value", locale: "en-US" },
-                ],
-              },
-            ],
-          },
+
+      credential_configurations_supported: {
+        dc_sd_jwt_mDL: {
+          format: "dc+sd-jwt",
+          vct: "https://issuer.example.com/MyCredential",
+          scope: "mDL",
+          display: [],
+
+          claims: [
+            {
+              path: ["driving_privileges", null],
+              display: [
+                { name: "Codici", locale: "it-IT" },
+                { name: "Driving privileges", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["driving_privileges", null, "vehicle_category_code"],
+              display: [
+                { name: "Categoria", locale: "it-IT" },
+                { name: "Category code", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["driving_privileges", null, "issue_date"],
+              display: [
+                { name: "Data rilascio categoria", locale: "it-IT" },
+                { name: "Category issue date", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["driving_privileges", null, "expiry_date"],
+              display: [
+                { name: "Data di scadenza della categoria", locale: "it-IT" },
+                { name: "Category expiry date", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["driving_privileges", null, "codes", null],
+              display: [
+                {
+                  name: "Restrizioni e condizioni della categoria",
+                  locale: "it-IT",
+                },
+                { name: "Category conditions/restrictions", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["driving_privileges", null, "codes", null, "code"],
+              display: [
+                { name: "Codice restrizione/condizione", locale: "it-IT" },
+                { name: "Condition/restriction code", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["driving_privileges", null, "codes", null, "sign"],
+              display: [
+                { name: "Segno restrizione/condizione", locale: "it-IT" },
+                { name: "Condition/restriction sign", locale: "en-US" },
+              ],
+            },
+            {
+              path: ["driving_privileges", null, "codes", null, "value"],
+              display: [
+                { name: "Valore restrizione/condizione", locale: "it-IT" },
+                { name: "Condition/restriction value", locale: "en-US" },
+              ],
+            },
+          ],
         },
       },
     };
@@ -831,99 +800,93 @@ describe("verifyAndParseCredential", () => {
       getSignature: async () => "",
     };
 
-    const mockIssuerConfWithNested: IssuerConf = {
+    const mockIssuerConfWithNested: IssuerConfig = {
       ...mockIssuerConf,
-      openid_credential_issuer: {
-        ...mockIssuerConf.openid_credential_issuer,
-        jwks: {
-          keys: [
+
+      keys: [
+        {
+          kty: "EC",
+          use: "sig",
+          crv: "P-256",
+          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+          alg: "ES256",
+        },
+      ],
+
+      credential_configurations_supported: {
+        ...mockIssuerConf.credential_configurations_supported,
+        dc_sd_jwt_residency: {
+          format: "dc+sd-jwt",
+          vct: "https://issuer.example.com/MyCredential",
+          scope: "Residency",
+          claims: [
             {
-              kty: "EC",
-              use: "sig",
-              crv: "P-256",
-              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-              alg: "ES256",
+              path: ["tax_id_code"],
+              display: [
+                { locale: "it-IT", name: "Codice Fiscale" },
+                { locale: "en-US", name: "Tax id code" },
+              ],
+            },
+            {
+              path: ["personal_administrative_number"],
+              display: [
+                { locale: "it-IT", name: "ID ANPR" },
+                { locale: "en-US", name: "Personal Administrative Number" },
+              ],
+            },
+            {
+              path: ["birth_date"],
+              display: [
+                { locale: "it-IT", name: "Data di nascita" },
+                { locale: "en-US", name: "Date of birth" },
+              ],
+            },
+            {
+              path: ["address"],
+              display: [
+                { locale: "it-IT", name: "Indirizzo" },
+                { locale: "en-US", name: "Address" },
+              ],
+            },
+            {
+              path: ["address", "locality"],
+              display: [
+                { locale: "it-IT", name: "Località" },
+                { locale: "en-US", name: "Locality" },
+              ],
+            },
+            {
+              path: ["address", "locality_fraction"],
+              display: [
+                { locale: "it-IT", name: "Frazione" },
+                { locale: "en-US", name: "Locality fraction" },
+              ],
+            },
+            {
+              path: ["address", "region"],
+              display: [
+                { locale: "it-IT", name: "Regione" },
+                { locale: "en-US", name: "Region" },
+              ],
+            },
+            {
+              path: ["address", "postal_code"],
+              display: [
+                { locale: "it-IT", name: "CAP" },
+                { locale: "en-US", name: "Postal Code" },
+              ],
+            },
+            {
+              path: ["address", "country"],
+              display: [
+                { locale: "it-IT", name: "Paese" },
+                { locale: "en-US", name: "Country" },
+              ],
             },
           ],
-        },
-        credential_configurations_supported: {
-          ...mockIssuerConf.openid_credential_issuer
-            .credential_configurations_supported,
-          dc_sd_jwt_residency: {
-            format: "dc+sd-jwt",
-            vct: "https://issuer.example.com/MyCredential",
-            scope: "Residency",
-            claims: [
-              {
-                path: ["tax_id_code"],
-                display: [
-                  { locale: "it-IT", name: "Codice Fiscale" },
-                  { locale: "en-US", name: "Tax id code" },
-                ],
-              },
-              {
-                path: ["personal_administrative_number"],
-                display: [
-                  { locale: "it-IT", name: "ID ANPR" },
-                  { locale: "en-US", name: "Personal Administrative Number" },
-                ],
-              },
-              {
-                path: ["birth_date"],
-                display: [
-                  { locale: "it-IT", name: "Data di nascita" },
-                  { locale: "en-US", name: "Date of birth" },
-                ],
-              },
-              {
-                path: ["address"],
-                display: [
-                  { locale: "it-IT", name: "Indirizzo" },
-                  { locale: "en-US", name: "Address" },
-                ],
-              },
-              {
-                path: ["address", "locality"],
-                display: [
-                  { locale: "it-IT", name: "Località" },
-                  { locale: "en-US", name: "Locality" },
-                ],
-              },
-              {
-                path: ["address", "locality_fraction"],
-                display: [
-                  { locale: "it-IT", name: "Frazione" },
-                  { locale: "en-US", name: "Locality fraction" },
-                ],
-              },
-              {
-                path: ["address", "region"],
-                display: [
-                  { locale: "it-IT", name: "Regione" },
-                  { locale: "en-US", name: "Region" },
-                ],
-              },
-              {
-                path: ["address", "postal_code"],
-                display: [
-                  { locale: "it-IT", name: "CAP" },
-                  { locale: "en-US", name: "Postal Code" },
-                ],
-              },
-              {
-                path: ["address", "country"],
-                display: [
-                  { locale: "it-IT", name: "Paese" },
-                  { locale: "en-US", name: "Country" },
-                ],
-              },
-            ],
-            display: [],
-            credential_signing_alg_values_supported: ["ES256"],
-            cryptographic_binding_methods_supported: [],
-          },
+          display: [],
         },
       },
     };
