@@ -46,7 +46,7 @@ const CredentialConfig = z.intersection(
  */
 export type IssuerConfig = z.infer<typeof IssuerConfig>;
 export const IssuerConfig = z.object({
-  issuer: z.string(),
+  credential_issuer: z.string(),
   pushed_authorization_request_endpoint: z.string(),
   authorization_endpoint: z.string(),
   token_endpoint: z.string(),
@@ -55,4 +55,8 @@ export const IssuerConfig = z.object({
   credential_endpoint: z.string(),
   keys: z.array(JWK),
   credential_configurations_supported: z.record(CredentialConfig),
+  /**
+   * @deprecated
+   */
+  response_modes_supported: z.array(z.string()).optional(),
 });
