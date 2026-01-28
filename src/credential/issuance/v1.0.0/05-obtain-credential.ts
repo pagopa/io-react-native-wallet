@@ -3,44 +3,19 @@ import {
   sha256ToBase64,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
-import type { AuthorizeAccess } from "./05-authorize-access";
-import type { EvaluateIssuerTrust } from "./02-evaluate-issuer-trust";
-import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import type { StartUserAuthorization } from "./v1.0.0/03-start-user-authorization";
+import { v4 as uuidv4 } from "uuid";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
   ValidationFailed,
-} from "../../utils/errors";
-import {
-  CredentialResponse,
-  NonceResponse,
-  type CredentialFormat,
-} from "./types";
-import { createDPopToken } from "../../utils/dpop";
-import { v4 as uuidv4 } from "uuid";
-import { LogLevel, Logger } from "../../utils/logging";
-
-export type ObtainCredential = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  accessToken: Out<AuthorizeAccess>["accessToken"],
-  clientId: Out<StartUserAuthorization>["clientId"],
-  credentialDefinition: {
-    credential_configuration_id: string;
-    credential_identifier?: string;
-  },
-  context: {
-    dPopCryptoContext: CryptoContext;
-    credentialCryptoContext: CryptoContext;
-    appFetch?: GlobalFetch["fetch"];
-  },
-  operationType?: "reissuing"
-) => Promise<{
-  credential: string;
-  format: CredentialFormat;
-}>;
+} from "../../../utils/errors";
+import { createDPopToken } from "../../../utils/dpop";
+import { LogLevel, Logger } from "../../../utils/logging";
+import type { ObtainCredentialApi } from "../api/05-obtain-credential";
+import { CredentialResponse, NonceResponse } from "../types";
 
 export const createNonceProof = async (
   nonce: string,
@@ -64,29 +39,12 @@ export const createNonceProof = async (
     .sign();
 };
 
-/**
- * Obtains the credential from the issuer.
- * The key pair of the credentialCryptoContext is used for Openid4vci proof JWT to be presented with the Access Token and the DPoP Proof JWT at the Credential Endpoint
- * of the Credential Issuer to request the issuance of a credential linked to the public key contained in the JWT proof.
- * The Openid4vci proof JWT incapsulates the nonce extracted from the token response from the {@link authorizeAccess} step.
- * The credential request is sent to the Credential Endpoint of the Credential Issuer via HTTP POST with the type of the credential, its format, the access token and the JWT proof.
- * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
- * @param accessToken The access token response returned by {@link authorizeAccess}
- * @param clientId The client id returned by {@link startUserAuthorization}
- * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link authorizeAccess}
- * @param context.credentialCryptoContext The crypto context used to obtain the credential
- * @param context.dPopCryptoContext The DPoP crypto context
- * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
- * @param operationType Specify the type of credential issuance (used for reissuing)
- * @returns The credential response containing the credential
- */
-export const obtainCredential: ObtainCredential = async (
+export const obtainCredential: ObtainCredentialApi["obtainCredential"] = async (
   issuerConf,
   accessToken,
   clientId,
   credentialDefinition,
-  context,
-  operationType
+  context
 ) => {
   const {
     credentialCryptoContext,
@@ -96,9 +54,9 @@ export const obtainCredential: ObtainCredential = async (
   const { credential_configuration_id, credential_identifier } =
     credentialDefinition;
 
-  const credentialUrl = issuerConf.openid_credential_issuer.credential_endpoint;
-  const issuerUrl = issuerConf.oauth_authorization_server.issuer;
-  const nonceUrl = issuerConf.openid_credential_issuer.nonce_endpoint;
+  const credentialUrl = issuerConf.credential_endpoint;
+  const issuerUrl = issuerConf.credential_issuer;
+  const nonceUrl = issuerConf.nonce_endpoint;
 
   // Fetch the nonce from the Credential Issuer
   const { c_nonce } = await appFetch(nonceUrl, {
@@ -182,7 +140,6 @@ export const obtainCredential: ObtainCredential = async (
       "Content-Type": "application/json",
       DPoP: tokenRequestSignedDPop,
       Authorization: `${accessToken.token_type} ${accessToken.access_token}`,
-      ...(operationType === "reissuing" && { operationType }),
     },
     body: JSON.stringify(credentialRequestFormBody),
   })
@@ -209,9 +166,7 @@ export const obtainCredential: ObtainCredential = async (
 
   // Extract the format corresponding to the credential_configuration_id used
   const issuerCredentialConfig =
-    issuerConf.openid_credential_issuer.credential_configurations_supported[
-      credential_configuration_id
-    ];
+    issuerConf.credential_configurations_supported[credential_configuration_id];
 
   // TODO: [SIW-2264] Handle multiple credentials
   return {
