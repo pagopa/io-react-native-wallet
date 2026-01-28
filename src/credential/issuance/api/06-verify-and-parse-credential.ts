@@ -1,20 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { IssuerConfig } from "./IssuerConfig";
-
-// The credential as a collection of attributes in plain value
-type ParsedCredential = {
-  /** Attribute key */
-  [claim: string]: {
-    name:
-      | /* if i18n is provided */ Record<
-          string /* locale */,
-          string /* value */
-        >
-      | /* if no i18n is provided */ string
-      | undefined; // Add undefined as a possible value for the name property
-    value: unknown;
-  };
-};
+import type { ParsedCredential } from "./types";
 
 export interface VerifyAndParseCredentialApi {
   /**
