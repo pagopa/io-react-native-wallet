@@ -7,11 +7,10 @@ import {
   TrustAnchorEntityConfiguration,
 } from "./types";
 import type { z } from "zod";
-import { getSignedEntityConfiguration } from "../common/utils";
-
-type FetchOptions = {
-  appFetch?: GlobalFetch["fetch"];
-};
+import {
+  getSignedEntityConfiguration,
+  type FetchOptions,
+} from "../common/utils";
 
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
