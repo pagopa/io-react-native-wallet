@@ -1,5 +1,6 @@
 import { type X509CertificateOptions } from "@pagopa/io-react-native-crypto";
 import type { TrustAnchorConfig } from "./TrustAnchorConfig";
+import type { ParsedToken } from "../common/utils";
 
 export interface TrustVerifyApi {
   /**
@@ -50,5 +51,5 @@ export interface TrustVerifyApi {
       appFetch?: GlobalFetch["fetch"];
       renewOnFail?: boolean;
     }
-  ): Promise<ReturnType<typeof validateTrustChain>>;
+  ): ReturnType<TrustVerifyApi["validateTrustChain"]>;
 }
