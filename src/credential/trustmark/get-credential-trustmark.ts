@@ -4,7 +4,7 @@ import {
   type CryptoContext,
   decode as decodeJwt,
 } from "@pagopa/io-react-native-jwt";
-import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
+import * as WalletInstanceAttestation from "../../wallet-instance-attestation/v1.0.0/utils";
 import { IoWalletError } from "../../utils/errors";
 import { obfuscateString } from "../../utils/string";
 import { LogLevel, Logger } from "../../utils/logging";
@@ -70,7 +70,7 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
    * Check that the public key used to sign the trustmark is the one used for the WIA
    */
   const holderBindingKey = await wiaCryptoContext.getPublicKey();
-  const decodedWia = WalletInstanceAttestation.decode(
+  const decodedWia = WalletInstanceAttestation.decodeJwt(
     walletInstanceAttestation
   );
 

@@ -4,7 +4,7 @@ import type { StartUserAuthorization } from "./03-start-user-authorization";
 import { createDPopToken } from "../../utils/dpop";
 import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../utils/pop";
-import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
+import * as WalletInstanceAttestation from "../../wallet-instance-attestation/v1.0.0/utils";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../utils/errors";
@@ -58,7 +58,7 @@ export const authorizeAccess: AuthorizeAccess = async (
     dPopCryptoContext,
   } = context;
   const aud = issuerConf.openid_credential_issuer.credential_issuer;
-  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
+  const iss = WalletInstanceAttestation.decodeJwt(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
   const tokenUrl = issuerConf.oauth_authorization_server.token_endpoint;

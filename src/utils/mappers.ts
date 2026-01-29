@@ -45,3 +45,35 @@ export function createMapper<I, O>(
   return (input: unknown) =>
     inputSchema.transform(mapper).pipe(outputSchema).parse(input);
 }
+
+/**
+ * Higher order function to pipe a function return value to the provided mapper.
+ * Supports only synchronous functions. Use {@link withMapperAsync} for async ones.
+ * @param mapper The mapping function
+ * @fn The function to wrap
+ * @return The original function with the mapper applied to its return value
+ */
+export const withMapper = <A extends any[], I, O>(
+  mapper: (input: I) => O,
+  fn: (...args: A) => I
+) => {
+  return function wrappedFunction(...args: A) {
+    return mapper(fn(...args));
+  };
+};
+
+/**
+ * Higher order function to pipe an async function return value to the provided mapper.
+ * Supports only asynchronous functions. Use {@link withMapper} for sync ones.
+ * @param mapper The mapping function
+ * @fn The function to wrap
+ * @return The original function with the mapper applied to its return value
+ */
+export const withMapperAsync = <A extends any[], I, O>(
+  mapper: (input: I) => O,
+  fn: (...args: A) => Promise<I>
+) => {
+  return async function wrappedFunction(...args: A) {
+    return mapper(await fn(...args));
+  };
+};
