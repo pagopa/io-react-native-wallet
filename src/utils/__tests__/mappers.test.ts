@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { createMapper } from "../mappers";
+import { createMapper, withMapper, withMapperAsync } from "../mappers";
 
 describe("createMapper", () => {
   type Input = { value: string };
@@ -29,5 +29,21 @@ describe("createMapper", () => {
       outputSchema: Output,
     });
     expect(() => mapper({ wrong_value: "A" })).toThrow();
+  });
+});
+
+describe("withMapper", () => {
+  it("works correctly", () => {
+    const fn = (input: number) => input * 2;
+    const mapper = (input: number) => input.toFixed(2);
+    expect(withMapper(mapper, fn)(4)).toEqual("8.00");
+  });
+});
+
+describe("withMapperAsync", () => {
+  it("works correctly", async () => {
+    const fn = async (input: number) => input * 2;
+    const mapper = (input: number) => input.toFixed(2);
+    expect(await withMapperAsync(mapper, fn)(4)).toEqual("8.00");
   });
 });
