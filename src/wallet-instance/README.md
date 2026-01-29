@@ -14,6 +14,7 @@ Examples are provided as follows:
 ### Wallet instance creation
 
 ```ts
+const wallet = new IoWallet({ version: "1.0.0" });
 // Get env
 const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object containing the environment variables
 
@@ -25,7 +26,7 @@ await ensureIntegrityServiceIsReady(googleCloudProjectNumber); // Required by io
 const integrityKeyTag = await generateIntegrityHardwareKeyTag();
 const integrityContext = getIntegrityContext(integrityKeyTag); // This function is supposed to return an object as required by IntegrityContext.
 
-await WalletInstance.createWalletInstance({
+await wallet.WalletInstance.createWalletInstance({
   integrityContext,
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
@@ -41,9 +42,10 @@ The returned `integrityKeyTag` is supposed to be stored and used to verify the i
 Revoke a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
 
 ```ts
+const wallet = new IoWallet({ version: "1.0.0" });
 const { WALLET_PROVIDER_BASE_URL } = env;
 
-await WalletInstance.revokeWalletInstance({
+await wallet.WalletInstance.revokeWalletInstance({
   id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
@@ -55,9 +57,10 @@ await WalletInstance.revokeWalletInstance({
 Get the status of a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
 
 ```ts
+const wallet = new IoWallet({ version: "1.0.0" });
 const { WALLET_PROVIDER_BASE_URL } = env;
 
-const status = await WalletInstance.getWalletInstanceStatus({
+const status = await wallet.WalletInstance.getWalletInstanceStatus({
   id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
