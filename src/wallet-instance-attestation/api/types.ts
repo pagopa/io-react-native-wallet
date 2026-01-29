@@ -18,7 +18,8 @@ export const DecodedAttestationJwt = z.object({
   aal: z.string().optional(),
 });
 
-export type WalletAttestation =
-  | { wallet_attestation: string; format: string }
-  | { wallet_app_attestation: string; format: string }
-  | { wallet_unit_attestation: string; format: string };
+export type WalletAttestation = {
+  type: "wallet_app_attestation" | "wallet_unit_attestation"; // Legacy Wallet Attestation == Wallet App Attestation
+  format: string;
+  attestation: string;
+};

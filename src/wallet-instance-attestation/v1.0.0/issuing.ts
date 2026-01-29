@@ -14,6 +14,7 @@ import {
 } from "../../utils/errors";
 import { WalletAttestationResponse } from "./types";
 import type { WalletInstanceAttestationApi } from "../api";
+import { mapToWalletAttestations } from "./mappers";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -117,7 +118,7 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
       );
     }
 
-    return response.wallet_attestations;
+    return mapToWalletAttestations(response);
   };
 
 const handleAttestationCreationError = (e: unknown) => {

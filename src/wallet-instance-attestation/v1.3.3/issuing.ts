@@ -1,4 +1,4 @@
-import { UnimplementedFeatureError } from "src/utils/errors";
+import { UnimplementedFeatureError } from "../../utils/errors";
 import type { WalletInstanceAttestationApi } from "../api";
 
 export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
