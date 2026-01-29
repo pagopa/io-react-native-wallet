@@ -1,6 +1,6 @@
-import { JWK } from "../utils/jwk";
-import { UnixTime } from "../utils/zod";
 import * as z from "zod";
+import { JWK } from "../../utils/jwk";
+import { UnixTime } from "../../utils/zod";
 
 const Jwt = z.object({
   header: z.object({
