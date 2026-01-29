@@ -8,6 +8,10 @@ import type { JWK, JWTDecodeResult } from "../../utils/jwk";
 import { FederationError, FederationListParseError } from "./errors";
 import { FederationListResponse, type BaseEntityConfiguration } from "./types";
 
+export type FetchOptions = {
+  appFetch?: GlobalFetch["fetch"];
+};
+
 export type ParsedToken = {
   header: JWTDecodeResult["protectedHeader"];
   payload: JWTDecodeResult["payload"];
@@ -79,11 +83,7 @@ export function getTrustAnchorX509Certificate(
  */
 export async function getSignedEntityConfiguration(
   entityBaseUrl: string,
-  {
-    appFetch = fetch,
-  }: {
-    appFetch?: GlobalFetch["fetch"];
-  } = {}
+  { appFetch = fetch }: FetchOptions = {}
 ): Promise<string> {
   const wellKnownUrl = `${entityBaseUrl}/.well-known/openid-federation`;
 
@@ -106,11 +106,7 @@ export async function getSignedEntityConfiguration(
 export async function getSignedEntityStatement(
   federationFetchEndpoint: string,
   subordinatedEntityBaseUrl: string,
-  {
-    appFetch = fetch,
-  }: {
-    appFetch?: GlobalFetch["fetch"];
-  } = {}
+  { appFetch = fetch }: FetchOptions = {}
 ) {
   const url = new URL(federationFetchEndpoint);
   url.searchParams.set("sub", subordinatedEntityBaseUrl);
@@ -133,11 +129,7 @@ export async function getSignedEntityStatement(
  */
 export async function getFederationList(
   federationListEndpoint: string,
-  {
-    appFetch = fetch,
-  }: {
-    appFetch?: GlobalFetch["fetch"];
-  } = {}
+  { appFetch = fetch }: FetchOptions = {}
 ): Promise<string[]> {
   return await appFetch(federationListEndpoint, {
     method: "GET",
