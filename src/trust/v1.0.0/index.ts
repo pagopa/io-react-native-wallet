@@ -5,6 +5,7 @@ import { buildTrustChain } from "./build-chain";
 import { verifyTrustChain } from "./verify-chain";
 
 export const Trust: TrustApi = {
+  // TODO: use withMapperAsync where PR #306 is merged
   getTrustAnchorEntityConfiguration: (taBaseUrl) =>
     getTrustAnchorEntityConfiguration(taBaseUrl).then(mapToTrustAnchorConfig),
   buildTrustChain,
