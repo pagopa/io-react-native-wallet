@@ -4,10 +4,10 @@ import * as z from "zod";
  * Create a mapper to convert data from type I to type O.
  *
  * By default only static type checking is applied when mapping types.
- * To include runtime validation, provide zod schemas for both I and O.
+ * To include runtime validation, provide zod schemas for I (optional) and O.
  *
  * @param mapper The mapping function
- * @param config.inputSchema The schema to validate the input before mapping (required when config is provided)
+ * @param config.inputSchema The schema to validate the input before mapping (optional)
  * @param config.outputSchema The schema to validate the mapped input (required when config is provided)
  * @returns A function to convert I to O
  *
@@ -24,15 +24,16 @@ import * as z from "zod";
 export function createMapper<I, O>(mapper: (input: I) => O): (input: I) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
-  config: {
-    inputSchema: z.ZodType<I>;
-    outputSchema: z.ZodType<O>;
-  }
+  config: { inputSchema: z.ZodType<I>; outputSchema: z.ZodType<O> }
 ): (input: unknown) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
+  config: { outputSchema: z.ZodType<O> }
+): (input: I) => O;
+export function createMapper<I, O>(
+  mapper: (input: I) => O,
   config?: {
-    inputSchema: z.ZodType<I>;
+    inputSchema?: z.ZodType<I>;
     outputSchema: z.ZodType<O>;
   }
 ) {
@@ -42,8 +43,12 @@ export function createMapper<I, O>(
 
   const { inputSchema, outputSchema } = config;
 
-  return (input: unknown) =>
-    inputSchema.transform(mapper).pipe(outputSchema).parse(input);
+  if (inputSchema) {
+    return (input: unknown) =>
+      inputSchema.transform(mapper).pipe(outputSchema).parse(input);
+  }
+
+  return (input: I) => outputSchema.parse(mapper(input));
 }
 
 /**
@@ -73,7 +78,7 @@ export const withMapperAsync = <A extends any[], I, O>(
   mapper: (input: I) => O,
   fn: (...args: A) => Promise<I>
 ) => {
-  return async function wrappedFunction(...args: A) {
+  return async function wrappedAsyncFunction(...args: A) {
     return mapper(await fn(...args));
   };
 };

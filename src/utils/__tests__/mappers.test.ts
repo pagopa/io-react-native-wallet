@@ -30,6 +30,23 @@ describe("createMapper", () => {
     });
     expect(() => mapper({ wrong_value: "A" })).toThrow();
   });
+
+  it("maps I to O with output-only runtime validation (success)", () => {
+    const mapper = createMapper<Input, Output>(
+      (x) => ({ mapped_value: x.value }),
+      { outputSchema: Output }
+    );
+    expect(mapper({ value: "A" })).toEqual({ mapped_value: "A" });
+  });
+
+  it("maps I to O with output-only runtime validation (fail)", () => {
+    const mapper = createMapper<Input, Output>(
+      // @ts-expect-error force wrong output type to trigger runtime validation
+      (x) => ({ wrong_value: x.value }),
+      { outputSchema: Output }
+    );
+    expect(() => mapper({ value: "A" })).toThrow();
+  });
 });
 
 describe("withMapper", () => {
