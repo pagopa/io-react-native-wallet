@@ -4,10 +4,10 @@ import { getAttestation } from "./issuing";
 
 export const WalletInstanceAttestation: WalletInstanceAttestationApi = {
   getAttestation,
-  decodeJwt: () => {
-    throw new UnimplementedFeatureError("decodeJwt", "1.3.3");
+  decode: () => {
+    throw new UnimplementedFeatureError("decode", "1.3.3");
   },
-  verifyJwt: () => {
-    throw new UnimplementedFeatureError("verifyJwt", "1.3.3");
+  verify: () => {
+    throw new UnimplementedFeatureError("verify", "1.3.3");
   },
 };

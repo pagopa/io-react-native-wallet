@@ -70,7 +70,7 @@ export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
    * Check that the public key used to sign the trustmark is the one used for the WIA
    */
   const holderBindingKey = await wiaCryptoContext.getPublicKey();
-  const decodedWia = WalletInstanceAttestation.decodeJwt(
+  const decodedWia = WalletInstanceAttestation.decode(
     walletInstanceAttestation
   );
 

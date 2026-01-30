@@ -65,7 +65,7 @@ export const validateChallenge: ValidateChallenge = async (
   } = context;
 
   const aud = issuerConf.openid_credential_issuer.credential_issuer;
-  const iss = WalletInstanceAttestation.decodeJwt(walletInstanceAttestation)
+  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
   const signedWiaPoP = await createPopToken(

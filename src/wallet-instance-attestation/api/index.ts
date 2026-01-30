@@ -32,7 +32,7 @@ export interface WalletInstanceAttestationApi {
    * @throws A decoding error if the token doesn't resolve in a valid JWT
    * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
    */
-  decodeJwt(token: string): DecodedAttestationJwt;
+  decode(token: string): DecodedAttestationJwt;
 
   /**
    * Verify a given JWT to get the parsed Wallet Instance Attestation object they define.
@@ -44,5 +44,5 @@ export interface WalletInstanceAttestationApi {
    * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
    * @throws Invalid signature error if the token signature is not valid
    */
-  verifyJwt(token: string): Promise<DecodedAttestationJwt>;
+  verify(token: string): Promise<DecodedAttestationJwt>;
 }

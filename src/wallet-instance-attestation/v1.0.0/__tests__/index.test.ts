@@ -1,4 +1,4 @@
-import { decodeJwt } from "../utils";
+import { decode } from "../utils";
 
 // Wallet Instance Attestation
 const token =
@@ -6,7 +6,7 @@ const token =
 
 describe("decode", () => {
   it("should return Wallet Instance Attestation", async () => {
-    const result = decodeJwt(token);
+    const result = decode(token);
 
     // check shallow shape
     expect(result).toEqual(expect.any(Object));

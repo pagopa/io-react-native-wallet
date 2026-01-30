@@ -137,7 +137,7 @@ export const shouldRequestAttestationSelector = createSelector(
       return true;
     }
     const wallet = new IoWallet({ version: itwVersion });
-    const payload = wallet.WalletInstanceAttestation.decodeJwt(attestation);
+    const payload = wallet.WalletInstanceAttestation.decode(attestation);
     const expiryDate = new Date(payload.exp * 1000);
     const now = new Date();
     return now > expiryDate;
