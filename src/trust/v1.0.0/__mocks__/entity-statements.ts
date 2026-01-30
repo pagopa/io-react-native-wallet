@@ -1,5 +1,5 @@
 import { SignJWT } from "@pagopa/io-react-native-jwt";
-import { createCryptoContextFor } from "../../utils/crypto";
+import { createCryptoContextFor } from "../../../utils/crypto";
 import { generate } from "@pagopa/io-react-native-crypto";
 
 const timestamp = (future: number = 0) =>

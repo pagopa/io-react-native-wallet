@@ -22,23 +22,31 @@ import {
   getRelyingPartyEntityConfiguration,
   getTrustAnchorEntityConfiguration,
   getWalletProviderEntityConfiguration,
-} from "../build-chain";
+} from "../ec";
+import { mapToTrustAnchorConfig } from "../mappers";
 
 const testType = <T>(_: T) => true;
+
+const mappedTrustAnchorEntityConfiguration = mapToTrustAnchorConfig(
+  trustAnchorEntityConfiguration
+);
 
 describe("verifyTrustChain", () => {
   it("should throw on empty trust chain", async () => {
     await expect(
-      verifyTrustChain(trustAnchorEntityConfiguration, [])
+      verifyTrustChain(mappedTrustAnchorEntityConfiguration, [])
     ).rejects.toThrow();
   });
 
   it("should resolve a correct chain", async () => {
-    const result = await verifyTrustChain(trustAnchorEntityConfiguration, [
-      await signed(leafEntityConfiguration),
-      await signed(leafEntityStatement),
-      await signed(intermediateEntityStatement),
-    ]);
+    const result = await verifyTrustChain(
+      mappedTrustAnchorEntityConfiguration,
+      [
+        await signed(leafEntityConfiguration),
+        await signed(leafEntityStatement),
+        await signed(intermediateEntityStatement),
+      ]
+    );
     expect(result).toEqual([
       leafEntityConfiguration,
       leafEntityStatement,
@@ -47,12 +55,15 @@ describe("verifyTrustChain", () => {
   });
 
   it("should accept the trust anchor entity configuration as last element of the chain", async () => {
-    const result = await verifyTrustChain(trustAnchorEntityConfiguration, [
-      await signed(leafEntityConfiguration),
-      await signed(leafEntityStatement),
-      await signed(intermediateEntityStatement),
-      await signed(trustAnchorEntityConfiguration),
-    ]);
+    const result = await verifyTrustChain(
+      mappedTrustAnchorEntityConfiguration,
+      [
+        await signed(leafEntityConfiguration),
+        await signed(leafEntityStatement),
+        await signed(intermediateEntityStatement),
+        await signed(trustAnchorEntityConfiguration),
+      ]
+    );
     expect(result).toEqual([
       leafEntityConfiguration,
       leafEntityStatement,
@@ -63,7 +74,7 @@ describe("verifyTrustChain", () => {
 
   it("should throw on invalid trust chain", async () => {
     await expect(
-      verifyTrustChain(trustAnchorEntityConfiguration, [
+      verifyTrustChain(mappedTrustAnchorEntityConfiguration, [
         await signed(leafEntityConfiguration),
         await signed(leafEntityStatement),
         // missing required intermediate entity
@@ -73,7 +84,7 @@ describe("verifyTrustChain", () => {
 
   it("should throw on empty elements in trust chain", async () => {
     await expect(
-      verifyTrustChain(trustAnchorEntityConfiguration, [
+      verifyTrustChain(mappedTrustAnchorEntityConfiguration, [
         await signed(leafEntityConfiguration),
         await signed(leafEntityStatement),
         "",
@@ -118,7 +129,7 @@ describe("verifyTrustChain", () => {
       },
     };
     await expect(
-      verifyTrustChain(anotherTrustAnchor, [
+      verifyTrustChain(mapToTrustAnchorConfig(anotherTrustAnchor), [
         await signed(leafEntityConfiguration),
         await signed(leafEntityStatement),
         await signed(intermediateEntityStatement),

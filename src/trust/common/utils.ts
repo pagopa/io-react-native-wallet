@@ -6,7 +6,8 @@ import {
 import { hasStatusOrThrow } from "../../utils/misc";
 import type { JWK, JWTDecodeResult } from "../../utils/jwk";
 import { FederationError, FederationListParseError } from "./errors";
-import { FederationListResponse, type BaseEntityConfiguration } from "./types";
+import type { TrustAnchorConfig } from "../api/TrustAnchorConfig";
+import { FederationListResponse } from "./types";
 
 export type FetchOptions = {
   appFetch?: GlobalFetch["fetch"];
@@ -50,10 +51,10 @@ export const decode = (token: string): ParsedToken => {
  * @throws {FederationError} If the certificate cannot be derived.
  */
 export function getTrustAnchorX509Certificate(
-  trustAnchorEntity: BaseEntityConfiguration
+  trustAnchorEntity: TrustAnchorConfig
 ): string {
   const taHeaderKid = trustAnchorEntity.header.kid;
-  const taSigningJwk = trustAnchorEntity.payload.jwks.keys.find(
+  const taSigningJwk = trustAnchorEntity.payload.keys.find(
     (key) => key.kid === taHeaderKid
   );
 
