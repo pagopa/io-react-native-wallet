@@ -11,10 +11,10 @@ export const mapToTrustAnchorConfig = createMapper<
     header: x.header,
     payload: {
       keys: x.payload.jwks.keys,
-      federation_fetch_endpoint: federation_entity.federation_fetch_endpoint!,
-      federation_list_endpoint: federation_entity.federation_list_endpoint!,
+      federation_fetch_endpoint: federation_entity.federation_fetch_endpoint,
+      federation_list_endpoint: federation_entity.federation_list_endpoint,
       federation_resolve_endpoint:
-        federation_entity.federation_resolve_endpoint!,
+        federation_entity.federation_resolve_endpoint,
     },
   };
 });

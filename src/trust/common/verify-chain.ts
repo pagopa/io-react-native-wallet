@@ -280,7 +280,7 @@ export function createVerifyTrustChain(
     const renewTrustChain = createRenewTrustChain(config);
 
     try {
-      return validateTrustChain(trustAnchorEntity, chain, x509Options);
+      return await validateTrustChain(trustAnchorEntity, chain, x509Options);
     } catch (error) {
       if (renewOnFail) {
         const renewedChain = await renewTrustChain(chain, appFetch);

@@ -21,7 +21,7 @@ import type { ObtainCredential } from "../../../src/credential/issuance";
 
 /**
  * Implements a flow to obtain a generic credential.
- * @param itwVersion IT-Wallet specifictions version
+ * @param itwVersion IT-Wallet specifications version
  * @param credentialIssuerUrl - The credential issuer URL
  * @param redirectUri - The redirect URI for the authorization flow
  * @param credentialId - The id of the credential to obtain

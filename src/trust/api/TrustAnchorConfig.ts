@@ -14,8 +14,8 @@ export const TrustAnchorConfig = z.object({
   }),
   payload: z.object({
     keys: z.array(JWK),
-    federation_fetch_endpoint: z.string(),
-    federation_list_endpoint: z.string(),
-    federation_resolve_endpoint: z.string(),
+    federation_fetch_endpoint: z.string().optional(),
+    federation_list_endpoint: z.string().optional(),
+    federation_resolve_endpoint: z.string().optional(),
   }),
 });
