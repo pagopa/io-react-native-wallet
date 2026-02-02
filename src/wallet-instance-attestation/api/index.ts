@@ -39,7 +39,7 @@ export interface WalletInstanceAttestationApi {
    * Same as {@link decode} plus token signature verification
    *
    * @param token The encoded token that represents a valid jwt
-   * @returns {WalletInstanceAttestationJwt} The validated Wallet Instance Attestation object
+   * @returns {DecodedAttestationJwt} The validated Wallet Instance Attestation object
    * @throws A decoding error if the token doesn't resolve in a valid JWT
    * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
    * @throws Invalid signature error if the token signature is not valid
