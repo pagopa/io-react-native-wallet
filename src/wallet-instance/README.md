@@ -46,7 +46,7 @@ const wallet = new IoWallet({ version: "1.0.0" });
 const { WALLET_PROVIDER_BASE_URL } = env;
 
 await wallet.WalletInstance.revokeWalletInstance({
-  id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
+  id: "495e5bec-b93f-4fd7-952a-94b27233abdb",
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
 });
@@ -61,7 +61,7 @@ const wallet = new IoWallet({ version: "1.0.0" });
 const { WALLET_PROVIDER_BASE_URL } = env;
 
 const status = await wallet.WalletInstance.getWalletInstanceStatus({
-  id: "495e5bec-b93f-4fd7-952a-94b27233abdb"
+  id: "495e5bec-b93f-4fd7-952a-94b27233abdb",
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
 });
