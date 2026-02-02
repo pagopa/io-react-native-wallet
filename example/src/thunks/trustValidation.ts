@@ -1,6 +1,6 @@
 import { createAppAsyncThunk } from "./utils";
 import appFetch from "../utils/fetch";
-import { IoWallet } from "@pagopa/io-react-native-wallet";
+import { IoWallet, type Trust } from "@pagopa/io-react-native-wallet";
 import { selectItwVersion } from "../store/reducers/environment";
 
 export type ValidateTrustChainThunkInput = {
@@ -9,7 +9,7 @@ export type ValidateTrustChainThunkInput = {
 };
 
 export type ValidateTrustChainThunkOutput = {
-  validatedChain: any[];
+  validatedChain: Awaited<ReturnType<Trust.TrustApi["verifyTrustChain"]>>;
 };
 
 export const validateTrustChainThunk = createAppAsyncThunk<
