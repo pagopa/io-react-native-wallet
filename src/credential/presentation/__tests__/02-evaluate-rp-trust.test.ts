@@ -5,7 +5,7 @@ import { getRelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/entiti
 import { RelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
 
 // Mock the getRelyingPartyEntityConfiguration module
-jest.mock("../../../trust/build-chain", () => ({
+jest.mock("../../../trust/v1.0.0/entities", () => ({
   getRelyingPartyEntityConfiguration: jest.fn(),
 }));
 
