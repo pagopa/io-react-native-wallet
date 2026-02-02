@@ -1,4 +1,4 @@
-import { IoWalletError, serializeAttrs } from "../../utils/errors";
+import { IoWalletError, serializeAttrs } from "../../../utils/errors";
 
 /**
  * An error subclass thrown when an error occurs during the authorization process.

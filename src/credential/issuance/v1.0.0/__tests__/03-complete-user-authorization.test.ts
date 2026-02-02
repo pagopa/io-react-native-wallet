@@ -1,9 +1,9 @@
-import { AuthorizationError, AuthorizationIdpError } from "../../errors";
+import { AuthorizationError, AuthorizationIdpError } from "../../common/errors";
 import {
   buildAuthorizationUrl,
   completeUserAuthorizationWithQueryMode,
 } from "../03-complete-user-authorization";
-import type { IssuerConfig } from "../..";
+import type { IssuerConfig } from "../../api";
 
 describe("authorizeUserWithQueryMode", () => {
   it("should return the authorization result when the authorization server responds with a valid response", async () => {

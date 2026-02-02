@@ -1,6 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { IssuerConfig } from "./IssuerConfig";
-import type { TokenResponse } from "../types";
+import type { TokenResponse } from "./types";
 
 export interface AuthorizeAccessApi {
   /**

@@ -1,8 +1,8 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { Out } from "../../../utils/misc";
 import type { IssuerConfig } from "./IssuerConfig";
 import type { AuthorizeAccessApi } from "./04-authorize-access";
-import type { SupportedCredentialFormat } from "../../../trust/types";
-import type { Out } from "../../../utils/misc";
+import type { CredentialFormat } from "./types";
 
 export interface ObtainCredentialApi {
   /**
@@ -36,6 +36,6 @@ export interface ObtainCredentialApi {
     }
   ): Promise<{
     credential: string;
-    format: SupportedCredentialFormat;
+    format: CredentialFormat;
   }>;
 }

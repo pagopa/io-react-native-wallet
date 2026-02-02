@@ -1,5 +1,5 @@
 import { obtainCredential } from "../05-obtain-credential";
-import type { TokenResponse } from "../../types";
+import type { TokenResponse } from "../types";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import process from "node:process";
 import type { IssuerConfig } from "../../api";

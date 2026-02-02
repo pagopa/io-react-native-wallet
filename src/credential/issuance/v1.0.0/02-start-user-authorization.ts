@@ -3,7 +3,7 @@ import { AuthorizationDetail, makeParRequest } from "../../../utils/par";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuerConfig } from "../api/IssuerConfig";
 import type { StartUserAuthorizationApi } from "../api/02-start-user-authorization";
-import type { ResponseMode } from "../types";
+import type { ResponseMode } from "./types";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the

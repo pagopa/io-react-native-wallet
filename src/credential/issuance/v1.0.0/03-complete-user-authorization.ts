@@ -13,13 +13,13 @@ import {
 } from "../../../utils/auth";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
-import { ResponseUriResultShape } from "../types";
 import { getJwtFromFormPost } from "../../../utils/decoder";
-import { AuthorizationError, AuthorizationIdpError } from "../errors";
+import { ResponseUriResultShape } from "./types";
+import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { CompleteUserAuthorizationApi } from "../api/03-complete-user-authorization";
 
-// TODO: import from presentation/v1.0.0
+// TODO: [SIW-3742] import from presentation/v1.0.0
 import {
   type RemotePresentation,
   RequestObject,

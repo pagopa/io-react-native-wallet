@@ -2,11 +2,11 @@ import { v4 as uuidv4 } from "uuid";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { createDPopToken } from "../../../utils/dpop";
 import { createPopToken } from "../../../utils/pop";
-import { TokenResponse } from "../types";
+import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { AuthorizeAccessApi } from "../api/04-authorize-access";
-// TODO: import from wallet-instance-attestation/v1.0.0
+// TODO: [SIW-3570] import from wallet-instance-attestation/v1.0.0
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
 
 export const authorizeAccess: AuthorizeAccessApi["authorizeAccess"] = async (

@@ -15,7 +15,7 @@ import {
 import { createDPopToken } from "../../../utils/dpop";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { ObtainCredentialApi } from "../api/05-obtain-credential";
-import { CredentialResponse, NonceResponse } from "../types";
+import { CredentialResponse, NonceResponse } from "./types";
 
 export const createNonceProof = async (
   nonce: string,
