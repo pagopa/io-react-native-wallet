@@ -216,7 +216,8 @@ export const getCredentialStatusAssertion = async (
   const { issuerUrl } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+  const { issuerConf } =
+    await CredentialIssuance.V1_0_0.evaluateIssuerTrust(issuerUrl); // TODO: [SIW-3743] refactor status
 
   const statusAssertion = await Credential.Status.statusAssertion(
     issuerConf,

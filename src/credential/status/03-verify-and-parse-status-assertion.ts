@@ -5,7 +5,7 @@ import {
   IssuerResponseErrorCodes,
 } from "../../utils/errors";
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import type { EvaluateIssuerTrust, StatusAssertion } from ".";
+import type { StatusAssertion } from "./02-status-assertion";
 import {
   type InvalidStatusErrorReason,
   ParsedStatusAssertion,
@@ -14,16 +14,16 @@ import {
   StatusType,
 } from "./types";
 import { Logger, LogLevel } from "../../utils/logging";
-import type { ObtainCredential } from "../issuance";
 import { extractJwkFromCredential } from "../../utils/credentials";
 import { isSameThumbprint } from "../../utils/jwk";
 import type { SupportedSdJwtLegacyFormat } from "../../sd-jwt/types";
+import type { CredentialFormat, IssuerConfig } from "../issuance";
 
 export type VerifyAndParseStatusAssertion = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
+  issuerConf: IssuerConfig,
   statusAssertion: Out<StatusAssertion>,
-  credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"] | SupportedSdJwtLegacyFormat
+  credential: string,
+  format: CredentialFormat | SupportedSdJwtLegacyFormat
 ) => Promise<{ parsedStatusAssertion: ParsedStatusAssertion }>;
 
 /**
@@ -42,10 +42,7 @@ export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
   async (issuerConf, rawStatusAssertion, credential, format) => {
     const { statusAssertion } = rawStatusAssertion;
 
-    await verify(
-      statusAssertion,
-      issuerConf.openid_credential_issuer.jwks.keys
-    );
+    await verify(statusAssertion, issuerConf.keys);
 
     const decodedJwt = decodeJwt(statusAssertion);
     const parsedStatusAssertion = ParsedStatusAssertionResponse.parse({

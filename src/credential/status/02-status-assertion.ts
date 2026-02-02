@@ -1,13 +1,12 @@
 import {
   getCredentialHashWithouDiscloures,
   hasStatusOrThrow,
-  type Out,
 } from "../../utils/misc";
-import type { EvaluateIssuerTrust, ObtainCredential } from "../issuance";
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import { StatusAssertionResponse } from "./types";
 import {
+  IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
@@ -16,11 +15,12 @@ import {
 import { Logger, LogLevel } from "../../utils/logging";
 import { extractJwkFromCredential } from "../../utils/credentials";
 import type { SupportedSdJwtLegacyFormat } from "../../sd-jwt/types";
+import type { CredentialFormat, IssuerConfig } from "../issuance";
 
 export type StatusAssertion = (
-  issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
-  credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"] | SupportedSdJwtLegacyFormat,
+  issuerConf: IssuerConfig,
+  credential: string,
+  format: CredentialFormat | SupportedSdJwtLegacyFormat,
   context: {
     credentialCryptoContext: CryptoContext;
     wiaCryptoContext: CryptoContext;
@@ -52,8 +52,13 @@ export const statusAssertion: StatusAssertion = async (
   const jwk = await extractJwkFromCredential(credential, format);
   const issuerJwk = await wiaCryptoContext.getPublicKey();
   const credentialHash = await getCredentialHashWithouDiscloures(credential);
-  const statusAttUrl =
-    issuerConf.openid_credential_issuer.status_attestation_endpoint;
+  const statusAttUrl = issuerConf.status_assertion_endpoint;
+
+  if (!statusAttUrl) {
+    throw new IoWalletError(
+      "Status assertion endpoint not found in the Issuer configuration"
+    );
+  }
 
   const credentialPop = await new SignJWT(credentialCryptoContext)
     .setPayload({
