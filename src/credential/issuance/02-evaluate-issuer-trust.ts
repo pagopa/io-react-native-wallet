@@ -1,7 +1,7 @@
 import { CredentialIssuerEntityConfiguration } from "../../trust/v1.0.0/types";
 import type { StartFlow } from "./01-start-flow";
 import type { Out } from "../../utils/misc";
-import { getCredentialIssuerEntityConfiguration } from "../../trust/v1.0.0/entities";
+import { getCredentialIssuerEntityConfiguration } from "../../trust/v1.0.0/entities"; // TODO: [SIW-3741] refactor issuance
 
 export type EvaluateIssuerTrust = (
   issuerUrl: Out<StartFlow>["issuerUrl"],
