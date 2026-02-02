@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { JWK } from "../../utils/jwk";
 import { BaseEntityConfiguration } from "../common/types";
+import { PresentationDefinition } from "../../credential/presentation/types";
 
 const RelyingPartyMetadata = z.object({
   application_type: z.string().optional(),
@@ -8,6 +9,7 @@ const RelyingPartyMetadata = z.object({
   client_name: z.string().optional(),
   jwks: z.object({ keys: z.array(JWK) }),
   contacts: z.array(z.string()).optional(),
+  presentation_definition: PresentationDefinition.optional(), // TODO: [SIW-3742] remove
   request_uris: z.array(z.string()).optional(),
   authorization_signed_response_alg: z.string().optional(),
   authorization_encrypted_response_alg: z.string().optional(),
