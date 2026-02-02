@@ -4,6 +4,8 @@ import { fixBase64EncodingOnKey } from "./utils/jwk";
 // https://github.com/facebook/react-native/issues/24428
 import "react-native-url-polyfill/auto";
 
+import * as Trust from "./trust";
+import * as CredentialsCatalogue from "./credentials-catalogue";
 import * as Credential from "./credential";
 import * as PID from "./pid";
 import * as SdJwt from "./sd-jwt";
@@ -17,6 +19,8 @@ import { createCryptoContextFor } from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
 
 export {
+  Trust,
+  CredentialsCatalogue,
   SdJwt,
   Mdoc,
   PID,
@@ -34,8 +38,6 @@ export {
 export type { IntegrityContext, AuthorizationContext };
 
 export type * from "./api";
-export * as CredentialsCatalogue from "./credentials-catalogue";
-export * as Trust from "./trust";
 
 // Export SDK entrypoint
 export { IoWallet } from "./IoWallet";
