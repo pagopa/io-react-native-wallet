@@ -19,7 +19,7 @@ import { addPadding } from "@pagopa/io-react-native-jwt";
 import { selectAttestationAsMdoc } from "../store/reducers/attestation";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { QrCodeImage } from "../components/QrCodeImage";
-import { selectEnv } from "../store/reducers/environment";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { getTrustAnchorX509Certificate } from "../utils/credential";
 
@@ -85,6 +85,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   );
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
   const { WALLET_TA_BASE_URL } = getEnv(env);
+  const itwVersion = useAppSelector(selectItwVersion);
 
   useDebugInfo({
     attestation,
@@ -265,7 +266,9 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * Start utility function to start the proximity flow.
    */
   const startFlow = useCallback(async () => {
-    const x5c = [await getTrustAnchorX509Certificate(WALLET_TA_BASE_URL)];
+    const x5c = [
+      await getTrustAnchorX509Certificate(itwVersion, WALLET_TA_BASE_URL),
+    ];
 
     setStatus(PROXIMITY_STATUS.STARTING);
     const hasPermission = await requestBlePermissions();
@@ -304,6 +307,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
     onDeviceDisconnected,
     onDocumentRequestReceived,
     onError,
+    itwVersion,
   ]);
 
   /**

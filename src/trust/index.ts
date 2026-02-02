@@ -1,2 +1,3 @@
 export * from "./api";
+export * as Errors from "./common/errors";
 export { Trust as V1_0_0 } from "./v1.0.0";

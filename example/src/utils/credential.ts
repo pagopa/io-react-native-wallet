@@ -1,7 +1,9 @@
 import {
   createCryptoContextFor,
   Credential,
+  IoWallet,
   Trust,
+  type ItwVersion,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
@@ -19,6 +21,7 @@ import type { ObtainCredential } from "../../../src/credential/issuance";
 
 /**
  * Implements a flow to obtain a generic credential.
+ * @param itwVersion IT-Wallet specifictions version
  * @param credentialIssuerUrl - The credential issuer URL
  * @param redirectUri - The redirect URI for the authorization flow
  * @param credentialId - The id of the credential to obtain
@@ -28,6 +31,7 @@ import type { ObtainCredential } from "../../../src/credential/issuance";
  * @returns The obtained credential result
  */
 export const getCredential = async ({
+  itwVersion,
   credentialIssuerUrl,
   trustAnchorUrl,
   redirectUri,
@@ -36,6 +40,7 @@ export const getCredential = async ({
   walletInstanceAttestation,
   wiaCryptoContext,
 }: {
+  itwVersion: ItwVersion;
   credentialIssuerUrl: string;
   trustAnchorUrl: string;
   redirectUri: string;
@@ -131,7 +136,7 @@ export const getCredential = async ({
 
   const x509CertRoot =
     format === "mso_mdoc"
-      ? await getTrustAnchorX509Certificate(trustAnchorUrl)
+      ? await getTrustAnchorX509Certificate(itwVersion, trustAnchorUrl)
       : undefined;
 
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
@@ -158,16 +163,21 @@ export const getCredential = async ({
 /**
  * This function is for development use only and should not be used in production
  *
+ * @param itwVersion IT-Wallet specifictions version
  * @param trustAnchorUrl The TA url
  * @returns The base64 encoded Trust Anchor's CA
  */
-export const getTrustAnchorX509Certificate = async (trustAnchorUrl: string) => {
+export const getTrustAnchorX509Certificate = async (
+  itwVersion: ItwVersion,
+  trustAnchorUrl: string
+) => {
+  const wallet = new IoWallet({ version: itwVersion });
   const trustAnchorEntityConfig =
-    await Trust.Build.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
+    await wallet.Trust.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
       appFetch,
     });
   const taHeaderKid = trustAnchorEntityConfig.header.kid;
-  const taSigningJwk = trustAnchorEntityConfig.payload.jwks.keys.find(
+  const taSigningJwk = trustAnchorEntityConfig.payload.keys.find(
     (key) => key.kid === taHeaderKid
   );
 

@@ -53,3 +53,5 @@ export interface TrustApi {
     }
   ): Promise<ParsedToken[]>;
 }
+
+export { type TrustAnchorConfig };

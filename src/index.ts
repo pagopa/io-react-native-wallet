@@ -33,10 +33,9 @@ export {
 
 export type { IntegrityContext, AuthorizationContext };
 
-// Export API types only
 export type * from "./api";
-export type * as CredentialsCatalogue from "./credentials-catalogue/api";
-export type * as Trust from "./trust/api";
+export * as CredentialsCatalogue from "./credentials-catalogue";
+export * as Trust from "./trust";
 
 // Export SDK entrypoint
 export { IoWallet } from "./IoWallet";
