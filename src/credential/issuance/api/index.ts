@@ -17,4 +17,5 @@ export interface IssuanceApi
 }
 
 export type { IssuerConfig } from "./IssuerConfig";
+export type * as MRTDPoP from "./mrtd-pop";
 export type * from "./types";

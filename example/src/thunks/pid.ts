@@ -1,7 +1,8 @@
 import { generate } from "@pagopa/io-react-native-crypto";
 import {
+  IoWallet,
   createCryptoContextFor,
-  Credential,
+  CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -9,7 +10,7 @@ import {
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
-import { selectEnv } from "../store/reducers/environment";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/reducers/pid";
 import { type PidAuthMethods, type PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
@@ -45,18 +46,12 @@ type ContinuePidFlowThunkInput = {
 export type PreparePidFlowParamsThunkOutput = {
   authMethod: PidAuthMethods;
   authUrl: string;
-  issuerConf: Awaited<
-    ReturnType<typeof Credential.Issuance.evaluateIssuerTrust>
-  >["issuerConf"];
-  clientId: Awaited<
-    ReturnType<typeof Credential.Issuance.startUserAuthorization>
-  >["clientId"];
-  codeVerifier: Awaited<
-    ReturnType<typeof Credential.Issuance.startUserAuthorization>
-  >["codeVerifier"];
+  issuerConf: CredentialIssuance.IssuerConfig;
+  clientId: string;
+  codeVerifier: string;
   walletInstanceAttestation: string;
   credentialDefinition: Awaited<
-    ReturnType<typeof Credential.Issuance.startUserAuthorization>
+    ReturnType<CredentialIssuance.IssuanceApi["startUserAuthorization"]>
   >["credentialDefinition"];
   redirectUri: string;
   ciePin?: string;
@@ -77,6 +72,9 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   PreparePidFlowParamsThunkOutput,
   PreparePidFlowParamsThunkInput
 >("pid/flowParamsPrepare", async (args, { getState, dispatch }) => {
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
   // Checks if the wallet instance attestation needs to be reuqested
   if (shouldRequestAttestationSelector(getState())) {
     await dispatch(getAttestationThunk());
@@ -101,25 +99,17 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const redirectUri =
     args.authMethod === "cieL3" ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
 
-  // Start the issuance flow
-  const startFlow: Credential.Issuance.StartFlow = () => ({
-    issuerUrl: WALLET_PID_PROVIDER_BASE_URL,
-    credentialId: "dc_sd_jwt_PersonIdentificationData",
-  });
-
-  const { issuerUrl, credentialId } = startFlow();
-
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-    issuerUrl,
+  const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
+    WALLET_PID_PROVIDER_BASE_URL,
     { appFetch }
   );
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-    await Credential.Issuance.startUserAuthorization(
+    await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
-      [credentialId],
+      ["dc_sd_jwt_PersonIdentificationData"],
       withMRTDPoP
         ? { proofType: "mrtd-pop", idpHinting: idpHint }
         : { proofType: "none" },
@@ -132,7 +122,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     );
 
   // Obtain the Authorization URL
-  const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+  const { authUrl } = await wallet.CredentialIssuance.buildAuthorizationUrl(
     issuerRequestUri,
     clientId,
     issuerConf,
@@ -164,6 +154,9 @@ export const continuePidFlowThunk = createAppAsyncThunk<
 >("pid/flowContinue", async (args, { getState }) => {
   const { authRedirectUrl } = args;
 
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
   const flowParams = selectPidFlowParams(getState());
 
   if (!flowParams) {
@@ -180,7 +173,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   } = flowParams;
 
   const { code } =
-    await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+    await wallet.CredentialIssuance.completeUserAuthorizationWithQueryMode(
       authRedirectUrl
     );
 
@@ -199,7 +192,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   await regenerateCryptoKey(DPOP_KEYTAG);
   const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
-  const { accessToken } = await Credential.Issuance.authorizeAccess(
+  const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
     code,
     clientId,
@@ -233,23 +226,24 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   }
 
   // Get the credential identifier that was authorized
-  const { credential, format } = await Credential.Issuance.obtainCredential(
-    issuerConf,
-    accessToken,
-    clientId,
-    {
-      credential_configuration_id,
-      credential_identifier,
-    },
-    {
-      credentialCryptoContext,
-      dPopCryptoContext,
-      appFetch,
-    }
-  );
+  const { credential, format } =
+    await wallet.CredentialIssuance.obtainCredential(
+      issuerConf,
+      accessToken,
+      clientId,
+      {
+        credential_configuration_id,
+        credential_identifier,
+      },
+      {
+        credentialCryptoContext,
+        dPopCryptoContext,
+        appFetch,
+      }
+    );
 
   const { parsedCredential } =
-    await Credential.Issuance.verifyAndParseCredential(
+    await wallet.CredentialIssuance.verifyAndParseCredential(
       issuerConf,
       credential,
       credential_configuration_id,
