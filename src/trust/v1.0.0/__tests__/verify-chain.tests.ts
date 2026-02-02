@@ -22,7 +22,7 @@ import {
   getRelyingPartyEntityConfiguration,
   getTrustAnchorEntityConfiguration,
   getWalletProviderEntityConfiguration,
-} from "../ec";
+} from "../entities";
 import { mapToTrustAnchorConfig } from "../mappers";
 
 const testType = <T>(_: T) => true;

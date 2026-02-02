@@ -1,5 +1,5 @@
 import type { TrustApi } from "../api";
-import { getTrustAnchorEntityConfiguration } from "./ec";
+import { getTrustAnchorEntityConfiguration } from "./entities";
 import { mapToTrustAnchorConfig } from "./mappers";
 import { buildTrustChain } from "./build-chain";
 import { verifyTrustChain } from "./verify-chain";
