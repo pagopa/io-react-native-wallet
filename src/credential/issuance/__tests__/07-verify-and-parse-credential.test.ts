@@ -1,5 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { CredentialIssuerEntityConfiguration } from "../../../trust/types";
+import type { CredentialIssuerEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
 import {
   education_degree,
   education_degree_with_missing_keys,

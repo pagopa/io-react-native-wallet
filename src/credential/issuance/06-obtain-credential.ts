@@ -14,11 +14,14 @@ import {
   UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../utils/errors";
-import { CredentialResponse, NonceResponse } from "./types";
+import {
+  CredentialResponse,
+  NonceResponse,
+  type CredentialFormat,
+} from "./types";
 import { createDPopToken } from "../../utils/dpop";
 import { v4 as uuidv4 } from "uuid";
 import { LogLevel, Logger } from "../../utils/logging";
-import type { SupportedCredentialFormat } from "../../trust/types";
 
 export type ObtainCredential = (
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
@@ -36,7 +39,7 @@ export type ObtainCredential = (
   operationType?: "reissuing"
 ) => Promise<{
   credential: string;
-  format: SupportedCredentialFormat;
+  format: CredentialFormat;
 }>;
 
 export const createNonceProof = async (

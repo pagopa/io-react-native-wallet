@@ -66,14 +66,6 @@ const SupportedCredentialMetadata = z.intersection(
   })
 );
 
-/**
- * Supported formats for credentials issued by the Issuer API 1.0,
- * compliant with IT-Wallet technical specifications 1.0.
- */
-export type SupportedCredentialFormat = z.infer<
-  typeof SupportedCredentialMetadata
->["format"];
-
 // Entity configuration for a Trust Anchor (it has no specific metadata section)
 export type TrustAnchorEntityConfiguration = z.infer<
   typeof TrustAnchorEntityConfiguration
