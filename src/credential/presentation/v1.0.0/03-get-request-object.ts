@@ -1,6 +1,6 @@
-import { RelyingPartyResponseError } from "../../utils/errors";
-import { hasStatusOrThrow } from "../../utils/misc";
-import { RequestObjectWalletCapabilities } from "./types";
+import { RelyingPartyResponseError } from "../../../utils/errors";
+import { hasStatusOrThrow } from "../../../utils/misc";
+import { RequestObjectWalletCapabilities } from "../api/types";
 
 export type GetRequestObject = (
   requestUri: string,

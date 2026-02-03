@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 export type PresentationParams = z.infer<typeof PresentationParams>;
-const PresentationParams = z.object({
+export const PresentationParams = z.object({
   client_id: z.string().nonempty(),
   request_uri: z.string().url(),
   request_uri_method: z.enum(["get", "post"]),

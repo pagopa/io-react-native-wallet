@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { InvalidQRCodeError } from "./errors";
+import { InvalidQRCodeError } from "../common/errors";
 
 const PresentationParams = z.object({
   client_id: z.string().nonempty(),
