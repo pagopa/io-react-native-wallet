@@ -100,7 +100,7 @@ function createValidateTrustChain({
     // If the current token is the last, keys from trust anchor will be used
     const selectKeys = (currentIndex: number): JWK[] => {
       if (currentIndex === chain.length - 1) {
-        return trustAnchorEntity.payload.keys;
+        return trustAnchorEntity.keys;
       }
 
       const nextIndex = currentIndex + 1;

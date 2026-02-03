@@ -169,8 +169,8 @@ export const getTrustAnchorX509Certificate = async (
     await wallet.Trust.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
       appFetch,
     });
-  const taHeaderKid = trustAnchorEntityConfig.header.kid;
-  const taSigningJwk = trustAnchorEntityConfig.payload.keys.find(
+  const taHeaderKid = trustAnchorEntityConfig.jwt.header.kid;
+  const taSigningJwk = trustAnchorEntityConfig.keys.find(
     (key) => key.kid === taHeaderKid
   );
 

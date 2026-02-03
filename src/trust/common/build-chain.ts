@@ -36,7 +36,7 @@ export function createBuildTrustChain(
     // 1: Verify if the RP is authorized by the Trust Anchor's federation list
     // Extract the Trust Anchor's signing key and federation_list_endpoint
     // (we assume the TA has only one key, as per spec)
-    const trustAnchorKey = trustAnchorConfig.payload.keys[0];
+    const trustAnchorKey = trustAnchorConfig.keys[0];
 
     if (!trustAnchorKey) {
       throw new BuildTrustChainError(
@@ -44,8 +44,7 @@ export function createBuildTrustChain(
       );
     }
 
-    const federationListEndpoint =
-      trustAnchorConfig.payload.federation_list_endpoint;
+    const federationListEndpoint = trustAnchorConfig.federation_list_endpoint;
 
     if (federationListEndpoint) {
       const federationList = await getFederationList(federationListEndpoint, {
