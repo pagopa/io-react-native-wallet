@@ -1,6 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import * as z from "zod";
-import { UnixTime } from "../../utils/zod";
 
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.

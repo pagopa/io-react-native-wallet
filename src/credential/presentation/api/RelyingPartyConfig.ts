@@ -13,4 +13,6 @@ export const RelyingPartyConfig = z.object({
   policy_uri: z.string().optional(),
   logo_uri: z.string().optional(),
   contacts: z.array(z.string()).optional(),
+  authorization_encrypted_response_alg: z.string().optional(),
+  authorization_encrypted_response_enc: z.string().optional(),
 });

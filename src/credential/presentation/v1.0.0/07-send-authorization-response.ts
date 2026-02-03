@@ -1,37 +1,18 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
-import uuid from "react-native-uuid";
-import { type FetchJwks, getJwksFromConfig } from "./04-retrieve-rp-jwks";
-import type { VerifyRequestObject } from "./05-verify-request-object";
-import { NoSuitableKeysFoundInEntityConfiguration } from "./errors";
-import { hasStatusOrThrow, type Out } from "../../utils/misc";
-import {
-  DirectAuthorizationBodyPayload,
-  ErrorResponse,
-  type LegacyRemotePresentation,
-  type RemotePresentation,
-} from "./types";
-import * as z from "zod";
-import type { JWK } from "../../utils/jwk";
+import { getJwksFromRpConfig } from "./04-retrieve-rp-jwks";
+import { NoSuitableKeysFoundInEntityConfiguration } from "../common/errors";
+import { hasStatusOrThrow } from "../../../utils/misc";
+import type { JWK } from "../../../utils/jwk";
 import {
   RelyingPartyResponseError,
   RelyingPartyResponseErrorCodes,
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
-} from "../../utils/errors";
-import { RelyingPartyEntityConfiguration } from "../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
-
-export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
-export const AuthorizationResponse = z.object({
-  status: z.string().optional(),
-  response_code: z
-    .string() /**
-      FIXME: [SIW-627] we expect this value from every RP implementation
-      Actually some RP does not return the value
-      We make it optional to not break the flow.
-    */
-    .optional(),
-  redirect_uri: z.string().optional(),
-});
+} from "../../../utils/errors";
+import { prepareVpToken } from "../../../sd-jwt";
+import type { RequestObject } from "../api/types";
+import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
+import { AuthorizationResponse, DirectAuthorizationBodyPayload } from "./types";
 
 /**
  * Selects a public key (with `use = enc`) from the set of JWK keys
@@ -41,9 +22,7 @@ export const AuthorizationResponse = z.object({
  * @returns The first suitable public key found in the list.
  * @throws {NoSuitableKeysFoundInEntityConfiguration} If no suitable encryption key is found.
  */
-export const choosePublicKeyToEncrypt = (
-  rpJwkKeys: Out<FetchJwks>["keys"]
-): JWK => {
+export const choosePublicKeyToEncrypt = (rpJwkKeys: JWK[]): JWK => {
   const encKey = rpJwkKeys.find((jwk) => jwk.use === "enc");
 
   if (encKey) {
@@ -65,8 +44,8 @@ export const choosePublicKeyToEncrypt = (
  * @returns A URL-encoded string for an `application/x-www-form-urlencoded` POST body, where `response` contains the encrypted JWE.
  */
 export const buildDirectPostJwtBody = async (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
+  requestObject: RequestObject,
+  rpConf: RelyingPartyConfig,
   payload: DirectAuthorizationBodyPayload
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
@@ -77,14 +56,14 @@ export const buildDirectPostJwtBody = async (
     ...payload,
   });
   // Choose a suitable public key for encryption
-  const { keys } = getJwksFromConfig(rpConf);
+  const { keys } = getJwksFromRpConfig(rpConf);
   const encPublicJwk = choosePublicKeyToEncrypt(keys);
 
   // Encrypt the authorization payload
   const {
     authorization_encrypted_response_alg,
     authorization_encrypted_response_enc,
-  } = rpConf.openid_credential_verifier;
+  } = rpConf;
 
   const defaultAlg: Jwe["alg"] =
     encPublicJwk.kty === "EC" ? "ECDH-ES" : "RSA-OAEP-256";
@@ -112,7 +91,7 @@ export const buildDirectPostJwtBody = async (
  * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
  */
 export const buildDirectPostBody = async (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
+  requestObject: RequestObject,
   payload: DirectAuthorizationBodyPayload
 ): Promise<string> => {
   const formUrlEncodedBody = new URLSearchParams({
@@ -132,74 +111,45 @@ export const buildDirectPostBody = async (
   return formUrlEncodedBody.toString();
 };
 
-/**
- * Type definition for the function that sends the authorization response
- * to the Relying Party, completing the presentation flow.
- * Use with `presentation_definition`.
- * @deprecated Use `sendAuthorizationResponse`
- */
-export type SendLegacyAuthorizationResponse = (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
-  presentationDefinitionId: string,
-  remotePresentations: LegacyRemotePresentation[],
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  context?: {
-    appFetch?: GlobalFetch["fetch"];
-  }
-) => Promise<AuthorizationResponse>;
+export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
+  async (credentials, { nonce, clientId }) => {
+    return Promise.all(
+      credentials.map(async (item) => {
+        const { vp_token } = await prepareVpToken(nonce, clientId, [
+          item.credential,
+          item.requestedClaims,
+          item.cryptoContext,
+        ]);
 
-/**
- * Sends the authorization response to the Relying Party (RP) using the specified `response_mode`.
- * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
- *
- * @param requestObject - The request details, including presentation requirements.
- * @param presentationDefinition - The definition of the expected presentation.
- * @param jwkKeys - Array of JWKs from the Relying Party for optional encryption.
- * @param presentation - Tuple with verifiable credential, claims, and crypto context.
- * @param context - Contains optional custom fetch implementation.
- * @returns Parsed and validated authorization response from the Relying Party.
- */
-export const sendLegacyAuthorizationResponse: SendLegacyAuthorizationResponse =
+        return {
+          credentialId: item.id,
+          requestedClaims: item.requestedClaims,
+          vpToken: vp_token,
+        };
+      })
+    );
+  };
+
+export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
   async (
     requestObject,
-    presentationDefinitionId,
     remotePresentations,
     rpConf,
     { appFetch = fetch } = {}
-  ): Promise<AuthorizationResponse> => {
-    /**
-     * 1. Prepare the VP token and presentation submission
-     * If there is only one credential, `vpToken` is a single string.
-     * If there are multiple credential, `vpToken` is an array of string.
-     **/
-    const vp_token =
-      remotePresentations?.length === 1
-        ? remotePresentations[0]?.vpToken
-        : remotePresentations.map(
-            (remotePresentation) => remotePresentation.vpToken
-          );
-
-    const descriptor_map = remotePresentations.map(
-      (remotePresentation, index) => ({
-        id: remotePresentation.inputDescriptor.id,
-        path: remotePresentations.length === 1 ? `$` : `$[${index}]`,
-        format: remotePresentation.format,
-      })
-    );
-
-    const presentation_submission = {
-      id: uuid.v4(),
-      definition_id: presentationDefinitionId,
-      descriptor_map,
-    };
-
+  ) => {
+    // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
     const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-      vp_token,
-      presentation_submission,
+      vp_token: remotePresentations.reduce(
+        (acc, presentation) => ({
+          ...acc,
+          [presentation.credentialId]: presentation.vpToken,
+        }),
+        {} as Record<string, string>
+      ),
     });
 
-    // 3. Send the authorization response via HTTP POST and validate the response
-    return await appFetch(requestObject.response_uri, {
+    // 2. Send the authorization response via HTTP POST and validate the response
+    return await appFetch(requestObject.responseUri, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -208,81 +158,16 @@ export const sendLegacyAuthorizationResponse: SendLegacyAuthorizationResponse =
     })
       .then(hasStatusOrThrow(200))
       .then((res) => res.json())
-      .then(AuthorizationResponse.parse);
+      .then(AuthorizationResponse.parse)
+      .catch(handleAuthorizationResponseError);
   };
 
-/**
- * Type definition for the function that sends the authorization response
- * to the Relying Party, completing the presentation flow.
- * Use with DCQL queries.
- */
-export type SendAuthorizationResponse = (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
-  remotePresentations: RemotePresentation[],
-  rpConf: RelyingPartyEntityConfiguration["payload"]["metadata"],
-  context?: {
-    appFetch?: GlobalFetch["fetch"];
-  }
-) => Promise<AuthorizationResponse>;
-
-export const sendAuthorizationResponse: SendAuthorizationResponse = async (
-  requestObject,
-  remotePresentations,
-  rpConf,
-  { appFetch = fetch } = {}
-): Promise<AuthorizationResponse> => {
-  // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
-  const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-    vp_token: remotePresentations.reduce(
-      (acc, presentation) => ({
-        ...acc,
-        [presentation.credentialId]: presentation.vpToken,
-      }),
-      {} as Record<string, string>
-    ),
-  });
-
-  // 2. Send the authorization response via HTTP POST and validate the response
-  return await appFetch(requestObject.response_uri, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: requestBody,
-  })
-    .then(hasStatusOrThrow(200))
-    .then((res) => res.json())
-    .then(AuthorizationResponse.parse)
-    .catch(handleAuthorizationResponseError);
-};
-
-/**
- * Type definition for the function that sends the authorization response
- * to the Relying Party, completing the presentation flow.
- */
-export type SendAuthorizationErrorResponse = (
-  requestObject: Out<VerifyRequestObject>["requestObject"],
-  error: { error: ErrorResponse; errorDescription: string },
-  context?: {
-    appFetch?: GlobalFetch["fetch"];
-  }
-) => Promise<AuthorizationResponse>;
-
-/**
- * Sends the authorization error response to the Relying Party (RP) using the specified `response_mode`.
- * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
- *
- * @param requestObject - The request details, including presentation requirements.
- * @param error - The response error value, with description
- * @param context - Contains optional custom fetch implementation.
- * @returns Parsed and validated authorization response from the Relying Party.
- */
-export const sendAuthorizationErrorResponse: SendAuthorizationErrorResponse =
+export const sendAuthorizationErrorResponse: RemotePresentationApi["sendAuthorizationErrorResponse"] =
   async (
     requestObject,
     { error, errorDescription },
     { appFetch = fetch } = {}
-  ): Promise<AuthorizationResponse> => {
+  ) => {
     const requestBody = await buildDirectPostBody(requestObject, {
       error,
       error_description: errorDescription,

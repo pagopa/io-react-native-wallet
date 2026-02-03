@@ -4,12 +4,12 @@ import type { DcqlQuery } from "dcql";
 /**
  * The purpose for the credential request by the RP.
  */
-type CredentialPurpose = {
+export type CredentialPurpose = {
   required: boolean;
   description?: string;
 };
 
-type Disclosure = [
+export type Disclosure = [
   string /* salt */,
   string /* claim name */,
   unknown /* claim value */,

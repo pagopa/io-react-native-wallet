@@ -1,41 +1,17 @@
 import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { decode, prepareVpToken } from "../../sd-jwt";
-import { LEGACY_SD_JWT, type Disclosure } from "../../sd-jwt/types";
-import type { RemotePresentation } from "./types";
-import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
-
-/**
- * The purpose for the credential request by the RP.
- */
-type CredentialPurpose = {
-  required: boolean;
-  description?: string;
-};
-
-export type EvaluateDcqlQuery = (
-  credentialsSdJwt: [CryptoContext, string /* credential */][],
-  query: DcqlQuery.Input
-) => {
-  id: string;
-  vct: string;
-  credential: string;
-  cryptoContext: CryptoContext;
-  requiredDisclosures: Disclosure[];
-  purposes: CredentialPurpose[];
-}[];
-
-export type PrepareRemotePresentations = (
-  credentials: {
-    id: string;
-    credential: string;
-    cryptoContext: CryptoContext;
-    requestedClaims: string[];
-  }[],
-  nonce: string,
-  clientId: string
-) => Promise<RemotePresentation[]>;
+import { decode } from "../../../sd-jwt";
+import { LEGACY_SD_JWT } from "../../../sd-jwt/types";
+import {
+  CredentialsNotFoundError,
+  type NotFoundDetail,
+} from "../common/errors";
+import type { RemotePresentationApi } from "../api";
+import type {
+  CredentialPurpose,
+  Disclosure,
+} from "../api/06-evaluate-dcql-query";
 
 type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
@@ -105,94 +81,70 @@ const extractMissingCredentials = (
   });
 };
 
-export const evaluateDcqlQuery: EvaluateDcqlQuery = (
-  credentialsSdJwt,
-  query
-) => {
-  const credentials = credentialsSdJwt.map(([, credential]) =>
-    mapCredentialToObject(credential)
-  );
-  try {
-    // Validate the query
-    const parsedQuery = DcqlQuery.parse(query);
-    DcqlQuery.validate(parsedQuery);
-
-    const queryResult = DcqlQuery.query(parsedQuery, credentials);
-
-    if (!queryResult.canBeSatisfied) {
-      throw new CredentialsNotFoundError(
-        extractMissingCredentials(queryResult, parsedQuery)
-      );
-    }
-
-    // Build an object vct:credentialJwt to map matched credentials to their JWT
-    const credentialsSdJwtByVct = credentials.reduce(
-      (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
-      {} as Record<string, [CryptoContext, string /* credential */]>
+export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
+  async (credentialsSdJwt, query) => {
+    const credentials = credentialsSdJwt.map(([, credential]) =>
+      mapCredentialToObject(credential)
     );
+    try {
+      // Validate the query
+      const parsedQuery = DcqlQuery.parse(query);
+      DcqlQuery.validate(parsedQuery);
 
-    return getDcqlQueryMatches(queryResult).map(([id, match]) => {
-      if (
-        match.output.credential_format !== "dc+sd-jwt" &&
-        match.output.credential_format !== LEGACY_SD_JWT
-      ) {
-        throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
+      const queryResult = DcqlQuery.query(parsedQuery, credentials);
+
+      if (!queryResult.canBeSatisfied) {
+        throw new CredentialsNotFoundError(
+          extractMissingCredentials(queryResult, parsedQuery)
+        );
       }
-      const { vct, claims } = match.output;
 
-      const purposes = queryResult.credential_sets
-        ?.filter((set) => set.matching_options?.flat().includes(id))
-        ?.map<CredentialPurpose>((credentialSet) => ({
-          description: credentialSet.purpose?.toString(),
-          required: Boolean(credentialSet.required),
-        }));
+      // Build an object vct:credentialJwt to map matched credentials to their JWT
+      const credentialsSdJwtByVct = credentials.reduce(
+        (acc, c, i) => ({ ...acc, [c.vct]: credentialsSdJwt[i]! }),
+        {} as Record<string, [CryptoContext, string /* credential */]>
+      );
 
-      const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
-      const requiredDisclosures = Object.values(claims) as Disclosure[];
-      return {
-        id,
-        vct,
-        cryptoContext,
-        credential,
-        requiredDisclosures,
-        // When it is a match but no credential_sets are found, the credential is required by default
-        // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
-        purposes: purposes ?? [{ required: true }],
-      };
-    });
-  } catch (error) {
-    // Invalid DCQL query structure. Remap to `DcqlError` for consistency.
-    if (isValiError(error)) {
-      throw new DcqlError({
-        message: "Failed to parse the provided DCQL query",
-        code: "PARSE_ERROR",
-        cause: error.issues,
+      return getDcqlQueryMatches(queryResult).map(([id, match]) => {
+        if (
+          match.output.credential_format !== "dc+sd-jwt" &&
+          match.output.credential_format !== LEGACY_SD_JWT
+        ) {
+          throw new Error("Unsupported format"); // TODO [SIW-2082]: support MDOC credentials
+        }
+        const { vct, claims } = match.output;
+
+        const purposes = queryResult.credential_sets
+          ?.filter((set) => set.matching_options?.flat().includes(id))
+          ?.map<CredentialPurpose>((credentialSet) => ({
+            description: credentialSet.purpose?.toString(),
+            required: Boolean(credentialSet.required),
+          }));
+
+        const [cryptoContext, credential] = credentialsSdJwtByVct[vct]!;
+        const requiredDisclosures = Object.values(claims) as Disclosure[];
+        return {
+          id,
+          vct,
+          cryptoContext,
+          credential,
+          requiredDisclosures,
+          // When it is a match but no credential_sets are found, the credential is required by default
+          // See https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section-6.3.1.2-2.1
+          purposes: purposes ?? [{ required: true }],
+        };
       });
+    } catch (error) {
+      // Invalid DCQL query structure. Remap to `DcqlError` for consistency.
+      if (isValiError(error)) {
+        throw new DcqlError({
+          message: "Failed to parse the provided DCQL query",
+          code: "PARSE_ERROR",
+          cause: error.issues,
+        });
+      }
+
+      // Let other errors propagate so they can be caught with `err instanceof DcqlError`
+      throw error;
     }
-
-    // Let other errors propagate so they can be caught with `err instanceof DcqlError`
-    throw error;
-  }
-};
-
-export const prepareRemotePresentations: PrepareRemotePresentations = async (
-  credentials,
-  nonce,
-  clientId
-) => {
-  return Promise.all(
-    credentials.map(async (item) => {
-      const { vp_token } = await prepareVpToken(nonce, clientId, [
-        item.credential,
-        item.requestedClaims,
-        item.cryptoContext,
-      ]);
-
-      return {
-        credentialId: item.id,
-        requestedClaims: item.requestedClaims,
-        vpToken: vp_token,
-      };
-    })
-  );
-};
+  };
