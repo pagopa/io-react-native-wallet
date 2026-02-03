@@ -53,8 +53,8 @@ export const decode = (token: string): ParsedToken => {
 export function getTrustAnchorX509Certificate(
   trustAnchorEntity: TrustAnchorConfig
 ): string {
-  const taHeaderKid = trustAnchorEntity.header.kid;
-  const taSigningJwk = trustAnchorEntity.payload.keys.find(
+  const taHeaderKid = trustAnchorEntity.jwt.header.kid;
+  const taSigningJwk = trustAnchorEntity.keys.find(
     (key) => key.kid === taHeaderKid
   );
 
