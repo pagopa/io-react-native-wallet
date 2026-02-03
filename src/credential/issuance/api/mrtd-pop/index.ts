@@ -34,7 +34,7 @@ export interface MRTDPoPApi {
   ): Promise<MrtdProofChallengeInfo>;
 
   /**
-   * Initialaizes the MRTD challenge with the data received from the issuer after the primary authentication.
+   * Initializes the MRTD challenge with the data received from the issuer after the primary authentication.
    * This function must be called after {@link verifyAndParseChallengeInfo}.
    *
    * @param issuerConf - The issuer configuration containing the JWKS for signature verification.
