@@ -1,6 +1,8 @@
 import { createMapper } from "../../../utils/mappers";
 import { RelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/types";
 import type { RelyingPartyConfig } from "../api";
+import type { RequestObject } from "../api/types";
+import { RequestObjectPayload } from "./types";
 
 export const mapToRelyingPartyConfig = createMapper<
   RelyingPartyEntityConfiguration,
@@ -17,3 +19,14 @@ export const mapToRelyingPartyConfig = createMapper<
     homepage_uri: federation_entity.homepage_uri,
   };
 });
+
+export const mapToRequestObject = createMapper<
+  RequestObjectPayload,
+  RequestObject
+>((x) => ({
+  clientId: x.client_id,
+  dcqlQuery: x.dcql_query,
+  nonce: x.nonce,
+  responseUri: x.response_uri,
+  state: x.state,
+}));

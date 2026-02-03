@@ -68,5 +68,7 @@ export type RemotePresentation = {
 export type RequestObject = {
   responseUri: string;
   nonce: string;
+  state?: string;
   clientId: string;
+  dcqlQuery: Record<string, unknown>;
 };

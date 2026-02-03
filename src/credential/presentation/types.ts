@@ -88,23 +88,6 @@ export const PresentationDefinition = z.object({
   submission_requirements: z.array(SubmissionRequirement).optional(),
 });
 
-export type RequestObject = z.infer<typeof RequestObject>;
-export const RequestObject = z.object({
-  iss: z.string(),
-  iat: UnixTime,
-  exp: UnixTime,
-  state: z.string().optional(),
-  nonce: z.string(),
-  response_uri: z.string(),
-  request_uri_method: z.string().optional(),
-  response_type: z.literal("vp_token"),
-  response_mode: z.literal("direct_post.jwt"),
-  client_id: z.string(),
-  dcql_query: z.record(z.string(), z.any()).optional(), // Validation happens within the `dcql` library, no need to duplicate it here
-  scope: z.string().optional(),
-  presentation_definition: PresentationDefinition.optional(),
-});
-
 export type WalletMetadata = z.infer<typeof WalletMetadata>;
 export const WalletMetadata = z.object({
   presentation_definition_uri_supported: z.boolean().optional(),
