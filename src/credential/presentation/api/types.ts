@@ -57,9 +57,9 @@ export type AuthorizationResponse = {
  * Used with DCQL queries
  */
 export type RemotePresentation = {
-  requested_claims: string[];
-  credential_id: string;
-  vp_token: string;
+  requestedClaims: string[];
+  credentialId: string;
+  vpToken: string;
 };
 
 /**

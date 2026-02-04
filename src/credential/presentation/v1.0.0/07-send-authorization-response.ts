@@ -122,9 +122,9 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
         ]);
 
         return {
-          credential_id: item.id,
-          requested_claims: item.requestedClaims,
-          vp_token: vp_token,
+          credentialId: item.id,
+          requestedClaims: item.requestedClaims,
+          vpToken: vp_token,
         };
       })
     );
@@ -142,7 +142,7 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
       vp_token: remotePresentations.reduce(
         (acc, presentation) => ({
           ...acc,
-          [presentation.credential_id]: presentation.vp_token,
+          [presentation.credentialId]: presentation.vpToken,
         }),
         {} as Record<string, string>
       ),

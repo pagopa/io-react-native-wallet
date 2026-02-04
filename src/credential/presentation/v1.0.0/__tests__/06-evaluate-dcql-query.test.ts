@@ -1,8 +1,11 @@
 import { DcqlError, type DcqlQuery } from "dcql";
-import { evaluateDcqlQuery } from "../07-evaluate-dcql-query";
-import { CredentialsNotFoundError, type NotFoundDetail } from "../errors";
-import { pid, mdl, legacyPid } from "../../../sd-jwt/__mocks__/sd-jwt";
-import { createCryptoContextFor } from "../../../utils/crypto";
+import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
+import {
+  CredentialsNotFoundError,
+  type NotFoundDetail,
+} from "../../common/errors";
+import { pid, mdl, legacyPid } from "../../../../sd-jwt/__mocks__/sd-jwt";
+import { createCryptoContextFor } from "../../../../utils/crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 const pidKeyTag = "pidkeytag";
@@ -29,7 +32,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
+    expect(() => evaluateDcqlQuery(credentials, query)).toThrow(DcqlError);
   });
 
   it("should throw error when the DCQL is invalid", () => {
@@ -44,7 +47,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    expect(() => evaluateDcqlQuery(credentials, query)).toThrowError(DcqlError);
+    expect(() => evaluateDcqlQuery(credentials, query)).toThrow(DcqlError);
   });
 
   test.each([

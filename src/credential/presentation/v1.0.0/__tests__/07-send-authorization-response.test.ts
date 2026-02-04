@@ -1,15 +1,15 @@
 import {
   RelyingPartyResponseError,
   RelyingPartyResponseErrorCodes,
-} from "../../../utils/errors";
+} from "../../../../utils/errors";
 import {
   buildDirectPostBody,
   buildDirectPostJwtBody,
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
-} from "../08-send-authorization-response";
-import type { RemotePresentation, RequestObject } from "../types";
-import type { RelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
+} from "../07-send-authorization-response";
+import type { RemotePresentation, RequestObject } from "../../api/types";
+import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 
 jest.mock("@pagopa/io-react-native-jwt", () => {
   const actualModule = jest.requireActual("@pagopa/io-react-native-jwt");
@@ -31,16 +31,11 @@ jest.mock("@pagopa/io-react-native-jwt", () => {
 });
 
 const mockRequestObject: RequestObject = {
-  iat: 1234567890,
-  exp: 1234567899,
   iss: "https://mock.rp",
   client_id: "mock_client_id",
-  response_type: "vp_token",
   nonce: "mock_nonce",
   response_uri: "https://mock.rp/response",
-  scope: "mock_scope",
   state: "mock_state",
-  response_mode: "direct_post.jwt",
   dcql_query: {
     credentials: [
       {
@@ -52,16 +47,13 @@ const mockRequestObject: RequestObject = {
   },
 };
 
-const mockRpConf = {
-  openid_credential_verifier: {
-    jwks: {
-      keys: [
-        { kid: "rsa-key-1", use: "enc", kty: "RSA" },
-        { kid: "something-else", use: "sig", kty: "EC" },
-      ],
-    },
-  },
-} as RelyingPartyEntityConfiguration["payload"]["metadata"];
+const mockRpConf: RelyingPartyConfig = {
+  subject: "mock_client_id",
+  keys: [
+    { kid: "rsa-key-1", use: "enc", kty: "RSA" },
+    { kid: "something-else", use: "sig", kty: "EC" },
+  ],
+};
 
 describe("buildDirectPostBody", () => {
   it("should build the correct formBody string", async () => {

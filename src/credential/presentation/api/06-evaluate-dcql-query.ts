@@ -28,14 +28,12 @@ export interface EvaluateDcqlQueryApi {
   evaluateDcqlQuery(
     credentialsSdJwt: [CryptoContext, string /* credential */][],
     query: DcqlQuery.Input
-  ): Promise<
-    {
-      id: string;
-      vct: string;
-      credential: string;
-      cryptoContext: CryptoContext;
-      requiredDisclosures: Disclosure[];
-      purposes: CredentialPurpose[];
-    }[]
-  >;
+  ): {
+    id: string;
+    vct: string;
+    credential: string;
+    cryptoContext: CryptoContext;
+    requiredDisclosures: Disclosure[];
+    purposes: CredentialPurpose[];
+  }[];
 }
