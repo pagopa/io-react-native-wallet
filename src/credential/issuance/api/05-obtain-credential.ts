@@ -20,7 +20,6 @@ export interface ObtainCredentialApi {
    * @param context.credentialCryptoContext The crypto context used to obtain the credential
    * @param context.dPopCryptoContext The DPoP crypto context
    * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
-   * @param operationType Specify the type of credential issuance (used for reissuing)
    * @returns The credential response containing the credential
    */
   obtainCredential(

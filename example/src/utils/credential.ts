@@ -95,7 +95,6 @@ export const getCredential = async ({
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
     code,
-    clientId,
     redirectUri,
     codeVerifier,
     {

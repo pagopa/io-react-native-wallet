@@ -195,7 +195,6 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
     code,
-    clientId,
     redirectUri,
     codeVerifier,
     {

@@ -12,7 +12,6 @@ import * as WalletInstanceAttestation from "../../../wallet-instance-attestation
 export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   issuerConf,
   code,
-  _,
   redirectUri,
   codeVerifier,
   context

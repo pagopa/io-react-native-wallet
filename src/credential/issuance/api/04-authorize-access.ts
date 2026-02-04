@@ -12,7 +12,6 @@ export interface AuthorizeAccessApi {
    *
    * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
    * @param code The authorization code returned by {@link completeUserAuthorizationWithQueryMode} or {@link completeUserAuthorizationWithFormPost}
-   * @param clientId The client id returned by {@link startUserAuthorization}
    * @param redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
    * @param codeVerifier The code verifier returned by {@link startUserAuthorization}
    * @param context.walletInstanceAttestation The Wallet Instance's attestation
@@ -26,7 +25,6 @@ export interface AuthorizeAccessApi {
   authorizeAccess(
     issuerConf: IssuerConfig,
     code: string,
-    clientId: string,
     redirectUri: string,
     codeVerifier: string,
     context: {
