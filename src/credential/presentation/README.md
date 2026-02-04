@@ -48,7 +48,7 @@ The following HTTP errors are mapped to a `RelyingPartyResponseError` with speci
 **Note:** To successfully complete a remote presentation, the Wallet Instance must be in a valid state with a valid Wallet Instance Attestation.
 
 ```ts
-import { ioWallet } from "@pagopa/io-react-native-wallet"
+import { IoWallet } from "@pagopa/io-react-native-wallet"
 
 const wallet = new IoWallet({ version: "1.0.0" })
 
