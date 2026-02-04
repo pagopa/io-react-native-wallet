@@ -58,7 +58,7 @@ export interface SendAuthorizationResponseApi {
    * @returns Parsed and validated authorization response from the Relying Party.
    */
   sendAuthorizationErrorResponse(
-    requestObject: any,
+    requestObject: RequestObject,
     error: { error: ErrorResponse; errorDescription: string },
     context?: FetchContext
   ): Promise<AuthorizationResponse>;

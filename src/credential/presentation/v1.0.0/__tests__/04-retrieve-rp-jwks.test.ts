@@ -3,8 +3,6 @@
 import { getJwksFromRpConfig } from "../04-retrieve-rp-jwks";
 import { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 
-jest.mock("@pagopa/io-react-native-jwt", () => ({ decode: jest.fn() }));
-
 describe("fetchJwksFromConfig", () => {
   beforeEach(() => {
     jest.resetAllMocks();
