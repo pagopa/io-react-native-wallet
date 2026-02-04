@@ -1,5 +1,9 @@
 import type { PresentationParams } from "./types";
 
+type NullablePresentationParams = {
+  [K in keyof PresentationParams]?: PresentationParams[K] | null;
+};
+
 export interface StartFlowApi {
   /**
    * Start a presentation flow by validating the required parameters.
@@ -10,5 +14,5 @@ export interface StartFlowApi {
    * @returns The url for the Relying Party to connect with
    * @throws If the provided parameters are not valid
    */
-  startFlowFromQR(params: Partial<PresentationParams>): PresentationParams;
+  startFlowFromQR(params: NullablePresentationParams): PresentationParams;
 }

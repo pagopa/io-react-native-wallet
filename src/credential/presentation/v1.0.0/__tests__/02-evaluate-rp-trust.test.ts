@@ -1,11 +1,12 @@
 // __tests__/evaluateRelyingPartyTrust.test.ts
 
 import { evaluateRelyingPartyTrust } from "../02-evaluate-rp-trust";
-import { getRelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/entities"; // TODO: [SIW-3742] refactor presentation
-import { RelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
+import { getRelyingPartyEntityConfiguration } from "../../../../trust/v1.0.0/entities";
+import { RelyingPartyEntityConfiguration } from "../../../../trust/v1.0.0/types";
+import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 
 // Mock the getRelyingPartyEntityConfiguration module
-jest.mock("../../../trust/v1.0.0/entities", () => ({
+jest.mock("../../../../trust/v1.0.0/entities", () => ({
   getRelyingPartyEntityConfiguration: jest.fn(),
 }));
 
@@ -18,9 +19,17 @@ describe("evaluateRelyingPartyTrust", () => {
   const sampleRpUrl = "https://example.com/rp";
   const sampleMetadata = {
     // Populate with sample metadata as per RelyingPartyEntityConfiguration["payload"]["metadata"]
-    name: "Example RP",
-    version: "1.0",
+    openid_credential_verifier: {},
+    federation_entity: {
+      organization_name: "Example RP",
+    },
     // ... other metadata fields
+  };
+
+  const mappedRpEntityConfiguration: RelyingPartyConfig = {
+    keys: [],
+    organization_name: "Example RP",
+    subject: sampleRpUrl,
   };
 
   beforeEach(() => {
@@ -31,6 +40,8 @@ describe("evaluateRelyingPartyTrust", () => {
     // Arrange: Mock the getRelyingPartyEntityConfiguration to return a resolved promise
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
+        sub: sampleRpUrl,
+        jwks: { keys: [] },
         metadata: sampleMetadata,
       },
     } as unknown as RelyingPartyEntityConfiguration);
@@ -47,7 +58,7 @@ describe("evaluateRelyingPartyTrust", () => {
     );
 
     // Assert: Check that the result contains the expected metadata
-    expect(result).toEqual({ rpConf: sampleMetadata });
+    expect(result).toEqual({ rpConf: mappedRpEntityConfiguration });
   });
 
   it("should use a custom fetch implementation when provided", async () => {
@@ -56,6 +67,8 @@ describe("evaluateRelyingPartyTrust", () => {
 
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
+        sub: sampleRpUrl,
+        jwks: { keys: [] },
         metadata: sampleMetadata,
       },
     } as unknown as RelyingPartyEntityConfiguration);
@@ -73,7 +86,7 @@ describe("evaluateRelyingPartyTrust", () => {
       }
     );
 
-    expect(result).toEqual({ rpConf: sampleMetadata });
+    expect(result).toEqual({ rpConf: mappedRpEntityConfiguration });
   });
 
   it("should propagate errors from getRelyingPartyEntityConfiguration", async () => {
@@ -99,12 +112,12 @@ describe("evaluateRelyingPartyTrust", () => {
     // Arrange: Spy on the global fetch
     const globalFetchSpy = jest
       .spyOn(global, "fetch")
-      .mockResolvedValue(
-        new Response(JSON.stringify({ payload: { metadata: sampleMetadata } }))
-      );
+      .mockResolvedValue(new Response());
 
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
+        sub: sampleRpUrl,
+        jwks: { keys: [] },
         metadata: sampleMetadata,
       },
     } as unknown as RelyingPartyEntityConfiguration);
@@ -119,7 +132,7 @@ describe("evaluateRelyingPartyTrust", () => {
       }
     );
 
-    expect(result).toEqual({ rpConf: sampleMetadata });
+    expect(result).toEqual({ rpConf: mappedRpEntityConfiguration });
 
     globalFetchSpy.mockRestore();
   });

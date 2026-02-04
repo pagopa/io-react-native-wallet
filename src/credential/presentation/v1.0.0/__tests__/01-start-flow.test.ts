@@ -1,6 +1,6 @@
 // startFlow.test.ts
+import { InvalidQRCodeError } from "../../common/errors";
 import { startFlowFromQR } from "../01-start-flow";
-import { InvalidQRCodeError } from "../errors";
 
 describe("startFlowFromQR", () => {
   const request_uri = "https://request.uri";

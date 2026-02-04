@@ -5,7 +5,7 @@ export const getJwksFromRpConfig: RemotePresentationApi["getJwksFromRpConfig"] =
   (rpConfig) => {
     const jwks = rpConfig.keys;
 
-    if (!jwks || !Array.isArray(jwks.keys)) {
+    if (!jwks || !Array.isArray(jwks)) {
       throw new Error("JWKS not found in Relying Party configuration.");
     }
 
