@@ -17,3 +17,4 @@ export interface RemotePresentationApi
     SendAuthorizationResponseApi {}
 
 export type { RelyingPartyConfig };
+export * from "./types";
