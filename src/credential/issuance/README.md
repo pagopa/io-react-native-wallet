@@ -178,8 +178,7 @@ const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
   code,
-  clientId,
-  redirectUri: REDIRECT_URI,
+  REDIRECT_URI,
   codeVerifier,
   {
     walletInstanceAttestation,
@@ -326,7 +325,6 @@ const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
   code,
-  clientId,
   redirectUri,
   codeVerifier,
   {
