@@ -57,18 +57,19 @@ export type AuthorizationResponse = {
  * Used with DCQL queries
  */
 export type RemotePresentation = {
-  requestedClaims: string[];
-  credentialId: string;
-  vpToken: string;
+  requested_claims: string[];
+  credential_id: string;
+  vp_token: string;
 };
 
 /**
  * Common Request Object type, decoupled from specific IT-Wallet versions
  */
 export type RequestObject = {
-  responseUri: string;
+  iss: string;
+  response_uri: string;
   nonce: string;
   state?: string;
-  clientId: string;
-  dcqlQuery: Record<string, unknown>;
+  client_id: string;
+  dcql_query: Record<string, unknown>;
 };

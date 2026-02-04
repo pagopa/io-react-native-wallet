@@ -112,19 +112,19 @@ export const buildDirectPostBody = async (
 };
 
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, { nonce, clientId }) => {
+  async (credentials, { nonce, client_id }) => {
     return Promise.all(
       credentials.map(async (item) => {
-        const { vp_token } = await prepareVpToken(nonce, clientId, [
+        const { vp_token } = await prepareVpToken(nonce, client_id, [
           item.credential,
           item.requestedClaims,
           item.cryptoContext,
         ]);
 
         return {
-          credentialId: item.id,
-          requestedClaims: item.requestedClaims,
-          vpToken: vp_token,
+          credential_id: item.id,
+          requested_claims: item.requestedClaims,
+          vp_token: vp_token,
         };
       })
     );
@@ -142,14 +142,14 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
       vp_token: remotePresentations.reduce(
         (acc, presentation) => ({
           ...acc,
-          [presentation.credentialId]: presentation.vpToken,
+          [presentation.credential_id]: presentation.vp_token,
         }),
         {} as Record<string, string>
       ),
     });
 
     // 2. Send the authorization response via HTTP POST and validate the response
-    return await appFetch(requestObject.responseUri, {
+    return await appFetch(requestObject.response_uri, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
