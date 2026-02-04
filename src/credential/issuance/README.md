@@ -98,6 +98,10 @@ The expected result from the authentication process is in `form_post.jwt` format
   <summary>Credential issuance flow</summary>
 
 ```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+
+const wallet = new IoWallet({ version: "1.0.0" });
+
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the key tag used to create the wallet instance
 const integrityContext = getIntegrityContext(integrityKeyTag);
@@ -134,22 +138,14 @@ const credentialKeyTag = uuidv4().toString();
 await generate(credentialKeyTag); // Let's assume this function generates a new hardware-backed key pair
 const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-// Start the issuance flow
-const startFlow: Credential.Issuance.StartFlow = () => ({
-  issuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
-  credentialId: "someCredentialId",
-});
-
-const { issuerUrl, credentialId } = startFlow();
-
 // Evaluate issuer trust
-const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
+const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(WALLET_EAA_PROVIDER_BASE_URL);
 
 // Start user authorization
 const { issuerRequestUri, clientId, codeVerifier } =
-  await Credential.Issuance.startUserAuthorization(
+  await wallet.CredentialIssuance.startUserAuthorization(
     issuerConf,
-    [credentialId],
+    ["someCredentialId"],
     { proofType: "none" },
     {
       walletInstanceAttestation,
@@ -160,7 +156,7 @@ const { issuerRequestUri, clientId, codeVerifier } =
   );
 
 const requestObject =
-  await Credential.Issuance.getRequestedCredentialToBePresented(
+  await wallet.CredentialIssuance.getRequestedCredentialToBePresented(
     issuerRequestUri,
     clientId,
     issuerConf,
@@ -169,7 +165,7 @@ const requestObject =
 
 // Complete the user authorization via form_post.jwt mode
 const { code } =
-  await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
+  await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
     requestObject,
     pid.credential,
     { wiaCryptoContext, pidCryptoContext: createCryptoContextFor(pid.keyTag) }
@@ -179,7 +175,7 @@ const { code } =
 await regenerateCryptoKey(DPOP_KEYTAG); // Let's assume this function regenerates this ephemeral key for the DPoP
 const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
-const { accessToken } = await Credential.Issuance.authorizeAccess(
+const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
   code,
   clientId,
@@ -198,7 +194,7 @@ const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details[0]!;
 
  // Obtain the credential
-const { credential, format } = await Credential.Issuance.obtainCredential(
+const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
   issuerConf,
   accessToken,
   clientId,
@@ -222,7 +218,7 @@ const mockX509CertRoot = format === "mso_mdoc" ? "base64encodedX509CertRoot" : u
  * WARNING: includeUndefinedAttributes should not be set to true in production in order to get only claims explicitly declared by the issuer.
  */
 const { parsedCredential } =
-  await Credential.Issuance.verifyAndParseCredential(
+  await wallet.CredentialIssuance.verifyAndParseCredential(
     issuerConf,
     credential,
     credential_configuration_id,
@@ -254,6 +250,10 @@ return {
   <summary>eID issuance flow</summary>
 
 ```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+
+const wallet = new IoWallet({ version: "1.0.0" });
+
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the key tag used to create the wallet instance
 const integrityContext = getIntegrityContext(integrityKeyTag);
@@ -293,25 +293,17 @@ const credentialKeyTag = uuidv4().toString();
 await generate(credentialKeyTag);
 const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-// Start the issuance flow
-const startFlow: Credential.Issuance.StartFlow = () => ({
-  issuerUrl: WALLET_EID_PROVIDER_BASE_URL,
-  credentialId: "dc_sd_jwt_PersonIdentificationData",
-});
-
-const { issuerUrl, credentialId } = startFlow();
-
 // Evaluate issuer trust
-const { issuerConf } = await Credential.Issuance.evaluateIssuerTrust(
-  issuerUrl,
+const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
+  WALLET_EID_PROVIDER_BASE_URL,
   { appFetch }
 );
 
 // Start user authorization
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-  await Credential.Issuance.startUserAuthorization(
+  await wallet.CredentialIssuance.startUserAuthorization(
     issuerConf,
-    [credentialId], // Request authorization for one or more credentials
+    ["dc_sd_jwt_PersonIdentificationData"], // Request authorization for one or more credentials
     { proofType: "none" },
     {
       walletInstanceAttestation,
@@ -323,7 +315,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
 
 // Complete the authorization process with query mode with the authorizationContext which opens the browser
 const { code } =
-  await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+  await wallet.CredentialIssuance.completeUserAuthorizationWithQueryMode(
     issuerRequestUri
   );
 
@@ -331,7 +323,7 @@ const { code } =
 await regenerateCryptoKey(DPOP_KEYTAG);
 const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
-const { accessToken } = await Credential.Issuance.authorizeAccess(
+const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
   code,
   clientId,
@@ -358,7 +350,7 @@ const { credential_configuration_id, credential_identifiers } =
     );
 
 // Obtain che eID credential
-const { credential, format } = await Credential.Issuance.obtainCredential(
+const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
   issuerConf,
   accessToken,
   clientId,
@@ -374,7 +366,7 @@ const { credential, format } = await Credential.Issuance.obtainCredential(
 );
 
 // Parse and verify the eID credential
-const { parsedCredential, issuedAt, expiration } = await Credential.Issuance.verifyAndParseCredential(
+const { parsedCredential, issuedAt, expiration } = await wallet.CredentialIssuance.verifyAndParseCredential(
   issuerConf,
   credential,
   credential_configuration_id,
@@ -400,6 +392,10 @@ The result of this flow is a raw credential and a parsed credential which must b
   <summary>eID issuance flow with MRTD PoP validation</summary>
 
 ```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+
+const wallet = new IoWallet({ version: "1.0.0" });
+
 /**
  *
  * Previous steps are the sames as the "eID issuance flow" example
@@ -409,7 +405,7 @@ The result of this flow is a raw credential and a parsed credential which must b
 // Start user authorization indicating "mrtd-pop" as the proof type with the idpHint of the
 // chosen identification method
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
-  await Credential.Issuance.startUserAuthorization(
+  await wallet.CredentialIssuance.startUserAuthorization(
     issuerConf,
     [credentialId],
     { proofType: "mrtd-pop", idpHinting: idpHint },
@@ -422,7 +418,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
   );
 
 // Obtain the Authorization URL
-const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
+const { authUrl } = await wallet.CredentialIssuance.buildAuthorizationUrl(
   issuerRequestUri,
   clientId,
   issuerConf,
@@ -431,7 +427,7 @@ const { authUrl } = await Credential.Issuance.buildAuthorizationUrl(
 
 // Extract challenge info from the Authorization URL
 const { challenge_info } =
-  await Credential.Issuance.continueUserAuthorizationWithMRTDPoPChallenge(
+  await wallet.CredentialIssuance.continueUserAuthorizationWithMRTDPoPChallenge(
     authUrl
   );
 
@@ -440,7 +436,7 @@ const {
   htu: initUrl,
   mrtd_auth_session,
   mrtd_pop_jwt_nonce,
-} = await Credential.Issuance.MRTDPoP.verifyAndParseChallengeInfo(
+} = await wallet.CredentialIssuance.MRTDPoP.verifyAndParseChallengeInfo(
   issuerConf,
   challenge_info,
   { wiaCryptoContext }
@@ -451,7 +447,7 @@ const {
   htu: validationUrl,
   challenge,
   mrtd_pop_nonce,
-} = await Credential.Issuance.MRTDPoP.initChallenge(
+} = await wallet.CredentialIssuance.MRTDPoP.initChallenge(
   issuerConf,
   initUrl,
   mrtd_auth_session,
@@ -468,7 +464,7 @@ const { nis, mrtds } = /* NFC interactions functions */
 
 // Validate challenge
 const { mrtd_val_pop_nonce, redirect_uri } =
-  await Credential.Issuance.MRTDPoP.validateChallenge(
+  await wallet.CredentialIssuance.MRTDPoP.validateChallenge(
     issuerConf,
     validationUrl,
     mrtd_auth_session,
@@ -483,7 +479,7 @@ const { mrtd_val_pop_nonce, redirect_uri } =
   );
 
 // Build the callback url
-const { callbackUrl } = await Credential.Issuance.buildChallengeCallbackUrl(
+const { callbackUrl } = await wallet.CredentialIssuance.buildChallengeCallbackUrl(
   redirect_uri,
   mrtd_val_pop_nonce,
   mrtd_auth_session
@@ -494,7 +490,7 @@ const authRedirectUrl = /* From a browser or webview redirect */
 
 // Complete the authorization process with query mode using the returned callback url
 const { code } =
-  await Credential.Issuance.completeUserAuthorizationWithQueryMode(
+  await wallet.CredentialIssuance.completeUserAuthorizationWithQueryMode(
     authRedirectUrl
   );
 
@@ -503,7 +499,6 @@ const { code } =
  * The next steps are the same as the "eID issuance flow" example
  *
  */
-};
 ```
 
 The result of this flow is a raw credential and a parsed credential which must be stored securely in the wallet along with its crypto key.
