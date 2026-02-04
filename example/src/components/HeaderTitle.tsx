@@ -10,11 +10,10 @@ type Props = {
 };
 
 /**
- * Custom navigation header that appends the selected IT-Wallet version to the screen title.
+ * Custom navigation header that appends the active IT-Wallet version to the screen title.
  */
 export function HeaderTitle({ children }: Props) {
   const itwVersion = useAppSelector(selectItwVersion);
-  console.log(itwVersion);
   return (
     <View style={styles.wrapper}>
       <IOText
