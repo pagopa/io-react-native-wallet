@@ -5,11 +5,11 @@ import { createPopToken } from "../../../utils/pop";
 import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import type { AuthorizeAccessApi } from "../api/04-authorize-access";
+import type { IssuanceApi } from "../api";
 // TODO: [SIW-3570] import from wallet-instance-attestation/v1.0.0
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
 
-export const authorizeAccess: AuthorizeAccessApi["authorizeAccess"] = async (
+export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   issuerConf,
   code,
   _,

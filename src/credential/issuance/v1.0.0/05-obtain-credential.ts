@@ -14,7 +14,7 @@ import {
 } from "../../../utils/errors";
 import { createDPopToken } from "../../../utils/dpop";
 import { LogLevel, Logger } from "../../../utils/logging";
-import type { ObtainCredentialApi } from "../api/05-obtain-credential";
+import type { IssuanceApi } from "../api";
 import { CredentialResponse, NonceResponse } from "./types";
 
 export const createNonceProof = async (
@@ -39,7 +39,7 @@ export const createNonceProof = async (
     .sign();
 };
 
-export const obtainCredential: ObtainCredentialApi["obtainCredential"] = async (
+export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   issuerConf,
   accessToken,
   clientId,

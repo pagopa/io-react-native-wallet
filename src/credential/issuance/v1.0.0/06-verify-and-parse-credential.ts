@@ -15,8 +15,7 @@ import { MDOC_DEFAULT_NAMESPACE } from "../../../mdoc/const";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { extractElementValueAsDate } from "../../../mdoc/converter";
 import { isPathEqual, isPrefixOf } from "../../../utils/parser";
-import type { VerifyAndParseCredentialApi } from "../api/06-verify-and-parse-credential";
-import type { IssuerConfig, ParsedCredential } from "../api";
+import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 
 type CredentialConf =
   IssuerConfig["credential_configurations_supported"][string];
@@ -363,7 +362,7 @@ async function verifyCredentialMDoc(
   return decodedCredential;
 }
 
-const verifyAndParseCredentialSdJwt: VerifyAndParseCredentialApi["verifyAndParseCredential"] =
+const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredential"] =
   async (
     issuerConf,
     credential,
@@ -430,7 +429,7 @@ const verifyAndParseCredentialSdJwt: VerifyAndParseCredentialApi["verifyAndParse
     };
   };
 
-const verifyAndParseCredentialMDoc: VerifyAndParseCredentialApi["verifyAndParseCredential"] =
+const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential"] =
   async (
     issuerConf,
     credential,
@@ -487,7 +486,7 @@ const verifyAndParseCredentialMDoc: VerifyAndParseCredentialApi["verifyAndParseC
 
 /* -------------------- Public API implementation -------------------- */
 
-export const verifyAndParseCredential: VerifyAndParseCredentialApi["verifyAndParseCredential"] =
+export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
   async (
     issuerConf,
     credential,

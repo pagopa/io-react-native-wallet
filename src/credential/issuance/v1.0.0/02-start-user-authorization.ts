@@ -2,7 +2,7 @@ import { generateRandomAlphaNumericString } from "../../../utils/misc";
 import { AuthorizationDetail, makeParRequest } from "../../../utils/par";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuerConfig } from "../api/IssuerConfig";
-import type { StartUserAuthorizationApi } from "../api/02-start-user-authorization";
+import type { IssuanceApi } from "../api";
 import type { ResponseMode } from "./types";
 
 /**
@@ -88,7 +88,7 @@ const selectResponseMode = (
 
 /* -------------------- Public API implementation -------------------- */
 
-export const startUserAuthorization: StartUserAuthorizationApi["startUserAuthorization"] =
+export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
   async (issuerConf, credentialIds, proof, ctx) => {
     const {
       wiaCryptoContext,

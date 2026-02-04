@@ -17,7 +17,7 @@ import { getJwtFromFormPost } from "../../../utils/decoder";
 import { ResponseUriResultShape } from "./types";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import type { CompleteUserAuthorizationApi } from "../api/03-complete-user-authorization";
+import type { IssuanceApi } from "../api";
 
 // TODO: [SIW-3742] import from presentation/v1.0.0
 import {
@@ -26,7 +26,7 @@ import {
 } from "../../presentation/types";
 import * as Presentation from "../../presentation";
 
-export const continueUserAuthorizationWithMRTDPoPChallenge: CompleteUserAuthorizationApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
+export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -56,7 +56,7 @@ export const continueUserAuthorizationWithMRTDPoPChallenge: CompleteUserAuthoriz
     return authResParsed.data;
   };
 
-export const buildAuthorizationUrl: CompleteUserAuthorizationApi["buildAuthorizationUrl"] =
+export const buildAuthorizationUrl: IssuanceApi["buildAuthorizationUrl"] =
   async (issuerRequestUri, clientId, issuerConf, idpHint) => {
     const authzRequestEndpoint = issuerConf.authorization_endpoint;
 
@@ -74,7 +74,7 @@ export const buildAuthorizationUrl: CompleteUserAuthorizationApi["buildAuthoriza
     return { authUrl };
   };
 
-export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationApi["completeUserAuthorizationWithQueryMode"] =
+export const completeUserAuthorizationWithQueryMode: IssuanceApi["completeUserAuthorizationWithQueryMode"] =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -85,7 +85,7 @@ export const completeUserAuthorizationWithQueryMode: CompleteUserAuthorizationAp
     return parseAuthorizationResponse(query);
   };
 
-export const getRequestedCredentialToBePresented: CompleteUserAuthorizationApi["getRequestedCredentialToBePresented"] =
+export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCredentialToBePresented"] =
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -124,7 +124,7 @@ export const getRequestedCredentialToBePresented: CompleteUserAuthorizationApi["
     return requestObject.data;
   };
 
-export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthorizationApi["completeUserAuthorizationWithFormPostJwtMode"] =
+export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
   async (
     requestObject,
     pid,
