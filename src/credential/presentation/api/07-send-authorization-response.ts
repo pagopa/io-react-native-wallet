@@ -2,7 +2,7 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   AuthorizationResponse,
   ErrorResponse,
-  RemotePresentation,
+  RemotePresentationDetails,
   RequestObject,
 } from "./types";
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
@@ -27,7 +27,7 @@ export interface SendAuthorizationResponseApi {
       requestedClaims: string[];
     }[],
     requestObject: RequestObject
-  ): Promise<RemotePresentation[]>;
+  ): Promise<RemotePresentationDetails[]>;
 
   /**
    * Sends the authorization response containing the VP Token to the Relying Party (RP).
@@ -42,7 +42,7 @@ export interface SendAuthorizationResponseApi {
    */
   sendAuthorizationResponse(
     requestObject: RequestObject,
-    remotePresentations: RemotePresentation[],
+    remotePresentations: RemotePresentationDetails[],
     rpConf: RelyingPartyConfig,
     context?: FetchContext
   ): Promise<AuthorizationResponse>;

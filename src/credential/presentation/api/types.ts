@@ -56,7 +56,7 @@ export type AuthorizationResponse = {
  * A object that associate the information needed to multiple remote presentation
  * Used with DCQL queries
  */
-export type RemotePresentation = {
+export type RemotePresentationDetails = {
   requestedClaims: string[];
   credentialId: string;
   vpToken: string;
