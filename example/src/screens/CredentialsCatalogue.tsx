@@ -6,20 +6,18 @@ import TestScenario from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { getCredentialsCatalogueThunk } from "../thunks/credentialsCatalogue";
-import { selectItwVersion } from "../store/reducers/environment";
 import {
   selectCredentialsCatalogue,
   selectCredentialsCatalogueAsyncStatus,
 } from "../store/reducers/credentialsCatalogue";
 
 export const CredentialsCatalogueScreen = () => {
-  const itwVersion = useAppSelector(selectItwVersion);
   const asyncStatus = useAppSelector(selectCredentialsCatalogueAsyncStatus);
   const credentialsCatalogue = useAppSelector(selectCredentialsCatalogue);
 
   const dispatch = useAppDispatch();
 
-  useDebugInfo({ itwVersion, asyncStatus, credentialsCatalogue });
+  useDebugInfo({ asyncStatus, credentialsCatalogue });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
