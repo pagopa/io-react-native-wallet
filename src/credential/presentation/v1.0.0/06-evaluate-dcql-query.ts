@@ -137,7 +137,6 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] = (
       };
     });
   } catch (error) {
-    console.log(error);
     // Invalid DCQL query structure. Remap to `DcqlError` for consistency.
     if (isValiError(error)) {
       throw new DcqlError({

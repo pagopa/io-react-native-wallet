@@ -19,7 +19,9 @@ describe("evaluateRelyingPartyTrust", () => {
   const sampleRpUrl = "https://example.com/rp";
   const sampleMetadata = {
     // Populate with sample metadata as per RelyingPartyEntityConfiguration["payload"]["metadata"]
-    openid_credential_verifier: {},
+    openid_credential_verifier: {
+      jwks: { keys: [] },
+    },
     federation_entity: {
       organization_name: "Example RP",
     },
@@ -41,7 +43,6 @@ describe("evaluateRelyingPartyTrust", () => {
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
         sub: sampleRpUrl,
-        jwks: { keys: [] },
         metadata: sampleMetadata,
       },
     } as unknown as RelyingPartyEntityConfiguration);
@@ -68,7 +69,6 @@ describe("evaluateRelyingPartyTrust", () => {
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
         sub: sampleRpUrl,
-        jwks: { keys: [] },
         metadata: sampleMetadata,
       },
     } as unknown as RelyingPartyEntityConfiguration);
@@ -117,7 +117,6 @@ describe("evaluateRelyingPartyTrust", () => {
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
         sub: sampleRpUrl,
-        jwks: { keys: [] },
         metadata: sampleMetadata,
       },
     } as unknown as RelyingPartyEntityConfiguration);
