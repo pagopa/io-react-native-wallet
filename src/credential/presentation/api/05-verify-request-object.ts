@@ -7,15 +7,15 @@ export interface VerifyRequestObjectApi {
    * @since 1.0.0
    *
    * @param requestObjectEncodedJwt The Request Object in JWT format
-   * @param context.clientId The client ID to verify
-   * @param context.rpConf The Entity Configuration of the Relying Party
-   * @param context.state Optional state
+   * @param params.clientId The client ID to verify
+   * @param params.rpConf The Entity Configuration of the Relying Party
+   * @param params.state Optional state
    * @returns The verified Request Object
    * @throws {InvalidRequestObjectError} if the Request Object cannot be validated
    */
   verifyRequestObject(
     requestObjectEncodedJwt: string,
-    context: {
+    params: {
       clientId: string;
       rpConf: RelyingPartyConfig;
       state?: string;

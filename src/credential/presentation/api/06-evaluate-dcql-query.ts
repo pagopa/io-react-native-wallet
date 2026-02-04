@@ -24,6 +24,7 @@ export interface EvaluateDcqlQueryApi {
    * @param credentialsSdJwt The list of SD-JWT credentials
    * @param query The DCQL query
    * @returns The list of credentials that satisfied the query, with the requested claims
+   * @throws {DcqlError} if the provided DCQL query is not valid
    */
   evaluateDcqlQuery(
     credentialsSdJwt: [CryptoContext, string /* credential */][],
