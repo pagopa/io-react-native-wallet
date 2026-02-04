@@ -42,7 +42,7 @@ const CredentialConfig = z.intersection(
 );
 
 /**
- * Common Issuer configuration
+ * Common Issuer configuration, decoupled from specific IT-Wallet versions.
  */
 export type IssuerConfig = z.infer<typeof IssuerConfig>;
 export const IssuerConfig = z.object({

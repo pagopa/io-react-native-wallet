@@ -11,6 +11,8 @@ export interface ObtainCredentialApi {
    * of the Credential Issuer to request the issuance of a credential linked to the public key contained in the JWT proof.
    * The Openid4vci proof JWT incapsulates the nonce extracted from the token response from the {@link authorizeAccess} step.
    * The credential request is sent to the Credential Endpoint of the Credential Issuer via HTTP POST with the type of the credential, its format, the access token and the JWT proof.
+   * @since 1.0.0
+   *
    * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
    * @param accessToken The access token response returned by {@link authorizeAccess}
    * @param clientId The client id returned by {@link startUserAuthorization}

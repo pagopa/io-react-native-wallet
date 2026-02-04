@@ -5,6 +5,8 @@ import type { ParsedCredential } from "./types";
 export interface VerifyAndParseCredentialApi {
   /**
    * Verify and parse an encoded credential.
+   * @since 1.0.0
+   *
    * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
    * @param credential The encoded credential returned by {@link obtainCredential}
    * @param credentialConfigurationId The credential configuration ID that defines the provided credential

@@ -4,6 +4,7 @@ export interface EvaluateIssuerTrustApi {
   /**
    * The Issuer trust evaluation phase.
    * Fetch the Issuer's configuration and verify trust.
+   * @since 1.0.0
    *
    * @param issuerUrl The base url of the Issuer
    * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
