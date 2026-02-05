@@ -1,5 +1,5 @@
-import { UnixTime } from "../../utils/zod";
-import { JWK } from "../../utils/jwk";
+import { UnixTime } from "../../../utils/zod";
+import { JWK } from "../../../utils/jwk";
 import * as z from "zod";
 
 /**
@@ -15,12 +15,12 @@ export const StatusAssertionResponse = z.object({
  */
 export type StatusAssertionResponse = z.infer<typeof StatusAssertionResponse>;
 
-export type ParsedStatusAssertion = z.infer<typeof ParsedStatusAssertion>;
+export type ParsedStatusAssertionJwt = z.infer<typeof ParsedStatusAssertionJwt>;
 
 /**
  * Shape for parsing a successful status assertion in a JWT.
  */
-export const ParsedStatusAssertion = z.object({
+export const ParsedStatusAssertionJwt = z.object({
   header: z.object({
     typ: z.literal("status-assertion+jwt"),
     alg: z.string(),
@@ -45,15 +45,15 @@ export const ParsedStatusAssertion = z.object({
   }),
 });
 
-export type ParsedStatusAssertionError = z.infer<
-  typeof ParsedStatusAssertionError
+export type ParsedStatusAssertionErrorJwt = z.infer<
+  typeof ParsedStatusAssertionErrorJwt
 >;
 
 /**
  * The JWT that contains the errors occurred for the status assertion request.
- * @see https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-revocation.html#http-status-assertion-response
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.0.1/en/credential-revocation.html#http-status-assertion-response
  */
-export const ParsedStatusAssertionError = z.object({
+export const ParsedStatusAssertionErrorJwt = z.object({
   header: z.object({
     typ: z.literal("status-assertion-error+jwt"),
     alg: z.string(),
@@ -74,8 +74,8 @@ export type ParsedStatusAssertionResponse = z.infer<
   typeof ParsedStatusAssertionResponse
 >;
 export const ParsedStatusAssertionResponse = z.union([
-  ParsedStatusAssertion,
-  ParsedStatusAssertionError,
+  ParsedStatusAssertionJwt,
+  ParsedStatusAssertionErrorJwt,
 ]);
 
 export enum StatusType {
