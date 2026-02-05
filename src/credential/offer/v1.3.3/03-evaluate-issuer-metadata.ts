@@ -1,6 +1,7 @@
 import type { CredentialIssuerMetadata } from "../api/types";
 import { getCredentialIssuerMetadata } from "../common/utils";
 import type { OfferApi } from "../api";
+import { IoWalletError } from "../../../utils/errors";
 
 export const evaluateIssuerMetadataFromOffer: OfferApi["evaluateIssuerMetadataFromOffer"] =
   async (credentialOffer, context = {}) => {
@@ -16,7 +17,7 @@ export const evaluateIssuerMetadataFromOffer: OfferApi["evaluateIssuerMetadataFr
         appFetch,
       });
     } catch (error) {
-      throw new Error(
+      throw new IoWalletError(
         `Failed to fetch or validate issuer metadata from ${issuerUrl}: ${error}`
       );
     }
