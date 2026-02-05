@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { decode, disclose } from "../index";
 
-import { encodeBase64, decodeBase64 } from "@pagopa/io-react-native-jwt";
+import { decodeBase64, encodeBase64 } from "@pagopa/io-react-native-jwt";
 import { SdJwt4VC } from "../types";
 import { pid } from "../__mocks__/sd-jwt";
 
