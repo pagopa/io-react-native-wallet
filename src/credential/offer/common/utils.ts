@@ -49,7 +49,7 @@ export async function getCredentialIssuerMetadata(
 
 /**
  * Fetches the Authorization Server metadata
- * @param authenticSourceBaseUrl - L'URL base del Server di Autorizzazione (AS).
+ * @param authenticSourceBaseUrl - The base URL of the Authorization Server (AS).
  * @param appFetch - Optional fetch API implementation.
  * @returns The parsed AS metadata as a validated object.
  * @throws If both endpoints fail or if metadata is invalid.
