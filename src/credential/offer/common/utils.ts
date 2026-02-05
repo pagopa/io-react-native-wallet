@@ -1,8 +1,4 @@
-import {
-  generateRandomAlphaNumericString,
-  hasStatusOrThrow,
-} from "../../../utils/misc";
-import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import {
   type ASMetadata,
   ASMetadataSchema,
@@ -110,21 +106,4 @@ export const getAuthenticSourceMetadata = async (
   throw new IoWalletError(
     "Unable to fetch AS metadata from any known endpoints"
   );
-};
-
-/**
- * Generates a PKCE code verifier and its corresponding code challenge.
- * @returns An object containing the code verifier and code challenge.
- */
-export const generatePkce = async (): Promise<{
-  codeVerifier: string;
-  codeChallenge: string;
-}> => {
-  const codeVerifier = generateRandomAlphaNumericString(48);
-  const codeChallenge = await sha256ToBase64(codeVerifier);
-
-  return {
-    codeVerifier,
-    codeChallenge,
-  };
 };
