@@ -1,47 +1,13 @@
 import {
   SignJWT,
   thumbprint,
-  type CryptoContext,
   decode as decodeJwt,
 } from "@pagopa/io-react-native-jwt";
-import * as WalletInstanceAttestation from "../../wallet-instance-attestation";
-import { IoWalletError } from "../../utils/errors";
-import { obfuscateString } from "../../utils/string";
-import { LogLevel, Logger } from "../../utils/logging";
-
-export type GetCredentialTrustmarkJwt = (params: {
-  /**
-   * The Wallet Instance's attestation
-   */
-  walletInstanceAttestation: string;
-  /**
-   * The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
-   */
-  wiaCryptoContext: CryptoContext;
-  /**
-   * The type of credential for which the trustmark is generated
-   */
-  credentialType: string;
-  /**
-   * (Optional) Document number contained in the credential, if applicable
-   */
-  docNumber?: string;
-  /**
-   * (Optional) Expiration time for the trustmark, default is 2 minutes.
-   * If a number is provided, it is interpreted as a timestamp in seconds.
-   * If a string is provided, it is interpreted as a time span and added to the current timestamp.
-   */
-  expirationTime?: number | string;
-}) => Promise<{
-  /**
-   * The signed JWT
-   */
-  jwt: string;
-  /**
-   * The expiration time of the JWT in seconds
-   */
-  expirationTime: number;
-}>;
+import { type TrustmarkApi as Api } from "../api";
+import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
+import { IoWalletError } from "../../../utils/errors";
+import { obfuscateString } from "../../../utils/string";
+import { LogLevel, Logger } from "../../../utils/logging";
 
 /**
  * Generates a trustmark signed JWT, which is used to verify the authenticity of a credential.
@@ -59,7 +25,7 @@ export type GetCredentialTrustmarkJwt = (params: {
  * @throws {JWSSignatureVerificationFailed} If the WIA signature is not valid
  * @returns A promise containing the signed JWT and its expiration time in seconds
  */
-export const getCredentialTrustmark: GetCredentialTrustmarkJwt = async ({
+export const getCredentialTrustmark: Api["getCredentialTrustmark"] = async ({
   walletInstanceAttestation,
   wiaCryptoContext,
   credentialType,
