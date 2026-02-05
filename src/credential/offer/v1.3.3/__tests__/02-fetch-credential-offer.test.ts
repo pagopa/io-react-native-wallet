@@ -1,5 +1,5 @@
 import { fetchCredentialOffer } from "../02-fetch-credential-offer";
-import { InvalidCredentialOfferError } from "../errors";
+import { InvalidCredentialOfferError } from "../../common/errors";
 import type { CredentialOffer } from "../types";
 
 const validCredentialOffer: CredentialOffer = {

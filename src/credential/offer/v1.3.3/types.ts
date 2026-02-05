@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stringToJSONSchema } from "../../../utils/zod";
 
 /**
  * OAuth 2.0 Authorization Code flow parameters.
@@ -61,6 +62,19 @@ export const CredentialOfferSchema = z.object({
 });
 
 export type CredentialOffer = z.infer<typeof CredentialOfferSchema>;
+
+export const CredentialOfferParams = z.union([
+  z.object({
+    credential_offer: stringToJSONSchema.pipe(CredentialOfferSchema),
+    credential_offer_uri: z.undefined(),
+  }),
+  z.object({
+    credential_offer: z.undefined(),
+    credential_offer_uri: z.string().url(),
+  }),
+]);
+
+// TODO: evaluate if using this schema or moving it inside a common folder
 
 export const ASMetadataSchema = z.object({
   authorization_endpoint: z.string().url(),

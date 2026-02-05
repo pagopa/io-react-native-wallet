@@ -1,5 +1,5 @@
 import { startFlowFromQR } from "../01-start-flow";
-import { InvalidQRCodeError } from "../errors";
+import { InvalidQRCodeError } from "../../common/errors";
 
 describe("startFlowFromQR", () => {
   it("should handle only valid schemes", () => {
@@ -7,24 +7,24 @@ describe("startFlowFromQR", () => {
 
     expect(
       startFlowFromQR(
-        "openid-credential-offer://?credential_offer_uri=" + encodedUri
-      )
+        "openid-credential-offer://?credential_offer_uri=" + encodedUri,
+      ),
     ).toBeTruthy();
 
     expect(
-      startFlowFromQR("haip://?credential_offer_uri=" + encodedUri)
+      startFlowFromQR("haip://?credential_offer_uri=" + encodedUri),
     ).toBeTruthy();
 
     expect(() =>
-      startFlowFromQR("http://?credential_offer_uri=" + encodedUri)
+      startFlowFromQR("http://?credential_offer_uri=" + encodedUri),
     ).toThrow(InvalidQRCodeError);
   });
 
   it("should successfully decode a QR code with a credential offer by reference", () => {
     expect(
       startFlowFromQR(
-        "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fserver%2Eexample%2Ecom%2Fcredential-offer%2FGkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
-      )
+        "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fserver%2Eexample%2Ecom%2Fcredential-offer%2FGkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM",
+      ),
     ).toEqual({
       credential_offer_uri:
         "https://server.example.com/credential-offer/GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM",
@@ -32,8 +32,8 @@ describe("startFlowFromQR", () => {
 
     expect(
       startFlowFromQR(
-        "haip://?credential_offer_uri=https%3A%2F%2Fserver%2Eexample%2Ecom%2Fcredential-offer%2FGkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
-      )
+        "haip://?credential_offer_uri=https%3A%2F%2Fserver%2Eexample%2Ecom%2Fcredential-offer%2FGkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM",
+      ),
     ).toEqual({
       credential_offer_uri:
         "https://server.example.com/credential-offer/GkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM",
@@ -54,7 +54,7 @@ describe("startFlowFromQR", () => {
     const encoded = encodeURIComponent(JSON.stringify(payload));
 
     expect(
-      startFlowFromQR("openid-credential-offer://?credential_offer=" + encoded)
+      startFlowFromQR("openid-credential-offer://?credential_offer=" + encoded),
     ).toEqual({
       credential_offer: payload,
     });
@@ -73,19 +73,19 @@ describe("startFlowFromQR", () => {
     const encoded = encodeURIComponent(JSON.stringify(payload));
 
     expect(() =>
-      startFlowFromQR("openid-credential-offer://?credential_offer=" + encoded)
+      startFlowFromQR("openid-credential-offer://?credential_offer=" + encoded),
     ).toThrow(InvalidQRCodeError);
   });
 
   it("should throw InvalidQRCodeError if it does not contain the correct params", () => {
     expect(() =>
-      startFlowFromQR("openid-credential-offer://?wrong_param=wrong_value")
+      startFlowFromQR("openid-credential-offer://?wrong_param=wrong_value"),
     ).toThrow(InvalidQRCodeError);
   });
 
   it("should throw InvalidQRCodeError if it does not contain json value", () => {
     expect(() =>
-      startFlowFromQR("openid-credential-offer://?credential_offer=not_a_json")
+      startFlowFromQR("openid-credential-offer://?credential_offer=not_a_json"),
     ).toThrow(InvalidQRCodeError);
   });
 });

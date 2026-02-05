@@ -1,16 +1,16 @@
 import {
   generateRandomAlphaNumericString,
   hasStatusOrThrow,
-} from "../../utils/misc";
+} from "../../../utils/misc";
 import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 import {
   type ASMetadata,
   ASMetadataSchema,
   type CredentialIssuerMetadata,
   CredentialIssuerMetadataSchema,
-} from "./types";
-import { IoWalletError } from "../../utils/errors";
-import { Logger, LogLevel } from "../../utils/logging";
+} from "../v1.3.3/types";
+import { IoWalletError } from "../../../utils/errors";
+import { Logger, LogLevel } from "../../../utils/logging";
 
 /**
  * Fetch and validate the Credential Issuer metadata

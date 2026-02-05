@@ -1,4 +1,4 @@
-import { IoWalletError } from "../../utils/errors";
+import { IoWalletError } from "../../../utils/errors";
 
 export class InvalidCredentialOfferError extends IoWalletError {
   code = "ERR_INVALID_CREDENTIAL_OFFER";

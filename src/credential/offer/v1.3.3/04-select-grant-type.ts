@@ -1,25 +1,8 @@
-import { Logger, LogLevel } from "../../utils/logging";
-import { InvalidCredentialOfferError } from "./errors";
-import type {
-  AuthorizationCodeGrant,
-  CredentialOffer,
-  PreAuthorizedCodeGrant,
-} from "./types";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { InvalidCredentialOfferError } from "../common/errors";
+import type { OfferApi } from "../api";
 
-/**
- * Represent the selected grant type for the credential offer flow.
- */
-export type GrantTypeSelection =
-  | AuthorizationCodeGrant
-  | PreAuthorizedCodeGrant;
-
-/**
- * Selects the appropriate grant type from a given credential offer.
- * @param offer - The credential offer containing the grants.
- * @returns The selected grant type object.
- * @throws If no supported grant type is found in the credential offer.
- */
-export const selectGrantType = (offer: CredentialOffer): GrantTypeSelection => {
+export const selectGrantType: OfferApi["selectGrantType"] = (offer) => {
   const grants = offer.grants;
 
   if (!grants) {
