@@ -8,3 +8,5 @@ export interface OfferApi
     FetchCredentialOfferApi,
     EvaluateIssuerMetadataApi,
     SelectGrantTypeApi {}
+
+export type * from "./types";

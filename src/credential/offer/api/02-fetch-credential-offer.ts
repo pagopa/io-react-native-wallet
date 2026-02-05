@@ -1,4 +1,4 @@
-import type { CredentialOffer } from "../v1.3.3/types";
+import type { CredentialOffer } from "./types";
 
 /**
  * Fetches and validates a credential offer from a given URI.

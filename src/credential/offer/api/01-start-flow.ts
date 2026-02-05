@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { CredentialOfferParams } from "../v1.3.3/types";
+import { CredentialOfferParams } from "./types";
 
 /**
  * StartFlowApi defines the interface for starting a credential offer flow.

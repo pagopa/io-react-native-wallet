@@ -2,7 +2,7 @@ import { IssuerResponseError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { InvalidCredentialOfferError } from "../common/errors";
-import { CredentialOfferSchema } from "./types";
+import { CredentialOfferSchema } from "../api/types";
 import type { OfferApi } from "../api";
 
 export const fetchCredentialOffer: OfferApi["fetchCredentialOffer"] = async (

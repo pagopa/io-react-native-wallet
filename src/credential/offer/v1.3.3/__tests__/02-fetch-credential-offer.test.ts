@@ -1,6 +1,6 @@
 import { fetchCredentialOffer } from "../02-fetch-credential-offer";
 import { InvalidCredentialOfferError } from "../../common/errors";
-import type { CredentialOffer } from "../types";
+import type { CredentialOffer } from "../../api/types";
 
 const validCredentialOffer: CredentialOffer = {
   credential_issuer: "https://issuer.example.com",

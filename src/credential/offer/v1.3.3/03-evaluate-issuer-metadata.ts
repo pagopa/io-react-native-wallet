@@ -1,4 +1,4 @@
-import type { CredentialIssuerMetadata } from "./types";
+import type { CredentialIssuerMetadata } from "../api/types";
 import { getCredentialIssuerMetadata } from "../common/utils";
 import type { OfferApi } from "../api";
 

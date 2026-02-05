@@ -2,7 +2,7 @@ import type {
   AuthorizationCodeGrant,
   CredentialOffer,
   PreAuthorizedCodeGrant,
-} from "../v1.3.3/types";
+} from "./types";
 
 /**
  * Represent the selected grant type for the credential offer flow.

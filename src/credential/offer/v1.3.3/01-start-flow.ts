@@ -1,6 +1,6 @@
 import { Logger, LogLevel } from "../../../utils/logging";
 import { InvalidQRCodeError } from "../common/errors";
-import { CredentialOfferParams } from "./types";
+import { CredentialOfferParams } from "../api/types";
 import type { OfferApi } from "../api";
 
 const CREDENTIAL_OFFER_SCHEMES = [

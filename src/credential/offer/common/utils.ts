@@ -8,7 +8,7 @@ import {
   ASMetadataSchema,
   type CredentialIssuerMetadata,
   CredentialIssuerMetadataSchema,
-} from "../v1.3.3/types";
+} from "../api/types";
 import { IoWalletError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 

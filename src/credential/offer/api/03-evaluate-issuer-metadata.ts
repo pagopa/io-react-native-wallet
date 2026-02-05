@@ -1,7 +1,4 @@
-import type {
-  CredentialIssuerMetadata,
-  CredentialOffer,
-} from "../v1.3.3/types";
+import type { CredentialIssuerMetadata, CredentialOffer } from "./types";
 
 /**
  * Evaluates the issuer metadata from a given credential offer.
