@@ -1,6 +1,6 @@
+import { CredentialIssuance } from "@pagopa/io-react-native-wallet";
 import { Linking } from "react-native";
 import { createAbortPromiseFromSignal, isDefined, until } from "./misc";
-import { AuthorizationError } from "../../../src/credential/issuance/errors";
 
 export class OperationAbortedError extends Error {}
 
@@ -69,7 +69,9 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
     }
 
     if (authRedirectUrl === undefined) {
-      throw new AuthorizationError("Invalid authentication redirect url");
+      throw new CredentialIssuance.Errors.AuthorizationError(
+        "Invalid authentication redirect url"
+      );
     }
 
     return { authRedirectUrl };

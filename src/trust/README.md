@@ -38,15 +38,24 @@ sequenceDiagram
 ### Validate a trust chain
 
 ```ts
-import { validateTrustChain } from "./trust";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { trustAnchorEntityConfiguration } from "./your-data";
 import { chain } from "./your-data"; // array of JWTs, starting from leaf
 
-const result = await validateTrustChain(trustAnchorEntityConfiguration, chain, {
+const wallet = new IoWallet({ version: "1.0.0" });
+
+const result = await wallet.Trust.verifyTrustChain(
+  trustAnchorEntityConfiguration, 
+  chain, 
+  {
     connectTimeout: 3000,
     readTimeout: 3000,
     requireCrl: false,
-});
+  },
+  {
+    renewOnFail: true // Optional trust chain renewal
+  }
+);
 ```
 
 * The `chain` must be an array of signed JWT strings.
@@ -54,6 +63,9 @@ const result = await validateTrustChain(trustAnchorEntityConfiguration, chain, {
 * The last JWT must be an `EntityStatement` or a self-issued Trust Anchor `EntityConfiguration`.
 
 ### Renew a trust chain
+
+[>!NOTE]
+> Internal only
 
 ```ts
 import { renewTrustChain } from "./trust";
@@ -66,9 +78,11 @@ This will fetch updated JWTs from each authority in the chain.
 ### Build a trust chain
 
 ```ts
-import { buildTrustChain } from "./trust";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 
-const chain = await buildTrustChain({
+const wallet = new IoWallet({ version: "1.0.0" });
+
+const chain = await wallet.Trust.buildTrustChain({
   leaf: "https://example-leaf",
   trustAnchor: trustAnchorEntityConfiguration,
 });
@@ -90,18 +104,17 @@ const chain = await buildTrustChain({
 ### Build and Validate Example
 
 ```ts
-import {
-  buildTrustChain,
-  validateTrustChain,
-} from "./trust";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { trustAnchorEntityConfiguration } from "./your-data";
 
-const chain = await buildTrustChain({
+const wallet = new IoWallet({ version: "1.0.0" });
+
+const chain = await wallet.Trust.buildTrustChain({
   leaf: "https://example-leaf",
   trustAnchor: trustAnchorEntityConfiguration,
 });
 
-const result = await validateTrustChain(trustAnchorEntityConfiguration, chain, {
+const result = await wallet.Trust.verifyTrustChain(trustAnchorEntityConfiguration, chain, {
   connectTimeout: 3000,
   readTimeout: 3000,
   requireCrl: true,

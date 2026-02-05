@@ -6,7 +6,6 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
 import { CieIdAuthenticationScreen } from "../screens/cie/CieIdAuthenticationScreen";
 import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthenticationScreen";
@@ -32,6 +31,7 @@ import {
 } from "../screens/TrustmarkScreen";
 import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
+import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
 import { selectIoAuthToken } from "../store/reducers/session";
@@ -39,6 +39,7 @@ import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
+import { HeaderTitle } from "../components/HeaderTitle";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -73,6 +74,7 @@ export type MainStackNavParamList = {
   QrScanner: QrScannerScreenParams;
   Proximity: undefined;
   CredentialOffer: undefined;
+  CredentialsCatalogue: undefined;
 };
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
@@ -87,7 +89,7 @@ const lightTheme: Theme = {
 };
 
 export const MainStackNavigator = () => {
-  const ioAuthToken = useSelector(selectIoAuthToken);
+  const ioAuthToken = useAppSelector(selectIoAuthToken);
   const loggingServerAddr = useAppSelector(selectLoggingAddress);
   const dispatch = useAppDispatch();
 
@@ -119,6 +121,7 @@ export const MainStackNavigator = () => {
           <Stack.Group
             screenOptions={{
               headerRight: headerRight,
+              headerTitle: HeaderTitle,
             }}
           >
             <Stack.Screen
@@ -129,17 +132,17 @@ export const MainStackNavigator = () => {
             <Stack.Screen
               name="WalletInstance"
               component={WalletInstanceScreen}
-              options={{ title: "Test Wallet Instance" }}
+              options={{ title: "Wallet Instance" }}
             />
             <Stack.Screen
               name="Pid"
               component={PidScreen}
-              options={{ title: "Test PID issuance" }}
+              options={{ title: "PID issuance" }}
             />
             <Stack.Screen
               name="PidSpidIdpSelection"
               component={PidSpidIdpSelectionScreen}
-              options={{ title: "Test PID issuance" }}
+              options={{ title: "PID issuance" }}
             />
             <Stack.Screen
               name="CieAuthentication"
@@ -164,12 +167,12 @@ export const MainStackNavigator = () => {
             <Stack.Screen
               name="Credentials"
               component={CredentialScreen}
-              options={{ title: "Test credentials issuance" }}
+              options={{ title: "Credentials issuance" }}
             />
             <Stack.Screen
               name="StatusAssertion"
               component={StatusAssertionScreen}
-              options={{ title: "Test credentials assertions" }}
+              options={{ title: "Credentials assertions" }}
             />
             <Stack.Screen
               name="Presentations"
@@ -194,7 +197,7 @@ export const MainStackNavigator = () => {
             <Stack.Screen
               name="Trustmark"
               component={TrustmarkScreen}
-              options={{ title: "Test credentials trustmark" }}
+              options={{ title: "Credentials trustmark" }}
             />
             <Stack.Screen
               name="TrustmarkQrCode"
@@ -209,6 +212,11 @@ export const MainStackNavigator = () => {
               name="CredentialOffer"
               component={OfferScreen}
               options={{ title: "Credential Offer" }}
+            />
+            <Stack.Screen
+              name="CredentialsCatalogue"
+              component={CredentialsCatalogueScreen}
+              options={{ title: "Credentials Catalogue" }}
             />
             <Stack.Screen
               name="Settings"

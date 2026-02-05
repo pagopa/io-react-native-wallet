@@ -2,7 +2,7 @@ import * as jwtModule from "@pagopa/io-react-native-jwt";
 import { InvalidRequestObjectError } from "../errors";
 import type { RequestObject } from "../types";
 import { verifyRequestObject } from "..";
-import type { RelyingPartyEntityConfiguration } from "../../../trust/types";
+import type { RelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
 
 const CLIENT_ID = "https://relying_party.rp";
 const VERIFY_RESULT_MOCK = { payload: {}, protectedHeader: {} };

@@ -1,12 +1,14 @@
 import {
   createCryptoContextFor,
-  Credential,
+  CredentialIssuance,
+  IoWallet,
 } from "@pagopa/io-react-native-wallet";
 import { selectPidFlowParams } from "../store/reducers/pid";
 import { createAppAsyncThunk } from "./utils";
 import appFetch from "../utils/fetch";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { selectMrtdFlowParams } from "../store/reducers/mrtd";
+import { selectItwVersion } from "../store/reducers/environment";
 
 type InitPidMrtdChallengeInput = {
   authRedirectUrl: string;
@@ -20,8 +22,8 @@ export type InitPidMrtdChallengeOutput = {
 };
 
 type VerifyPidMrtdChallengeInput = {
-  mrtd: Credential.Issuance.MRTDPoP.MrtdPayload;
-  ias: Credential.Issuance.MRTDPoP.IasPayload;
+  mrtd: CredentialIssuance.MRTDPoP.MrtdPayload;
+  ias: CredentialIssuance.MRTDPoP.IasPayload;
 };
 
 export type VerifyPidMrtdChallengeOutput = {
@@ -33,6 +35,8 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   InitPidMrtdChallengeInput
 >("mrtd/challengeInit", async (args, { getState }) => {
   const pidFlowParams = selectPidFlowParams(getState());
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
 
   if (!pidFlowParams) {
     throw new Error("PID flow params not found");
@@ -44,7 +48,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const { challenge_info } =
-    await Credential.Issuance.continueUserAuthorizationWithMRTDPoPChallenge(
+    await wallet.CredentialIssuance.continueUserAuthorizationWithMRTDPoPChallenge(
       authRedirectUrl
     );
 
@@ -52,7 +56,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
     htu: initUrl,
     mrtd_auth_session,
     mrtd_pop_jwt_nonce,
-  } = await Credential.Issuance.MRTDPoP.verifyAndParseChallengeInfo(
+  } = await wallet.CredentialIssuance.MRTDPoP.verifyAndParseChallengeInfo(
     issuerConf,
     challenge_info,
     { wiaCryptoContext }
@@ -62,7 +66,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
     htu: validationUrl,
     challenge,
     mrtd_pop_nonce,
-  } = await Credential.Issuance.MRTDPoP.initChallenge(
+  } = await wallet.CredentialIssuance.MRTDPoP.initChallenge(
     issuerConf,
     initUrl,
     mrtd_auth_session,
@@ -87,6 +91,8 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
   VerifyPidMrtdChallengeInput
 >("mrtd/challengeValidation", async (args, { getState }) => {
   const pidFlowParams = selectPidFlowParams(getState());
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
 
   if (!pidFlowParams) {
     throw new Error("PID flow params not found");
@@ -105,7 +111,7 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const { mrtd_val_pop_nonce, redirect_uri } =
-    await Credential.Issuance.MRTDPoP.validateChallenge(
+    await wallet.CredentialIssuance.MRTDPoP.validateChallenge(
       issuerConf,
       validationUrl,
       mrtd_auth_session,
@@ -120,7 +126,7 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
     );
 
   const { callbackUrl } =
-    await Credential.Issuance.MRTDPoP.buildChallengeCallbackUrl(
+    await wallet.CredentialIssuance.MRTDPoP.buildChallengeCallbackUrl(
       redirect_uri,
       mrtd_val_pop_nonce,
       mrtd_auth_session

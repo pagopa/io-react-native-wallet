@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import {
   ButtonSolid,
   H1,
@@ -8,16 +7,21 @@ import {
   TextInput,
   useIOToast,
   VSpacer,
+  RadioButtonLabel,
   type RadioItem,
+  BodySmall,
 } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import type { ItwVersion } from "@pagopa/io-react-native-wallet";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   envSet,
   loggingAddressSet,
   selectEnv,
   selectLoggingAddress,
+  setItwVersion,
+  selectItwVersion,
 } from "../store/reducers/environment";
 import { instanceReset } from "../store/reducers/instance";
 import { selectIoAuthToken, sessionReset } from "../store/reducers/session";
@@ -25,6 +29,9 @@ import type { EnvType } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const itwVersions: ItwVersion[] = ["1.0.0", "1.3.3"];
 
 /**
  * Settings screen component which allows to change the environment and manage the session.
@@ -34,6 +41,7 @@ const HomeScreen = () => {
   const env = useAppSelector(selectEnv);
   const session = useAppSelector(selectIoAuthToken);
   const currentDebugAddress = useAppSelector(selectLoggingAddress);
+  const itwVersion = useAppSelector(selectItwVersion);
   const [selectedEnv, setSelectedEnv] = useState<EnvType>(env);
   const [debugAddress, setDebugAddress] = useState<string>(
     currentDebugAddress || ""
@@ -78,10 +86,9 @@ const HomeScreen = () => {
   });
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, margin: IOVisualCostants.appMarginDefault }}
-    >
-      <ScrollView>
+    <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <VSpacer size={8} />
         <H1>Environment</H1>
         <RadioGroup
           type="radioListItem"
@@ -91,6 +98,22 @@ const HomeScreen = () => {
           onPress={toggleEnvionment}
         />
         <VSpacer />
+        <H1>IT-Wallet version</H1>
+        <BodySmall>
+          Change the version of IT-Wallet technical specifications.
+        </BodySmall>
+        <View style={styles.itwVersion}>
+          {itwVersions.map((version) => (
+            <RadioButtonLabel
+              key={version}
+              label={`v${version}`}
+              checked={version === itwVersion}
+              onValueChange={() =>
+                dispatch(setItwVersion(version as ItwVersion))
+              }
+            />
+          ))}
+        </View>
         <H1>Logging Server</H1>
         <VSpacer size={8} />
         <TextInput
@@ -117,3 +140,18 @@ const HomeScreen = () => {
 };
 
 export default HomeScreen;
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    paddingHorizontal: IOVisualCostants.appMarginDefault,
+  },
+  itwVersion: {
+    flexDirection: "row",
+    gap: 24,
+    marginTop: 16,
+    marginBottom: 24,
+  },
+});

@@ -1,7 +1,7 @@
 import { createAppAsyncThunk } from "./utils";
 import appFetch from "../utils/fetch";
-import type { ParsedToken } from "../../../src/trust/utils";
-import { Trust } from "@pagopa/io-react-native-wallet";
+import { IoWallet, type Trust } from "@pagopa/io-react-native-wallet";
+import { selectItwVersion } from "../store/reducers/environment";
 
 export type ValidateTrustChainThunkInput = {
   relyingPartyUrl: string;
@@ -9,23 +9,27 @@ export type ValidateTrustChainThunkInput = {
 };
 
 export type ValidateTrustChainThunkOutput = {
-  validatedChain: ParsedToken[];
+  validatedChain: Awaited<ReturnType<Trust.TrustApi["verifyTrustChain"]>>;
 };
 
 export const validateTrustChainThunk = createAppAsyncThunk<
   ValidateTrustChainThunkOutput,
   ValidateTrustChainThunkInput
->("trustValidation/validate", async ({ relyingPartyUrl, trustAnchorUrl }) => {
+>("trustValidation/validate", async (args, { getState }) => {
+  const { trustAnchorUrl, relyingPartyUrl } = args;
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
   // 1. Get Trust Anchor Entity Configuration
   console.log("Fetching Trust Anchor Entity Configuration...", trustAnchorUrl);
   console.log("Verifying Trust Chain for Relying Party URL:", relyingPartyUrl);
   const trustAnchorEntityConfig =
-    await Trust.Build.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
+    await wallet.Trust.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
       appFetch,
     });
 
   // This function internally gathers and performs initial verifications.
-  const builtChainJwts = await Trust.Build.buildTrustChain(
+  const builtChainJwts = await wallet.Trust.buildTrustChain(
     relyingPartyUrl,
     trustAnchorEntityConfig,
     appFetch
@@ -34,7 +38,7 @@ export const validateTrustChainThunk = createAppAsyncThunk<
   console.log("✅ Chain built successfully");
 
   // Perform full validation on the built chain (including X.509 if configured)
-  const validatedChainTokens = await Trust.Verify.verifyTrustChain(
+  const validatedChainTokens = await wallet.Trust.verifyTrustChain(
     trustAnchorEntityConfig,
     builtChainJwts,
     {

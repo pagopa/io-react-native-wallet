@@ -9,7 +9,7 @@ import {
   sendAuthorizationResponse,
 } from "../08-send-authorization-response";
 import type { RemotePresentation, RequestObject } from "../types";
-import type { RelyingPartyEntityConfiguration } from "../../../trust/types";
+import type { RelyingPartyEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
 
 jest.mock("@pagopa/io-react-native-jwt", () => {
   const actualModule = jest.requireActual("@pagopa/io-react-native-jwt");
