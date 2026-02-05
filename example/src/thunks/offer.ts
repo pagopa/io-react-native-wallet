@@ -1,29 +1,33 @@
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
-import { Credential } from "@pagopa/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+import { selectItwVersion } from "../store/reducers/environment";
 
 export type GetCredentialOfferThunkInput = {
   qrcode: string;
 };
 
-export type GetCredentialOfferThunkOutput = Credential.Offer.CredentialOffer;
+// Todo: replace `any` with the actual type of the credential offer
+export type GetCredentialOfferThunkOutput = any;
 
 export const getCredentialOfferThunk = createAppAsyncThunk<
   GetCredentialOfferThunkOutput,
   GetCredentialOfferThunkInput
->("credential/offerGet", async (args) => {
+>("credential/offerGet", async (args, { getState }) => {
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
   const { credential_offer, credential_offer_uri } =
-    Credential.Offer.startFlowFromQR(args.qrcode);
+    wallet.CredentialsOffer.startFlow(args.qrcode);
 
   console.log("credential_offer_uri", credential_offer_uri);
   console.log("credential_offer", credential_offer);
 
   if (credential_offer_uri) {
-    const offer = await Credential.Offer.fetchCredentialOffer(
+    return await wallet.CredentialsOffer.fetchCredentialOffer(
       credential_offer_uri,
       { appFetch }
     );
-    return offer;
   }
 
   if (credential_offer) {
