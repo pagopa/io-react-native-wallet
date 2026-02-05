@@ -7,6 +7,7 @@ const validCredentialOffer: CredentialOffer = {
   credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
   grants: {
     authorization_code: {
+      scope: "test-scope",
       issuer_state: "some-issuer-state",
       authorization_server: "https://auth.example.com",
     },
@@ -29,9 +30,17 @@ const validPreAuthorizedCredentialOffer: CredentialOffer = {
   },
 };
 
+// Minimal valid offer according to the current schema:
+// - `credential_configuration_ids` must be non-empty
+// - `grants` is required (at least one supported grant)
 const minimalCredentialOffer: CredentialOffer = {
   credential_issuer: "https://issuer.example.com",
   credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
+  grants: {
+    authorization_code: {
+      scope: "test-scope",
+    },
+  },
 };
 
 const mockFetch = jest.fn();
