@@ -64,10 +64,10 @@ export const CredentialScreen = () => {
   const edip = useAppSelector(selectCredential("dc_sd_jwt_education_diploma"));
 
   const edatState = useAppSelector(
-    selectCredentialAsyncStatus("dc_sd_jwt_education_attestation")
+    selectCredentialAsyncStatus("dc_sd_jwt_education_attendance")
   );
   const edat = useAppSelector(
-    selectCredential("dc_sd_jwt_education_attestation")
+    selectCredential("dc_sd_jwt_education_attendance")
   );
 
   useDebugInfo({
@@ -198,11 +198,11 @@ export const CredentialScreen = () => {
         isPresent: !!edip,
       },
       {
-        title: "Get credential (Education attestation in SD-JWT)",
+        title: "Get credential (Education attendance in SD-JWT)",
         onPress: () =>
           dispatch(
             getCredentialThunk({
-              credentialType: "dc_sd_jwt_education_attestation",
+              credentialType: "dc_sd_jwt_education_attendance",
             })
           ),
         isLoading: edatState.isLoading,

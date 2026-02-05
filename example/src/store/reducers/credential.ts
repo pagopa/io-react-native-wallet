@@ -62,7 +62,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_enrollment: undefined,
     dc_sd_jwt_residency: undefined,
     dc_sd_jwt_education_diploma: undefined,
-    dc_sd_jwt_education_attestation: undefined,
+    dc_sd_jwt_education_attendance: undefined,
   },
   credentialsAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
@@ -73,7 +73,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_enrollment: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
     dc_sd_jwt_education_diploma: asyncStatusInitial,
-    dc_sd_jwt_education_attestation: asyncStatusInitial,
+    dc_sd_jwt_education_attendance: asyncStatusInitial,
   },
   statusAssertion: {
     PersonIdentificationData: undefined,
@@ -85,7 +85,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_enrollment: undefined,
     dc_sd_jwt_residency: undefined,
     dc_sd_jwt_education_diploma: undefined,
-    dc_sd_jwt_education_attestation: undefined,
+    dc_sd_jwt_education_attendance: undefined,
   },
   statusAssertionAsyncStatus: {
     PersonIdentificationData: asyncStatusInitial,
@@ -97,7 +97,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_enrollment: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
     dc_sd_jwt_education_diploma: asyncStatusInitial,
-    dc_sd_jwt_education_attestation: asyncStatusInitial,
+    dc_sd_jwt_education_attendance: asyncStatusInitial,
   },
   trustmark: {
     dc_sd_jwt_mDL: undefined,
@@ -108,7 +108,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_enrollment: undefined,
     dc_sd_jwt_residency: undefined,
     dc_sd_jwt_education_diploma: undefined,
-    dc_sd_jwt_education_attestation: undefined,
+    dc_sd_jwt_education_attendance: undefined,
   },
   trustmarkAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
@@ -119,7 +119,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_enrollment: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
     dc_sd_jwt_education_diploma: asyncStatusInitial,
-    dc_sd_jwt_education_attestation: asyncStatusInitial,
+    dc_sd_jwt_education_attendance: asyncStatusInitial,
   },
 };
 

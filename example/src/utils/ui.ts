@@ -13,7 +13,7 @@ export const iconByCredentialType: Record<
   dc_sd_jwt_education_enrollment: "messageLegal",
   dc_sd_jwt_residency: "messageLegal",
   dc_sd_jwt_education_diploma: "messageLegal",
-  dc_sd_jwt_education_attestation: "messageLegal",
+  dc_sd_jwt_education_attendance: "messageLegal",
 };
 
 export const labelByCredentialType: Record<
@@ -28,5 +28,5 @@ export const labelByCredentialType: Record<
   dc_sd_jwt_education_enrollment: "EE",
   dc_sd_jwt_residency: "RES",
   dc_sd_jwt_education_diploma: "EDIP",
-  dc_sd_jwt_education_attestation: "EDAT",
+  dc_sd_jwt_education_attendance: "EDAT",
 };
