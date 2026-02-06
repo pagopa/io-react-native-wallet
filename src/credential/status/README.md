@@ -37,17 +37,12 @@ const wallet = new IoWallet({ version: "1.0.0" });
 
 // Start the issuance flow
 const credentialIssuerUrl = "https://issuer.example.com";
-const startFlow: Credential.Status.StartFlow = () => ({
-  issuerUrl: credentialIssuerUrl, // Let's assum
-});
-
-const { issuerUrl } = startFlow();
 
 // Evaluate issuer trust
-const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(issuerUrl);
+const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
 // Get the credential assertion
-const res = await wallet.CredentialStatus.statusAssertion(
+const res = await wallet.CredentialStatus.getStatusAssertion(
   issuerConf,
   credential,
   format,

@@ -41,7 +41,8 @@ export interface CredentialStatusApi {
    *
    * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
    * @param statusAssertion The encoded status assertion returned by {@link getStatusAssertion}
-   * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
+   * @param credential The encoded credential whose status is being verified
+   * @param format The credential format, e.g. "dc+sd-jwt"
    * @returns A parsed status assertion
    * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
    * @throws {IssuerResponseError} If the status assertion contains an error or the credential status is invalid
