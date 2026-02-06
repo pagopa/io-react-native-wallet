@@ -90,6 +90,14 @@ export const CredentialIssuerMetadataSchema = z.object({
       format: z.string(),
       scope: z.string(),
       vct: z.string(),
+      display: z
+        .array(
+          z.object({
+            name: z.string(),
+            locale: z.string(),
+          })
+        )
+        .optional(),
     })
   ),
   notification_endpoint: z.string().url().optional(),
@@ -99,3 +107,18 @@ export const CredentialIssuerMetadataSchema = z.object({
 export type CredentialIssuerMetadata = z.infer<
   typeof CredentialIssuerMetadataSchema
 >;
+
+/**
+ * Authorization Server Metadata as defined in OpenID4VCI Section 13.2.2
+ */
+export const ASMetadataSchema = z.object({
+  issuer: z.string().url(),
+  authorization_endpoint: z.string().url(),
+  token_endpoint: z.string().url(),
+  pushed_authorization_request_endpoint: z.string().url(),
+  jwks_uri: z.string().url(),
+  request_object_signing_alg_values_supported: z.array(z.string()).optional(),
+  acr_values_supported: z.array(z.string()).optional(),
+});
+
+export type ASMetadata = z.infer<typeof ASMetadataSchema>;
