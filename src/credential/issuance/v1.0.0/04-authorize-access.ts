@@ -6,8 +6,7 @@ import { TokenResponse } from "./types";
 import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuanceApi } from "../api";
-// TODO: [SIW-3570] import from wallet-instance-attestation/v1.0.0
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
+import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
 
 export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   issuerConf,
