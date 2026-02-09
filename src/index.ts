@@ -7,6 +7,7 @@ import "react-native-url-polyfill/auto";
 import * as Trust from "./trust";
 import * as CredentialsCatalogue from "./credentials-catalogue";
 import * as CredentialIssuance from "./credential/issuance";
+import * as CredentialOffer from "./credential/offer";
 import * as RemotePresentation from "./credential/presentation";
 import * as Credential from "./credential";
 import * as PID from "./pid";
@@ -23,6 +24,7 @@ import type { IntegrityContext } from "./utils/integrity";
 export {
   Trust,
   CredentialIssuance,
+  CredentialOffer,
   CredentialsCatalogue,
   RemotePresentation,
   SdJwt,
