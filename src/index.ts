@@ -8,6 +8,7 @@ import * as Trust from "./trust";
 import * as CredentialsCatalogue from "./credentials-catalogue";
 import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialStatus from "./credential/status";
+import * as RemotePresentation from "./credential/presentation";
 import * as Credential from "./credential"; // TODO: to remove
 import * as PID from "./pid";
 import * as SdJwt from "./sd-jwt";
@@ -25,6 +26,7 @@ export {
   CredentialIssuance,
   CredentialsCatalogue,
   CredentialStatus,
+  RemotePresentation,
   SdJwt,
   Mdoc,
   PID,

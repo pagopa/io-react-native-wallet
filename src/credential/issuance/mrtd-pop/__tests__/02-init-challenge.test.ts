@@ -7,7 +7,7 @@ jest.mock("../../../../utils/pop", () => ({
   createPopToken: jest.fn().mockResolvedValue("signed-wia-pop-token"),
 }));
 
-jest.mock("../../../../wallet-instance-attestation", () => ({
+jest.mock("../../../../wallet-instance-attestation/v1.0.0/utils", () => ({
   decode: jest.fn().mockReturnValue({
     payload: { cnf: { jwk: { kid: "wia-key-id" } } },
   }),

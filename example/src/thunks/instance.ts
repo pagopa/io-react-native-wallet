@@ -1,4 +1,4 @@
-import { WalletInstance } from "@pagopa/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
 import {
@@ -6,7 +6,7 @@ import {
   generateIntegrityHardwareKeyTag,
   getIntegrityContext,
 } from "../utils/integrity";
-import { selectEnv } from "../store/reducers/environment";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import {
   instanceReset,
   selectInstanceKeyTag,
@@ -20,6 +20,9 @@ import { isAndroid } from "../utils/device";
 export const createWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/create",
   async (_, { getState }) => {
+    const itwVersion = selectItwVersion(getState());
+    const wallet = new IoWallet({ version: itwVersion });
+
     // Get env
     const env = selectEnv(getState());
     const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } =
@@ -33,7 +36,7 @@ export const createWalletInstanceThunk = createAppAsyncThunk(
     const integrityKeyTag = await generateIntegrityHardwareKeyTag();
     const integrityContext = getIntegrityContext(integrityKeyTag);
 
-    await WalletInstance.createWalletInstance({
+    await wallet.WalletInstance.createWalletInstance({
       integrityContext,
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
       appFetch,
@@ -49,12 +52,14 @@ export const revokeWalletInstanceThunk = createAppAsyncThunk(
     const env = selectEnv(getState());
     const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
     const integrityKeyTag = selectInstanceKeyTag(getState());
+    const itwVersion = selectItwVersion(getState());
 
     if (!integrityKeyTag) {
       throw new Error("Integrity key not found");
     }
 
-    await WalletInstance.revokeWalletInstance({
+    const wallet = new IoWallet({ version: itwVersion });
+    await wallet.WalletInstance.revokeWalletInstance({
       id: integrityKeyTag,
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
       appFetch,

@@ -2,7 +2,7 @@ import { hasStatusOrThrow } from "../../../utils/misc";
 import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../../utils/pop";
 import { Logger, LogLevel } from "../../../utils/logging";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
+import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from version 1.0.0
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,

@@ -1,30 +1,26 @@
 import {
-  decode,
-  SignJWT,
-  type CryptoContext,
-} from "@pagopa/io-react-native-jwt";
-import type { DcqlQuery } from "dcql";
-import parseUrl from "parse-url";
-import {
   AuthorizationChallengeResultShape,
   AuthorizationErrorShape,
   AuthorizationResultShape,
   type AuthorizationResult,
 } from "../../../utils/auth";
 import { hasStatusOrThrow } from "../../../utils/misc";
+import parseUrl from "parse-url";
+import type { DcqlQuery } from "dcql";
 import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
-import { getJwtFromFormPost } from "../../../utils/decoder";
+import {
+  decode,
+  SignJWT,
+  type CryptoContext,
+} from "@pagopa/io-react-native-jwt";
 import { ResponseUriResultShape } from "./types";
+import { getJwtFromFormPost } from "../../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
+import { RequestObjectPayload } from "../../presentation/v1.0.0/types";
+import { RemotePresentation } from "../../presentation/v1.0.0";
+import { type RemotePresentationDetails } from "../../presentation/api/types";
 import type { IssuanceApi } from "../api";
-
-// TODO: [SIW-3742] import from presentation/v1.0.0
-import {
-  type RemotePresentation,
-  RequestObject,
-} from "../../presentation/types";
-import * as Presentation from "../../presentation";
 
 export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
   async (authRedirectUrl) => {
@@ -109,7 +105,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
       .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then((jws) => decode(jws))
-      .then((reqObj) => RequestObject.safeParse(reqObj.payload));
+      .then((reqObj) => RequestObjectPayload.safeParse(reqObj.payload));
 
     if (!requestObject.success) {
       Logger.log(
@@ -139,7 +135,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       throw new Error("Invalid request object");
     }
 
-    const dcqlQueryResult = Presentation.evaluateDcqlQuery(
+    const dcqlQueryResult = RemotePresentation.evaluateDcqlQuery(
       [[pidCryptoContext, pid]],
       requestObject.dcql_query as DcqlQuery
     );
@@ -151,11 +147,11 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       })
     );
 
-    const remotePresentations = await Presentation.prepareRemotePresentations(
-      credentialsToPresent,
-      requestObject.nonce,
-      requestObject.client_id
-    );
+    const remotePresentations =
+      await RemotePresentation.prepareRemotePresentations(
+        credentialsToPresent,
+        requestObject
+      );
 
     const authzResponsePayload = await createAuthzResponsePayload({
       state: requestObject.state,
@@ -256,7 +252,7 @@ const createAuthzResponsePayload = async ({
   wiaCryptoContext,
 }: {
   state?: string;
-  remotePresentations: RemotePresentation[];
+  remotePresentations: RemotePresentationDetails[];
   wiaCryptoContext: CryptoContext;
 }): Promise<string> => {
   const { kid } = await wiaCryptoContext.getPublicKey();

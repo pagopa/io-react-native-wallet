@@ -3,7 +3,7 @@ import {
   IssuerResponseErrorCodes,
 } from "../../../../utils/errors";
 import { verifyAndParseStatusAssertion } from "../02-verify-and-parse-status-assertion";
-import type { IssuerConfig } from "src/credential/issuance";
+import type { IssuerConfig } from "../../../../credential/issuance";
 
 const mockCredential = "";
 const format = "dc+sd-jwt";
