@@ -8,6 +8,28 @@ import type { IssuerConfig } from "./IssuerConfig";
 
 export interface CompleteUserAuthorizationApi {
   /**
+   * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link completeUserAuthorizationWithFormPostJwtMode}.
+   *
+   * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
+   * It is used as a first step to complete the user authorization by obtaining the requested credential to be presented from the authorization server.
+   * The information is obtained by performing a GET request to the authorization endpoint with request_uri and client_id parameters.
+   * @since 1.0.0
+   *
+   * @param issuerRequestUri the URI of the issuer where the request is sent
+   * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
+   * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+   * @param appFetch (optional) fetch api implementation. Default: built-in fetch
+   * @returns the request object which contains the credential to be presented in order to obtain the requested credential
+   * @throws {ValidationFailed} if an error while validating the response
+   */
+  getRequestedCredentialToBePresented(
+    issuerRequestUri: string,
+    clientId: string,
+    issuerConf: IssuerConfig,
+    appFetch?: GlobalFetch["fetch"]
+  ): Promise<RequestObject>;
+
+  /**
    * WARNING: This function must be called after obtaining the authorization redirect URL from the webviews (SPID and CIE L3) or browser for CIEID.
    *
    * Complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -76,26 +98,4 @@ export interface CompleteUserAuthorizationApi {
     issuerConf: IssuerConfig,
     idpHint?: string
   ): Promise<{ authUrl: string }>;
-
-  /**
-   * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link completeUserAuthorizationWithFormPostJwtMode}.
-   *
-   * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
-   * It is used as a first step to complete the user authorization by obtaining the requested credential to be presented from the authorization server.
-   * The information is obtained by performing a GET request to the authorization endpoint with request_uri and client_id parameters.
-   * @since 1.0.0
-   *
-   * @param issuerRequestUri the URI of the issuer where the request is sent
-   * @param clientId Identifies the current client across all the requests of the issuing flow returned by {@link startUserAuthorization}
-   * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
-   * @param appFetch (optional) fetch api implementation. Default: built-in fetch
-   * @returns the request object which contains the credential to be presented in order to obtain the requested credential
-   * @throws {ValidationFailed} if an error while validating the response
-   */
-  getRequestedCredentialToBePresented(
-    issuerRequestUri: string,
-    clientId: string,
-    issuerConf: IssuerConfig,
-    appFetch?: GlobalFetch["fetch"]
-  ): Promise<RequestObject>;
 }
