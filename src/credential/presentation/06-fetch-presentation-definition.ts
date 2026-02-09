@@ -1,5 +1,5 @@
 import { PresentationDefinition, RequestObject } from "./types";
-import { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
 
 export type FetchPresentationDefinition = (
   requestObject: RequestObject,

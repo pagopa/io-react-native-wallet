@@ -6,7 +6,10 @@ import {
   type PublicKey,
   type X509CertificateOptions,
 } from "@pagopa/io-react-native-crypto";
-import { MissingX509CertsError, X509ValidationError } from "../trust/errors";
+import {
+  MissingX509CertsError,
+  X509ValidationError,
+} from "../trust/common/errors";
 import { IoWalletError } from "../utils/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
 export * from "./utils";

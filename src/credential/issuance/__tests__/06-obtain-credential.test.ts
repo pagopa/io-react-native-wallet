@@ -1,4 +1,4 @@
-import type { CredentialIssuerEntityConfiguration } from "src/trust/types";
+import type { CredentialIssuerEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
 import { obtainCredential } from "../06-obtain-credential";
 import type { TokenResponse } from "../types";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";

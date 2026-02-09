@@ -18,7 +18,7 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../utils/errors";
-import type { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({

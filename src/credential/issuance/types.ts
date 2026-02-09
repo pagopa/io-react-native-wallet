@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+export type CredentialFormat = "dc+sd-jwt" | "mso_mdoc";
+
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.object({
   type: z.literal("openid_credential"),

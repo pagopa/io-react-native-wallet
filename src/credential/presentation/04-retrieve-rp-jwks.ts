@@ -1,5 +1,5 @@
 import { JWK } from "../../utils/jwk";
-import { RelyingPartyEntityConfiguration } from "../../trust/types";
+import { RelyingPartyEntityConfiguration } from "../../trust/v1.0.0/types"; // TODO: [SIW-3742] refactor presentation
 
 /**
  * Defines the signature for a function that retrieves JSON Web Key Sets (JWKS) from a client.

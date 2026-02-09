@@ -7,6 +7,7 @@ import {
   trustAnchorEntityConfiguration,
 } from "../__mocks__/entity-statements";
 import { buildTrustChain } from "../build-chain";
+import { mapToTrustAnchorConfig } from "../mappers";
 import { verifyTrustChain } from "../verify-chain";
 
 // Dummy base URLs aligned with our non‑regulatory examples
@@ -67,6 +68,10 @@ export const customFetch: GlobalFetch["fetch"] = async (requestInfo, _) => {
   } as Response;
 };
 
+const mappedTrustAnchorEntityConfiguration = mapToTrustAnchorConfig(
+  trustAnchorEntityConfiguration
+);
+
 // Before all tests, create real signed JWTs using `signed()` helper
 beforeAll(async () => {
   mockSignedLeafECJwt = await signed(leafEntityConfiguration);
@@ -80,7 +85,7 @@ describe("buildTrustChain", () => {
   it("builds a valid trust chain from leaf to trust anchor", async () => {
     const chain = await buildTrustChain(
       leafBaseUrl,
-      trustAnchorEntityConfiguration,
+      mappedTrustAnchorEntityConfiguration,
       customFetch
     );
 
@@ -96,7 +101,7 @@ describe("buildTrustChain", () => {
     // Build the chain of trust
     const chain = await buildTrustChain(
       leafBaseUrl,
-      trustAnchorEntityConfiguration,
+      mappedTrustAnchorEntityConfiguration,
       customFetch
     );
 
@@ -109,7 +114,7 @@ describe("buildTrustChain", () => {
 
     // Verify the chain of trust
     const result = await verifyTrustChain(
-      trustAnchorEntityConfiguration,
+      mappedTrustAnchorEntityConfiguration,
       chain
     );
 

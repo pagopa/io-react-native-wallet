@@ -6,7 +6,7 @@ import {
   selectAttestationAsJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
-import { selectEnv } from "../store/reducers/environment";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import type {
   CredentialResult,
   SupportedCredentials,
@@ -72,6 +72,7 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
+  const itwVersion = selectItwVersion(getState());
   // Get env URLs
   const env = selectEnv(getState());
   const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
@@ -85,6 +86,7 @@ export const getCredentialThunk = createAppAsyncThunk<
     throw new Error("PID not found");
   }
   return await getCredential({
+    itwVersion,
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
     trustAnchorUrl: WALLET_TA_BASE_URL,
     redirectUri: REDIRECT_URI,
