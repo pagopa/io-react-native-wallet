@@ -1,6 +1,7 @@
 import {
   createCryptoContextFor,
-  WalletInstanceAttestation,
+  IoWallet,
+  type WalletInstanceAttestation as Wia,
 } from "@pagopa/io-react-native-wallet";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
@@ -10,12 +11,12 @@ import {
 } from "../utils/integrity";
 import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { selectEnv } from "../store/reducers/environment";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { isAndroid } from "../utils/device";
 
 type GetAttestationThunkOutput = Awaited<
-  ReturnType<typeof WalletInstanceAttestation.getAttestation>
+  ReturnType<Wia.WalletInstanceAttestationApi["getAttestation"]>
 >;
 /**
  * Thunk to obtain a new Wallet Instance Attestation.
@@ -44,15 +45,18 @@ export const getAttestationThunk = createAppAsyncThunk<
     : undefined;
   await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
 
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
   /**
    * Obtains a new Wallet Instance Attestation.
    * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
    */
-  const issuingAttestation = await WalletInstanceAttestation.getAttestation({
-    wiaCryptoContext,
-    integrityContext,
-    walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-    appFetch,
-  });
+  const issuingAttestation =
+    await wallet.WalletInstanceAttestation.getAttestation({
+      wiaCryptoContext,
+      integrityContext,
+      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      appFetch,
+    });
   return issuingAttestation;
 });
