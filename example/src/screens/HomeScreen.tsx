@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import {
   IOVisualCostants,
   ModuleSummary,
@@ -7,7 +6,8 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import type { ComponentProps } from "react";
 import React, { useMemo } from "react";
-import { Alert, FlatList, View } from "react-native";
+import { Alert, FlatList } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
@@ -106,6 +106,12 @@ const HomeScreen = () => {
             : Alert.alert("Obtain a PID first"),
       },
       {
+        label: "Credentials Catalogue",
+        description: "Fetch the Credentials Catalogue",
+        icon: "chevronRight",
+        onPress: () => navigation.navigate("CredentialsCatalogue"),
+      },
+      {
         label: "Settings",
         description: "Change the environment and logout",
         icon: "chevronRight",
@@ -116,7 +122,7 @@ const HomeScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView edges={["bottom"]}>
       <FlatList
         contentContainerStyle={{
           margin: IOVisualCostants.appMarginDefault,
@@ -136,7 +142,7 @@ const HomeScreen = () => {
           </>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

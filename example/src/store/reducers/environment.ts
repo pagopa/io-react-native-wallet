@@ -1,14 +1,21 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { type ItwVersion } from "@pagopa/io-react-native-wallet";
 import { persistReducer, type PersistConfig } from "redux-persist";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { EnvType, RootState } from "../types";
+
 // State type definition for the environment slice
-type EnvironmentState = { env: EnvType; loggingAddress?: string };
+type EnvironmentState = {
+  env: EnvType;
+  loggingAddress?: string;
+  itwVersion: ItwVersion;
+};
 
 // Initial state for the environment slice
 const initialState: EnvironmentState = {
   env: "prod",
   loggingAddress: undefined,
+  itwVersion: "1.0.0",
 };
 
 /**
@@ -30,13 +37,17 @@ export const environmentSlice = createSlice({
     envReset: (state) => {
       state.env = initialState.env;
     },
+    setItwVersion: (state, action: PayloadAction<ItwVersion>) => {
+      state.itwVersion = action.payload;
+    },
   },
 });
 
 /**
  * Exports the actions for the session slice.
  */
-export const { envSet, envReset, loggingAddressSet } = environmentSlice.actions;
+export const { envSet, envReset, loggingAddressSet, setItwVersion } =
+  environmentSlice.actions;
 
 /**
  * Redux persist configuration for the environment slice.
@@ -64,3 +75,6 @@ export const selectEnv = (state: RootState) => state.environment.env;
 
 export const selectLoggingAddress = (state: RootState) =>
   state.environment.loggingAddress;
+
+export const selectItwVersion = (state: RootState) =>
+  state.environment.itwVersion;

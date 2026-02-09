@@ -5,7 +5,6 @@ import { fixBase64EncodingOnKey } from "./utils/jwk";
 import "react-native-url-polyfill/auto";
 
 import * as Credential from "./credential";
-import * as CredentialsCatalogue from "./credentials-catalogue";
 import * as PID from "./pid";
 import * as SdJwt from "./sd-jwt";
 import * as Mdoc from "./mdoc";
@@ -23,7 +22,6 @@ export {
   Mdoc,
   PID,
   Credential,
-  CredentialsCatalogue,
   WalletInstanceAttestation,
   WalletInstance,
   Errors,
@@ -36,3 +34,10 @@ export {
 };
 
 export type { IntegrityContext, AuthorizationContext };
+
+// Export API types only
+export type * from "./api";
+export type * as CredentialsCatalogue from "./credentials-catalogue/api";
+
+// Export SDK entrypoint
+export { IoWallet } from "./IoWallet";
