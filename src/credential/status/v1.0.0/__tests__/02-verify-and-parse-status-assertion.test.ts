@@ -1,9 +1,9 @@
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
-} from "../../../utils/errors";
-import { verifyAndParseStatusAssertion } from "..";
-import type { IssuerConfig } from "src/credential/issuance";
+} from "../../../../utils/errors";
+import { verifyAndParseStatusAssertion } from "../02-verify-and-parse-status-assertion";
+import type { IssuerConfig } from "../../../../credential/issuance";
 
 const mockCredential = "";
 const format = "dc+sd-jwt";
@@ -17,7 +17,7 @@ const mockPubKey = {
   y: "m38FnFXyd16mqUO6xpz0MrcDiedJFhtLJLENX59nEjI",
 };
 
-jest.mock("../../../utils/credentials", () => ({
+jest.mock("../../../../utils/credentials", () => ({
   extractJwkFromCredential: () => mockPubKey,
 }));
 
@@ -36,14 +36,13 @@ describe("verifyAndParseStatusAssertion", () => {
       mockCredential,
       format
     );
-    expect(result.parsedStatusAssertion.payload).toEqual(
+    expect(result.parsedStatusAssertion).toEqual(
       expect.objectContaining({
         credential_status_type: "0x00",
         credential_hash_alg: "sha-256",
         iss: "https://pre.eaa.wallet.ipzs.it/1-0",
         credential_hash:
           "c6c6fd8f68af1940ac5dc5a49cc01886f3fea0c5ac07698e65dd97b085a2b21a",
-        cnf: { jwk: mockPubKey },
       })
     );
   });

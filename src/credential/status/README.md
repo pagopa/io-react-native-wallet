@@ -31,19 +31,18 @@ The following errors are mapped to a `IssuerResponseError` with specific codes.
   <summary>Credential status assertion flow</summary>
 
 ```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+
+const wallet = new IoWallet({ version: "1.0.0" });
+
 // Start the issuance flow
 const credentialIssuerUrl = "https://issuer.example.com";
-const startFlow: Credential.Status.StartFlow = () => ({
-  issuerUrl: credentialIssuerUrl, // Let's assum
-});
-
-const { issuerUrl } = startFlow();
 
 // Evaluate issuer trust
-const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
 // Get the credential assertion
-const res = await Credential.Status.statusAssertion(
+const res = await wallet.CredentialStatus.getStatusAssertion(
   issuerConf,
   credential,
   format,
@@ -52,7 +51,7 @@ const res = await Credential.Status.statusAssertion(
 
 // Verify and parse the status assertion
 const { parsedStatusAssertion } =
-  await Credential.Status.verifyAndParseStatusAssertion(
+  await wallet.CredentialStatus.verifyAndParseStatusAssertion(
     issuerConf,
     res.statusAssertion,
     credential,
