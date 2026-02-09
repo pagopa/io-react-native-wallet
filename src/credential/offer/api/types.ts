@@ -78,9 +78,9 @@ export const CredentialOfferParams = z.union([
 ]);
 
 /**
- * Credential Issuer Metadata as defined in OpenID4VCI Section 13.2.1
+ * Common Credential Issuer Metadata Schema
  */
-export const CredentialIssuerMetadataSchema = z.object({
+export const IssuerMetadataSchema = z.object({
   credential_issuer: z.string().url(),
   credential_endpoint: z.string().url(),
   nonce_endpoint: z.string().url(),
@@ -88,8 +88,8 @@ export const CredentialIssuerMetadataSchema = z.object({
     z.string(),
     z.object({
       format: z.string(),
-      scope: z.string(),
-      vct: z.string(),
+      scope: z.string().optional(),
+      vct: z.string().optional(),
       display: z
         .array(
           z.object({
@@ -104,21 +104,4 @@ export const CredentialIssuerMetadataSchema = z.object({
   authorization_servers: z.array(z.string().url()).optional(),
 });
 
-export type CredentialIssuerMetadata = z.infer<
-  typeof CredentialIssuerMetadataSchema
->;
-
-/**
- * Authorization Server Metadata as defined in OpenID4VCI Section 13.2.2
- */
-export const ASMetadataSchema = z.object({
-  issuer: z.string().url(),
-  authorization_endpoint: z.string().url(),
-  token_endpoint: z.string().url(),
-  pushed_authorization_request_endpoint: z.string().url(),
-  jwks_uri: z.string().url(),
-  request_object_signing_alg_values_supported: z.array(z.string()).optional(),
-  acr_values_supported: z.array(z.string()).optional(),
-});
-
-export type ASMetadata = z.infer<typeof ASMetadataSchema>;
+export type IssuerMetadata = z.infer<typeof IssuerMetadataSchema>;

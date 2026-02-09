@@ -1,4 +1,4 @@
-import type { CredentialIssuerMetadata, CredentialOffer } from "./types";
+import type { IssuerMetadata, CredentialOffer } from "./types";
 
 export interface EvaluateIssuerMetadataApi {
   evaluateIssuerMetadataFromOffer(
@@ -12,6 +12,6 @@ export interface EvaluateIssuerMetadataApi {
       appFetch?: GlobalFetch["fetch"];
     }
   ): Promise<{
-    issuerConf: CredentialIssuerMetadata;
+    issuerConf: IssuerMetadata;
   }>;
 }
