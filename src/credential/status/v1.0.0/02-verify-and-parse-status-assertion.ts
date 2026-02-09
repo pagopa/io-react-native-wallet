@@ -1,44 +1,22 @@
-import type { Out } from "../../utils/misc";
 import {
   IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
-} from "../../utils/errors";
+} from "../../../utils/errors";
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import type { StatusAssertion } from "./02-status-assertion";
 import {
   type InvalidStatusErrorReason,
-  ParsedStatusAssertion,
-  ParsedStatusAssertionError,
+  ParsedStatusAssertionErrorJwt,
   ParsedStatusAssertionResponse,
   StatusType,
 } from "./types";
-import { Logger, LogLevel } from "../../utils/logging";
-import { extractJwkFromCredential } from "../../utils/credentials";
-import { isSameThumbprint } from "../../utils/jwk";
-import type { SupportedSdJwtLegacyFormat } from "../../sd-jwt/types";
-import type { CredentialFormat, IssuerConfig } from "../issuance";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { extractJwkFromCredential } from "../../../utils/credentials";
+import { isSameThumbprint } from "../../../utils/jwk";
+import type { CredentialStatusApi } from "../api";
+import { mapToParsedStatusAssertion } from "./mappers";
 
-export type VerifyAndParseStatusAssertion = (
-  issuerConf: IssuerConfig,
-  statusAssertion: Out<StatusAssertion>,
-  credential: string,
-  format: CredentialFormat | SupportedSdJwtLegacyFormat
-) => Promise<{ parsedStatusAssertion: ParsedStatusAssertion }>;
-
-/**
- * Given a status assertion, verifies that:
- * - It's in the supported format;
- * - The assertion is correctly signed;
- * - It's bound to the given key.
- * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
- * @param statusAssertion The encoded status assertion returned by {@link statusAssertion}
- * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
- * @returns A parsed status assertion
- * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
- * @throws {IssuerResponseError} If the status assertion contains an error or the credential status is invalid
- */
-export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
+export const verifyAndParseStatusAssertion: CredentialStatusApi["verifyAndParseStatusAssertion"] =
   async (issuerConf, rawStatusAssertion, credential, format) => {
     const { statusAssertion } = rawStatusAssertion;
 
@@ -83,12 +61,14 @@ export const verifyAndParseStatusAssertion: VerifyAndParseStatusAssertion =
       });
     }
 
-    return { parsedStatusAssertion };
+    return {
+      parsedStatusAssertion: mapToParsedStatusAssertion(parsedStatusAssertion),
+    };
   };
 
 const isStatusAssertionError = (
   assertion: ParsedStatusAssertionResponse
-): assertion is ParsedStatusAssertionError =>
+): assertion is ParsedStatusAssertionErrorJwt =>
   assertion.header.typ === "status-assertion-error+jwt";
 
 /**

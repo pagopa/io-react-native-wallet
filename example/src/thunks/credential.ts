@@ -1,7 +1,7 @@
 import {
   createCryptoContextFor,
-  Credential,
   CredentialIssuance,
+  CredentialStatus,
 } from "@pagopa/io-react-native-wallet";
 import {
   selectAttestationAsJwt,
@@ -45,8 +45,12 @@ type GetCredentialStatusAssertionThunkInput = {
  * Type definition for the output of the {@link getCredentialStatusAssertionThunk}.
  */
 export type GetCredentialStatusAssertionThunkOutput = {
-  statusAssertion: Out<Credential.Status.StatusAssertion>["statusAssertion"];
-  parsedStatusAssertion: Out<Credential.Status.VerifyAndParseStatusAssertion>["parsedStatusAssertion"];
+  statusAssertion: Out<
+    CredentialStatus.CredentialStatusApi["getStatusAssertion"]
+  >["statusAssertion"];
+  parsedStatusAssertion: Out<
+    CredentialStatus.CredentialStatusApi["verifyAndParseStatusAssertion"]
+  >["parsedStatusAssertion"];
   credentialType: SupportedCredentials;
 };
 
@@ -116,6 +120,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const env = getEnv(selectEnv(getState()));
+  const itwVersion = selectItwVersion(getState());
 
   const issuerUrl =
     credentialType === "PersonIdentificationData"
@@ -123,6 +128,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 
   return await getCredentialStatusAssertion(
+    itwVersion,
     issuerUrl,
     credential,
     format,

@@ -1,10 +1,9 @@
 import {
   createCryptoContextFor,
-  Credential,
   IoWallet,
   Trust,
   type ItwVersion,
-  CredentialIssuance,
+  type CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
@@ -200,6 +199,7 @@ export const getTrustAnchorX509Certificate = async (
  * @returns The credential status assertion
  */
 export const getCredentialStatusAssertion = async (
+  itwVersion: ItwVersion,
   credentialIssuerUrl: string,
   credential: string,
   format: CredentialIssuance.CredentialFormat,
@@ -207,18 +207,13 @@ export const getCredentialStatusAssertion = async (
   wiaCryptoContext: CryptoContext,
   credentialType: SupportedCredentials
 ) => {
-  // Start the issuance flow
-  const startFlow: Credential.Status.StartFlow = () => ({
-    issuerUrl: credentialIssuerUrl,
-  });
-
-  const { issuerUrl } = startFlow();
+  const wallet = new IoWallet({ version: itwVersion });
 
   // Evaluate issuer trust
   const { issuerConf } =
-    await CredentialIssuance.V1_0_0.evaluateIssuerTrust(issuerUrl); // TODO: [SIW-3743] refactor status
+    await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
-  const statusAssertion = await Credential.Status.statusAssertion(
+  const statusAssertion = await wallet.CredentialStatus.getStatusAssertion(
     issuerConf,
     credential,
     format,
@@ -226,7 +221,7 @@ export const getCredentialStatusAssertion = async (
   );
 
   const parsedStatusAssertion =
-    await Credential.Status.verifyAndParseStatusAssertion(
+    await wallet.CredentialStatus.verifyAndParseStatusAssertion(
       issuerConf,
       statusAssertion,
       credential,
