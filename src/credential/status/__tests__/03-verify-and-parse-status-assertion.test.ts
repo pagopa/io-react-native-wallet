@@ -3,8 +3,7 @@ import {
   IssuerResponseErrorCodes,
 } from "../../../utils/errors";
 import { verifyAndParseStatusAssertion } from "..";
-import type { EvaluateIssuerTrust } from "../../issuance";
-import type { Out } from "../../../utils/misc";
+import type { IssuerConfig } from "src/credential/issuance";
 
 const mockCredential = "";
 const format = "dc+sd-jwt";
@@ -23,12 +22,8 @@ jest.mock("../../../utils/credentials", () => ({
 }));
 
 const mockIssuerConf = {
-  openid_credential_issuer: {
-    jwks: {
-      keys: [mockPubKey],
-    },
-  },
-} as unknown as Out<EvaluateIssuerTrust>["issuerConf"];
+  keys: [mockPubKey],
+} as unknown as IssuerConfig;
 
 describe("verifyAndParseStatusAssertion", () => {
   it("parses a valid assertion for a valid credential", async () => {

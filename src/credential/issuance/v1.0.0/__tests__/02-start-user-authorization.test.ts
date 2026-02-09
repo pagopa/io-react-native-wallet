@@ -1,23 +1,18 @@
 import { generate } from "@pagopa/io-react-native-crypto";
-import { createCryptoContextFor } from "../../../utils/crypto";
-import type { Out } from "../../../utils/misc";
-import type { EvaluateIssuerTrust } from "../../issuance/02-evaluate-issuer-trust";
-import { startUserAuthorization } from "..";
 import { decode } from "@pagopa/io-react-native-jwt";
+import { createCryptoContextFor } from "../../../../utils/crypto";
+import { startUserAuthorization } from "../02-start-user-authorization";
+import type { IssuerConfig } from "../../api";
 
 const mockIssuerConf = {
-  oauth_authorization_server: {
-    pushed_authorization_request_endpoint: "https://issuer.example/par",
-    response_modes_supported: ["query", "form_post.jwt"],
+  pushed_authorization_request_endpoint: "https://issuer.example/par",
+  response_modes_supported: ["query", "form_post.jwt"],
+  credential_configurations_supported: {
+    PersonIdentificationData: {},
+    MDL: {},
+    TS: {},
   },
-  openid_credential_issuer: {
-    credential_configurations_supported: {
-      PersonIdentificationData: {},
-      MDL: {},
-      TS: {},
-    },
-  },
-} as unknown as Out<EvaluateIssuerTrust>["issuerConf"];
+} as unknown as IssuerConfig;
 
 const createMockFetch = () =>
   jest.fn().mockResolvedValue({

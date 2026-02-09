@@ -4,6 +4,7 @@ import {
   IoWallet,
   Trust,
   type ItwVersion,
+  CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
 import { generate } from "@pagopa/io-react-native-crypto";
@@ -16,8 +17,6 @@ import type {
   SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
-import type { Out } from "../../../src/utils/misc";
-import type { ObtainCredential } from "../../../src/credential/issuance";
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -49,28 +48,21 @@ export const getCredential = async ({
   walletInstanceAttestation: string;
   wiaCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
+  const wallet = new IoWallet({ version: itwVersion });
   // Create credential crypto context
   const credentialKeyTag = uuidv4().toString();
   await generate(credentialKeyTag);
   const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
-  // Start the issuance flow
-  const startFlow: Credential.Issuance.StartFlow = () => ({
-    issuerUrl: credentialIssuerUrl,
-    credentialId,
-  });
-
-  const { issuerUrl, credentialId: credId } = startFlow();
-
   // Evaluate issuer trust
   const { issuerConf } =
-    await Credential.Issuance.evaluateIssuerTrust(issuerUrl);
+    await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier } =
-    await Credential.Issuance.startUserAuthorization(
+    await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
-      [credId],
+      [credentialId],
       { proofType: "none" },
       {
         walletInstanceAttestation,
@@ -81,7 +73,7 @@ export const getCredential = async ({
     );
 
   const requestObject =
-    await Credential.Issuance.getRequestedCredentialToBePresented(
+    await wallet.CredentialIssuance.getRequestedCredentialToBePresented(
       issuerRequestUri,
       clientId,
       issuerConf,
@@ -90,7 +82,7 @@ export const getCredential = async ({
 
   // Complete the user authorization via form_post.jwt mode
   const { code } =
-    await Credential.Issuance.completeUserAuthorizationWithFormPostJwtMode(
+    await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
       requestObject,
       pid.credential,
       { wiaCryptoContext, pidCryptoContext: createCryptoContextFor(pid.keyTag) }
@@ -100,10 +92,9 @@ export const getCredential = async ({
   await regenerateCryptoKey(DPOP_KEYTAG);
   const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
-  const { accessToken } = await Credential.Issuance.authorizeAccess(
+  const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
     code,
-    clientId,
     redirectUri,
     codeVerifier,
     {
@@ -119,20 +110,21 @@ export const getCredential = async ({
     accessToken.authorization_details[0]!;
 
   // Obtain the credential
-  const { credential, format } = await Credential.Issuance.obtainCredential(
-    issuerConf,
-    accessToken,
-    clientId,
-    {
-      credential_configuration_id,
-      credential_identifier: credential_identifiers[0],
-    },
-    {
-      credentialCryptoContext,
-      dPopCryptoContext,
-      appFetch,
-    }
-  );
+  const { credential, format } =
+    await wallet.CredentialIssuance.obtainCredential(
+      issuerConf,
+      accessToken,
+      clientId,
+      {
+        credential_configuration_id,
+        credential_identifier: credential_identifiers[0],
+      },
+      {
+        credentialCryptoContext,
+        dPopCryptoContext,
+        appFetch,
+      }
+    );
 
   const x509CertRoot =
     format === "mso_mdoc"
@@ -141,7 +133,7 @@ export const getCredential = async ({
 
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
   const { parsedCredential } =
-    await Credential.Issuance.verifyAndParseCredential(
+    await wallet.CredentialIssuance.verifyAndParseCredential(
       issuerConf,
       credential,
       credential_configuration_id,
@@ -209,8 +201,8 @@ export const getTrustAnchorX509Certificate = async (
  */
 export const getCredentialStatusAssertion = async (
   credentialIssuerUrl: string,
-  credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"],
+  credential: string,
+  format: CredentialIssuance.CredentialFormat,
   credentialCryptoContext: CryptoContext,
   wiaCryptoContext: CryptoContext,
   credentialType: SupportedCredentials
@@ -223,7 +215,8 @@ export const getCredentialStatusAssertion = async (
   const { issuerUrl } = startFlow();
 
   // Evaluate issuer trust
-  const { issuerConf } = await Credential.Status.evaluateIssuerTrust(issuerUrl);
+  const { issuerConf } =
+    await CredentialIssuance.V1_0_0.evaluateIssuerTrust(issuerUrl); // TODO: [SIW-3743] refactor status
 
   const statusAssertion = await Credential.Status.statusAssertion(
     issuerConf,

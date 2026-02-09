@@ -1,10 +1,8 @@
-import type { CredentialIssuerEntityConfiguration } from "../../../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
-import { obtainCredential } from "../06-obtain-credential";
+import { obtainCredential } from "../05-obtain-credential";
 import type { TokenResponse } from "../types";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import process from "node:process";
-
-type IssuerConf = CredentialIssuerEntityConfiguration["payload"]["metadata"];
+import type { IssuerConfig } from "../../api";
 
 describe("obtainCredential", () => {
   let mockFetch: jest.Mock;
@@ -19,7 +17,7 @@ describe("obtainCredential", () => {
     credential_configuration_id: string;
     credential_identifier?: string;
   };
-  let mockIssuerConf: IssuerConf;
+  let mockIssuerConf: IssuerConfig;
   let mockAccessToken: TokenResponse;
   const mockClientId = "client_id";
 
@@ -66,19 +64,15 @@ describe("obtainCredential", () => {
     };
 
     mockIssuerConf = {
-      openid_credential_issuer: {
-        credential_endpoint: "https://issuer.example.com/credential",
-        nonce_endpoint: "https://issuer.example.com/nonce",
-        credential_configurations_supported: {
-          mock_credential_configuration_id: {
-            format: "dc+sd-jwt",
-          },
+      credential_endpoint: "https://issuer.example.com/credential",
+      nonce_endpoint: "https://issuer.example.com/nonce",
+      credential_configurations_supported: {
+        mock_credential_configuration_id: {
+          format: "dc+sd-jwt",
         },
       },
-      oauth_authorization_server: {
-        issuer: "https://issuer.example.com",
-      },
-    } as unknown as IssuerConf;
+      openid_credential_issuer: "https://issuer.example.com",
+    } as unknown as IssuerConfig;
 
     mockAccessToken = {
       access_token: process.env.ACCESS_TOKEN,
@@ -109,27 +103,6 @@ describe("obtainCredential", () => {
         method: "POST",
         headers: expect.not.objectContaining({
           operationType: expect.any(String),
-        }),
-      })
-    );
-  });
-
-  it("should include operationType in the header when it is provided", async () => {
-    await obtainCredential(
-      mockIssuerConf,
-      mockAccessToken,
-      mockClientId,
-      mockCredentialDefinition,
-      mockContext,
-      "reissuing"
-    );
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      "https://issuer.example.com/credential",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          operationType: "reissuing",
         }),
       })
     );

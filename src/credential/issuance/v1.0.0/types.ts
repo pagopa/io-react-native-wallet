@@ -1,23 +1,8 @@
 import * as z from "zod";
+import { AuthorizationDetail, TokenResponse } from "../api/types";
 
-export type CredentialFormat = "dc+sd-jwt" | "mso_mdoc";
-
-export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
-export const AuthorizationDetail = z.object({
-  type: z.literal("openid_credential"),
-  credential_configuration_id: z.string(),
-  credential_identifiers: z.array(z.string()),
-});
-
-export type TokenResponse = z.infer<typeof TokenResponse>;
-
-export const TokenResponse = z.object({
-  access_token: z.string(),
-  refresh_token: z.string().optional(),
-  authorization_details: z.array(AuthorizationDetail),
-  expires_in: z.number(),
-  token_type: z.string(),
-});
+// Reusing the following API types because they are the same in v1.0.0
+export { AuthorizationDetail, TokenResponse };
 
 export type CredentialResponse = z.infer<typeof CredentialResponse>;
 

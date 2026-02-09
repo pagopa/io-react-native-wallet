@@ -1,6 +1,7 @@
 import {
   createCryptoContextFor,
   Credential,
+  CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
 import {
   selectAttestationAsJwt,
@@ -35,8 +36,8 @@ type GetCredentialThunkInput = {
  */
 type GetCredentialStatusAssertionThunkInput = {
   credentialType: SupportedCredentials;
-  credential: Out<Credential.Issuance.ObtainCredential>["credential"];
-  format: Out<Credential.Issuance.ObtainCredential>["format"];
+  credential: string;
+  format: CredentialIssuance.CredentialFormat;
   keyTag: string;
 };
 
