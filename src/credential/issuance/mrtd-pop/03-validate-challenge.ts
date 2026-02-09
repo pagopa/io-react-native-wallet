@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { IssuerResponseError } from "../../../utils/errors";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { createPopToken } from "../../../utils/pop";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
+import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from 1.0.0 version
 import { MrtdPopVerificationResult } from "../api/mrtd-pop";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 

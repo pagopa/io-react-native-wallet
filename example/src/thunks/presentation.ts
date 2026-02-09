@@ -1,7 +1,8 @@
 import { createAppAsyncThunk } from "./utils";
 import {
   createCryptoContextFor,
-  Credential,
+  IoWallet,
+  RemotePresentation,
 } from "@pagopa/io-react-native-wallet";
 import {
   selectAttestationAsSdJwt,
@@ -14,27 +15,13 @@ import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { WIA_KEYTAG } from "../utils/crypto";
+import { selectItwVersion } from "../store/reducers/environment";
 
-export type RequestObject = Awaited<
-  ReturnType<Credential.Presentation.VerifyRequestObject>
->["requestObject"];
-type DcqlQuery = Parameters<Credential.Presentation.EvaluateDcqlQuery>[1];
-type RpConf = Awaited<
-  ReturnType<Credential.Presentation.EvaluateRelyingPartyTrust>
->["rpConf"];
-type AuthResponse = Awaited<
-  ReturnType<Credential.Presentation.SendAuthorizationResponse>
->;
+type DcqlQuery = Parameters<
+  RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
+>[1];
 
-/**
- * Type of the function to process the presentation request,
- * either when it uses DCQL queries or the legacy `presentation_definition`.
- */
-type ProcessPresentation = (
-  requestObject: RequestObject,
-  rpConf: RpConf,
-  credentialsSdJwt: [CryptoContext, string][]
-) => Promise<RemoteCrossDevicePresentationThunkOutput>;
+export type RequestObject = RemotePresentation.RequestObject;
 
 export type RemoteCrossDevicePresentationThunkInput = {
   qrcode: string;
@@ -42,7 +29,7 @@ export type RemoteCrossDevicePresentationThunkInput = {
 };
 
 export type RemoteCrossDevicePresentationThunkOutput = {
-  authResponse: AuthResponse;
+  authResponse: RemotePresentation.AuthorizationResponse;
   requestObject: RequestObject;
   requestedClaims: string[];
 };
@@ -54,6 +41,9 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   RemoteCrossDevicePresentationThunkOutput,
   RemoteCrossDevicePresentationThunkInput
 >("presentation/remote", async (args, { getState, dispatch }) => {
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
   // Checks if the wallet instance attestation needs to be requested
   if (shouldRequestAttestationSelector(getState())) {
     await dispatch(getAttestationThunk());
@@ -61,7 +51,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const url = new URL(args.qrcode);
 
-  const qrParams = Credential.Presentation.startFlowFromQR({
+  const qrParams = wallet.RemotePresentation.startFlowFromQR({
     request_uri: url.searchParams.get("request_uri"),
     client_id: url.searchParams.get("client_id"),
     state: url.searchParams.get("state"),
@@ -70,18 +60,18 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       | "post",
   });
 
-  const { rpConf, subject } =
-    await Credential.Presentation.evaluateRelyingPartyTrust(qrParams.client_id);
+  const { rpConf } = await wallet.RemotePresentation.evaluateRelyingPartyTrust(
+    qrParams.client_id
+  );
 
   const { requestObjectEncodedJwt } =
-    await Credential.Presentation.getRequestObject(qrParams.request_uri);
+    await wallet.RemotePresentation.getRequestObject(qrParams.request_uri);
 
-  const { requestObject } = await Credential.Presentation.verifyRequestObject(
+  const { requestObject } = await wallet.RemotePresentation.verifyRequestObject(
     requestObjectEncodedJwt,
     {
       rpConf,
       clientId: qrParams.client_id,
-      rpSubject: subject,
       state: qrParams.state,
     }
   );
@@ -107,83 +97,20 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   ] as [CryptoContext, string][];
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
-    return processRefusedPresentation(requestObject);
+    return processRefusedPresentation(wallet, requestObject);
   }
 
-  if (requestObject.dcql_query) {
-    return processPresentation(requestObject, rpConf, credentialsSdJwt);
-  }
-
-  if (requestObject.presentation_definition) {
-    return processLegacyPresentation(requestObject, rpConf, credentialsSdJwt);
-  }
-
-  throw new Error("Invalid request object");
+  return processPresentation(wallet, requestObject, rpConf, credentialsSdJwt);
 });
 
-// Presentation definition flow
-const processLegacyPresentation: ProcessPresentation = async (
-  requestObject,
-  rpConf,
-  credentialsSdJwt
-) => {
-  const { presentationDefinition } =
-    await Credential.Presentation.fetchPresentDefinition(requestObject);
-
-  const evaluateInputDescriptors =
-    await Credential.Presentation.evaluateInputDescriptors(
-      presentationDefinition.input_descriptors,
-      credentialsSdJwt
-    );
-
-  const credentialAndInputDescriptor = evaluateInputDescriptors.map(
-    (evaluateInputDescriptor) => {
-      // Present only the mandatory claims
-      const requestedClaims =
-        evaluateInputDescriptor.evaluatedDisclosure.requiredDisclosures.map(
-          (item) => item.decoded[1]
-        );
-
-      return {
-        requestedClaims,
-        inputDescriptor: evaluateInputDescriptor.inputDescriptor,
-        credential: evaluateInputDescriptor.credential,
-        cryptoContext: evaluateInputDescriptor.cryptoContext,
-      };
-    }
-  );
-
-  const remotePresentations =
-    await Credential.Presentation.prepareLegacyRemotePresentations(
-      credentialAndInputDescriptor,
-      requestObject.nonce,
-      requestObject.client_id
-    );
-
-  const authResponse =
-    await Credential.Presentation.sendLegacyAuthorizationResponse(
-      requestObject,
-      presentationDefinition.id,
-      remotePresentations,
-      rpConf
-    );
-
-  return {
-    authResponse,
-    requestObject,
-    requestedClaims: credentialAndInputDescriptor.flatMap(
-      (c) => c.requestedClaims
-    ),
-  };
-};
-
 // DCQL flow
-const processPresentation: ProcessPresentation = async (
-  requestObject,
-  rpConf,
-  credentialsSdJwt
+const processPresentation = async (
+  wallet: IoWallet,
+  requestObject: RequestObject,
+  rpConf: RemotePresentation.RelyingPartyConfig,
+  credentialsSdJwt: [CryptoContext, string][]
 ) => {
-  const result = Credential.Presentation.evaluateDcqlQuery(
+  const result = wallet.RemotePresentation.evaluateDcqlQuery(
     credentialsSdJwt,
     requestObject.dcql_query as DcqlQuery
   );
@@ -196,17 +123,17 @@ const processPresentation: ProcessPresentation = async (
   );
 
   const remotePresentations =
-    await Credential.Presentation.prepareRemotePresentations(
+    await wallet.RemotePresentation.prepareRemotePresentations(
       credentialsToPresent,
-      requestObject.nonce,
-      requestObject.client_id
+      requestObject
     );
 
-  const authResponse = await Credential.Presentation.sendAuthorizationResponse(
-    requestObject,
-    remotePresentations,
-    rpConf
-  );
+  const authResponse =
+    await wallet.RemotePresentation.sendAuthorizationResponse(
+      requestObject,
+      remotePresentations,
+      rpConf
+    );
 
   return {
     authResponse,
@@ -216,9 +143,12 @@ const processPresentation: ProcessPresentation = async (
 };
 
 // Mock an error in the presentation flow
-const processRefusedPresentation = async (requestObject: RequestObject) => {
+const processRefusedPresentation = async (
+  wallet: IoWallet,
+  requestObject: RequestObject
+) => {
   const authResponse =
-    await Credential.Presentation.sendAuthorizationErrorResponse(
+    await wallet.RemotePresentation.sendAuthorizationErrorResponse(
       requestObject,
       {
         error: "invalid_request_object",
