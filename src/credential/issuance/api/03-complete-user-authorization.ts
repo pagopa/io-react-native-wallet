@@ -3,16 +3,8 @@ import type {
   AuthorizationChallengeResult,
   AuthorizationResult,
 } from "../../../utils/auth";
+import type { RequestObject } from "../../../credential/presentation/api";
 import type { IssuerConfig } from "./IssuerConfig";
-
-// Simplified request object for issuance
-type RequestedCredential = {
-  dcql_query: Record<string, unknown>;
-  response_uri: string;
-  nonce: string;
-  client_id: string;
-  state?: string;
-};
 
 export interface CompleteUserAuthorizationApi {
   /**
@@ -44,7 +36,7 @@ export interface CompleteUserAuthorizationApi {
    * @throws {ValidationFailed} if an error while validating the response
    */
   completeUserAuthorizationWithFormPostJwtMode(
-    requestObject: RequestedCredential,
+    requestObject: RequestObject,
     pid: string,
     context: {
       wiaCryptoContext: CryptoContext;
@@ -105,5 +97,5 @@ export interface CompleteUserAuthorizationApi {
     clientId: string,
     issuerConf: IssuerConfig,
     appFetch?: GlobalFetch["fetch"]
-  ): Promise<RequestedCredential>;
+  ): Promise<RequestObject>;
 }
