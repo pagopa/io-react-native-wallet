@@ -1,5 +1,4 @@
 import { hasStatusOrThrow } from "../../../utils/misc";
-import { type IssuerMetadata } from "../api";
 import { IoWalletError } from "../../../utils/errors";
 import type { z } from "zod";
 
@@ -12,7 +11,7 @@ import type { z } from "zod";
  * @param appFetch Optional fetch API implementation.
  * @returns The parsed metadata as a validated object.
  */
-export async function getCredentialIssuerMetadata<T extends IssuerMetadata>(
+export async function getCredentialIssuerMetadata<T>(
   issuerBaseUrl: string,
   schema: z.ZodType<T>,
   {
@@ -20,7 +19,7 @@ export async function getCredentialIssuerMetadata<T extends IssuerMetadata>(
   }: {
     appFetch?: GlobalFetch["fetch"];
   } = {}
-): Promise<IssuerMetadata> {
+): Promise<T> {
   const url = new URL(issuerBaseUrl);
   const wellKnownPath = "/.well-known/openid-credential-issuer";
   const originalPath = url.pathname === "/" ? "" : url.pathname;
