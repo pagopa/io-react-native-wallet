@@ -3,7 +3,7 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../../utils/pop";
 import { Logger, LogLevel } from "../../../utils/logging";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
+import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
 import type { EvaluateIssuerTrust } from "../../issuance";
 import {
   IssuerResponseError,

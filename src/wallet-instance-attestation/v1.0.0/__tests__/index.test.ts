@@ -1,4 +1,4 @@
-import { decode } from "..";
+import { decode } from "../utils";
 
 // Wallet Instance Attestation
 const token =

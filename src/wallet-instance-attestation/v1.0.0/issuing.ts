@@ -3,16 +3,18 @@ import {
   SignJWT,
   thumbprint,
 } from "@pagopa/io-react-native-jwt";
-import { fixBase64EncodingOnKey, JWK } from "../utils/jwk";
-import { getWalletProviderClient } from "../client";
-import type { IntegrityContext } from "../utils/integrity";
-import { LogLevel, Logger } from "../utils/logging";
+import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
+import { getWalletProviderClient } from "../../client";
+import type { IntegrityContext } from "../../utils/integrity";
+import { LogLevel, Logger } from "../../utils/logging";
 import {
   ResponseErrorBuilder,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
-} from "../utils/errors";
+} from "../../utils/errors";
 import { WalletAttestationResponse } from "./types";
+import type { WalletInstanceAttestationApi } from "../api";
+import { mapToWalletAttestations } from "./mappers";
 
 /**
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
@@ -23,7 +25,7 @@ import { WalletAttestationResponse } from "./types";
  * @param walletProviderBaseUrl - Base url for the Wallet Provider
  * @returns A JWT containing the attestation request
  */
-export async function getAttestationRequest(
+async function getAttestationRequest(
   challenge: string,
   wiaCryptoContext: CryptoContext,
   integrityContext: IntegrityContext,
@@ -66,70 +68,58 @@ export async function getAttestationRequest(
     .sign();
 }
 
-/**
- * Request a Wallet Instance Attestation (WIA) to the Wallet provider
- * @version 1.0.0
- *
- * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
- * @param params.appFetch (optional) Http client
- * @param walletProviderBaseUrl Base url for the Wallet Provider
- * @returns The retrieved Wallet Instance Attestation token
- * @throws {WalletProviderResponseError} with a specific code for more context
- */
-export const getAttestation = async ({
-  wiaCryptoContext,
-  integrityContext,
-  walletProviderBaseUrl,
-  appFetch = fetch,
-}: {
-  wiaCryptoContext: CryptoContext;
-  integrityContext: IntegrityContext;
-  walletProviderBaseUrl: string;
-  appFetch?: GlobalFetch["fetch"];
-}): Promise<WalletAttestationResponse["wallet_attestations"]> => {
-  const api = getWalletProviderClient({
-    walletProviderBaseUrl,
-    appFetch,
-  });
-
-  // 1. Get nonce from backend
-  const challenge = await api.get("/nonce").then((response) => response.nonce);
-  Logger.log(
-    LogLevel.DEBUG,
-    `Challenge obtained from ${walletProviderBaseUrl}: ${challenge} `
-  );
-
-  // 2. Get a signed attestation request
-  const signedAttestationRequest = await getAttestationRequest(
-    challenge,
+export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
+  async ({
     wiaCryptoContext,
     integrityContext,
-    walletProviderBaseUrl
-  );
-  Logger.log(
-    LogLevel.DEBUG,
-    `Signed attestation request: ${signedAttestationRequest}`
-  );
+    walletProviderBaseUrl,
+    appFetch = fetch,
+  }) => {
+    const api = getWalletProviderClient({
+      walletProviderBaseUrl,
+      appFetch,
+    });
 
-  // 3. Request WIA in multiple formats
-  const response = await api
-    .post("/wallet-attestations", {
-      body: {
-        assertion: signedAttestationRequest,
-      },
-    })
-    .then(WalletAttestationResponse.parse)
-    .catch(handleAttestationCreationError);
-
-  for (const attestation of response.wallet_attestations) {
+    // 1. Get nonce from backend
+    const challenge = await api
+      .get("/nonce")
+      .then((response) => response.nonce);
     Logger.log(
       LogLevel.DEBUG,
-      `Obtained wallet attestation in ${attestation.format} format: ${attestation.wallet_attestation}`
+      `Challenge obtained from ${walletProviderBaseUrl}: ${challenge} `
     );
-  }
 
-  return response.wallet_attestations;
-};
+    // 2. Get a signed attestation request
+    const signedAttestationRequest = await getAttestationRequest(
+      challenge,
+      wiaCryptoContext,
+      integrityContext,
+      walletProviderBaseUrl
+    );
+    Logger.log(
+      LogLevel.DEBUG,
+      `Signed attestation request: ${signedAttestationRequest}`
+    );
+
+    // 3. Request WIA in multiple formats
+    const response = await api
+      .post("/wallet-attestations", {
+        body: {
+          assertion: signedAttestationRequest,
+        },
+      })
+      .then(WalletAttestationResponse.parse)
+      .catch(handleAttestationCreationError);
+
+    for (const attestation of response.wallet_attestations) {
+      Logger.log(
+        LogLevel.DEBUG,
+        `Obtained wallet attestation in ${attestation.format} format: ${attestation.wallet_attestation}`
+      );
+    }
+
+    return mapToWalletAttestations(response);
+  };
 
 const handleAttestationCreationError = (e: unknown) => {
   Logger.log(
