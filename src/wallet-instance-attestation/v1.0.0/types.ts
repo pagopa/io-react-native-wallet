@@ -1,28 +1,5 @@
-import { JWK } from "../utils/jwk";
-import { UnixTime } from "../utils/zod";
 import * as z from "zod";
-
-const Jwt = z.object({
-  header: z.object({
-    alg: z.string(),
-    kid: z.string(),
-    typ: z.string(),
-    x5c: z.array(z.string()).optional(),
-    trust_chain: z.array(z.string()).optional(),
-  }),
-  payload: z.object({
-    iss: z.string(),
-    iat: UnixTime,
-    exp: UnixTime,
-    cnf: z.object({
-      jwk: z.intersection(
-        JWK,
-        // this key requires a kis because it must be referenced for DPoP
-        z.object({ kid: z.string() })
-      ),
-    }),
-  }),
-});
+import { Jwt } from "../common/types";
 
 export type WalletInstanceAttestationRequestJwt = z.infer<
   typeof WalletInstanceAttestationRequestJwt
@@ -56,7 +33,6 @@ export const WalletInstanceAttestationJwt = z.object({
     Jwt.shape.header,
     z.object({
       typ: z.literal("oauth-client-attestation+jwt"),
-      trust_chain: z.array(z.string()).optional(),
     })
   ),
   payload: z.intersection(

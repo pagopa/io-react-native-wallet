@@ -9,7 +9,6 @@ import * as PID from "./pid";
 import * as SdJwt from "./sd-jwt";
 import * as Mdoc from "./mdoc";
 import * as Errors from "./utils/errors";
-import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as Trust from "./trust";
 import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
@@ -21,7 +20,6 @@ export {
   Mdoc,
   PID,
   Credential,
-  WalletInstanceAttestation,
   Errors,
   Trust,
   createCryptoContextFor,
@@ -36,6 +34,7 @@ export type { IntegrityContext, AuthorizationContext };
 // Export API types only
 export type * from "./api";
 export type * as CredentialsCatalogue from "./credentials-catalogue/api";
+export type * as WalletInstanceAttestation from "./wallet-instance-attestation/api";
 export type * as WalletInstance from "./wallet-instance/api";
 
 // Export SDK entrypoint
