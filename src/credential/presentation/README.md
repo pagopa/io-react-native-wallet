@@ -48,6 +48,10 @@ The following HTTP errors are mapped to a `RelyingPartyResponseError` with speci
 **Note:** To successfully complete a remote presentation, the Wallet Instance must be in a valid state with a valid Wallet Instance Attestation.
 
 ```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet"
+
+const wallet = new IoWallet({ version: "1.0.0" })
+
 // Retrieve and scan the qr-code, decode it and get its parameters
 const qrCodeParams = decodeQrCode(qrCode)
 
@@ -57,17 +61,17 @@ const {
   client_id,
   request_uri_method,
   state
-} = Credential.Presentation.startFlowFromQR(qrCodeParams);
+} = wallet.RemotePresentation.startFlowFromQR(qrCodeParams);
 
 // Get the Relying Party's Entity Configuration and evaluate trust
-const { rpConf } = await Credential.Presentation.evaluateRelyingPartyTrust(client_id);
+const { rpConf } = await wallet.RemotePresentation.evaluateRelyingPartyTrust(client_id);
 
 // Get the Request Object from the RP
 const { requestObjectEncodedJwt } =
-  await Credential.Presentation.getRequestObject(request_uri);
+  await wallet.RemotePresentation.getRequestObject(request_uri);
 
 // Validate the Request Object
-const { requestObject } = await Credential.Presentation.verifyRequestObject(
+const { requestObject } = await wallet.RemotePresentation.verifyRequestObject(
   requestObjectEncodedJwt,
   { clientId: client_id, rpConf }
 );
@@ -78,7 +82,7 @@ const credentialsSdJwt = [
   ["credential2_keytag", "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KIC"]
 ];
 
-const result = Credential.Presentation.evaluateDcqlQuery(
+const result = wallet.RemotePresentation.evaluateDcqlQuery(
   credentialsSdJwt,
   requestObject.dcql_query as DcqlQuery
 );
@@ -91,13 +95,12 @@ const credentialsToPresent = result.map(
 );
 
 const remotePresentations =
-  await Credential.Presentation.prepareRemotePresentations(
+  await wallet.RemotePresentation.prepareRemotePresentations(
     credentialsToPresent,
-    requestObject.nonce,
-    requestObject.client_id
+    requestObject
   );
 
-const authResponse = await Credential.Presentation.sendAuthorizationResponse(
+const authResponse = await wallet.RemotePresentation.sendAuthorizationResponse(
   requestObject,
   remotePresentations,
   rpConf

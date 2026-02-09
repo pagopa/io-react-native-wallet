@@ -42,7 +42,7 @@ export const PresentationScreen = () => {
         hasError: acceptancePresentationState.hasError,
         isDone: acceptancePresentationState.isDone,
         icon: "qrCode",
-        isPresent: !!presentationDetails.redirectUri,
+        isPresent: acceptancePresentationState.isDone,
         successMessage: "OK",
       },
       {
@@ -56,6 +56,8 @@ export const PresentationScreen = () => {
         hasError: refusalPresentationState.hasError,
         isDone: refusalPresentationState.isDone,
         icon: "qrCode",
+        isPresent: refusalPresentationState.isDone,
+        successMessage: "OK",
       },
       {
         title: "mDL Proximity",
@@ -75,7 +77,6 @@ export const PresentationScreen = () => {
       acceptancePresentationState.hasError,
       acceptancePresentationState.isDone,
       acceptancePresentationState.isLoading,
-      presentationDetails.redirectUri,
       refusalPresentationState.hasError,
       refusalPresentationState.isDone,
       refusalPresentationState.isLoading,

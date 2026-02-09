@@ -15,13 +15,14 @@ import {
   SignJWT,
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
-import { type RemotePresentation, RequestObject } from "../presentation/types";
 import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "./errors";
 import { LogLevel, Logger } from "../../utils/logging";
-import { Presentation } from "..";
+import { RequestObjectPayload } from "../presentation/v1.0.0/types";
 import type { DcqlQuery } from "dcql";
+import { RemotePresentation } from "../presentation/v1.0.0";
+import { type RemotePresentationDetails } from "../presentation/api/types";
 
 /**
  * The interface of the phase to complete User authorization via strong identification when the response mode is "query" and the request credential is a PersonIdentificationData.
@@ -49,7 +50,7 @@ export type GetRequestedCredentialToBePresented = (
   clientId: Out<StartUserAuthorization>["clientId"],
   issuerConf: Out<EvaluateIssuerTrust>["issuerConf"],
   appFetch?: GlobalFetch["fetch"]
-) => Promise<RequestObject>;
+) => Promise<RequestObjectPayload>;
 
 export type BuildAuthorizationUrl = (
   issuerRequestUri: Out<StartUserAuthorization>["issuerRequestUri"],
@@ -183,7 +184,7 @@ export const getRequestedCredentialToBePresented: GetRequestedCredentialToBePres
       .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then((jws) => decode(jws))
-      .then((reqObj) => RequestObject.safeParse(reqObj.payload));
+      .then((reqObj) => RequestObjectPayload.safeParse(reqObj.payload));
 
     if (!requestObject.success) {
       Logger.log(
@@ -224,7 +225,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       throw new Error("Invalid request object");
     }
 
-    const dcqlQueryResult = Presentation.evaluateDcqlQuery(
+    const dcqlQueryResult = RemotePresentation.evaluateDcqlQuery(
       [[pidCryptoContext, pid]],
       requestObject.dcql_query as DcqlQuery
     );
@@ -236,11 +237,11 @@ export const completeUserAuthorizationWithFormPostJwtMode: CompleteUserAuthoriza
       })
     );
 
-    const remotePresentations = await Presentation.prepareRemotePresentations(
-      credentialsToPresent,
-      requestObject.nonce,
-      requestObject.client_id
-    );
+    const remotePresentations =
+      await RemotePresentation.prepareRemotePresentations(
+        credentialsToPresent,
+        requestObject
+      );
 
     const authzResponsePayload = await createAuthzResponsePayload({
       state: requestObject.state,
@@ -341,7 +342,7 @@ const createAuthzResponsePayload = async ({
   wiaCryptoContext,
 }: {
   state?: string;
-  remotePresentations: RemotePresentation[];
+  remotePresentations: RemotePresentationDetails[];
   wiaCryptoContext: CryptoContext;
 }): Promise<string> => {
   const { kid } = await wiaCryptoContext.getPublicKey();

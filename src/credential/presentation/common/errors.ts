@@ -1,4 +1,4 @@
-import { IoWalletError, serializeAttrs } from "../../utils/errors";
+import { IoWalletError, serializeAttrs } from "../../../utils/errors";
 export { DcqlError } from "dcql";
 
 /**

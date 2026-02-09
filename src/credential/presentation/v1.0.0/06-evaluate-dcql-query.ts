@@ -1,41 +1,17 @@
 import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
 import { isValiError } from "valibot";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { decode, prepareVpToken } from "../../sd-jwt";
-import { LEGACY_SD_JWT, type Disclosure } from "../../sd-jwt/types";
-import type { RemotePresentation } from "./types";
-import { CredentialsNotFoundError, type NotFoundDetail } from "./errors";
-
-/**
- * The purpose for the credential request by the RP.
- */
-type CredentialPurpose = {
-  required: boolean;
-  description?: string;
-};
-
-export type EvaluateDcqlQuery = (
-  credentialsSdJwt: [CryptoContext, string /* credential */][],
-  query: DcqlQuery.Input
-) => {
-  id: string;
-  vct: string;
-  credential: string;
-  cryptoContext: CryptoContext;
-  requiredDisclosures: Disclosure[];
-  purposes: CredentialPurpose[];
-}[];
-
-export type PrepareRemotePresentations = (
-  credentials: {
-    id: string;
-    credential: string;
-    cryptoContext: CryptoContext;
-    requestedClaims: string[];
-  }[],
-  nonce: string,
-  clientId: string
-) => Promise<RemotePresentation[]>;
+import { decode } from "../../../sd-jwt";
+import { LEGACY_SD_JWT } from "../../../sd-jwt/types";
+import {
+  CredentialsNotFoundError,
+  type NotFoundDetail,
+} from "../common/errors";
+import type { RemotePresentationApi } from "../api";
+import type {
+  CredentialPurpose,
+  Disclosure,
+} from "../api/06-evaluate-dcql-query";
 
 type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
@@ -105,7 +81,7 @@ const extractMissingCredentials = (
   });
 };
 
-export const evaluateDcqlQuery: EvaluateDcqlQuery = (
+export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] = (
   credentialsSdJwt,
   query
 ) => {
@@ -173,26 +149,4 @@ export const evaluateDcqlQuery: EvaluateDcqlQuery = (
     // Let other errors propagate so they can be caught with `err instanceof DcqlError`
     throw error;
   }
-};
-
-export const prepareRemotePresentations: PrepareRemotePresentations = async (
-  credentials,
-  nonce,
-  clientId
-) => {
-  return Promise.all(
-    credentials.map(async (item) => {
-      const { vp_token } = await prepareVpToken(nonce, clientId, [
-        item.credential,
-        item.requestedClaims,
-        item.cryptoContext,
-      ]);
-
-      return {
-        credentialId: item.id,
-        requestedClaims: item.requestedClaims,
-        vpToken: vp_token,
-      };
-    })
-  );
 };
