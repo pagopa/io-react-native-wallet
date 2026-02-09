@@ -5,13 +5,13 @@ import {
   sha256ToBase64,
   SignJWT,
   verify as verifyJwt,
+  type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { Disclosure, type DisclosureWithEncoded, SdJwt4VC } from "./types";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
 import * as Errors from "./errors";
 import { Base64 } from "js-base64";
-import { type Presentation } from "../credential/presentation/types";
 
 export * from "./utils";
 
@@ -190,7 +190,11 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
 export const prepareVpToken = async (
   nonce: string,
   client_id: string,
-  [verifiableCredential, requestedClaims, cryptoContext]: Presentation
+  [verifiableCredential, requestedClaims, cryptoContext]: [
+    string,
+    string[],
+    CryptoContext,
+  ]
 ): Promise<{
   vp_token: string;
 }> => {
