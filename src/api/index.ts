@@ -6,6 +6,7 @@ import * as CredentialStatus from "../credential/status";
 import * as RemotePresentation from "../credential/presentation";
 import * as CredentialsCatalogue from "../credentials-catalogue";
 import * as Trustmark from "../credential/trustmark";
+import * as CredentialsOffer from "../credential/offer";
 
 export type ItwVersion = "1.0.0" | "1.3.3";
 
@@ -21,6 +22,7 @@ export interface IoWalletApi {
   RemotePresentation: RemotePresentation.RemotePresentationApi;
   CredentialsCatalogue: CredentialsCatalogue.CredentialsCatalogueApi;
   Trustmark: Trustmark.TrustmarkApi;
+  CredentialsOffer: CredentialsOffer.OfferApi;
 }
 
 /**
@@ -36,6 +38,8 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     RemotePresentation: RemotePresentation.V1_0_0,
     CredentialsCatalogue: CredentialsCatalogue.V1_0_0,
     Trustmark: Trustmark.V1_0_0,
+    // TODO: replace v1.3.3 with empty v1.0.0 implementation
+    CredentialsOffer: CredentialsOffer.V1_3_3,
   },
   // TODO: replace v1.0.0 with v1.3.3 implementations
   "1.3.3": {
@@ -47,5 +51,6 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     RemotePresentation: RemotePresentation.V1_0_0,
     CredentialsCatalogue: CredentialsCatalogue.V1_3_3,
     Trustmark: Trustmark.V1_3_3,
+    CredentialsOffer: CredentialsOffer.V1_3_3,
   },
 };

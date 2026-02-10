@@ -1,43 +1,21 @@
-import * as z from "zod";
-import { Logger, LogLevel } from "../../utils/logging";
-import { stringToJSONSchema } from "../../utils/zod";
-import { InvalidQRCodeError } from "./errors";
-import { CredentialOfferSchema } from "./types";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { InvalidQRCodeError } from "../common/errors";
+import { CredentialOfferParams } from "../api/types";
+import type { OfferApi } from "../api";
 
-const CREDENTIAL_OFFER_SCHEMES = ["openid-credential-offer://", "haip://"];
+const CREDENTIAL_OFFER_SCHEMES = [
+  "openid-credential-offer://",
+  "haip://",
+  "haip-vci://",
+];
 const CREDENTIAL_OFFER_PARAM = "credential_offer";
 const CREDENTIAL_OFFER_URI_PARAM = "credential_offer_uri";
-
-const CredentialOfferParams = z.union([
-  z.object({
-    credential_offer: stringToJSONSchema.pipe(CredentialOfferSchema),
-    credential_offer_uri: z.undefined(),
-  }),
-  z.object({
-    credential_offer: z.undefined(),
-    credential_offer_uri: z.string().url(),
-  }),
-]);
-type CredentialOfferParams = z.infer<typeof CredentialOfferParams>;
-
-/**
- * The beginning of the credential offer flow.
- * To be implemented according to the user touchpoint
- *
- * @param params Credential offer encoded url
- * @returns Object containing the credential offer by reference or by value
- */
-export type StartFlow = (encodedUrl: string) => CredentialOfferParams;
 
 /**
  * Start a credential offer flow by validating and parse an encoded url
  * extracted from a QR code or a deep link.
- *
- * @param params The encoded url to be validated and parsed
- * @returns Object containing the credential offer by reference or by value
- * @throws If the provided encoded url is not valid
  */
-export const startFlowFromQR: StartFlow = (encodedUrl) => {
+export const startFlow: OfferApi["startFlow"] = (encodedUrl) => {
   const hasValidScheme = CREDENTIAL_OFFER_SCHEMES.some((prefix) =>
     encodedUrl.startsWith(prefix)
   );

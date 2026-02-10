@@ -1,28 +1,26 @@
-import { startFlowFromQR } from "../01-start-flow";
-import { InvalidQRCodeError } from "../errors";
+import { InvalidQRCodeError } from "../../common/errors";
+import { startFlow } from "../01-start-flow";
 
 describe("startFlowFromQR", () => {
   it("should handle only valid schemes", () => {
     const encodedUri = encodeURIComponent("https://www.pagopa.gov.it/");
 
     expect(
-      startFlowFromQR(
-        "openid-credential-offer://?credential_offer_uri=" + encodedUri
-      )
+      startFlow("openid-credential-offer://?credential_offer_uri=" + encodedUri)
     ).toBeTruthy();
 
     expect(
-      startFlowFromQR("haip://?credential_offer_uri=" + encodedUri)
+      startFlow("haip://?credential_offer_uri=" + encodedUri)
     ).toBeTruthy();
 
     expect(() =>
-      startFlowFromQR("http://?credential_offer_uri=" + encodedUri)
+      startFlow("http://?credential_offer_uri=" + encodedUri)
     ).toThrow(InvalidQRCodeError);
   });
 
   it("should successfully decode a QR code with a credential offer by reference", () => {
     expect(
-      startFlowFromQR(
+      startFlow(
         "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fserver%2Eexample%2Ecom%2Fcredential-offer%2FGkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
       )
     ).toEqual({
@@ -31,7 +29,7 @@ describe("startFlowFromQR", () => {
     });
 
     expect(
-      startFlowFromQR(
+      startFlow(
         "haip://?credential_offer_uri=https%3A%2F%2Fserver%2Eexample%2Ecom%2Fcredential-offer%2FGkurKxf5T0Y-mnPFCHqWOMiZi4VS138cQO_V7PZHAdM"
       )
     ).toEqual({
@@ -46,6 +44,7 @@ describe("startFlowFromQR", () => {
       credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
       grants: {
         authorization_code: {
+          scope: "org.iso.18013.5.1.mDL", // `scope` is required by the current schema
           authorization_server: "https://auth.example.com",
           issuer_state: "some-issuer-state",
         },
@@ -54,7 +53,7 @@ describe("startFlowFromQR", () => {
     const encoded = encodeURIComponent(JSON.stringify(payload));
 
     expect(
-      startFlowFromQR("openid-credential-offer://?credential_offer=" + encoded)
+      startFlow("openid-credential-offer://?credential_offer=" + encoded)
     ).toEqual({
       credential_offer: payload,
     });
@@ -73,19 +72,19 @@ describe("startFlowFromQR", () => {
     const encoded = encodeURIComponent(JSON.stringify(payload));
 
     expect(() =>
-      startFlowFromQR("openid-credential-offer://?credential_offer=" + encoded)
+      startFlow("openid-credential-offer://?credential_offer=" + encoded)
     ).toThrow(InvalidQRCodeError);
   });
 
   it("should throw InvalidQRCodeError if it does not contain the correct params", () => {
     expect(() =>
-      startFlowFromQR("openid-credential-offer://?wrong_param=wrong_value")
+      startFlow("openid-credential-offer://?wrong_param=wrong_value")
     ).toThrow(InvalidQRCodeError);
   });
 
   it("should throw InvalidQRCodeError if it does not contain json value", () => {
     expect(() =>
-      startFlowFromQR("openid-credential-offer://?credential_offer=not_a_json")
+      startFlow("openid-credential-offer://?credential_offer=not_a_json")
     ).toThrow(InvalidQRCodeError);
   });
 });
