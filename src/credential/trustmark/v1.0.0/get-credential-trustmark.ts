@@ -4,7 +4,7 @@ import {
   decode as decodeJwt,
 } from "@pagopa/io-react-native-jwt";
 import { type TrustmarkApi as Api } from "../api";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation";
+import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
 import { IoWalletError } from "../../../utils/errors";
 import { obfuscateString } from "../../../utils/string";
 import { LogLevel, Logger } from "../../../utils/logging";
