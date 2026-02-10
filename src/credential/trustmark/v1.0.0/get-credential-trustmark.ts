@@ -9,22 +9,6 @@ import { IoWalletError } from "../../../utils/errors";
 import { obfuscateString } from "../../../utils/string";
 import { LogLevel, Logger } from "../../../utils/logging";
 
-/**
- * Generates a trustmark signed JWT, which is used to verify the authenticity of a credential.
- * The public key used to sign the trustmark must the same used for the Wallet Instance Attestation.
- *
- * @param walletInstanceAttestation the Wallet Instance's attestation
- * @param wiaCryptoContext The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
- * @param credentialType The type of credential for which the trustmark is generated
- * @param docNumber (Optional) Document number contained in the credential, if applicable
- * @param expirationTime (Optional) Expiration time for the trustmark, default is 2 minutes.
- *                        If a number is provided, it is interpreted as a timestamp in seconds.
- *                        If a string is provided, it is interpreted as a time span and added to the current timestamp.
- * @throws {IoWalletError} If the WIA is expired
- * @throws {IoWalletError} If the public key associated to the WIA is not the same for the CryptoContext
- * @throws {JWSSignatureVerificationFailed} If the WIA signature is not valid
- * @returns A promise containing the signed JWT and its expiration time in seconds
- */
 export const getCredentialTrustmark: Api["getCredentialTrustmark"] = async ({
   walletInstanceAttestation,
   wiaCryptoContext,
