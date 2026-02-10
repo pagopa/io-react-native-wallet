@@ -1,6 +1,6 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { Verification } from "../sd-jwt/types";
-import type { VerifyAndParseCredential } from "../credential/issuance";
+import type { IssuanceApi } from "../credential/issuance";
 import type { Out } from "../utils/misc";
 import { MDOC_DEFAULT_NAMESPACE } from "./const";
 
@@ -21,7 +21,9 @@ export const getParsedCredentialClaimKey = (namespace: string, key: string) =>
  * @returns The verification claim or undefined if it wasn't found
  */
 export const getVerificationFromParsedCredential = (
-  parsedCredential: Out<VerifyAndParseCredential>["parsedCredential"]
+  parsedCredential: Out<
+    IssuanceApi["verifyAndParseCredential"]
+  >["parsedCredential"]
 ) => {
   const verificationKey = getParsedCredentialClaimKey(
     `${MDOC_DEFAULT_NAMESPACE}.IT`,

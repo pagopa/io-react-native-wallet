@@ -11,6 +11,8 @@ The wallet provider must implement its endpoints based on the OpenAPI specificat
 - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance;
 
 ```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the same key used when creating the Wallet Instance
 const integrityContext = getIntegrityContext(integrityKeyTag);
@@ -27,13 +29,14 @@ const { WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object conta
  * Obtains a new Wallet Instance Attestation.
  * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
  */
-const issuedAttestation = await WalletInstanceAttestation.getAttestation({
+const wallet = new IoWallet({ version: "1.0.0" });
+const issuedAttestation = await wallet.WalletInstanceAttestation.getAttestation({
   wiaCryptoContext,
   integrityContext,
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
   appFetch,
 });
-// [{ "format": "jwt", "wallet_attestation": "ey..." }, { "format": "dc+sd-jwt", "wallet_attestation": "ey..." }]
+// [{ type: "wallet_app_attestation", "format": "jwt", "attestation": "ey..." }, { type: "wallet_app_attestation", "format": "dc+sd-jwt", "attestation": "ey..." }]
 return issuedAttestation;
 ```
 

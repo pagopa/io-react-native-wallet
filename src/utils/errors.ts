@@ -7,7 +7,7 @@ import {
   type WalletProviderResponseErrorCode,
   WalletProviderResponseErrorCodes,
 } from "./error-codes";
-import type { CredentialIssuerEntityConfiguration } from "../trust/types";
+import type { CredentialIssuerEntityConfiguration } from "../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
 
 export {
   IssuerResponseErrorCodes,

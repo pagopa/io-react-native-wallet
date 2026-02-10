@@ -1,7 +1,7 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { hasStatusOrThrow } from "../../utils/misc";
 import { IoWalletError } from "../../utils/errors";
-import { getTrustAnchorEntityConfiguration } from "../../trust/build-chain";
+import { getTrustAnchorEntityConfiguration } from "../../trust/v1.0.0/entities";
 import { type CredentialsCatalogueApi as Api } from "../api";
 import { mapToCredentialsCatalogue } from "./mappers";
 

@@ -1,7 +1,6 @@
 import { decode } from "../sd-jwt";
 import { thumbprint } from "@pagopa/io-react-native-jwt";
-import type { Out } from "./misc";
-import type { ObtainCredential } from "../credential/issuance";
+import type { CredentialFormat } from "../credential/issuance";
 import type { JWK } from "./jwk";
 import { IoWalletError } from "./errors";
 import {
@@ -18,8 +17,8 @@ const SD_JWT = ["dc+sd-jwt", LEGACY_SD_JWT];
  * @return A Promise that resolves to a JWK object if the credential is in SD-JWT format and contains a JWK, or undefined otherwise.
  */
 export const extractJwkFromCredential = async (
-  credential: Out<ObtainCredential>["credential"],
-  format: Out<ObtainCredential>["format"] | SupportedSdJwtLegacyFormat
+  credential: string,
+  format: CredentialFormat | SupportedSdJwtLegacyFormat
 ): Promise<JWK> => {
   if (SD_JWT.includes(format)) {
     // 1. SD-JWT case

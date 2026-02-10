@@ -3,16 +3,15 @@ import {
   buildChallengeCallbackUrl,
 } from "../03-validate-challenge";
 import { IssuerResponseError } from "../../../../utils/errors";
-import type { Out } from "../../../../utils/misc";
-import type { EvaluateIssuerTrust } from "../../02-evaluate-issuer-trust";
-import type { MrtdPayload, IasPayload } from "../types";
+import type { MrtdPayload, IasPayload } from "../../api/mrtd-pop";
+import type { IssuerConfig } from "../../api/IssuerConfig";
 
 // Mock dependencies
 jest.mock("../../../../utils/pop", () => ({
   createPopToken: jest.fn().mockResolvedValue("signed-wia-pop-token"),
 }));
 
-jest.mock("../../../../wallet-instance-attestation", () => ({
+jest.mock("../../../../wallet-instance-attestation/v1.0.0/utils", () => ({
   decode: jest.fn().mockReturnValue({
     payload: { cnf: { jwk: { kid: "wia-key-id" } } },
   }),
@@ -42,10 +41,8 @@ jest.mock("@pagopa/io-react-native-jwt", () => ({
 
 // Minimal issuer configuration
 const issuerConf = {
-  openid_credential_issuer: {
-    credential_issuer: "https://issuer.example/credential_issuer",
-  },
-} as unknown as Out<EvaluateIssuerTrust>["issuerConf"];
+  credential_issuer: "https://issuer.example/credential_issuer",
+} as unknown as IssuerConfig;
 
 // Mock MRTD and IAS payloads
 const mrtdPayload: MrtdPayload = {
