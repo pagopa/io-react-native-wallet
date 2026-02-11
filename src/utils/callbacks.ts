@@ -3,7 +3,7 @@ import { verify } from "@pagopa/io-react-native-jwt";
 import { type CallbackContext } from "@pagopa/io-wallet-oauth2";
 import { digest } from "@sd-jwt/crypto-nodejs";
 import { X509 } from "jsrsasign";
-import QuickCrypto from "react-native-quick-crypto";
+import { generateRandomBytes } from "./misc";
 
 type PartialCallbackContext = Omit<
   CallbackContext,
@@ -16,7 +16,7 @@ type PartialCallbackContext = Omit<
  * as they require parameters that depends on the use case.
  */
 export const partialCallbacks: PartialCallbackContext = {
-  generateRandom: QuickCrypto.randomBytes,
+  generateRandom: generateRandomBytes,
   hash: digest,
   encryptJwe: async ({ publicJwk, alg, enc, kid }, data) => ({
     // @ts-expect-error `alg` and `enc` are strings, but EncryptJwe expects specific string literals
@@ -36,7 +36,7 @@ export const partialCallbacks: PartialCallbackContext = {
     }
   },
   decryptJwe: () => {
-    throw new Error("decryptJwe is not implented");
+    throw new Error("decryptJwe is not implemented");
   },
   getX509CertificateMetadata: (certificate) => {
     const x509 = new X509();
