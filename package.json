@@ -151,6 +151,6 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-uuid": "^2.0.1",
     "uuid": "^11.0.3",
-    "zod": "^3.21.4"
+    "zod": "^3.25.76"
   }
 }
