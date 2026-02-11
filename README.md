@@ -1,6 +1,6 @@
 # 🪪 @pagopa/io-react-native-wallet
 
-Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via a predefined flows, a set of utilities and helpers.
+Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via predefined flows, a set of utilities and helpers.
 
 It is designed to **support multiple versions of IT-Wallet specifications** via a unified API interface that keeps consumers unaware of specific versions nuances.
 
