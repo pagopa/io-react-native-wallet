@@ -42,6 +42,10 @@ Returns a Promise that resolves to an object containing:
 ## Example
 
 ```typescript
+import { IoWallet } from "@pagopa/io-react-native-wallet";
+
+const wallet = new IoWallet({ version: "1.0.0" });
+
 // Required inputs
 const walletInstanceAttestation = "base64AttestationString";
 const credentialType = "MDL"; // Credential type (e.g., Mobile Driver's License)
@@ -49,7 +53,7 @@ const documentNumber = "AB123456"; // Optional document number
 const cryptoContext = createCryptoContextFor("wiaKeyTag"); // Sample crypto context
 
 // Generate the TrustMark JWT
-const { jwt, expirationTime } = await getCredentialTrustmark({
+const { jwt, expirationTime } = await wallet.Trustmark.getCredentialTrustmark({
   walletInstanceAttestation: "eyJ0eXAi...", // WIA JWT
   wiaCryptoContext: cryptoContext,
   credentialType: "IdentityCard",

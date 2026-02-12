@@ -1,7 +1,12 @@
-import { H3, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import {
+  H3,
+  IOVisualCostants,
+  VSpacer,
+  useIOToast,
+} from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { QrCodeImage } from "../components/QrCodeImage";
 import TestScenario, {
@@ -91,6 +96,7 @@ export const TrustmarkQrCodeScreen = ({
 }: TrustmarkQrCodeScreenProps) => {
   const { credentialType } = route.params;
   const dispatch = useAppDispatch();
+  const toast = useIOToast();
   const trustmark = useAppSelector(selectTrustmark(credentialType));
   const trustmarkAsyncStatus = useAppSelector(
     selectTrustmarkAsyncStatus(credentialType)
@@ -98,6 +104,7 @@ export const TrustmarkQrCodeScreen = ({
   const credential = useAppSelector(selectCredential(credentialType));
   const selectedEnv = useAppSelector(selectEnv);
   const { VERIFIER_BASE_URL } = getEnv(selectedEnv);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useDebugInfo({
     trustmarkJwt: trustmark?.trustmarkJwt,
@@ -107,6 +114,8 @@ export const TrustmarkQrCodeScreen = ({
 
   React.useEffect(() => {
     if (credential) {
+      setHasLoaded(true);
+
       const documentNumber = getCredentialDocumentNumber(credential);
       dispatch(getTrustmarkThunk({ credentialType, documentNumber }));
 
@@ -117,6 +126,13 @@ export const TrustmarkQrCodeScreen = ({
 
     return undefined;
   }, [dispatch, credential, credentialType]);
+
+  useEffect(() => {
+    if (trustmarkAsyncStatus.hasError.status && hasLoaded) {
+      toast.error("An error occured, check the debug info");
+      setHasLoaded(false);
+    }
+  }, [trustmarkAsyncStatus.hasError.status, hasLoaded, toast]);
 
   if (trustmark === undefined) {
     return null;

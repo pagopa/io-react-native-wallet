@@ -1,6 +1,7 @@
 import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
 import { decode, type CryptoContext } from "@pagopa/io-react-native-jwt";
-import { getCredentialTrustmark } from "../get-credential-trustmark";
+import { IoWallet } from "../../../IoWallet";
+import { UnimplementedFeatureError } from "../../../utils/errors";
 
 // Wallet Instance Attestation
 const walletInstanceAttestation =
@@ -35,15 +36,17 @@ describe("getCredentialTrustmarkJwt", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(1732004577000));
 
+    const wallet = new IoWallet({ version: "1.0.0" });
     const credentialType = "MDL";
 
-    const { jwt, expirationTime } = await getCredentialTrustmark({
-      walletInstanceAttestation,
-      wiaCryptoContext,
-      credentialType,
-      docNumber: "1234567890",
-      expirationTime: "2m",
-    });
+    const { jwt, expirationTime } =
+      await wallet.Trustmark.getCredentialTrustmark({
+        walletInstanceAttestation,
+        wiaCryptoContext,
+        credentialType,
+        docNumber: "1234567890",
+        expirationTime: "2m",
+      });
 
     const decoded = decode(jwt);
     expect(decoded.payload.iss).toBe(walletInstanceAttestation);
@@ -57,7 +60,9 @@ describe("getCredentialTrustmarkJwt", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(1732004577000));
 
-    const { expirationTime } = await getCredentialTrustmark({
+    const wallet = new IoWallet({ version: "1.0.0" });
+
+    const { expirationTime } = await wallet.Trustmark.getCredentialTrustmark({
       walletInstanceAttestation,
       wiaCryptoContext,
       credentialType: "MDL",
@@ -72,7 +77,9 @@ describe("getCredentialTrustmarkJwt", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(1732004577000));
 
-    const { expirationTime } = await getCredentialTrustmark({
+    const wallet = new IoWallet({ version: "1.0.0" });
+
+    const { expirationTime } = await wallet.Trustmark.getCredentialTrustmark({
       walletInstanceAttestation,
       wiaCryptoContext,
       credentialType: "MDL",
@@ -87,8 +94,10 @@ describe("getCredentialTrustmarkJwt", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(1832004577000));
 
+    const wallet = new IoWallet({ version: "1.0.0" });
+
     await expect(() =>
-      getCredentialTrustmark({
+      wallet.Trustmark.getCredentialTrustmark({
         walletInstanceAttestation,
         wiaCryptoContext,
         credentialType: "MDL",
@@ -102,13 +111,27 @@ describe("getCredentialTrustmarkJwt", () => {
     const ephemeralKeytag = `ephemeral-${Math.random()}`;
     await generate(ephemeralKeytag);
 
+    const wallet = new IoWallet({ version: "1.0.0" });
+
     await expect(() =>
-      getCredentialTrustmark({
+      wallet.Trustmark.getCredentialTrustmark({
         walletInstanceAttestation: "walletInstanceAttestation",
         wiaCryptoContext,
         credentialType: "MDL",
         docNumber: "1234567890",
       })
     ).rejects.toThrow();
+  });
+
+  it("throws UnimplementedFeatureError for version 1.3.3", async () => {
+    const wallet = new IoWallet({ version: "1.3.3" });
+
+    await expect(
+      wallet.Trustmark.getCredentialTrustmark({
+        walletInstanceAttestation: "walletInstanceAttestation",
+        wiaCryptoContext,
+        credentialType: "MDL",
+      })
+    ).rejects.toThrow(UnimplementedFeatureError);
   });
 });
