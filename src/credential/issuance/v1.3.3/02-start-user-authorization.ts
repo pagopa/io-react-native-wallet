@@ -3,6 +3,7 @@ import {
   fetchPushedAuthorizationResponse,
   createClientAttestationPopJwt,
 } from "@pagopa/io-wallet-oauth2";
+import type { CallbackContext } from "@pagopa/io-wallet-oauth2";
 import { AuthorizationDetail } from "../../../utils/par";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuerConfig } from "../api/IssuerConfig";
@@ -10,7 +11,6 @@ import type { IssuanceApi } from "../api";
 import type { ResponseMode } from "./types";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 import { partialCallbacks } from "src/utils/callbacks";
-import type { CallbackContext } from "@pagopa/io-wallet-oauth2";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
@@ -151,16 +151,10 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       },
       clientId,
       audience: issuerConf.credential_issuer,
-      // TODO: [SIW-3909] Wait for PR https://github.com/pagopa/io-wallet-sdk/pull/82
-      // @ts-ignore
       authorization_details: credentialDefinition,
+      codeChallengeMethodsSupported: ["S256"],
       responseMode,
       redirectUri,
-      signer: {
-        method: "jwk",
-        alg: "ES256",
-        publicJwk: signerJwk,
-      },
     });
 
     const clientAttestationPoP = await createClientAttestationPopJwt({
