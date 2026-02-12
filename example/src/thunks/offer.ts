@@ -17,22 +17,10 @@ export const getCredentialOfferThunk = createAppAsyncThunk<
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
-  const { credential_offer, credential_offer_uri } =
-    wallet.CredentialsOffer.startFlow(args.qrcode);
+  const credentialOffer = await wallet.CredentialsOffer.resolveCredentialOffer(
+    args.qrcode,
+    { fetch: appFetch }
+  );
 
-  console.log("credential_offer_uri", credential_offer_uri);
-  console.log("credential_offer", credential_offer);
-
-  if (credential_offer_uri) {
-    return await wallet.CredentialsOffer.fetchCredentialOffer(
-      credential_offer_uri,
-      { appFetch }
-    );
-  }
-
-  if (credential_offer) {
-    return credential_offer;
-  }
-
-  throw new Error("Invalid credential offer");
+  return credentialOffer;
 });

@@ -2905,6 +2905,48 @@
   dependencies:
     "@octokit/openapi-types" "^27.0.0"
 
+"@openid-federation/core@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@openid-federation/core/-/core-0.2.1.tgz#9e24e581b326997c6f6b9e08fe2db5c6235d3c6d"
+  integrity sha512-vYAi8kDNZWo/910+Z2fWTU/8+/tolNIOFU2KJhGyjTDBcPUavGLiZF8NB86K0ERHDMAGqoMKq4ExA1E9WVYywA==
+  dependencies:
+    buffer "^6.0.3"
+    zod "^3.23.8"
+
+"@openid4vc/oauth2@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/oauth2/-/oauth2-0.3.0-alpha-20250714110838.tgz#6d5e47efe634652f031173ccd4f0acf3076cb01b"
+  integrity sha512-SR/HP818TCMBcr9Fpi+lS7xIA65AAFxhHsrjmxnxXQjWTBUEx6P4nhZbcw6T65AAuB8I0QzE3zzz+MRAFqunwQ==
+  dependencies:
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@openid4vc/openid4vci@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/openid4vci/-/openid4vci-0.3.0-alpha-20250714110838.tgz#72d452ac786364fd96c1fc35efc4939ab7a83f86"
+  integrity sha512-Q6xCzapjacrmB2Tjk7rNrGsJbjTIVVIKn9ZvFZflfo8Imi18MXDLFmwQAyplwUMWIPy5J1AQ0nMeZNPdpWCTkQ==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@openid4vc/openid4vp@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/openid4vp/-/openid4vp-0.3.0-alpha-20250714110838.tgz#0193384deef591c44582088866174920039491b9"
+  integrity sha512-lWrtQkUky4+CCJPmd8gHzpxxf8wRMZZvmsRoVcTBoq9biTXquCpJSkcGkl0V2OFF9cpxF7jDxOcUrIa/UQ5Crw==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@openid4vc/utils@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/utils/-/utils-0.3.0-alpha-20250714110838.tgz#70241ee612ab705b3af5da44705f26644e1bd30d"
+  integrity sha512-10TCSw/AMtgD4AIUob6kkFg6UdRv5kEYHovLJnfi5MHt4KdxSfSGfu2zc1cxJlKaBEg7su1BKiAT9j9WDmxSrA==
+  dependencies:
+    buffer "^6.0.3"
+    zod "^3.24.2"
+
 "@pagopa/io-react-native-crypto@^1.2.3":
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
@@ -2924,6 +2966,59 @@
   dependencies:
     js-base64 "^3.7.7"
     zod "^3.22.4"
+
+"@pagopa/io-wallet-oauth2@1.0.0-alpha-20260211164158":
+  version "1.0.0-alpha-20260211164158"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.0.0-alpha-20260211164158.tgz#4f82f0cf2531e90baa3ef1ac9b666851d649608b"
+  integrity sha512-JK3JhHqSrD3IUawiWfOD4Ra5wfLc1Izo6ofYZZL1DBuXDhxiR1x9clqypsKVpvUaHdsOaed3JPZ+jO5e4kftlw==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260211164158"
+    js-base64 "^3.7.8"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-oid-federation@1.0.0-alpha-20260211164158":
+  version "1.0.0-alpha-20260211164158"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.0.0-alpha-20260211164158.tgz#c7703fbbd7ee2d039ed009778e1d210dab27f772"
+  integrity sha512-UrLRbAW5VHrUOBINvAJI6tk5Ac/SCyjR/t8bCbXQPXaY5JeUm1dL90TlYcdCXnm8aZF8TfNj2l3QIWhL7A3zDA==
+  dependencies:
+    "@openid-federation/core" "^0.2.1"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-oid4vci@1.0.0-alpha-20260211164158":
+  version "1.0.0-alpha-20260211164158"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.0.0-alpha-20260211164158.tgz#3a71a849821da91b006950c9e2e3bab6a4b4163a"
+  integrity sha512-S4Q3Ya/53hBkAtG0IfRXCW7dbuIvaO68CeGCi4e6vUrv4WK9/iPDOy0+enXsMusHCpP74+lt8b6T0t34pSTY1A==
+  dependencies:
+    "@openid-federation/core" "^0.2.1"
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/openid4vci" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-oauth2" "1.0.0-alpha-20260211164158"
+    "@pagopa/io-wallet-oid4vp" "1.0.0-alpha-20260211164158"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260211164158"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-oid4vp@1.0.0-alpha-20260211164158":
+  version "1.0.0-alpha-20260211164158"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.0.0-alpha-20260211164158.tgz#5e241419954a79826b69e8f0a6da8bbad40c8623"
+  integrity sha512-QYPFNujqbRE8/y/gCwrfCwrt1ZBHz5oRkp9r8omElv1g4WrVms6mL6gUQT9m5ZlwGuODXkOflApGNNTpnHJf3A==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/openid4vp" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-oid-federation" "1.0.0-alpha-20260211164158"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260211164158"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-utils@1.0.0-alpha-20260211164158":
+  version "1.0.0-alpha-20260211164158"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.0.0-alpha-20260211164158.tgz#fec4064e12f747696517eeff2add149bd82f572d"
+  integrity sha512-1csEDCbFlEiS1ovseob7zO7ufuc5HIHd0jbovIitCJtkVcGFVGwoTIgHhfwQIpf+jMpv4ZbUc5qlk3pYCmkLrw==
+  dependencies:
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
 
 "@phun-ky/typeof@2.0.3":
   version "2.0.3"
@@ -10334,7 +10429,7 @@ zod@^3.22.4:
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
 
-zod@^3.25.67:
+zod@^3.23.8, zod@^3.24.2, zod@^3.25.67:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
