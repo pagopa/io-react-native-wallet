@@ -1,7 +1,9 @@
 import type { MetadataResponse } from "@pagopa/io-wallet-oid4vci";
+import type { ParsedAuthorizeRequestResult } from "@pagopa/io-wallet-oid4vp";
 import { assert } from "../../../utils/misc";
 import { createMapper } from "../../../utils/mappers";
 import type { JWK } from "../../../utils/jwk";
+import type { RequestObject } from "../../../credential/presentation";
 import { IssuerConfig } from "../api/IssuerConfig";
 
 type CredentialConfigurations =
@@ -62,3 +64,15 @@ export const mapToIssuerConfig = createMapper<MetadataResponse, IssuerConfig>(
   },
   { outputSchema: IssuerConfig } // Output validation for extra-safety
 );
+
+export const mapToRequestObject = createMapper<
+  ParsedAuthorizeRequestResult,
+  RequestObject
+>(({ payload }) => ({
+  iss: payload.iss ?? "UNKNOWN_ISSUER",
+  client_id: payload.client_id,
+  dcql_query: payload.dcql_query!,
+  nonce: payload.nonce,
+  response_uri: payload.response_uri!,
+  state: payload.state,
+}));
