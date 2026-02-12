@@ -6,6 +6,8 @@ import {
   mdl,
   pid,
   residency,
+  education_diploma,
+  education_attendance,
 } from "../../../sd-jwt/__mocks__/sd-jwt";
 import { verifyAndParseCredential } from "..";
 
@@ -91,7 +93,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConf,
       pid.token + "~",
       "mock_valid_sd_jwt_cred",
-      { credentialCryptoContext }
+      { credentialCryptoContext },
     );
 
     expect(result).toEqual({
@@ -122,7 +124,7 @@ describe("verifyAndParseCredential", () => {
     await expect(() =>
       verifyAndParseCredential(mockIssuerConf, pid.token, "mock_invalid_cred", {
         credentialCryptoContext,
-      })
+      }),
     ).rejects.toThrow("Unsupported credential format: unknown");
   });
 
@@ -145,10 +147,10 @@ describe("verifyAndParseCredential", () => {
         mockIssuerConf,
         pid.token,
         "mock_valid_sd_jwt_cred",
-        { credentialCryptoContext: altCredentialCryptoContext }
-      )
+        { credentialCryptoContext: altCredentialCryptoContext },
+      ),
     ).rejects.toThrow(
-      "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: Rv3W-EiKpvBTyk5yZxvrev-7MDB6SlzUCBo_CQjjddU"
+      "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: Rv3W-EiKpvBTyk5yZxvrev-7MDB6SlzUCBo_CQjjddU",
     );
   });
 
@@ -288,7 +290,7 @@ describe("verifyAndParseCredential", () => {
       "dc_sd_jwt_education_degree",
       {
         credentialCryptoContext: eduCredentialCryptoContext,
-      }
+      },
     );
 
     expect(result.parsedCredential).toEqual(
@@ -431,7 +433,7 @@ describe("verifyAndParseCredential", () => {
             "en-US": "List of education degrees",
           },
         }),
-      })
+      }),
     );
   });
 
@@ -557,7 +559,7 @@ describe("verifyAndParseCredential", () => {
       "dc_sd_jwt_education_degree",
       {
         credentialCryptoContext: eduCredentialCryptoContext,
-      }
+      },
     );
 
     expect(result.parsedCredential).toEqual({
@@ -736,7 +738,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithDeepNested,
       mdl.token,
       "dc_sd_jwt_mDL",
-      { credentialCryptoContext }
+      { credentialCryptoContext },
     );
 
     expect(result.parsedCredential).toEqual({
@@ -934,7 +936,7 @@ describe("verifyAndParseCredential", () => {
       "dc_sd_jwt_residency",
       {
         credentialCryptoContext: residencyCryptoContext,
-      }
+      },
     );
 
     expect(result.parsedCredential).toEqual(
@@ -989,7 +991,415 @@ describe("verifyAndParseCredential", () => {
             "en-US": "Address",
           },
         },
-      })
+      }),
     );
+  });
+
+  it("verifies and parses a credential with nested array attributes (education diploma)", async () => {
+    const educationDiplomaCryptoContext: CryptoContext = {
+      getPublicKey: async () => ({
+        kty: "EC",
+        crv: "P-256",
+        kid: "07H8sYQOsUvRHSTyLstjihPsG3a9Bx-S2bpfRiB9sgQ",
+        x: "t9YFJPbaDOZb76MwNF63I_AgqIWb-C3XJmW9ZC-1Xbg",
+        y: "T35AwQvpncP60NRGknJ5efwPMjVwSFjD4-OIxtMQCTg",
+      }),
+      getSignature: async () => "",
+    };
+
+    const mockIssuerConfWithEducationDiploma: IssuerConf = {
+      ...mockIssuerConf,
+      openid_credential_issuer: {
+        ...mockIssuerConf.openid_credential_issuer,
+        jwks: {
+          keys: [
+            {
+              kty: "EC",
+              use: "sig",
+              crv: "P-256",
+              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+              alg: "ES256",
+            },
+          ],
+        },
+        credential_configurations_supported: {
+          ...mockIssuerConf.openid_credential_issuer
+            .credential_configurations_supported,
+          dc_sd_jwt_education_diploma: {
+            format: "dc+sd-jwt",
+            vct: "https://issuer.example.com/MyCredential",
+            scope: "EducationDiploma",
+            display: [],
+            credential_signing_alg_values_supported: ["ES256"],
+            cryptographic_binding_methods_supported: [],
+            claims: [
+              {
+                path: ["tax_id_code"],
+                display: [
+                  { locale: "it-IT", name: "Codice Fiscale" },
+                  { locale: "en-US", name: "Tax id code" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Elenco dei titoli di studio scolastici",
+                  },
+                  { locale: "en-US", name: "List of School Qualification" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null, "school_year"],
+                display: [
+                  { locale: "it-IT", name: "Anno scolastico" },
+                  { locale: "en-US", name: "School year" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null, "qualification_year"],
+                display: [
+                  { locale: "it-IT", name: "Anno scolastico di conseguimento" },
+                  { locale: "en-US", name: "School year of achievement" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null, "institute_code"],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Codice meccanografico dell'Istituto",
+                  },
+                  { locale: "en-US", name: "Institute identification code" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null, "institute_name"],
+                display: [
+                  { locale: "it-IT", name: "Denominazione dell'Istituto" },
+                  { locale: "en-US", name: "Institute Name" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null, "school_name"],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Denominazione del Plesso Scolastico",
+                  },
+                  { locale: "en-US", name: "School Name" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null, "school_code"],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Codice meccanografico del Plesso Scolastico",
+                  },
+                  { locale: "en-US", name: "School Code" },
+                ],
+              },
+              {
+                path: [
+                  "school_qualifications",
+                  null,
+                  "qualification_grade_value",
+                ],
+                display: [
+                  { locale: "it-IT", name: "Voto finale" },
+                  { locale: "en-US", name: "Qualification Grade Value" },
+                ],
+              },
+              {
+                path: ["school_qualifications", null, "qualification_type"],
+                display: [
+                  { locale: "it-IT", name: "Tipologia del titolo di studio" },
+                  { locale: "en-US", name: "Qualification Type" },
+                ],
+              },
+              {
+                path: [
+                  "school_qualifications",
+                  null,
+                  "qualification_type_description",
+                ],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Descrizione della Tipologia del titolo di studio",
+                  },
+                  { locale: "en-US", name: "Qualification Type Description" },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const result = await verifyAndParseCredential(
+      mockIssuerConfWithEducationDiploma,
+      education_diploma,
+      "dc_sd_jwt_education_diploma",
+      { credentialCryptoContext: educationDiplomaCryptoContext },
+    );
+
+    expect(result.parsedCredential).toEqual({
+      tax_id_code: {
+        name: { "it-IT": "Codice Fiscale", "en-US": "Tax id code" },
+        value: "LVLDAA85T50G702B",
+      },
+      school_qualifications: {
+        name: {
+          "it-IT": "Elenco dei titoli di studio scolastici",
+          "en-US": "List of School Qualification",
+        },
+        value: [
+          {
+            school_year: {
+              name: { "it-IT": "Anno scolastico", "en-US": "School year" },
+              value: "2024/2025",
+            },
+            qualification_year: {
+              name: {
+                "it-IT": "Anno scolastico di conseguimento",
+                "en-US": "School year of achievement",
+              },
+              value: "2025",
+            },
+            institute_code: {
+              name: {
+                "it-IT": "Codice meccanografico dell'Istituto",
+                "en-US": "Institute identification code",
+              },
+              value: "RMIC813002",
+            },
+            institute_name: {
+              name: {
+                "it-IT": "Denominazione dell'Istituto",
+                "en-US": "Institute Name",
+              },
+              value: '"MARIA MONTESSORI"',
+            },
+            school_name: {
+              name: {
+                "it-IT": "Denominazione del Plesso Scolastico",
+                "en-US": "School Name",
+              },
+              value: "SANDRO PERTINI",
+            },
+            school_code: {
+              name: {
+                "it-IT": "Codice meccanografico del Plesso Scolastico",
+                "en-US": "School Code",
+              },
+              value: "RMMM813013",
+            },
+            qualification_grade_value: {
+              name: {
+                "it-IT": "Voto finale",
+                "en-US": "Qualification Grade Value",
+              },
+              value: "7",
+            },
+            qualification_type: {
+              name: {
+                "it-IT": "Tipologia del titolo di studio",
+                "en-US": "Qualification Type",
+              },
+              value: "Diploma conclusivo del primo ciclo di istruzione",
+            },
+            qualification_type_description: {
+              name: {
+                "it-IT": "Descrizione della Tipologia del titolo di studio",
+                "en-US": "Qualification Type Description",
+              },
+              value: "Diploma conclusivo del primo ciclo di istruzione",
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  it("verifies and parses a credential with nested array attributes (education attendance)", async () => {
+    const educationAttendanceCryptoContext: CryptoContext = {
+      getPublicKey: async () => ({
+        kty: "EC",
+        crv: "P-256",
+        kid: "7JoxT0V5Un2M-oZAu9NZOlP2ND2oKSJEnp2J5Qmr_ow",
+        x: "K7pTo0DrgYMEkvn2Ler0wP9U9OWS6smkrLOYPH2dOTE",
+        y: "8s86H3iHmnVJndMay2aSzrHs-q5bkpwiDR7cI69NzkU",
+      }),
+      getSignature: async () => "",
+    };
+
+    const mockIssuerConfWithEducationAttendance: IssuerConf = {
+      ...mockIssuerConf,
+      openid_credential_issuer: {
+        ...mockIssuerConf.openid_credential_issuer,
+        jwks: {
+          keys: [
+            {
+              kty: "EC",
+              use: "sig",
+              crv: "P-256",
+              kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
+              x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
+              y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
+              alg: "ES256",
+            },
+          ],
+        },
+        credential_configurations_supported: {
+          ...mockIssuerConf.openid_credential_issuer
+            .credential_configurations_supported,
+          dc_sd_jwt_education_attendance: {
+            format: "dc+sd-jwt",
+            vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/education_attendance",
+            scope: "EducationAttendance",
+            display: [],
+            credential_signing_alg_values_supported: ["ES256"],
+            cryptographic_binding_methods_supported: [],
+            claims: [
+              {
+                path: ["tax_id_code"],
+                display: [
+                  { locale: "it-IT", name: "Codice Fiscale" },
+                  { locale: "en-US", name: "Tax id code" },
+                ],
+              },
+              {
+                path: ["institute_code"],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Codice meccanografico dell'Istituto",
+                  },
+                  { locale: "en-US", name: "Institute identification code" },
+                ],
+              },
+              {
+                path: ["institute_name"],
+                display: [
+                  { locale: "it-IT", name: "Denominazione dell'Istituto" },
+                  { locale: "en-US", name: "Institute Name" },
+                ],
+              },
+              {
+                path: ["school_name"],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Denominazione del Plesso Scolastico",
+                  },
+                  { locale: "en-US", name: "School Name" },
+                ],
+              },
+              {
+                path: ["school_code"],
+                display: [
+                  {
+                    locale: "it-IT",
+                    name: "Codice meccanografico del Plesso Scolastico",
+                  },
+                  { locale: "en-US", name: "School Code" },
+                ],
+              },
+              {
+                path: ["school_course_year"],
+                display: [
+                  { locale: "it-IT", name: "Anno del corso" },
+                  { locale: "en-US", name: "Course year" },
+                ],
+              },
+              {
+                path: ["school_year"],
+                display: [
+                  { locale: "it-IT", name: "Anno scolastico" },
+                  { locale: "en-US", name: "School year" },
+                ],
+              },
+              {
+                path: ["educational_track"],
+                display: [
+                  { locale: "it-IT", name: "Indirizzo di studio" },
+                  { locale: "en-US", name: "Educational track" },
+                ],
+              },
+              {
+                path: ["school_attendance_type"],
+                display: [
+                  { locale: "it-IT", name: "Tipo di frequenza" },
+                  { locale: "en-US", name: "Attendance type" },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const result = await verifyAndParseCredential(
+      mockIssuerConfWithEducationAttendance,
+      education_attendance,
+      "dc_sd_jwt_education_attendance",
+      { credentialCryptoContext: educationAttendanceCryptoContext },
+    );
+
+    expect(result.parsedCredential).toEqual({
+      tax_id_code: {
+        name: { "it-IT": "Codice Fiscale", "en-US": "Tax id code" },
+        value: "LVLDAA85T50G702B",
+      },
+      institute_code: {
+        name: {
+          "it-IT": "Codice meccanografico dell'Istituto",
+          "en-US": "Institute identification code",
+        },
+        value: "RMPC150008",
+      },
+      institute_name: {
+        name: {
+          "it-IT": "Denominazione dell'Istituto",
+          "en-US": "Institute Name",
+        },
+        value: "LICEO GINNASIO STATALE ORAZIO",
+      },
+      school_name: {
+        name: {
+          "it-IT": "Denominazione del Plesso Scolastico",
+          "en-US": "School Name",
+        },
+        value: "LICEO GINNASIO STATALE ORAZIO",
+      },
+      school_code: {
+        name: {
+          "it-IT": "Codice meccanografico del Plesso Scolastico",
+          "en-US": "School Code",
+        },
+        value: "RMPC150008",
+      },
+      school_course_year: {
+        name: { "it-IT": "Anno del corso", "en-US": "Course year" },
+        value: "1°",
+      },
+      school_year: {
+        name: { "it-IT": "Anno scolastico", "en-US": "School year" },
+        value: "2025/2026",
+      },
+      educational_track: {
+        name: { "it-IT": "Indirizzo di studio", "en-US": "Educational track" },
+        value: "CLASSICO",
+      },
+      school_attendance_type: {
+        name: { "it-IT": "Tipo di frequenza", "en-US": "Attendance type" },
+        value: "Frequenza - Scuola Secondaria di II Grado",
+      },
+    });
   });
 });
