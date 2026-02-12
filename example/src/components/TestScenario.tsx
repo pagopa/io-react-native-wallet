@@ -29,7 +29,7 @@ export default function TestScenario({
 
   useEffect(() => {
     if (hasError.status && hasLoaded) {
-      toast.error(`An error occured, check the debug info`);
+      toast.error(`An error occurred, check the debug info`);
       setHasLoaded(false);
     }
   }, [hasError, hasLoaded, toast]);

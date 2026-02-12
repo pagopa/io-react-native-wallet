@@ -10,6 +10,7 @@ import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialOffer from "./credential/offer";
 import * as CredentialStatus from "./credential/status";
 import * as RemotePresentation from "./credential/presentation";
+import * as Trustmark from "./credential/trustmark";
 import * as Credential from "./credential"; // TODO: to remove
 import * as PID from "./pid";
 import * as SdJwt from "./sd-jwt";
@@ -35,6 +36,7 @@ export {
   Credential,
   WalletInstanceAttestation,
   WalletInstance,
+  Trustmark,
   Errors,
   createCryptoContextFor,
   AuthorizationDetail,
