@@ -56,6 +56,14 @@ export const generateRandomAlphaNumericString = (size: number) =>
   ).join("");
 
 /**
+ * TODO [SIW-1310]: replace this function with a cryptographically secure one.
+ * @param size - The size of the array in bytes
+ * @returns An array of the given size filled with random bytes
+ */
+export const generateRandomBytes = (size: number) =>
+  Uint8Array.from({ length: size }, () => Math.floor(Math.random() * 256));
+
+/**
  * Get the hash of a credential without discloures.
  * A credential is a string like `header.body.sign~sd1~sd2....` where `~` is the separator between the credential and the discloures.
  * @param credential - The credential to hash
