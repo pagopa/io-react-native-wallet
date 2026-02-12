@@ -1,14 +1,13 @@
 import { initChallenge } from "../02-init-challenge";
 import { IssuerResponseError } from "../../../../utils/errors";
-import type { Out } from "../../../../utils/misc";
-import type { EvaluateIssuerTrust } from "../../02-evaluate-issuer-trust";
+import type { IssuerConfig } from "../../api/IssuerConfig";
 
 // Mock dependencies
 jest.mock("../../../../utils/pop", () => ({
   createPopToken: jest.fn().mockResolvedValue("signed-wia-pop-token"),
 }));
 
-jest.mock("../../../../wallet-instance-attestation", () => ({
+jest.mock("../../../../wallet-instance-attestation/v1.0.0/utils", () => ({
   decode: jest.fn().mockReturnValue({
     payload: { cnf: { jwk: { kid: "wia-key-id" } } },
   }),
@@ -38,10 +37,8 @@ jest.mock("@pagopa/io-react-native-jwt", () => ({
 
 // Minimal issuer configuration used to compute aud inside the function
 const issuerConf = {
-  openid_credential_issuer: {
-    credential_issuer: mockDecodedJwt.payload.aud,
-  },
-} as unknown as Out<EvaluateIssuerTrust>["issuerConf"];
+  credential_issuer: mockDecodedJwt.payload.aud,
+} as unknown as IssuerConfig;
 
 // Dummy WIA crypto context (the actual object is not used because createPopToken is mocked)
 const wiaCryptoContext = {} as any;

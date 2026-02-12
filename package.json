@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-react-native-wallet",
-  "version": "2.5.0",
+  "version": "3.0.0",
   "description": "Provide data structures, helpers and API for IO Wallet",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -136,6 +136,9 @@
     ]
   },
   "dependencies": {
+    "@pagopa/io-wallet-oauth2": "^1.0.0-20260210102725",
+    "@pagopa/io-wallet-oid4vci": "^1.0.0-20260210102725",
+    "@pagopa/io-wallet-utils": "^1.0.0-20260210102725",
     "@sd-jwt/core": "^0.18.0",
     "@sd-jwt/crypto-nodejs": "^0.18.0",
     "@sd-jwt/types": "^0.18.0",
@@ -148,6 +151,6 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-uuid": "^2.0.1",
     "uuid": "^11.0.3",
-    "zod": "^3.21.4"
+    "zod": "^3.25.76"
   }
 }

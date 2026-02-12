@@ -1,14 +1,20 @@
 # 🪪 @pagopa/io-react-native-wallet
 
-Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via a predefined flows, a set of utilities and helpers.
-Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications, currently aligned with version [1.0.0](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.0.0).
+Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via predefined flows, a set of utilities and helpers.
 
-> [!NOTE]
-> Version 2 of this library is **not compatible** with IT-Wallet specifications 0.7.1. To support the older specifications the last compatible version of `io-react-native-wallet` is 0.30.0.
+It is designed to **support multiple versions of IT-Wallet specifications** via a unified API interface that keeps consumers unaware of specific versions nuances.
 
-## Dependencies
+Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications:
+- Version [1.0.0](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.0.0)
+- Version [1.3.3](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.3.3) - 🚧 WIP
 
-- [@pagopa/io-react-native-jwt](https://github.com/pagopa/io-react-native-jwt) is used to manage JWT tokens.
+The following table highlights the relationship between `io-react-native-wallet` and IT-Wallet specifications.
+
+| Library version | IT-Wallet version |
+|-----------------|-------------------|
+| `0.30.0`        | `0.7.1`           |
+| `2.x`           | `1.0.0`           |
+| `3.x`           | `1.0.0`, `1.3.3`  |
 
 ## Installation
 
@@ -17,6 +23,34 @@ Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs)
 
 # Library
 yarn install @pagopa/io-react-native-wallet
+```
+
+## Initialization
+
+To get started, create an instance of `IoWallet` specifying the desired IT-Wallet version.
+
+```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet"
+
+const wallet = new IoWallet({ version: "1.0.0" })
+```
+
+After instantiation, the Wallet features are available under namespaces and are bound to the specified IT-Wallet version.
+```ts
+// An example that retrieves Entity Configurations
+const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust()
+const { rpConf } = await wallet.CredentialPresentation.evaluateRelyingPartyTrust()
+```
+
+It is possible to directly import errors and types without instantiating `IoWallet` if they are global and shared across versions.
+
+```ts
+import { CredentialIssuance } from "@pagopa/io-react-native-wallet"
+
+type IssuerConf = CredentialIssuance.IssuerConfig
+
+// catch(error) { ...
+if (error instanceof CredentialIssuance.Errors.AuthorizationError) {}
 ```
 
 ## Contexts
@@ -155,7 +189,7 @@ Different flows are provided to perform common operations. Each flow is a set of
 - Credentail
   - [Issuance](./src/credential/issuance/README.md)
   - [Offer](./src/credential/offer/README.md)
-  - [Presentation](./src/credential/presentation/README.md) (TODO)
+  - [Presentation](./src/credential/presentation/README.md)
   - [Status](./src/credential/status/README.md)
   - [Trustmark](./src/credential/trustmark/README.md)
 

@@ -19,6 +19,7 @@ import { presentationReducer } from "./reducers/presentation";
 import { trustValidationReducer } from "./reducers/trustValidation";
 import { mrtdReducer } from "./reducers/mrtd";
 import { credentialOfferReducer } from "./reducers/offer";
+import { credentialsCatalogueSlice } from "./reducers/credentialsCatalogue";
 
 /**
  * Redux store configuration.
@@ -36,6 +37,7 @@ export const store = configureStore({
     presentation: presentationReducer,
     trustValidation: trustValidationReducer,
     offer: credentialOfferReducer,
+    credentialsCatalogue: credentialsCatalogueSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

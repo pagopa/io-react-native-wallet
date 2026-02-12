@@ -12,7 +12,7 @@ import {
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../errors";
-import type { CredentialIssuerEntityConfiguration } from "../../trust/types";
+import type { CredentialIssuerEntityConfiguration } from "../../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
 
 type EntityConfig = CredentialIssuerEntityConfiguration["payload"]["metadata"];
 

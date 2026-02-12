@@ -1,16 +1,20 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { persistReducer, type PersistConfig } from "redux-persist";
-import { WalletInstanceAttestation } from "@pagopa/io-react-native-wallet";
+import {
+  IoWallet,
+  type WalletInstanceAttestation as Wia,
+} from "@pagopa/io-react-native-wallet";
 import { getAttestationThunk } from "../../thunks/attestation";
 import { createSecureStorage } from "../storage";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./session";
+import { selectItwVersion } from "./environment";
 
 // Supported Wallet Attestation formats
 type Format = Awaited<
-  ReturnType<typeof WalletInstanceAttestation.getAttestation>
+  ReturnType<Wia.WalletInstanceAttestationApi["getAttestation"]>
 >[number]["format"];
 
 // State type definition for the attestion slice
@@ -39,13 +43,15 @@ const attestationSlice = createSlice({
     // Dispatched when a get attestion async thunk resolves. Sets the attestation and resets the state.
     builder.addCase(getAttestationThunk.fulfilled, (state, action) => {
       state.asyncStatus.isDone = true;
-      state.attestation = action.payload.reduce(
-        (acc, { wallet_attestation, format }) => ({
-          ...acc,
-          [format]: wallet_attestation,
-        }),
-        {} as Record<Format, string>
-      );
+      state.attestation = action.payload
+        .filter(({ type }) => type === "wallet_app_attestation")
+        .reduce(
+          (acc, { format, attestation }) => ({
+            ...acc,
+            [format]: attestation,
+          }),
+          {} as Record<Format, string>
+        );
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
       state.asyncStatus.hasError = initialState.asyncStatus.hasError;
     });
@@ -125,11 +131,13 @@ export const selectAttestationAsMdoc = makeSelectAttestation("mso_mdoc");
  */
 export const shouldRequestAttestationSelector = createSelector(
   selectAttestationAsJwt,
-  (attestation) => {
+  selectItwVersion,
+  (attestation, itwVersion) => {
     if (!attestation) {
       return true;
     }
-    const { payload } = WalletInstanceAttestation.decode(attestation);
+    const wallet = new IoWallet({ version: itwVersion });
+    const payload = wallet.WalletInstanceAttestation.decode(attestation);
     const expiryDate = new Date(payload.exp * 1000);
     const now = new Date();
     return now > expiryDate;

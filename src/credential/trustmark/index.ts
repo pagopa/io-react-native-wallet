@@ -1,8 +1,3 @@
-import {
-  type GetCredentialTrustmarkJwt,
-  getCredentialTrustmark,
-} from "./get-credential-trustmark";
-
-export { getCredentialTrustmark };
-
-export type { GetCredentialTrustmarkJwt };
+export type * from "./api";
+export { Trustmark as V1_0_0 } from "./v1.0.0";
+export { Trustmark as V1_3_3 } from "./v1.3.3";

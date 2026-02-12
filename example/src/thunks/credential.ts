@@ -1,12 +1,13 @@
 import {
   createCryptoContextFor,
-  Credential,
+  CredentialIssuance,
+  CredentialStatus,
 } from "@pagopa/io-react-native-wallet";
 import {
   selectAttestationAsJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
-import { selectEnv } from "../store/reducers/environment";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import type {
   CredentialResult,
   SupportedCredentials,
@@ -35,8 +36,8 @@ type GetCredentialThunkInput = {
  */
 type GetCredentialStatusAssertionThunkInput = {
   credentialType: SupportedCredentials;
-  credential: Out<Credential.Issuance.ObtainCredential>["credential"];
-  format: Out<Credential.Issuance.ObtainCredential>["format"];
+  credential: string;
+  format: CredentialIssuance.CredentialFormat;
   keyTag: string;
 };
 
@@ -44,8 +45,12 @@ type GetCredentialStatusAssertionThunkInput = {
  * Type definition for the output of the {@link getCredentialStatusAssertionThunk}.
  */
 export type GetCredentialStatusAssertionThunkOutput = {
-  statusAssertion: Out<Credential.Status.StatusAssertion>["statusAssertion"];
-  parsedStatusAssertion: Out<Credential.Status.VerifyAndParseStatusAssertion>["parsedStatusAssertion"];
+  statusAssertion: Out<
+    CredentialStatus.CredentialStatusApi["getStatusAssertion"]
+  >["statusAssertion"];
+  parsedStatusAssertion: Out<
+    CredentialStatus.CredentialStatusApi["verifyAndParseStatusAssertion"]
+  >["parsedStatusAssertion"];
   credentialType: SupportedCredentials;
 };
 
@@ -72,6 +77,7 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
+  const itwVersion = selectItwVersion(getState());
   // Get env URLs
   const env = selectEnv(getState());
   const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
@@ -85,6 +91,7 @@ export const getCredentialThunk = createAppAsyncThunk<
     throw new Error("PID not found");
   }
   return await getCredential({
+    itwVersion,
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
     trustAnchorUrl: WALLET_TA_BASE_URL,
     redirectUri: REDIRECT_URI,
@@ -113,6 +120,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const env = getEnv(selectEnv(getState()));
+  const itwVersion = selectItwVersion(getState());
 
   const issuerUrl =
     credentialType === "PersonIdentificationData"
@@ -120,6 +128,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 
   return await getCredentialStatusAssertion(
+    itwVersion,
     issuerUrl,
     credential,
     format,

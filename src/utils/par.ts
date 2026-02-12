@@ -5,7 +5,6 @@ import {
 } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import * as z from "zod";
-import * as WalletInstanceAttestation from "../wallet-instance-attestation";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
 import { IssuerResponseError } from "./errors";
@@ -72,14 +71,13 @@ export const makeParRequest =
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
-    const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
-      .payload.cnf.jwk.kid;
+    // const iss = WalletInstanceAttestation.decode(walletInstanceAttestation).payload.cnf.jwk.kid;
 
     const signedWiaPoP = await createPopToken(
       {
         jti: `${uuidv4()}`,
         aud,
-        iss,
+        iss: clientId,
       },
       wiaCryptoContext
     );
@@ -105,7 +103,7 @@ export const makeParRequest =
         response_type: "code",
         response_mode: responseMode,
         client_id: clientId,
-        iss,
+        iss: clientId,
         state: generateRandomAlphaNumericString(32),
         code_challenge: codeChallenge,
         code_challenge_method: codeChallengeMethod,

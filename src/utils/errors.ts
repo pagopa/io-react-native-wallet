@@ -7,7 +7,7 @@ import {
   type WalletProviderResponseErrorCode,
   WalletProviderResponseErrorCodes,
 } from "./error-codes";
-import type { CredentialIssuerEntityConfiguration } from "../trust/types";
+import type { CredentialIssuerEntityConfiguration } from "../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
 
 export {
   IssuerResponseErrorCodes,
@@ -299,5 +299,17 @@ export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
     }
 
     return originalError;
+  }
+}
+
+/**
+ * Error thrown when the library does not implement
+ * a feature aligned with the specified version.
+ */
+export class UnimplementedFeatureError extends IoWalletError {
+  code = "ERR_IO_WALLET_UNIMPLEMENTED_FEATURE";
+
+  constructor(feature: string, version: string) {
+    super(`Missing v${version} compatible implementation for ${feature}`);
   }
 }

@@ -2,12 +2,14 @@ import { createSlice } from "@reduxjs/toolkit";
 import { asyncStatusInitial } from "../utils";
 import type { AsyncStatus, RootState } from "../types";
 import { sessionReset } from "./session";
-import type { ParsedToken } from "../../../../src/trust/utils";
+import type { Trust } from "@pagopa/io-react-native-wallet";
 import { validateTrustChainThunk } from "../../thunks/trustValidation";
+
+type ValidatedChain = Awaited<ReturnType<Trust.TrustApi["verifyTrustChain"]>>;
 
 type TrustValidationState = {
   isValid: boolean | undefined;
-  validatedChain: ParsedToken[] | undefined;
+  validatedChain: ValidatedChain | undefined;
   validationError: string | undefined;
   asyncStatus: AsyncStatus;
 };

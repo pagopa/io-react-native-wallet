@@ -1,6 +1,6 @@
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { store } from "./store";
-import type { Credential } from "@pagopa/io-react-native-wallet";
+import type { CredentialIssuance } from "@pagopa/io-react-native-wallet";
 
 /**
  * Type definition for the dispatch function of the Redux store.
@@ -56,16 +56,12 @@ export type SupportedCredentialsWithoutPid = Exclude<
  * Type definition to represent a credential result to be used in the store.
  */
 type CredentialResultBase = {
-  credential: Awaited<
-    ReturnType<Credential.Issuance.ObtainCredential>
-  >["credential"];
-  parsedCredential: Awaited<
-    ReturnType<Credential.Issuance.VerifyAndParseCredential>
-  >["parsedCredential"];
+  credential: string;
+  parsedCredential: CredentialIssuance.ParsedCredential;
   keyTag: string;
   credentialType: SupportedCredentials;
   credentialConfigurationId: string;
-  format: Awaited<ReturnType<Credential.Issuance.ObtainCredential>>["format"];
+  format: CredentialIssuance.CredentialFormat;
 };
 
 /**
