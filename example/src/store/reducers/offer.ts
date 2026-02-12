@@ -4,10 +4,10 @@ import { getCredentialOfferThunk } from "../../thunks/offer";
 import { sessionReset } from "./session";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
-import type { Credential } from "@pagopa/io-react-native-wallet";
+import type { CredentialOffer } from "@pagopa/io-react-native-wallet";
 
 type CredentialOfferState = {
-  offer?: Credential.Offer.CredentialOffer;
+  offer?: CredentialOffer.ExtractGrantDetailsResult;
   asyncStatus: AsyncStatus;
 };
 
