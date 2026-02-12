@@ -86,7 +86,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConf,
       pid.token + "~",
       "mock_valid_sd_jwt_cred",
-      { credentialCryptoContext },
+      { credentialCryptoContext }
     );
 
     expect(result).toEqual({
@@ -117,7 +117,7 @@ describe("verifyAndParseCredential", () => {
     await expect(() =>
       verifyAndParseCredential(mockIssuerConf, pid.token, "mock_invalid_cred", {
         credentialCryptoContext,
-      }),
+      })
     ).rejects.toThrow("Unsupported credential format: unknown");
   });
 
@@ -140,10 +140,10 @@ describe("verifyAndParseCredential", () => {
         mockIssuerConf,
         pid.token,
         "mock_valid_sd_jwt_cred",
-        { credentialCryptoContext: altCredentialCryptoContext },
-      ),
+        { credentialCryptoContext: altCredentialCryptoContext }
+      )
     ).rejects.toThrow(
-      "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: Rv3W-EiKpvBTyk5yZxvrev-7MDB6SlzUCBo_CQjjddU",
+      "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: Rv3W-EiKpvBTyk5yZxvrev-7MDB6SlzUCBo_CQjjddU"
     );
   });
 
@@ -272,7 +272,7 @@ describe("verifyAndParseCredential", () => {
       "dc_sd_jwt_education_degree",
       {
         credentialCryptoContext: eduCredentialCryptoContext,
-      },
+      }
     );
 
     expect(result.parsedCredential).toEqual(
@@ -415,7 +415,7 @@ describe("verifyAndParseCredential", () => {
             "en-US": "List of education degrees",
           },
         }),
-      }),
+      })
     );
   });
 
@@ -531,7 +531,7 @@ describe("verifyAndParseCredential", () => {
       "dc_sd_jwt_education_degree",
       {
         credentialCryptoContext: eduCredentialCryptoContext,
-      },
+      }
     );
 
     expect(result.parsedCredential).toEqual({
@@ -707,7 +707,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithDeepNested,
       mdl.token,
       "dc_sd_jwt_mDL",
-      { credentialCryptoContext },
+      { credentialCryptoContext }
     );
 
     expect(result.parsedCredential).toEqual({
@@ -899,7 +899,7 @@ describe("verifyAndParseCredential", () => {
       "dc_sd_jwt_residency",
       {
         credentialCryptoContext: residencyCryptoContext,
-      },
+      }
     );
 
     expect(result.parsedCredential).toEqual(
@@ -954,7 +954,7 @@ describe("verifyAndParseCredential", () => {
             "en-US": "Address",
           },
         },
-      }),
+      })
     );
   });
 
@@ -1100,7 +1100,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_diploma,
       "dc_sd_jwt_education_diploma",
-      { credentialCryptoContext: educationDiplomaCryptoContext },
+      { credentialCryptoContext: educationDiplomaCryptoContext }
     );
 
     expect(result.parsedCredential).toEqual({
@@ -1295,7 +1295,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_attendance,
       "dc_sd_jwt_education_attendance",
-      { credentialCryptoContext: educationAttendanceCryptoContext },
+      { credentialCryptoContext: educationAttendanceCryptoContext }
     );
 
     expect(result.parsedCredential).toEqual({
