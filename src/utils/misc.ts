@@ -11,21 +11,21 @@ import { LogLevel, Logger } from "./logging";
  */
 export const hasStatusOrThrow =
   (status: number, customError?: typeof UnexpectedStatusCodeError) =>
-  async (res: Response): Promise<Response> => {
-    if (res.status !== status) {
-      const ErrorClass = customError ?? UnexpectedStatusCodeError;
-      Logger.log(
-        LogLevel.ERROR,
-        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`
-      );
-      throw new ErrorClass({
-        message: `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
-        statusCode: res.status,
-        reason: await parseRawHttpResponse(res), // Pass the response body as reason so the original error can surface
-      });
-    }
-    return res;
-  };
+    async (res: Response): Promise<Response> => {
+      if (res.status !== status) {
+        const ErrorClass = customError ?? UnexpectedStatusCodeError;
+        Logger.log(
+          LogLevel.ERROR,
+          `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`
+        );
+        throw new ErrorClass({
+          message: `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
+          statusCode: res.status,
+          reason: await parseRawHttpResponse(res), // Pass the response body as reason so the original error can surface
+        });
+      }
+      return res;
+    };
 
 /**
  * Utility function to parse a raw HTTP response as JSON if supported, otherwise as text.
@@ -42,8 +42,8 @@ export const parseRawHttpResponse = <T extends Record<string, unknown>>(
 export type Out<FN> = FN extends (...args: any[]) => Promise<any>
   ? Awaited<ReturnType<FN>>
   : FN extends (...args: any[]) => any
-    ? ReturnType<FN>
-    : never;
+  ? ReturnType<FN>
+  : never;
 
 /**
  * TODO [SIW-1310]: replace this function with a cryptographically secure one.
@@ -89,3 +89,12 @@ export const safeJsonParse = <T>(text: string, withDefault?: T): T | null => {
 
 export const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+export function assert(
+  condition: unknown,
+  msg: string = "Assertion failed"
+): asserts condition {
+  if (!condition) {
+    throw new Error(msg);
+  }
+}
