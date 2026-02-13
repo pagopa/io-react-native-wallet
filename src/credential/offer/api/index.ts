@@ -5,7 +5,4 @@ export interface OfferApi
   extends ResolveCredentialOfferApi,
     ExtractGrantDetailsApi {}
 
-export type {
-  CredentialOffer,
-  ExtractGrantDetailsResult,
-} from "@pagopa/io-wallet-oid4vci";
+export * from "./types";

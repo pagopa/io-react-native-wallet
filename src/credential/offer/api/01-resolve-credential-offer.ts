@@ -1,4 +1,4 @@
-import type { CredentialOffer } from "@pagopa/io-wallet-oid4vci";
+import type { CredentialOffer } from "./types";
 
 export interface ResolveCredentialOfferApi {
   /**

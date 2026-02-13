@@ -1,7 +1,4 @@
-import type {
-  CredentialOffer,
-  ExtractGrantDetailsResult,
-} from "@pagopa/io-wallet-oid4vci";
+import type { CredentialOffer, ExtractGrantDetailsResult } from "./types";
 
 export interface ExtractGrantDetailsApi {
   /**

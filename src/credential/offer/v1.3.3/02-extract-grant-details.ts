@@ -5,6 +5,13 @@ import {
 import { InvalidCredentialOfferError } from "../common/errors";
 import type { OfferApi } from "../api";
 
+/**
+ * Helper function to map SDK errors to API errors.
+ * @param fn - The function to execute, which may throw an error.
+ * @returns The result of the function if it succeeds.
+ * @throws InvalidCredentialOfferError if the SDK throws a CredentialOfferError.
+ * @throws Any other error thrown by the function is rethrown as-is.
+ */
 const withMappedErrors = <T>(fn: () => T): T => {
   try {
     return fn();
