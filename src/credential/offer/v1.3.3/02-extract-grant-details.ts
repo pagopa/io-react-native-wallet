@@ -3,25 +3,8 @@ import {
   CredentialOfferError,
 } from "@pagopa/io-wallet-oid4vci";
 import { InvalidCredentialOfferError } from "../common/errors";
+import { withMappedErrors } from "../../../utils/errors";
 import type { OfferApi } from "../api";
-
-/**
- * Helper function to map SDK errors to API errors.
- * @param fn - The function to execute, which may throw an error.
- * @returns The result of the function if it succeeds.
- * @throws InvalidCredentialOfferError if the SDK throws a CredentialOfferError.
- * @throws Any other error thrown by the function is rethrown as-is.
- */
-const withMappedErrors = <T>(fn: () => T): T => {
-  try {
-    return fn();
-  } catch (e) {
-    if (e instanceof CredentialOfferError) {
-      throw new InvalidCredentialOfferError(e.message);
-    }
-    throw e;
-  }
-};
 
 /**
  * v1.3.3 implementation — second and final step of the User Request Flow
@@ -37,4 +20,8 @@ const withMappedErrors = <T>(fn: () => T): T => {
  * mapping is needed because the SDK already returns `ExtractGrantDetailsResult`.
  */
 export const extractGrantDetails: OfferApi["extractGrantDetails"] = (offer) =>
-  withMappedErrors(() => sdkExtractGrantDetails(offer));
+  withMappedErrors(
+    () => sdkExtractGrantDetails(offer),
+    CredentialOfferError,
+    (e) => new InvalidCredentialOfferError(e.message)
+  );
