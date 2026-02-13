@@ -13,8 +13,6 @@ import {
   selectResponseMode,
 } from "../common/authorization";
 
-/* -------------------- Public API implementation -------------------- */
-
 export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
   async (issuerConf, credentialIds, proof, ctx) => {
     const {
