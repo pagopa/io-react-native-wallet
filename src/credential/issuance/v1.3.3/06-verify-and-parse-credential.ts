@@ -1,8 +1,8 @@
 import { IoWalletError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
+import type { IssuanceApi } from "../api";
 import { verifyAndParseCredentialMDoc } from "../common/06-verify-and-parse-credential.mdoc";
 import { verifyAndParseCredentialSdJwt } from "../common/06-verify-and-parse-credential.sdjwt";
-import type { IssuanceApi } from "../api";
 
 export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
   async (

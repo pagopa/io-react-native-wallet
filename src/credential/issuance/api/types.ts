@@ -29,6 +29,6 @@ export const TokenResponse = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
   authorization_details: z.array(AuthorizationDetail),
-  expires_in: z.number(),
+  expires_in: z.number().optional(),
   token_type: z.string(),
 });

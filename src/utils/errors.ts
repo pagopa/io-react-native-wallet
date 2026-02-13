@@ -269,7 +269,7 @@ type ErrorCase<T> = {
  *
  * Chain multiple `handle` to add cases that depend on the status code, then call `buildFrom` when done.
  *
- * For example:
+ * @example
  * ```
  * new ResponseErrorBuilder(IssuerResponseError)
  *   .handle(403, { code: "ERROR_CODE_1", message: "Forbidden" })
