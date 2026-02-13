@@ -1,12 +1,8 @@
-import type { StartFlowApi } from "./01-start-flow";
-import type { FetchCredentialOfferApi } from "./02-fetch-credential-offer";
-import type { EvaluateIssuerMetadataApi } from "./03-evaluate-issuer-metadata";
-import type { SelectGrantTypeApi } from "./04-select-grant-type";
+import type { ResolveCredentialOfferApi } from "./01-resolve-credential-offer";
+import type { ExtractGrantDetailsApi } from "./02-extract-grant-details";
 
 export interface OfferApi
-  extends StartFlowApi,
-    FetchCredentialOfferApi,
-    EvaluateIssuerMetadataApi,
-    SelectGrantTypeApi {}
+  extends ResolveCredentialOfferApi,
+    ExtractGrantDetailsApi {}
 
-export type * from "./types";
+export * from "./types";

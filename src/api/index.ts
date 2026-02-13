@@ -38,8 +38,7 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     RemotePresentation: RemotePresentation.V1_0_0,
     CredentialsCatalogue: CredentialsCatalogue.V1_0_0,
     Trustmark: Trustmark.V1_0_0,
-    // TODO: replace v1.3.3 with empty v1.0.0 implementation
-    CredentialsOffer: CredentialsOffer.V1_3_3,
+    CredentialsOffer: CredentialsOffer.V1_0_0,
   },
   // TODO: replace v1.0.0 with v1.3.3 implementations
   "1.3.3": {

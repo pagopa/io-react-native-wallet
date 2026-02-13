@@ -1,244 +1,158 @@
 # Credential Offer
 
-This flow handles the initial step of credential issuance by processing Credential Offers from Credential Issuers.
-Each step in the flow is imported from the related file which is named with a sequential number.
+This module implements the **User Request Flow** for Issuer-Initiated credential issuance, as defined in [IT-Wallet Technical Specifications v1.3.3, Section 12.1.2](https://italia.github.io/eid-wallet-it-docs/) and [OpenID for Verifiable Credential Issuance 1.0, Section 4.1](https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-offer-endpoint).
 
-A Credential Offer can be received by the Wallet in two ways:
+The flow processes a Credential Offer received from a Credential Issuer (or a Third Party / Authentic Source) and extracts the grant details needed to start the Issuance Flow.
 
-- **by value**: complete offer embedded in the URL (`credential_offer` param)
-- **by reference**: URL pointing to the offer endpoint (`credential_offer_uri` param)
+All operations delegate to the [`@pagopa/io-wallet-oid4vci`](https://github.com/nicolo-ribaudo/io-wallet-oid4vci) SDK.
 
-The implementation follows the [OpenID for Verifiable Credential Issuance 1.0](https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-offer-endpoint) specification.
-
-## Sequence Diagram
+## Flow overview
 
 ```mermaid
 graph TD;
-  1[startFlow]
-  2[fetchCredentialOffer]
-  3[evaluateIssuerMetadataFromOffer]
-  4[selectGrantType]
+  QR[QR code / deep link]
+  1[resolveCredentialOffer]
+  2[extractGrantDetails]
+  Issuance[Issuance Flow]
 
-  1 --> ref{Offer by reference?}
-  ref -->|Yes| 2
-  ref -->|No| 3
-  2 --> 3
-  3 --> 4
+  QR --> 1
+  1 -->|CredentialOffer| 2
+  2 -->|ExtractGrantDetailsResult| Issuance
 ```
 
-## Supported schemes
-
-The QR code / deep link must start with one of the supported schemes:
-
-- `openid-credential-offer://`
-- `haip://`
-- `haip-vci://`
+| Step | Function | What it does |
+|------|----------|--------------|
+| 1 | `resolveCredentialOffer` | Parses the URI, fetches the offer if by-reference, validates structure |
+| 2 | `extractGrantDetails` | Extracts the `authorization_code` grant details from the resolved offer |
 
 ## Credential Offer transmission
 
+A Credential Offer can reach the Wallet Instance in two ways (OpenID4VCI Section 4.1):
+
 ### By value (`credential_offer`)
 
-The complete Credential Offer is embedded in the URL parameter:
+The complete Credential Offer JSON is embedded in the URI as an encoded query parameter:
 
 ```
-openid-credential-offer://?credential_offer=%7B%22credential_issuer%22...
+openid-credential-offer://?credential_offer=%7B%22credential_issuer%22...%7D
 ```
-
-In this case `startFlow` returns `{ credential_offer: CredentialOffer }`.
 
 ### By reference (`credential_offer_uri`)
 
-A URL points to an endpoint serving the Credential Offer:
+A URL points to a resource serving the Credential Offer. The Wallet fetches it via HTTP GET with `Accept: application/json`. The Credential Issuer or Third Party SHOULD use a unique URI per offer to prevent caching.
 
 ```
-openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fserver.example.com%2Foffer
+openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer
 ```
 
-In this case `startFlow` returns `{ credential_offer_uri: string }` and the Wallet fetches the offer via HTTP GET with `Accept: application/json`.
+Both modes are handled transparently by `resolveCredentialOffer` (via the SDK).
 
-## Grant types
+## Supported URI schemes
 
-After obtaining the `CredentialOffer`, the Wallet selects the grant that will drive the following issuance flow.
+The QR code or deep link must use one of the following schemes:
 
-This implementation supports:
+- `openid-credential-offer://` (OpenID4VCI Section 4)
+- `haip-vci://` (OPENID4VC-HAIP Section 4.2)
+- `https://` (Universal Link, if listed in the Wallet's `credential_offer_endpoint`)
 
-### Pre-Authorized Code
+## Step 1 — Resolve and validate
 
-Grant key:
+`resolveCredentialOffer(uri, { fetch })` performs two operations:
 
-- `urn:ietf:params:oauth:grant-type:pre-authorized_code`
+1. **Resolution** — parses the URI and, if the offer is by-reference, fetches the JSON from the remote endpoint.
+2. **Structural validation** — checks the resolved offer against IT-Wallet v1.3 rules:
+   - `credential_issuer` must be an HTTPS URL
+   - `grants` object is required
+   - `authorization_code` grant is required
+   - `scope` is required within `authorization_code`
 
-Required fields:
+> **Note:** cross-validation against Credential Issuer metadata (e.g. verifying `credential_configuration_ids` against `credential_configurations_supported`, or matching `authorization_server` against the metadata's `authorization_servers`) is **not** part of this step. Per the spec, metadata processing happens once the User Request Flow is completed, at the start of the Issuance Flow.
 
-- `pre-authorized_code`
+## Step 2 — Extract grant details
 
-Optional fields:
+`extractGrantDetails(offer)` reads the `grants` object and returns an `ExtractGrantDetailsResult`:
 
-- `tx_code`
+```ts
+{
+  grantType: "authorization_code",
+  authorizationCodeGrant: {
+    scope: string,             // REQUIRED — used in the Authorization Request
+    issuerState?: string,      // binds the request to the Credential Issuer session
+    authorizationServer?: string // REQUIRED when the issuer uses multiple AS
+  }
+}
+```
 
-The selection result is normalized to:
+IT-Wallet v1.3 only supports the `authorization_code` grant type.
 
-- `{ type: "pre-authorized_code", "pre-authorized_code": string, tx_code?: TransactionCode }`
+## Credential Offer parameters
 
-### Authorization Code
+Reference: IT-Wallet spec, Section 12.1.2, Credential Offer parameters table.
 
-Grant key:
+| Field | Required | Description |
+|-------|----------|-------------|
+| `credential_issuer` | REQUIRED | HTTPS URL that uniquely identifies the Credential Issuer. Used to discover its metadata. |
+| `credential_configuration_ids` | REQUIRED | Array of credential type identifiers. Each must match an entry in the Issuer's `credential_configurations_supported`. |
+| `grants.authorization_code.scope` | REQUIRED | Maps to a specific credential type. The Wallet MUST use this value in the Authorization Request. |
+| `grants.authorization_code.issuer_state` | OPTIONAL | Opaque string from the Issuer. When present the Wallet MUST include it in the Authorization Request. |
+| `grants.authorization_code.authorization_server` | CONDITIONAL | REQUIRED when the Issuer uses more than one Authorization Server. Must match one entry in the Issuer's `authorization_servers` metadata. |
 
-- `authorization_code`
+## Error mapping
 
-Optional fields:
+| Error | Code | When |
+|-------|------|------|
+| `InvalidQRCodeError` | `ERR_INVALID_QR_CODE` | URI parsing fails (unsupported scheme, missing params, invalid or malformed query) |
+| `InvalidCredentialOfferError` | `ERR_INVALID_CREDENTIAL_OFFER` | Structural validation fails (missing grant, missing scope, non-HTTPS issuer) or grant extraction fails |
 
-- `issuer_state`
-- `authorization_server` (if missing, it defaults to the offer `credential_issuer`)
+> Note: Network or other unexpected errors thrown while fetching an offer by reference in `resolveCredentialOffer` are propagated as-is and are not mapped to `InvalidQRCodeError` or `InvalidCredentialOfferError`.
+## Boundary with the Issuance Flow
 
-The selection result is normalized to:
+The Credential Offer flow ends once `extractGrantDetails` returns. The Issuance Flow then begins with:
 
-- `{ type: "authorization_code", issuer_state?: string, authorization_server: string, scope: string }`
-
-## Transaction Code requirements
-
-When a transaction code is required for Pre-Authorized Code flow, the following parameters control the user experience:
-
-| Parameter     | Type                    | Description                                       |
-| ------------- | ----------------------- | ------------------------------------------------- |
-| `input_mode`  | `"numeric"` \| `"text"` | Character set for the code (default: `"numeric"`) |
-| `length`      | number                  | Expected code length to optimize input UI         |
-| `description` | string                  | User guidance (max 300 chars) for obtaining code  |
-
-## Mapped results
-
-The following errors are raised during credential offer processing:
-
-| Error                        | Code                       | Description                                                                 |
-| --------------------------- | -------------------------- | --------------------------------------------------------------------------- |
-| `InvalidQRCodeError`        | `ERR_INVALID_QR_CODE`       | The QR/deeplink is invalid or doesn't contain valid credential offer params |
-| `InvalidCredentialOfferError` | `ERR_INVALID_CREDENTIAL_OFFER` | The credential offer validation failed or contains invalid data             |
+1. Credential Issuer metadata processing (Trust Evaluation / Federation check)
+2. Cross-validation of the offer against metadata
+3. PAR Request, Authorization, Token exchange, Credential Request
 
 ## Examples
 
 <details>
-  <summary>Offer flow (by reference)</summary>
+  <summary>Offer by reference</summary>
 
 ```ts
 import { CredentialOffer } from "@pagopa/io-react-native-wallet";
 
-const offerUrl =
+const uri =
   "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
 
-// 1) Parse QR code / deeplink
-const params = CredentialOffer.V1_3_3.startFlow(offerUrl);
+// 1) Resolve — fetches the offer from the URI and validates it
+const offer = await CredentialOffer.V1_3_3.resolveCredentialOffer(uri, {
+  fetch: appFetch,
+});
 
-if (params.credential_offer_uri) {
-  // 2) Fetch the offer
-  const offer = await CredentialOffer.V1_3_3.fetchCredentialOffer(
-    params.credential_offer_uri,
-    { appFetch }
-  );
-
-  // 3) Fetch and validate issuer metadata (openid-credential-issuer)
-  const { issuerConf } =
-    await CredentialOffer.V1_3_3.evaluateIssuerMetadataFromOffer(offer, {
-      appFetch,
-    });
-
-  // 4) Select the grant type
-  const grant = CredentialOffer.V1_3_3.selectGrantType(offer);
-
-  console.log({ issuerConf, grant });
-}
+// 2) Extract grant details
+const grant = CredentialOffer.V1_3_3.extractGrantDetails(offer);
+// {
+//   grantType: "authorization_code",
+//   authorizationCodeGrant: { scope: "org.iso.18013.5.1.mDL", ... }
+// }
 ```
 
 </details>
 
 <details>
-  <summary>Offer flow (by value)</summary>
+  <summary>Offer by value</summary>
 
 ```ts
-import {
-  CredentialOffer,
-  type CredentialOffer as CredentialOfferType,
-} from "@pagopa/io-react-native-wallet";
+import { CredentialOffer } from "@pagopa/io-react-native-wallet";
 
-const offerByValueUrl =
+const uri =
   "openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example.com%22%2C%22credential_configuration_ids%22%3A%5B%22UniversityDegree%22%5D%2C%22grants%22%3A%7B%22authorization_code%22%3A%7B%22scope%22%3A%22UniversityDegree%22%7D%7D%7D";
 
-const params = CredentialOffer.V1_3_3.startFlow(offerByValueUrl);
+// 1) Resolve — decodes the inline offer and validates it
+const offer = await CredentialOffer.V1_3_3.resolveCredentialOffer(uri);
 
-if (params.credential_offer) {
-  const offer: CredentialOfferType = params.credential_offer;
-
-  const { issuerConf } =
-    await CredentialOffer.V1_3_3.evaluateIssuerMetadataFromOffer(offer, {
-      appFetch,
-    });
-
-  const grant = CredentialOffer.V1_3_3.selectGrantType(offer);
-
-  console.log({ issuerConf, grant });
-}
-```
-
-</details>
-
-<details>
-  <summary>Pre-Authorized Code with Transaction Code</summary>
-
-```ts
-import {
-  CredentialOffer,
-  type CredentialOffer as CredentialOfferType,
-} from "@pagopa/io-react-native-wallet";
-
-const offer: CredentialOfferType = {
-  credential_issuer: "https://university.example.edu",
-  credential_configuration_ids: ["DiplomaCredential"],
-  grants: {
-    "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
-      "pre-authorized_code": "SplxlOBeZQQYbYS6WxSbIA",
-      tx_code: {
-        length: 4,
-        input_mode: "numeric",
-        description: "Check your email for the verification code",
-      },
-    },
-  },
-};
-
-const grant = CredentialOffer.V1_3_3.selectGrantType(offer);
-
-// grant.type === "pre-authorized_code"
-// grant["pre-authorized_code"] is the code to be used in the token request
-// grant.tx_code describes how to ask the user for the transaction code
-console.log(grant);
-```
-
-</details>
-
-<details>
-  <summary>Authorization Code (authorization_server default)</summary>
-
-```ts
-import {
-  CredentialOffer,
-  type CredentialOffer as CredentialOfferType,
-} from "@pagopa/io-react-native-wallet";
-
-const offer: CredentialOfferType = {
-  credential_issuer: "https://issuer.example.com",
-  credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
-  grants: {
-    authorization_code: {
-      issuer_state: "af0ifjsldkj",
-      // if omitted, it will default to credential_issuer
-      scope: "org.iso.18013.5.1.mDL",
-    },
-  },
-};
-
-const grant = CredentialOffer.V1_3_3.selectGrantType(offer);
-
-// grant.authorization_server === "https://issuer.example.com"
-console.log(grant);
+// 2) Extract grant details
+const grant = CredentialOffer.V1_3_3.extractGrantDetails(offer);
 ```
 
 </details>
