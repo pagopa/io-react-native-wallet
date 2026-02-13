@@ -1,10 +1,15 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import {
+  getJwkFromHeader,
+  type CryptoContext,
+  decode,
+} from "@pagopa/io-react-native-jwt";
 import { type SDJwt, SDJwtInstance } from "@sd-jwt/core";
 import { digest, ES256 } from "@sd-jwt/crypto-nodejs";
 import { isPathEqual, isPrefixOf } from "../../../utils/parser";
 import { IoWalletError } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import { type JWK } from "../../../utils/jwk";
+import { isSameThumbprint, type JWK } from "../../../utils/jwk";
+import type { SdJwt4VC } from "../../../sd-jwt"; // TODO: remove or create a common SD-JWT type
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 
 type CredentialConf =
@@ -165,20 +170,27 @@ async function verifyCredentialSdJwt(
   issuerKeys: JWK[],
   holderBindingContext: CryptoContext
 ): Promise<SDJwt> {
-  const [verifier, kbVerifier] = await Promise.all([
-    ES256.getVerifier(issuerKeys),
-    holderBindingContext.getPublicKey().then(ES256.getVerifier),
-  ]);
+  const { protectedHeader } = decode(rawCredential);
+  const verifierJwk = getJwkFromHeader(protectedHeader, issuerKeys);
 
   const sdJwtInstance = new SDJwtInstance({
     hasher: digest,
-    verifier,
-    kbVerifier,
+    verifier: await ES256.getVerifier(verifierJwk),
   });
 
-  await sdJwtInstance.verify(rawCredential);
+  const [verifiedCredential, holderBindingKey] = await Promise.all([
+    sdJwtInstance.verify(rawCredential),
+    holderBindingContext.getPublicKey(),
+  ]);
 
-  return sdJwtInstance.decode(rawCredential);
+  const { cnf } = verifiedCredential.payload as SdJwt4VC["payload"];
+  if (!(await isSameThumbprint(cnf.jwk, holderBindingKey as JWK))) {
+    const message = `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${cnf.jwk.kid}`;
+    Logger.log(LogLevel.ERROR, message);
+    throw new IoWalletError(message);
+  }
+
+  return await sdJwtInstance.decode(rawCredential);
 }
 
 export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredential"] =
