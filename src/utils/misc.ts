@@ -89,3 +89,12 @@ export const safeJsonParse = <T>(text: string, withDefault?: T): T | null => {
 
 export const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+export function assert(
+  condition: unknown,
+  msg: string = "Assertion failed"
+): asserts condition {
+  if (!condition) {
+    throw new Error(msg);
+  }
+}

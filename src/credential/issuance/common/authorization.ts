@@ -1,0 +1,86 @@
+import { LogLevel, Logger } from "../../../utils/logging";
+import { AuthorizationDetail } from "../../../utils/par";
+import type { IssuerConfig } from "../api";
+
+type ResponseMode = "query" | "form_post.jwt";
+
+/**
+ * Ensures that the credential type requested is supported by the issuer and contained in the
+ * issuer configuration.
+ * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
+ * @param credentialId The credential configuration ID to be requested;
+ * @returns The credential definition to be used in the request which includes the format and the type and its type
+ */
+export const selectCredentialDefinition = (
+  issuerConf: IssuerConfig,
+  credentialId: string
+): AuthorizationDetail => {
+  const credential_configurations_supported =
+    issuerConf.credential_configurations_supported;
+
+  const [result] = Object.keys(credential_configurations_supported)
+    .filter((e) => e.includes(credentialId))
+    .map(() => ({
+      credential_configuration_id: credentialId,
+      type: "openid_credential" as const,
+    }));
+
+  if (!result) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Requested credential ${credentialId} is not supported by the issuer according to its configuration ${JSON.stringify(credential_configurations_supported)}`
+    );
+    throw new Error(`No credential support the type '${credentialId}'`);
+  }
+  return result;
+};
+
+/**
+ * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
+ * When multiple credentials are provided, all of them must support the same response_mode.
+ * @param issuerConf The issuer configuration
+ * @param credentialIds The credential configuration IDs to be requested
+ * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
+ */
+export const selectResponseMode = (
+  issuerConf: IssuerConfig,
+  credentialIds: string[]
+): ResponseMode => {
+  const responseModeSet = new Set<ResponseMode>();
+
+  for (const credentialId of credentialIds) {
+    responseModeSet.add(
+      credentialId.match(/PersonIdentificationData/i)
+        ? "query"
+        : "form_post.jwt"
+    );
+  }
+
+  if (responseModeSet.size !== 1) {
+    Logger.log(
+      LogLevel.ERROR,
+      `${credentialIds} have incompatible response_mode: ${[...responseModeSet.values()]}`
+    );
+    throw new Error(
+      "Requested credentials have incompatible response_mode and cannot be requested with the same PAR request"
+    );
+  }
+
+  const [responseMode] = responseModeSet.values();
+
+  Logger.log(
+    LogLevel.DEBUG,
+    `Selected response mode ${responseMode} for credential IDs ${credentialIds}`
+  );
+
+  const responseModeSupported = issuerConf.response_modes_supported;
+  if (responseModeSupported && !responseModeSupported.includes(responseMode!)) {
+    Logger.log(
+      LogLevel.ERROR,
+      `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`
+    );
+    throw new Error(`No response mode support for IDs '${credentialIds}'`);
+  }
+
+  return responseMode!;
+};
