@@ -101,9 +101,10 @@ Reference: IT-Wallet spec, Section 12.1.2, Credential Offer parameters table.
 
 | Error | Code | When |
 |-------|------|------|
-| `InvalidQRCodeError` | `ERR_INVALID_QR_CODE` | URI parsing or offer fetching fails (unsupported scheme, missing params, network error) |
+| `InvalidQRCodeError` | `ERR_INVALID_QR_CODE` | URI parsing fails (unsupported scheme, missing params, invalid or malformed query) |
 | `InvalidCredentialOfferError` | `ERR_INVALID_CREDENTIAL_OFFER` | Structural validation fails (missing grant, missing scope, non-HTTPS issuer) or grant extraction fails |
 
+> Note: Network or other unexpected errors thrown while fetching an offer by reference in `resolveCredentialOffer` are propagated as-is and are not mapped to `InvalidQRCodeError` or `InvalidCredentialOfferError`.
 ## Boundary with the Issuance Flow
 
 The Credential Offer flow ends once `extractGrantDetails` returns. The Issuance Flow then begins with:
