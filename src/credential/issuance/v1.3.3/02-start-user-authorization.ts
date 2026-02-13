@@ -7,7 +7,7 @@ import type { CallbackContext } from "@pagopa/io-wallet-oauth2";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuanceApi } from "../api";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
-import { partialCallbacks } from "src/utils/callbacks";
+import { partialCallbacks } from "../../../utils/callbacks";
 import {
   selectCredentialDefinition,
   selectResponseMode,
