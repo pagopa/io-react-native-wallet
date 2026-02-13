@@ -1,4 +1,3 @@
-import { UnimplementedFeatureError } from "../../../utils/errors";
 import type { IssuanceApi } from "../api";
 import { evaluateIssuerTrust } from "./01-evaluate-issuer-trust";
 import { startUserAuthorization } from "./02-start-user-authorization";
@@ -10,6 +9,8 @@ import {
   getRequestedCredentialToBePresented,
 } from "./03-complete-user-authorization";
 import { authorizeAccess } from "./04-authorize-access";
+import { obtainCredential } from "./05-obtain-credential";
+import { verifyAndParseCredential } from "./06-verify-and-parse-credential";
 import { MRTDPoP } from "../mrtd-pop";
 
 export const Issuance: IssuanceApi = {
@@ -21,11 +22,7 @@ export const Issuance: IssuanceApi = {
   getRequestedCredentialToBePresented,
   completeUserAuthorizationWithFormPostJwtMode,
   authorizeAccess,
-  obtainCredential: () => {
-    throw new UnimplementedFeatureError("obtainCredential", "1.3.3");
-  },
-  verifyAndParseCredential: () => {
-    throw new UnimplementedFeatureError("verifyAndParseCredential", "1.3.3");
-  },
+  obtainCredential,
+  verifyAndParseCredential,
   MRTDPoP,
 };
