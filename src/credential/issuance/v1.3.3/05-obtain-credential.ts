@@ -1,20 +1,22 @@
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
+import { createTokenDPoP } from "@pagopa/io-wallet-oauth2";
+import {
+  fetchCredentialResponse,
+  createCredentialRequest,
+} from "@pagopa/io-wallet-oid4vci";
+import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
-  UnexpectedStatusCodeError,
   ValidationFailed,
 } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import type { IssuanceApi } from "../api";
-import { NonceResponse } from "./types";
-import { createCredentialRequest } from "@pagopa/io-wallet-oid4vci";
 import { sdkConfigV1_3 } from "../../../utils/config";
 import { partialCallbacks } from "../../../utils/callbacks";
-import { createTokenDPoP } from "@pagopa/io-wallet-oauth2";
-import { fetchCredentialResponse } from "@pagopa/io-wallet-oid4vci";
+import type { IssuanceApi } from "../api";
+import { NonceResponse } from "./types";
 
 export const createNonceProof = async (
   nonce: string,
@@ -137,7 +139,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     credentialRequest: credentialRequest,
     accessToken: accessToken.access_token,
     dPoP: credentialDPoP.jwt,
-  });
+  }).catch(handleObtainCredentialError);
 
   Logger.log(
     LogLevel.DEBUG,
@@ -157,25 +159,18 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
 /**
  * Handle the credential error by mapping it to a custom exception.
- * If the error is not an instance of {@link UnexpectedStatusCodeError}, it is thrown as is.
+ * If the error is not an instance of {@link SdkUnexpectedStatusCodeError}, it is thrown as is.
  * @param e - The error to be handled
  * @throws {IssuerResponseError} with a specific code for more context
  */
 const handleObtainCredentialError = (e: unknown) => {
   Logger.log(LogLevel.ERROR, `Error occurred while obtaining credential: ${e}`);
 
-  if (!(e instanceof UnexpectedStatusCodeError)) {
+  if (!(e instanceof SdkUnexpectedStatusCodeError)) {
     throw e;
   }
 
   throw new ResponseErrorBuilder(IssuerResponseError)
-    .handle(201, {
-      // Although it is technically not an error, we handle it as such to avoid
-      // changing the return type of `obtainCredential` and introduce a breaking change.
-      code: IssuerResponseErrorCodes.CredentialIssuingNotSynchronous,
-      message:
-        "This credential cannot be issued synchronously. It will be available at a later time.",
-    })
     .handle(403, {
       code: IssuerResponseErrorCodes.CredentialInvalidStatus,
       message: "Invalid status found for the given credential",
