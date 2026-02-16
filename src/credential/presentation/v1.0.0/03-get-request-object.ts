@@ -1,10 +1,7 @@
 import { RelyingPartyResponseError } from "../../../utils/errors";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import type { RemotePresentationApi } from "../api";
-import {
-  PresentationParams,
-  RequestObjectWalletCapabilities,
-} from "../api/types";
+import { RequestObjectWalletCapabilities } from "../api/types";
 import { InvalidQRCodeError } from "../common/errors";
 
 export const getRequestObject: RemotePresentationApi["getRequestObject"] =
@@ -12,27 +9,20 @@ export const getRequestObject: RemotePresentationApi["getRequestObject"] =
     authorizationRequestUrl,
     { appFetch = fetch, walletCapabilities } = {}
   ) => {
-    const url = new URL(authorizationRequestUrl);
+    const authorizationUrl = new URL(authorizationRequestUrl);
 
-    const rawParams = {
-      request_uri: url.searchParams.get("request_uri"),
-      client_id: url.searchParams.get("client_id"),
-      state: url.searchParams.get("state"),
-      request_uri_method: url.searchParams.get("request_uri_method") as
-        | "get"
-        | "post",
-    };
-
-    const parsed = PresentationParams.safeParse({
-      ...rawParams,
-      request_uri_method: rawParams.request_uri_method ?? "get",
-    });
-
-    if (!parsed.success) {
-      throw new InvalidQRCodeError(parsed.error.message);
+    /*
+     * The QR code parameters are validated in step 1.
+     * For consistency with the 1.3 flow we accept the full authorization URL,
+     * but here we only extract the `request_uri` to retrieve the Request Object.
+     */
+    const requestUri =
+      authorizationUrl.searchParams.get("request_uri") ?? undefined;
+    if (!requestUri) {
+      throw new InvalidQRCodeError(
+        "The QR code is missing the required 'request_uri' parameter."
+      );
     }
-
-    const requestUri = parsed.data.request_uri;
 
     if (walletCapabilities) {
       // Validate external input
