@@ -1,5 +1,5 @@
-import { hasStatusOrThrow } from "../../../utils/misc";
 import { v4 as uuidv4 } from "uuid";
+import { fetchMrtdPopInit } from "@pagopa/io-wallet-oauth2";
 import { createPopToken } from "../../../utils/pop";
 import { Logger, LogLevel } from "../../../utils/logging";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from version 1.0.0
@@ -9,9 +9,8 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../../utils/errors";
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
-import { MrtdPoPChallengeJwt } from "./types";
+import { partialCallbacks } from "../../../utils/callbacks";
 
 export const initChallenge: MRTDPoPApi["initChallenge"] = async (
   issuerConf,
@@ -26,41 +25,41 @@ export const initChallenge: MRTDPoPApi["initChallenge"] = async (
     wiaCryptoContext,
   } = context;
 
-  const aud = issuerConf.credential_issuer;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
 
   const signedWiaPoP = await createPopToken(
     {
-      jti: `${uuidv4()}`,
-      aud,
+      jti: uuidv4(),
+      aud: issuerConf.credential_issuer,
       iss,
     },
     wiaCryptoContext
   );
 
-  const requestBody = {
-    mrtd_auth_session,
-    mrtd_pop_jwt_nonce,
-  };
-
-  const mrtdPoPChallengeJwt = await appFetch(initUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "OAuth-Client-Attestation": walletInstanceAttestation,
-      "OAuth-Client-Attestation-PoP": signedWiaPoP,
+  const initResult = await fetchMrtdPopInit({
+    popInitEndpoint: initUrl,
+    mrtdAuthSession: mrtd_auth_session,
+    mrtdPopJwtNonce: mrtd_pop_jwt_nonce,
+    walletAttestation: walletInstanceAttestation,
+    clientAttestationDPoP: signedWiaPoP,
+    callbacks: {
+      ...partialCallbacks,
+      fetch: appFetch,
     },
-    body: JSON.stringify(requestBody),
-  })
-    .then(hasStatusOrThrow(202))
-    .then((res) => res.text())
-    .catch(handleInitChallengeError);
+    signer: {
+      alg: "ES256",
+      method: "jwk",
+      publicJwk: issuerConf.keys[0]!, // TODO: get the key properly
+    },
+  });
 
-  const mrtdPoPChallengeDecoded = decodeJwt(mrtdPoPChallengeJwt);
-  const { payload } = MrtdPoPChallengeJwt.parse(mrtdPoPChallengeDecoded);
-
-  return payload;
+  return {
+    challenge: initResult.challenge,
+    mrtd_pop_nonce: initResult.mrtdPopNonce,
+    pop_verify_endpoint: initResult.popVerifyEndpoint,
+    mrz: initResult.mrz,
+  };
 };
 
 const handleInitChallengeError = (e: unknown) => {

@@ -27,25 +27,14 @@ export const MrtdProofChallengeInfo = z.object({
   htm: z.literal("POST"),
 });
 
-export type MrtdPoPChallenge = z.infer<typeof MrtdPoPChallenge>;
-export const MrtdPoPChallenge = z.object({
-  iss: z.string(),
-  aud: z.string(),
-  iat: z.number(),
-  exp: z.number(),
-  challenge: z.string(),
-  mrtd_pop_nonce: z.string(),
-  mrz: z.string().optional(),
-  htu: z.string(),
-  htm: z.literal("POST"),
-});
+export type MrtdPoPChallenge = {
+  challenge: string;
+  mrtd_pop_nonce: string;
+  pop_verify_endpoint: string;
+  mrz?: string;
+};
 
-export type MrtdPopVerificationResult = z.infer<
-  typeof MrtdPopVerificationResult
->;
-export const MrtdPopVerificationResult = z.object({
-  status: z.literal("require_interaction"),
-  type: z.literal("redirect_to_web"),
-  mrtd_val_pop_nonce: z.string(),
-  redirect_uri: z.string(),
-});
+export type MrtdPopVerificationResult = {
+  mrtd_val_pop_nonce: string;
+  redirect_uri: string;
+};
