@@ -1,7 +1,7 @@
 // fetchJwks.test.ts
 
-import { getJwksFromRpConfig } from "../04-retrieve-rp-jwks";
 import { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
+import { getJwksFromRpConfig } from "../utils";
 
 describe("fetchJwksFromConfig", () => {
   beforeEach(() => {

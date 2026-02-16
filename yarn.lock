@@ -2987,6 +2987,15 @@
     "@openid4vc/utils" "0.3.0-alpha-20250714110838"
     zod "^3.24.2"
 
+"@pagopa/io-wallet-oid-federation@1.0.0-alpha-20260213125806":
+  version "1.0.0-alpha-20260213125806"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.0.0-alpha-20260213125806.tgz#afcb7fda8e8df644894ae9ae2f2ab40295b7cfaf"
+  integrity sha512-zI7iZqIBJlUa8wAfrzRH+1EJPUhjFs4Quzm0QfXZxmjo5XxROJi6AeZr7dmxsXF0DBKP+f8ZOXfFwu6r/2u9Yw==
+  dependencies:
+    "@openid-federation/core" "^0.2.1"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
 "@pagopa/io-wallet-oid4vci@^1.0.0-20260210102725":
   version "1.0.0-20260210102725"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.0.0-20260210102725.tgz#24dae394566cbaa0068edf40f92a1fdbe97700a4"
@@ -3013,10 +3022,29 @@
     "@pagopa/io-wallet-utils" "1.0.0-20260210102725"
     zod "^3.24.2"
 
+"@pagopa/io-wallet-oid4vp@1.0.0-alpha-20260213125806":
+  version "1.0.0-alpha-20260213125806"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.0.0-alpha-20260213125806.tgz#954a895cfa7903c036e3874200abb6c09548083d"
+  integrity sha512-sWYyPaH2L+Gn9azpGZHFhvBbyLy3pWurtfjkFBfyxKIWz9ZfwofZz0/vCZyE4F+VnO6FmGDy0qTJXqx7CHCdXw==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/openid4vp" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-oid-federation" "1.0.0-alpha-20260213125806"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260213125806"
+    zod "^3.24.2"
+
 "@pagopa/io-wallet-utils@1.0.0-20260210102725", "@pagopa/io-wallet-utils@^1.0.0-20260210102725":
   version "1.0.0-20260210102725"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.0.0-20260210102725.tgz#e5faa6885855c1c5344130b8c05cc7d0c2e199e3"
   integrity sha512-USwqGMWeaY82PgMZqjvD+5oScvr7HJkxY9NQdnoDNlJet6sfSCad9W2kQSASm6q6MdAoONmPylJnjKl+ghX6DA==
+  dependencies:
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+
+"@pagopa/io-wallet-utils@1.0.0-alpha-20260213125806":
+  version "1.0.0-alpha-20260213125806"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.0.0-alpha-20260213125806.tgz#e0789bbc375677deb98c12a819c1a5f2da8f72cc"
+  integrity sha512-eI0Cba7dOOwDWyZRh6br2rny76zwWuPmJYhPwUPsA12IP69rMSZlBNNiY5kM79JS5JZn0IY2jG/jhEZwFXUfdQ==
   dependencies:
     "@openid4vc/utils" "0.3.0-alpha-20250714110838"
 

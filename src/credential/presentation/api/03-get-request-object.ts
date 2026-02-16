@@ -11,7 +11,7 @@ export interface GetRequestObjectApi {
    * @returns The Request Object that describes the presentation
    */
   getRequestObject(
-    requestUri: string,
+    authorizationRequestUrl: string,
     context?: {
       appFetch?: GlobalFetch["fetch"];
       walletCapabilities?: RequestObjectWalletCapabilities;

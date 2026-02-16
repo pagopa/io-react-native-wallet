@@ -3,8 +3,9 @@ import * as z from "zod";
 export type PresentationParams = z.infer<typeof PresentationParams>;
 export const PresentationParams = z.object({
   client_id: z.string().nonempty(),
+  request: z.string().optional(),
   request_uri: z.string().url(),
-  request_uri_method: z.enum(["get", "post"]),
+  request_uri_method: z.enum(["get", "post"]).optional(),
   state: z.string().optional(),
 });
 
@@ -72,4 +73,16 @@ export type RequestObject = {
   state?: string;
   client_id: string;
   dcql_query: Record<string, unknown>;
+  response_type: "vp_token";
+  response_mode: "direct_post.jwt";
 };
+
+export type RequestObjectV1_3 = Omit<RequestObject, "state"> & {
+  state: string;
+};
+
+export type GetRequestObjectOutput = z.infer<typeof GetRequestObjectOutput>;
+export const GetRequestObjectOutput = z.object({
+  requestObjectEncodedJwt: z.string(),
+  sendBy: z.enum(["reference", "value"]),
+});

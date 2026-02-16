@@ -1,5 +1,4 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
-import { getJwksFromRpConfig } from "./04-retrieve-rp-jwks";
 import { NoSuitableKeysFoundInEntityConfiguration } from "../common/errors";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import type { JWK } from "../../../utils/jwk";
@@ -13,6 +12,7 @@ import { prepareVpToken } from "../../../sd-jwt";
 import type { RequestObject } from "../api/types";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { AuthorizationResponse, DirectAuthorizationBodyPayload } from "./types";
+import { getJwksFromRpConfig } from "./utils";
 
 /**
  * Selects a public key (with `use = enc`) from the set of JWK keys
@@ -131,12 +131,16 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
   };
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
-  async (
-    requestObject,
-    remotePresentations,
-    rpConf,
-    { appFetch = fetch } = {}
-  ) => {
+  async (requestObject, remotePresentations, params) => {
+    const { rpConf, context } = params;
+    const appFetch = context?.appFetch ?? fetch;
+
+    if (!rpConf) {
+      throw new Error(
+        "Relying Party configuration is required to send the authorization response"
+      );
+    }
+
     // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
     const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
       vp_token: remotePresentations.reduce(

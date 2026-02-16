@@ -16,6 +16,7 @@ import { isDefined } from "../utils/misc";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { selectItwVersion } from "../store/reducers/environment";
+import type { ItWalletCredentialVerifierMetadataV1_3 } from "@pagopa/io-wallet-oid-federation";
 
 type DcqlQuery = Parameters<
   RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
@@ -60,12 +61,12 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       | "post",
   });
 
-  const { rpConf } = await wallet.RemotePresentation.evaluateRelyingPartyTrust(
+  const { rpConf, rpMetadata } = await wallet.RemotePresentation.evaluateRelyingPartyTrust(
     qrParams.client_id
   );
 
   const { requestObjectEncodedJwt } =
-    await wallet.RemotePresentation.getRequestObject(qrParams.request_uri);
+    await wallet.RemotePresentation.getRequestObject(args.qrcode);
 
   const { requestObject } = await wallet.RemotePresentation.verifyRequestObject(
     requestObjectEncodedJwt,
@@ -100,7 +101,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     return processRefusedPresentation(wallet, requestObject);
   }
 
-  return processPresentation(wallet, requestObject, rpConf, credentialsSdJwt);
+  return processPresentation(wallet, requestObject, rpConf, credentialsSdJwt, walletInstanceAttestation, rpMetadata);
 });
 
 // DCQL flow
@@ -108,7 +109,9 @@ const processPresentation = async (
   wallet: IoWallet,
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig,
-  credentialsSdJwt: [CryptoContext, string][]
+  credentialsSdJwt: [CryptoContext, string][],
+  walletInstanceAttestation: string,
+  rpMetadata?: ItWalletCredentialVerifierMetadataV1_3,
 ) => {
   const result = wallet.RemotePresentation.evaluateDcqlQuery(
     credentialsSdJwt,
@@ -128,11 +131,13 @@ const processPresentation = async (
       requestObject
     );
 
+  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+
   const authResponse =
     await wallet.RemotePresentation.sendAuthorizationResponse(
       requestObject,
       remotePresentations,
-      rpConf
+      { rpConf, rpMetadata, walletInstanceAttestation, wiaCryptoContext }
     );
 
   return {

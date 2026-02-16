@@ -6,8 +6,8 @@ import { JWK } from "../../../utils/jwk";
  */
 export type RelyingPartyConfig = z.infer<typeof RelyingPartyConfig>;
 export const RelyingPartyConfig = z.object({
-  subject: z.string(),
-  keys: z.array(JWK),
+  subject: z.string().optional(),
+  keys: z.array(JWK).optional(),
   organization_name: z.string().optional(),
   homepage_uri: z.string().optional(),
   policy_uri: z.string().optional(),

@@ -1,6 +1,6 @@
 import * as jwtModule from "@pagopa/io-react-native-jwt";
 import { InvalidRequestObjectError } from "../../common/errors";
-import { verifyRequestObject } from "../05-verify-request-object";
+import { verifyRequestObject } from "../04-verify-request-object";
 import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 import type { RequestObject } from "../../api/types";
 

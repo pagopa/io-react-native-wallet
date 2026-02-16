@@ -1993,6 +1993,39 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@openid-federation/core@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@openid-federation/core/-/core-0.2.1.tgz#9e24e581b326997c6f6b9e08fe2db5c6235d3c6d"
+  integrity sha512-vYAi8kDNZWo/910+Z2fWTU/8+/tolNIOFU2KJhGyjTDBcPUavGLiZF8NB86K0ERHDMAGqoMKq4ExA1E9WVYywA==
+  dependencies:
+    buffer "^6.0.3"
+    zod "^3.23.8"
+
+"@openid4vc/oauth2@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/oauth2/-/oauth2-0.3.0-alpha-20250714110838.tgz#6d5e47efe634652f031173ccd4f0acf3076cb01b"
+  integrity sha512-SR/HP818TCMBcr9Fpi+lS7xIA65AAFxhHsrjmxnxXQjWTBUEx6P4nhZbcw6T65AAuB8I0QzE3zzz+MRAFqunwQ==
+  dependencies:
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@openid4vc/openid4vp@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/openid4vp/-/openid4vp-0.3.0-alpha-20250714110838.tgz#0193384deef591c44582088866174920039491b9"
+  integrity sha512-lWrtQkUky4+CCJPmd8gHzpxxf8wRMZZvmsRoVcTBoq9biTXquCpJSkcGkl0V2OFF9cpxF7jDxOcUrIa/UQ5Crw==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@openid4vc/utils@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/utils/-/utils-0.3.0-alpha-20250714110838.tgz#70241ee612ab705b3af5da44705f26644e1bd30d"
+  integrity sha512-10TCSw/AMtgD4AIUob6kkFg6UdRv5kEYHovLJnfi5MHt4KdxSfSGfu2zc1cxJlKaBEg7su1BKiAT9j9WDmxSrA==
+  dependencies:
+    buffer "^6.0.3"
+    zod "^3.24.2"
+
 "@pagopa/io-app-design-system@5.8.0":
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-app-design-system/-/io-app-design-system-5.8.0.tgz#a4f22c78cb556e12e2d96c4ee0445f294b373204"
@@ -2044,6 +2077,34 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-secure-storage/-/io-react-native-secure-storage-0.2.0.tgz#386982f350fcefa7bf8dc56e26ff390a9c94db03"
   integrity sha512-nPdYOKa9DAMtmPanIOwyKzOJ6JpBINfLgOp3wzVT7pCOJPRo0FYHBwyt0nxrKufE42rz9z9Sh8K7Y0faB0kuMw==
+
+"@pagopa/io-wallet-oid-federation@1.0.0-alpha-20260213125806":
+  version "1.0.0-alpha-20260213125806"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.0.0-alpha-20260213125806.tgz#afcb7fda8e8df644894ae9ae2f2ab40295b7cfaf"
+  integrity sha512-zI7iZqIBJlUa8wAfrzRH+1EJPUhjFs4Quzm0QfXZxmjo5XxROJi6AeZr7dmxsXF0DBKP+f8ZOXfFwu6r/2u9Yw==
+  dependencies:
+    "@openid-federation/core" "^0.2.1"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-oid4vp@1.0.0-alpha-20260213125806":
+  version "1.0.0-alpha-20260213125806"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.0.0-alpha-20260213125806.tgz#954a895cfa7903c036e3874200abb6c09548083d"
+  integrity sha512-sWYyPaH2L+Gn9azpGZHFhvBbyLy3pWurtfjkFBfyxKIWz9ZfwofZz0/vCZyE4F+VnO6FmGDy0qTJXqx7CHCdXw==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/openid4vp" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-oid-federation" "1.0.0-alpha-20260213125806"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260213125806"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-utils@1.0.0-alpha-20260213125806":
+  version "1.0.0-alpha-20260213125806"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.0.0-alpha-20260213125806.tgz#e0789bbc375677deb98c12a819c1a5f2da8f72cc"
+  integrity sha512-eI0Cba7dOOwDWyZRh6br2rny76zwWuPmJYhPwUPsA12IP69rMSZlBNNiY5kM79JS5JZn0IY2jG/jhEZwFXUfdQ==
+  dependencies:
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
 
 "@react-native-async-storage/async-storage@^2.1.2":
   version "2.1.2"
@@ -7229,7 +7290,7 @@ zod@^3.22.4:
   resolved "https://registry.npmjs.org/zod/-/zod-3.23.8.tgz"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
 
-zod@^3.24.4, zod@^3.25.67:
+zod@^3.23.8, zod@^3.24.2, zod@^3.24.4, zod@^3.25.67:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==

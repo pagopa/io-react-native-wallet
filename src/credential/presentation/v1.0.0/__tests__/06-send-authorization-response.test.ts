@@ -7,7 +7,7 @@ import {
   buildDirectPostJwtBody,
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
-} from "../07-send-authorization-response";
+} from "../06-send-authorization-response";
 import type { RemotePresentationDetails, RequestObject } from "../../api/types";
 import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 
@@ -36,6 +36,8 @@ const mockRequestObject: RequestObject = {
   nonce: "mock_nonce",
   response_uri: "https://mock.rp/response",
   state: "mock_state",
+  response_mode: "direct_post.jwt",
+  response_type: "vp_token",
   dcql_query: {
     credentials: [
       {
