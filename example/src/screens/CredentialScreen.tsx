@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   selectCredential,
@@ -254,26 +255,29 @@ export const CredentialScreen = () => {
   );
 
   return (
-    <FlatList
-      contentContainerStyle={{
-        margin: IOVisualCostants.appMarginDefault,
-      }}
-      data={scenarios}
-      keyExtractor={(item, index) => `${item.title}-${index}`}
-      renderItem={({ item }) => (
-        <>
-          <TestScenario
-            onPress={item.onPress}
-            title={item.title}
-            isLoading={item.isLoading}
-            hasError={item.hasError}
-            isDone={item.isDone}
-            icon={item.icon}
-            isPresent={item.isPresent}
-          />
-          <VSpacer />
-        </>
-      )}
-    />
+    <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
+      <FlatList
+        contentContainerStyle={{
+          margin: IOVisualCostants.appMarginDefault,
+        }}
+        data={scenarios}
+        keyExtractor={(item, index) => `${item.title}-${index}`}
+        ListFooterComponent={<VSpacer size={32} />}
+        renderItem={({ item }) => (
+          <>
+            <TestScenario
+              onPress={item.onPress}
+              title={item.title}
+              isLoading={item.isLoading}
+              hasError={item.hasError}
+              isDone={item.isDone}
+              icon={item.icon}
+              isPresent={item.isPresent}
+            />
+            <VSpacer />
+          </>
+        )}
+      />
+    </SafeAreaView>
   );
 };
