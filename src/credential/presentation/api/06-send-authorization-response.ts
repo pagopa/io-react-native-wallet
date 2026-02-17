@@ -36,7 +36,9 @@ export interface SendAuthorizationResponseApi {
    * @param requestObject The request details, including presentation requirements.
    * @param remotePresentations The presentations to send, each with their VP token
    * @param rpConf The Relying Party common configuration
-   * @param context Contains optional custom fetch implementation.
+   * @param params.walletInstanceAttestation Wallet Instance Attestation (WIA) required to derive the `client_id` thumbprint.
+   * @param params.wiaCryptoContext CryptoContext used to sign the Authorization Response JWT with the Wallet Instance key.
+   * @param params.context Contains optional custom fetch implementation.
    * @returns Parsed and validated authorization response from the Relying Party.
    */
   sendAuthorizationResponse(
