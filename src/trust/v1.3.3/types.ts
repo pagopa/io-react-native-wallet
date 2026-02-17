@@ -5,7 +5,7 @@ import {
   itWalletCredentialIssuerMetadataV1_3,
   itWalletAuthorizationServerMetadataV1_3,
   itWalletSolutionEntityMetadataV1_3,
-  itWalletCredentialVerifierMetadataV1_3
+  itWalletCredentialVerifierMetadataV1_3,
 } from "@pagopa/io-wallet-oid-federation";
 
 // Entity configuration for a Credential Issuer
@@ -19,10 +19,9 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
       metadata: z.object({
         openid_credential_issuer: itWalletCredentialIssuerMetadataV1_3,
         oauth_authorization_server: itWalletAuthorizationServerMetadataV1_3,
-        openid_credential_verifier: itWalletCredentialVerifierMetadataV1_3.optional(),
-
+        openid_credential_verifier:
+          itWalletCredentialVerifierMetadataV1_3.optional(),
       }),
-      
     }),
   })
 );
@@ -49,7 +48,7 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
   z.object({
     payload: z.object({
       metadata: z.object({
-        wallet_solution: itWalletSolutionEntityMetadataV1_3
+        wallet_solution: itWalletSolutionEntityMetadataV1_3,
       }),
     }),
   })

@@ -100,7 +100,13 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     return processRefusedPresentation(wallet, requestObject);
   }
 
-  return processPresentation(wallet, requestObject, rpConf, credentialsSdJwt, walletInstanceAttestation);
+  return processPresentation(
+    wallet,
+    requestObject,
+    rpConf,
+    credentialsSdJwt,
+    walletInstanceAttestation
+  );
 });
 
 // DCQL flow

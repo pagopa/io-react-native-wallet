@@ -1,5 +1,8 @@
 import type z from "zod";
-import { type FetchOptions, getSignedEntityConfiguration } from "../common/utils";
+import {
+  type FetchOptions,
+  getSignedEntityConfiguration,
+} from "../common/utils";
 import { EntityConfiguration, RelyingPartyEntityConfiguration } from "./types";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 

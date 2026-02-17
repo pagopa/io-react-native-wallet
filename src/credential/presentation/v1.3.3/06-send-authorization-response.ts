@@ -10,8 +10,7 @@ import * as WalletInstanceAttestation from "../../../wallet-instance-attestation
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
   async (requestObject, remotePresentations, rpConf, params) => {
-    const { walletInstanceAttestation, wiaCryptoContext, context } =
-      params;
+    const { walletInstanceAttestation, wiaCryptoContext, context } = params;
     const appFetch = context?.appFetch ?? fetch;
 
     assertRequestObjectV1_3(requestObject);

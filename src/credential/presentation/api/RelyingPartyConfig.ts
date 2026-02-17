@@ -26,7 +26,10 @@ export const RelyingPartyConfig = z.object({
   client_name: z.string().optional(),
   request_uris: z.array(z.string().url()).optional(),
   // 1.3-only fields
-  encrypted_response_enc_values_supported: z.array(z.string()).min(1).optional(),
+  encrypted_response_enc_values_supported: z
+    .array(z.string())
+    .min(1)
+    .optional(),
   erasure_endpoint: z.string().url().optional(),
   response_uris: z.array(z.string().url()).optional(),
   vp_formats_supported: z
@@ -38,7 +41,7 @@ export const RelyingPartyConfig = z.object({
         issuerauth_alg_values: z.array(z.number()).optional(),
         "kb-jwt_alg_values": z.array(z.string()).optional(),
         "sd-jwt_alg_values": z.array(z.string()).optional(),
-      }),
+      })
     )
     .optional(),
 });

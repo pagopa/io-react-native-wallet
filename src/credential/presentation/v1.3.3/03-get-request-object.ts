@@ -7,7 +7,6 @@ export const getRequestObject: RemotePresentationApi["getRequestObject"] =
     authorizationRequestUrl,
     { appFetch = fetch, walletCapabilities } = {}
   ) => {
-    
     const walletParams = walletCapabilities
       ? (() => {
           const { wallet_metadata, wallet_nonce } =

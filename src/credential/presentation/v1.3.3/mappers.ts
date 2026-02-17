@@ -41,5 +41,5 @@ export const mapToRequestObject = createMapper<
   response_uri: x.response_uri,
   state: x.state,
   response_mode: x.response_mode,
-  response_type: x.response_type
+  response_type: x.response_type,
 }));

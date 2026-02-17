@@ -44,7 +44,7 @@ export interface SendAuthorizationResponseApi {
     remotePresentations: RemotePresentationDetails[],
     rpConf: RelyingPartyConfig,
     params: {
-      walletInstanceAttestation?: string,
+      walletInstanceAttestation?: string;
       wiaCryptoContext?: CryptoContext;
       context?: FetchContext;
     }
