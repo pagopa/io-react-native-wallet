@@ -3,6 +3,7 @@ import { createTokenDPoP } from "@pagopa/io-wallet-oauth2";
 import {
   fetchCredentialResponse,
   createCredentialRequest,
+  type CredentialRequestOptionsV1_3,
 } from "@pagopa/io-wallet-oid4vci";
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
 import { hasStatusOrThrow } from "../../../utils/misc";
@@ -87,7 +88,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   const signerJwk = await credentialCryptoContext.getPublicKey();
 
   const credentialRequest = await createCredentialRequest({
-    config: sdkConfigV1_3,
+    config: sdkConfigV1_3 as CredentialRequestOptionsV1_3["config"],
     callbacks: {
       signJwt: async (_, payload) => ({
         jwt: await new SignJWT(credentialCryptoContext)
