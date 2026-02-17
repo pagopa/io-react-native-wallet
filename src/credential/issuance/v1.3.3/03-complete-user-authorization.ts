@@ -5,7 +5,10 @@ import {
 } from "../../../utils/auth";
 import parseUrl from "parse-url";
 import type { DcqlQuery } from "dcql";
-import { fetchAuthorizationRequest } from "@pagopa/io-wallet-oid4vp";
+import {
+  fetchAuthorizationRequest,
+  parseAuthorizeRequest,
+} from "@pagopa/io-wallet-oid4vp";
 import { sendAuthorizationResponseAndExtractCode } from "@pagopa/io-wallet-oid4vci";
 import { parseMrtdChallenge } from "@pagopa/io-wallet-oauth2";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
@@ -14,6 +17,7 @@ import { LogLevel, Logger } from "../../../utils/logging";
 import { RemotePresentation } from "../../presentation/v1.0.0"; // TODO: import from presentation v1.3.3
 import { type RemotePresentationDetails } from "../../presentation/api/types";
 import { partialCallbacks } from "../../../utils/callbacks";
+import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
 import type { IssuanceApi } from "../api";
 import { mapToRequestObject } from "./mappers";
 
@@ -86,16 +90,19 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
       `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`
     );
 
-    // TODO: catch and throw IssuerResponseError
-    const authResponse = await fetchAuthorizationRequest({
+    const authRequest = await fetchAuthorizationRequest({
       authorizeRequestUrl: `${authzRequestEndpoint}?${params.toString()}`,
       callbacks: {
-        ...partialCallbacks,
         fetch: appFetch,
       },
+    }).catch(sdkUnexpectedStatusCodeToIssuerError);
+
+    const parsedAuthRequest = await parseAuthorizeRequest({
+      requestObjectJwt: authRequest.requestObjectJwt,
+      callbacks: partialCallbacks,
     });
 
-    return mapToRequestObject(authResponse.parsedAuthorizeRequest);
+    return mapToRequestObject(parsedAuthRequest);
   };
 
 export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
