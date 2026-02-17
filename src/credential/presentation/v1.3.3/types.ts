@@ -1,12 +1,6 @@
 import * as z from "zod";
 import { UnixTime } from "../../../utils/zod";
-import { InvalidRequestObjectError } from "../common/errors";
-import type { RelyingPartyConfig } from "../api";
 import { jsonWebKeySchema } from "@openid-federation/core";
-import {
-  itWalletCredentialVerifierMetadataV1_3,
-  type ItWalletCredentialVerifierMetadataV1_3,
-} from "@pagopa/io-wallet-oid-federation";
 
 export type ClientMetadata = z.infer<typeof ClientMetadata>;
 export const ClientMetadata = z.object({
@@ -47,24 +41,3 @@ export const RequestObjectPayload = z.object({
   dcql_query: z.record(z.string(), z.any()), // Validation happens within the `dcql` library, no need to duplicate it here
   scope: z.string().optional(),
 });
-
-export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
-export const AuthorizationResponse = z.object({
-  status: z.string().optional(),
-  response_code: z.string().optional(),
-  redirect_uri: z.string().optional(),
-});
-
-export function assertRpMetadataV1_3(
-  rpConf: RelyingPartyConfig
-): ItWalletCredentialVerifierMetadataV1_3 {
-  const res = itWalletCredentialVerifierMetadataV1_3.safeParse(rpConf);
-
-  if (!res.success) {
-    throw new InvalidRequestObjectError(
-      "Relying Party configuration is not compatible with ITW 1.3.3"
-    );
-  }
-
-  return res.data;
-}

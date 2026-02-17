@@ -51,10 +51,12 @@ const mockRequestObject: RequestObject = {
 
 const mockRpConf: RelyingPartyConfig = {
   subject: "mock_client_id",
-  keys: [
-    { kid: "rsa-key-1", use: "enc", kty: "RSA" },
-    { kid: "something-else", use: "sig", kty: "EC" },
-  ],
+  jwks: {
+    keys: [
+      { kid: "rsa-key-1", use: "enc", kty: "RSA" },
+      { kid: "something-else", use: "sig", kty: "EC" },
+    ],
+  },
 };
 
 describe("buildDirectPostBody", () => {
@@ -109,7 +111,7 @@ describe("sendAuthorizationResponse", () => {
       mockRequestObject,
       remotePresentations,
       mockRpConf,
-      { appFetch: mockFetch }
+      { context: { appFetch: mockFetch } }
     );
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -138,7 +140,7 @@ describe("sendAuthorizationResponse", () => {
           mockRequestObject,
           remotePresentations,
           mockRpConf,
-          { appFetch: mockFetch }
+          { context: { appFetch: mockFetch } }
         );
       } catch (error) {
         expect(error).toBeInstanceOf(RelyingPartyResponseError);

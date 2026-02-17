@@ -4,9 +4,9 @@ import {
 } from "@pagopa/io-wallet-oid4vp";
 import type { RemotePresentationApi } from "../api";
 import { partialCallbacks } from "src/utils/callbacks";
-import { assertRpMetadataV1_3 } from "./types";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
+import { assertRpMetadataV1_3 } from "./utils";
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
   async (requestObject, remotePresentations, rpConf, params) => {

@@ -12,16 +12,18 @@ const requestObjectJwt =
 
 const mockRp = {
   subject: CLIENT_ID,
-  keys: [
-    {
-      kid: "e46a4bf8-a84a-47d6-bf8e-ab0a40ff2d4b",
-      kty: "RSA",
-      n: "ngbUsmZnMmNw-A1YzhiHOTJiFijHvH38xUamRrcbYKk3TCepRE1JL3cXNoLOBvxGy5pPLT6qo8n_Rw3TmcTaxxXsW1GSmCf90P_pj36kyOffILFNG8bqYt6LO2O74RAJIKy7szDrLZGg5iRjKlKwDjmzn3CfBM4pbam_Gzlj3YZ42DoKHZqRROe7kUVlPU0ro8rtLnBhp8Qotd8CbtVn4tRtfIR4FJBgz_isAhVvJ9rL-2dEQmqiOd-Wk2kpY_3BJd3LVqIi8BTx6EysgZoba1DyWpCDg_0UFjaqh8iWayB0IJQbtIv2mX5Pa0bLjWjW2wuDlqkh4xp1_4fyn1wt7w",
-      e: "AQAB",
-      alg: "RS256",
-      use: "sig",
-    },
-  ],
+  jwks: {
+    keys: [
+      {
+        kid: "e46a4bf8-a84a-47d6-bf8e-ab0a40ff2d4b",
+        kty: "RSA",
+        n: "ngbUsmZnMmNw-A1YzhiHOTJiFijHvH38xUamRrcbYKk3TCepRE1JL3cXNoLOBvxGy5pPLT6qo8n_Rw3TmcTaxxXsW1GSmCf90P_pj36kyOffILFNG8bqYt6LO2O74RAJIKy7szDrLZGg5iRjKlKwDjmzn3CfBM4pbam_Gzlj3YZ42DoKHZqRROe7kUVlPU0ro8rtLnBhp8Qotd8CbtVn4tRtfIR4FJBgz_isAhVvJ9rL-2dEQmqiOd-Wk2kpY_3BJd3LVqIi8BTx6EysgZoba1DyWpCDg_0UFjaqh8iWayB0IJQbtIv2mX5Pa0bLjWjW2wuDlqkh4xp1_4fyn1wt7w",
+        e: "AQAB",
+        alg: "RS256",
+        use: "sig",
+      },
+    ],
+  },
 } as RelyingPartyConfig;
 
 describe("verifyRequestObject", () => {
@@ -30,7 +32,9 @@ describe("verifyRequestObject", () => {
       verifyRequestObject(requestObjectJwt, {
         rpConf: {
           subject: CLIENT_ID,
-          keys: [{ kid: "no_key" }],
+          jwks: {
+            keys: [{ kid: "no_key" }],
+          },
         } as RelyingPartyConfig,
         clientId: CLIENT_ID,
       })
@@ -110,10 +114,13 @@ describe("verifyRequestObject", () => {
       nonce: "123",
       response_uri: "https://relying_party.rp/response_uri",
       dcql_query: {},
+      response_mode: "direct_post.jwt",
+      response_type: "vp_token",
     };
     expect(
       await verifyRequestObject(requestObjectJwt, {
         rpConf: mockRp,
+        state: "abc",
         clientId: CLIENT_ID,
       })
     ).toEqual({ requestObject: expected });
