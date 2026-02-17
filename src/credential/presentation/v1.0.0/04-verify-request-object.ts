@@ -35,8 +35,7 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       );
     }
 
-    const isStateMatch =
-      state && requestObject.state ? state === requestObject.state : true;
+    const isStateMatch = state ? state === requestObject.state : true;
 
     if (!isStateMatch) {
       throw new InvalidRequestObjectError(

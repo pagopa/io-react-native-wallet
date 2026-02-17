@@ -73,15 +73,11 @@ export type RequestObject = {
   iss: string;
   response_uri: string;
   nonce: string;
-  state?: string;
+  state: string;
   client_id: string;
   dcql_query: Record<string, unknown>;
   response_type: "vp_token";
   response_mode: "direct_post.jwt";
-};
-
-export type RequestObjectV1_3 = Omit<RequestObject, "state"> & {
-  state: string;
 };
 
 export type GetRequestObjectOutput = z.infer<typeof GetRequestObjectOutput>;

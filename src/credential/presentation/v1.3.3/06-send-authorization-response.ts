@@ -4,7 +4,7 @@ import {
 } from "@pagopa/io-wallet-oid4vp";
 import type { RemotePresentationApi } from "../api";
 import { partialCallbacks } from "src/utils/callbacks";
-import { assertRequestObjectV1_3, assertRpMetadataV1_3 } from "./types";
+import { assertRpMetadataV1_3 } from "./types";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
 
@@ -13,7 +13,6 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
     const { walletInstanceAttestation, wiaCryptoContext, context } = params;
     const appFetch = context?.appFetch ?? fetch;
 
-    assertRequestObjectV1_3(requestObject);
     const rpMetadata = assertRpMetadataV1_3(rpConf);
 
     if (!walletInstanceAttestation) {

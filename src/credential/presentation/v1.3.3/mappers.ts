@@ -1,7 +1,7 @@
 import { RelyingPartyEntityConfiguration } from "../../../trust/v1.3.3/types";
 import { createMapper } from "../../../utils/mappers";
 import type { RelyingPartyConfig } from "../api/RelyingPartyConfig";
-import type { RequestObjectV1_3 } from "../api/types";
+import type { RequestObject } from "../api/types";
 import { RequestObjectPayload } from "./types";
 
 export const mapToRelyingPartyConfig = createMapper<
@@ -32,7 +32,7 @@ export const mapToRelyingPartyConfig = createMapper<
 
 export const mapToRequestObject = createMapper<
   RequestObjectPayload,
-  RequestObjectV1_3
+  RequestObject
 >((x) => ({
   iss: x.iss,
   client_id: x.client_id,

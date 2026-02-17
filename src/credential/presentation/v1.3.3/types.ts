@@ -1,8 +1,8 @@
 import * as z from "zod";
 import { UnixTime } from "../../../utils/zod";
-import { type RequestObject, type RequestObjectV1_3 } from "../api/types";
 import { InvalidRequestObjectError } from "../common/errors";
 import type { RelyingPartyConfig } from "../api";
+import { jsonWebKeySchema } from "@openid-federation/core";
 import {
   itWalletCredentialVerifierMetadataV1_3,
   type ItWalletCredentialVerifierMetadataV1_3,
@@ -13,7 +13,7 @@ export const ClientMetadata = z.object({
   vp_formats_supported: z.string(),
   encrypted_response_enc_values_supported: z.array(z.string()),
   jwks: z.object({
-    keys: z.array(z.any()),
+    keys: z.array(jsonWebKeySchema),
   }),
   client_name: z.string().optional(),
   logo_uri: z.string().optional(),
@@ -54,16 +54,6 @@ export const AuthorizationResponse = z.object({
   response_code: z.string().optional(),
   redirect_uri: z.string().optional(),
 });
-
-export function assertRequestObjectV1_3(
-  requestObject: RequestObject
-): asserts requestObject is RequestObjectV1_3 {
-  if (!requestObject.state) {
-    throw new InvalidRequestObjectError(
-      "Missing state in request object (required for ITW 1.3)"
-    );
-  }
-}
 
 export function assertRpMetadataV1_3(
   rpConf: RelyingPartyConfig
