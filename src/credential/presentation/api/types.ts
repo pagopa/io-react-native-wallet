@@ -11,8 +11,11 @@ export const PresentationParams = z.object({
 
 export type WalletMetadata = z.infer<typeof WalletMetadata>;
 export const WalletMetadata = z.object({
-  presentation_definition_uri_supported: z.boolean().optional(),
+  authorization_endpoint: z.string().url(),
   client_id_schemes_supported: z.array(z.string()).optional(),
+  client_id_prefixes_supported: z.array(z.string()).optional(),
+  response_types_supported: z.array(z.string()).optional(),
+  response_modes_supported: z.array(z.string()).optional(),
   request_object_signing_alg_values_supported: z.array(z.string()).optional(),
   vp_formats_supported: z.record(
     z.string(),
