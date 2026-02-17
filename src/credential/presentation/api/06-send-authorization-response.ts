@@ -6,7 +6,6 @@ import type {
   RequestObject,
 } from "./types";
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
-import type { ItWalletCredentialVerifierMetadataV1_3 } from "@pagopa/io-wallet-oid-federation";
 type FetchContext = { appFetch?: GlobalFetch["fetch"] };
 
 export interface SendAuthorizationResponseApi {
@@ -43,9 +42,8 @@ export interface SendAuthorizationResponseApi {
   sendAuthorizationResponse(
     requestObject: RequestObject,
     remotePresentations: RemotePresentationDetails[],
+    rpConf: RelyingPartyConfig,
     params: {
-      rpConf?: RelyingPartyConfig;
-      rpMetadata?: ItWalletCredentialVerifierMetadataV1_3;
       walletInstanceAttestation?: string,
       wiaCryptoContext?: CryptoContext;
       context?: FetchContext;

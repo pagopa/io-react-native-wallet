@@ -16,7 +16,6 @@ import { isDefined } from "../utils/misc";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { selectItwVersion } from "../store/reducers/environment";
-import type { ItWalletCredentialVerifierMetadataV1_3 } from "@pagopa/io-wallet-oid-federation";
 
 type DcqlQuery = Parameters<
   RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
@@ -61,7 +60,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       | "post",
   });
 
-  const { rpConf, rpMetadata } = await wallet.RemotePresentation.evaluateRelyingPartyTrust(
+  const { rpConf } = await wallet.RemotePresentation.evaluateRelyingPartyTrust(
     qrParams.client_id
   );
 
@@ -101,7 +100,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     return processRefusedPresentation(wallet, requestObject);
   }
 
-  return processPresentation(wallet, requestObject, rpConf, credentialsSdJwt, walletInstanceAttestation, rpMetadata);
+  return processPresentation(wallet, requestObject, rpConf, credentialsSdJwt, walletInstanceAttestation);
 });
 
 // DCQL flow
@@ -110,8 +109,7 @@ const processPresentation = async (
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig,
   credentialsSdJwt: [CryptoContext, string][],
-  walletInstanceAttestation: string,
-  rpMetadata?: ItWalletCredentialVerifierMetadataV1_3,
+  walletInstanceAttestation: string
 ) => {
   const result = wallet.RemotePresentation.evaluateDcqlQuery(
     credentialsSdJwt,
@@ -137,7 +135,8 @@ const processPresentation = async (
     await wallet.RemotePresentation.sendAuthorizationResponse(
       requestObject,
       remotePresentations,
-      { rpConf, rpMetadata, walletInstanceAttestation, wiaCryptoContext }
+      rpConf,
+      { walletInstanceAttestation, wiaCryptoContext }
     );
 
   return {

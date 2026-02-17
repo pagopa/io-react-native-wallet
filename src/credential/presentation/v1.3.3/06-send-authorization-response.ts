@@ -4,23 +4,18 @@ import {
 } from "@pagopa/io-wallet-oid4vp";
 import type { RemotePresentationApi } from "../api";
 import { partialCallbacks } from "src/utils/callbacks";
-import { assertRequestObjectV1_3 } from "./types";
+import { assertRequestObjectV1_3, assertRpMetadataV1_3 } from "./types";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
-  async (requestObject, remotePresentations, params) => {
-    const { rpMetadata, walletInstanceAttestation, wiaCryptoContext, context } =
+  async (requestObject, remotePresentations, rpConf, params) => {
+    const { walletInstanceAttestation, wiaCryptoContext, context } =
       params;
     const appFetch = context?.appFetch ?? fetch;
 
     assertRequestObjectV1_3(requestObject);
-
-    if (!rpMetadata) {
-      throw new Error(
-        "Relying Party metadata is required to send the authorization response"
-      );
-    }
+    const rpMetadata = assertRpMetadataV1_3(rpConf);
 
     if (!walletInstanceAttestation) {
       throw new Error(
@@ -51,7 +46,7 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
 
     const { jarm } = await createAuthorizationResponse({
       requestObject,
-      rpMetadata,
+      rpMetadata: rpMetadata,
       client_id: wiaThumbprint,
       vp_token,
       callbacks: {

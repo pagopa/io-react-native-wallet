@@ -131,15 +131,9 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
   };
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
-  async (requestObject, remotePresentations, params) => {
-    const { rpConf, context } = params;
+  async (requestObject, remotePresentations, rpConf, params) => {
+    const { context } = params;
     const appFetch = context?.appFetch ?? fetch;
-
-    if (!rpConf) {
-      throw new Error(
-        "Relying Party configuration is required to send the authorization response"
-      );
-    }
 
     // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
     const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {

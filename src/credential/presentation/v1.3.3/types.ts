@@ -2,6 +2,11 @@ import * as z from "zod";
 import { UnixTime } from "../../../utils/zod";
 import { type RequestObject, type RequestObjectV1_3 } from "../api/types";
 import { InvalidRequestObjectError } from "../common/errors";
+import type { RelyingPartyConfig } from "../api";
+import {
+  itWalletCredentialVerifierMetadataV1_3,
+  type ItWalletCredentialVerifierMetadataV1_3,
+} from "@pagopa/io-wallet-oid-federation";
 
 export type ClientMetadata = z.infer<typeof ClientMetadata>;
 export const ClientMetadata = z.object({
@@ -58,4 +63,18 @@ export function assertRequestObjectV1_3(
       "Missing state in request object (required for ITW 1.3)"
     );
   }
+}
+
+export function assertRpMetadataV1_3(
+  rpConf: RelyingPartyConfig
+): ItWalletCredentialVerifierMetadataV1_3 {
+  const res = itWalletCredentialVerifierMetadataV1_3.safeParse(rpConf);
+
+  if (!res.success) {
+    throw new InvalidRequestObjectError(
+      "Relying Party configuration is not compatible with ITW 1.3.3"
+    );
+  }
+
+  return res.data;
 }

@@ -11,7 +11,7 @@ export const mapToRelyingPartyConfig = createMapper<
   const { federation_entity, openid_credential_verifier } = x.payload.metadata;
   return {
     subject: x.payload.sub,
-    keys: openid_credential_verifier.jwks.keys,
+    jwks: openid_credential_verifier.jwks,
     organization_name: federation_entity.organization_name,
     logo_uri: federation_entity.logo_uri,
     policy_uri: federation_entity.policy_uri,
@@ -34,4 +34,6 @@ export const mapToRequestObject = createMapper<
   nonce: x.nonce,
   response_uri: x.response_uri,
   state: x.state,
+  response_mode: x.response_mode,
+  response_type: x.response_type,
 }));

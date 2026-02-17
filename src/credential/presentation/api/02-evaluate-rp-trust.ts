@@ -1,5 +1,4 @@
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
-import type { ItWalletCredentialVerifierMetadataV1_3 } from "@pagopa/io-wallet-oid-federation";
 
 export interface EvaluateRelyingPartyTrustApi {
   /**
@@ -16,6 +15,5 @@ export interface EvaluateRelyingPartyTrustApi {
     ctx?: { appFetch?: GlobalFetch["fetch"] }
   ): Promise<{
     rpConf: RelyingPartyConfig;
-    rpMetadata?: ItWalletCredentialVerifierMetadataV1_3;
   }>;
 }
