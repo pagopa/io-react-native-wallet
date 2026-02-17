@@ -100,7 +100,7 @@ describe("verifyAndParseCredential", () => {
           name: { "it-IT": "Codice fiscale", "en-US": "Tax ID code" },
         },
       },
-      expiration: new Date(2099, 12, 31),
+      expiration: new Date(4105033200000),
       issuedAt: new Date(1771322628000),
     });
   });
