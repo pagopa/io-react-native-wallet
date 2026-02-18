@@ -132,10 +132,6 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
 
-    if (!requestObject.dcql_query) {
-      throw new Error("Invalid request object");
-    }
-
     const dcqlQueryResult = RemotePresentation.evaluateDcqlQuery(
       [[pidCryptoContext, pid]],
       requestObject.dcql_query as DcqlQuery
