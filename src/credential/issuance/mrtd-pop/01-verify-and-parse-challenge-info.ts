@@ -1,10 +1,6 @@
-import {
-  decode as decodeJwt,
-  getJwkFromHeader,
-} from "@pagopa/io-react-native-jwt";
 import { verifyMrtdChallenge } from "@pagopa/io-wallet-oauth2";
 import { IoWalletError } from "../../../utils/errors";
-import { partialCallbacks } from "../../../utils/callbacks";
+import { createVerifyJwtFromJwks } from "../../../utils/callbacks";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 
 export const verifyAndParseChallengeInfo: MRTDPoPApi["verifyAndParseChallengeInfo"] =
@@ -17,19 +13,13 @@ export const verifyAndParseChallengeInfo: MRTDPoPApi["verifyAndParseChallengeInf
       );
     }
 
-    const { protectedHeader } = decodeJwt(challengeInfoJwt);
-    const signerJwk = getJwkFromHeader(protectedHeader, issuerConf.keys);
-
     const verified = await verifyMrtdChallenge({
       challengeJwt: challengeInfoJwt,
       clientId,
-      callbacks: partialCallbacks,
-      signer: {
-        alg: "ES256",
-        method: "jwk",
-        publicJwk: signerJwk,
+      callbacks: {
+        verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
       },
     });
-    console.log(verified)
+
     return verified.payload;
   };

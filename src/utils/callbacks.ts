@@ -1,9 +1,11 @@
-import { EncryptJwe } from "@pagopa/io-react-native-jwt";
+import { EncryptJwe, getJwkFromHeader } from "@pagopa/io-react-native-jwt";
 import { verify } from "@pagopa/io-react-native-jwt";
 import { type CallbackContext } from "@pagopa/io-wallet-oauth2";
 import { digest } from "@sd-jwt/crypto-nodejs";
 import { X509 } from "jsrsasign";
+import { IoWalletError } from "./errors";
 import { generateRandomBytes } from "./misc";
+import type { JWK } from "./jwk";
 
 type PartialCallbackContext = Omit<
   CallbackContext,
@@ -26,7 +28,7 @@ export const partialCallbacks: PartialCallbackContext = {
   verifyJwt: async (jwtSigner, jwt) => {
     // TODO: support other signing methods if needed
     if (jwtSigner.method !== "jwk") {
-      throw new Error(`Unsupported signer method: ${jwtSigner.method}`);
+      throw new IoWalletError(`Unsupported signer method: ${jwtSigner.method}`);
     }
     try {
       await verify(jwt.compact, jwtSigner.publicJwk);
@@ -36,7 +38,7 @@ export const partialCallbacks: PartialCallbackContext = {
     }
   },
   decryptJwe: () => {
-    throw new Error("decryptJwe is not implemented");
+    throw new IoWalletError("decryptJwe is not implemented");
   },
   getX509CertificateMetadata: (certificate) => {
     const x509 = new X509();
@@ -54,4 +56,29 @@ export const partialCallbacks: PartialCallbackContext = {
 
     return { sanDnsNames, sanUriNames };
   },
+};
+
+type JWSHeader = Parameters<typeof getJwkFromHeader>[0];
+
+/**
+ * Create a verifyJwt implementation that extracts the JWK for signature verification
+ * from a list of keys, matching the `kid` in the JWT header.
+ *
+ * This function does not support other `JwtSigner` methods.
+ *
+ * @param jwks The list of available keys
+ * @returns Function that implements `verifyJwt` callback
+ */
+export const createVerifyJwtFromJwks = (
+  jwks: JWK[]
+): CallbackContext["verifyJwt"] => {
+  return async function verifyJwt(_, jwt) {
+    try {
+      const signerJwk = getJwkFromHeader(jwt.header as JWSHeader, jwks);
+      await verify(jwt.compact, signerJwk);
+      return { verified: true, signerJwk };
+    } catch {
+      return { verified: false };
+    }
+  };
 };

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { fetchMrtdPopInit } from "@pagopa/io-wallet-oauth2";
+import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
 import { createPopToken } from "../../../utils/pop";
 import { Logger, LogLevel } from "../../../utils/logging";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from version 1.0.0
@@ -7,10 +8,9 @@ import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
-  UnexpectedStatusCodeError,
 } from "../../../utils/errors";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
-import { partialCallbacks } from "../../../utils/callbacks";
+import { createVerifyJwtFromJwks } from "../../../utils/callbacks";
 
 export const initChallenge: MRTDPoPApi["initChallenge"] = async (
   issuerConf,
@@ -44,15 +44,10 @@ export const initChallenge: MRTDPoPApi["initChallenge"] = async (
     walletAttestation: walletInstanceAttestation,
     clientAttestationDPoP: signedWiaPoP,
     callbacks: {
-      ...partialCallbacks,
+      verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
       fetch: appFetch,
     },
-    signer: {
-      alg: "ES256",
-      method: "jwk",
-      publicJwk: issuerConf.keys[0]!, // TODO: get the key properly
-    },
-  });
+  }).catch(handleInitChallengeError);
 
   return {
     challenge: initResult.challenge,
@@ -65,7 +60,7 @@ export const initChallenge: MRTDPoPApi["initChallenge"] = async (
 const handleInitChallengeError = (e: unknown) => {
   Logger.log(LogLevel.ERROR, `Failed to get MRTD challenge: ${e}`);
 
-  if (!(e instanceof UnexpectedStatusCodeError)) {
+  if (!(e instanceof SdkUnexpectedStatusCodeError)) {
     throw e;
   }
 
