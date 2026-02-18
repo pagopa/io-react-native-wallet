@@ -1,3 +1,4 @@
+import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
 import type { ProblemDetail } from "../client/generated/wallet-provider";
 import {
   type IssuerResponseErrorCode,
@@ -344,3 +345,24 @@ export class UnimplementedFeatureError extends IoWalletError {
     super(`Missing v${version} compatible implementation for ${feature}`);
   }
 }
+
+/**
+ * Map `UnexpectedStatusCodeError` thrown from IO Wallet SDK to `IssuerResponseError`.
+ * Use this function in catch blocks.
+ * @param err The original error
+ * @throws Generic {@link IssuerResponseError}
+ * @throws The original error if it doesn't match
+ * @example
+ * await fetchAuthorizationRequest().catch(sdkUnexpectedStatusCodeToIssuerError)
+ */
+export const sdkUnexpectedStatusCodeToIssuerError = (err: unknown) => {
+  if (err instanceof SdkUnexpectedStatusCodeError) {
+    throw new IssuerResponseError({
+      code: IssuerResponseErrorCodes.IssuerGenericError,
+      message: err.message,
+      reason: err.reason,
+      statusCode: err.statusCode,
+    });
+  }
+  throw err;
+};

@@ -83,6 +83,7 @@ export const getCredential = async ({
   const { code } =
     await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
       requestObject,
+      issuerConf,
       pid.credential,
       { wiaCryptoContext, pidCryptoContext: createCryptoContextFor(pid.keyTag) }
     );

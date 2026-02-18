@@ -59,6 +59,7 @@ export interface CompleteUserAuthorizationApi {
    */
   completeUserAuthorizationWithFormPostJwtMode(
     requestObject: RequestObject,
+    issuerConf: IssuerConfig,
     pid: string,
     context: {
       wiaCryptoContext: CryptoContext;
