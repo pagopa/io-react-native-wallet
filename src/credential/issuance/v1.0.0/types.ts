@@ -22,8 +22,6 @@ export const ResponseUriResultShape = z.object({
   redirect_uri: z.string(),
 });
 
-export type ResponseMode = "query" | "form_post.jwt";
-
 export type NonceResponse = z.infer<typeof NonceResponse>;
 export const NonceResponse = z.object({
   c_nonce: z.string(),
