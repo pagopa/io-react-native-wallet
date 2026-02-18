@@ -1,7 +1,7 @@
 import type { RemotePresentationApi } from "../api";
 import { RequestObjectWalletCapabilities } from "../api/types";
 import { fetchAuthorizationRequest as sdkFetchAuthorizationRequest } from "@pagopa/io-wallet-oid4vp";
-import { mapSdkFetchAuthRequestError } from "./errors";
+import { mapSdkFetchAuthRequestError } from "./sdkErrorMapper";
 
 export const getRequestObject: RemotePresentationApi["getRequestObject"] =
   async (

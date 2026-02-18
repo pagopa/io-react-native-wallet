@@ -2,7 +2,7 @@ import type { RemotePresentationApi } from "../api";
 import { parseAuthorizeRequest as sdkParseAuthorizeRequest } from "@pagopa/io-wallet-oid4vp";
 import { partialCallbacks } from "src/utils/callbacks";
 import { mapToRequestObject } from "./mappers";
-import { mapSdkRequestObjectError } from "./errors";
+import { mapSdkRequestObjectError } from "./sdkErrorMapper";
 import { validateWithSchema } from "../common/utils";
 import { RequestObjectPayload } from "./types";
 import { InvalidRequestObjectError } from "../common/errors";

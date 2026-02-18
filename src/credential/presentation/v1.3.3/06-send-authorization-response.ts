@@ -4,7 +4,7 @@ import {
 } from "@pagopa/io-wallet-oid4vp";
 import type { RemotePresentationApi } from "../api";
 import { partialCallbacks } from "../../../../src/utils/callbacks";
-import { mapSdkAuthorizationResponseError } from "./errors";
+import { mapSdkAuthorizationResponseError } from "./sdkErrorMapper";
 import { hasStatusOrThrow } from "../../../../src/utils/misc";
 import { RelyingPartyResponseError } from "../../../../src/utils/errors";
 import { AuthorizationResponse } from "./types";
