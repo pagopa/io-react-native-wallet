@@ -42,6 +42,37 @@ export const serializeAttrs = (
     .join(" ");
 
 /**
+ * Wraps a synchronous function and maps a specific error type to a library error.
+ *
+ * @param fn - The function to execute
+ * @param sourceError - The error class constructor to catch
+ * @param mapError - Function to map the caught error to a library error
+ * @returns The result of the function if it succeeds
+ * @throws The mapped error if sourceError is caught, or the original error otherwise
+ *
+ * @example
+ * const result = withMappedErrors(
+ *   () => sdkExtractGrantDetails(offer),
+ *   CredentialOfferError,
+ *   (e) => new InvalidCredentialOfferError(e.message)
+ * );
+ */
+export const withMappedErrors = <T, E extends Error>(
+  fn: () => T,
+  sourceError: new (...args: any[]) => E,
+  mapError: (error: E) => Error
+): T => {
+  try {
+    return fn();
+  } catch (e) {
+    if (e instanceof sourceError) {
+      throw mapError(e);
+    }
+    throw e;
+  }
+};
+
+/**
  * A generic Error that all other io-wallet specific Error subclasses extend.
  *
  * @example Checking thrown error is a io-wallet one
