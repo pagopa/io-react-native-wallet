@@ -8,7 +8,7 @@ import { RequestObjectPayload } from "./types";
 import { InvalidRequestObjectError } from "../common/errors";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
-  async (requestObjectEncodedJwt) => {
+  async (requestObjectEncodedJwt, { clientId, rpConf }) => {
     const parsedRequestObject = await sdkParseAuthorizeRequest({
       requestObjectJwt: requestObjectEncodedJwt,
       callbacks: {
@@ -22,6 +22,15 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       (message, reason) => new InvalidRequestObjectError(message, reason),
       "The Request Object cannot be parsed successfully"
     );
+
+    const isClientIdMatch =
+    clientId === payload.client_id && clientId === rpConf.subject;
+
+  if (!isClientIdMatch) {
+    throw new InvalidRequestObjectError(
+      "Client ID does not match Request Object or Entity Configuration"
+    );
+  }
 
     return {
       requestObject: mapToRequestObject(payload),
