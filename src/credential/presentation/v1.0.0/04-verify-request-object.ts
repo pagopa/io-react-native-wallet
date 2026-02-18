@@ -28,7 +28,7 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       RequestObjectPayload,
       requestObjectJwt.payload,
       (message, reason) => new InvalidRequestObjectError(message, reason),
-      "The Request Object cannot be parsed successfully",
+      "The Request Object cannot be parsed successfully"
     );
 
     const isClientIdMatch =

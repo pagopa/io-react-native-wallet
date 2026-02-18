@@ -100,12 +100,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     return processRefusedPresentation(wallet, requestObject);
   }
 
-  return processPresentation(
-    wallet,
-    requestObject,
-    rpConf,
-    credentialsSdJwt
-  );
+  return processPresentation(wallet, requestObject, rpConf, credentialsSdJwt);
 });
 
 // DCQL flow
@@ -113,7 +108,7 @@ const processPresentation = async (
   wallet: IoWallet,
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig,
-  credentialsSdJwt: [CryptoContext, string][],
+  credentialsSdJwt: [CryptoContext, string][]
 ) => {
   const result = wallet.RemotePresentation.evaluateDcqlQuery(
     credentialsSdJwt,

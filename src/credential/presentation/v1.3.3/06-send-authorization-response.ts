@@ -9,6 +9,26 @@ import { hasStatusOrThrow } from "../../../../src/utils/misc";
 import { RelyingPartyResponseError } from "../../../../src/utils/errors";
 import { AuthorizationResponse } from "./types";
 import { buildDirectPostBody } from "../common/utils";
+import { prepareVpToken } from "../../../sd-jwt";
+
+export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
+  async (credentials, { nonce, client_id }) => {
+    return Promise.all(
+      credentials.map(async (item) => {
+        const { vp_token } = await prepareVpToken(nonce, client_id, [
+          item.credential,
+          item.requestedClaims,
+          item.cryptoContext,
+        ]);
+
+        return {
+          credentialId: item.id,
+          requestedClaims: item.requestedClaims,
+          vpToken: vp_token,
+        };
+      })
+    );
+  };
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
   async (

@@ -27,7 +27,7 @@ export const mapToRelyingPartyConfig = createMapper<
     erasure_endpoint: openid_credential_verifier.erasure_endpoint,
     request_uris: openid_credential_verifier.request_uris,
     response_uris: openid_credential_verifier.response_uris,
-    vp_formats_supported: openid_credential_verifier.vp_formats
+    vp_formats_supported: openid_credential_verifier.vp_formats,
   };
 });
 

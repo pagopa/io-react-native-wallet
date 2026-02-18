@@ -24,13 +24,13 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
     );
 
     const isClientIdMatch =
-    clientId === payload.client_id && clientId === rpConf.subject;
+      clientId === payload.client_id && clientId === rpConf.subject;
 
-  if (!isClientIdMatch) {
-    throw new InvalidRequestObjectError(
-      "Client ID does not match Request Object or Entity Configuration"
-    );
-  }
+    if (!isClientIdMatch) {
+      throw new InvalidRequestObjectError(
+        "Client ID does not match Request Object or Entity Configuration"
+      );
+    }
 
     return {
       requestObject: mapToRequestObject(payload),
