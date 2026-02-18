@@ -17,17 +17,10 @@ export const mapToRelyingPartyConfig = createMapper<
     policy_uri: federation_entity.policy_uri,
     contacts: federation_entity.contacts,
     homepage_uri: federation_entity.homepage_uri,
-    application_type: openid_credential_verifier.application_type,
-    client_id: openid_credential_verifier.client_id,
-    client_name: openid_credential_verifier.client_name,
     authorization_encrypted_response_alg:
       openid_credential_verifier.authorization_encrypted_response_alg,
     authorization_encrypted_response_enc:
       openid_credential_verifier.authorization_encrypted_response_enc,
-    erasure_endpoint: openid_credential_verifier.erasure_endpoint,
-    request_uris: openid_credential_verifier.request_uris,
-    response_uris: openid_credential_verifier.response_uris,
-    vp_formats_supported: openid_credential_verifier.vp_formats,
   };
 });
 

@@ -4,7 +4,7 @@ import { BaseEntityConfiguration } from "../common/types";
 import { jsonWebKeySchema } from "@openid-federation/core";
 
 const RelyingPartyMetadata = z.object({
-  application_type: z.literal("web").optional(),
+  application_type: z.string().optional(),
   client_id: z.string().optional(),
   client_name: z.string().optional(),
   jwks: z.object({
@@ -15,17 +15,6 @@ const RelyingPartyMetadata = z.object({
   authorization_signed_response_alg: z.string().optional(),
   authorization_encrypted_response_alg: z.string().optional(),
   authorization_encrypted_response_enc: z.string().optional(),
-  erasure_endpoint: z.string().optional(),
-  response_uris: z.array(z.string()).optional(),
-  vp_formats: z
-    .record(
-      z.string(),
-      z.object({
-        alg: z.array(z.string()).optional(),
-        "sd-jwt_alg_values": z.array(z.string()).optional(),
-      })
-    )
-    .optional(),
 });
 
 // Display metadata for a credential, used by the issuer to
