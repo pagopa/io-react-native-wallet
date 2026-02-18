@@ -8,6 +8,7 @@ import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuanceApi } from "../api";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 import { partialCallbacks } from "../../../utils/callbacks";
+import { IoWalletError } from "../../../utils/errors";
 import {
   selectCredentialDefinition,
   selectResponseMode,
@@ -29,7 +30,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
         LogLevel.ERROR,
         `Public key associated with kid ${clientId} not found in the device`
       );
-      throw new Error("No public key found");
+      throw new IoWalletError("No public key found");
     }
 
     const responseMode = selectResponseMode(issuerConf, credentialIds);
