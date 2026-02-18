@@ -115,7 +115,7 @@
       "<rootDir>/lib/"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?@react-native|react-native|uuid|@pagopa/io-react-native-iso18013)"
+      "node_modules/(?!(jest-)?@react-native|react-native|uuid|@pagopa/io-react-native-iso18013|@pagopa/io-wallet-oid4vci)"
     ],
     "setupFiles": [
       "<rootDir>/jestSetup.js"

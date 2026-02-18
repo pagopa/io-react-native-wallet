@@ -17,7 +17,10 @@ import { LogLevel, Logger } from "../../../utils/logging";
 import { RemotePresentation } from "../../presentation/v1.0.0"; // TODO: import from presentation v1.3.3
 import { type RemotePresentationDetails } from "../../presentation/api/types";
 import { partialCallbacks } from "../../../utils/callbacks";
-import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
+import {
+  IoWalletError,
+  sdkUnexpectedStatusCodeToIssuerError,
+} from "../../../utils/errors";
 import type { IssuanceApi } from "../api";
 import { mapToRequestObject } from "./mappers";
 
@@ -117,10 +120,6 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
 
-    if (!requestObject.dcql_query) {
-      throw new Error("Invalid request object");
-    }
-
     // TODO: update after RemotePresentation integrates IO Wallet SDK
     const dcqlQueryResult = RemotePresentation.evaluateDcqlQuery(
       [[pidCryptoContext, pid]],
@@ -155,7 +154,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     if (!issuerSigKey) {
       const errorMessage = "No signature key found in Issuer Metadata JWKS";
       Logger.log(LogLevel.ERROR, errorMessage);
-      throw new Error(errorMessage);
+      throw new IoWalletError(errorMessage);
     }
 
     return sendAuthorizationResponseAndExtractCode({

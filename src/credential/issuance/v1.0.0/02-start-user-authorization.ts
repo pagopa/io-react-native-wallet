@@ -1,11 +1,12 @@
 import { generateRandomAlphaNumericString } from "../../../utils/misc";
 import { makeParRequest } from "../../../utils/par";
 import { LogLevel, Logger } from "../../../utils/logging";
+import { IoWalletError } from "../../../utils/errors";
 import type { IssuanceApi } from "../api";
 import {
   selectCredentialDefinition,
   selectResponseMode,
-} from "../common/02-start-user-authorization";
+} from "../common/authorization";
 
 export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
   async (issuerConf, credentialIds, proof, ctx) => {
@@ -23,7 +24,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
         LogLevel.ERROR,
         `Public key associated with kid ${clientId} not found in the device`
       );
-      throw new Error("No public key found");
+      throw new IoWalletError("No public key found");
     }
     const codeVerifier = generateRandomAlphaNumericString(64);
     const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
