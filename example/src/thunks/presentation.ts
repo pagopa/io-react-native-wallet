@@ -104,8 +104,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     wallet,
     requestObject,
     rpConf,
-    credentialsSdJwt,
-    walletInstanceAttestation
+    credentialsSdJwt
   );
 });
 
@@ -115,7 +114,6 @@ const processPresentation = async (
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig,
   credentialsSdJwt: [CryptoContext, string][],
-  walletInstanceAttestation: string
 ) => {
   const result = wallet.RemotePresentation.evaluateDcqlQuery(
     credentialsSdJwt,
@@ -135,14 +133,11 @@ const processPresentation = async (
       requestObject
     );
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
   const authResponse =
     await wallet.RemotePresentation.sendAuthorizationResponse(
       requestObject,
       remotePresentations,
-      rpConf,
-      { walletInstanceAttestation, wiaCryptoContext }
+      rpConf
     );
 
   return {

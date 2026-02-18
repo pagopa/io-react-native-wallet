@@ -79,9 +79,3 @@ export type RequestObject = {
   response_type: "vp_token";
   response_mode: "direct_post.jwt";
 };
-
-export type GetRequestObjectOutput = z.infer<typeof GetRequestObjectOutput>;
-export const GetRequestObjectOutput = z.object({
-  requestObjectEncodedJwt: z.string(),
-  sendBy: z.enum(["reference", "value"]),
-});

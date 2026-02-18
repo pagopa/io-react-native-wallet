@@ -17,13 +17,15 @@ const RelyingPartyMetadata = z.object({
   authorization_encrypted_response_enc: z.string().optional(),
   erasure_endpoint: z.string().optional(),
   response_uris: z.array(z.string()).optional(),
-  vp_formats: z.record(
-    z.string(),
-    z.object({
-      alg: z.array(z.string()).optional(),
-      "sd-jwt_alg_values": z.array(z.string()).optional(),
-    }),
-  ).optional(),
+  vp_formats: z
+    .record(
+      z.string(),
+      z.object({
+        alg: z.array(z.string()).optional(),
+        "sd-jwt_alg_values": z.array(z.string()).optional(),
+      })
+    )
+    .optional(),
 });
 
 // Display metadata for a credential, used by the issuer to

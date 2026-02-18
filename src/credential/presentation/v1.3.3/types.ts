@@ -41,3 +41,10 @@ export const RequestObjectPayload = z.object({
   dcql_query: z.record(z.string(), z.any()), // Validation happens within the `dcql` library, no need to duplicate it here
   scope: z.string().optional(),
 });
+
+export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
+export const AuthorizationResponse = z.object({
+  status: z.string().optional(),
+  response_code: z.string().optional(),
+  redirect_uri: z.string().optional(),
+});

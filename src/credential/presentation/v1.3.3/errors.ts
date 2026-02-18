@@ -79,7 +79,6 @@ export const mapSdkRequestObjectError = (err: unknown) => {
  * Mapping Sdk errors during Authorization Response submission (JARM / Post)
  */
 export const mapSdkAuthorizationResponseError = (err: unknown) => {
-  // Handle specific HTTP status codes using the Builder pattern
   if (err instanceof SdkUnexpectedStatusCodeError) {
     throw new ResponseErrorBuilder(RelyingPartyResponseError)
       .handle(400, {
@@ -113,7 +112,6 @@ export const mapSdkAuthorizationResponseError = (err: unknown) => {
     throw toRelyingPartyResponseError(err.message, err.statusCode ?? 500);
   }
 
-  // Final fallback
   const message = err instanceof Error ? err.message : "Unexpected error";
   throw toRelyingPartyResponseError(message, 500);
 };

@@ -3,8 +3,12 @@ import {
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
 import type { RemotePresentationApi } from "../api";
-import { partialCallbacks } from "src/utils/callbacks";
+import { partialCallbacks } from "../../../../src/utils/callbacks";
 import { mapSdkAuthorizationResponseError } from "./errors";
+import { hasStatusOrThrow } from "../../../../src/utils/misc";
+import { RelyingPartyResponseError } from "../../../../src/utils/errors";
+import { AuthorizationResponse } from "./types";
+import { buildDirectPostBody } from "../common/utils";
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
   async (
@@ -46,4 +50,27 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
     } catch (err) {
       throw mapSdkAuthorizationResponseError(err);
     }
+  };
+
+export const sendAuthorizationErrorResponse: RemotePresentationApi["sendAuthorizationErrorResponse"] =
+  async (
+    requestObject,
+    { error, errorDescription },
+    { appFetch = fetch } = {}
+  ) => {
+    const requestBody = await buildDirectPostBody(requestObject, {
+      error,
+      error_description: errorDescription,
+    });
+
+    return await appFetch(requestObject.response_uri, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: requestBody,
+    })
+      .then(hasStatusOrThrow(200, RelyingPartyResponseError))
+      .then((res) => res.json())
+      .then(AuthorizationResponse.parse);
   };
