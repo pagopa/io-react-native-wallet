@@ -9,7 +9,7 @@ import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
  * This is an inner method to serve public interfaces.
- * @version 1.0.0
+ * @version 1.3.3
  *
  * To add another entity configuration type (example: Foo entity type):
  *  - create its zod schema and type by inherit from the base type (example: FooEntityConfiguration = BaseEntityConfiguration.and(...))
