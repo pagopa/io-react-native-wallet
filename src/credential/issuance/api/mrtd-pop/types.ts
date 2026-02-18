@@ -1,5 +1,3 @@
-import * as z from "zod";
-
 export type MrtdPayload = {
   dg1: string;
   dg11: string;
@@ -12,20 +10,19 @@ export type IasPayload = {
   challenge_signed: string;
 };
 
-export type MrtdProofChallengeInfo = z.infer<typeof MrtdProofChallengeInfo>;
-export const MrtdProofChallengeInfo = z.object({
-  iss: z.string(),
-  aud: z.string(),
-  iat: z.number(),
-  exp: z.number(),
-  status: z.literal("require_interaction"),
-  type: z.literal("mrtd+ias"),
-  mrtd_auth_session: z.string(),
-  state: z.string(),
-  mrtd_pop_jwt_nonce: z.string(),
-  htu: z.string(),
-  htm: z.literal("POST"),
-});
+export type MrtdProofChallengeInfo = {
+  iss: string;
+  aud: string;
+  iat: number;
+  exp: number;
+  status: "require_interaction";
+  type: "mrtd+ias";
+  mrtd_auth_session: string;
+  state: string;
+  mrtd_pop_jwt_nonce: string;
+  htu: string;
+  htm: "POST";
+};
 
 export type MrtdPoPChallenge = {
   challenge: string;
