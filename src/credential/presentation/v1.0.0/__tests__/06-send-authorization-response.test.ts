@@ -111,7 +111,7 @@ describe("sendAuthorizationResponse", () => {
       mockRequestObject,
       remotePresentations,
       mockRpConf,
-      { context: { appFetch: mockFetch } }
+      { appFetch: mockFetch }
     );
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -140,7 +140,7 @@ describe("sendAuthorizationResponse", () => {
           mockRequestObject,
           remotePresentations,
           mockRpConf,
-          { context: { appFetch: mockFetch } }
+          { appFetch: mockFetch }
         );
       } catch (error) {
         expect(error).toBeInstanceOf(RelyingPartyResponseError);

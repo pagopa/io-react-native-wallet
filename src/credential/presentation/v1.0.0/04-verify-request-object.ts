@@ -1,10 +1,10 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import { type typeToFlattenedError } from "zod";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { InvalidRequestObjectError } from "../common/errors";
-import { RequestObjectPayload } from "./types";
 import { mapToRequestObject } from "./mappers";
 import { getJwksFromRpConfig } from "./utils";
+import { validateWithSchema } from "../common/utils";
+import { RequestObjectPayload } from "./types";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId, rpConf, state }) => {
@@ -24,7 +24,12 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       );
     }
 
-    const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
+    const requestObject = validateWithSchema(
+      RequestObjectPayload,
+      requestObjectJwt.payload,
+      (message, reason) => new InvalidRequestObjectError(message, reason),
+      "The Request Object cannot be parsed successfully",
+    );
 
     const isClientIdMatch =
       clientId === requestObject.client_id && clientId === rpConf.subject;
@@ -45,26 +50,6 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
 
     return { requestObject: mapToRequestObject(requestObject) };
   };
-
-/**
- * Validate the shape of the Request Object to ensure all required properties are present and are of the expected type.
- *
- * @param payload The Request Object to validate
- * @returns A valid Request Object
- * @throws {InvalidRequestObjectError} when the Request Object cannot be parsed
- */
-const validateRequestObjectShape = (payload: unknown): RequestObjectPayload => {
-  const requestObjectParse = RequestObjectPayload.safeParse(payload);
-
-  if (requestObjectParse.success) {
-    return requestObjectParse.data;
-  }
-
-  throw new InvalidRequestObjectError(
-    "The Request Object cannot be parsed successfully",
-    formatFlattenedZodErrors(requestObjectParse.error.flatten())
-  );
-};
 
 /**
  * Get the public key to verify the Request Object's signature from the Relying Party's EC.
@@ -92,13 +77,3 @@ const getSigPublicKey = (
     );
   }
 };
-
-/**
- * Utility to format flattened Zod errors into a simplified string `key1: key1_error, key2: key2_error`
- */
-const formatFlattenedZodErrors = (
-  errors: typeToFlattenedError<RequestObjectPayload>
-): string =>
-  Object.entries(errors.fieldErrors)
-    .map(([key, error]) => `${key}: ${error[0]}`)
-    .join(", ");
