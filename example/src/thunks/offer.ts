@@ -1,14 +1,14 @@
+import { CredentialOffer, IoWallet } from "@pagopa/io-react-native-wallet";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
-import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { selectItwVersion } from "../store/reducers/environment";
 
 export type GetCredentialOfferThunkInput = {
   qrcode: string;
 };
 
-// Todo: replace `any` with the actual type of the credential offer
-export type GetCredentialOfferThunkOutput = any;
+export type GetCredentialOfferThunkOutput =
+  CredentialOffer.ExtractGrantDetailsResult;
 
 export const getCredentialOfferThunk = createAppAsyncThunk<
   GetCredentialOfferThunkOutput,
@@ -17,22 +17,12 @@ export const getCredentialOfferThunk = createAppAsyncThunk<
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
-  const { credential_offer, credential_offer_uri } =
-    wallet.CredentialsOffer.startFlow(args.qrcode);
+  // 1) Resolve and validate the credential offer
+  const credentialOffer = await wallet.CredentialsOffer.resolveCredentialOffer(
+    args.qrcode,
+    { fetch: appFetch }
+  );
 
-  console.log("credential_offer_uri", credential_offer_uri);
-  console.log("credential_offer", credential_offer);
-
-  if (credential_offer_uri) {
-    return await wallet.CredentialsOffer.fetchCredentialOffer(
-      credential_offer_uri,
-      { appFetch }
-    );
-  }
-
-  if (credential_offer) {
-    return credential_offer;
-  }
-
-  throw new Error("Invalid credential offer");
+  // 2) Extract grant details
+  return wallet.CredentialsOffer.extractGrantDetails(credentialOffer);
 });
