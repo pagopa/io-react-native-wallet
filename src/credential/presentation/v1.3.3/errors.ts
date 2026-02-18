@@ -34,7 +34,7 @@ const toRelyingPartyResponseError = (
 /**
  * Mapping Sdk errors during Request Object retrieval (Fetch/QR)
  */
-export const mapSdkFetchAuthRequestError = (err: unknown): never => {
+export const mapSdkFetchAuthRequestError = (err: unknown) => {
   if (err instanceof SdkOid4vpError) {
     throw toRelyingPartyResponseError(err.message, err.statusCode ?? 500);
   }
@@ -53,7 +53,7 @@ export const mapSdkFetchAuthRequestError = (err: unknown): never => {
 /**
  * Mapping Sdk errors during JWT parsing and verification
  */
-export const mapSdkRequestObjectError = (err: unknown): never => {
+export const mapSdkRequestObjectError = (err: unknown) => {
   if (err instanceof SdkValidationError) {
     throw new InvalidRequestObjectError(
       "The Request Object structure is invalid",
@@ -78,7 +78,7 @@ export const mapSdkRequestObjectError = (err: unknown): never => {
 /**
  * Mapping Sdk errors during Authorization Response submission (JARM / Post)
  */
-export const mapSdkAuthorizationResponseError = (err: unknown): never => {
+export const mapSdkAuthorizationResponseError = (err: unknown) => {
   // Handle specific HTTP status codes using the Builder pattern
   if (err instanceof SdkUnexpectedStatusCodeError) {
     throw new ResponseErrorBuilder(RelyingPartyResponseError)
