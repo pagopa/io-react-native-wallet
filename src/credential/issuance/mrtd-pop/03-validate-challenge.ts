@@ -3,8 +3,9 @@ import { fetchMrtdPopVerify } from "@pagopa/io-wallet-oauth2";
 import { v4 as uuidv4 } from "uuid";
 import { createPopToken } from "../../../utils/pop";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from 1.0.0 version
-import type { MRTDPoPApi } from "../api/mrtd-pop";
+import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
 import { partialCallbacks } from "../../../utils/callbacks";
+import type { MRTDPoPApi } from "../api/mrtd-pop";
 
 export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
   issuerConf,
@@ -63,7 +64,7 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
       fetch: appFetch,
       ...partialCallbacks,
     },
-  });
+  }).catch(sdkUnexpectedStatusCodeToIssuerError);
 
   return {
     redirect_uri: verifyResult.redirectUri,

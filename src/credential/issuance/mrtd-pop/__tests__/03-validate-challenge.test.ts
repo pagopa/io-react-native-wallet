@@ -98,7 +98,10 @@ describe("validateChallenge", () => {
     );
 
     // Verify the result matches the expected verification result
-    expect(result).toEqual(mockVerificationResult);
+    expect(result).toEqual({
+      mrtd_val_pop_nonce: mockVerificationResult.mrtd_val_pop_nonce,
+      redirect_uri: mockVerificationResult.redirect_uri,
+    });
 
     // Ensure fetch is called with correct arguments
     expect(appFetch).toHaveBeenCalledTimes(1);
