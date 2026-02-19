@@ -79,6 +79,7 @@ When adding a new feature implementation for a specific spec version:
 2. Export the implementation as a named const matching `<FeatureApi>` type from `src/<feature>/api/`
 3. Register it in `src/<feature>/index.ts` as `V<X_Y_Z>`
 4. Add it to `ioWalletApiByVersion` in `src/api/index.ts`
+5. Do not expose version specific types in `src/<feature>/api`: create common abstractions and use `createMapper` in `src/utils/mappers` to convert version specific types to public API types
 
 ## File Organization
 
