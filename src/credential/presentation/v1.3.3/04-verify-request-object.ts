@@ -3,8 +3,6 @@ import { parseAuthorizeRequest as sdkParseAuthorizeRequest } from "@pagopa/io-wa
 import { partialCallbacks } from "src/utils/callbacks";
 import { mapToRequestObject } from "./mappers";
 import { mapSdkRequestObjectError } from "./sdkErrorMapper";
-import { validateWithSchema } from "../common/utils";
-import { RequestObjectPayload } from "./types";
 import { InvalidRequestObjectError } from "../common/errors";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
@@ -16,12 +14,7 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       },
     }).catch(mapSdkRequestObjectError);
 
-    const payload = validateWithSchema(
-      RequestObjectPayload,
-      parsedRequestObject.payload,
-      (message, reason) => new InvalidRequestObjectError(message, reason),
-      "The Request Object cannot be parsed successfully"
-    );
+    const payload = parsedRequestObject.payload;
 
     const isClientIdMatch =
       clientId === payload.client_id && clientId === rpConf.subject;
