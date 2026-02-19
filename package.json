@@ -136,10 +136,10 @@
     ]
   },
   "dependencies": {
-    "@pagopa/io-wallet-oauth2": "^1.0.0-alpha-20260216163830",
-    "@pagopa/io-wallet-oid4vci": "^1.0.0-alpha-20260216163830",
-    "@pagopa/io-wallet-oid4vp": "^1.0.0-alpha-20260216163830",
-    "@pagopa/io-wallet-utils": "^1.0.0-alpha-20260216163830",
+    "@pagopa/io-wallet-oauth2": "^1.0.0-alpha-20260218085045",
+    "@pagopa/io-wallet-oid4vci": "^1.0.0-alpha-20260218085045",
+    "@pagopa/io-wallet-oid4vp": "^1.0.0-alpha-20260218085045",
+    "@pagopa/io-wallet-utils": "^1.0.0-alpha-20260218085045",
     "@sd-jwt/core": "^0.18.0",
     "@sd-jwt/crypto-nodejs": "^0.18.0",
     "@sd-jwt/types": "^0.18.0",
