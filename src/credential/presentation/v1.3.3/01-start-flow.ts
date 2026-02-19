@@ -1,18 +1,21 @@
 import { InvalidQRCodeError } from "../common/errors";
 import type { RemotePresentationApi } from "../api";
 import { PresentationParams } from "../api/types";
+import { validateAuthorizationRequestParams } from "@pagopa/io-wallet-oid4vp";
 
-export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (
-  params
-) => {
-  const result = PresentationParams.safeParse({
-    ...params,
-    request_uri_method: params.request_uri_method ?? "get",
-  });
-
-  if (result.success) {
-    return result.data;
+export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (params) => {
+  
+  const parsed = PresentationParams.safeParse(params);
+  
+  if (!parsed.success) {
+    throw new InvalidQRCodeError(parsed.error.message);
   }
 
-  throw new InvalidQRCodeError(result.error.message);
+  try {
+    const validatedParams = validateAuthorizationRequestParams(parsed.data);
+
+    return validatedParams;
+  } catch (e) {
+    throw new InvalidQRCodeError(e instanceof Error ? e.message : String(e));
+  }
 };

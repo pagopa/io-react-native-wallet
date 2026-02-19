@@ -4,8 +4,8 @@ export type PresentationParams = z.infer<typeof PresentationParams>;
 export const PresentationParams = z.object({
   client_id: z.string().nonempty(),
   request: z.string().optional(),
-  request_uri: z.string().url(),
-  request_uri_method: z.enum(["get", "post"]),
+  request_uri: z.string().url().optional(),
+  request_uri_method: z.enum(["get", "post"]).optional(),
   state: z.string().optional(),
 });
 
