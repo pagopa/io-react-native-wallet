@@ -31,8 +31,12 @@ const mockDecodedJwt = {
   },
 };
 
+const mockChallengeJwt =
+  "eyJ0eXAiOiJtcnRkLWlhcy1wb3Arand0IiwiYWxnIjoiRVMyNTYiLCJraWQiOiJraWQifQ.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlIiwiYXVkIjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsX2lzc3VlciIsImlhdCI6MTExMTExMTExMSwiZXhwIjoyMjIyMjIyMjIyLCJjaGFsbGVuZ2UiOiJjaGFsbGVuZ2UtdmFsdWUiLCJtcnRkX3BvcF9ub25jZSI6Im5vbmNlLXZhbHVlIiwiaHR1IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9tcnRkL2luaXQiLCJodG0iOiJQT1NUIn0.8Gr0wvvmE3lF4sTUT8hj4csZe_tWpbVRqgf4-lwDStm325AtsqYRpgLLb43bKlgUrV4Z9H_mWciu7peW7UVhhg";
+
 jest.mock("@pagopa/io-react-native-jwt", () => ({
-  decode: jest.fn().mockImplementation(() => mockDecodedJwt),
+  verify: jest.fn(),
+  getJwkFromHeader: jest.fn(),
 }));
 
 // Minimal issuer configuration used to compute aud inside the function
@@ -51,7 +55,7 @@ describe("initChallenge", () => {
 
   it("initializes the challenge and returns the decoded payload", async () => {
     const appFetch = jest.fn().mockResolvedValue(
-      new Response("jwt-value", {
+      new Response(mockChallengeJwt, {
         status: 202,
         headers: { "content-type": "text/plain" },
       })
@@ -66,7 +70,11 @@ describe("initChallenge", () => {
     );
 
     // Returned payload matches mocked decoded JWT payload
-    expect(result).toEqual(mockDecodedJwt.payload);
+    expect(result).toEqual({
+      challenge: mockDecodedJwt.payload.challenge,
+      mrtd_pop_nonce: mockDecodedJwt.payload.mrtd_pop_nonce,
+      pop_verify_endpoint: mockDecodedJwt.payload.htu,
+    });
 
     // Ensure fetch is called with correct arguments
     expect(appFetch).toHaveBeenCalledTimes(1);
@@ -124,7 +132,7 @@ describe("initChallenge", () => {
   it("uses provided appFetch implementation", async () => {
     const customFetch = jest
       .fn()
-      .mockResolvedValue(new Response("jwt-value", { status: 202 }));
+      .mockResolvedValue(new Response(mockChallengeJwt, { status: 202 }));
 
     await initChallenge(
       issuerConf,
