@@ -2,7 +2,6 @@ import { ValidationError as SdkValidationError } from "@openid4vc/utils";
 import {
   Oid4vpError as SdkOid4vpError,
   InvalidRequestUriMethodError as SdkInvalidRequestUriMethodError,
-  ParseAuthorizeRequestError as SdkParseAuthorizeRequestError,
   FetchAuthorizationResponseError as SdkFetchAuthorizationResponseError,
   CreateAuthorizationResponseError as SdkCreateAuthorizationResponseError,
 } from "@pagopa/io-wallet-oid4vp";
@@ -65,10 +64,6 @@ export const mapSdkRequestObjectError = (err: unknown) => {
     throw new InvalidRequestObjectError(
       "The Request Object is not a valid JWT"
     );
-  }
-
-  if (err instanceof SdkParseAuthorizeRequestError) {
-    throw new InvalidRequestObjectError(err.message);
   }
 
   const message = err instanceof Error ? err.message : String(err);
