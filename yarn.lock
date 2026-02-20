@@ -2913,6 +2913,14 @@
     buffer "^6.0.3"
     zod "^3.23.8"
 
+"@openid4vc/oauth2@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/oauth2/-/oauth2-0.3.0-alpha-20250714110838.tgz#6d5e47efe634652f031173ccd4f0acf3076cb01b"
+  integrity sha512-SR/HP818TCMBcr9Fpi+lS7xIA65AAFxhHsrjmxnxXQjWTBUEx6P4nhZbcw6T65AAuB8I0QzE3zzz+MRAFqunwQ==
+  dependencies:
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
 "@openid4vc/oauth2@0.4.3":
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/@openid4vc/oauth2/-/oauth2-0.4.3.tgz#e44f462091c12c971dc108ec5a2b88836601b2c7"
@@ -2921,14 +2929,23 @@
     "@openid4vc/utils" "0.4.3"
     zod "^4.1.13"
 
-"@openid4vc/openid4vci@0.4.3":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@openid4vc/openid4vci/-/openid4vci-0.4.3.tgz#af1d9b7f8ea27bba42f365277daaa387302fc66b"
-  integrity sha512-/r3l5rAaMBs76UEjl5rg68yzLaBvQqx173/VZa8VZy751YDlcJiTbhyXyWz4GmmxyTt0blitAkMvTeDSn1DPaw==
+"@openid4vc/openid4vci@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/openid4vci/-/openid4vci-0.3.0-alpha-20250714110838.tgz#72d452ac786364fd96c1fc35efc4939ab7a83f86"
+  integrity sha512-Q6xCzapjacrmB2Tjk7rNrGsJbjTIVVIKn9ZvFZflfo8Imi18MXDLFmwQAyplwUMWIPy5J1AQ0nMeZNPdpWCTkQ==
   dependencies:
-    "@openid4vc/oauth2" "0.4.3"
-    "@openid4vc/utils" "0.4.3"
-    zod "^4.1.13"
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
+
+"@openid4vc/openid4vp@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/openid4vp/-/openid4vp-0.3.0-alpha-20250714110838.tgz#0193384deef591c44582088866174920039491b9"
+  integrity sha512-lWrtQkUky4+CCJPmd8gHzpxxf8wRMZZvmsRoVcTBoq9biTXquCpJSkcGkl0V2OFF9cpxF7jDxOcUrIa/UQ5Crw==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    zod "^3.24.2"
 
 "@openid4vc/openid4vp@0.4.3":
   version "0.4.3"
@@ -2938,6 +2955,14 @@
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/utils" "0.4.3"
     zod "^4.1.13"
+
+"@openid4vc/utils@0.3.0-alpha-20250714110838":
+  version "0.3.0-alpha-20250714110838"
+  resolved "https://registry.yarnpkg.com/@openid4vc/utils/-/utils-0.3.0-alpha-20250714110838.tgz#70241ee612ab705b3af5da44705f26644e1bd30d"
+  integrity sha512-10TCSw/AMtgD4AIUob6kkFg6UdRv5kEYHovLJnfi5MHt4KdxSfSGfu2zc1cxJlKaBEg7su1BKiAT9j9WDmxSrA==
+  dependencies:
+    buffer "^6.0.3"
+    zod "^3.24.2"
 
 "@openid4vc/utils@0.4.3":
   version "0.4.3"
@@ -2967,7 +2992,7 @@
     js-base64 "^3.7.7"
     zod "^3.22.4"
 
-"@pagopa/io-wallet-oauth2@", "@pagopa/io-wallet-oauth2@1.0.0", "@pagopa/io-wallet-oauth2@^1.0.0":
+"@pagopa/io-wallet-oauth2@", "@pagopa/io-wallet-oauth2@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.0.0.tgz#b6fb45e48d1cb226584c3f1d463a12bcbed50ac5"
   integrity sha512-+NJAGNJY77fU9KY2QAb1qks4GKSj1XcC/4gK/sWSzGHUScbSypmbm2lphsIh8u2n0ciw/5xTGn5H1SAqfcdm+A==
@@ -2978,7 +3003,18 @@
     js-base64 "^3.7.8"
     zod "^3.24.2"
 
-"@pagopa/io-wallet-oid-federation@", "@pagopa/io-wallet-oid-federation@1.0.0":
+"@pagopa/io-wallet-oauth2@1.0.0-alpha-20260218085045":
+  version "1.0.0-alpha-20260218085045"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.0.0-alpha-20260218085045.tgz#68b71ed595be748aac03168d620f79704cefb757"
+  integrity sha512-xJZUcXr7oKnohX1PPEMK05rmIvmB4T1yhuZDTUaVaLVXXB1elLNOyKtWJGvi/NckKeJW7UaZucK3oYefShYGbQ==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260218085045"
+    js-base64 "^3.7.8"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-oid-federation@":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.0.0.tgz#95304799222c2fd6f55e8d2103941b8154892225"
   integrity sha512-dIxZnm3MF1mbbWNmmlBHRs7ctFpjTbPHC3vGgJni0vI6t4469ukWfw0K1USLX9nWPLEhdJhVslxQqPMtHW7wGQ==
@@ -2987,22 +3023,43 @@
     "@pagopa/io-wallet-utils" ""
     zod "^3.24.2"
 
-"@pagopa/io-wallet-oid4vci@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.0.0.tgz#11d8599e0c0fc32a378fbd5493de7e6eecc8f1c3"
-  integrity sha512-qsv1e+Y/wQWclTG/D0UH47nUwGtn6ziL/N6q+wsMuN/wa+lSwqPJvz1oaI+pbN1cNuUkhXrSp+WMhWLhAdtz2w==
+"@pagopa/io-wallet-oid-federation@1.0.0-alpha-20260218085045":
+  version "1.0.0-alpha-20260218085045"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.0.0-alpha-20260218085045.tgz#c9f847248c910c1eadc008e251a90fbcdeea168b"
+  integrity sha512-Tcp9aQzyJcesAZnHEfHN0JhFR/jmWY1qtn4bZIVPm6UpU9nnyuJKkV160FXmkD6l/lueXo2zhuhrnXYIqDBsbA==
   dependencies:
     "@openid-federation/core" "^0.2.1"
-    "@openid4vc/oauth2" "0.4.3"
-    "@openid4vc/openid4vci" "0.4.3"
-    "@openid4vc/utils" "0.4.3"
-    "@pagopa/io-wallet-oauth2" "1.0.0"
-    "@pagopa/io-wallet-oid-federation" "1.0.0"
-    "@pagopa/io-wallet-oid4vp" "1.0.0"
-    "@pagopa/io-wallet-utils" "1.0.0"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
     zod "^3.24.2"
 
-"@pagopa/io-wallet-oid4vp@1.0.0", "@pagopa/io-wallet-oid4vp@^1.0.0":
+"@pagopa/io-wallet-oid4vci@^1.0.0-alpha-20260218085045":
+  version "1.0.0-alpha-20260218085045"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.0.0-alpha-20260218085045.tgz#652b2aa0fdfbe3c6a531735e8f6d8730c3c72d97"
+  integrity sha512-i8ji5Omoeh10jQKiN7sUlQj5gjkTaSG9xFZH9ZY7Yjm/Sfgg8RRnOyUI6gLm9dXPpsPDpEUdKH3jsOCOfEJ9GQ==
+  dependencies:
+    "@openid-federation/core" "^0.2.1"
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/openid4vci" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-oauth2" "1.0.0-alpha-20260218085045"
+    "@pagopa/io-wallet-oid-federation" "1.0.0-alpha-20260218085045"
+    "@pagopa/io-wallet-oid4vp" "1.0.0-alpha-20260218085045"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260218085045"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-oid4vp@1.0.0-alpha-20260218085045":
+  version "1.0.0-alpha-20260218085045"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.0.0-alpha-20260218085045.tgz#f4b5fee6f87afeac0e87c9733a0a7d4105c554be"
+  integrity sha512-7w/fXtZxkmGNKOl3n/3xOCP3ycW3V2ix0seP2oARTXcQkMDIlm56ap2DnPDX7KC9uE0/fvJZ2R2oAYS5epFOOQ==
+  dependencies:
+    "@openid4vc/oauth2" "0.3.0-alpha-20250714110838"
+    "@openid4vc/openid4vp" "0.3.0-alpha-20250714110838"
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
+    "@pagopa/io-wallet-oid-federation" "1.0.0-alpha-20260218085045"
+    "@pagopa/io-wallet-utils" "1.0.0-alpha-20260218085045"
+    zod "^3.24.2"
+
+"@pagopa/io-wallet-oid4vp@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.0.0.tgz#0d3cca6360b9d1b6db02203fa082e94fd6f46013"
   integrity sha512-xhnvwoQuiGsuUiqsxR/M4jDnQo4hDuH6ljh/rKnXT6gafG2hEQIu1gcJEycE37cSz19iCeGje+5xHxmxUF8gQg==
@@ -3015,13 +3072,20 @@
     "@pagopa/io-wallet-utils" ""
     zod "^3.24.2"
 
-"@pagopa/io-wallet-utils@", "@pagopa/io-wallet-utils@1.0.0", "@pagopa/io-wallet-utils@^1.0.0":
+"@pagopa/io-wallet-utils@", "@pagopa/io-wallet-utils@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.0.0.tgz#30cbe171f7d972d348096a72bac21a0fb690d280"
   integrity sha512-yXx/ISEH+tgNnvvfVh65Op4VPec/qyS6COUwip8xs9YrEPILMV8DpAcMTRQ8BwouacF8Jra4+aPpf03tJNy8Kw==
   dependencies:
     "@openid4vc/utils" "0.4.3"
     zod "^3.24.2"
+
+"@pagopa/io-wallet-utils@1.0.0-alpha-20260218085045", "@pagopa/io-wallet-utils@^1.0.0-alpha-20260218085045":
+  version "1.0.0-alpha-20260218085045"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.0.0-alpha-20260218085045.tgz#bb4ab4b6209122bbaad5bd47f7c173a808a20e84"
+  integrity sha512-M2m2KG4EtwIT95ygmzaOYGDExSZGGy4/MQ20MJe7KVmlQdtSj21pEx2011FpKoOOp79h06oEeTZkK/6cIb+X5w==
+  dependencies:
+    "@openid4vc/utils" "0.3.0-alpha-20250714110838"
 
 "@phun-ky/typeof@2.0.3":
   version "2.0.3"
