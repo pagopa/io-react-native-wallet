@@ -110,12 +110,16 @@
   },
   "jest": {
     "preset": "react-native",
+    "transform": {
+      "\\.[jt]sx?$": "babel-jest",
+      "\\.mjs$": "babel-jest"
+    },
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?@react-native|react-native|uuid|@pagopa/io-react-native-iso18013|@pagopa/io-wallet-oid4vci)"
+      "node_modules/(?!(jest-)?@react-native|react-native|uuid|@pagopa/io-react-native-iso18013|@openid4vc)"
     ],
     "setupFiles": [
       "<rootDir>/jestSetup.js"
