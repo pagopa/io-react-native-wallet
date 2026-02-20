@@ -1,7 +1,5 @@
 import { ValidationError as SdkValidationError } from "@openid4vc/utils";
 import {
-  Oid4vpError as SdkOid4vpError,
-  InvalidRequestUriMethodError as SdkInvalidRequestUriMethodError,
   FetchAuthorizationResponseError as SdkFetchAuthorizationResponseError,
   CreateAuthorizationResponseError as SdkCreateAuthorizationResponseError,
 } from "@pagopa/io-wallet-oid4vp";
@@ -34,19 +32,11 @@ const toRelyingPartyResponseError = (
  * Mapping Sdk errors during Request Object retrieval (Fetch/QR)
  */
 export const mapSdkFetchAuthRequestError = (err: unknown) => {
-  if (err instanceof SdkOid4vpError) {
-    throw toRelyingPartyResponseError(err.message, err.statusCode ?? 500);
+  if (err instanceof SdkUnexpectedStatusCodeError) {
+    throw toRelyingPartyResponseError(err.message, err.statusCode);
   }
 
-  if (
-    err instanceof SdkInvalidRequestUriMethodError ||
-    err instanceof SdkValidationError
-  ) {
-    throw toRelyingPartyResponseError(err.message, 400);
-  }
-
-  const message = err instanceof Error ? err.message : String(err);
-  throw toRelyingPartyResponseError(message, 500);
+  throw err;
 };
 
 /**
@@ -92,21 +82,12 @@ export const mapSdkAuthorizationResponseError = (err: unknown) => {
       .buildFrom(err);
   }
 
-  if (err instanceof SdkValidationError) {
-    throw toRelyingPartyResponseError(
-      err.message,
-      400,
-      RelyingPartyResponseErrorCodes.InvalidAuthorizationResponse
-    );
-  }
-
   if (
     err instanceof SdkCreateAuthorizationResponseError ||
     err instanceof SdkFetchAuthorizationResponseError
   ) {
-    throw toRelyingPartyResponseError(err.message, err.statusCode ?? 500);
+    throw toRelyingPartyResponseError(err.message, err.statusCode ?? 400);
   }
 
-  const message = err instanceof Error ? err.message : "Unexpected error";
-  throw toRelyingPartyResponseError(message, 500);
+  throw err;
 };
