@@ -16,10 +16,11 @@ export const RelyingPartyConfig = z.object({
   policy_uri: z.string().optional(),
   logo_uri: z.string().optional(),
   contacts: z.array(z.string()).optional(),
-  // JARM legacy (v1.0 only)
+  /** @deprecated JARM legacy (v1.0 only) */
   authorization_encrypted_response_alg: z.string().optional(),
+  /** @deprecated JARM legacy (v1.0 only) */
   authorization_encrypted_response_enc: z.string().optional(),
-  // 1.3-only fields
+  /** @since 1.3.3 */
   encrypted_response_enc_values_supported: z
     .array(z.string())
     .min(1)
