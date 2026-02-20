@@ -1,11 +1,12 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type {
   AuthorizationResponse,
   ErrorResponse,
-  RemotePresentationDetails,
+  RemotePresentation,
   RequestObject,
 } from "./types";
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
+import type { EvaluateDcqlQueryApi } from "./05-evaluate-dcql-query";
+import type { Out } from "../../../../src/utils/misc";
 type FetchContext = { appFetch?: GlobalFetch["fetch"] };
 
 export interface SendAuthorizationResponseApi {
@@ -19,14 +20,13 @@ export interface SendAuthorizationResponseApi {
    * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
    */
   prepareRemotePresentations(
-    credentials: {
-      id: string;
-      credential: string;
-      cryptoContext: CryptoContext;
-      requestedClaims: string[];
-    }[],
-    requestObject: RequestObject
-  ): Promise<RemotePresentationDetails[]>;
+    credentials: Out<EvaluateDcqlQueryApi["evaluateDcqlQuery"]>,
+    authRequestObject: {
+      nonce: string;
+      clientId: string;
+      responseUri: string;
+    }
+  ): Promise<RemotePresentation>;
 
   /**
    * Sends the authorization response containing the VP Token to the Relying Party (RP).
@@ -41,7 +41,7 @@ export interface SendAuthorizationResponseApi {
    */
   sendAuthorizationResponse(
     requestObject: RequestObject,
-    remotePresentations: RemotePresentationDetails[],
+    remotePresentation: RemotePresentation,
     rpConf: RelyingPartyConfig,
     context?: FetchContext
   ): Promise<AuthorizationResponse>;

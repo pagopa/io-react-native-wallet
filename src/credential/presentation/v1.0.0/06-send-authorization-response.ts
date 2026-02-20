@@ -14,6 +14,7 @@ import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { AuthorizationResponse, DirectAuthorizationBodyPayload } from "./types";
 import { getJwksFromRpConfig } from "./utils";
 import { buildDirectPostBody } from "../common/utils";
+import { createCryptoContextFor } from "../../../utils/crypto";
 
 /**
  * Selects a public key (with `use = enc`) from the set of JWK keys
@@ -85,34 +86,42 @@ export const buildDirectPostJwtBody = async (
 };
 
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, { nonce, client_id }) => {
-    return Promise.all(
+  async (credentials, authRequestObject) => {
+    const presentations = await Promise.all(
       credentials.map(async (item) => {
-        const { vp_token } = await prepareVpToken(nonce, client_id, [
-          item.credential,
-          item.requestedClaims,
-          item.cryptoContext,
-        ]);
+        const { vp_token } = await prepareVpToken(
+          authRequestObject.nonce,
+          authRequestObject.clientId,
+          [
+            item.credential,
+            item.presentationFrame,
+            createCryptoContextFor(item.keyTag),
+          ]
+        );
 
         return {
+          requestedClaims: item.requiredDisclosures.map(({ name }) => name),
           credentialId: item.id,
-          requestedClaims: item.requestedClaims,
           vpToken: vp_token,
+          format: item.format,
         };
       })
     );
+
+    return { presentations };
   };
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
   async (
     requestObject,
-    remotePresentations,
+    remotePresentation,
     rpConf,
     { appFetch = fetch } = {}
   ) => {
+    const { presentations } = remotePresentation;
     // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
     const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {
-      vp_token: remotePresentations.reduce(
+      vp_token: presentations.reduce(
         (acc, presentation) => ({
           ...acc,
           [presentation.credentialId]: presentation.vpToken,

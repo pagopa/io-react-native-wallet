@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@pagopa/io-react-native-crypto": "^1.2.3",
-    "@pagopa/io-react-native-iso18013": "^0.3.0",
+    "@pagopa/io-react-native-iso18013": "^0.7.0",
     "@pagopa/io-react-native-jwt": "^2.1.0",
     "@react-native/babel-preset": "0.78.3",
     "@react-native/eslint-config": "0.78.3",
@@ -143,7 +143,7 @@
     "@sd-jwt/core": "^0.18.0",
     "@sd-jwt/crypto-nodejs": "^0.18.0",
     "@sd-jwt/types": "^0.18.0",
-    "dcql": "^0.2.21",
+    "dcql": "^2.0.1",
     "js-base64": "^3.7.7",
     "js-sha256": "^0.9.0",
     "jsonpath-plus": "^10.2.0",
