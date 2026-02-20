@@ -1,10 +1,10 @@
 import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { fetchMrtdPopVerify } from "@pagopa/io-wallet-oauth2";
 import { v4 as uuidv4 } from "uuid";
-import { IssuerResponseError } from "../../../utils/errors";
-import { hasStatusOrThrow } from "../../../utils/misc";
 import { createPopToken } from "../../../utils/pop";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from 1.0.0 version
-import { MrtdPopVerificationResult } from "../api/mrtd-pop";
+import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
+import { partialCallbacks } from "../../../utils/callbacks";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 
 export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
@@ -28,7 +28,7 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
 
   const signedWiaPoP = await createPopToken(
     {
-      jti: `${uuidv4()}`,
+      jti: uuidv4(),
       aud,
       iss,
     },
@@ -37,7 +37,7 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
 
   const { kid } = await wiaCryptoContext.getPublicKey();
 
-  const mrtd_validation_jwt = await new SignJWT(wiaCryptoContext)
+  const mrtdValidationJwt = await new SignJWT(wiaCryptoContext)
     .setProtectedHeader({
       typ: "mrtd-ias+jwt",
       kid,
@@ -53,26 +53,23 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
     .setExpirationTime("5m")
     .sign();
 
-  const requestBody = {
-    mrtd_validation_jwt,
-    mrtd_auth_session,
-    mrtd_pop_nonce,
-  };
-
-  const verifyResult = await appFetch(verifyUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "OAuth-Client-Attestation": walletInstanceAttestation,
-      "OAuth-Client-Attestation-PoP": signedWiaPoP,
+  const verifyResult = await fetchMrtdPopVerify({
+    popVerifyEndpoint: verifyUrl,
+    mrtdAuthSession: mrtd_auth_session,
+    mrtdPopNonce: mrtd_pop_nonce,
+    clientAttestationDPoP: signedWiaPoP,
+    mrtdValidationJwt,
+    walletAttestation: walletInstanceAttestation,
+    callbacks: {
+      fetch: appFetch,
+      ...partialCallbacks,
     },
-    body: JSON.stringify(requestBody),
-  })
-    .then(hasStatusOrThrow(202, IssuerResponseError))
-    .then((res) => res.json());
+  }).catch(sdkUnexpectedStatusCodeToIssuerError);
 
-  const verifyResultParsed = MrtdPopVerificationResult.parse(verifyResult);
-  return verifyResultParsed;
+  return {
+    redirect_uri: verifyResult.redirectUri,
+    mrtd_val_pop_nonce: verifyResult.mrtdValPopNonce,
+  };
 };
 
 export const buildChallengeCallbackUrl: MRTDPoPApi["buildChallengeCallbackUrl"] =
