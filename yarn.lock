@@ -2992,7 +2992,7 @@
     js-base64 "^3.7.7"
     zod "^3.22.4"
 
-"@pagopa/io-wallet-oauth2@", "@pagopa/io-wallet-oauth2@^1.0.0":
+"@pagopa/io-wallet-oauth2@", "@pagopa/io-wallet-oauth2@^1.0.0-alpha-20260218085045":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.0.0.tgz#b6fb45e48d1cb226584c3f1d463a12bcbed50ac5"
   integrity sha512-+NJAGNJY77fU9KY2QAb1qks4GKSj1XcC/4gK/sWSzGHUScbSypmbm2lphsIh8u2n0ciw/5xTGn5H1SAqfcdm+A==
@@ -3059,7 +3059,7 @@
     "@pagopa/io-wallet-utils" "1.0.0-alpha-20260218085045"
     zod "^3.24.2"
 
-"@pagopa/io-wallet-oid4vp@^1.0.0":
+"@pagopa/io-wallet-oid4vp@^1.0.0-alpha-20260218085045":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.0.0.tgz#0d3cca6360b9d1b6db02203fa082e94fd6f46013"
   integrity sha512-xhnvwoQuiGsuUiqsxR/M4jDnQo4hDuH6ljh/rKnXT6gafG2hEQIu1gcJEycE37cSz19iCeGje+5xHxmxUF8gQg==
