@@ -41,6 +41,8 @@ const config = {
       }
       return context.resolveRequest(context, moduleName, platform);
     },
+
+    resolverMainFields: ["react-native", "browser", "main", "module"],
   },
 
   transformer: {
