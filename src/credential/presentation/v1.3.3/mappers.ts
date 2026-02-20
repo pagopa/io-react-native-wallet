@@ -23,6 +23,9 @@ export const mapToRelyingPartyConfig = createMapper<
   };
 });
 
+// Temporary non-null assertions: these fields are not yet required
+// in the current SDK version. After upgrading the SDK (https://github.com/pagopa/io-react-native-wallet/pull/325),
+// they will become mandatory and the `!` operators can be removed.
 export const mapToRequestObject = createMapper<
   RequestObjectPayload,
   RequestObject
