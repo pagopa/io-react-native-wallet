@@ -2727,16 +2727,6 @@
   resolved "https://registry.yarnpkg.com/@jsdevtools/ono/-/ono-7.1.3.tgz#9df03bbd7c696a5c58885c34aa06da41c8543796"
   integrity sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==
 
-"@jsep-plugin/assignment@^1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@jsep-plugin/assignment/-/assignment-1.3.0.tgz#fcfc5417a04933f7ceee786e8ab498aa3ce2b242"
-  integrity sha512-VVgV+CXrhbMI3aSusQyclHkenWSAm95WaiKrMxRFam3JSUiIaQjoMIw2sEs/OX4XifnqeQUN4DYbJjlA8EfktQ==
-
-"@jsep-plugin/regex@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@jsep-plugin/regex/-/regex-1.0.4.tgz#cb2fc423220fa71c609323b9ba7f7d344a755fcc"
-  integrity sha512-q7qL4Mgjs1vByCaTnDFcBnV9HS7GVPJX5vyVoCgZHNSC9rjwIlmbXG5sUuorR5ndfHAIlJ8pVStxvjXHbNvtUg==
-
 "@manypkg/find-root@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@manypkg/find-root/-/find-root-1.1.0.tgz#a62d8ed1cd7e7d4c11d9d52a8397460b5d4ad29f"
@@ -3210,49 +3200,49 @@
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.3.2.tgz#31b9c510d8cada9683549e1dbb4284cca5001faf"
   integrity sha512-V+MvGwaHH03hYhY+k6Ef/xKd6RYlc4q8WBx+2ANmipHJcKuktNcI/NgEsJgdSUF6Lw32njT6OnrRsKYCdgHjYw==
 
-"@sd-jwt/core@^0.18.0":
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/@sd-jwt/core/-/core-0.18.1.tgz#05e5e3db5e0fd5cfbc16a4e25da1b17f3c12b947"
-  integrity sha512-Efpko+1N9bGO+r/cn0f21mgS/FdP6kTApqz7De1BJz8KX3W81JB0Hg2EzvRtaJ+tfKsbG5n0JdlXAEw5OEXRjw==
+"@sd-jwt/core@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@sd-jwt/core/-/core-0.19.0.tgz#b0e2cdc6e4d408de6696de13ffd635a47d921426"
+  integrity sha512-/FeuQjzQFtnxDsHF64Bw+3uixVogNkXlMGBo1CKWrxB/OLNqtGXQZplKBRZMJWgnOJEqDwD6750wrOxsVly6mg==
   dependencies:
-    "@sd-jwt/decode" "0.18.1"
-    "@sd-jwt/present" "0.18.1"
-    "@sd-jwt/types" "0.18.1"
-    "@sd-jwt/utils" "0.18.1"
+    "@sd-jwt/decode" "0.19.0"
+    "@sd-jwt/present" "0.19.0"
+    "@sd-jwt/types" "0.19.0"
+    "@sd-jwt/utils" "0.19.0"
 
-"@sd-jwt/crypto-nodejs@^0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@sd-jwt/crypto-nodejs/-/crypto-nodejs-0.18.0.tgz#38010ae01955a6bef89c46c915fc78d8ddd784a3"
-  integrity sha512-3gdAKFTWOjzf0Y+wPnk6i7uIby0wSwt1fWqeCKIhMGBuuVn3b0LExnDHh367I+bCZ9cXT+6xtDJyfvlOiVvWnQ==
+"@sd-jwt/crypto-nodejs@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@sd-jwt/crypto-nodejs/-/crypto-nodejs-0.19.0.tgz#9dd7b96f64fc544436be3a607d267fd87c3250da"
+  integrity sha512-mRUZ5pgMBqisXIJyq9vzNH0p4szHV7Dg87Mzm7mI7pgPjIkx9g8R1gRBWaRNzy6mblrTvEpcziPe6bnTY04Lqw==
 
-"@sd-jwt/decode@0.18.1":
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/@sd-jwt/decode/-/decode-0.18.1.tgz#3a37d27bcb9e8b8a7ef425dd2ed47d0ef1ad66a5"
-  integrity sha512-HLHP8zVL/NmAS2Ljvk8bUs4hGyerpPRF+RMCL4MFYV6gF4VIVkYViPWJZkvR2tdo7F0mWTkSLl/OtSo0cd/lOQ==
+"@sd-jwt/decode@0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@sd-jwt/decode/-/decode-0.19.0.tgz#e36ce30a6c890bd6af8afd5137ec9a186f0fba60"
+  integrity sha512-gRfpJseFRy3bFMdlmJjVjuEcLNuekpiZJD2F2luJIKVlk26AEjZSJf6377vwNySa8hb+i4MZDwdy14lcTTmqtA==
   dependencies:
-    "@sd-jwt/types" "0.18.1"
-    "@sd-jwt/utils" "0.18.1"
+    "@sd-jwt/types" "0.19.0"
+    "@sd-jwt/utils" "0.19.0"
 
-"@sd-jwt/present@0.18.1":
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/@sd-jwt/present/-/present-0.18.1.tgz#e31f08ef62058936bd9885c1cafbd428783e8138"
-  integrity sha512-jiddudfO3qbOcRpNzBMTSR18/F3Cgrv1nZPJ7t6vAvQ8eHMAUBuLiBbrUk3co8n/k1QR8J0AXUUmtdheFNXgmQ==
+"@sd-jwt/present@0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@sd-jwt/present/-/present-0.19.0.tgz#0137cebdc80354fb590b2562537f0ed04268f58e"
+  integrity sha512-WXDwqwUXmtyj7YZ5c+wb26ZBeVOsKXCbCI7s1pRH9ngIjFNDGgAZoVCOmLq8pPgWSJzOTgJe3ErO2k63ZwhyeQ==
   dependencies:
-    "@sd-jwt/decode" "0.18.1"
-    "@sd-jwt/types" "0.18.1"
-    "@sd-jwt/utils" "0.18.1"
+    "@sd-jwt/decode" "0.19.0"
+    "@sd-jwt/types" "0.19.0"
+    "@sd-jwt/utils" "0.19.0"
 
-"@sd-jwt/types@0.18.1", "@sd-jwt/types@^0.18.0":
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/@sd-jwt/types/-/types-0.18.1.tgz#00bade9ea26d3a9b27b4bfa56867efe956154d40"
-  integrity sha512-LSUY2vtmJg9naZspH3Xw9ZU8uufPdpuhhmko3Z3Ki/aafQqvFVxhhD2bhqYNrSBY9469qjSQk62rO2/4rHN2+g==
+"@sd-jwt/types@0.19.0", "@sd-jwt/types@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@sd-jwt/types/-/types-0.19.0.tgz#83fb2f01c3a697d46ff572a1ef3c487530a22425"
+  integrity sha512-nfuC9zRLKe7o4HSvc+N4ojWRAxo4JGfgcNWpR7bJloLUlnE9eQuu9h9pEaJZht7KRwMpGorNTIdYpoi1btuiew==
 
-"@sd-jwt/utils@0.18.1":
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/@sd-jwt/utils/-/utils-0.18.1.tgz#71bb70f3135cd8f9829d25a0c3f1d43ea5471699"
-  integrity sha512-SFSWuNVxyp/xI0bAcrq/oV/s+l3oLL4qFZ+VPdXmipq1oQPOwJYNmTUy0PQnBiMlEyWZ7c9iHIGe5zIUZarr1A==
+"@sd-jwt/utils@0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@sd-jwt/utils/-/utils-0.19.0.tgz#2df84d6564fc487aede095e2dfaa7204e8a83b83"
+  integrity sha512-bDwDRjfxMBNOsAXY8q8hnxQq7jdOWxrdqTK926Mxt8DN+ttXbXbZIPLwSh84M90WP0V7+WdkXlZD31iISzUR3w==
   dependencies:
-    "@sd-jwt/types" "0.18.1"
+    "@sd-jwt/types" "0.19.0"
     js-base64 "^3.7.8"
 
 "@sinclair/typebox-codegen@^0.8.5":
@@ -7111,10 +7101,10 @@ js-base64@^3.7.8:
   resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.7.8.tgz#af44496bc09fa178ed9c4adf67eb2b46f5c6d2a4"
   integrity sha512-hNngCeKxIUQiEUN3GPJOkz4wF/YvdUdbNL9hsBcMQTkKzboD7T/q3OYOuuPZLUE6dBxSGpwhk5mwuDud7JVAow==
 
-js-sha256@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/js-sha256/-/js-sha256-0.9.0.tgz#0b89ac166583e91ef9123644bd3c5334ce9d0966"
-  integrity sha512-sga3MHh9sgQN2+pJ9VYZ+1LPwXOxuBJBA5nrR5/ofPfuiJBE2hnjsaN8se8JznOmGLN2p49Pe5U/ttafcs/apA==
+js-sha256@^0.11.1:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/js-sha256/-/js-sha256-0.11.1.tgz#712262e8fc9569d6f7f6eea72c0d8e5ccc7c976c"
+  integrity sha512-o6WSo/LUvY2uC4j7mO50a2ms7E/EAdbP0swigLV+nzHKTTaYnaLIWJ02VdXrsJX0vGedDESQnLsOekr94ryfjg==
 
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
@@ -7164,11 +7154,6 @@ jscodeshift@^17.0.0:
     recast "^0.23.11"
     tmp "^0.2.3"
     write-file-atomic "^5.0.1"
-
-jsep@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/jsep/-/jsep-1.4.0.tgz#19feccbfa51d8a79f72480b4b8e40ce2e17152f0"
-  integrity sha512-B7qPcEVE3NVkmSJbaYxvv4cHkVW7DQsZz13pUMrfS8z8Q/BuShN+gcTXrUlPiGqM2/t/EEaI030bpxMqY8gMlw==
 
 jsesc@^2.5.1:
   version "2.5.2"
@@ -7235,15 +7220,6 @@ jsonfile@^6.0.1:
     universalify "^2.0.0"
   optionalDependencies:
     graceful-fs "^4.1.6"
-
-jsonpath-plus@^10.2.0:
-  version "10.3.0"
-  resolved "https://registry.yarnpkg.com/jsonpath-plus/-/jsonpath-plus-10.3.0.tgz#59e22e4fa2298c68dfcd70659bb47f0cad525238"
-  integrity sha512-8TNmfeTCk2Le33A3vRRwtuworG/L5RrgMvdjhKZxvyShO+mBu2fP50OWUjRLNtvw344DdDarFh9buFAZs5ujeA==
-  dependencies:
-    "@jsep-plugin/assignment" "^1.3.0"
-    "@jsep-plugin/regex" "^1.0.4"
-    jsep "^1.4.0"
 
 jsrsasign@^11.1.0:
   version "11.1.0"
@@ -8276,12 +8252,19 @@ parse-json@^5.0.0, parse-json@^5.2.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
-parse-path@^7.0.0:
+parse-path@^7.0.0, parse-path@^7.1.0:
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/parse-path/-/parse-path-7.1.0.tgz#41fb513cb122831807a4c7b29c8727947a09d8c6"
   integrity sha512-EuCycjZtfPcjWk7KTksnJ5xPMvWGA/6i4zrLYhRG0hGvC3GPU/jGUj3Cy+ZR0v30duV3e23R95T1lE2+lsndSw==
   dependencies:
     protocols "^2.0.0"
+
+parse-url@^10.0.3:
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/parse-url/-/parse-url-10.0.3.tgz#e9598dc46a2f733500f3186b3945bb73d890c79d"
+  integrity sha512-RvldzLvNE0DtOO1loukZsYcHCzHVUnHe7GNyrKIkavp7fNWs5ueX3kUzY/hXS8uRqDWwtaRKDcAmLEVouPIxIw==
+  dependencies:
+    parse-path "^7.1.0"
 
 parse-url@^9.2.0:
   version "9.2.0"
@@ -8657,11 +8640,6 @@ react-native-url-polyfill@^2.0.0:
   integrity sha512-My330Do7/DvKnEvwQc0WdcBnFPploYKp9CYlefDXzIdEaA+PAhDYllkvGeEroEzvc4Kzzj2O4yVdz8v6fjRvhA==
   dependencies:
     whatwg-url-without-unicode "8.0.0-3"
-
-react-native-uuid@^2.0.1:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/react-native-uuid/-/react-native-uuid-2.0.3.tgz#f85f8a8d68e52e3f1c18ba0f02ec7776f9d4a0da"
-  integrity sha512-f/YfIS2f5UB+gut7t/9BKGSCYbRA9/74A5R1MDp+FLYsuS+OSWoiM/D8Jko6OJB6Jcu3v6ONuddvZKHdIGpeiw==
 
 react-native@0.78.3:
   version "0.78.3"
@@ -10422,12 +10400,7 @@ yoctocolors@^2.1.1:
   resolved "https://registry.yarnpkg.com/yoctocolors/-/yoctocolors-2.1.2.tgz#d795f54d173494e7d8db93150cec0ed7f678c83a"
   integrity sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug==
 
-zod@^3.22.4:
-  version "3.23.8"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
-  integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
-
-zod@^3.23.8, zod@^3.24.2, zod@^3.25.67, zod@^3.25.76:
+zod@^3.22.4, zod@^3.23.8, zod@^3.24.2, zod@^3.25.67, zod@^3.25.76:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
