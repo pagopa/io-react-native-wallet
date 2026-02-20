@@ -16,7 +16,7 @@ export interface SendAuthorizationResponseApi {
    * For each credential generates a verifiable presentation token (vpToken) using the appropriate method.
    *
    * @param credentials An array of credential items containing format, credential data, requested claims, and key information.
-   * @param requestObject The request details, including presentation requirements.
+   * @param authRequestObject The authentication request object containing nonce, clientId, and responseUri.
    * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
    */
   prepareRemotePresentations(
@@ -34,7 +34,7 @@ export interface SendAuthorizationResponseApi {
    * @since 1.0.0
    *
    * @param requestObject The request details, including presentation requirements.
-   * @param remotePresentations The presentations to send, each with their VP token
+   * @param remotePresentation The presentations to send, each with their VP token
    * @param rpConf The Relying Party common configuration
    * @param context Contains optional custom fetch implementation.
    * @returns Parsed and validated authorization response from the Relying Party.

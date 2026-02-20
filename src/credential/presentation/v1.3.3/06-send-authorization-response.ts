@@ -14,7 +14,7 @@ import {
   RelyingPartyResponseError,
 } from "../../../../src/utils/errors";
 import { AuthorizationResponse } from "./types";
-import { buildDirectPostBody } from "../common/utils";
+import { buildDirectPostBody } from "../common/utils/http";
 import { prepareVpToken } from "../../../sd-jwt";
 import { createCryptoContextFor } from "../../../utils/crypto";
 import { prepareVpTokenMdoc } from "src/mdoc";

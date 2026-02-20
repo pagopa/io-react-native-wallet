@@ -1,5 +1,5 @@
-import type { RequestObject } from "../api";
-import type { DirectAuthorizationBodyPayload } from "../v1.0.0/types";
+import type { RequestObject } from "../../api";
+import type { DirectAuthorizationBodyPayload } from "../../v1.0.0/types";
 
 /**
  * Builds a URL-encoded form body for a direct POST response without encryption.

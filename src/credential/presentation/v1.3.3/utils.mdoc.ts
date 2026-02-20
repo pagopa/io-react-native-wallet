@@ -1,8 +1,12 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 import type { DcqlMdocCredential, DcqlQueryResult } from "dcql";
-import { getValidDcqlClaims, type Credential4Dcql } from "../v1.0.0/utils";
-import type { EvaluatedDisclosure, PresentationFrame } from "../v1.0.0/types";
+import type {
+  Credential4Dcql,
+  EvaluatedDisclosure,
+  PresentationFrame,
+} from "../api";
+import { getValidDcqlClaims } from "../common/utils/dcql";
 
 type CustomDcqlMdocCredential = DcqlMdocCredential & {
   original_credential: Credential4Dcql;

@@ -1,6 +1,9 @@
 import type { DcqlQuery } from "dcql";
-import type { Credential4Dcql } from "../v1.0.0/utils";
-import type { CredentialFormat, PresentationFrame } from "../v1.0.0/types";
+import type {
+  Credential4Dcql,
+  CredentialFormat,
+  PresentationFrame,
+} from "./types";
 
 /**
  * The purpose for the credential request by the RP.

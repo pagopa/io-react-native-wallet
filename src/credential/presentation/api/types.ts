@@ -95,6 +95,11 @@ export type RemotePresentation = {
 };
 
 /**
+ * A pair that associate a key tag with a credential, used in DCQL queries
+ */
+export type Credential4Dcql = [string /* keyTag */, string /* credential */];
+
+/**
  * An object that defines claims to disclose. Nested claims must use a nested structure.
  * @example { name: true, address: { country: true } }
  */
@@ -110,3 +115,19 @@ export type Presentation = [
   /* claims */ PresentationFrame,
   /* the context for the key associated to the credential */ CryptoContext,
 ];
+
+export type CredentialFormat =
+  | {
+      format: "dc+sd-jwt";
+      vct: string;
+    }
+  | {
+      format: "mso_mdoc";
+      doctype: string;
+    };
+
+export type EvaluatedDisclosure = {
+  namespace?: string;
+  name: string;
+  value: unknown;
+};

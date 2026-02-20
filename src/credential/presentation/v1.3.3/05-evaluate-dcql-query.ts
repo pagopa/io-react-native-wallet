@@ -6,9 +6,10 @@ import {
 } from "../common/errors";
 import type { CredentialPurpose } from "../api/05-evaluate-dcql-query";
 import * as mdocUtils from "./utils.mdoc";
-import * as sdJwtUtils from "../v1.0.0/utils.sd-jwt";
-import type { Credential4Dcql } from "../v1.0.0/utils";
-import type { RemotePresentationApi } from "../api";
+import type { Credential4Dcql, RemotePresentationApi } from "../api";
+import * as sdJwtUtils from "../common/utils/sd-jwt";
+import { getClaimsFromDcqlMatch } from "./utils.mdoc";
+import { getPresentationFrameFromDcqlMatch } from "../common/utils/dcql";
 
 type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
@@ -102,9 +103,11 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
           const { vct } = matchOutput;
           const [keyTag, credential] = credentialsById[vct]!;
 
-          const requiredDisclosures = sdJwtUtils.getClaimsFromDcqlMatch(match);
-          const presentationFrame =
-            sdJwtUtils.getPresentationFrameFromDcqlMatch(match, parsedQuery);
+          const requiredDisclosures = getClaimsFromDcqlMatch(match);
+          const presentationFrame = getPresentationFrameFromDcqlMatch(
+            match,
+            parsedQuery
+          );
 
           return {
             id,

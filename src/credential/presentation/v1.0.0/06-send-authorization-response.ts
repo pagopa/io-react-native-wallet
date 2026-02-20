@@ -12,8 +12,8 @@ import { prepareVpToken } from "../../../sd-jwt";
 import type { RequestObject } from "../api/types";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { AuthorizationResponse, DirectAuthorizationBodyPayload } from "./types";
-import { getJwksFromRpConfig } from "./utils";
-import { buildDirectPostBody } from "../common/utils";
+import { getJwksFromRpConfig } from "./utils.jwks";
+import { buildDirectPostBody } from "../common/utils/http";
 import { createCryptoContextFor } from "../../../utils/crypto";
 
 /**
