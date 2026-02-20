@@ -27,11 +27,11 @@ export const mapToRequestObject = createMapper<
   RequestObjectPayload,
   RequestObject
 >((x) => ({
-  iss: x.iss,
+  iss: x.iss!,
   client_id: x.client_id,
-  dcql_query: x.dcql_query,
+  dcql_query: x.dcql_query!,
   nonce: x.nonce,
-  response_uri: x.response_uri,
+  response_uri: x.response_uri!,
   state: x.state,
   response_mode: x.response_mode,
   response_type: x.response_type,
