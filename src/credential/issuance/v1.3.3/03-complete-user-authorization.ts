@@ -14,8 +14,7 @@ import { parseMrtdChallenge } from "@pagopa/io-wallet-oauth2";
 import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import { RemotePresentation } from "../../presentation/v1.0.0"; // TODO: import from presentation v1.3.3
-import { type RemotePresentationDetails } from "../../presentation/api/types";
+import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.3.3";
 import { partialCallbacks } from "../../../utils/callbacks";
 import {
   IoWalletError,
@@ -23,6 +22,7 @@ import {
 } from "../../../utils/errors";
 import type { IssuanceApi } from "../api";
 import { mapToRequestObject } from "./mappers";
+import type { RemotePresentation } from "../../presentation";
 
 export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
   async (authRedirectUrl) => {
@@ -113,35 +113,33 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     requestObject,
     issuerConfig,
     pid,
-    { wiaCryptoContext, pidCryptoContext, appFetch = fetch }
+    { wiaCryptoContext, pidKeyTag, appFetch = fetch }
   ) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
 
-    // TODO: update after RemotePresentation integrates IO Wallet SDK
-    const dcqlQueryResult = RemotePresentation.evaluateDcqlQuery(
-      [[pidCryptoContext, pid]],
-      requestObject.dcql_query as DcqlQuery
+    const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
+      requestObject.dcql_query as DcqlQuery,
+      [[pidKeyTag, pid]]
     );
 
-    const credentialsToPresent = dcqlQueryResult.map(
-      ({ requiredDisclosures, ...rest }) => ({
-        ...rest,
-        requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
-      })
-    );
+    const authRequestObject = {
+      nonce: requestObject.nonce,
+      clientId: requestObject.client_id,
+      responseUri: requestObject.response_uri,
+    };
 
-    const remotePresentations =
-      await RemotePresentation.prepareRemotePresentations(
-        credentialsToPresent,
-        requestObject
+    const remotePresentation =
+      await RemotePresentationFlow.prepareRemotePresentations(
+        dcqlQueryResult,
+        authRequestObject
       );
 
     const authzResponsePayload = await createAuthzResponsePayload({
       state: requestObject.state,
-      remotePresentations,
+      remotePresentation,
       wiaCryptoContext,
     });
 
@@ -211,16 +209,16 @@ export const parseAuthorizationResponse = (
  * This payload includes the state and the VP tokens for the presented credentials.
  * The payload is encoded in Base64.
  * @param state - The state parameter from the request object (optional).
- * @param remotePresentations - An array of remote presentations containing credential IDs and their corresponding VP tokens.
+ * @param remotePresentation The presentations to send, each with their VP token
  * @returns The Base64 encoded authorization response payload.
  */
 const createAuthzResponsePayload = async ({
   state,
-  remotePresentations,
+  remotePresentation,
   wiaCryptoContext,
 }: {
   state?: string;
-  remotePresentations: RemotePresentationDetails[];
+  remotePresentation: RemotePresentation;
   wiaCryptoContext: CryptoContext;
 }): Promise<string> => {
   const { kid } = await wiaCryptoContext.getPublicKey();
@@ -237,7 +235,7 @@ const createAuthzResponsePayload = async ({
        * and, if so, what the consequences of its absence might be.
        */
       ...(state ? { state } : {}),
-      vp_token: remotePresentations.reduce(
+      vp_token: remotePresentation.presentations.reduce(
         (vp_token, { credentialId, vpToken }) => ({
           ...vp_token,
           [credentialId]: vpToken,

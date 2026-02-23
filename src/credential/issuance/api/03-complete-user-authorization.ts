@@ -63,7 +63,7 @@ export interface CompleteUserAuthorizationApi {
     pid: string,
     context: {
       wiaCryptoContext: CryptoContext;
-      pidCryptoContext: CryptoContext;
+      pidKeyTag: string;
       appFetch?: GlobalFetch["fetch"];
     }
   ): Promise<AuthorizationResult>;
