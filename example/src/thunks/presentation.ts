@@ -1,8 +1,6 @@
 import { createAppAsyncThunk } from "./utils";
 import { IoWallet, RemotePresentation } from "@pagopa/io-react-native-wallet";
-import {
-  shouldRequestAttestationSelector,
-} from "../store/reducers/attestation";
+import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";

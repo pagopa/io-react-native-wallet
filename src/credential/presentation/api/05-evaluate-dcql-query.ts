@@ -34,7 +34,7 @@ export interface EvaluateDcqlQueryApi {
    * @param query The DCQL query
    * @param credentialsSdJwt The list of SD-JWT credentials
    * @param credentialsMdoc The list of mdoc credentials
-   * @returns The list of credentials that satisfied the query, with the requested claims
+   * @returns Credentials that satisfy the query, with disclosure metadata.
    * @throws {DcqlError} if the provided DCQL query is not valid
    */
   evaluateDcqlQuery(

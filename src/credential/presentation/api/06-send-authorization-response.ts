@@ -13,10 +13,13 @@ export interface SendAuthorizationResponseApi {
   /**
    * Prepares remote presentations for a set of credentials.
    *
-   * For each credential generates a verifiable presentation token (vpToken) using the appropriate method.
+   * For each credential, this function:
+   * - Validates the credential format (currently supports 'mso_mdoc' or 'dc+sd-jwt').
+   * - Generates a verifiable presentation token (vpToken) using the appropriate method.
+   * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
    *
-   * @param credentials An array of credential items containing format, credential data, requested claims, and key information.
-   * @param authRequestObject The authentication request object containing nonce, clientId, and responseUri.
+   * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
+   * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
    * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
    */
   prepareRemotePresentations(
