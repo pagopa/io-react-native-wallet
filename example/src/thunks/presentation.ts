@@ -1,7 +1,6 @@
 import { createAppAsyncThunk } from "./utils";
 import { IoWallet, RemotePresentation } from "@pagopa/io-react-native-wallet";
 import {
-  selectAttestationAsSdJwt,
   shouldRequestAttestationSelector,
 } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
@@ -75,17 +74,10 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     throw new Error("PID not found");
   }
 
-  const walletInstanceAttestation = selectAttestationAsSdJwt(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
-
   const credentials = selectCredentials(getState());
 
   const credentialsSdJwt = [
     [pid.keyTag, pid.credential],
-    // TODO use WIA
-    //[WIA_KEYTAG, walletInstanceAttestation],
     ...Object.values(credentials)
       .filter(isDefined)
       .map((c) => [c.keyTag, c.credential]),
