@@ -84,7 +84,7 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "PersonIdentificationData", issues: expect.any(Array) }]
+      [{ id: "PersonIdentificationData", issues: expect.any(Array) }],
     ],
     [
       {
