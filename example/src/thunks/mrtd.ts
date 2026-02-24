@@ -62,27 +62,24 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
     { wiaCryptoContext }
   );
 
-  const {
-    htu: validationUrl,
-    challenge,
-    mrtd_pop_nonce,
-  } = await wallet.CredentialIssuance.MRTDPoP.initChallenge(
-    issuerConf,
-    initUrl,
-    mrtd_auth_session,
-    mrtd_pop_jwt_nonce,
-    {
-      walletInstanceAttestation,
-      wiaCryptoContext,
-      appFetch,
-    }
-  );
+  const { pop_verify_endpoint, challenge, mrtd_pop_nonce } =
+    await wallet.CredentialIssuance.MRTDPoP.initChallenge(
+      issuerConf,
+      initUrl,
+      mrtd_auth_session,
+      mrtd_pop_jwt_nonce,
+      {
+        walletInstanceAttestation,
+        wiaCryptoContext,
+        appFetch,
+      }
+    );
 
   return {
     challenge,
     mrtd_auth_session,
     mrtd_pop_nonce,
-    validationUrl,
+    validationUrl: pop_verify_endpoint,
   };
 });
 

@@ -1,42 +1,36 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import {
+  pid,
+  mdl,
   education_degree,
   education_degree_with_missing_keys,
-  mdl,
-  pid,
   residency,
   education_diploma,
   education_attendance,
-} from "../../../../sd-jwt/__mocks__/sd-jwt";
-import { verifyAndParseCredential } from "../06-verify-and-parse-credential";
+  issuerJwk,
+  credentialCnfJwk,
+} from "../../../__mocks__/sd-jwt";
 import type { IssuerConfig } from "../../api";
+import { verifyAndParseCredential } from "../06-verify-and-parse-credential";
+
+jest.mock("@pagopa/io-react-native-jwt", () => ({
+  decode: jest.fn().mockReturnValue({}),
+  thumbprint: jest.fn().mockImplementation(async (jwk) => jwk.kid),
+  getJwkFromHeader: jest.fn().mockImplementation(
+    (_, jwks) => jwks[0] // In the following tests there is always one JWK
+  ),
+}));
 
 describe("verifyAndParseCredential", () => {
   const credentialCryptoContext: CryptoContext = {
-    getPublicKey: async () => ({
-      kty: "EC",
-      crv: "P-256",
-      x: "0Wox7QtyPqByg35MH_XyCcnd5Le-Jm0AXHlUgDBA03Y",
-      y: "eEhVvg1JPqNd3DTSa4mGDGBlwY6NP-EZbLbNFXSXwIg",
-    }),
+    getPublicKey: async () => credentialCnfJwk,
     getSignature: async () => "",
   };
 
   const mockIssuerConf: IssuerConfig = {
     credential_endpoint: "https://issuer.example.com/credential",
     nonce_endpoint: "https://issuer.example.com/nonce",
-
-    keys: [
-      {
-        kty: "EC",
-        use: "sig",
-        alg: "ES256",
-        kid: "-F_6Uga8n3VegjY2U7YUHK1zLoaD-NPTc63RMISnLaw",
-        crv: "P-256",
-        x: "CoQdxuFhVn2pZQ7CmaGmezYQdEEP6wFxWU_XACxMAMA",
-        y: "6ppJM8poetjY6z0IDdQHuFMbQMwgKJl7eH3_FN0taZQ",
-      },
-    ],
+    keys: [issuerJwk],
     credential_configurations_supported: {
       mock_invalid_cred: {
         // @ts-expect-error unsupported format
@@ -84,7 +78,7 @@ describe("verifyAndParseCredential", () => {
   it("verifies and parses a valid SD-JWT credential", async () => {
     const result = await verifyAndParseCredential(
       mockIssuerConf,
-      pid.token + "~",
+      pid,
       "mock_valid_sd_jwt_cred",
       { credentialCryptoContext }
     );
@@ -100,22 +94,22 @@ describe("verifyAndParseCredential", () => {
           name: { "it-IT": "Cognome", "en-US": "Family Name" },
         },
         birth_date: {
-          value: "1985-12-10",
+          value: "1956-09-02",
           name: { "it-IT": "Data di nascita", "en-US": "Date of birth" },
         },
         tax_id_code: {
-          value: "TINIT-LVLDAA85T50G702B",
+          value: "LVLDAA85T50G702B",
           name: { "it-IT": "Codice fiscale", "en-US": "Tax ID code" },
         },
       },
-      expiration: new Date(1751546576000),
-      issuedAt: new Date(1720010575000),
+      expiration: new Date(4105033200000),
+      issuedAt: new Date(1771322628000),
     });
   });
 
   it("throws in case of unsupported format", async () => {
     await expect(() =>
-      verifyAndParseCredential(mockIssuerConf, pid.token, "mock_invalid_cred", {
+      verifyAndParseCredential(mockIssuerConf, pid, "mock_invalid_cred", {
         credentialCryptoContext,
       })
     ).rejects.toThrow("Unsupported credential format: unknown");
@@ -136,43 +130,17 @@ describe("verifyAndParseCredential", () => {
     };
 
     await expect(() =>
-      verifyAndParseCredential(
-        mockIssuerConf,
-        pid.token,
-        "mock_valid_sd_jwt_cred",
-        { credentialCryptoContext: altCredentialCryptoContext }
-      )
+      verifyAndParseCredential(mockIssuerConf, pid, "mock_valid_sd_jwt_cred", {
+        credentialCryptoContext: altCredentialCryptoContext,
+      })
     ).rejects.toThrow(
-      "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: Rv3W-EiKpvBTyk5yZxvrev-7MDB6SlzUCBo_CQjjddU"
+      "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: eede745a-4f47-44e7-8551-50c6a1fc0bd6"
     );
   });
 
   it("verifies and parses a credential with nested array attributes (education_degrees)", async () => {
-    const eduCredentialCryptoContext: CryptoContext = {
-      getPublicKey: async () => ({
-        kty: "EC",
-        crv: "P-256",
-        kid: "uGonT0KmgS7yWfFsHrlC4UK4xqQUJWxo2Wrix9_03UA",
-        x: "NfD3cTWC4-tmrsKP0WSYYr262huexJdQ1D1OSRvoWd0",
-        y: "ciUroXK-KZLt-TpnYFpjCkeefOrurDya2AxK6GA5ANc",
-      }),
-      getSignature: async () => "",
-    };
-
     const mockIssuerConfWithNested: IssuerConfig = {
       ...mockIssuerConf,
-      keys: [
-        {
-          kty: "EC",
-          use: "sig",
-          crv: "P-256",
-          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-          alg: "ES256",
-        },
-      ],
-
       credential_configurations_supported: {
         ...mockIssuerConf.credential_configurations_supported,
         dc_sd_jwt_education_degree: {
@@ -271,7 +239,7 @@ describe("verifyAndParseCredential", () => {
       education_degree,
       "dc_sd_jwt_education_degree",
       {
-        credentialCryptoContext: eduCredentialCryptoContext,
+        credentialCryptoContext,
       }
     );
 
@@ -420,32 +388,8 @@ describe("verifyAndParseCredential", () => {
   });
 
   it("verifies and parses a credential with optional claims (education_degrees)", async () => {
-    const eduCredentialCryptoContext: CryptoContext = {
-      getPublicKey: async () => ({
-        kty: "EC",
-        crv: "P-256",
-        kid: "uGonT0KmgS7yWfFsHrlC4UK4xqQUJWxo2Wrix9_03UA",
-        x: "NfD3cTWC4-tmrsKP0WSYYr262huexJdQ1D1OSRvoWd0",
-        y: "ciUroXK-KZLt-TpnYFpjCkeefOrurDya2AxK6GA5ANc",
-      }),
-      getSignature: async () => "",
-    };
-
     const mockIssuerConfWithOptional: IssuerConfig = {
       ...mockIssuerConf,
-
-      keys: [
-        {
-          kty: "EC",
-          use: "sig",
-          crv: "P-256",
-          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-          alg: "ES256",
-        },
-      ],
-
       credential_configurations_supported: {
         ...mockIssuerConf.credential_configurations_supported,
         dc_sd_jwt_education_degree: {
@@ -530,7 +474,7 @@ describe("verifyAndParseCredential", () => {
       education_degree_with_missing_keys,
       "dc_sd_jwt_education_degree",
       {
-        credentialCryptoContext: eduCredentialCryptoContext,
+        credentialCryptoContext,
       }
     );
 
@@ -630,7 +574,6 @@ describe("verifyAndParseCredential", () => {
   it("verifies and parses a credential with multiple nested attributes and missing keys", async () => {
     const mockIssuerConfWithDeepNested: IssuerConfig = {
       ...mockIssuerConf,
-
       credential_configurations_supported: {
         dc_sd_jwt_mDL: {
           format: "dc+sd-jwt",
@@ -705,7 +648,7 @@ describe("verifyAndParseCredential", () => {
 
     const result = await verifyAndParseCredential(
       mockIssuerConfWithDeepNested,
-      mdl.token,
+      mdl,
       "dc_sd_jwt_mDL",
       { credentialCryptoContext }
     );
@@ -791,32 +734,8 @@ describe("verifyAndParseCredential", () => {
   });
 
   it("verifies and parses a credential with nested object attributes (residency)", async () => {
-    const residencyCryptoContext: CryptoContext = {
-      getPublicKey: async () => ({
-        kty: "EC",
-        crv: "P-256",
-        kid: "vUFSDAlxDSRvRvsGHsqw_2Mi9Ftkxnoqy4fp9vwN1EI",
-        x: "vmYlfIy-_sVEai7IIgo1JPNja6zPq9bGNw0YFrcwT80",
-        y: "ZowTYQQCB42ioO0l_NEFG42VmGunfM-p1pgTVFFAi28",
-      }),
-      getSignature: async () => "",
-    };
-
     const mockIssuerConfWithNested: IssuerConfig = {
       ...mockIssuerConf,
-
-      keys: [
-        {
-          kty: "EC",
-          use: "sig",
-          crv: "P-256",
-          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-          alg: "ES256",
-        },
-      ],
-
       credential_configurations_supported: {
         ...mockIssuerConf.credential_configurations_supported,
         dc_sd_jwt_residency: {
@@ -898,7 +817,7 @@ describe("verifyAndParseCredential", () => {
       residency,
       "dc_sd_jwt_residency",
       {
-        credentialCryptoContext: residencyCryptoContext,
+        credentialCryptoContext,
       }
     );
 
@@ -959,30 +878,8 @@ describe("verifyAndParseCredential", () => {
   });
 
   it("verifies and parses a credential with nested array attributes (education diploma)", async () => {
-    const educationDiplomaCryptoContext: CryptoContext = {
-      getPublicKey: async () => ({
-        kty: "EC",
-        crv: "P-256",
-        kid: "07H8sYQOsUvRHSTyLstjihPsG3a9Bx-S2bpfRiB9sgQ",
-        x: "t9YFJPbaDOZb76MwNF63I_AgqIWb-C3XJmW9ZC-1Xbg",
-        y: "T35AwQvpncP60NRGknJ5efwPMjVwSFjD4-OIxtMQCTg",
-      }),
-      getSignature: async () => "",
-    };
-
     const mockIssuerConfWithNested: IssuerConfig = {
       ...mockIssuerConf,
-      keys: [
-        {
-          kty: "EC",
-          use: "sig",
-          crv: "P-256",
-          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-          alg: "ES256",
-        },
-      ],
       credential_configurations_supported: {
         ...mockIssuerConf.credential_configurations_supported,
         dc_sd_jwt_education_diploma: {
@@ -1100,7 +997,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_diploma,
       "dc_sd_jwt_education_diploma",
-      { credentialCryptoContext: educationDiplomaCryptoContext }
+      { credentialCryptoContext }
     );
 
     expect(result.parsedCredential).toEqual({
@@ -1182,30 +1079,8 @@ describe("verifyAndParseCredential", () => {
   });
 
   it("verifies and parses a credential with nested array attributes (education attendance)", async () => {
-    const educationAttendanceCryptoContext: CryptoContext = {
-      getPublicKey: async () => ({
-        kty: "EC",
-        crv: "P-256",
-        kid: "7JoxT0V5Un2M-oZAu9NZOlP2ND2oKSJEnp2J5Qmr_ow",
-        x: "K7pTo0DrgYMEkvn2Ler0wP9U9OWS6smkrLOYPH2dOTE",
-        y: "8s86H3iHmnVJndMay2aSzrHs-q5bkpwiDR7cI69NzkU",
-      }),
-      getSignature: async () => "",
-    };
-
     const mockIssuerConfWithNested: IssuerConfig = {
       ...mockIssuerConf,
-      keys: [
-        {
-          kty: "EC",
-          use: "sig",
-          crv: "P-256",
-          kid: "HH9JY9xFA3eBp7GvQsJEfvgYXzHv4dEe8lnkxt0v0cQ",
-          x: "Pm93czfLFUy8xFbWVra_JDZcOeDJ0sbp4bS0dWXAhZw",
-          y: "maDVY3SuVjSoiHSD0I5_QvXcsqKzbPiciRgAN1o0Sdw",
-          alg: "ES256",
-        },
-      ],
       credential_configurations_supported: {
         ...mockIssuerConf.credential_configurations_supported,
         dc_sd_jwt_education_attendance: {
@@ -1295,7 +1170,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_attendance,
       "dc_sd_jwt_education_attendance",
-      { credentialCryptoContext: educationAttendanceCryptoContext }
+      { credentialCryptoContext }
     );
 
     expect(result.parsedCredential).toEqual({
