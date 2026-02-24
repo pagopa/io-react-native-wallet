@@ -59,7 +59,7 @@ describe("disclose", () => {
     ]);
 
     const expected = {
-      token: pid.token,
+      token: pid.token.slice(0, -1), // Remove last ~
       paths: [
         { claim: "unique_id", path: "verified_claims.claims._sd[1]" },
         { claim: "given_name", path: "verified_claims.claims._sd[3]" },

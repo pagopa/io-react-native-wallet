@@ -3,21 +3,21 @@ import {
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
 import type { RemotePresentationApi } from "../api";
-import { partialCallbacks } from "../../../../src/utils/callbacks";
+import { partialCallbacks } from "../../../utils/callbacks";
 import { mapSdkAuthorizationResponseError } from "./sdkErrorMapper";
 import {
   generateRandomAlphaNumericString,
   hasStatusOrThrow,
-} from "../../../../src/utils/misc";
+} from "../../../utils/misc";
 import {
   IoWalletError,
   RelyingPartyResponseError,
-} from "../../../../src/utils/errors";
+} from "../../../utils/errors";
 import { AuthorizationResponse } from "./types";
 import { buildDirectPostBody } from "../common/utils/http";
 import { prepareVpToken } from "../../../sd-jwt";
 import { createCryptoContextFor } from "../../../utils/crypto";
-import { prepareVpTokenMdoc } from "src/mdoc";
+import { prepareVpTokenMdoc } from "../../../mdoc";
 
 /**
  * Prepares remote presentations for a set of credentials.
