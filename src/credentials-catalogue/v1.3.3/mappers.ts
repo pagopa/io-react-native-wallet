@@ -22,57 +22,61 @@ export const mapToCredentialsCatalogue = createMapper<
     SchemaRegistry,
   ],
   DigitalCredentialsCatalogue
->(([discoveryJwt, catalogueJwt, authSourceRegistry, schemaRegistry]) => {
-  const authSourcesById = authSourceRegistry.authentic_sources.reduce(
-    (acc, as) => {
-      acc[as.entity_id] = as;
-      return acc;
-    },
-    {} as Record<string, AuthenticSource>
-  );
-  const schemasByCredentialType = schemaRegistry.schemas.reduce(
-    (acc, schema) => {
-      (acc[schema.credential_type] ??= []).push(schema);
-      return acc;
-    },
-    {} as Record<string, Schema[]>
-  );
-
-  const resolveAuthSource = ({
-    id,
-  }: {
-    id: string;
-    dataset_id: string;
-  }): ApiAuthenticSource => {
-    const as = authSourcesById[id];
-    assert(as, `AS ${id} must be present in the Authentic Source Registry`);
-    const { ipa_code, ...rest } = as.organization_info;
-    return { id, organization_code: ipa_code, ...rest };
-  };
-
-  const resolveFormats = (credentialType: string): ApiCredentialFormat[] => {
-    const schemas = schemasByCredentialType[credentialType];
-    assert(
-      schemas,
-      `Schemas for ${credentialType} must be present in the Schema Registry`
+>(
+  ([discoveryJwt, catalogueJwt, authSourceRegistry, schemaRegistry]) => {
+    const authSourcesById = authSourceRegistry.authentic_sources.reduce(
+      (acc, as) => {
+        acc[as.entity_id] = as;
+        return acc;
+      },
+      {} as Record<string, AuthenticSource>
     );
-    return schemas.map((schema) => ({
-      configuration_id: schema.id, // TODO: [SIW-3978] Does schema ID corresponds to configuration_id?
-      ...schema,
-    }));
-  };
+    const schemasByCredentialType = schemaRegistry.schemas.reduce(
+      (acc, schema) => {
+        (acc[schema.credential_type] ??= []).push(schema);
+        return acc;
+      },
+      {} as Record<string, Schema[]>
+    );
 
-  const { credentials, ...rest } = catalogueJwt.payload;
-  return {
-    ...rest,
-    taxonomy_uri: discoveryJwt.payload.endpoints.taxonomy,
-    credentials: credentials.map(
-      ({ authentic_sources, credential_name, ...credential }) => ({
-        name: credential_name,
-        formats: resolveFormats(credential.credential_type),
-        authentic_sources: authentic_sources.map(resolveAuthSource),
-        ...credential,
-      })
-    ),
-  };
-});
+    const resolveAuthSource = ({
+      id,
+    }: {
+      id: string;
+      dataset_id: string;
+    }): ApiAuthenticSource => {
+      const as = authSourcesById[id];
+      assert(as, `AS ${id} must be present in the Authentic Source Registry`);
+      const { ipa_code, ...rest } = as.organization_info;
+      return { id, organization_code: ipa_code, ...rest };
+    };
+
+    const resolveFormats = (credentialType: string): ApiCredentialFormat[] => {
+      const schemas = schemasByCredentialType[credentialType];
+      assert(
+        schemas,
+        `Schemas for ${credentialType} must be present in the Schema Registry`
+      );
+      return schemas.map((schema) => ({
+        configuration_id: schema.id, // TODO: [SIW-3978] Does schema ID corresponds to configuration_id?
+        ...schema,
+      }));
+    };
+
+    return {
+      ...catalogueJwt.payload,
+      taxonomy_uri: discoveryJwt.payload.endpoints.taxonomy,
+      credentials: catalogueJwt.payload.credentials.map(
+        ({ authentic_sources, credential_name, ...credential }) => ({
+          name: credential_name,
+          formats: resolveFormats(credential.credential_type),
+          authentic_sources: authentic_sources.map(resolveAuthSource),
+          ...credential,
+        })
+      ),
+    };
+  },
+  {
+    outputSchema: DigitalCredentialsCatalogue,
+  }
+);
