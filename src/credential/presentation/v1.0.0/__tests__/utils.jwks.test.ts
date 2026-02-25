@@ -1,5 +1,3 @@
-// fetchJwks.test.ts
-
 import { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 import { getJwksFromRpConfig } from "../utils.jwks";
 

@@ -238,7 +238,7 @@ const createAuthzResponsePayload = async ({
       vp_token: remotePresentation.presentations.reduce(
         (vp_token, { credentialId, vpToken }) => ({
           ...vp_token,
-          [credentialId]: vpToken,
+          [credentialId]: [vpToken],
         }),
         {}
       ),
