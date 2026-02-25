@@ -23,16 +23,17 @@ const CredentialIssuer = z.object({
 const AuthenticSource = z.object({
   id: z.string(),
   organization_name: z.string(),
-  organization_code: z.string(),
+  organization_code: z.string().optional(),
   organization_country: z.string(),
-  source_type: z.string(),
+  organization_type: z.string(),
   contacts: z.array(z.string()).optional(),
   homepage_uri: z.string().optional(),
   logo_uri: z.string().optional(),
   user_information: z.string().optional(),
 });
+export type AuthenticSource = z.infer<typeof AuthenticSource>;
 
-const CredentialFormat = z.object({
+export const CredentialFormat = z.object({
   configuration_id: z.string(),
   format: z.enum(["dc+sd-jwt", "mso_mdoc"]),
   vct: z.string().url().optional(),
@@ -40,8 +41,9 @@ const CredentialFormat = z.object({
   schema_uri: z.string().url().optional(),
   "schema_uri#integrity": z.string().optional(),
 });
+export type CredentialFormat = z.infer<typeof CredentialFormat>;
 
-const Claim = z.object({
+export const Claim = z.object({
   name: z.string(),
   taxonomy_ref: z.string(),
   display_name: z.string(),
@@ -66,7 +68,7 @@ export const DigitalCredential = z.object({
   issuers: z.array(CredentialIssuer),
   authentic_sources: z.array(AuthenticSource),
   formats: z.array(CredentialFormat),
-  claims: z.array(Claim),
+  // claims: z.array(Claim), // TODO: [SIW-3978] Should we keep claims?
 });
 
 export const DigitalCredentialsCatalogue = z.object({
