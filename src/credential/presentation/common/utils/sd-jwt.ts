@@ -54,7 +54,10 @@ export const mapCredentialsToObj = async (
       const claims = await getClaimsFromDecodedSdJwt(decodedRawSdJwt);
       return {
         vct: decodedRawSdJwt.jwt?.payload?.vct as string,
-        credential_format: "dc+sd-jwt",
+        credential_format:
+          decodedRawSdJwt.jwt?.header?.typ === "vc+sd-jwt"
+            ? "vc+sd-jwt"
+            : "dc+sd-jwt",
         cryptographic_holder_binding: true,
         claims,
         original_credential: credential,

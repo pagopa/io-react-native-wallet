@@ -3,7 +3,7 @@ import {
   CredentialsNotFoundError,
   type NotFoundDetail,
 } from "../../common/errors";
-import { pid, mdl } from "../../../../sd-jwt/__mocks__/sd-jwt";
+import { legacyPid, mdl, pid } from "../../../../sd-jwt/__mocks__/sd-jwt";
 import { evaluateDcqlQuery } from "../05-evaluate-dcql-query";
 
 const pidKeyTag = "pidkeytag";
@@ -522,6 +522,41 @@ describe("evaluateDcqlQuery", () => {
               },
             ],
           },
+        ],
+      },
+    ];
+
+    expect(result).toEqual(expected);
+  });
+
+  it("should work with older vc+sd-jwt credentials", async () => {
+    const query: DcqlQuery.Input = {
+      credentials: [
+        {
+          id: "PID",
+          format: "vc+sd-jwt",
+          meta: {
+            vct_values: ["PersonIdentificationData"],
+          },
+          claims: [{ path: ["tax_id_code"] }],
+        },
+      ],
+    };
+
+    const legacyCredentials = [[pidKeyTag, legacyPid]] as [string, string][];
+    const result = await evaluateDcqlQuery(query, legacyCredentials);
+
+    const expected = [
+      {
+        id: "PID",
+        format: "vc+sd-jwt",
+        vct: "PersonIdentificationData",
+        keyTag: pidKeyTag,
+        credential: legacyPid,
+        purposes: [{ required: true }],
+        presentationFrame: { tax_id_code: true },
+        requiredDisclosures: [
+          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
         ],
       },
     ];
