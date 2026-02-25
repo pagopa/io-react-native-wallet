@@ -11,7 +11,7 @@ import {
   getClaimsFromDcqlMatch,
   getPresentationFrameFromDcqlMatch,
 } from "../common/utils/dcql";
-import { LEGACY_SD_JWT } from "src/sd-jwt/types";
+import { LEGACY_SD_JWT } from "../../../sd-jwt/types";
 
 type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
@@ -97,7 +97,8 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
 
         if (
           matchOutput?.credential_format === "dc+sd-jwt" ||
-          matchOutput?.credential_format === LEGACY_SD_JWT
+          (matchOutput?.credential_format === LEGACY_SD_JWT &&
+            "vct" in matchOutput)
         ) {
           const { vct } = matchOutput;
           const [keyTag, credential] = credentialsByVct[vct]!;

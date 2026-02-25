@@ -117,14 +117,9 @@ export type Presentation = [
 ];
 
 export type CredentialFormat =
-  | {
-      format: "dc+sd-jwt";
-      vct: string;
-    }
-  | {
-      format: "mso_mdoc";
-      doctype: string;
-    };
+  | { format: "dc+sd-jwt"; vct: string }
+  | { format: "vc+sd-jwt"; vct: string }
+  | { format: "mso_mdoc"; doctype: string };
 
 export type EvaluatedDisclosure = {
   namespace?: string;
