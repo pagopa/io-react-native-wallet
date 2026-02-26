@@ -6,7 +6,6 @@ import type {
   RequestObject,
 } from "./types";
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
-
 type FetchContext = { appFetch?: GlobalFetch["fetch"] };
 
 export interface SendAuthorizationResponseApi {

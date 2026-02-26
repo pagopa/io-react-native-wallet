@@ -1,7 +1,7 @@
 // fetchJwks.test.ts
 
-import { getJwksFromRpConfig } from "../04-retrieve-rp-jwks";
 import { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
+import { getJwksFromRpConfig } from "../utils";
 
 describe("fetchJwksFromConfig", () => {
   beforeEach(() => {
@@ -10,20 +10,24 @@ describe("fetchJwksFromConfig", () => {
 
   it("should return JWKS from a valid configuration", () => {
     const mockConfig = {
-      keys: [{ kid: "key1" }, { kid: "key2" }],
+      jwks: {
+        keys: [
+          { kty: "RSA", kid: "key1" },
+          { kty: "EC", kid: "key2" },
+        ],
+      },
     } as unknown as RelyingPartyConfig;
 
     const result = getJwksFromRpConfig(mockConfig);
 
-    // Assertions
     expect(result).toEqual({
-      keys: mockConfig.keys,
+      keys: mockConfig.jwks.keys,
     });
   });
 
   it("should throw an error if JWKS is not found in the configuration", () => {
     const mockConfigMissingJWKS = {
-      // JWKS is missing here
+      jwks: {},
     } as unknown as RelyingPartyConfig;
 
     expect(() => getJwksFromRpConfig(mockConfigMissingJWKS)).toThrow(
@@ -33,7 +37,7 @@ describe("fetchJwksFromConfig", () => {
 
   it("should throw an error if JWKS.keys is not an array", async () => {
     const mockConfigInvalidJWKS = {
-      keys: "not-an-array",
+      jwks: { keys: "not-an-array" },
     } as unknown as RelyingPartyConfig;
 
     expect(() => getJwksFromRpConfig(mockConfigInvalidJWKS)).toThrow(

@@ -140,6 +140,8 @@ describe("mapToRequestObject", () => {
       nonce: "nonce-123",
       response_uri: "https://verifier.example/response",
       state: "state-123",
+      response_mode: "direct_post.jwt",
+      response_type: "vp_token",
     });
   });
 });
