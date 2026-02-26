@@ -1,4 +1,4 @@
-import { getRelyingPartyEntityConfiguration } from "src/trust/v1.3.3/entities";
+import { getRelyingPartyEntityConfiguration } from "../../../trust/v1.3.3/entities";
 import type { RemotePresentationApi } from "../api";
 import { mapToRelyingPartyConfig } from "./mappers";
 

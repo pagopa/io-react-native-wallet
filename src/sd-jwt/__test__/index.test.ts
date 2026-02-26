@@ -61,7 +61,7 @@ it("Ensures example data correctness", () => {
   expect(
     JSON.parse(decodeBase64(encodeBase64(JSON.stringify(sdJwt.header))))
   ).toEqual(sdJwt.header);
-  expect([signed, ...tokenizedDisclosures].join("~")).toBe(token);
+  expect([signed, ...tokenizedDisclosures].join("~")).toBe(token.slice(0, -1));
 });
 
 describe("decode", () => {

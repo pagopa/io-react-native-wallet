@@ -7,9 +7,9 @@ import {
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
 } from "../06-send-authorization-response";
-import type { RemotePresentationDetails, RequestObject } from "../../api/types";
+import type { RemotePresentation, RequestObject } from "../../api/types";
 import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
-import { buildDirectPostBody } from "../../common/utils";
+import { buildDirectPostBody } from "../../common/utils/http";
 
 jest.mock("@pagopa/io-react-native-jwt", () => {
   const actualModule = jest.requireActual("@pagopa/io-react-native-jwt");
@@ -88,14 +88,16 @@ describe("buildDirectPostJwtBody", () => {
 
 describe("sendAuthorizationResponse", () => {
   const mockFetch = jest.fn();
-  const remotePresentations: RemotePresentationDetails[] = [
-    {
-      requestedClaims: ["name", "surname"],
-      credentialId: "PID",
-      vpToken: "mock_vp_token",
-    },
-  ];
-
+  const remotePresentations: RemotePresentation = {
+    presentations: [
+      {
+        requestedClaims: ["name", "surname"],
+        credentialId: "PID",
+        vpToken: "mock_vp_token",
+        format: "dc+sd-jwt",
+      },
+    ],
+  };
   beforeEach(() => {
     mockFetch.mockReset();
   });
