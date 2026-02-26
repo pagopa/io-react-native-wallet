@@ -9,7 +9,7 @@ import { isPathEqual, isPrefixOf } from "../../../utils/parser";
 import { IoWalletError } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { isSameThumbprint, type JWK } from "../../../utils/jwk";
-import type { SdJwt4VC } from "../../../sd-jwt"; // TODO: remove or create a common SD-JWT type
+import type { SdJwt4VCBasePayload } from "../../../sd-jwt/types";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 
 type CredentialConf =
@@ -183,7 +183,7 @@ async function verifyCredentialSdJwt(
     holderBindingContext.getPublicKey(),
   ]);
 
-  const { cnf } = verifiedCredential.payload as SdJwt4VC["payload"];
+  const { cnf } = verifiedCredential.payload as SdJwt4VCBasePayload;
   if (!(await isSameThumbprint(cnf.jwk, holderBindingKey as JWK))) {
     const message = `Failed to verify holder binding, expected kid: ${holderBindingKey.kid}, got: ${cnf.jwk.kid}`;
     Logger.log(LogLevel.ERROR, message);

@@ -10,8 +10,8 @@ const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
 
 const credentials = [
-  [pidKeyTag, pid.token],
-  [mdlKeyTag, mdl.token],
+  [pidKeyTag, pid],
+  [mdlKeyTag, mdl],
 ] as [string, string][];
 
 describe("evaluateDcqlQuery", () => {
@@ -150,7 +150,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -201,7 +201,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -219,7 +219,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [{ required: true }],
         presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
@@ -262,7 +262,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
@@ -308,7 +308,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
@@ -321,7 +321,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [{ description: "Extra services", required: false }],
         presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
@@ -392,7 +392,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -410,7 +410,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { birth_date: true, document_number: true },
         requiredDisclosures: [
@@ -475,7 +475,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "PersonIdentificationData",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -493,7 +493,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
