@@ -4679,12 +4679,12 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
-dcql@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/dcql/-/dcql-2.0.1.tgz#eeff904b68d599e52262e541ce76d8d759737811"
-  integrity sha512-qf0Xv8bayL5YzyAH+F9ujE28tuETsoaMIWbYc1xjjUTmEL/UtlimZDQVl1Q7jbfbJ3+eGmAwJr0yIwCWeswA7A==
+dcql@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/dcql/-/dcql-3.0.0.tgz#08d89345f4916bd85ac886cf0a74db54653c4b4a"
+  integrity sha512-Z1Iq+tDQqPCqWzQVevUVOaYa+NfoplwrwSPvV0JINZpniiN5jq32C4CXsrmELAgSa5Ja7hBKiuYkpZjQFkeHyw==
   dependencies:
-    valibot "1.1.0"
+    valibot "1.2.0"
 
 debug@2.6.9, debug@^2.2.0, debug@^2.6.9:
   version "2.6.9"
@@ -10065,10 +10065,10 @@ v8-to-istanbul@^9.0.1:
     "@types/istanbul-lib-coverage" "^2.0.1"
     convert-source-map "^1.6.0"
 
-valibot@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/valibot/-/valibot-1.1.0.tgz#873bb1af9e1577391690307bfe0520bd1360ec2d"
-  integrity sha512-Nk8lX30Qhu+9txPYTwM0cFlWLdPFsFr6LblzqIySfbZph9+BFsAHsNvHOymEviUepeIW6KFHzpX8TKhbptBXXw==
+valibot@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/valibot/-/valibot-1.2.0.tgz#8fc720d9e4082ba16e30a914064a39619b2f1d6f"
+  integrity sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==
 
 validate-npm-package-license@^3.0.1:
   version "3.0.4"
