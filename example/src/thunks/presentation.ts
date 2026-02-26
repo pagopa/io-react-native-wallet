@@ -65,7 +65,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   );
 
   const { requestObjectEncodedJwt } =
-    await wallet.RemotePresentation.getRequestObject(qrParams.request_uri);
+    await wallet.RemotePresentation.getRequestObject(args.qrcode);
 
   const { requestObject } = await wallet.RemotePresentation.verifyRequestObject(
     requestObjectEncodedJwt,

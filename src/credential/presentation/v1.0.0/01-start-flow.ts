@@ -10,9 +10,13 @@ export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (
     request_uri_method: params.request_uri_method ?? "get",
   });
 
-  if (result.success) {
-    return result.data;
+  if (!result.success) throw new InvalidQRCodeError(result.error.message);
+
+  if (!result.data.request_uri) {
+    throw new InvalidQRCodeError(
+      "Invalid QR code missing the required 'request_uri' parameter."
+    );
   }
 
-  throw new InvalidQRCodeError(result.error.message);
+  return result.data;
 };
