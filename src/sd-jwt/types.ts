@@ -2,6 +2,13 @@ import { z } from "zod";
 import { UnixTime } from "../utils/zod";
 import { JWK } from "../utils/jwk";
 
+/**
+ * For backward compatibility reasons it is still necessary to support the legacy SD-JWT
+ * in a few flows (for instance status assertion and presentation of the old eID).
+ */
+export type SupportedSdJwtLegacyFormat = typeof LEGACY_SD_JWT;
+export const LEGACY_SD_JWT = "vc+sd-jwt";
+
 const StatusAssertion = z.object({
   credential_hash_alg: z.literal("sha-256"),
 });
@@ -38,13 +45,6 @@ export const SdJwt4VCBasePayload = z.object({
   vct: z.string(),
   "vct#integrity": z.string().optional(),
 });
-
-/**
- * For backward compatibility reasons it is still necessary to support the legacy SD-JWT
- * in a few flows (for instance status assertion and presentation of the old eID).
- */
-export type SupportedSdJwtLegacyFormat = typeof LEGACY_SD_JWT;
-export const LEGACY_SD_JWT = "vc+sd-jwt";
 
 /**
  * Object containing User authentication and User data verification information.
