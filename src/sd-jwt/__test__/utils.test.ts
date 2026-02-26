@@ -7,17 +7,17 @@ describe("SD-JWT getVerification", () => {
       evidence: [
         {
           attestation: {
-            date_of_issuance: "2026-02-17",
-            voucher: { organization: "AGID" },
+            date_of_issuance: "2025-06-23",
+            voucher: { organization: "Ministero dell'Interno" },
             type: "digital_attestation",
-            reference_number: "_d774a38b-4e4c-43d6-aa93-83a398f9124e",
+            reference_number: "123456789",
           },
-          time: "2026-02-17T10:03:46Z",
+          time: "2025-06-23T13:14:25Z",
           type: "vouch",
         },
       ],
-      trust_framework: "it_spid",
-      assurance_level: "substantial",
+      trust_framework: "it_cie",
+      assurance_level: "high",
     });
   });
 
