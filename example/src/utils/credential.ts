@@ -85,7 +85,7 @@ export const getCredential = async ({
       requestObject,
       issuerConf,
       pid.credential,
-      { wiaCryptoContext, pidCryptoContext: createCryptoContextFor(pid.keyTag) }
+      { wiaCryptoContext, pidKeyTag: pid.keyTag }
     );
 
   // Generate the DPoP context which will be used for the whole issuance flow

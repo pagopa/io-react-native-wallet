@@ -47,7 +47,7 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     Trust: Trust.V1_0_0,
     CredentialIssuance: CredentialIssuance.V1_3_3,
     CredentialStatus: CredentialStatus.V1_0_0,
-    RemotePresentation: RemotePresentation.V1_0_0,
+    RemotePresentation: RemotePresentation.V1_3_3,
     CredentialsCatalogue: CredentialsCatalogue.V1_3_3,
     Trustmark: Trustmark.V1_3_3,
     CredentialsOffer: CredentialsOffer.V1_3_3,

@@ -5,13 +5,15 @@ import {
   sha256ToBase64,
   SignJWT,
   verify as verifyJwt,
-  type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import { Disclosure, type DisclosureWithEncoded, SdJwt4VC } from "./types";
+import { present } from "@sd-jwt/present";
+import { digest } from "@sd-jwt/crypto-nodejs";
 import { verifyDisclosure } from "./verifier";
 import type { JWK } from "../utils/jwk";
 import * as Errors from "./errors";
 import { Base64 } from "js-base64";
+import type { Presentation } from "src/credential/presentation";
 
 export * from "./utils";
 
@@ -190,19 +192,15 @@ export const verify = async <S extends z.ZodType<SdJwt4VC>>(
 export const prepareVpToken = async (
   nonce: string,
   client_id: string,
-  [verifiableCredential, requestedClaims, cryptoContext]: [
-    string,
-    string[],
-    CryptoContext,
-  ]
+  [verifiableCredential, presentationFrame, cryptoContext]: Presentation
 ): Promise<{
   vp_token: string;
 }> => {
   // Produce a VP token with only requested claims from the verifiable credential
-  const { token: vp } = await disclose(verifiableCredential, requestedClaims);
+  const vp = await present(verifiableCredential, presentationFrame, digest);
 
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
-  const sd_hash = await sha256ToBase64(`${vp}~`);
+  const sd_hash = await sha256ToBase64(vp);
 
   const kbJwt = await new SignJWT(cryptoContext)
     .setProtectedHeader({
@@ -216,9 +214,8 @@ export const prepareVpToken = async (
     .setAudience(client_id)
     .setIssuedAt()
     .sign();
-
   // <Issuer-signed JWT>~<Disclosure 1>~...~<Disclosure N>~<KB-JWT>
-  const vp_token = [vp, kbJwt].join("~");
+  const vp_token = [vp, kbJwt].join("");
 
   return { vp_token };
 };

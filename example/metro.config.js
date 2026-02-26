@@ -41,6 +41,13 @@ const config = {
       }
       return context.resolveRequest(context, moduleName, platform);
     },
+
+    resolverMainFields: [
+      "react-native",
+      "browser",
+      "main",
+      "module", // Some packages (ex. @openid4vc) do not expose a main field and Metro defaults to the wrong file
+    ],
   },
 
   transformer: {

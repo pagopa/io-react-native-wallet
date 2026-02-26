@@ -1,25 +1,16 @@
 import { createAppAsyncThunk } from "./utils";
-import {
-  createCryptoContextFor,
-  IoWallet,
-  RemotePresentation,
-} from "@pagopa/io-react-native-wallet";
-import {
-  selectAttestationAsSdJwt,
-  shouldRequestAttestationSelector,
-} from "../store/reducers/attestation";
+import { IoWallet, RemotePresentation } from "@pagopa/io-react-native-wallet";
+import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
 import { getAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { WIA_KEYTAG } from "../utils/crypto";
 import { selectItwVersion } from "../store/reducers/environment";
 
 type DcqlQuery = Parameters<
   RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
->[1];
+>[0];
 
 export type RequestObject = RemotePresentation.RequestObject;
 
@@ -65,7 +56,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   );
 
   const { requestObjectEncodedJwt } =
-    await wallet.RemotePresentation.getRequestObject(qrParams.request_uri);
+    await wallet.RemotePresentation.getRequestObject(args.qrcode);
 
   const { requestObject } = await wallet.RemotePresentation.verifyRequestObject(
     requestObjectEncodedJwt,
@@ -81,20 +72,14 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     throw new Error("PID not found");
   }
 
-  const walletInstanceAttestation = selectAttestationAsSdJwt(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
-
   const credentials = selectCredentials(getState());
 
   const credentialsSdJwt = [
-    [createCryptoContextFor(pid.keyTag), pid.credential],
-    [createCryptoContextFor(WIA_KEYTAG), walletInstanceAttestation],
+    [pid.keyTag, pid.credential],
     ...Object.values(credentials)
       .filter(isDefined)
-      .map((c) => [createCryptoContextFor(c.keyTag), c.credential]),
-  ] as [CryptoContext, string][];
+      .map((c) => [c.keyTag, c.credential]),
+  ] as [string, string][];
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
     return processRefusedPresentation(wallet, requestObject);
@@ -108,24 +93,23 @@ const processPresentation = async (
   wallet: IoWallet,
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig,
-  credentialsSdJwt: [CryptoContext, string][]
+  credentialsSdJwt: [string, string][]
 ) => {
-  const result = wallet.RemotePresentation.evaluateDcqlQuery(
-    credentialsSdJwt,
-    requestObject.dcql_query as DcqlQuery
+  const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
+    requestObject.dcql_query as DcqlQuery,
+    credentialsSdJwt
   );
 
-  const credentialsToPresent = result.map(
-    ({ requiredDisclosures, ...rest }) => ({
-      ...rest,
-      requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
-    })
-  );
+  const authRequestObject = {
+    nonce: requestObject.nonce,
+    clientId: requestObject.client_id,
+    responseUri: requestObject.response_uri,
+  };
 
   const remotePresentations =
     await wallet.RemotePresentation.prepareRemotePresentations(
-      credentialsToPresent,
-      requestObject
+      evaluatedDcqlQuery,
+      authRequestObject
     );
 
   const authResponse =
@@ -138,7 +122,9 @@ const processPresentation = async (
   return {
     authResponse,
     requestObject,
-    requestedClaims: credentialsToPresent.flatMap((c) => c.requestedClaims),
+    requestedClaims: remotePresentations.presentations.flatMap(
+      (c) => c.requestedClaims
+    ),
   };
 };
 

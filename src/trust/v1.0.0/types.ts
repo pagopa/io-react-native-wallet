@@ -1,12 +1,15 @@
 import * as z from "zod";
 import { JWK } from "../../utils/jwk";
 import { BaseEntityConfiguration } from "../common/types";
+import { jsonWebKeySchema } from "@openid-federation/core";
 
 const RelyingPartyMetadata = z.object({
   application_type: z.string().optional(),
   client_id: z.string().optional(),
   client_name: z.string().optional(),
-  jwks: z.object({ keys: z.array(JWK) }),
+  jwks: z.object({
+    keys: z.array(jsonWebKeySchema),
+  }),
   contacts: z.array(z.string()).optional(),
   request_uris: z.array(z.string()).optional(),
   authorization_signed_response_alg: z.string().optional(),
