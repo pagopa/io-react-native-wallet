@@ -1,5 +1,5 @@
 import { DcqlError, type DcqlQuery } from "dcql";
-import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
+import { evaluateDcqlQuery } from "../05-evaluate-dcql-query";
 import {
   CredentialsNotFoundError,
   type NotFoundDetail,

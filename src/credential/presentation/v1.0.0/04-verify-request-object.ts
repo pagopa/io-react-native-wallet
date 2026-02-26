@@ -2,9 +2,9 @@ import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { type typeToFlattenedError } from "zod";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { InvalidRequestObjectError } from "../common/errors";
-import { getJwksFromRpConfig } from "./04-retrieve-rp-jwks";
 import { RequestObjectPayload } from "./types";
 import { mapToRequestObject } from "./mappers";
+import { getJwksFromRpConfig } from "./utils";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId, rpConf, state }) => {
@@ -35,8 +35,7 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       );
     }
 
-    const isStateMatch =
-      state && requestObject.state ? state === requestObject.state : true;
+    const isStateMatch = state ? state === requestObject.state : true;
 
     if (!isStateMatch) {
       throw new InvalidRequestObjectError(

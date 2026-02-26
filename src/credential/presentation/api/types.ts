@@ -3,15 +3,19 @@ import * as z from "zod";
 export type PresentationParams = z.infer<typeof PresentationParams>;
 export const PresentationParams = z.object({
   client_id: z.string().nonempty(),
-  request_uri: z.string().url(),
-  request_uri_method: z.enum(["get", "post"]),
+  request: z.string().optional(),
+  request_uri: z.string().url().optional(),
+  request_uri_method: z.enum(["get", "post"]).optional(),
   state: z.string().optional(),
 });
 
 export type WalletMetadata = z.infer<typeof WalletMetadata>;
 export const WalletMetadata = z.object({
-  presentation_definition_uri_supported: z.boolean().optional(),
+  authorization_endpoint: z.string().url(),
   client_id_schemes_supported: z.array(z.string()).optional(),
+  client_id_prefixes_supported: z.array(z.string()).optional(),
+  response_types_supported: z.array(z.string()).optional(),
+  response_modes_supported: z.array(z.string()).optional(),
   request_object_signing_alg_values_supported: z.array(z.string()).optional(),
   vp_formats_supported: z.record(
     z.string(),
@@ -69,7 +73,9 @@ export type RequestObject = {
   iss: string;
   response_uri: string;
   nonce: string;
-  state?: string;
+  state: string;
   client_id: string;
   dcql_query: Record<string, unknown>;
+  response_type: "vp_token";
+  response_mode: "direct_post.jwt";
 };

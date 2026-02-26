@@ -75,4 +75,6 @@ export const mapToRequestObject = createMapper<
   nonce: payload.nonce,
   response_uri: payload.response_uri!,
   state: payload.state,
+  response_mode: payload.response_mode,
+  response_type: payload.response_type,
 }));

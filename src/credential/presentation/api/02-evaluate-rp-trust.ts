@@ -13,5 +13,7 @@ export interface EvaluateRelyingPartyTrustApi {
   evaluateRelyingPartyTrust(
     rpUrl: string,
     ctx?: { appFetch?: GlobalFetch["fetch"] }
-  ): Promise<{ rpConf: RelyingPartyConfig }>;
+  ): Promise<{
+    rpConf: RelyingPartyConfig;
+  }>;
 }

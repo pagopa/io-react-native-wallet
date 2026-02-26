@@ -11,7 +11,7 @@ import type { RemotePresentationApi } from "../api";
 import type {
   CredentialPurpose,
   Disclosure,
-} from "../api/06-evaluate-dcql-query";
+} from "../api/05-evaluate-dcql-query";
 
 type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
