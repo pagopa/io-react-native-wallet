@@ -4,7 +4,7 @@ import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { InvalidRequestObjectError } from "../common/errors";
 import { RequestObjectPayload } from "./types";
 import { mapToRequestObject } from "./mappers";
-import { getJwksFromRpConfig } from "./utils";
+import { getJwksFromRpConfig } from "./utils.jwks";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId, rpConf, state }) => {

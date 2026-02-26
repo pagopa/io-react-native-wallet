@@ -3,48 +3,112 @@ import {
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
 import type { RemotePresentationApi } from "../api";
-import { partialCallbacks } from "../../../../src/utils/callbacks";
+import { partialCallbacks } from "../../../utils/callbacks";
 import { mapSdkAuthorizationResponseError } from "./sdkErrorMapper";
-import { hasStatusOrThrow } from "../../../../src/utils/misc";
-import { RelyingPartyResponseError } from "../../../../src/utils/errors";
+import {
+  generateRandomAlphaNumericString,
+  hasStatusOrThrow,
+} from "../../../utils/misc";
+import {
+  IoWalletError,
+  RelyingPartyResponseError,
+} from "../../../utils/errors";
 import { AuthorizationResponse } from "./types";
-import { buildDirectPostBody } from "../common/utils";
+import { buildDirectPostBody } from "../common/utils/http";
 import { prepareVpToken } from "../../../sd-jwt";
+import { createCryptoContextFor } from "../../../utils/crypto";
+import { prepareVpTokenMdoc } from "../../../mdoc";
 
+/**
+ * Prepares remote presentations for a set of credentials.
+ *
+ * For each credential, this function:
+ * - Validates the credential format (currently supports 'mso_mdoc' or 'dc+sd-jwt').
+ * - Generates a verifiable presentation token (vpToken) using the appropriate method.
+ * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
+ *
+ * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
+ * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
+ * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
+ * @throws {CredentialNotFoundError} When the credential format is unsupported.
+ */
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, { nonce, client_id }) => {
-    return Promise.all(
-      credentials.map(async (item) => {
-        const { vp_token } = await prepareVpToken(nonce, client_id, [
-          item.credential,
-          item.requestedClaims,
-          item.cryptoContext,
-        ]);
+  async (credentials, authRequestObject) => {
+    // In case of ISO 18013-7 we need a nonce, it shall have a minimum entropy of 16
+    const generatedNonce = generateRandomAlphaNumericString(16);
 
-        return {
-          credentialId: item.id,
-          requestedClaims: item.requestedClaims,
-          vpToken: vp_token,
-        };
+    const presentations = await Promise.all(
+      credentials.map(async (item) => {
+        const { format } = item;
+
+        if (format === "dc+sd-jwt") {
+          const { vp_token } = await prepareVpToken(
+            authRequestObject.nonce,
+            authRequestObject.clientId,
+            [
+              item.credential,
+              item.presentationFrame,
+              createCryptoContextFor(item.keyTag),
+            ]
+          );
+
+          return {
+            requestedClaims: item.requiredDisclosures.map(({ name }) => name),
+            credentialId: item.id,
+            vpToken: vp_token,
+            format,
+          };
+        }
+
+        if (format === "mso_mdoc") {
+          const { vp_token } = await prepareVpTokenMdoc(
+            authRequestObject.nonce,
+            generatedNonce,
+            authRequestObject.clientId,
+            authRequestObject.responseUri,
+            item.doctype,
+            item.keyTag,
+            [
+              item.credential,
+              item.presentationFrame,
+              createCryptoContextFor(item.keyTag),
+            ]
+          );
+
+          return {
+            requestedClaims: item.requiredDisclosures.map(({ name }) => name),
+            credentialId: item.id,
+            vpToken: vp_token,
+            format: "mso_mdoc",
+          };
+        }
+
+        throw new IoWalletError(`${format} format is not supported.`);
       })
     );
+
+    return {
+      presentations,
+      generatedNonce,
+    };
   };
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
   async (
     requestObject,
-    remotePresentations,
+    remotePresentation,
     rpConf,
     { appFetch = fetch } = {}
   ) => {
     try {
+      const { presentations } = remotePresentation;
       const rpJwks = {
         jwks: rpConf.jwks,
         encrypted_response_enc_values_supported:
           rpConf.encrypted_response_enc_values_supported,
       };
 
-      const vp_token = remotePresentations.reduce(
+      const vp_token = presentations.reduce(
         (acc, p) => {
           (acc[p.credentialId] ??= []).push(p.vpToken);
           return acc;
