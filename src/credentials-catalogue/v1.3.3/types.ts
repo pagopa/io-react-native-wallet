@@ -94,7 +94,7 @@ const jwtHeader = z.object({
   alg: z.string(),
   kid: z.string(),
   x5c: z.array(z.string()).optional(),
-})
+});
 
 /**
  * Schema registry, available under a dedicated endpoint.

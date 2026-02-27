@@ -1,4 +1,5 @@
 import { assert } from "../../utils/misc";
+import { keyBy, groupBy } from "../../utils/object";
 import { createMapper } from "../../utils/mappers";
 import {
   DigitalCredentialsCatalogue,
@@ -6,11 +7,9 @@ import {
   type AuthenticSource as ApiAuthenticSource,
 } from "../api/DigitalCredentialsCatalogue";
 import {
-  AuthenticSource,
   AuthenticSourceRegistry,
   DigitalCredentialsCatalogueJwt,
   RegistryDiscoveryJwt,
-  Schema,
   SchemaRegistry,
 } from "./types";
 
@@ -24,19 +23,13 @@ export const mapToCredentialsCatalogue = createMapper<
   DigitalCredentialsCatalogue
 >(
   ([discoveryJwt, catalogueJwt, authSourceRegistry, schemaRegistry]) => {
-    const authSourcesById = authSourceRegistry.authentic_sources.reduce(
-      (acc, as) => {
-        acc[as.entity_id] = as;
-        return acc;
-      },
-      {} as Record<string, AuthenticSource>
+    const authSourcesById = keyBy(
+      authSourceRegistry.authentic_sources,
+      "entity_id"
     );
-    const schemasByCredentialType = schemaRegistry.schemas.reduce(
-      (acc, schema) => {
-        (acc[schema.credential_type] ??= []).push(schema);
-        return acc;
-      },
-      {} as Record<string, Schema[]>
+    const schemasByCredentialType = groupBy(
+      schemaRegistry.schemas,
+      "credential_type"
     );
 
     const resolveAuthSource = ({
