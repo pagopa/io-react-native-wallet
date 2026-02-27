@@ -1,5 +1,5 @@
 import type { DcqlClaimsQuery, DcqlQuery, DcqlQueryResult } from "dcql";
-import { isObject } from "../../../../utils/misc";
+import { isObject } from "../../../../utils/object";
 import type { EvaluatedDisclosure, PresentationFrame } from "../../api/types";
 
 /**
