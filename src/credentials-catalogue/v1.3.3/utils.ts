@@ -7,7 +7,7 @@ import type { JWK } from "../../utils/jwk";
 type FetchRegistryParams<T> = {
   schema: z.ZodType<T>;
   appFetch?: GlobalFetch["fetch"];
-} & ({ jsonOnly: true } | { jsonOnly?: false; jwks: JWK[] });
+} & ({ asJson: true } | { asJson?: false; jwks: JWK[] });
 
 /**
  * Utility to fetch an entity from the Registry Infrastructure.
@@ -18,19 +18,19 @@ type FetchRegistryParams<T> = {
  * @param params.schema The Zod schema to validate the response
  * @param params.jwks JWKS to validate JWT signature
  * @param params.appFetch Custom fetch implementation
- * @param params.jsonOnly Request a response in simple JSON format (no JWT)
+ * @param params.asJson Request a response in simple JSON format (no JWT)
  * @returns The parsed entity
  */
 export const fetchRegistry = async <T>(
   url: string,
   params: FetchRegistryParams<T>
 ): Promise<T> => {
-  const { schema, appFetch = fetch, jsonOnly = false } = params;
+  const { schema, appFetch = fetch, asJson = false } = params;
 
   const response = await appFetch(url, {
     method: "GET",
     headers: {
-      Accept: jsonOnly ? "application/json" : "application/jwt",
+      Accept: asJson ? "application/json" : "application/jwt",
     },
   }).then(hasStatusOrThrow(200));
 

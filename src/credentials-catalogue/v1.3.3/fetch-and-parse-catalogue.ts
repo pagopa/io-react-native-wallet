@@ -36,12 +36,12 @@ export const fetchAndParseCatalogue: Api["fetchAndParseCatalogue"] = async (
     }),
     fetchRegistry(endpoints.authentic_sources, {
       schema: AuthenticSourceRegistry,
-      jsonOnly: true,
+      asJson: true,
       appFetch,
     }),
     fetchRegistry(endpoints.schema_registry, {
       schema: SchemaRegistry,
-      jsonOnly: true,
+      asJson: true,
       appFetch,
     }),
   ]);
