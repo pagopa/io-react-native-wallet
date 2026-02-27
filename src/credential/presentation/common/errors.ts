@@ -91,7 +91,7 @@ export class MissingDataError extends IoWalletError {
 export type NotFoundDetail = {
   id: string;
   reason?: string;
-  vctValues?: string[];
+  issues?: string[];
 };
 
 /**

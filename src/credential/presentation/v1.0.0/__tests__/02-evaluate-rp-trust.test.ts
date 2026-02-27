@@ -29,7 +29,9 @@ describe("evaluateRelyingPartyTrust", () => {
   };
 
   const mappedRpEntityConfiguration: RelyingPartyConfig = {
-    keys: [],
+    jwks: {
+      keys: [],
+    },
     organization_name: "Example RP",
     subject: sampleRpUrl,
   };

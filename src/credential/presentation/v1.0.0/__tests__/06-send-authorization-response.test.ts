@@ -3,13 +3,13 @@ import {
   RelyingPartyResponseErrorCodes,
 } from "../../../../utils/errors";
 import {
-  buildDirectPostBody,
   buildDirectPostJwtBody,
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
-} from "../07-send-authorization-response";
-import type { RemotePresentationDetails, RequestObject } from "../../api/types";
+} from "../06-send-authorization-response";
+import type { RemotePresentation, RequestObject } from "../../api/types";
 import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
+import { buildDirectPostBody } from "../../common/utils/http";
 
 jest.mock("@pagopa/io-react-native-jwt", () => {
   const actualModule = jest.requireActual("@pagopa/io-react-native-jwt");
@@ -36,6 +36,8 @@ const mockRequestObject: RequestObject = {
   nonce: "mock_nonce",
   response_uri: "https://mock.rp/response",
   state: "mock_state",
+  response_mode: "direct_post.jwt",
+  response_type: "vp_token",
   dcql_query: {
     credentials: [
       {
@@ -49,10 +51,12 @@ const mockRequestObject: RequestObject = {
 
 const mockRpConf: RelyingPartyConfig = {
   subject: "mock_client_id",
-  keys: [
-    { kid: "rsa-key-1", use: "enc", kty: "RSA" },
-    { kid: "something-else", use: "sig", kty: "EC" },
-  ],
+  jwks: {
+    keys: [
+      { kid: "rsa-key-1", use: "enc", kty: "RSA" },
+      { kid: "something-else", use: "sig", kty: "EC" },
+    ],
+  },
 };
 
 describe("buildDirectPostBody", () => {
@@ -84,14 +88,16 @@ describe("buildDirectPostJwtBody", () => {
 
 describe("sendAuthorizationResponse", () => {
   const mockFetch = jest.fn();
-  const remotePresentations: RemotePresentationDetails[] = [
-    {
-      requestedClaims: ["name", "surname"],
-      credentialId: "PID",
-      vpToken: "mock_vp_token",
-    },
-  ];
-
+  const remotePresentations: RemotePresentation = {
+    presentations: [
+      {
+        requestedClaims: ["name", "surname"],
+        credentialId: "PID",
+        vpToken: "mock_vp_token",
+        format: "dc+sd-jwt",
+      },
+    ],
+  };
   beforeEach(() => {
     mockFetch.mockReset();
   });

@@ -18,9 +18,9 @@ import { getJwtFromFormPost } from "../../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { RequestObjectPayload } from "../../presentation/v1.0.0/types";
-import { RemotePresentation } from "../../presentation/v1.0.0";
-import { type RemotePresentationDetails } from "../../presentation/api/types";
+import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.0.0";
 import type { IssuanceApi } from "../api";
+import type { RemotePresentation } from "../../presentation";
 
 export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
   async (authRedirectUrl) => {
@@ -125,34 +125,33 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     requestObject,
     _issuerConfig,
     pid,
-    { wiaCryptoContext, pidCryptoContext, appFetch = fetch }
+    { wiaCryptoContext, pidKeyTag, appFetch = fetch }
   ) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
     );
 
-    const dcqlQueryResult = RemotePresentation.evaluateDcqlQuery(
-      [[pidCryptoContext, pid]],
-      requestObject.dcql_query as DcqlQuery
+    const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
+      requestObject.dcql_query as DcqlQuery,
+      [[pidKeyTag, pid]]
     );
 
-    const credentialsToPresent = dcqlQueryResult.map(
-      ({ requiredDisclosures, ...rest }) => ({
-        ...rest,
-        requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
-      })
-    );
+    const authRequestObject = {
+      nonce: requestObject.nonce,
+      clientId: requestObject.client_id,
+      responseUri: requestObject.response_uri,
+    };
 
-    const remotePresentations =
-      await RemotePresentation.prepareRemotePresentations(
-        credentialsToPresent,
-        requestObject
+    const remotePresentation =
+      await RemotePresentationFlow.prepareRemotePresentations(
+        dcqlQueryResult,
+        authRequestObject
       );
 
     const authzResponsePayload = await createAuthzResponsePayload({
       state: requestObject.state,
-      remotePresentations,
+      remotePresentation,
       wiaCryptoContext,
     });
 
@@ -245,11 +244,11 @@ export const parseAuthorizationResponse = (
  */
 const createAuthzResponsePayload = async ({
   state,
-  remotePresentations,
+  remotePresentation,
   wiaCryptoContext,
 }: {
   state?: string;
-  remotePresentations: RemotePresentationDetails[];
+  remotePresentation: RemotePresentation;
   wiaCryptoContext: CryptoContext;
 }): Promise<string> => {
   const { kid } = await wiaCryptoContext.getPublicKey();
@@ -266,7 +265,7 @@ const createAuthzResponsePayload = async ({
        * and, if so, what the consequences of its absence might be.
        */
       ...(state ? { state } : {}),
-      vp_token: remotePresentations.reduce(
+      vp_token: remotePresentation.presentations.reduce(
         (vp_token, { credentialId, vpToken }) => ({
           ...vp_token,
           [credentialId]: vpToken,

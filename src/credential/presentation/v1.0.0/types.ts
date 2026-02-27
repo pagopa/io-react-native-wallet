@@ -7,7 +7,7 @@ export const RequestObjectPayload = z.object({
   iss: z.string(),
   iat: UnixTime,
   exp: UnixTime,
-  state: z.string().optional(),
+  state: z.string(),
   nonce: z.string(),
   response_uri: z.string(),
   request_uri_method: z.string().optional(),
@@ -16,6 +16,7 @@ export const RequestObjectPayload = z.object({
   client_id: z.string(),
   dcql_query: z.record(z.string(), z.any()), // Validation happens within the `dcql` library, no need to duplicate it here
   scope: z.string().optional(),
+  wallet_nonce: z.string().optional(),
 });
 
 /**
