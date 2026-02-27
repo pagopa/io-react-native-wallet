@@ -19,6 +19,7 @@ export interface StatusListApi {
    *     }
    *   }
    * }
+   * @since 1.3.3
    * @param credential The credential to get the status list for
    * @param format The credential format
    * @returns The raw status list, the index of the credential and other metadata
@@ -35,6 +36,7 @@ export interface StatusListApi {
 
   /**
    * Verifies the signature of a status list and extract the status at the specified index.
+   * @since 1.3.3
    * @param issuerConf The Credential Issuer common configuration
    * @param statusListParams The raw status list, the index to read and other metadata
    */

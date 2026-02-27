@@ -10,7 +10,7 @@ export interface StatusAssertionApi {
   /**
    * Get the status assertion of a digital credential.
    * @since 1.0.0
-   * @deprecated since 1.3.3 - Use {@link getStatusFromTokenStatusList}
+   * @deprecated since 1.3.3 - Use `statusList.get`
    *
    * @param issuerConf - The issuer's configuration
    * @param credential - The credential to be verified
@@ -38,7 +38,7 @@ export interface StatusAssertionApi {
    * - The assertion is correctly signed;
    * - It's bound to the given key.
    * @since 1.0.0
-   * @deprecated since 1.3.3 - Use {@link getStatusFromTokenStatusList}
+   * @deprecated since 1.3.3 - Use `statusList.verifyAndParse`
    *
    * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
    * @param statusAssertion The encoded status assertion returned by {@link getStatusAssertion}
