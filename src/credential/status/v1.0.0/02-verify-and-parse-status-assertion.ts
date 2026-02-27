@@ -13,10 +13,10 @@ import {
 import { Logger, LogLevel } from "../../../utils/logging";
 import { extractJwkFromCredential } from "../../../utils/credentials";
 import { isSameThumbprint } from "../../../utils/jwk";
-import type { CredentialStatusApi } from "../api";
+import type { StatusAssertionApi } from "../api/status-assertion";
 import { mapToParsedStatusAssertion } from "./mappers";
 
-export const verifyAndParseStatusAssertion: CredentialStatusApi["verifyAndParseStatusAssertion"] =
+export const verifyAndParseStatusAssertion: StatusAssertionApi["verifyAndParse"] =
   async (issuerConf, rawStatusAssertion, credential, format) => {
     const { statusAssertion } = rawStatusAssertion;
 
