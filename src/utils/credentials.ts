@@ -1,10 +1,12 @@
-import { decode } from "../sd-jwt";
+import { decodeSdJwtSync } from "@sd-jwt/decode";
+import { digest } from "@sd-jwt/crypto-nodejs";
 import { thumbprint } from "@pagopa/io-react-native-jwt";
 import type { CredentialFormat } from "../credential/issuance";
 import type { JWK } from "./jwk";
 import { IoWalletError } from "./errors";
 import {
   LEGACY_SD_JWT,
+  SdJwt4VCBasePayload,
   type SupportedSdJwtLegacyFormat,
 } from "../sd-jwt/types";
 
@@ -22,10 +24,10 @@ export const extractJwkFromCredential = async (
 ): Promise<JWK> => {
   if (SD_JWT.includes(format)) {
     // 1. SD-JWT case
-    const decoded = decode(credential);
-    const jwk = decoded.sdJwt.payload.cnf.jwk;
-    if (jwk) {
-      return { ...jwk, kid: await thumbprint(jwk) };
+    const decoded = decodeSdJwtSync(credential, digest);
+    const { cnf } = decoded.jwt.payload as SdJwt4VCBasePayload;
+    if (cnf.jwk) {
+      return { ...cnf.jwk, kid: await thumbprint(cnf.jwk) };
     }
   }
   throw new IoWalletError(`Credential format ${format} not supported`);

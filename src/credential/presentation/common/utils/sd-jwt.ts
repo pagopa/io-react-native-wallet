@@ -1,8 +1,9 @@
 import { SDJwtInstance, type SDJwt } from "@sd-jwt/core";
 import { getClaims } from "@sd-jwt/decode";
 import { digest } from "@sd-jwt/crypto-nodejs";
-import { IoWalletError } from "../../../../utils/errors";
 import type { DcqlSdJwtVcCredential } from "dcql";
+import { IoWalletError } from "../../../../utils/errors";
+import { LEGACY_SD_JWT } from "../../../../sd-jwt/types";
 import type { Credential4Dcql } from "../../api";
 
 type CustomDcqlSdJwtVcCredential = DcqlSdJwtVcCredential & {
@@ -55,8 +56,8 @@ export const mapCredentialsToObj = async (
       return {
         vct: decodedRawSdJwt.jwt?.payload?.vct as string,
         credential_format:
-          decodedRawSdJwt.jwt?.header?.typ === "vc+sd-jwt"
-            ? "vc+sd-jwt"
+          decodedRawSdJwt.jwt?.header?.typ === LEGACY_SD_JWT
+            ? LEGACY_SD_JWT
             : "dc+sd-jwt",
         cryptographic_holder_binding: true,
         claims,

@@ -1,4 +1,6 @@
 import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
+import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/decode";
+import { digest } from "@sd-jwt/crypto-nodejs";
 import { hasStatusOrThrow } from "../utils/misc";
 import { TypeMetadata, Verification } from "./types";
 import {
@@ -6,8 +8,6 @@ import {
   IssuerResponseError,
   ValidationFailed,
 } from "../utils/errors";
-import { decode } from ".";
-import { getValueFromDisclosures } from "./converters";
 
 /**
  * Retrieve the Type Metadata for a credential and verify its integrity.
@@ -62,12 +62,15 @@ export const fetchTypeMetadata = async (
 export const getVerification = (
   credentialSdJwt: string
 ): Verification | undefined => {
-  const { disclosures } = decode(credentialSdJwt);
-  const verificationDisclosure = getValueFromDisclosures(
-    disclosures.map((d) => d.decoded),
-    "verification"
+  const decoded = decodeSdJwtSync(credentialSdJwt, digest);
+
+  const claims = getClaimsSync<Record<string, unknown>>(
+    decoded.jwt.payload,
+    decoded.disclosures,
+    digest
   );
-  return verificationDisclosure
-    ? Verification.parse(verificationDisclosure)
+
+  return claims.verification
+    ? Verification.parse(claims.verification)
     : undefined;
 };

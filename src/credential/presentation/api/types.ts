@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
 
 export type PresentationParams = z.infer<typeof PresentationParams>;
 export const PresentationParams = z.object({
@@ -118,7 +119,7 @@ export type Presentation = [
 
 export type CredentialFormat =
   | { format: "dc+sd-jwt"; vct: string }
-  | { format: "vc+sd-jwt"; vct: string }
+  | { format: SupportedSdJwtLegacyFormat; vct: string }
   | { format: "mso_mdoc"; doctype: string };
 
 export type EvaluatedDisclosure = {
