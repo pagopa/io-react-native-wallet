@@ -9,7 +9,7 @@ import {
   education_attendance,
   issuerJwk,
   credentialCnfJwk,
-} from "../../../__mocks__/sd-jwt";
+} from "../../../../sd-jwt/__mocks__/sd-jwt";
 import type { IssuerConfig } from "../../api";
 import { verifyAndParseCredential } from "../06-verify-and-parse-credential";
 

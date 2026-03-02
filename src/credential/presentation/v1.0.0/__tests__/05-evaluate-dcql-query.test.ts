@@ -10,8 +10,8 @@ const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
 
 const credentials = [
-  [pidKeyTag, pid.token],
-  [mdlKeyTag, mdl.token],
+  [pidKeyTag, pid],
+  [mdlKeyTag, mdl],
 ] as [string, string][];
 
 describe("evaluateDcqlQuery", () => {
@@ -92,7 +92,9 @@ describe("evaluateDcqlQuery", () => {
             id: "IHaveThis",
             format: "dc+sd-jwt",
             meta: {
-              vct_values: ["PersonIdentificationData"],
+              vct_values: [
+                "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+              ],
             },
           },
           {
@@ -132,7 +134,9 @@ describe("evaluateDcqlQuery", () => {
           id: "PID",
           format: "dc+sd-jwt",
           meta: {
-            vct_values: ["PersonIdentificationData"],
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
           },
           claims: [
             { path: ["tax_id_code"] },
@@ -148,9 +152,9 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         format: "dc+sd-jwt",
-        vct: "PersonIdentificationData",
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -158,7 +162,7 @@ describe("evaluateDcqlQuery", () => {
           family_name: true,
         },
         requiredDisclosures: [
-          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
@@ -175,7 +179,9 @@ describe("evaluateDcqlQuery", () => {
           id: "PID",
           format: "dc+sd-jwt",
           meta: {
-            vct_values: ["PersonIdentificationData"],
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
           },
           claims: [
             { path: ["tax_id_code"] },
@@ -199,9 +205,9 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         format: "dc+sd-jwt",
-        vct: "PersonIdentificationData",
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -209,7 +215,7 @@ describe("evaluateDcqlQuery", () => {
           family_name: true,
         },
         requiredDisclosures: [
-          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
@@ -219,7 +225,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [{ required: true }],
         presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
@@ -236,7 +242,9 @@ describe("evaluateDcqlQuery", () => {
           id: "PID",
           format: "dc+sd-jwt",
           meta: {
-            vct_values: ["PersonIdentificationData"],
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
           },
           claims: [{ path: ["given_name"] }, { path: ["family_name"] }],
         },
@@ -260,9 +268,9 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         format: "dc+sd-jwt",
-        vct: "PersonIdentificationData",
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
@@ -282,7 +290,9 @@ describe("evaluateDcqlQuery", () => {
           id: "PID",
           format: "dc+sd-jwt",
           meta: {
-            vct_values: ["PersonIdentificationData"],
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
           },
           claims: [{ path: ["given_name"] }, { path: ["family_name"] }],
         },
@@ -306,9 +316,9 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         format: "dc+sd-jwt",
-        vct: "PersonIdentificationData",
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
@@ -321,7 +331,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [{ description: "Extra services", required: false }],
         presentationFrame: { document_number: true },
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
@@ -338,7 +348,9 @@ describe("evaluateDcqlQuery", () => {
           id: "PID",
           format: "dc+sd-jwt",
           meta: {
-            vct_values: ["PersonIdentificationData"],
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
           },
           claims: [
             { path: ["tax_id_code"] },
@@ -390,9 +402,9 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         format: "dc+sd-jwt",
-        vct: "PersonIdentificationData",
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -400,7 +412,7 @@ describe("evaluateDcqlQuery", () => {
           family_name: true,
         },
         requiredDisclosures: [
-          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
@@ -410,7 +422,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: { birth_date: true, document_number: true },
         requiredDisclosures: [
@@ -430,7 +442,9 @@ describe("evaluateDcqlQuery", () => {
           id: "PID",
           format: "dc+sd-jwt",
           meta: {
-            vct_values: ["PersonIdentificationData"],
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
           },
           claims: [
             { path: ["tax_id_code"] },
@@ -473,9 +487,9 @@ describe("evaluateDcqlQuery", () => {
       {
         id: "PID",
         format: "dc+sd-jwt",
-        vct: "PersonIdentificationData",
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
         keyTag: pidKeyTag,
-        credential: pid.token,
+        credential: pid,
         purposes: [{ description: "Identification", required: true }],
         presentationFrame: {
           tax_id_code: true,
@@ -483,7 +497,7 @@ describe("evaluateDcqlQuery", () => {
           family_name: true,
         },
         requiredDisclosures: [
-          { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
+          { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
@@ -493,7 +507,7 @@ describe("evaluateDcqlQuery", () => {
         format: "dc+sd-jwt",
         vct: "MDL",
         keyTag: mdlKeyTag,
-        credential: mdl.token,
+        credential: mdl,
         purposes: [
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
