@@ -92,6 +92,6 @@ export function assert(
   msg: string = "Assertion failed"
 ): asserts condition {
   if (!condition) {
-    throw new Error(msg);
+    throw new IoWalletError(msg);
   }
 }

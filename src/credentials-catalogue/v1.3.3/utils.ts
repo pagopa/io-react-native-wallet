@@ -36,12 +36,12 @@ export const fetchRegistry = async <T>(
 
   const contentType = response.headers.get("Content-Type");
 
-  if (contentType === "application/json") {
+  if (contentType?.includes("application/json")) {
     const responseJson = await response.json();
     return schema.parse(responseJson);
   }
 
-  if (contentType === "application/jwt") {
+  if (contentType?.includes("application/jwt")) {
     assert("jwks" in params, "params.jwks required when response is JWT");
 
     const responseText = await response.text();
@@ -60,5 +60,5 @@ export const fetchRegistry = async <T>(
     });
   }
 
-  throw new IoWalletError(`Unsopported content-type: ${contentType}`);
+  throw new IoWalletError(`Unsupported content-type: ${contentType}`);
 };

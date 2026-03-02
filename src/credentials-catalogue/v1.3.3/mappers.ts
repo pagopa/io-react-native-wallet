@@ -38,14 +38,14 @@ export const mapToCredentialsCatalogue = createMapper<
       id: string;
       dataset_id: string;
     }): ApiAuthenticSource => {
-      const as = authSourcesById[id];
+      const as = authSourcesById.get(id);
       assert(as, `AS ${id} must be present in the Authentic Source Registry`);
       const { ipa_code, ...rest } = as.organization_info;
       return { id, organization_code: ipa_code, ...rest };
     };
 
     const resolveFormats = (credentialType: string): ApiCredentialFormat[] => {
-      const schemas = schemasByCredentialType[credentialType];
+      const schemas = schemasByCredentialType.get(credentialType);
       assert(
         schemas,
         `Schemas for ${credentialType} must be present in the Schema Registry`

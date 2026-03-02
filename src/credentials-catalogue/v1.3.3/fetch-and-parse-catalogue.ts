@@ -13,8 +13,10 @@ export const fetchAndParseCatalogue: Api["fetchAndParseCatalogue"] = async (
   trustAnchorBaseUrl,
   { appFetch = fetch } = {}
 ) => {
-  const trustAnchorConfig =
-    await getTrustAnchorEntityConfiguration(trustAnchorBaseUrl);
+  const trustAnchorConfig = await getTrustAnchorEntityConfiguration(
+    trustAnchorBaseUrl,
+    { appFetch }
+  );
   const trustAnchorJwks = trustAnchorConfig.payload.jwks.keys;
 
   const discovery = await fetchRegistry(

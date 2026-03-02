@@ -10,26 +10,33 @@ const sampleArray = [
 
 describe("keyBy", () => {
   it("correctly transforms the input array", () => {
-    expect(keyBy(sampleArray, "id")).toEqual({
-      "1": { id: "1", color: "red" },
-      "2": { id: "2", color: "blue" },
-      "3": { id: "3", color: "red" },
-      "4": { id: "4", color: "orange" },
-      "5": { id: "5", color: "green" },
-    });
+    expect(keyBy(sampleArray, "id")).toEqual(
+      new Map([
+        ["1", { id: "1", color: "red" }],
+        ["2", { id: "2", color: "blue" }],
+        ["3", { id: "3", color: "red" }],
+        ["4", { id: "4", color: "orange" }],
+        ["5", { id: "5", color: "green" }],
+      ])
+    );
   });
 });
 
 describe("groupBy", () => {
   it("correctly transforms the input array", () => {
-    expect(groupBy(sampleArray, "color")).toEqual({
-      red: [
-        { id: "1", color: "red" },
-        { id: "3", color: "red" },
-      ],
-      blue: [{ id: "2", color: "blue" }],
-      orange: [{ id: "4", color: "orange" }],
-      green: [{ id: "5", color: "green" }],
-    });
+    expect(groupBy(sampleArray, "color")).toEqual(
+      new Map([
+        [
+          "red",
+          [
+            { id: "1", color: "red" },
+            { id: "3", color: "red" },
+          ],
+        ],
+        ["blue", [{ id: "2", color: "blue" }]],
+        ["orange", [{ id: "4", color: "orange" }]],
+        ["green", [{ id: "5", color: "green" }]],
+      ])
+    );
   });
 });
