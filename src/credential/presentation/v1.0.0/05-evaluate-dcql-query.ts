@@ -95,6 +95,8 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
 
         const matchOutput = match.valid_credentials[0]?.meta.output;
 
+        // The legacy SD-JWT format is still supported because `evaluateDcqlQuery`
+        // is also used when presenting the legacy 0.7.1 eID to get other credentials.
         if (
           matchOutput?.credential_format === "dc+sd-jwt" ||
           (matchOutput?.credential_format === LEGACY_SD_JWT &&
