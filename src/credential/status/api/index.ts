@@ -12,7 +12,7 @@ interface UnsupportedApi {
  *
  * @example
  * if (CredentialStatus.statusList.isSupported) {
- *   const statusList = await CredentialStatus.statusList.get()
+ *   const statusList = await CredentialStatus.statusList.get(credential, format)
  * }
  */
 export interface CredentialStatusApi {

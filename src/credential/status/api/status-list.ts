@@ -26,7 +26,10 @@ export interface StatusListApi {
    */
   get(
     credential: string,
-    format: CredentialFormat
+    format: CredentialFormat,
+    context?: {
+      appFetch?: GlobalFetch["fetch"];
+    }
   ): Promise<{
     statusList: string;
     format: "jwt";

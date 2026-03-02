@@ -118,7 +118,7 @@ const { status } =
   );
 
 return {
-  statusList: res.status,
+  statusList: res.statusList,
   status,
 };
 ```

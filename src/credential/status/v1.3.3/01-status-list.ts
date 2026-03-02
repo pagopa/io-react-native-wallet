@@ -33,11 +33,12 @@ const getStatusListEntry = async (
 
 export const getStatusList: StatusListApi["get"] = async (
   credential,
-  format
+  format,
+  { appFetch = fetch } = {}
 ) => {
   const { uri, idx } = await getStatusListEntry(credential, format);
 
-  const statusList = await fetch(uri, {
+  const statusList = await appFetch(uri, {
     headers: {
       Accept: "application/statuslist+jwt",
     },
