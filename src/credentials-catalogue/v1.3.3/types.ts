@@ -89,7 +89,7 @@ export const DigitalCredential = z.object({
   ),
 });
 
-const jwtHeader = z.object({
+const JwtHeader = z.object({
   typ: z.string(),
   alg: z.string(),
   kid: z.string(),
@@ -97,7 +97,7 @@ const jwtHeader = z.object({
 });
 
 /**
- * Schema registry, available under a dedicated endpoint.
+ * Schema registry, available at a dedicated endpoint.
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#schema-registry
  */
 export const SchemaRegistry = z.object({
@@ -108,7 +108,7 @@ export const SchemaRegistry = z.object({
 export type SchemaRegistry = z.infer<typeof SchemaRegistry>;
 
 /**
- * Authentic Source registry, available under a dedicated endpoint.
+ * Authentic Source registry, available at a dedicated endpoint.
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#authentic-source-registry
  */
 export const AuthenticSourceRegistry = z.object({
@@ -123,7 +123,7 @@ export type AuthenticSourceRegistry = z.infer<typeof AuthenticSourceRegistry>;
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#digital-credentials-catalog
  */
 export const DigitalCredentialsCatalogueJwt = z.object({
-  header: jwtHeader,
+  header: JwtHeader,
   payload: z.object({
     version: z.string(),
     last_modified: z.string(),
@@ -142,7 +142,7 @@ export type DigitalCredentialsCatalogueJwt = z.infer<
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#registry-discovery-endpoint
  */
 export const RegistryDiscoveryJwt = z.object({
-  header: jwtHeader,
+  header: JwtHeader,
   payload: z.object({
     registry_version: z.string(),
     last_updated: z.string(),
