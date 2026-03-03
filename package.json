@@ -154,6 +154,6 @@
     "parse-url": "^10.0.3",
     "react-native-url-polyfill": "^2.0.0",
     "uuid": "^11.0.3",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   }
 }

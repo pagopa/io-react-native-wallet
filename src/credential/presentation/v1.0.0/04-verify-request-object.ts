@@ -1,5 +1,5 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import { type typeToFlattenedError } from "zod";
+import type { ZodFlattenedError } from "zod";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { InvalidRequestObjectError } from "../common/errors";
 import { RequestObjectPayload } from "./types";
@@ -97,7 +97,7 @@ const getSigPublicKey = (
  * Utility to format flattened Zod errors into a simplified string `key1: key1_error, key2: key2_error`
  */
 const formatFlattenedZodErrors = (
-  errors: typeToFlattenedError<RequestObjectPayload>
+  errors: ZodFlattenedError<RequestObjectPayload>
 ): string =>
   Object.entries(errors.fieldErrors)
     .map(([key, error]) => `${key}: ${error[0]}`)

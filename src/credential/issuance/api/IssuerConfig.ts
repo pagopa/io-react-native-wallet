@@ -37,7 +37,9 @@ const CredentialConfig = z.intersection(
     /**
      * @deprecated Kept for backward compatibility with v0.7.1
      */
-    issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
+    issuance_errors_supported: z
+      .record(z.string(), IssuanceErrorSupported)
+      .optional(),
   })
 );
 
@@ -54,7 +56,7 @@ export const IssuerConfig = z.object({
   status_assertion_endpoint: z.string().optional(),
   credential_endpoint: z.string(),
   keys: z.array(JWK),
-  credential_configurations_supported: z.record(CredentialConfig),
+  credential_configurations_supported: z.record(z.string(), CredentialConfig),
   /**
    * @deprecated
    */

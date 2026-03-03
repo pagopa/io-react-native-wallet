@@ -65,7 +65,9 @@ const SupportedCredentialMetadata = z.intersection(
     cryptographic_binding_methods_supported: z.array(z.string()),
     credential_signing_alg_values_supported: z.array(z.string()),
     authentic_source: z.string().optional(),
-    issuance_errors_supported: z.record(IssuanceErrorSupported).optional(),
+    issuance_errors_supported: z
+      .record(z.string(), IssuanceErrorSupported)
+      .optional(),
   })
 );
 
@@ -92,6 +94,7 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
           status_attestation_endpoint: z.string(),
           display: z.array(CredentialIssuerDisplayMetadata),
           credential_configurations_supported: z.record(
+            z.string(),
             SupportedCredentialMetadata
           ),
           jwks: z.object({ keys: z.array(JWK) }),
@@ -157,7 +160,7 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
             ),
             jwks: z.object({ keys: z.array(JWK) }),
           })
-          .passthrough(),
+          .loose(),
       }),
     }),
   })
@@ -165,14 +168,11 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
 
 // Maps any entity configuration by the union of every possible shapes
 export type EntityConfiguration = z.infer<typeof EntityConfiguration>;
-export const EntityConfiguration = z.union(
-  [
+export const EntityConfiguration = z
+  .union([
     WalletProviderEntityConfiguration,
     CredentialIssuerEntityConfiguration,
     TrustAnchorEntityConfiguration,
     RelyingPartyEntityConfiguration,
-  ],
-  {
-    description: "Any kind of Entity Configuration allowed in the ecosystem",
-  }
-);
+  ])
+  .describe("Any kind of Entity Configuration allowed in the ecosystem");
