@@ -12,7 +12,7 @@ export const verifyAndParseStatusList: StatusListApi["verifyAndParse"] = async (
 
   const status = statusList.getStatus(idx);
 
-  // TODO: map the numeric status with meaningful values, throw CredentialInvalidStatus when invalid
+  // TODO: [SIW-3992] Improve the return object with additional data, throw CredentialInvalidStatus when invalid
   return {
     status,
   };
