@@ -1,10 +1,11 @@
 import * as z from "zod";
+import { UnixTime } from "../../utils/zod";
 
 const CredentialPurpose = z.object({
   id: z.string(),
   description: z.string(),
-  category: z.string(),
-  subcategory: z.string(),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
   claims_required: z.array(z.string()),
   claim_recommended: z.array(z.string()),
 });
@@ -87,8 +88,8 @@ export const DigitalCredentialsCatalogueJwt = z.object({
     catalog_version: z.string(),
     taxonomy_uri: z.string().url(),
     credentials: z.array(DigitalCredential),
-    iat: z.number(),
-    exp: z.number(),
+    iat: UnixTime,
+    exp: UnixTime,
   }),
 });
 export type DigitalCredentialsCatalogueJwt = z.infer<
