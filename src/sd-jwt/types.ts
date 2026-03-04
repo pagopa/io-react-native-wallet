@@ -19,31 +19,41 @@ const StatusList = z.object({
 });
 
 /**
- * Type for a Verifiable Credential base payload in SD-JWT format.
+ * Type for a Verifiable Credential base SD-JWT.
  * It only contains common claims across versions.
  */
-export type SdJwt4VCBasePayload = z.infer<typeof SdJwt4VCBasePayload>;
-export const SdJwt4VCBasePayload = z.object({
-  _sd: z.array(z.string()),
-  _sd_alg: z.literal("sha-256"),
-  iss: z.string(),
-  sub: z.string(),
-  iat: UnixTime.optional(),
-  exp: UnixTime,
-  cnf: z.object({
-    jwk: JWK,
+export type SdJwt4VCBase = z.infer<typeof SdJwt4VCBase>;
+export const SdJwt4VCBase = z.object({
+  header: z.object({
+    typ: z.enum(["dc+sd-jwt", LEGACY_SD_JWT]),
+    alg: z.string(),
+    kid: z.string(),
+    trust_chain: z.array(z.string()).optional(),
+    x5c: z.array(z.string()).optional(),
+    vctm: z.array(z.string()).optional(),
   }),
-  status: z.union([
-    z.object({
-      status_list: StatusList,
+  payload: z.object({
+    _sd: z.array(z.string()),
+    _sd_alg: z.literal("sha-256"),
+    iss: z.string(),
+    sub: z.string(),
+    iat: UnixTime.optional(),
+    exp: UnixTime,
+    cnf: z.object({
+      jwk: JWK,
     }),
-    z.object({
-      /** @deprecated Use `status.status_list` */
-      status_assertion: StatusAssertion,
-    }),
-  ]),
-  vct: z.string(),
-  "vct#integrity": z.string().optional(),
+    status: z.union([
+      z.object({
+        status_list: StatusList,
+      }),
+      z.object({
+        /** @deprecated Use `status.status_list` */
+        status_assertion: StatusAssertion,
+      }),
+    ]),
+    vct: z.string(),
+    "vct#integrity": z.string().optional(),
+  }),
 });
 
 /**

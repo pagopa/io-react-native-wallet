@@ -6,7 +6,7 @@ import type { JWK } from "./jwk";
 import { IoWalletError } from "./errors";
 import {
   LEGACY_SD_JWT,
-  SdJwt4VCBasePayload,
+  SdJwt4VCBase,
   type SupportedSdJwtLegacyFormat,
 } from "../sd-jwt/types";
 
@@ -25,7 +25,7 @@ export const extractJwkFromCredential = async (
   if (SD_JWT.includes(format)) {
     // 1. SD-JWT case
     const decoded = decodeSdJwtSync(credential, digest);
-    const { cnf } = decoded.jwt.payload as SdJwt4VCBasePayload;
+    const { cnf } = decoded.jwt.payload as SdJwt4VCBase["payload"];
     if (cnf.jwk) {
       return { ...cnf.jwk, kid: await thumbprint(cnf.jwk) };
     }

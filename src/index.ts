@@ -11,7 +11,6 @@ import * as CredentialOffer from "./credential/offer";
 import * as CredentialStatus from "./credential/status";
 import * as RemotePresentation from "./credential/presentation";
 import * as Trustmark from "./credential/trustmark";
-import * as Credential from "./credential"; // TODO: to remove
 import * as SdJwt from "./sd-jwt";
 import * as Mdoc from "./mdoc";
 import * as Errors from "./utils/errors";
@@ -31,7 +30,6 @@ export {
   RemotePresentation,
   SdJwt,
   Mdoc,
-  Credential,
   WalletInstanceAttestation,
   WalletInstance,
   Trustmark,

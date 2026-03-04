@@ -1,9 +1,34 @@
 import { sha256ToBase64, SignJWT } from "@pagopa/io-react-native-jwt";
+import { decodeSdJwtSync } from "@sd-jwt/decode";
 import { present } from "@sd-jwt/present";
 import { digest } from "@sd-jwt/crypto-nodejs";
 import type { Presentation } from "src/credential/presentation";
+import { SdJwt4VCBase } from "./types";
 
 export * from "./utils";
+
+/**
+ * Decode a given SD-JWT with Disclosures to get the parsed SD-JWT object they define.
+ * It ensures provided data is in a valid shape.
+ *
+ * It DOES NOT verify token signature nor check disclosures are correctly referenced by the SD-JWT.
+ *
+ * @param token The encoded token that represents a valid sd-jwt for verifiable credentials
+ * @returns The parsed SD-JWT token and the parsed disclosures
+ */
+export const decode = (token: string) => {
+  const decoded = decodeSdJwtSync(token, digest);
+
+  const sdJwt = SdJwt4VCBase.parse({
+    header: decoded.jwt.header,
+    payload: decoded.jwt.payload,
+  });
+  const disclosures = decoded.disclosures.map((disclosure) => ({
+    encoded: disclosure._digest,
+    decoded: [disclosure.salt, disclosure.key, disclosure.value],
+  }));
+  return { sdJwt, disclosures };
+};
 
 /**
  * Prepares a Verified Presentation (VP) token to be sent as part of an
