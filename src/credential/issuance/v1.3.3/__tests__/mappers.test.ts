@@ -46,6 +46,9 @@ describe("mapToIssuerConfig", () => {
           },
         },
       },
+      federation_entity: {
+        organization_name: "Issuer Example",
+      },
     },
   } as unknown as MetadataResponse;
 
@@ -84,6 +87,9 @@ describe("mapToIssuerConfig", () => {
       token_endpoint: "https://issuer.example/token",
       status_assertion_endpoint: "https://issuer.example/status",
       nonce_endpoint: "https://issuer.example/nonce",
+      federation_entity: {
+        organization_name: "Issuer Example",
+      },
     });
   });
 

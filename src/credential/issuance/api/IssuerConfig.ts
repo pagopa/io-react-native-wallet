@@ -55,6 +55,13 @@ export const IssuerConfig = z.object({
   credential_endpoint: z.string(),
   keys: z.array(JWK),
   credential_configurations_supported: z.record(CredentialConfig),
+  federation_entity: z.object({
+    organization_name: z.string().optional(),
+    policy_uri: z.string().optional(),
+    logo_uri: z.string().optional(),
+    contacts: z.array(z.string()).optional(),
+    homepage_uri: z.string().optional(),
+  }),
   /**
    * @deprecated
    */

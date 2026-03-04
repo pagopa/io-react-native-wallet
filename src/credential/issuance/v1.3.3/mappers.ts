@@ -35,7 +35,11 @@ const mapCredentialConfigurationsSupported = (
 
 export const mapToIssuerConfig = createMapper<MetadataResponse, IssuerConfig>(
   (x) => {
-    const { oauth_authorization_server, openid_credential_issuer } = x.metadata;
+    const {
+      oauth_authorization_server,
+      openid_credential_issuer,
+      federation_entity,
+    } = x.metadata;
 
     assert(
       oauth_authorization_server,
@@ -60,6 +64,7 @@ export const mapToIssuerConfig = createMapper<MetadataResponse, IssuerConfig>(
       status_assertion_endpoint:
         openid_credential_issuer.status_attestation_endpoint,
       nonce_endpoint: openid_credential_issuer.nonce_endpoint!,
+      federation_entity: federation_entity ?? {},
     };
   },
   { outputSchema: IssuerConfig } // Output validation for extra-safety
