@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { JWK } from "../../../utils/jwk";
+import { FederationEntityMetadata } from "../../../trust/common/types";
 
 const DisplayConfig = z.object({
   name: z.string(),
@@ -55,13 +56,7 @@ export const IssuerConfig = z.object({
   credential_endpoint: z.string(),
   keys: z.array(JWK),
   credential_configurations_supported: z.record(CredentialConfig),
-  federation_entity: z.object({
-    organization_name: z.string().optional(),
-    policy_uri: z.string().optional(),
-    logo_uri: z.string().optional(),
-    contacts: z.array(z.string()).optional(),
-    homepage_uri: z.string().optional(),
-  }),
+  federation_entity: FederationEntityMetadata,
   credential_issuance_batch_size: z.number().optional(),
   /**
    * @deprecated

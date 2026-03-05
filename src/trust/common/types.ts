@@ -32,9 +32,9 @@ export const EntityConfigurationHeader = z.object({
 });
 
 /**
- * @see https://openid.net/specs/openid-federation-1_0-41.html
+ * @see https://openid.net/specs/openid-federation-1_0-46.html
  */
-const FederationEntityMetadata = z
+export const FederationEntityMetadata = z
   .object({
     federation_fetch_endpoint: z.string().optional(),
     federation_list_endpoint: z.string().optional(),

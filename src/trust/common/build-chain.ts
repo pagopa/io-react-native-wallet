@@ -44,7 +44,8 @@ export function createBuildTrustChain(
       );
     }
 
-    const federationListEndpoint = trustAnchorConfig.federation_list_endpoint;
+    const federationListEndpoint =
+      trustAnchorConfig.federation_entity.federation_list_endpoint;
 
     if (federationListEndpoint) {
       const federationList = await getFederationList(federationListEndpoint, {
