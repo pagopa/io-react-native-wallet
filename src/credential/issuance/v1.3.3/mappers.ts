@@ -65,6 +65,8 @@ export const mapToIssuerConfig = createMapper<MetadataResponse, IssuerConfig>(
         openid_credential_issuer.status_attestation_endpoint,
       nonce_endpoint: openid_credential_issuer.nonce_endpoint!,
       federation_entity: federation_entity ?? {},
+      credential_issuance_batch_size:
+        openid_credential_issuer.batch_credential_issuance?.batch_size,
     };
   },
   { outputSchema: IssuerConfig } // Output validation for extra-safety

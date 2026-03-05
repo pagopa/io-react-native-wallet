@@ -62,6 +62,7 @@ export const IssuerConfig = z.object({
     contacts: z.array(z.string()).optional(),
     homepage_uri: z.string().optional(),
   }),
+  credential_issuance_batch_size: z.number().optional(),
   /**
    * @deprecated
    */

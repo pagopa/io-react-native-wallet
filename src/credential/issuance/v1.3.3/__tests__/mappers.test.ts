@@ -18,6 +18,9 @@ describe("mapToIssuerConfig", () => {
         jwks: {
           keys: [{ kty: "EC", kid: "sig-kid", use: "sig" }],
         },
+        batch_credential_issuance: {
+          batch_size: 10,
+        },
         credential_configurations_supported: {
           PersonIdentificationData: {
             format: "dc+sd-jwt",
@@ -90,6 +93,7 @@ describe("mapToIssuerConfig", () => {
       federation_entity: {
         organization_name: "Issuer Example",
       },
+      credential_issuance_batch_size: 10,
     });
   });
 
