@@ -51,6 +51,7 @@ const mockRequestObject: RequestObject = {
 
 const mockRpConf: RelyingPartyConfig = {
   subject: "mock_client_id",
+  federation_entity: {},
   jwks: {
     keys: [
       { kid: "rsa-key-1", use: "enc", kty: "RSA" },

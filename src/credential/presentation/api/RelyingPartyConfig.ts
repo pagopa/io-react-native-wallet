@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { jsonWebKeySchema } from "@openid-federation/core";
+import { FederationEntityMetadata } from "../../../trust/common/types";
 
 /**
  * Common Relying Party configuration
@@ -11,11 +12,7 @@ export const RelyingPartyConfig = z.object({
     keys: z.array(jsonWebKeySchema),
   }),
   // UI (from federation_entity)
-  organization_name: z.string().optional(),
-  homepage_uri: z.string().optional(),
-  policy_uri: z.string().optional(),
-  logo_uri: z.string().optional(),
-  contacts: z.array(z.string()).optional(),
+  federation_entity: FederationEntityMetadata,
   /** @deprecated JARM legacy (v1.0 only) */
   authorization_encrypted_response_alg: z.string().optional(),
   /** @deprecated JARM legacy (v1.0 only) */

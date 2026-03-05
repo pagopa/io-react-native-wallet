@@ -12,6 +12,7 @@ const requestObjectJwt =
 
 const mockRp = {
   subject: CLIENT_ID,
+  federation_entity: {},
   jwks: {
     keys: [
       {
