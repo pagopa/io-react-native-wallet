@@ -11,9 +11,10 @@ import { LogLevel, Logger } from "../utils/logging";
 export async function createWalletInstance(context: {
   integrityContext: IntegrityContext;
   walletProviderBaseUrl: string;
+  isRenewal?: boolean;
   appFetch?: GlobalFetch["fetch"];
 }) {
-  const { integrityContext } = context;
+  const { integrityContext, isRenewal } = context;
   const api = getWalletProviderClient(context);
 
   //1. Obtain nonce
@@ -40,6 +41,7 @@ export async function createWalletInstance(context: {
         challenge,
         key_attestation: keyAttestation,
         hardware_key_tag: hardwareKeyTag,
+        is_renewal: isRenewal,
       },
     })
     .catch(handleCreateWalletInstanceError);

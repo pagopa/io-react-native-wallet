@@ -1,4 +1,4 @@
-import type { ProblemDetail } from "../client/generated/wallet-provider";
+import type { ProblemJson } from "../client/generated/wallet-provider";
 import {
   type IssuerResponseErrorCode,
   IssuerResponseErrorCodes,
@@ -137,12 +137,12 @@ export class IssuerResponseError extends UnexpectedStatusCodeError {
  */
 export class WalletProviderResponseError extends UnexpectedStatusCodeError {
   code: WalletProviderResponseErrorCode;
-  reason: ProblemDetail;
+  reason: ProblemJson;
 
   constructor(params: {
     code?: WalletProviderResponseErrorCode;
     message: string;
-    reason: ProblemDetail;
+    reason: ProblemJson;
     statusCode: number;
   }) {
     super(params);
