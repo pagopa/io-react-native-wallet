@@ -1,7 +1,7 @@
 import { parseRawHttpResponse } from "../utils/misc";
 import { WalletProviderResponseError } from "../utils/errors";
 import {
-  ProblemDetail,
+  ProblemJson,
   createApiClient as createWalletProviderApiClient,
   ApiClient as WalletProviderApiClient,
   type EndpointParameters,
@@ -13,9 +13,9 @@ type RawHttpResponse = Awaited<ReturnType<typeof parseRawHttpResponse>>;
 
 const validateResponse = async (response: Response) => {
   if (!response.ok) {
-    let problemDetail: ProblemDetail = {};
+    let problemDetail: ProblemJson = {};
     try {
-      problemDetail = ProblemDetail.parse(await response.json());
+      problemDetail = ProblemJson.parse(await response.json());
     } catch {
       problemDetail = {
         title: "Invalid response from Wallet Provider",
