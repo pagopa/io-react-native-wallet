@@ -20,7 +20,6 @@ import {
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import { selectPid } from "../store/reducers/pid";
-import type { Out } from "src/utils/misc";
 import { createAppAsyncThunk } from "./utils";
 import { getAttestationThunk } from "./attestation";
 
@@ -45,12 +44,8 @@ type GetCredentialStatusAssertionThunkInput = {
  * Type definition for the output of the {@link getCredentialStatusAssertionThunk}.
  */
 export type GetCredentialStatusAssertionThunkOutput = {
-  statusAssertion: Out<
-    CredentialStatus.CredentialStatusApi["getStatusAssertion"]
-  >["statusAssertion"];
-  parsedStatusAssertion: Out<
-    CredentialStatus.CredentialStatusApi["verifyAndParseStatusAssertion"]
-  >["parsedStatusAssertion"];
+  statusAssertion: string;
+  parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
   credentialType: SupportedCredentials;
 };
 

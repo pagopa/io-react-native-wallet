@@ -3223,6 +3223,15 @@
     "@sd-jwt/types" "0.19.0"
     "@sd-jwt/utils" "0.19.0"
 
+"@sd-jwt/jwt-status-list@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@sd-jwt/jwt-status-list/-/jwt-status-list-0.19.0.tgz#54d5352713948905a93eae8a323b2458410875df"
+  integrity sha512-Xhh0n0DKe3paEtNNQSScy4dtA0ZVKF2OrmDcIB2jm77Doh4xsSs1pOseGEWBs9fmAe5Y0m082wgkmQnWEV53IQ==
+  dependencies:
+    "@sd-jwt/types" "0.19.0"
+    "@sd-jwt/utils" "0.19.0"
+    pako "^2.1.0"
+
 "@sd-jwt/present@0.19.0":
   version "0.19.0"
   resolved "https://registry.yarnpkg.com/@sd-jwt/present/-/present-0.19.0.tgz#0137cebdc80354fb590b2562537f0ed04268f58e"
@@ -8221,6 +8230,11 @@ pac-resolver@^7.0.1:
   dependencies:
     degenerator "^5.0.0"
     netmask "^2.0.2"
+
+pako@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-2.1.0.tgz#266cc37f98c7d883545d11335c00fbd4062c9a86"
+  integrity sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==
 
 parent-module@^1.0.0:
   version "1.0.1"
