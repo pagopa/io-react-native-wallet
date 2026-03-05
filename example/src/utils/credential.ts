@@ -210,11 +210,17 @@ export const getCredentialStatusAssertion = async (
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
 
+  if (!wallet.CredentialStatus.statusAssertion.isSupported) {
+    throw new Error(
+      `Status assertion is not supported in version ${itwVersion}`
+    );
+  }
+
   // Evaluate issuer trust
   const { issuerConf } =
     await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
-  const statusAssertion = await wallet.CredentialStatus.getStatusAssertion(
+  const statusAssertion = await wallet.CredentialStatus.statusAssertion.get(
     issuerConf,
     credential,
     format,
@@ -222,7 +228,7 @@ export const getCredentialStatusAssertion = async (
   );
 
   const parsedStatusAssertion =
-    await wallet.CredentialStatus.verifyAndParseStatusAssertion(
+    await wallet.CredentialStatus.statusAssertion.verifyAndParse(
       issuerConf,
       statusAssertion,
       credential,
