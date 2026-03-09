@@ -1,6 +1,83 @@
-import type { DcqlClaimsQuery, DcqlQuery, DcqlQueryResult } from "dcql";
+import { DcqlClaimsQuery, DcqlQuery, DcqlQueryResult } from "dcql";
 import { isObject } from "../../../../utils/object";
 import type { EvaluatedDisclosure, PresentationFrame } from "../../api/types";
+import { IoWalletError } from "../../../../utils/errors";
+import { LEGACY_SD_JWT } from "../../../../sd-jwt/types";
+import type { NotFoundDetail } from "../errors";
+
+type DcqlMatchSuccess = Extract<
+  DcqlQueryResult.CredentialMatch,
+  { success: true }
+>;
+
+type DcqlMatchFailure = Extract<
+  DcqlQueryResult.CredentialMatch,
+  { success: false }
+>;
+
+/**
+ * Extract only successful matches from the DCQL query result.
+ */
+export const getDcqlQueryMatches = (result: DcqlQueryResult) =>
+  Object.entries(result.credential_matches).filter(
+    ([, match]) => match.success === true
+  ) as [string, DcqlMatchSuccess][];
+
+/**
+ * Extract only failed matches from the DCQL query result.
+ */
+const getDcqlQueryFailedMatches = (result: DcqlQueryResult) =>
+  Object.entries(result.credential_matches).filter(
+    ([, match]) => match.success === false
+  ) as [string, DcqlMatchFailure][];
+
+/**
+ * Extract details related to failed credentials
+ */
+export const extractFailedCredentialsDetails = (
+  queryResult: DcqlQueryResult
+): NotFoundDetail[] => {
+  return getDcqlQueryFailedMatches(queryResult).map(([id, match]) => {
+    const credential = queryResult.credentials.find((c) => c.id === id);
+
+    const issues = match.failed_credentials?.flatMap((c) => {
+      if ("issues" in c.meta) {
+        return Object.values(c.meta.issues).flat() as string[];
+      }
+      if (c.claims.failed_claim_sets) {
+        return c.claims.failed_claim_sets.flatMap(
+          (cs) => Object.values(cs.issues).flat() as string[]
+        );
+      }
+      return [];
+    });
+
+    if (credential?.format === "mso_mdoc") {
+      return {
+        id,
+        issues,
+        format: credential.format,
+        doctypeValue: credential.meta?.doctype_value,
+      };
+    }
+
+    if (
+      credential?.format === "dc+sd-jwt" ||
+      credential?.format === LEGACY_SD_JWT
+    ) {
+      return {
+        id,
+        issues,
+        format: credential.format,
+        vctValues:
+          credential.meta && "vct_values" in credential.meta
+            ? credential.meta.vct_values
+            : [],
+      };
+    }
+    throw new IoWalletError(`Unsupported format: ${credential?.format}`);
+  });
+};
 
 /**
  * Extract a compact list of claims from the `dcql` result.

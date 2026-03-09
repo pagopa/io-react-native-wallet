@@ -1,4 +1,9 @@
-import { pathToPresentationFrame } from "../dcql";
+import type { DcqlQueryResult } from "dcql";
+import type { NotFoundDetail } from "../../errors";
+import {
+  pathToPresentationFrame,
+  extractFailedCredentialsDetails,
+} from "../dcql";
 
 describe("pathToPresentationFrame", () => {
   test.each([
@@ -41,5 +46,80 @@ describe("pathToPresentationFrame", () => {
     ],
   ])("should handle path: %s", (path, claim, expected) => {
     expect(pathToPresentationFrame(path, claim)).toEqual(expected);
+  });
+});
+
+describe("extractFailedCredentialsDetails", () => {
+  it("should extract correct details for failed dc+sd-jwt credentials", () => {
+    const queryResult: DcqlQueryResult = {
+      credentials: [
+        {
+          id: "PersonIdentificationData",
+          format: "dc+sd-jwt",
+          multiple: false,
+          require_cryptographic_holder_binding: true,
+          meta: { vct_values: ["SomePID"] },
+        },
+      ],
+      can_be_satisfied: false,
+      credential_matches: {
+        PersonIdentificationData: {
+          success: false,
+          credential_query_id: "PersonIdentificationData",
+          failed_credentials: [
+            {
+              success: false,
+              input_credential_index: 0,
+              trusted_authorities: { success: true },
+              meta: {
+                success: false,
+                issues: {
+                  vct: [
+                    "Expected vct to be 'SomePID' but received 'https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata'",
+                  ],
+                },
+                output: {
+                  credential_format: "dc+sd-jwt",
+                  vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+                  cryptographic_holder_binding: true,
+                },
+              },
+              claims: {} as any,
+            },
+            {
+              success: false,
+              input_credential_index: 1,
+              trusted_authorities: { success: true },
+              meta: {
+                success: false,
+                issues: {
+                  vct: ["Expected vct to be 'SomePID' but received 'MDL'"],
+                },
+                output: {
+                  credential_format: "dc+sd-jwt",
+                  vct: "MDL",
+                  cryptographic_holder_binding: true,
+                },
+              },
+              claims: {} as any,
+            },
+          ],
+        },
+      },
+    };
+
+    expect(extractFailedCredentialsDetails(queryResult)).toEqual<
+      NotFoundDetail[]
+    >([
+      {
+        id: "PersonIdentificationData",
+        format: "dc+sd-jwt",
+        vctValues: ["SomePID"],
+        issues: [
+          "Expected vct to be 'SomePID' but received 'https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata'",
+          "Expected vct to be 'SomePID' but received 'MDL'",
+        ],
+      },
+    ]);
   });
 });

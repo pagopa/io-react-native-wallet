@@ -62,7 +62,14 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "PersonIdentificationData", issues: expect.any(Array) }],
+      [
+        {
+          id: "PersonIdentificationData",
+          issues: expect.any(Array),
+          format: "dc+sd-jwt",
+          vctValues: ["MissingPID"],
+        },
+      ],
     ],
     [
       {
@@ -83,7 +90,14 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "PersonIdentificationData", issues: expect.any(Array) }],
+      [
+        {
+          id: "PersonIdentificationData",
+          issues: expect.any(Array),
+          format: "dc+sd-jwt",
+          vctValues: ["MissingPID"],
+        },
+      ],
     ],
     [
       {
@@ -113,7 +127,14 @@ describe("evaluateDcqlQuery", () => {
           },
         ],
       },
-      [{ id: "IDontHaveThis", issues: expect.any(Array) }],
+      [
+        {
+          id: "IDontHaveThis",
+          issues: expect.any(Array),
+          format: "dc+sd-jwt",
+          vctValues: ["MissingCredential"],
+        },
+      ],
     ],
   ] as Array<[DcqlQuery.Input, Array<NotFoundDetail>]>)(
     "should throw error when no credential satisfies the DCQL query /%#",
