@@ -9,7 +9,7 @@ import type { WalletInstanceApi } from "../api";
 
 export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
   async (context) => {
-    const { integrityContext } = context;
+    const { integrityContext, isRenewal } = context;
     const api = getWalletProviderClient(context);
 
     //1. Obtain nonce
@@ -38,6 +38,7 @@ export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
           challenge,
           key_attestation: keyAttestation,
           hardware_key_tag: hardwareKeyTag,
+          is_renewal: isRenewal,
         },
       })
       .catch(handleCreateWalletInstanceError);

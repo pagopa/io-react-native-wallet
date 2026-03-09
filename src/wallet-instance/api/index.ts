@@ -6,6 +6,7 @@ export type WalletInstanceStatus = {
   revocation_reason?:
     | "CERTIFICATE_REVOKED_BY_ISSUER"
     | "NEW_WALLET_INSTANCE_CREATED"
+    | "WALLET_INSTANCE_RENEWAL"
     | "REVOKED_BY_USER";
 };
 
@@ -16,6 +17,7 @@ export interface WalletInstanceApi {
   createWalletInstance(context: {
     integrityContext: IntegrityContext;
     walletProviderBaseUrl: string;
+    isRenewal?: boolean;
     appFetch?: GlobalFetch["fetch"];
   }): Promise<string>;
 
