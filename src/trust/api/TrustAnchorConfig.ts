@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { JWK } from "../../utils/jwk";
+import { FederationEntityMetadata } from "../common/types";
 
 /**
  * Common Trust Anchor configuration
@@ -15,7 +16,5 @@ export const TrustAnchorConfig = z.object({
     }),
   }),
   keys: z.array(JWK),
-  federation_fetch_endpoint: z.string().optional(),
-  federation_list_endpoint: z.string().optional(),
-  federation_resolve_endpoint: z.string().optional(),
+  federation_entity: FederationEntityMetadata,
 });

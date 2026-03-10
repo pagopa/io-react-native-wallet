@@ -1,4 +1,5 @@
 import { IoWalletError, serializeAttrs } from "../../../utils/errors";
+import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
 export { DcqlError } from "dcql";
 
 /**
@@ -88,7 +89,10 @@ export class MissingDataError extends IoWalletError {
   }
 }
 
-export type NotFoundDetail = {
+export type NotFoundDetail = (
+  | { format: "dc+sd-jwt" | SupportedSdJwtLegacyFormat; vctValues?: string[] }
+  | { format: "mso_mdoc"; doctypeValue?: string }
+) & {
   id: string;
   reason?: string;
   issues?: string[];

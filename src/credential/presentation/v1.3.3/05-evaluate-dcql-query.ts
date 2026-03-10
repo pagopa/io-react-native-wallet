@@ -1,63 +1,16 @@
-import { DcqlQuery, DcqlError, DcqlQueryResult } from "dcql";
+import { DcqlQuery, DcqlError } from "dcql";
 import { isValiError } from "valibot";
-import {
-  CredentialsNotFoundError,
-  type NotFoundDetail,
-} from "../common/errors";
+import { CredentialsNotFoundError } from "../common/errors";
 import type { CredentialPurpose } from "../api/05-evaluate-dcql-query";
 import * as mdocUtils from "./utils.mdoc";
 import type { Credential4Dcql, RemotePresentationApi } from "../api";
 import * as sdJwtUtils from "../common/utils/sd-jwt";
 import { getClaimsFromDcqlMatch } from "./utils.mdoc";
-import { getPresentationFrameFromDcqlMatch } from "../common/utils/dcql";
-
-type DcqlMatchSuccess = Extract<
-  DcqlQueryResult.CredentialMatch,
-  { success: true }
->;
-
-type DcqlMatchFailure = Extract<
-  DcqlQueryResult.CredentialMatch,
-  { success: false }
->;
-
-/**
- * Extract only successful matches from the DCQL query result.
- */
-const getDcqlQueryMatches = (result: DcqlQueryResult) =>
-  Object.entries(result.credential_matches).filter(
-    ([, match]) => match.success === true
-  ) as [string, DcqlMatchSuccess][];
-
-/**
- * Extract only failed matches from the DCQL query result.
- */
-const getDcqlQueryFailedMatches = (result: DcqlQueryResult) =>
-  Object.entries(result.credential_matches).filter(
-    ([, match]) => match.success === false
-  ) as [string, DcqlMatchFailure][];
-
-/**
- * Extract issues related to failed credentials
- */
-const extractFailedCredentialsIssues = (
-  queryResult: DcqlQueryResult
-): NotFoundDetail[] => {
-  return getDcqlQueryFailedMatches(queryResult).map(([id, match]) => {
-    const issues = match.failed_credentials?.flatMap((c) => {
-      if ("issues" in c.meta) {
-        return Object.values(c.meta.issues).flat() as string[];
-      }
-      if (c.claims.failed_claim_sets) {
-        return c.claims.failed_claim_sets.flatMap(
-          (cs) => Object.values(cs.issues).flat() as string[]
-        );
-      }
-      return [];
-    });
-    return { id, issues };
-  });
-};
+import {
+  extractFailedCredentialsDetails,
+  getDcqlQueryMatches,
+  getPresentationFrameFromDcqlMatch,
+} from "../common/utils/dcql";
 
 export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
   async (query, credentialsSdJwt, credentialsMdoc = []) => {
@@ -85,8 +38,9 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
       const queryResult = DcqlQuery.query(parsedQuery, credentials);
 
       if (!queryResult.can_be_satisfied) {
-        const issues = extractFailedCredentialsIssues(queryResult);
-        throw new CredentialsNotFoundError(issues);
+        throw new CredentialsNotFoundError(
+          extractFailedCredentialsDetails(queryResult)
+        );
       }
 
       return getDcqlQueryMatches(queryResult).map(([id, match]) => {

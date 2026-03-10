@@ -44,7 +44,7 @@ const attestationSlice = createSlice({
     builder.addCase(getAttestationThunk.fulfilled, (state, action) => {
       state.asyncStatus.isDone = true;
       state.attestation = action.payload
-        .filter(({ type }) => type === "wallet_app_attestation")
+        .filter(({ type }) => type === "wallet_instance_attestation")
         .reduce(
           (acc, { format, attestation }) => ({
             ...acc,

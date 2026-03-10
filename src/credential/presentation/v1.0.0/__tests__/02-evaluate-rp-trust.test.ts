@@ -32,7 +32,9 @@ describe("evaluateRelyingPartyTrust", () => {
     jwks: {
       keys: [],
     },
-    organization_name: "Example RP",
+    federation_entity: {
+      organization_name: "Example RP",
+    },
     subject: sampleRpUrl,
   };
 

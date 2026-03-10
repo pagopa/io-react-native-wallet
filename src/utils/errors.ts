@@ -1,5 +1,6 @@
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
 import type { ProblemJson } from "../client/generated/wallet-provider";
+import type { IssuerConfig } from "../credential/issuance/api";
 import {
   type IssuerResponseErrorCode,
   IssuerResponseErrorCodes,
@@ -8,7 +9,6 @@ import {
   type WalletProviderResponseErrorCode,
   WalletProviderResponseErrorCodes,
 } from "./error-codes";
-import type { CredentialIssuerEntityConfiguration } from "../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
 
 export {
   IssuerResponseErrorCodes,
@@ -225,14 +225,12 @@ export function extractErrorMessageFromIssuerConf(
     issuerConf,
     credentialType,
   }: {
-    issuerConf: CredentialIssuerEntityConfiguration["payload"]["metadata"];
+    issuerConf: IssuerConfig;
     credentialType: string;
   }
 ): LocalizedIssuanceError | undefined {
   const credentialConfiguration =
-    issuerConf.openid_credential_issuer.credential_configurations_supported[
-      credentialType
-    ];
+    issuerConf.credential_configurations_supported[credentialType];
 
   if (!credentialConfiguration) {
     throw new IoWalletError(

@@ -18,6 +18,9 @@ describe("mapToIssuerConfig", () => {
         jwks: {
           keys: [{ kty: "EC", kid: "sig-kid", use: "sig" }],
         },
+        batch_credential_issuance: {
+          batch_size: 10,
+        },
         credential_configurations_supported: {
           PersonIdentificationData: {
             format: "dc+sd-jwt",
@@ -45,6 +48,9 @@ describe("mapToIssuerConfig", () => {
             },
           },
         },
+      },
+      federation_entity: {
+        organization_name: "Issuer Example",
       },
     },
   } as unknown as MetadataResponse;
@@ -84,6 +90,10 @@ describe("mapToIssuerConfig", () => {
       token_endpoint: "https://issuer.example/token",
       status_assertion_endpoint: "https://issuer.example/status",
       nonce_endpoint: "https://issuer.example/nonce",
+      federation_entity: {
+        organization_name: "Issuer Example",
+      },
+      credential_issuance_batch_size: 10,
     });
   });
 

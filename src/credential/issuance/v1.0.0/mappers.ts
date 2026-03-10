@@ -6,8 +6,11 @@ export const mapToIssuerConfig = createMapper<
   CredentialIssuerEntityConfiguration,
   IssuerConfig
 >((x) => {
-  const { oauth_authorization_server, openid_credential_issuer } =
-    x.payload.metadata;
+  const {
+    oauth_authorization_server,
+    openid_credential_issuer,
+    federation_entity,
+  } = x.payload.metadata;
   return {
     authorization_endpoint: oauth_authorization_server.authorization_endpoint,
     credential_endpoint: openid_credential_issuer.credential_endpoint,
@@ -21,5 +24,6 @@ export const mapToIssuerConfig = createMapper<
     status_assertion_endpoint:
       openid_credential_issuer.status_attestation_endpoint,
     nonce_endpoint: openid_credential_issuer.nonce_endpoint,
+    federation_entity,
   };
 });

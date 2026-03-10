@@ -12,15 +12,11 @@ export const mapToRelyingPartyConfig = createMapper<
   return {
     subject: x.payload.sub,
     jwks: openid_credential_verifier.jwks,
-    organization_name: federation_entity.organization_name,
-    logo_uri: federation_entity.logo_uri,
-    policy_uri: federation_entity.policy_uri,
-    contacts: federation_entity.contacts,
-    homepage_uri: federation_entity.homepage_uri,
     authorization_encrypted_response_alg:
       openid_credential_verifier.authorization_encrypted_response_alg,
     authorization_encrypted_response_enc:
       openid_credential_verifier.authorization_encrypted_response_enc,
+    federation_entity,
   };
 });
 

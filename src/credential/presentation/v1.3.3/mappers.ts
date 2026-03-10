@@ -13,11 +13,7 @@ export const mapToRelyingPartyConfig = createMapper<
   return {
     subject: x.payload.sub,
     jwks: openid_credential_verifier.jwks,
-    organization_name: federation_entity.organization_name,
-    logo_uri: federation_entity.logo_uri,
-    policy_uri: federation_entity.policy_uri,
-    homepage_uri: federation_entity.homepage_uri,
-    contacts: federation_entity.contacts,
+    federation_entity,
     encrypted_response_enc_values_supported:
       openid_credential_verifier.encrypted_response_enc_values_supported,
   };

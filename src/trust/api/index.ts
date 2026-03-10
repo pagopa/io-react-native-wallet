@@ -28,7 +28,7 @@ export interface TrustApi {
   buildTrustChain(
     relyingPartyEntityBaseUrl: string,
     trustAnchorConfig: TrustAnchorConfig,
-    appFetch: GlobalFetch["fetch"]
+    appFetch?: GlobalFetch["fetch"]
   ): Promise<string[]>;
 
   /**

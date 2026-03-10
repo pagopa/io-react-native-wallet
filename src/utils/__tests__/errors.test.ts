@@ -1,3 +1,4 @@
+import type { IssuerConfig } from "../../credential/issuance";
 import {
   extractErrorMessageFromIssuerConf,
   isIssuerResponseError,
@@ -12,9 +13,6 @@ import {
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../errors";
-import type { CredentialIssuerEntityConfiguration } from "../../trust/v1.0.0/types"; // TODO: [SIW-3741] refactor issuance
-
-type EntityConfig = CredentialIssuerEntityConfiguration["payload"]["metadata"];
 
 describe("extractErrorMessageFromIssuerConf", () => {
   it("should throw when no credential configuration is found", async () => {
@@ -22,10 +20,8 @@ describe("extractErrorMessageFromIssuerConf", () => {
       extractErrorMessageFromIssuerConf("credential_revoked", {
         credentialType: "MDL",
         issuerConf: {
-          openid_credential_issuer: {
-            credential_configurations_supported: {},
-          },
-        } as EntityConfig,
+          credential_configurations_supported: {},
+        } as IssuerConfig,
       })
     ).toThrow();
   });
@@ -36,12 +32,10 @@ describe("extractErrorMessageFromIssuerConf", () => {
         credentialType: "MDL",
         // @ts-expect-error partial type
         issuerConf: {
-          openid_credential_issuer: {
-            credential_configurations_supported: {
-              MDL: {},
-            },
+          credential_configurations_supported: {
+            MDL: {},
           },
-        } as EntityConfig,
+        } as IssuerConfig,
       })
     ).toBeUndefined();
 
@@ -50,16 +44,14 @@ describe("extractErrorMessageFromIssuerConf", () => {
         credentialType: "MDL",
         // @ts-expect-error partial type
         issuerConf: {
-          openid_credential_issuer: {
-            credential_configurations_supported: {
-              MDL: {
-                issuance_errors_supported: {
-                  credential_voided: {},
-                },
+          credential_configurations_supported: {
+            MDL: {
+              issuance_errors_supported: {
+                credential_voided: {},
               },
             },
           },
-        } as EntityConfig,
+        } as IssuerConfig,
       })
     ).toBeUndefined();
   });
@@ -70,21 +62,19 @@ describe("extractErrorMessageFromIssuerConf", () => {
         credentialType: "MDL",
         // @ts-expect-error partial type
         issuerConf: {
-          openid_credential_issuer: {
-            credential_configurations_supported: {
-              MDL: {
-                issuance_errors_supported: {
-                  credential_revoked: {
-                    display: [
-                      { title: "Ciao", description: "Ciao", locale: "it-IT" },
-                      { title: "Hello", description: "Hello", locale: "en-US" },
-                    ],
-                  },
+          credential_configurations_supported: {
+            MDL: {
+              issuance_errors_supported: {
+                credential_revoked: {
+                  display: [
+                    { title: "Ciao", description: "Ciao", locale: "it-IT" },
+                    { title: "Hello", description: "Hello", locale: "en-US" },
+                  ],
                 },
               },
             },
           },
-        } as EntityConfig,
+        } as IssuerConfig,
       })
     ).toEqual({
       "it-IT": { title: "Ciao", description: "Ciao" },
