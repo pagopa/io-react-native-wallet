@@ -55,13 +55,25 @@ export default function IdpLoginScreen({ route }: Props) {
     () => (idp: string) => {
       const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
       let url = new URL(WALLET_PROVIDER_BASE_URL);
-      url.pathname = `/login`;
+      url.pathname = "/api/auth/v1/login";
       url.searchParams.append("entityID", idp);
       url.searchParams.append("authLevel", "SpidL2");
       return url.href;
     },
     [env]
   )();
+
+  const handleNavigationStateChange = ({ url }: WebViewNavigation) => {
+    if (!url.includes("profile.html")) return;
+
+    let { hash, searchParams } = new URL(url);
+    if (hash) {
+      const paramsString = hash.startsWith("#") ? hash.slice(1) : hash;
+      searchParams = new URLSearchParams(paramsString);
+    }
+    const token = searchParams.get("token");
+    token && dispatch(sessionSet(token));
+  };
 
   return (
     <View style={styles.container}>
@@ -70,13 +82,7 @@ export default function IdpLoginScreen({ route }: Props) {
           uri: getLoginUri(idpParam),
         }}
         style={styles.webview}
-        onNavigationStateChange={(el) => {
-          if (el.url.includes("profile.html")) {
-            const urlParams = new URL(el.url);
-            const token = urlParams.searchParams.get("token");
-            token && dispatch(sessionSet(token));
-          }
-        }}
+        onNavigationStateChange={handleNavigationStateChange}
         javaScriptEnabled={true}
         androidCameraAccessDisabled={true}
         androidMicrophoneAccessDisabled={true}
