@@ -90,3 +90,17 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
     "Unable to find the signing key inside the PEM certificate"
   );
 };
+
+/**
+ * Extension of the {@link CryptoContext} that adds key generation with optional key attestation.
+ */
+export type AttestationCryptoContext = CryptoContext & {
+  /**
+   * Generate a key pair with an **optional key attestation** (Android).
+   * @param challenge The challenge for the key attestation.
+   * @returns An object with a success flag and a key attestation, if it was generated.
+   */
+  generateKeyWithAttestation(
+    challenge: string
+  ): Promise<{ success: boolean; attestation?: string }>;
+};

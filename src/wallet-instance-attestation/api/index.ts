@@ -1,5 +1,6 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { IntegrityContext } from "../../utils/integrity";
+import type { AttestationCryptoContext } from "../../utils/crypto";
 import type {
   DecodedAttestationJwt,
   WalletAttestation,
@@ -52,4 +53,13 @@ export interface WalletInstanceAttestationApi {
    * @throws Invalid signature error if the token signature is not valid
    */
   verify(token: string): Promise<DecodedAttestationJwt>;
+
+  getWalletUnitAttestation(
+    requestParams: WalletAttestationRequestParams,
+    ctx: {
+      attestationCryptoContexts: AttestationCryptoContext[];
+      integrityContext: IntegrityContext;
+      appFetch?: GlobalFetch["fetch"];
+    }
+  ): Promise<any>;
 }
