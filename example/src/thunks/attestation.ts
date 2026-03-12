@@ -14,6 +14,7 @@ import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { isAndroid } from "../utils/device";
+import pkg from "../../package.json"
 
 type GetAttestationThunkOutput = Awaited<
   ReturnType<Wia.WalletInstanceAttestationApi["getAttestation"]>
@@ -52,11 +53,17 @@ export const getAttestationThunk = createAppAsyncThunk<
    * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
    */
   const issuingAttestation =
-    await wallet.WalletInstanceAttestation.getAttestation({
-      wiaCryptoContext,
-      integrityContext,
-      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-      appFetch,
-    });
+    await wallet.WalletInstanceAttestation.getAttestation(
+      {
+        walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+        walletSolutionId: pkg.name,
+        walletSolutionVersion: pkg.version,
+      },
+      {
+        wiaCryptoContext,
+        integrityContext,
+        appFetch,
+      }
+    );
   return issuingAttestation;
 });

@@ -23,3 +23,9 @@ export type WalletAttestation = {
   format: string;
   attestation: string;
 };
+
+export type WalletAttestationRequestParams = {
+  walletProviderBaseUrl: string;
+  walletSolutionId: string;
+  walletSolutionVersion: string;
+};

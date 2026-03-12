@@ -46,3 +46,10 @@ export const WalletUnitAttestationJwt = z.object({
     })
   ),
 });
+
+export type WalletInstanceAttestationResponse = z.infer<
+  typeof WalletInstanceAttestationResponse
+>;
+export const WalletInstanceAttestationResponse = z.object({
+  wallet_instance_attestation: z.string(),
+});
