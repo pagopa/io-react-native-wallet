@@ -39,4 +39,19 @@ export interface ObtainCredentialApi {
     credential: string;
     format: CredentialFormat;
   }>;
+
+  obtainCredentialsBatch(
+    issuerConf: IssuerConfig,
+    accessToken: Out<AuthorizeAccessApi["authorizeAccess"]>["accessToken"],
+    clientId: string,
+    credentialDefinition: {
+      credential_configuration_id: string;
+      credential_identifier: string;
+    },
+    context: {
+      dPopCryptoContext: CryptoContext;
+      credentialCryptoContexts: CryptoContext[];
+      appFetch?: GlobalFetch["fetch"];
+    }
+  ): Promise<{ credential: string; format: CredentialFormat }[]>;
 }

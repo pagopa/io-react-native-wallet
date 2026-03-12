@@ -1,13 +1,17 @@
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
-import { createTokenDPoP } from "@pagopa/io-wallet-oauth2";
+import {
+  createTokenDPoP,
+  type CallbackContext,
+  type JwtSignerJwk,
+} from "@pagopa/io-wallet-oauth2";
 import {
   fetchCredentialResponse,
-  createCredentialRequest,
-  type CredentialRequestOptionsV1_3,
+  createCredentialRequest
 } from "@pagopa/io-wallet-oid4vci";
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
-import { hasStatusOrThrow } from "../../../utils/misc";
+import { hasStatusOrThrow, type Out } from "../../../utils/misc";
 import {
+  IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
@@ -16,29 +20,110 @@ import {
 import { LogLevel, Logger } from "../../../utils/logging";
 import { sdkConfigV1_3 } from "../../../utils/config";
 import { partialCallbacks } from "../../../utils/callbacks";
-import type { IssuanceApi } from "../api";
+import type { IssuanceApi, IssuerConfig } from "../api";
 import { NonceResponse } from "./types";
+import type { AuthorizeAccessApi } from "../api/04-authorize-access";
 
-export const createNonceProof = async (
-  nonce: string,
-  issuer: string,
-  audience: string,
-  ctx: CryptoContext
-): Promise<string> => {
-  const jwk = await ctx.getPublicKey();
-  return new SignJWT(ctx)
-    .setPayload({
-      nonce,
+type CreateRequestParams = {
+  clientId: string;
+  credentialIdentifier: string;
+  accessToken: Out<AuthorizeAccessApi["authorizeAccess"]>["accessToken"];
+  issuerConf: IssuerConfig;
+  dPopCryptoContext: CryptoContext;
+  credentialCryptoContexts: CryptoContext[];
+  appFetch?: GlobalFetch["fetch"];
+};
+
+const getCredentials = async ({
+  issuerConf,
+  accessToken,
+  credentialIdentifier,
+  clientId,
+  credentialCryptoContexts,
+  dPopCryptoContext,
+  appFetch = fetch,
+}: CreateRequestParams) => {
+  // Fetch the nonce from the Credential Issuer
+  const { c_nonce } = await appFetch(issuerConf.nonce_endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(hasStatusOrThrow(200))
+    .then((res) => res.json())
+    .then((body) => NonceResponse.parse(body));
+
+  const jwkToCryptoContextMap = new Map(
+    await Promise.all(
+      credentialCryptoContexts.map(
+        async (ctx) => [await ctx.getPublicKey(), ctx] as const
+      )
+    )
+  );
+  const signers = [...jwkToCryptoContextMap.keys()].map<JwtSignerJwk>(
+    (publicJwk) => ({
+      alg: "ES256",
+      method: "jwk",
+      publicJwk,
     })
-    .setProtectedHeader({
-      typ: "openid4vci-proof+jwt",
-      jwk,
-    })
-    .setAudience(audience)
-    .setIssuer(issuer)
-    .setIssuedAt()
-    .setExpirationTime("5min")
-    .sign();
+  );
+
+  const signJwt: CallbackContext["signJwt"] = async (jwtSigner, payload) => {
+    if (jwtSigner.method !== "jwk") {
+      throw new IoWalletError(`Unsupported signer method: ${jwtSigner.method}`);
+    }
+    const cryptoContext = jwkToCryptoContextMap.get(jwtSigner.publicJwk)!;
+    return {
+      jwt: await new SignJWT(cryptoContext).setPayload(payload).sign(),
+      signerJwk: jwtSigner.publicJwk,
+    };
+  };
+
+  const credentialRequest = await createCredentialRequest({
+    config: sdkConfigV1_3,
+    callbacks: {
+      hash: partialCallbacks.hash,
+      signJwt,
+    },
+    clientId,
+    credential_identifier: credentialIdentifier,
+    issuerIdentifier: issuerConf.credential_issuer,
+    nonce: c_nonce,
+    keyAttestation: "", // TODO
+    signers,
+  });
+
+  const dPopSignerJwk = await dPopCryptoContext.getPublicKey();
+
+  const credentialDPoP = await createTokenDPoP({
+    callbacks: {
+      ...partialCallbacks,
+      signJwt: async (_, payload) => ({
+        jwt: await new SignJWT(dPopCryptoContext).setPayload(payload).sign(),
+        signerJwk: dPopSignerJwk,
+      }),
+    },
+    signer: {
+      method: "jwk",
+      alg: "ES256",
+      publicJwk: dPopSignerJwk,
+    },
+    tokenRequest: {
+      method: "POST",
+      url: issuerConf.credential_endpoint,
+    },
+    accessToken: accessToken.access_token,
+  });
+
+  // TODO: handle issuance errors
+  return await fetchCredentialResponse({
+    callbacks: {
+      fetch: appFetch,
+    },
+    credentialEndpoint: issuerConf.credential_endpoint,
+    credentialRequest: credentialRequest,
+    accessToken: accessToken.access_token,
+    dPoP: credentialDPoP.jwt,
+  }).catch(handleObtainCredentialError);
 };
 
 export const obtainCredential: IssuanceApi["obtainCredential"] = async (
@@ -55,15 +140,6 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   } = context;
   const { credential_configuration_id, credential_identifier } =
     credentialDefinition;
-
-  // Fetch the nonce from the Credential Issuer
-  const { c_nonce } = await appFetch(issuerConf.nonce_endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  })
-    .then(hasStatusOrThrow(200))
-    .then((res) => res.json())
-    .then((body) => NonceResponse.parse(body));
 
   // Validation of accessTokenResponse.authorization_details if contain credentialDefinition
   const containsCredentialDefinition = accessToken.authorization_details.some(
@@ -84,63 +160,15 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
         "The access token response does not contain the requested credential",
     });
   }
-
-  const signerJwk = await credentialCryptoContext.getPublicKey();
-
-  const credentialRequest = await createCredentialRequest({
-    config: sdkConfigV1_3 as CredentialRequestOptionsV1_3["config"],
-    callbacks: {
-      signJwt: async (_, payload) => ({
-        jwt: await new SignJWT(credentialCryptoContext)
-          .setPayload(payload)
-          .sign(),
-        signerJwk,
-      }),
-    },
+  const credentialRes = await getCredentials({
+    issuerConf,
+    accessToken,
     clientId,
-    credential_identifier: credentialDefinition.credential_identifier!,
-    issuerIdentifier: issuerConf.credential_issuer,
-    nonce: c_nonce,
-    keyAttestation: "", // TODO
-    signer: {
-      alg: "ES256",
-      method: "jwk",
-      publicJwk: signerJwk,
-    },
+    credentialCryptoContexts: [credentialCryptoContext],
+    credentialIdentifier: credential_identifier,
+    dPopCryptoContext,
+    appFetch,
   });
-
-  const dPopSignerJwk = await dPopCryptoContext.getPublicKey();
-
-  const credentialDPoP = await createTokenDPoP({
-    callbacks: {
-      ...partialCallbacks,
-      signJwt: async (_, payload) => ({
-        jwt: await new SignJWT(dPopCryptoContext).setPayload(payload).sign(),
-        signerJwk,
-      }),
-    },
-    signer: {
-      method: "jwk",
-      alg: "ES256",
-      publicJwk: dPopSignerJwk,
-    },
-    tokenRequest: {
-      method: "POST",
-      url: issuerConf.credential_endpoint,
-    },
-    accessToken: accessToken.access_token,
-  });
-
-  // TODO: handle issuance errors
-  const credentialRes = await fetchCredentialResponse({
-    callbacks: {
-      fetch: appFetch,
-    },
-    credentialEndpoint: issuerConf.credential_endpoint,
-    credentialRequest: credentialRequest,
-    accessToken: accessToken.access_token,
-    dPoP: credentialDPoP.jwt,
-  }).catch(handleObtainCredentialError);
 
   Logger.log(
     LogLevel.DEBUG,
@@ -157,6 +185,27 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     format: issuerCredentialConfig!.format,
   };
 };
+
+export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
+  async (issuerConf, accessToken, clientId, credentialDefinition, context) => {
+    const {
+      credentialCryptoContexts,
+      appFetch = fetch,
+      dPopCryptoContext,
+    } = context;
+    const { credential_configuration_id, credential_identifier } =
+      credentialDefinition;
+
+    const credentialRes = await getCredentials({
+      issuerConf,
+      accessToken,
+      clientId,
+      credentialCryptoContexts,
+      credentialIdentifier: credential_identifier,
+      dPopCryptoContext,
+      appFetch,
+    });
+  };
 
 /**
  * Handle the credential error by mapping it to a custom exception.
