@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { Logger, LogLevel } from "../../utils/logging";
 import { getWalletProviderClient } from "../../client";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
@@ -73,7 +73,9 @@ export const getWalletUnitAttestation: WalletInstanceAttestationApi["getWalletUn
 
     const clientData = {
       challenge: nonce,
-      keys: keysToAttest.map((k) => k.publicKey),
+      jwk_thumbprints: await Promise.all(
+        keysToAttest.map((k) => thumbprint(k.publicKey))
+      ),
     };
 
     const { signature, authenticatorData } =

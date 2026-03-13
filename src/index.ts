@@ -18,7 +18,10 @@ import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 import * as WalletInstance from "./wallet-instance";
 import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
-import { createCryptoContextFor } from "./utils/crypto";
+import {
+  createCryptoContextFor,
+  type AttestationCryptoContext,
+} from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
 
 export {
@@ -41,7 +44,11 @@ export {
   Logging,
 };
 
-export type { IntegrityContext, AuthorizationContext };
+export type {
+  IntegrityContext,
+  AuthorizationContext,
+  AttestationCryptoContext,
+};
 
 export type * from "./api";
 

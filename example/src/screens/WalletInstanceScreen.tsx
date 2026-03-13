@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { v4 as uuidv4 } from "uuid";
 import {
   createWalletInstanceThunk,
   revokeWalletInstanceThunk,
@@ -19,7 +20,10 @@ import {
   selectAttestationAsSdJwt,
   selectAttestationAsyncStatus,
 } from "../store/reducers/attestation";
-import { getAttestationThunk } from "../thunks/attestation";
+import {
+  getAttestationThunk,
+  getWalletUnitAttestationThunk,
+} from "../thunks/attestation";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { Alert, FlatList } from "react-native";
@@ -87,6 +91,20 @@ export const WalletInstanceScreen = () => {
       {
         title: "Get Attestation",
         onPress: () => dispatch(getAttestationThunk()),
+        isLoading: attestationState.isLoading,
+        hasError: attestationState.hasError,
+        isDone: attestationState.isDone,
+        icon: "bonus",
+        isPresent: !!attestationJwt,
+      },
+      {
+        title: "Get Wallet Unit Attestation | 2 keys",
+        onPress: () =>
+          dispatch(
+            getWalletUnitAttestationThunk({
+              keyTags: Array.from({ length: 2 }).map(() => uuidv4().toString()),
+            })
+          ),
         isLoading: attestationState.isLoading,
         hasError: attestationState.hasError,
         isDone: attestationState.isDone,
