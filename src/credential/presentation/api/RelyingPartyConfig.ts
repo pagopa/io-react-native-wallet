@@ -1,6 +1,6 @@
 import * as z from "zod";
-import { jsonWebKeySchema } from "@openid-federation/core";
 import { FederationEntityMetadata } from "../../../trust/common/types";
+import { JWK } from "../../../utils/jwk";
 
 /**
  * Common Relying Party configuration
@@ -9,7 +9,7 @@ export type RelyingPartyConfig = z.infer<typeof RelyingPartyConfig>;
 export const RelyingPartyConfig = z.object({
   subject: z.string().optional(),
   jwks: z.object({
-    keys: z.array(jsonWebKeySchema),
+    keys: z.array(JWK),
   }),
   // UI (from federation_entity)
   federation_entity: FederationEntityMetadata,

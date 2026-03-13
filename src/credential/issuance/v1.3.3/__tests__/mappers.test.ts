@@ -1,4 +1,4 @@
-import type { MetadataResponse } from "@pagopa/io-wallet-oid4vci";
+import type { MetadataResponseV1_3 } from "@pagopa/io-wallet-oid4vci";
 import type { ParsedAuthorizeRequestResult } from "@pagopa/io-wallet-oid4vp";
 import { mapToIssuerConfig, mapToRequestObject } from "../mappers";
 
@@ -53,7 +53,7 @@ describe("mapToIssuerConfig", () => {
         organization_name: "Issuer Example",
       },
     },
-  } as unknown as MetadataResponse;
+  } as unknown as MetadataResponseV1_3;
 
   it("maps Issuer metadata to IssuerConfig and normalizes credential claims", () => {
     expect(mapToIssuerConfig(issuerMetadataMock)).toEqual({
@@ -103,7 +103,7 @@ describe("mapToIssuerConfig", () => {
         ...issuerMetadataMock.metadata,
         oauth_authorization_server: undefined,
       },
-    } as unknown as MetadataResponse;
+    } as unknown as MetadataResponseV1_3;
 
     expect(() => mapToIssuerConfig(input)).toThrow(
       "oauth_authorization_server is required in Issuer metadata"
@@ -116,7 +116,7 @@ describe("mapToIssuerConfig", () => {
         ...issuerMetadataMock.metadata,
         openid_credential_issuer: undefined,
       },
-    } as unknown as MetadataResponse;
+    } as unknown as MetadataResponseV1_3;
 
     expect(() => mapToIssuerConfig(input)).toThrow(
       "openid_credential_issuer is required in Issuer metadata"
@@ -128,6 +128,8 @@ describe("mapToRequestObject", () => {
   it("maps parsed authorize request payload to RequestObject", () => {
     const input: ParsedAuthorizeRequestResult = {
       header: {
+        kid: "123",
+        x5c: [],
         alg: "alg",
         typ: "oauth-authz-req+jwt",
       },

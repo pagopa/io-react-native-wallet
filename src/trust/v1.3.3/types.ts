@@ -56,13 +56,10 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
 
 // Maps any entity configuration by the union of every possible shapes
 export type EntityConfiguration = z.infer<typeof EntityConfiguration>;
-export const EntityConfiguration = z.union(
-  [
+export const EntityConfiguration = z
+  .union([
     WalletProviderEntityConfiguration,
     CredentialIssuerEntityConfiguration,
     RelyingPartyEntityConfiguration,
-  ],
-  {
-    description: "Any kind of Entity Configuration allowed in the ecosystem",
-  }
-);
+  ])
+  .describe("Any kind of Entity Configuration allowed in the ecosystem");

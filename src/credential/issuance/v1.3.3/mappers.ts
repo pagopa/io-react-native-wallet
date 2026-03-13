@@ -1,4 +1,4 @@
-import type { MetadataResponse } from "@pagopa/io-wallet-oid4vci";
+import type { MetadataResponseV1_3 } from "@pagopa/io-wallet-oid4vci";
 import type { ParsedAuthorizeRequestResult } from "@pagopa/io-wallet-oid4vp";
 import { assert } from "../../../utils/misc";
 import { createMapper } from "../../../utils/mappers";
@@ -9,12 +9,12 @@ import { IssuerConfig } from "../api/IssuerConfig";
 type CredentialConfigurations =
   IssuerConfig["credential_configurations_supported"];
 type OpenIdCredentialIssuer =
-  MetadataResponse["metadata"]["openid_credential_issuer"];
+  MetadataResponseV1_3["metadata"]["openid_credential_issuer"];
 
 const mapCredentialConfigurationsSupported = (
-  oidIssuer: OpenIdCredentialIssuer
+  oidIssuer: NonNullable<OpenIdCredentialIssuer>
 ): CredentialConfigurations =>
-  Object.entries(oidIssuer!.credential_configurations_supported).reduce(
+  Object.entries(oidIssuer.credential_configurations_supported).reduce(
     (acc, [key, config]) => {
       acc[key] = {
         ...(config.format === "dc+sd-jwt"
@@ -33,7 +33,10 @@ const mapCredentialConfigurationsSupported = (
     {} as CredentialConfigurations
   );
 
-export const mapToIssuerConfig = createMapper<MetadataResponse, IssuerConfig>(
+export const mapToIssuerConfig = createMapper<
+  MetadataResponseV1_3,
+  IssuerConfig
+>(
   (x) => {
     const {
       oauth_authorization_server,
@@ -78,9 +81,9 @@ export const mapToRequestObject = createMapper<
 >(({ payload }) => ({
   iss: payload.iss ?? "UNKNOWN_ISSUER",
   client_id: payload.client_id,
-  dcql_query: payload.dcql_query!,
+  dcql_query: payload.dcql_query,
   nonce: payload.nonce,
-  response_uri: payload.response_uri!,
+  response_uri: payload.response_uri,
   state: payload.state,
   response_mode: payload.response_mode,
   response_type: payload.response_type,
