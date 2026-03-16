@@ -84,7 +84,9 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
         JSON.stringify(clientData)
       );
 
-    const signedAttestationRequest = new SignJWT(signatureKey.cryptoContext)
+    const signedAttestationRequest = await new SignJWT(
+      signatureKey.cryptoContext
+    )
       .setPayload({
         nonce,
         hardware_key_tag: hardwareKeyTag,
