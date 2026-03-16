@@ -5,6 +5,7 @@ import { mapToDecodedWalletUnitAttestation } from "./mappers";
 import { getAttestation } from "./issuing";
 
 export const WalletUnitAttestation: WalletUnitAttestationApi = {
+  isSupported: true,
   getAttestation,
   decode: withMapper(mapToDecodedWalletUnitAttestation, decode),
 };

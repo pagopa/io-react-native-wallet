@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
+import compact from "lodash/compact";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 import {
   createWalletInstanceThunk,
   revokeWalletInstanceThunk,
@@ -16,17 +18,20 @@ import {
   selectInstanceRevocationAsyncStatus,
 } from "../store/reducers/instance";
 import {
-  selectAttestationAsJwt,
-  selectAttestationAsSdJwt,
-  selectAttestationAsyncStatus,
+  selectWalletInstanceAttestationAsJwt,
+  selectWalletInstanceAttestationAsSdJwt,
+  selectWalletInstanceAttestationAsyncStatus,
+  selectWalletUnitAttestation,
+  selectWalletUnitAttestationAsyncState,
 } from "../store/reducers/attestation";
 import {
-  getAttestationThunk,
+  getWalletInstanceAttestationThunk,
   getWalletUnitAttestationThunk,
 } from "../thunks/attestation";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { Alert, FlatList } from "react-native";
+import { selectItwVersion } from "../store/reducers/environment";
 
 /**
  * Component (screen in a future PR) to test the wallet instance functionalities.
@@ -35,106 +40,101 @@ import { Alert, FlatList } from "react-native";
 export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();
   const instanceState = useAppSelector(selectInstanceAsyncStatus);
-  const attestationState = useAppSelector(selectAttestationAsyncStatus);
+  const wiaState = useAppSelector(selectWalletInstanceAttestationAsyncStatus);
+  const wuaState = useAppSelector(selectWalletUnitAttestationAsyncState);
   const instanceRevocationState = useAppSelector(
     selectInstanceRevocationAsyncStatus
   );
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
   const instanceKeyTag = useAppSelector(selectInstanceKeyTag);
-  const attestationJwt = useAppSelector(selectAttestationAsJwt);
-  const attestationSdJwt = useAppSelector(selectAttestationAsSdJwt);
+  const wiaJwt = useAppSelector(selectWalletInstanceAttestationAsJwt);
+  const wiaSdJwt = useAppSelector(selectWalletInstanceAttestationAsSdJwt);
+  const wuaJwt = useAppSelector(selectWalletUnitAttestation);
+  const itwVersion = useAppSelector(selectItwVersion);
+
+  const ioWallet = useMemo(
+    () => new IoWallet({ version: itwVersion }),
+    [itwVersion]
+  );
+
+  const isWuaSupported = ioWallet.WalletUnitAttestation.isSupported;
 
   useDebugInfo({
     instanceState,
     instanceKeyTag,
-    attestationState,
-    attestationJwt,
-    attestationSdJwt,
+    wiaState,
+    wiaJwt,
+    wiaSdJwt,
+    ...(isWuaSupported && { wuaState, wuaJwt }),
     instanceRevocationState,
   });
 
-  const scenarios: Array<TestScenarioProp> = useMemo(
-    () => [
-      {
-        title: "Create Wallet Instance",
-        onPress: () => {
-          if (hasIntegrityKeyTag) {
-            Alert.alert(
-              "Wallet instance already exits",
-              "This will reset the whole app state except the session",
-              [
-                {
-                  text: "Ok",
-                  onPress: () => {
-                    dispatch(instanceReset());
-                    dispatch(createWalletInstanceThunk());
-                  },
-                  style: "destructive",
+  const scenarios: Array<TestScenarioProp> = compact<TestScenarioProp>([
+    {
+      title: "Create Wallet Instance",
+      onPress: () => {
+        if (hasIntegrityKeyTag) {
+          Alert.alert(
+            "Wallet instance already exits",
+            "This will reset the whole app state except the session",
+            [
+              {
+                text: "Ok",
+                onPress: () => {
+                  dispatch(instanceReset());
+                  dispatch(createWalletInstanceThunk());
                 },
-                {
-                  text: "Cancel",
-                  style: "cancel",
-                },
-              ]
-            );
-          } else {
-            dispatch(createWalletInstanceThunk());
-          }
-        },
-        isLoading: instanceState.isLoading,
-        hasError: instanceState.hasError,
-        isDone: instanceState.isDone,
-        icon: "device",
-        isPresent: hasIntegrityKeyTag,
+                style: "destructive",
+              },
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+            ]
+          );
+        } else {
+          dispatch(createWalletInstanceThunk());
+        }
       },
-      {
-        title: "Get Wallet Instance Attestation",
-        onPress: () => dispatch(getAttestationThunk()),
-        isLoading: attestationState.isLoading,
-        hasError: attestationState.hasError,
-        isDone: attestationState.isDone,
-        icon: "bonus",
-        isPresent: !!attestationJwt,
-      },
-      {
-        title: "Get Wallet Unit Attestation | 2 keys",
-        onPress: () =>
-          dispatch(
-            getWalletUnitAttestationThunk({
-              keyTags: Array.from({ length: 2 }).map(() => uuidv4().toString()),
-            })
-          ),
-        isLoading: attestationState.isLoading,
-        hasError: attestationState.hasError,
-        isDone: attestationState.isDone,
-        icon: "bonus",
-        isPresent: !!attestationJwt,
-      },
-      {
-        title: "Revoke current Wallet Instance",
-        onPress: () => dispatch(revokeWalletInstanceThunk()),
-        isLoading: instanceRevocationState.isLoading,
-        hasError: instanceRevocationState.hasError,
-        isDone: instanceRevocationState.isDone,
-        icon: "trashcan",
-      },
-    ],
-    [
-      attestationJwt,
-      attestationState.hasError,
-      attestationState.isDone,
-      attestationState.isLoading,
-      dispatch,
-      hasIntegrityKeyTag,
-      instanceState.hasError,
-      instanceState.isDone,
-      instanceState.isLoading,
-      instanceRevocationState.isDone,
-      instanceRevocationState.isLoading,
-      instanceRevocationState.hasError,
-    ]
-  );
+      isLoading: instanceState.isLoading,
+      hasError: instanceState.hasError,
+      isDone: instanceState.isDone,
+      icon: "device",
+      isPresent: hasIntegrityKeyTag,
+    },
+    {
+      title: "Get Wallet Instance Attestation",
+      onPress: () => dispatch(getWalletInstanceAttestationThunk()),
+      isLoading: wiaState.isLoading,
+      hasError: wiaState.hasError,
+      isDone: wiaState.isDone,
+      icon: "bonus",
+      isPresent: !!wiaJwt,
+    },
+    isWuaSupported && {
+      title: "Get Wallet Unit Attestation (2 keys)",
+      onPress: () =>
+        dispatch(
+          getWalletUnitAttestationThunk({
+            keyTags: Array.from({ length: 2 }).map(() => uuidv4().toString()),
+          })
+        ),
+      isLoading: wuaState.isLoading,
+      hasError: wuaState.hasError,
+      isDone: wuaState.isDone,
+      icon: "bonus",
+      isPresent: !!wuaJwt,
+    },
+    {
+      title: "Revoke current Wallet Instance",
+      onPress: () => dispatch(revokeWalletInstanceThunk()),
+      isLoading: instanceRevocationState.isLoading,
+      hasError: instanceRevocationState.hasError,
+      isDone: instanceRevocationState.isDone,
+      icon: "trashcan",
+    },
+  ]);
 
   return (
     <FlatList

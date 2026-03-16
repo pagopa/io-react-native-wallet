@@ -3,6 +3,7 @@ import {
   createCryptoContextFor,
   IoWallet,
   type WalletInstanceAttestation as Wia,
+  type WalletUnitAttestation as Wua,
   type KeyAttestationCryptoContext,
 } from "@pagopa/io-react-native-wallet";
 import { getAttestation } from "@pagopa/io-react-native-integrity";
@@ -25,10 +26,10 @@ type GetAttestationThunkOutput = Awaited<
 /**
  * Thunk to obtain a new Wallet Instance Attestation.
  */
-export const getAttestationThunk = createAppAsyncThunk<
+export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
   GetAttestationThunkOutput,
   void
->("walletinstance/attestation", async (_, { getState }) => {
+>("walletinstance/walletinstanceattestation", async (_, { getState }) => {
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
   if (!integrityKeyTag) {
@@ -74,10 +75,22 @@ export const getAttestationThunk = createAppAsyncThunk<
 type GetWalletUnitAttestationThunkInput = {
   keyTags: string[];
 };
+type GetWalletUnitAttestationThunkOutput = Awaited<
+  ReturnType<Wua.WalletUnitAttestationSupportedApi["getAttestation"]>
+>;
 export const getWalletUnitAttestationThunk = createAppAsyncThunk<
-  any,
+  GetWalletUnitAttestationThunkOutput,
   GetWalletUnitAttestationThunkInput
 >("walletinstance/walletunitattestation", async ({ keyTags }, { getState }) => {
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
+  if (!wallet.WalletUnitAttestation.isSupported) {
+    throw new Error(
+      `Wallet Unit Attestation is not supported in v${itwVersion}`
+    );
+  }
+
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
   if (!integrityKeyTag) {
@@ -93,10 +106,7 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
     : undefined;
   await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
 
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
-
-  const wua = await wallet.WalletUnitAttestation.getAttestation(
+  return await wallet.WalletUnitAttestation.getAttestation(
     {
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
       walletSolutionId: "appio",
@@ -108,8 +118,6 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
       appFetch,
     }
   );
-
-  return wua;
 });
 
 const createKeyAttestationCryptoContextFor = (

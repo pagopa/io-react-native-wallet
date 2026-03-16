@@ -16,7 +16,7 @@ import {
   type VerifierRequest,
 } from "../utils/proximity";
 import { addPadding } from "@pagopa/io-react-native-jwt";
-import { selectAttestationAsMdoc } from "../store/reducers/attestation";
+import { selectWalletInstanceAttestationAsMdoc } from "../store/reducers/attestation";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { QrCodeImage } from "../components/QrCodeImage";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
@@ -52,7 +52,9 @@ enum PROXIMITY_STATUS {
 }
 
 export const ProximityScreen = () => {
-  const walletAttestationMdoc = useAppSelector(selectAttestationAsMdoc);
+  const walletAttestationMdoc = useAppSelector(
+    selectWalletInstanceAttestationAsMdoc
+  );
   const mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
   const env = useAppSelector(selectEnv);
 

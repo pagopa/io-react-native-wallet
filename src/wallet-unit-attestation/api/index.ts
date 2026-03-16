@@ -6,7 +6,17 @@ import type {
   WalletAttestationRequestParams,
 } from "./types";
 
-export interface WalletUnitAttestationApi {
+interface UnsupportedApi {
+  isSupported: false;
+}
+
+export type WalletUnitAttestationApi =
+  | WalletUnitAttestationSupportedApi
+  | UnsupportedApi;
+
+export interface WalletUnitAttestationSupportedApi {
+  isSupported: true;
+
   /**
    * Request a Wallet Unit Attestation (WUA) to the Wallet provider with one or more keys to attest.
    * Each key must be provided as an {@link KeyAttestationCryptoContext}.

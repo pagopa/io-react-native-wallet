@@ -5,7 +5,7 @@ import { getWalletProviderClient } from "../../client";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { IoWalletError } from "../../utils/errors";
 import type { KeyAttestationCryptoContext } from "../../utils/crypto";
-import type { WalletUnitAttestationApi } from "../api";
+import type { WalletUnitAttestationSupportedApi } from "../api";
 import { WalletUnitAttestationResponse } from "./types";
 
 /**
@@ -44,7 +44,7 @@ const createKeyAttestationRequest = async (
   return { cryptoContext, publicKey, keyAttestationRequestJwt: requestJwt };
 };
 
-export const getAttestation: WalletUnitAttestationApi["getAttestation"] =
+export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"] =
   async (
     { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
     { keysToAttest: keysToAttestContexts, integrityContext, appFetch = fetch }
