@@ -18,7 +18,6 @@ import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { isAndroid } from "../utils/device";
-import pkg from "../../package.json";
 
 type GetAttestationThunkOutput = Awaited<
   ReturnType<Wia.WalletInstanceAttestationApi["getAttestation"]>
@@ -60,8 +59,8 @@ export const getAttestationThunk = createAppAsyncThunk<
     await wallet.WalletInstanceAttestation.getAttestation(
       {
         walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-        walletSolutionId: pkg.name,
-        walletSolutionVersion: pkg.version,
+        walletSolutionId: "appio",
+        walletSolutionVersion: "3.26.0",
       },
       {
         wiaCryptoContext,
@@ -97,11 +96,11 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
-  const wua = await wallet.WalletInstanceAttestation.getWalletUnitAttestation(
+  const wua = await wallet.WalletUnitAttestation.getAttestation(
     {
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-      walletSolutionId: pkg.name,
-      walletSolutionVersion: pkg.version,
+      walletSolutionId: "appio",
+      walletSolutionVersion: "3.26.0",
     },
     {
       integrityContext,

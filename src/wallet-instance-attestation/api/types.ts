@@ -3,11 +3,13 @@ import { UnixTime } from "../../utils/zod";
 import { JWK } from "../../utils/jwk";
 
 /**
- * Common Wallet Attestation shape. This object is
+ * Common Wallet Instance Attestation shape. This object is
  * an abstraction over the version-specific JWTs.
  */
-export type DecodedAttestationJwt = z.infer<typeof DecodedAttestationJwt>;
-export const DecodedAttestationJwt = z.object({
+export type DecodedWalletInstanceAttestation = z.infer<
+  typeof DecodedWalletInstanceAttestation
+>;
+export const DecodedWalletInstanceAttestation = z.object({
   iss: z.string(),
   iat: UnixTime,
   exp: UnixTime,

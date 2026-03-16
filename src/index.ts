@@ -15,6 +15,7 @@ import * as SdJwt from "./sd-jwt";
 import * as Mdoc from "./mdoc";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
+import * as WalletUnitAttestation from "./wallet-unit-attestation";
 import * as WalletInstance from "./wallet-instance";
 import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
@@ -34,6 +35,7 @@ export {
   SdJwt,
   Mdoc,
   WalletInstanceAttestation,
+  WalletUnitAttestation,
   WalletInstance,
   Trustmark,
   Errors,

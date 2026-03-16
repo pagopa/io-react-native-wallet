@@ -1,8 +1,7 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { IntegrityContext } from "../../utils/integrity";
-import type { AttestationCryptoContext } from "../../utils/crypto";
 import type {
-  DecodedAttestationJwt,
+  DecodedWalletInstanceAttestation,
   WalletAttestation,
   WalletAttestationRequestParams,
 } from "./types";
@@ -40,7 +39,7 @@ export interface WalletInstanceAttestationApi {
    * @throws A decoding error if the token doesn't resolve in a valid JWT
    * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
    */
-  decode(token: string): DecodedAttestationJwt;
+  decode(token: string): DecodedWalletInstanceAttestation;
 
   /**
    * Verify a given JWT to get the parsed Wallet Instance Attestation object they define.
@@ -52,14 +51,5 @@ export interface WalletInstanceAttestationApi {
    * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
    * @throws Invalid signature error if the token signature is not valid
    */
-  verify(token: string): Promise<DecodedAttestationJwt>;
-
-  getWalletUnitAttestation(
-    requestParams: WalletAttestationRequestParams,
-    ctx: {
-      attestationCryptoContexts: AttestationCryptoContext[];
-      integrityContext: IntegrityContext;
-      appFetch?: GlobalFetch["fetch"];
-    }
-  ): Promise<any>;
+  verify(token: string): Promise<DecodedWalletInstanceAttestation>;
 }

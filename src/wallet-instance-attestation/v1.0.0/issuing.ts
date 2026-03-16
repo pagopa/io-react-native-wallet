@@ -9,7 +9,6 @@ import type { IntegrityContext } from "../../utils/integrity";
 import { LogLevel, Logger } from "../../utils/logging";
 import {
   ResponseErrorBuilder,
-  UnimplementedFeatureError,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../../utils/errors";
@@ -151,8 +150,3 @@ const handleAttestationCreationError = (e: unknown) => {
     })
     .buildFrom(e);
 };
-
-export const getWalletUnitAttestation: WalletInstanceAttestationApi["getWalletUnitAttestation"] =
-  () => {
-    throw new UnimplementedFeatureError("getWalletUnitAttestation", "1.0.0");
-  };

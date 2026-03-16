@@ -5,7 +5,7 @@ import { getWalletProviderClient } from "../../client";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { IoWalletError } from "../../utils/errors";
 import type { AttestationCryptoContext } from "../../utils/crypto";
-import type { WalletInstanceAttestationApi } from "../api";
+import type { WalletUnitAttestationApi } from "../api";
 import { WalletUnitAttestationResponse } from "./types";
 
 /**
@@ -44,7 +44,7 @@ const createKeyAttestationRequest = async (
   return { cryptoContext, publicKey, keyAttestationRequestJwt: requestJwt };
 };
 
-export const getWalletUnitAttestation: WalletInstanceAttestationApi["getWalletUnitAttestation"] =
+export const getAttestation: WalletUnitAttestationApi["getAttestation"] =
   async (
     { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
     { attestationCryptoContexts, integrityContext, appFetch = fetch }
@@ -116,10 +116,8 @@ export const getWalletUnitAttestation: WalletInstanceAttestationApi["getWalletUn
       })
       .then(WalletUnitAttestationResponse.parse);
 
-    return [
-      {
-        format: "jwt",
-        attestation: response.wallet_unit_attestation,
-      },
-    ];
+    return {
+      format: "jwt",
+      attestation: response.wallet_unit_attestation,
+    };
   };
