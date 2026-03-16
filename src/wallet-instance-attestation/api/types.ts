@@ -15,8 +15,13 @@ export const DecodedWalletInstanceAttestation = z.object({
   exp: UnixTime,
   cnf: z.object({ jwk: JWK }),
   sub: z.string(),
+  wallet_provider_name: z.string().optional(),
+  wallet_solution_id: z.string().optional(),
+  /** @deprecated */
   wallet_link: z.string().optional(),
+  /** @deprecated */
   wallet_name: z.string().optional(),
+  /** @deprecated */
   aal: z.string().optional(),
 });
 
