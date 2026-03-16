@@ -9,7 +9,7 @@ import type {
 export interface WalletInstanceAttestationApi {
   /**
    * Request a Wallet Instance Attestation (WIA) to the Wallet provider.
-   * The Wallet Attestation may be issued in different formats and components (Wallet App and Wallet Unit).
+   * The Wallet Instance Attestation may be issued in different formats.
    *
    * @param requestParams Wallet Provider data for the Wallet Attestation request
    * @param ctx.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.

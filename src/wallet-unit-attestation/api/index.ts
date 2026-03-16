@@ -1,5 +1,5 @@
 import type { IntegrityContext } from "../../utils/integrity";
-import type { AttestationCryptoContext } from "../../utils/crypto";
+import type { KeyAttestationCryptoContext } from "../../utils/crypto";
 import type {
   DecodedWalletUnitAttestation,
   WalletAttestation,
@@ -7,10 +7,20 @@ import type {
 } from "./types";
 
 export interface WalletUnitAttestationApi {
+  /**
+   * Request a Wallet Unit Attestation (WUA) to the Wallet provider with one or more keys to attest.
+   * Each key must be provided as an {@link KeyAttestationCryptoContext}.
+   *
+   * @param requestParams Wallet Provider data for the Wallet Attestation request
+   * @param ctx.keysToAttest The list of KeyAttestationCryptoContext's of the keys to attest
+   * @param ctx.integrityContext The hardware key pair associated with the Wallet Instance
+   * @param ctx.appFetch (optional) Http client
+   * @returns The generated Wallet Unit Attestation with the attested keys
+   */
   getAttestation(
     requestParams: WalletAttestationRequestParams,
     ctx: {
-      attestationCryptoContexts: AttestationCryptoContext[];
+      keysToAttest: KeyAttestationCryptoContext[];
       integrityContext: IntegrityContext;
       appFetch?: GlobalFetch["fetch"];
     }

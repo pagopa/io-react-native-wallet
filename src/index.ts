@@ -21,7 +21,7 @@ import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import {
   createCryptoContextFor,
-  type AttestationCryptoContext,
+  type KeyAttestationCryptoContext,
 } from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
 
@@ -49,7 +49,7 @@ export {
 export type {
   IntegrityContext,
   AuthorizationContext,
-  AttestationCryptoContext,
+  KeyAttestationCryptoContext,
 };
 
 export type * from "./api";

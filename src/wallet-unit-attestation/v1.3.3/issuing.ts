@@ -4,7 +4,7 @@ import { Logger, LogLevel } from "../../utils/logging";
 import { getWalletProviderClient } from "../../client";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { IoWalletError } from "../../utils/errors";
-import type { AttestationCryptoContext } from "../../utils/crypto";
+import type { KeyAttestationCryptoContext } from "../../utils/crypto";
 import type { WalletUnitAttestationApi } from "../api";
 import { WalletUnitAttestationResponse } from "./types";
 
@@ -16,7 +16,7 @@ import { WalletUnitAttestationResponse } from "./types";
  */
 const createKeyAttestationRequest = async (
   challenge: string,
-  cryptoContext: AttestationCryptoContext
+  cryptoContext: KeyAttestationCryptoContext
 ) => {
   const { attestation } =
     await cryptoContext.generateKeyWithAttestation(challenge);
@@ -47,9 +47,9 @@ const createKeyAttestationRequest = async (
 export const getAttestation: WalletUnitAttestationApi["getAttestation"] =
   async (
     { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
-    { attestationCryptoContexts, integrityContext, appFetch = fetch }
+    { keysToAttest: keysToAttestContexts, integrityContext, appFetch = fetch }
   ) => {
-    if (attestationCryptoContexts.length === 0) {
+    if (keysToAttestContexts.length === 0) {
       throw new IoWalletError("At least one key to attest must be provided");
     }
 
@@ -62,7 +62,7 @@ export const getAttestation: WalletUnitAttestationApi["getAttestation"] =
     );
 
     const keysToAttest = await Promise.all(
-      attestationCryptoContexts.map((cryptoContext) =>
+      keysToAttestContexts.map((cryptoContext) =>
         createKeyAttestationRequest(nonce, cryptoContext)
       )
     );

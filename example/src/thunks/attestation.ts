@@ -3,7 +3,7 @@ import {
   createCryptoContextFor,
   IoWallet,
   type WalletInstanceAttestation as Wia,
-  type AttestationCryptoContext,
+  type KeyAttestationCryptoContext,
 } from "@pagopa/io-react-native-wallet";
 import { getAttestation } from "@pagopa/io-react-native-integrity";
 import { generate } from "@pagopa/io-react-native-crypto";
@@ -104,7 +104,7 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
     },
     {
       integrityContext,
-      attestationCryptoContexts: keyTags.map(createAttestationCryptoContextFor),
+      keysToAttest: keyTags.map(createKeyAttestationCryptoContextFor),
       appFetch,
     }
   );
@@ -112,9 +112,9 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
   return wua;
 });
 
-const createAttestationCryptoContextFor = (
+const createKeyAttestationCryptoContextFor = (
   keyTag: string
-): AttestationCryptoContext => ({
+): KeyAttestationCryptoContext => ({
   ...createCryptoContextFor(keyTag),
   generateKeyWithAttestation(challenge) {
     return Platform.select({
