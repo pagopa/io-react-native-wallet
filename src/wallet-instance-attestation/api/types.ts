@@ -19,7 +19,6 @@ export const DecodedAttestationJwt = z.object({
 });
 
 export type WalletAttestation = {
-  type: "wallet_instance_attestation" | "wallet_unit_attestation";
   format: string;
   attestation: string;
 };

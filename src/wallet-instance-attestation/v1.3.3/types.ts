@@ -9,8 +9,16 @@ const Status = z.object({
   }),
 });
 
-export type WalletAppAttestationJwt = z.infer<typeof WalletAppAttestationJwt>;
-export const WalletAppAttestationJwt = z.object({
+const EudiWalletGeneralInfo = z.object({
+  wallet_provider_name: z.string(),
+  wallet_solution_id: z.string(),
+  wallet_solution_version: z.string(),
+});
+
+export type WalletInstanceAttestationJwt = z.infer<
+  typeof WalletInstanceAttestationJwt
+>;
+export const WalletInstanceAttestationJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
@@ -20,10 +28,9 @@ export const WalletAppAttestationJwt = z.object({
   payload: z.intersection(
     Jwt.shape.payload,
     z.object({
-      sub: z.string(),
-      wallet_link: z.string().optional(),
-      wallet_name: z.string().optional(),
-      status: Status.optional(),
+      eudi_wallet_info: z.object({
+        general_info: EudiWalletGeneralInfo,
+      }),
     })
   ),
 });
@@ -43,6 +50,13 @@ export const WalletUnitAttestationJwt = z.object({
       user_authentication: z.array(z.string()),
       key_storage: z.array(z.string()),
       status: Status,
+      eudi_wallet_info: z.object({
+        general_info: EudiWalletGeneralInfo,
+        key_storage_info: z.object({
+          keys_exportable: z.boolean(),
+          storage_type: z.string(),
+        }),
+      }),
     })
   ),
 });
@@ -52,4 +66,11 @@ export type WalletInstanceAttestationResponse = z.infer<
 >;
 export const WalletInstanceAttestationResponse = z.object({
   wallet_instance_attestation: z.string(),
+});
+
+export type WalletUnitAttestationResponse = z.infer<
+  typeof WalletUnitAttestationResponse
+>;
+export const WalletUnitAttestationResponse = z.object({
+  wallet_unit_attestation: z.string(),
 });

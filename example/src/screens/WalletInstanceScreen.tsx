@@ -89,7 +89,7 @@ export const WalletInstanceScreen = () => {
         isPresent: hasIntegrityKeyTag,
       },
       {
-        title: "Get Attestation",
+        title: "Get Wallet Instance Attestation",
         onPress: () => dispatch(getAttestationThunk()),
         isLoading: attestationState.isLoading,
         hasError: attestationState.hasError,

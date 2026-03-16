@@ -6,6 +6,7 @@ import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { IoWalletError } from "../../utils/errors";
 import type { AttestationCryptoContext } from "../../utils/crypto";
 import type { WalletInstanceAttestationApi } from "../api";
+import { WalletUnitAttestationResponse } from "./types";
 
 /**
  * Create a Key Attestation Request in JWT format for the provided key.
@@ -83,7 +84,7 @@ export const getWalletUnitAttestation: WalletInstanceAttestationApi["getWalletUn
         JSON.stringify(clientData)
       );
 
-    const wuaRequest = new SignJWT(signatureKey.cryptoContext)
+    const signedAttestationRequest = new SignJWT(signatureKey.cryptoContext)
       .setPayload({
         nonce,
         hardware_key_tag: hardwareKeyTag,
@@ -106,5 +107,19 @@ export const getWalletUnitAttestation: WalletInstanceAttestationApi["getWalletUn
       .setExpirationTime("1h")
       .sign();
 
-    return wuaRequest;
+    const response = await api
+      .post("/wallet-unit-attestations", {
+        header: {
+          "Content-Type": "text/plain",
+        },
+        body: signedAttestationRequest,
+      })
+      .then(WalletUnitAttestationResponse.parse);
+
+    return [
+      {
+        format: "jwt",
+        attestation: response.wallet_unit_attestation,
+      },
+    ];
   };
