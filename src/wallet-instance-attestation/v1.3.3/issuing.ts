@@ -97,9 +97,13 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
       })
       .then(WalletInstanceAttestationResponse.parse);
 
+    Logger.log(
+      LogLevel.DEBUG,
+      `Obtained Wallet Instance Attestation in jwt format: ${response.wallet_instance_attestation}`
+    );
+
     return [
       {
-        type: "wallet_instance_attestation",
         format: "jwt",
         attestation: response.wallet_instance_attestation,
       },

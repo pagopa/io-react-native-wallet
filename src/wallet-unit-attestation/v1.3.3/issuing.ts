@@ -109,6 +109,11 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
       .setExpirationTime("1h")
       .sign();
 
+    Logger.log(
+      LogLevel.DEBUG,
+      `Signed attestation request: ${signedAttestationRequest}`
+    );
+
     const response = await api
       .post("/wallet-unit-attestations", {
         header: {
@@ -117,6 +122,11 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
         body: signedAttestationRequest,
       })
       .then(WalletUnitAttestationResponse.parse);
+
+    Logger.log(
+      LogLevel.DEBUG,
+      `Obtained Wallet Unit Attestation: ${response.wallet_unit_attestation}`
+    );
 
     return {
       format: "jwt",

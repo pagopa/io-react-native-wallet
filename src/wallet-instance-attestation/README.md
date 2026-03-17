@@ -42,7 +42,7 @@ const issuedAttestation = await wallet.WalletInstanceAttestation.getAttestation(
     appFetch,
   }
 );
-// [{ "format": "jwt", "attestation": "ey..." }, { "format": "dc+sd-jwt", "attestation": "ey..." } ]
+// [{ "format": "jwt", "attestation": "ey..." }, { "format": "dc+sd-jwt", "attestation": "ey..." }]
 return issuedAttestation;
 ```
 
