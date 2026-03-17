@@ -16,6 +16,7 @@ import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.3.3";
 import { partialCallbacks } from "../../../utils/callbacks";
+import { sdkConfigV1_3 } from "../../../utils/config";
 import {
   IoWalletError,
   sdkUnexpectedStatusCodeToIssuerError,
@@ -101,6 +102,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
     }).catch(sdkUnexpectedStatusCodeToIssuerError);
 
     const parsedAuthRequest = await parseAuthorizeRequest({
+      config: sdkConfigV1_3,
       requestObjectJwt: authRequest.requestObjectJwt,
       callbacks: partialCallbacks,
     });
