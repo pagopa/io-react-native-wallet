@@ -4,6 +4,18 @@ This flow is used to obtain a [**Wallet Unit Attestation**](https://italia.githu
 - `keyAttestationCryptoContext` one or more objects that extend the `CryptoContext` with a function to generate a WSCD-stored key with an optional key attestation (Android only); these are the keys that will be attested in the WUA.
 - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance.
 
+#### Note
+Before invoking `WalletUnitAttestation`'s functions, it is necessary to check whether the feature is supported by the current IoWallet instance.
+```ts
+const wallet = new IoWallet({ version: "1.3.3" });
+
+if (wallet.WalletUnitAttestation.isSupported) {
+  // Get the WUA
+}
+```
+
+### Example usage
+
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet";
 
