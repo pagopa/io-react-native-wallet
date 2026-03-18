@@ -88,7 +88,6 @@ describe("mapToIssuerConfig", () => {
       keys: [{ kty: "EC", kid: "sig-kid", use: "sig" }],
       pushed_authorization_request_endpoint: "https://issuer.example/par",
       token_endpoint: "https://issuer.example/token",
-      status_assertion_endpoint: "https://issuer.example/status",
       nonce_endpoint: "https://issuer.example/nonce",
       federation_entity: {
         organization_name: "Issuer Example",
