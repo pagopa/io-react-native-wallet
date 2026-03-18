@@ -64,8 +64,6 @@ export const mapToIssuerConfig = createMapper<
       pushed_authorization_request_endpoint:
         oauth_authorization_server.pushed_authorization_request_endpoint,
       token_endpoint: oauth_authorization_server.token_endpoint,
-      status_assertion_endpoint:
-        openid_credential_issuer.status_attestation_endpoint,
       nonce_endpoint: openid_credential_issuer.nonce_endpoint!,
       federation_entity: federation_entity ?? {},
       credential_issuance_batch_size:

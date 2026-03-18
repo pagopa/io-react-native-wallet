@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { jsonWebKeySchema } from "@pagopa/io-wallet-oid-federation";
 import { JWK } from "../../utils/jwk";
 import { BaseEntityConfiguration } from "../common/types";
 
@@ -7,7 +8,7 @@ const RelyingPartyMetadata = z.object({
   client_id: z.string().optional(),
   client_name: z.string().optional(),
   jwks: z.object({
-    keys: z.array(JWK),
+    keys: z.array(jsonWebKeySchema),
   }),
   contacts: z.array(z.string()).optional(),
   request_uris: z.array(z.string()).optional(),

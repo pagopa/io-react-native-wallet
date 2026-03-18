@@ -3,9 +3,9 @@ import {
   type MetadataResponseV1_3,
 } from "@pagopa/io-wallet-oid4vci";
 import { partialCallbacks } from "../../../utils/callbacks";
+import { sdkConfigV1_3 } from "../../../utils/config";
 import type { IssuanceApi } from "../api";
 import { mapToIssuerConfig } from "./mappers";
-import { sdkConfigV1_3 } from "src/utils/config";
 
 export const evaluateIssuerTrust: IssuanceApi["evaluateIssuerTrust"] = async (
   issuerUrl,
