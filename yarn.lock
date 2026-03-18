@@ -2895,14 +2895,6 @@
   dependencies:
     "@octokit/openapi-types" "^27.0.0"
 
-"@openid-federation/core@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@openid-federation/core/-/core-0.2.1.tgz#9e24e581b326997c6f6b9e08fe2db5c6235d3c6d"
-  integrity sha512-vYAi8kDNZWo/910+Z2fWTU/8+/tolNIOFU2KJhGyjTDBcPUavGLiZF8NB86K0ERHDMAGqoMKq4ExA1E9WVYywA==
-  dependencies:
-    buffer "^6.0.3"
-    zod "^3.23.8"
-
 "@openid4vc/oauth2@0.4.3":
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/@openid4vc/oauth2/-/oauth2-0.4.3.tgz#e44f462091c12c971dc108ec5a2b88836601b2c7"
@@ -2957,61 +2949,61 @@
     js-base64 "^3.7.7"
     zod "^3.22.4"
 
-"@pagopa/io-wallet-oauth2@", "@pagopa/io-wallet-oauth2@1.0.0", "@pagopa/io-wallet-oauth2@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.0.0.tgz#b6fb45e48d1cb226584c3f1d463a12bcbed50ac5"
-  integrity sha512-+NJAGNJY77fU9KY2QAb1qks4GKSj1XcC/4gK/sWSzGHUScbSypmbm2lphsIh8u2n0ciw/5xTGn5H1SAqfcdm+A==
+"@pagopa/io-wallet-oauth2@1.2.0-alpha-20260318084923":
+  version "1.2.0-alpha-20260318084923"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.2.0-alpha-20260318084923.tgz#986c7c0c807a956fd49f3093f43522c87d6147cd"
+  integrity sha512-r3lfmooJlODNbbNCe6IgrKWYhR9aSILxoJO64qI/5mkOh+vUSyk1wc1fRWHoWDV2G4Kh2R9Mu1ZCiqri+6i2RA==
   dependencies:
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/utils" "0.4.3"
-    "@pagopa/io-wallet-utils" "1.0.0"
+    "@pagopa/io-wallet-utils" "1.2.0-alpha-20260318084923"
     js-base64 "^3.7.8"
-    zod "^3.24.2"
+    zod "^4.3.6"
 
-"@pagopa/io-wallet-oid-federation@", "@pagopa/io-wallet-oid-federation@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.0.0.tgz#95304799222c2fd6f55e8d2103941b8154892225"
-  integrity sha512-dIxZnm3MF1mbbWNmmlBHRs7ctFpjTbPHC3vGgJni0vI6t4469ukWfw0K1USLX9nWPLEhdJhVslxQqPMtHW7wGQ==
+"@pagopa/io-wallet-oid-federation@1.2.0-alpha-20260318084923":
+  version "1.2.0-alpha-20260318084923"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.2.0-alpha-20260318084923.tgz#0378409b3b65185be9aeffeacf11f1cefd95a955"
+  integrity sha512-kaNFK2DornTTOVSc37Z81gT+dMLkrg8o3w0mdLUJu8sge3AY96Xvt53XRgv6oMMmKaQcW7yGxbzS77rLTPs5Bg==
   dependencies:
-    "@openid-federation/core" "^0.2.1"
-    "@pagopa/io-wallet-utils" ""
-    zod "^3.24.2"
+    "@pagopa/io-wallet-oauth2" "1.2.0-alpha-20260318084923"
+    "@pagopa/io-wallet-utils" "1.2.0-alpha-20260318084923"
+    buffer "^6.0.3"
+    zod "^4.3.6"
 
-"@pagopa/io-wallet-oid4vci@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.0.0.tgz#11d8599e0c0fc32a378fbd5493de7e6eecc8f1c3"
-  integrity sha512-qsv1e+Y/wQWclTG/D0UH47nUwGtn6ziL/N6q+wsMuN/wa+lSwqPJvz1oaI+pbN1cNuUkhXrSp+WMhWLhAdtz2w==
+"@pagopa/io-wallet-oid4vci@1.2.0-alpha-20260318084923":
+  version "1.2.0-alpha-20260318084923"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.2.0-alpha-20260318084923.tgz#345a7f6e3a1ecc0d4c495420fb63f2da7dffd646"
+  integrity sha512-VJQXB7XYBLBNxuga8IaqWuHkQ4M6eWq6S3klo5Uc587sExveLipfrFv3M/NBVkUjA72oVMya3KtmUsfy/TyRAQ==
   dependencies:
-    "@openid-federation/core" "^0.2.1"
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/openid4vci" "0.4.3"
     "@openid4vc/utils" "0.4.3"
-    "@pagopa/io-wallet-oauth2" "1.0.0"
-    "@pagopa/io-wallet-oid-federation" "1.0.0"
-    "@pagopa/io-wallet-oid4vp" "1.0.0"
-    "@pagopa/io-wallet-utils" "1.0.0"
-    zod "^3.24.2"
+    "@pagopa/io-wallet-oauth2" "1.2.0-alpha-20260318084923"
+    "@pagopa/io-wallet-oid-federation" "1.2.0-alpha-20260318084923"
+    "@pagopa/io-wallet-oid4vp" "1.2.0-alpha-20260318084923"
+    "@pagopa/io-wallet-utils" "1.2.0-alpha-20260318084923"
+    zod "^4.3.6"
 
-"@pagopa/io-wallet-oid4vp@1.0.0", "@pagopa/io-wallet-oid4vp@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.0.0.tgz#0d3cca6360b9d1b6db02203fa082e94fd6f46013"
-  integrity sha512-xhnvwoQuiGsuUiqsxR/M4jDnQo4hDuH6ljh/rKnXT6gafG2hEQIu1gcJEycE37cSz19iCeGje+5xHxmxUF8gQg==
+"@pagopa/io-wallet-oid4vp@1.2.0-alpha-20260318084923":
+  version "1.2.0-alpha-20260318084923"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.2.0-alpha-20260318084923.tgz#ea5ad4b8c3f5a557a7c5cfa70d82930a8f137058"
+  integrity sha512-G2PZ173oF0FPYIZLdH4cPKYE12v/M1KvLXVxYKYSJpZM7DI6R8oYUmr41PfH0bI9qhJUx8SBo/ICXc2wP9B3Sg==
   dependencies:
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/openid4vp" "0.4.3"
     "@openid4vc/utils" "0.4.3"
-    "@pagopa/io-wallet-oauth2" ""
-    "@pagopa/io-wallet-oid-federation" ""
-    "@pagopa/io-wallet-utils" ""
-    zod "^3.24.2"
+    "@pagopa/io-wallet-oauth2" "1.2.0-alpha-20260318084923"
+    "@pagopa/io-wallet-oid-federation" "1.2.0-alpha-20260318084923"
+    "@pagopa/io-wallet-utils" "1.2.0-alpha-20260318084923"
+    zod "^4.3.6"
 
-"@pagopa/io-wallet-utils@", "@pagopa/io-wallet-utils@1.0.0", "@pagopa/io-wallet-utils@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.0.0.tgz#30cbe171f7d972d348096a72bac21a0fb690d280"
-  integrity sha512-yXx/ISEH+tgNnvvfVh65Op4VPec/qyS6COUwip8xs9YrEPILMV8DpAcMTRQ8BwouacF8Jra4+aPpf03tJNy8Kw==
+"@pagopa/io-wallet-utils@1.2.0-alpha-20260318084923":
+  version "1.2.0-alpha-20260318084923"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.2.0-alpha-20260318084923.tgz#e98bb95fe68c113227d05fb688f98424e14d2ccf"
+  integrity sha512-z5wkhNlJ2qlzqghiGm0L9OgGp53Jg643RReLE0TcwjH11LlxcLe0sOqTbRCBmgCdbgtISFNCm72jUE2rW4p4wg==
   dependencies:
     "@openid4vc/utils" "0.4.3"
-    zod "^3.24.2"
+    zod "^4.3.6"
 
 "@phun-ky/typeof@2.0.3":
   version "2.0.3"
@@ -10414,12 +10406,12 @@ yoctocolors@^2.1.1:
   resolved "https://registry.yarnpkg.com/yoctocolors/-/yoctocolors-2.1.2.tgz#d795f54d173494e7d8db93150cec0ed7f678c83a"
   integrity sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug==
 
-zod@^3.22.4, zod@^3.23.8, zod@^3.24.2, zod@^3.25.67, zod@^3.25.76:
+zod@^3.22.4, zod@^3.25.67:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
 
-zod@^4.1.13:
+zod@^4.1.13, zod@^4.3.6:
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/zod/-/zod-4.3.6.tgz#89c56e0aa7d2b05107d894412227087885ab112a"
   integrity sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==
