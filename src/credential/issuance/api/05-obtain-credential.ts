@@ -40,6 +40,14 @@ export interface ObtainCredentialApi {
     format: CredentialFormat;
   }>;
 
+  /**
+   * Obtains a batch of credentials from the issuer.
+   * The batch includes the same credential format and dataset with different cryptographic data.
+   * For this reason, the function accetps a list of {@link CryptoContext}; the rest of the paramters are the same as {@link obtainCredential}.
+   * @since 1.3.3
+   *
+   * @returns The list of credentials issued in the batch.
+   */
   obtainCredentialsBatch(
     issuerConf: IssuerConfig,
     accessToken: Out<AuthorizeAccessApi["authorizeAccess"]>["accessToken"],
