@@ -41,7 +41,7 @@ type CreateRequestParams = {
  *
  * @returns The raw credential response
  */
-const requestCredentials = async ({
+export const requestCredentials = async ({
   issuerConf,
   accessToken,
   credentialIdentifier,
@@ -71,11 +71,12 @@ const requestCredentials = async ({
     }
 
     const { cryptoContext } =
-      keys.find(({ publicJwk }) => publicJwk.kid === jwtSigner.kid) ?? {};
+      keys.find(({ publicJwk }) => publicJwk.kid === jwtSigner.publicJwk.kid) ??
+      {};
 
     if (!cryptoContext) {
       throw new IoWalletError(
-        `Could not find CryptoContext for key ${jwtSigner.kid}`
+        `Could not find CryptoContext for key ${jwtSigner.publicJwk.kid}`
       );
     }
 
