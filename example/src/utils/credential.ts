@@ -122,6 +122,7 @@ export const getCredential = async ({
       {
         credentialCryptoContext,
         dPopCryptoContext,
+        keyAttestationJwt: "", // TODO: [SIW-3937] Get the Wallet Unit Attestation
         appFetch,
       }
     );
