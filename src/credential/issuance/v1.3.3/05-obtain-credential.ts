@@ -31,6 +31,7 @@ type CreateRequestParams = {
   issuerConf: IssuerConfig;
   dPopCryptoContext: CryptoContext;
   credentialCryptoContexts: CryptoContext[];
+  keyAttestationJwt: string;
   appFetch?: GlobalFetch["fetch"];
 };
 
@@ -46,6 +47,7 @@ export const requestCredentials = async ({
   accessToken,
   credentialIdentifier,
   clientId,
+  keyAttestationJwt,
   credentialCryptoContexts,
   dPopCryptoContext,
   appFetch = fetch,
@@ -65,7 +67,10 @@ export const requestCredentials = async ({
     })
   );
 
-  const signJwt: CallbackContext["signJwt"] = async (jwtSigner, payload) => {
+  const signJwt: CallbackContext["signJwt"] = async (
+    jwtSigner,
+    { header, payload }
+  ) => {
     if (jwtSigner.method !== "jwk") {
       throw new IoWalletError(`Unsupported signer method: ${jwtSigner.method}`);
     }
@@ -81,7 +86,10 @@ export const requestCredentials = async ({
     }
 
     return {
-      jwt: await new SignJWT(cryptoContext).setPayload(payload).sign(),
+      jwt: await new SignJWT(cryptoContext)
+        .setProtectedHeader(header)
+        .setPayload(payload)
+        .sign(),
       signerJwk: jwtSigner.publicJwk,
     };
   };
@@ -103,7 +111,7 @@ export const requestCredentials = async ({
     issuerIdentifier: issuerConf.credential_issuer,
     maxBatchSize: issuerConf.credential_issuance_batch_size,
     nonce: c_nonce,
-    keyAttestation: "", // TODO
+    keyAttestation: keyAttestationJwt,
     signers,
   });
 
@@ -149,8 +157,9 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 ) => {
   const {
     credentialCryptoContext,
-    appFetch = fetch,
     dPopCryptoContext,
+    keyAttestationJwt,
+    appFetch = fetch,
   } = context;
   const { credential_configuration_id, credential_identifier } =
     credentialDefinition;
@@ -182,6 +191,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     credentialCryptoContexts: [credentialCryptoContext],
     credentialIdentifier: credential_identifier!,
     dPopCryptoContext,
+    keyAttestationJwt,
     appFetch,
   });
 
@@ -208,8 +218,9 @@ export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
   async (issuerConf, accessToken, clientId, credentialDefinition, context) => {
     const {
       credentialCryptoContexts,
-      appFetch = fetch,
       dPopCryptoContext,
+      keyAttestationJwt,
+      appFetch = fetch,
     } = context;
     const { credential_configuration_id, credential_identifier } =
       credentialDefinition;
@@ -221,6 +232,7 @@ export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
       credentialCryptoContexts,
       credentialIdentifier: credential_identifier,
       dPopCryptoContext,
+      keyAttestationJwt,
       appFetch,
     });
 

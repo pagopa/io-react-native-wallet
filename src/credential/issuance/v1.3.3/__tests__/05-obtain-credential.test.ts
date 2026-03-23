@@ -55,6 +55,7 @@ describe("requestCredentials", () => {
         createMockCryptoContext("key-2", "2"),
       ],
       dPopCryptoContext: createMockCryptoContext("key-3", "3"),
+      keyAttestationJwt: "mock-key-attestation",
       accessToken: {} as any,
       appFetch,
     });
@@ -65,8 +66,8 @@ describe("requestCredentials", () => {
           credential_identifier: "credid-123",
           proofs: {
             jwt: [
-              "eyJhbGciOiJFUzI1NiJ9.eyJoZWFkZXIiOnsiYWxnIjoiRVMyNTYiLCJqd2siOnsia3R5IjoiRUMiLCJ1c2UiOiJzaWciLCJhbGciOiJFUzI1NiIsImtpZCI6ImtleS0xIiwiY3J2IjoiUC0yNTYiLCJ4IjoiMSIsInkiOiIxIn0sImtleV9hdHRlc3RhdGlvbiI6IiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0In0sInBheWxvYWQiOnsiaWF0IjoxNzc0MjI0MDAwLCJpc3MiOiJjbGllbnQxMjMiLCJub25jZSI6Im1vY2stbm9uY2UifX0.mock-signature-key-1",
-              "eyJhbGciOiJFUzI1NiJ9.eyJoZWFkZXIiOnsiYWxnIjoiRVMyNTYiLCJqd2siOnsia3R5IjoiRUMiLCJ1c2UiOiJzaWciLCJhbGciOiJFUzI1NiIsImtpZCI6ImtleS0yIiwiY3J2IjoiUC0yNTYiLCJ4IjoiMSIsInkiOiIyIn0sImtleV9hdHRlc3RhdGlvbiI6IiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0In0sInBheWxvYWQiOnsiaWF0IjoxNzc0MjI0MDAwLCJpc3MiOiJjbGllbnQxMjMiLCJub25jZSI6Im1vY2stbm9uY2UifX0.mock-signature-key-2",
+              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImFsZyI6IkVTMjU2Iiwia2lkIjoia2V5LTEiLCJjcnYiOiJQLTI1NiIsIngiOiIxIiwieSI6IjEifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-1",
+              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImFsZyI6IkVTMjU2Iiwia2lkIjoia2V5LTIiLCJjcnYiOiJQLTI1NiIsIngiOiIxIiwieSI6IjIifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-2",
             ],
           },
         },
