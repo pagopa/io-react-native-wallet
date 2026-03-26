@@ -32,7 +32,11 @@ const keysToAttest = [
     ...createCryptoContextFor("example-keytag"),
     generateKeyWithAttestation(challenge: string) {
       // Generate a key stored in a trustworthy WSCD.
-      // On Android this function should return a key attestation.
+      // On Android this function must return a key attestation.
+      return { 
+        success: true,
+        attestation: "android-key-attestation-string"
+      }
     }
   }
 ];
