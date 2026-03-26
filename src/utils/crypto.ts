@@ -93,6 +93,10 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
 
 /**
  * Extension of the {@link CryptoContext} that adds key generation with optional key attestation.
+ *
+ * This context requires the consumer to provide an additional method for **key generation**;
+ * on Android this method should also generate a key attestation as a certificate chain
+ * to ensure the key pair is hardware-backed.
  */
 export type KeyAttestationCryptoContext = CryptoContext & {
   /**

@@ -1,6 +1,8 @@
+import { Platform } from "react-native";
 import { getAttestation } from "../issuing";
 import type { IntegrityContext } from "../../../utils/integrity";
 import type { KeyAttestationCryptoContext } from "../../../utils/crypto";
+import { IoWalletError } from "../../../utils/errors";
 
 const integrityContextMock: jest.Mocked<IntegrityContext> = {
   getHardwareKeyTag: jest.fn(),
@@ -53,6 +55,7 @@ const createMockFetch = () => {
 describe("WalletUnitAttestation | getAttestation", () => {
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it("should call the WUA endpoint with the correct WUA JWT request (with key attestation)", async () => {
@@ -108,5 +111,32 @@ describe("WalletUnitAttestation | getAttestation", () => {
     expect(appFetch.mock.lastCall[1].body).toEqual(
       "eyJraWQiOiJrZXktMSIsInR5cCI6Ind1YS1yZXF1ZXN0K2p3dCIsImFsZyI6IkVTMjU2In0.eyJub25jZSI6Im1vY2stbm9uY2UiLCJrZXlzX3RvX2F0dGVzdCI6WyJleUpyYVdRaU9pSnJaWGt0TVNJc0luUjVjQ0k2SW10bGVTMWhkSFJsYzNSaGRHbHZiaTF5WlhGMVpYTjBLMnAzZENJc0ltRnNaeUk2SWtWVE1qVTJJbjAuZXlKM2MyTmtYMnRsZVY5aGRIUmxjM1JoZEdsdmJpSTZleUp6ZEc5eVlXZGxYM1I1Y0dVaU9pSk1UME5CVEY5T1FWUkpWa1VpZlN3aVkyNW1JanA3SW1wM2F5STZleUpoYkdjaU9pSkZVekkxTmlJc0ltTnlkaUk2SWxBdE1qVTJJaXdpYTJsa0lqb2lhMlY1TFRFaUxDSnJkSGtpT2lKRlF5SXNJblZ6WlNJNkluTnBaeUlzSW5naU9pSXhJaXdpZVNJNklqSWlmWDBzSW1saGRDSTZNVGMzTXpZeE9USXdNQ3dpWlhod0lqb3hOemN6TmpJeU9EQXdmUS5tb2NrLXNpZ25hdHVyZS1rZXktMSJdLCJoYXJkd2FyZV9zaWduYXR1cmUiOiJtb2NrLXNpZy0xMjMiLCJpbnRlZ3JpdHlfYXNzZXJ0aW9uIjoibW9jay1hdXRoLWRhdGEtMTIzIiwicGxhdGZvcm0iOiJpb3MiLCJ3YWxsZXRfc29sdXRpb25faWQiOiJ3YWxsZXRTb2wiLCJ3YWxsZXRfc29sdXRpb25fdmVyc2lvbiI6IjEuMC4wIiwiY25mIjp7Imp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoia2V5LTEiLCJrdHkiOiJFQyIsInVzZSI6InNpZyIsIngiOiIxIiwieSI6IjIifX0sImlhdCI6MTc3MzYxOTIwMCwiZXhwIjoxNzczNjIyODAwfQ.mock-signature-key-1"
     );
+  });
+
+  it("should throw on Android when the key is generated without a key attestation", async () => {
+    jest.replaceProperty(Platform, "OS", "android");
+
+    const appFetch = createMockFetch();
+
+    const keyToAttest = createMockKeyAttestationCryptoContext("key-1");
+    keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
+      success: true,
+      attestation: undefined, // Test the missing key attestation
+    });
+
+    await expect(() =>
+      getAttestation(
+        {
+          walletProviderBaseUrl: "https://example.wp",
+          walletSolutionId: "walletSol",
+          walletSolutionVersion: "1.0.0",
+        },
+        {
+          integrityContext: integrityContextMock,
+          keysToAttest: [keyToAttest],
+          appFetch,
+        }
+      )
+    ).rejects.toThrow(IoWalletError);
   });
 });
