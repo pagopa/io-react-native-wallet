@@ -17,7 +17,11 @@ if (wallet.WalletUnitAttestation.isSupported) {
 ### Example usage
 
 ```ts
-import { IoWallet } from "@pagopa/io-react-native-wallet";
+import {
+  IoWallet,
+  createCryptoContextFor,
+  KeyAttestationCryptoContext
+} from "@pagopa/io-react-native-wallet";
 
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the same key used when creating the Wallet Instance
@@ -27,7 +31,7 @@ const integrityContext = getIntegrityContext(integrityKeyTag);
 const { WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object containing the environment variables
 
 // The list of crypto contexts for each key to attest.
-const keysToAttest = [
+const keysToAttest: KeyAttestationCryptoContext[] = [
   {
     ...createCryptoContextFor("example-keytag"),
     generateKeyWithAttestation(challenge: string) {
@@ -35,8 +39,8 @@ const keysToAttest = [
       // On Android this function must return a key attestation.
       return { 
         success: true,
-        attestation: "android-key-attestation-string"
-      }
+        attestation: "android-key-attestation-string",
+      };
     }
   }
 ];
