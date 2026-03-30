@@ -18,8 +18,14 @@ const createKeyAttestationRequest = async (
   challenge: string,
   cryptoContext: KeyAttestationCryptoContext
 ) => {
-  const { attestation } =
+  const { success, attestation } =
     await cryptoContext.generateKeyWithAttestation(challenge);
+
+  if (!success) {
+    throw new IoWalletError(
+      "generateKeyWithAttestation failed to generate a cryptographic key for the Wallet Unit Attestation request"
+    );
+  }
 
   if (Platform.OS === "android" && !attestation) {
     throw new IoWalletError(

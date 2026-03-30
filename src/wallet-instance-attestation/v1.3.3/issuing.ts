@@ -4,7 +4,7 @@ import {
   type CryptoContext,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
-import type { IntegrityContext } from "@pagopa/io-react-native-wallet";
+import type { IntegrityContext } from "../../utils/integrity";
 import { LogLevel, Logger } from "../../utils/logging";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { getWalletProviderClient } from "../../client";

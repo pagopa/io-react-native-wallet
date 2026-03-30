@@ -49,7 +49,7 @@ const keysToAttest: KeyAttestationCryptoContext[] = [
  * Obtain a new Wallet Unit Attestation.
  * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
  */
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.3.3" });
 const issuedAttestation = await wallet.WalletUnitAttestation.getAttestation(
   {
     walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
