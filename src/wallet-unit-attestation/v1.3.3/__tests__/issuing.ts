@@ -116,8 +116,6 @@ describe("WalletUnitAttestation | getAttestation", () => {
   it("should throw on Android when the key is generated without a key attestation", async () => {
     jest.replaceProperty(Platform, "OS", "android");
 
-    const appFetch = createMockFetch();
-
     const keyToAttest = createMockKeyAttestationCryptoContext("key-1");
     keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
       success: true,
@@ -134,7 +132,29 @@ describe("WalletUnitAttestation | getAttestation", () => {
         {
           integrityContext: integrityContextMock,
           keysToAttest: [keyToAttest],
-          appFetch,
+          appFetch: createMockFetch(),
+        }
+      )
+    ).rejects.toThrow(IoWalletError);
+  });
+
+  it("should throw when generateKeyWithAttestation returns { success: false }", async () => {
+    const keyToAttest = createMockKeyAttestationCryptoContext("key-1");
+    keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
+      success: false,
+    });
+
+    await expect(() =>
+      getAttestation(
+        {
+          walletProviderBaseUrl: "https://example.wp",
+          walletSolutionId: "walletSol",
+          walletSolutionVersion: "1.0.0",
+        },
+        {
+          integrityContext: integrityContextMock,
+          keysToAttest: [keyToAttest],
+          appFetch: createMockFetch(),
         }
       )
     ).rejects.toThrow(IoWalletError);
