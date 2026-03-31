@@ -194,6 +194,11 @@ paths:
       summary: CreateWalletInstanceAttestation
       description: Create and return a Wallet Instance Attestation (WIA)
       operationId: createWalletInstanceAttestation
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
       requestBody:
         content:
           text/plain:
@@ -223,6 +228,11 @@ paths:
       summary: CreateWalletUnitAttestation
       description: Create and return a Wallet Unit Attestation (WUA)
       operationId: createWalletUnitAttestation
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
       requestBody:
         content:
           text/plain:
