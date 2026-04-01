@@ -5,6 +5,6 @@ export const verifyAuthRequestCertificateChain: RemotePresentationApi["verifyAut
   async () => {
     throw new UnimplementedFeatureError(
       "verifyAuthRequestCertificateChain",
-      "1.0.0",
+      "1.0.0"
     );
   };

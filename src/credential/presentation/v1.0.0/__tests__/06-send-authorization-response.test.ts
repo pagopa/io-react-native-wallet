@@ -6,7 +6,7 @@ import {
   buildDirectPostJwtBody,
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
-} from "../06-send-authorization-response";
+} from "../07-send-authorization-response";
 import type { RemotePresentation, RequestObject } from "../../api/types";
 import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 import { buildDirectPostBody } from "../../common/utils/http";

@@ -24,24 +24,24 @@ export const verifyAuthRequestCertificateChain: RemotePresentationApi["verifyAut
 
     if (!certChain) {
       throw new MissingX509CertsError(
-        "No certificate chain (x5c) found in the Request Object",
+        "No certificate chain (x5c) found in the Request Object"
       );
     }
 
     const validationResult = await verifyCertificateChain(
       certChain,
       caRootCerts,
-      x509Options,
+      x509Options
     );
 
     if (!validationResult.isValid) {
       Logger.log(
         LogLevel.ERROR,
-        `Certificate chain failure: ${validationResult.validationStatus} - ${validationResult.errorMessage}`,
+        `Certificate chain failure: ${validationResult.validationStatus} - ${validationResult.errorMessage}`
       );
 
       throw new X509ValidationError(
-        "X.509 certificate chain validation failed",
+        "X.509 certificate chain validation failed"
       );
     }
 
