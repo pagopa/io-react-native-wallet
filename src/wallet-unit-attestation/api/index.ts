@@ -19,7 +19,7 @@ export interface WalletUnitAttestationSupportedApi {
 
   /**
    * Request a Wallet Unit Attestation (WUA) to the Wallet provider with one or more keys to attest.
-   * Each key must be provided as an {@link KeyAttestationCryptoContext}.
+   * Each key must be provided as a {@link KeyAttestationCryptoContext}.
    *
    * @param requestParams Wallet Provider data for the Wallet Attestation request
    * @param ctx.keysToAttest The list of KeyAttestationCryptoContext's of the keys to attest
