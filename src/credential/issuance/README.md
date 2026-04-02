@@ -204,6 +204,7 @@ const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
   {
     credentialCryptoContext,
     dPopCryptoContext,
+    walletUnitAttestation, // Required in issuance v1.3
     appFetch,
   }
 );
@@ -359,6 +360,7 @@ const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
   {
     credentialCryptoContext,
     dPopCryptoContext,
+    walletUnitAttestation, // Required in issuance v1.3
     appFetch,
   }
 );
