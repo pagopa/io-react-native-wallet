@@ -15,10 +15,14 @@ import * as SdJwt from "./sd-jwt";
 import * as Mdoc from "./mdoc";
 import * as Errors from "./utils/errors";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
+import * as WalletUnitAttestation from "./wallet-unit-attestation";
 import * as WalletInstance from "./wallet-instance";
 import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
-import { createCryptoContextFor } from "./utils/crypto";
+import {
+  createCryptoContextFor,
+  type KeyAttestationCryptoContext,
+} from "./utils/crypto";
 import type { IntegrityContext } from "./utils/integrity";
 
 export {
@@ -31,6 +35,7 @@ export {
   SdJwt,
   Mdoc,
   WalletInstanceAttestation,
+  WalletUnitAttestation,
   WalletInstance,
   Trustmark,
   Errors,
@@ -41,7 +46,11 @@ export {
   Logging,
 };
 
-export type { IntegrityContext, AuthorizationContext };
+export type {
+  IntegrityContext,
+  AuthorizationContext,
+  KeyAttestationCryptoContext,
+};
 
 export type * from "./api";
 

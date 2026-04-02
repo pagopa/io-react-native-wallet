@@ -30,16 +30,19 @@ const { WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object conta
  * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
  */
 const wallet = new IoWallet({ version: "1.0.0" });
-const issuedAttestation = await wallet.WalletInstanceAttestation.getAttestation({
-  wiaCryptoContext,
-  integrityContext,
-  walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-  appFetch,
-});
-// [
-//   { type: "wallet_instance_attestation", "format": "jwt", "attestation": "ey..." },
-//   { type: "wallet_instance_attestation", "format": "dc+sd-jwt", "attestation": "ey..." }
-// ]
+const issuedAttestation = await wallet.WalletInstanceAttestation.getAttestation(
+  {
+    walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+    walletSolutionId: "exampleId",
+    walletSolutionVersion: "1.2.3",
+  },
+  {
+    wiaCryptoContext,
+    integrityContext,
+    appFetch,
+  }
+);
+// [{ "format": "jwt", "attestation": "ey..." }, { "format": "dc+sd-jwt", "attestation": "ey..." }]
 return issuedAttestation;
 ```
 
