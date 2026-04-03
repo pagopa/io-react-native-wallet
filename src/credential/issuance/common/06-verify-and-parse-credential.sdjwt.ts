@@ -10,6 +10,7 @@ import { IoWalletError } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { isSameThumbprint, type JWK } from "../../../utils/jwk";
 import type { SdJwt4VCBase } from "../../../sd-jwt/types";
+import { fixLegacyCredentialSdJwt } from "../../../utils/credentials";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 
 type CredentialConf =
@@ -190,7 +191,7 @@ async function verifyCredentialSdJwt(
     throw new IoWalletError(message);
   }
 
-  return await sdJwtInstance.decode(rawCredential);
+  return await sdJwtInstance.decode(fixLegacyCredentialSdJwt(rawCredential));
 }
 
 export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredential"] =
