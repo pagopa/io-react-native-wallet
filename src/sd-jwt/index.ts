@@ -2,7 +2,8 @@ import { sha256ToBase64, SignJWT } from "@pagopa/io-react-native-jwt";
 import { decodeSdJwtSync } from "@sd-jwt/decode";
 import { present } from "@sd-jwt/present";
 import { digest } from "@sd-jwt/crypto-nodejs";
-import type { Presentation } from "src/credential/presentation";
+import { fixLegacyCredentialSdJwt } from "../utils/credentials";
+import type { Presentation } from "../credential/presentation";
 import { SdJwt4VCBase } from "./types";
 
 export * from "./utils";
@@ -17,7 +18,7 @@ export * from "./utils";
  * @returns The parsed SD-JWT token and the parsed disclosures
  */
 export const decode = (token: string) => {
-  const decoded = decodeSdJwtSync(token, digest);
+  const decoded = decodeSdJwtSync(fixLegacyCredentialSdJwt(token), digest);
 
   const sdJwt = SdJwt4VCBase.parse({
     header: decoded.jwt.header,
