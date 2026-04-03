@@ -4,7 +4,10 @@ import {
   IoWallet,
   type WalletInstanceAttestation as Wia,
 } from "@pagopa/io-react-native-wallet";
-import { getAttestationThunk } from "../../thunks/attestation";
+import {
+  getWalletInstanceAttestationThunk,
+  getWalletUnitAttestationThunk,
+} from "../../thunks/attestation";
 import { createSecureStorage } from "../storage";
 import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
@@ -19,14 +22,24 @@ type Format = Awaited<
 
 // State type definition for the attestion slice
 type AttestationState = {
-  attestation: Record<Format, string> | undefined;
-  asyncStatus: AsyncStatus;
+  wia: {
+    value?: Record<Format, string>;
+    asyncStatus: AsyncStatus;
+  };
+  wua: {
+    value?: string;
+    asyncStatus: AsyncStatus;
+  };
 };
 
 // Initial state for the attestation slice
 const initialState: AttestationState = {
-  attestation: undefined,
-  asyncStatus: asyncStatusInitial,
+  wia: {
+    asyncStatus: asyncStatusInitial,
+  },
+  wua: {
+    asyncStatus: asyncStatusInitial,
+  },
 };
 
 /**
@@ -41,35 +54,61 @@ const attestationSlice = createSlice({
   },
   extraReducers: (builder) => {
     // Dispatched when a get attestion async thunk resolves. Sets the attestation and resets the state.
-    builder.addCase(getAttestationThunk.fulfilled, (state, action) => {
-      state.asyncStatus.isDone = true;
-      state.attestation = action.payload
-        .filter(({ type }) => type === "wallet_instance_attestation")
-        .reduce(
-          (acc, { format, attestation }) => ({
-            ...acc,
-            [format]: attestation,
-          }),
+    builder.addCase(
+      getWalletInstanceAttestationThunk.fulfilled,
+      (state, action) => {
+        state.wia.asyncStatus.isDone = true;
+        state.wia.value = action.payload.reduce(
+          (acc, { format, attestation }) => ({ ...acc, [format]: attestation }),
           {} as Record<Format, string>
         );
-      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
-      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
-    });
+        state.wia.asyncStatus.isLoading =
+          initialState.wia.asyncStatus.isLoading;
+        state.wia.asyncStatus.hasError = initialState.wia.asyncStatus.hasError;
+      }
+    );
 
     // Dispatched when a get attestion async thunk is pending. Sets the loading state to true and resets done and hasError.
-    builder.addCase(getAttestationThunk.pending, (state) => {
+    builder.addCase(getWalletInstanceAttestationThunk.pending, (state) => {
       // Sets the loading state and resets done and hasError;
-      state.asyncStatus.isLoading = true;
-      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
-      state.asyncStatus.hasError = initialState.asyncStatus.hasError;
+      state.wia.asyncStatus.isLoading = true;
+      state.wia.asyncStatus.isDone = initialState.wia.asyncStatus.isDone;
+      state.wia.asyncStatus.hasError = initialState.wia.asyncStatus.hasError;
     });
 
     // Dispatched when a get attestion async thunk rejects. Sets the attestation state to hasError and resets loading and isDone.
-    builder.addCase(getAttestationThunk.rejected, (state, action) => {
-      // Sets the hasError state and resets done and loading.
-      state.asyncStatus.isDone = initialState.asyncStatus.isDone;
-      state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
-      state.asyncStatus.hasError = { status: true, error: action.error };
+    builder.addCase(
+      getWalletInstanceAttestationThunk.rejected,
+      (state, action) => {
+        // Sets the hasError state and resets done and loading.
+        state.wia.asyncStatus.isDone = initialState.wia.asyncStatus.isDone;
+        state.wia.asyncStatus.isLoading =
+          initialState.wia.asyncStatus.isLoading;
+        state.wia.asyncStatus.hasError = { status: true, error: action.error };
+      }
+    );
+
+    builder.addCase(
+      getWalletUnitAttestationThunk.fulfilled,
+      (state, action) => {
+        state.wua.asyncStatus.isDone = true;
+        state.wua.value = action.payload.attestation;
+        state.wua.asyncStatus.isLoading =
+          initialState.wua.asyncStatus.isLoading;
+        state.wua.asyncStatus.hasError = initialState.wua.asyncStatus.hasError;
+      }
+    );
+
+    builder.addCase(getWalletUnitAttestationThunk.pending, (state) => {
+      state.wua.asyncStatus.isLoading = true;
+      state.wua.asyncStatus.isDone = initialState.wua.asyncStatus.isDone;
+      state.wua.asyncStatus.hasError = initialState.wua.asyncStatus.hasError;
+    });
+
+    builder.addCase(getWalletUnitAttestationThunk.rejected, (state, action) => {
+      state.wua.asyncStatus.isDone = initialState.wua.asyncStatus.isDone;
+      state.wua.asyncStatus.isLoading = initialState.wua.asyncStatus.isLoading;
+      state.wua.asyncStatus.hasError = { status: true, error: action.error };
     });
 
     // Reset the attestation state when the instance is reset.
@@ -107,8 +146,8 @@ export const attestationReducer = persistReducer(
  * @param state - The root state of the Redux store
  * @returns the attestion state
  */
-export const selectAttestationAsyncStatus = (state: RootState) =>
-  state.attestation.asyncStatus;
+export const selectWalletInstanceAttestationAsyncStatus = (state: RootState) =>
+  state.attestation.wia.asyncStatus;
 
 /**
  * Selects the attestation from the attestation state in the given format.
@@ -116,12 +155,21 @@ export const selectAttestationAsyncStatus = (state: RootState) =>
  * @param state - The root state of the Redux store
  * @returns the attestation
  */
-export const makeSelectAttestation = (format: Format) => (state: RootState) =>
-  state.attestation.attestation?.[format];
+export const makeSelectWalletInstanceAttestation =
+  (format: Format) => (state: RootState) =>
+    state.attestation.wia.value?.[format];
 
-export const selectAttestationAsJwt = makeSelectAttestation("jwt");
-export const selectAttestationAsSdJwt = makeSelectAttestation("dc+sd-jwt");
-export const selectAttestationAsMdoc = makeSelectAttestation("mso_mdoc");
+export const selectWalletInstanceAttestationAsJwt =
+  makeSelectWalletInstanceAttestation("jwt");
+export const selectWalletInstanceAttestationAsSdJwt =
+  makeSelectWalletInstanceAttestation("dc+sd-jwt");
+export const selectWalletInstanceAttestationAsMdoc =
+  makeSelectWalletInstanceAttestation("mso_mdoc");
+
+export const selectWalletUnitAttestationAsyncState = (state: RootState) =>
+  state.attestation.wua.asyncStatus;
+export const selectWalletUnitAttestation = (state: RootState) =>
+  state.attestation.wua.value;
 
 /**
  * Checks if the Wallet Instance Attestation needs to be requested by
@@ -129,8 +177,8 @@ export const selectAttestationAsMdoc = makeSelectAttestation("mso_mdoc");
  * @param state - the root state of the Redux store
  * @returns true if the Wallet Instance Attestation is expired or not present
  */
-export const shouldRequestAttestationSelector = createSelector(
-  selectAttestationAsJwt,
+export const shouldRequestWalletInstanceAttestationSelector = createSelector(
+  selectWalletInstanceAttestationAsJwt,
   selectItwVersion,
   (attestation, itwVersion) => {
     if (!attestation) {

@@ -50,9 +50,17 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 ) => {
   const {
     credentialCryptoContext,
-    appFetch = fetch,
     dPopCryptoContext,
+    walletUnitAttestation,
+    appFetch = fetch,
   } = context;
+  if (!walletUnitAttestation) {
+    throw new ValidationFailed({
+      message:
+        "The Wallet Unit Attestation is required to obtain the credential",
+    });
+  }
+
   const { credential_configuration_id, credential_identifier } =
     credentialDefinition;
 
@@ -101,7 +109,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     credential_identifier: credentialDefinition.credential_identifier!,
     issuerIdentifier: issuerConf.credential_issuer,
     nonce: c_nonce,
-    keyAttestation: "", // TODO
+    keyAttestation: walletUnitAttestation,
     signer: {
       alg: "ES256",
       method: "jwk",
@@ -131,7 +139,6 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     accessToken: accessToken.access_token,
   });
 
-  // TODO: handle issuance errors
   const credentialRes = await fetchCredentialResponse({
     callbacks: {
       fetch: appFetch,
