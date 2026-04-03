@@ -1,7 +1,5 @@
 import { fixLegacyCredentialSdJwt } from "../credentials";
 
-// Non-regression tests to ensure standard SD-JWTs are not modified by
-// `fixLegacyCredentialSdJwt`, while legacy 0.7.1 SD-JWTs are correctly fixed
 describe("fixLegacyCredentialSdJwt", () => {
   it.each([
     [
@@ -16,7 +14,10 @@ describe("fixLegacyCredentialSdJwt", () => {
       "header.payload.signature~disc1~disc2~key.binding.jwt",
       "header.payload.signature~disc1~disc2~key.binding.jwt",
     ],
-  ])("should fix legacy credentials SD-JWT (%#)", (input, expected) => {
-    expect(fixLegacyCredentialSdJwt(input)).toEqual(expected);
-  });
+  ])(
+    "should fix legacy credentials SD-JWT (%#) [Non-regression test for bug fix SIW-4091]",
+    (input, expected) => {
+      expect(fixLegacyCredentialSdJwt(input)).toEqual(expected);
+    }
+  );
 });
