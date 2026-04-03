@@ -1,5 +1,7 @@
 import { fixLegacyCredentialSdJwt } from "../credentials";
 
+// Non-regression tests to ensure standard SD-JWTs are not modified by
+// `fixLegacyCredentialSdJwt`, while legacy 0.7.1 SD-JWTs are correctly fixed
 describe("fixLegacyCredentialSdJwt", () => {
   it.each([
     [
