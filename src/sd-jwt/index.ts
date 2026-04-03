@@ -54,7 +54,11 @@ export const prepareVpToken = async (
   vp_token: string;
 }> => {
   // Produce a VP token with only requested claims from the verifiable credential
-  const vp = await present(verifiableCredential, presentationFrame, digest);
+  const vp = await present(
+    fixLegacyCredentialSdJwt(verifiableCredential),
+    presentationFrame,
+    digest
+  );
 
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
   const sd_hash = await sha256ToBase64(vp);
