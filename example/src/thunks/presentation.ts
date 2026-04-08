@@ -1,7 +1,7 @@
 import { createAppAsyncThunk } from "./utils";
 import { IoWallet, RemotePresentation } from "@pagopa/io-react-native-wallet";
-import { shouldRequestAttestationSelector } from "../store/reducers/attestation";
-import { getAttestationThunk } from "./attestation";
+import { shouldRequestWalletInstanceAttestationSelector } from "../store/reducers/attestation";
+import { getWalletInstanceAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
@@ -36,8 +36,8 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const wallet = new IoWallet({ version: itwVersion });
 
   // Checks if the wallet instance attestation needs to be requested
-  if (shouldRequestAttestationSelector(getState())) {
-    await dispatch(getAttestationThunk());
+  if (shouldRequestWalletInstanceAttestationSelector(getState())) {
+    await dispatch(getWalletInstanceAttestationThunk());
   }
 
   const url = new URL(args.qrcode);

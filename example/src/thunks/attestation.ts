@@ -1,8 +1,13 @@
+import { Platform } from "react-native";
 import {
   createCryptoContextFor,
   IoWallet,
   type WalletInstanceAttestation as Wia,
+  type WalletUnitAttestation as Wua,
+  type KeyAttestationCryptoContext,
 } from "@pagopa/io-react-native-wallet";
+import { getAttestation } from "@pagopa/io-react-native-integrity";
+import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";
 import {
@@ -21,10 +26,10 @@ type GetAttestationThunkOutput = Awaited<
 /**
  * Thunk to obtain a new Wallet Instance Attestation.
  */
-export const getAttestationThunk = createAppAsyncThunk<
+export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
   GetAttestationThunkOutput,
   void
->("walletinstance/attestation", async (_, { getState }) => {
+>("walletinstance/walletinstanceattestation", async (_, { getState }) => {
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
   if (!integrityKeyTag) {
@@ -52,11 +57,87 @@ export const getAttestationThunk = createAppAsyncThunk<
    * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
    */
   const issuingAttestation =
-    await wallet.WalletInstanceAttestation.getAttestation({
-      wiaCryptoContext,
-      integrityContext,
-      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-      appFetch,
-    });
+    await wallet.WalletInstanceAttestation.getAttestation(
+      {
+        walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+        walletSolutionId: "appio",
+        walletSolutionVersion: "3.26.0",
+      },
+      {
+        wiaCryptoContext,
+        integrityContext,
+        appFetch,
+      }
+    );
   return issuingAttestation;
+});
+
+type GetWalletUnitAttestationThunkInput = {
+  keyTags: string[];
+};
+type GetWalletUnitAttestationThunkOutput = Awaited<
+  ReturnType<Wua.WalletUnitAttestationSupportedApi["getAttestation"]>
+>;
+export const getWalletUnitAttestationThunk = createAppAsyncThunk<
+  GetWalletUnitAttestationThunkOutput,
+  GetWalletUnitAttestationThunkInput
+>("walletinstance/walletunitattestation", async ({ keyTags }, { getState }) => {
+  const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
+  if (!wallet.WalletUnitAttestation.isSupported) {
+    throw new Error(
+      `Wallet Unit Attestation is not supported in v${itwVersion}`
+    );
+  }
+
+  // Retrieve the integrity key tag from the store and create its context
+  const integrityKeyTag = selectInstanceKeyTag(getState());
+  if (!integrityKeyTag) {
+    throw new Error("Integrity key not found");
+  }
+  const integrityContext = getIntegrityContext(integrityKeyTag);
+
+  // Get env URLs
+  const env = selectEnv(getState());
+  const { WALLET_PROVIDER_BASE_URL, GOOGLE_CLOUD_PROJECT_NUMBER } = getEnv(env);
+  const googleCloudProjectNumber = isAndroid
+    ? GOOGLE_CLOUD_PROJECT_NUMBER
+    : undefined;
+  await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
+
+  return await wallet.WalletUnitAttestation.getAttestation(
+    {
+      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      walletSolutionId: "appio",
+      walletSolutionVersion: "3.26.0",
+    },
+    {
+      integrityContext,
+      keysToAttest: keyTags.map(createKeyAttestationCryptoContextFor),
+      appFetch,
+    }
+  );
+});
+
+const createKeyAttestationCryptoContextFor = (
+  keyTag: string
+): KeyAttestationCryptoContext => ({
+  ...createCryptoContextFor(keyTag),
+  generateKeyWithAttestation(challenge) {
+    return Platform.select({
+      android: async () => {
+        const attestation = await getAttestation(challenge, keyTag);
+        return { success: true, attestation };
+      },
+      // No key attestation on iOS, only key pair creation
+      ios: async () => {
+        await generate(keyTag);
+        return { success: true };
+      },
+      default: () => {
+        throw new Error("Unsupported platform");
+      },
+    })();
+  },
 });

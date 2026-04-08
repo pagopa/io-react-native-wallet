@@ -41,9 +41,10 @@ export const getWalletProviderClient = (context: {
     (method, url, params) =>
       appFetch(interpolateUrl(url, params), {
         method,
-        body: params ? JSON.stringify(params.body) : undefined,
+        body: params?.body ? processBody(params.body) : undefined,
         headers: {
           "Content-Type": "application/json",
+          ...params?.header,
         },
       })
         .then(validateResponse)
@@ -51,6 +52,9 @@ export const getWalletProviderClient = (context: {
     walletProviderBaseUrl
   );
 };
+
+const processBody = (body: unknown): string =>
+  typeof body === "string" ? body : JSON.stringify(body);
 
 /**
  * Function to interpolate the url when the request includes path params.

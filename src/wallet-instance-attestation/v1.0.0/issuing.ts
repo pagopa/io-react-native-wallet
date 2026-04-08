@@ -69,14 +69,12 @@ async function getAttestationRequest(
 }
 
 export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
-  async ({
-    wiaCryptoContext,
-    integrityContext,
-    walletProviderBaseUrl,
-    appFetch = fetch,
-  }) => {
+  async (
+    requestParams,
+    { wiaCryptoContext, integrityContext, appFetch = fetch }
+  ) => {
     const api = getWalletProviderClient({
-      walletProviderBaseUrl,
+      walletProviderBaseUrl: requestParams.walletProviderBaseUrl,
       appFetch,
     });
 
@@ -86,7 +84,7 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
       .then((response) => response.nonce);
     Logger.log(
       LogLevel.DEBUG,
-      `Challenge obtained from ${walletProviderBaseUrl}: ${challenge} `
+      `Challenge obtained from ${requestParams.walletProviderBaseUrl}: ${challenge} `
     );
 
     // 2. Get a signed attestation request
@@ -94,7 +92,7 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
       challenge,
       wiaCryptoContext,
       integrityContext,
-      walletProviderBaseUrl
+      requestParams.walletProviderBaseUrl
     );
     Logger.log(
       LogLevel.DEBUG,

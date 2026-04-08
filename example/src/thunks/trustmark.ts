@@ -2,7 +2,7 @@ import {
   createCryptoContextFor,
   IoWallet,
 } from "@pagopa/io-react-native-wallet";
-import { selectAttestationAsJwt } from "../store/reducers/attestation";
+import { selectWalletInstanceAttestationAsJwt } from "../store/reducers/attestation";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { createAppAsyncThunk } from "./utils";
@@ -30,7 +30,8 @@ export const getTrustmarkThunk = createAppAsyncThunk<
   GetTrustmarkThunkInput
 >("trustmark/trustmarkGet", async (args, { getState }) => {
   // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation = selectAttestationAsJwt(getState());
+  const walletInstanceAttestation =
+    selectWalletInstanceAttestationAsJwt(getState());
   if (!walletInstanceAttestation) {
     throw new Error("Wallet Instance Attestation not found");
   }

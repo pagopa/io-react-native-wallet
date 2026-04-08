@@ -29,7 +29,7 @@ export const createDPopToken = async (
 export type DPoPPayload = z.infer<typeof DPoPPayload>;
 export const DPoPPayload = z.object({
   jti: z.string(),
-  htm: z.union([z.literal("POST"), z.literal("GET")]),
+  htm: z.enum(["POST", "GET"]),
   htu: z.string(),
   ath: z.string().optional(),
 });

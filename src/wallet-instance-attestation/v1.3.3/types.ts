@@ -1,16 +1,10 @@
 import * as z from "zod";
-import { JWK } from "../../utils/jwk";
 import { Jwt } from "../common/types";
 
-const Status = z.object({
-  status_list: z.object({
-    idx: z.number(),
-    uri: z.string(),
-  }),
-});
-
-export type WalletAppAttestationJwt = z.infer<typeof WalletAppAttestationJwt>;
-export const WalletAppAttestationJwt = z.object({
+export type WalletInstanceAttestationJwt = z.infer<
+  typeof WalletInstanceAttestationJwt
+>;
+export const WalletInstanceAttestationJwt = z.object({
   header: z.intersection(
     Jwt.shape.header,
     z.object({
@@ -21,28 +15,20 @@ export const WalletAppAttestationJwt = z.object({
     Jwt.shape.payload,
     z.object({
       sub: z.string(),
-      wallet_link: z.string().optional(),
-      wallet_name: z.string().optional(),
-      status: Status.optional(),
+      eudi_wallet_info: z.object({
+        general_info: z.object({
+          wallet_provider_name: z.string(),
+          wallet_solution_id: z.string(),
+          wallet_solution_version: z.string(),
+        }),
+      }),
     })
   ),
 });
 
-export type WalletUnitAttestationJwt = z.infer<typeof WalletUnitAttestationJwt>;
-export const WalletUnitAttestationJwt = z.object({
-  header: z.intersection(
-    Jwt.shape.header,
-    z.object({
-      typ: z.literal("key-attestation+jwt"),
-    })
-  ),
-  payload: z.intersection(
-    Jwt.shape.payload,
-    z.object({
-      attested_keys: z.array(JWK),
-      user_authentication: z.array(z.string()),
-      key_storage: z.array(z.string()),
-      status: Status,
-    })
-  ),
+export type WalletInstanceAttestationResponse = z.infer<
+  typeof WalletInstanceAttestationResponse
+>;
+export const WalletInstanceAttestationResponse = z.object({
+  wallet_instance_attestation: z.string(),
 });
