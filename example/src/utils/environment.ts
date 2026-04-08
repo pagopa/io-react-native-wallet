@@ -1,16 +1,21 @@
+import { type ItwVersion } from "@pagopa/io-react-native-wallet";
 import {
   PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
   PRE_REDIRECT_URI,
   PRE_VERIFIER_BASE_URL,
-  PRE_WALLET_EAA_PROVIDER_BASE_URL,
-  PRE_WALLET_PID_PROVIDER_BASE_URL,
+  PRE_WALLET_PID_PROVIDER_BASE_URL_V1_0,
+  PRE_WALLET_PID_PROVIDER_BASE_URL_V1_3,
+  PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_0,
+  PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_3,
   PRE_WALLET_PROVIDER_BASE_URL,
   PRE_WALLET_TA_BASE_URL,
   PROD_GOOGLE_CLOUD_PROJECT_NUMBER,
   PROD_REDIRECT_URI,
   PROD_VERIFIER_BASE_URL,
-  PROD_WALLET_EAA_PROVIDER_BASE_URL,
-  PROD_WALLET_PID_PROVIDER_BASE_URL,
+  PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_0,
+  PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_3,
+  PROD_WALLET_PID_PROVIDER_BASE_URL_V1_0,
+  PROD_WALLET_PID_PROVIDER_BASE_URL_V1_3,
   PROD_WALLET_PROVIDER_BASE_URL,
   PROD_WALLET_TA_BASE_URL,
 } from "@env";
@@ -22,13 +27,29 @@ import * as z from "zod";
  */
 export type Env = {
   WALLET_PROVIDER_BASE_URL: string;
-  WALLET_PID_PROVIDER_BASE_URL: string;
-  WALLET_EAA_PROVIDER_BASE_URL: string;
+  WALLET_PID_PROVIDER_BASE_URL: ItwSpecsEnvVar;
+  WALLET_EAA_PROVIDER_BASE_URL: ItwSpecsEnvVar;
   WALLET_TA_BASE_URL: string;
   REDIRECT_URI: string;
   GOOGLE_CLOUD_PROJECT_NUMBER: string;
   VERIFIER_BASE_URL: string;
 };
+
+/**
+ * Wrapper for an env variable that has different values for each IT-Wallet specs version.
+ *
+ * Call `.value()` to get the value for the specified version.
+ *
+ * @example
+ * myVar.value("1.3.3")
+ */
+class ItwSpecsEnvVar {
+  constructor(private values: Record<ItwVersion, string>) {}
+
+  value(version: ItwVersion) {
+    return this.values[version];
+  }
+}
 
 /**
  * Utility functions which returns the environment variables based on the selected environment.
@@ -40,8 +61,14 @@ export const getEnv = (env: EnvType): Env => {
     case "pre":
       return {
         WALLET_PROVIDER_BASE_URL: PRE_WALLET_PROVIDER_BASE_URL,
-        WALLET_PID_PROVIDER_BASE_URL: PRE_WALLET_PID_PROVIDER_BASE_URL,
-        WALLET_EAA_PROVIDER_BASE_URL: PRE_WALLET_EAA_PROVIDER_BASE_URL,
+        WALLET_PID_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
+          "1.0.0": PRE_WALLET_PID_PROVIDER_BASE_URL_V1_0,
+          "1.3.3": PRE_WALLET_PID_PROVIDER_BASE_URL_V1_3,
+        }),
+        WALLET_EAA_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
+          "1.0.0": PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_0,
+          "1.3.3": PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_3,
+        }),
         WALLET_TA_BASE_URL: PRE_WALLET_TA_BASE_URL,
         REDIRECT_URI: PRE_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
@@ -50,8 +77,14 @@ export const getEnv = (env: EnvType): Env => {
     case "prod":
       return {
         WALLET_PROVIDER_BASE_URL: PROD_WALLET_PROVIDER_BASE_URL,
-        WALLET_PID_PROVIDER_BASE_URL: PROD_WALLET_PID_PROVIDER_BASE_URL,
-        WALLET_EAA_PROVIDER_BASE_URL: PROD_WALLET_EAA_PROVIDER_BASE_URL,
+        WALLET_PID_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
+          "1.0.0": PROD_WALLET_PID_PROVIDER_BASE_URL_V1_0,
+          "1.3.3": PROD_WALLET_PID_PROVIDER_BASE_URL_V1_3,
+        }),
+        WALLET_EAA_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
+          "1.0.0": PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_0,
+          "1.3.3": PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_3,
+        }),
         WALLET_TA_BASE_URL: PROD_WALLET_TA_BASE_URL,
         REDIRECT_URI: PROD_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PROD_GOOGLE_CLOUD_PROJECT_NUMBER,
