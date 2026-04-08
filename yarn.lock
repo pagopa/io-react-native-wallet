@@ -3074,14 +3074,6 @@
     "@openid4vc/utils" "0.4.3"
     zod "^4.3.6"
 
-"@pagopa/io-wallet-utils@1.1.1", "@pagopa/io-wallet-utils@^1.1.0":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.1.1.tgz#7ca44bfc822f84b9f860f1001562e16bfbbe9b86"
-  integrity sha512-q5b6GxOQhhsslvDhybFJKHioL+YuErGu1fUhvSeDQw6nZ6W71VGROoJa+x2B4HZyWEX7dvpWI2w+aU9yZ4MqOg==
-  dependencies:
-    "@openid4vc/utils" "0.4.3"
-    zod "^3.24.2"
-
 "@phun-ky/typeof@2.0.3":
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/@phun-ky/typeof/-/typeof-2.0.3.tgz#581f617862e6fd9245e992440e46a88dbc228005"
