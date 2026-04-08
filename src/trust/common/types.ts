@@ -50,7 +50,7 @@ export const FederationEntityMetadata = z
     logo_uri: z.string().optional(),
     contacts: z.array(z.string()).optional(),
   })
-  .passthrough();
+  .loose();
 
 // Structure common to every Entity Configuration document
 export type BaseEntityConfiguration = z.infer<typeof BaseEntityConfiguration>;
@@ -67,12 +67,12 @@ export const BaseEntityConfiguration = z.object({
         .object({
           federation_entity: FederationEntityMetadata,
         })
-        .passthrough(),
+        .loose(),
       jwks: z.object({
         keys: z.array(JWK),
       }),
     })
-    .passthrough(),
+    .loose(),
 });
 
 export const FederationListResponse = z.array(z.string());

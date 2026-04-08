@@ -3,11 +3,11 @@ import { createTokenDPoP } from "@pagopa/io-wallet-oauth2";
 import {
   fetchCredentialResponse,
   createCredentialRequest,
-  type CredentialRequestOptionsV1_3,
 } from "@pagopa/io-wallet-oid4vci";
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import {
+  IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
@@ -96,8 +96,9 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   const signerJwk = await credentialCryptoContext.getPublicKey();
 
   const credentialRequest = await createCredentialRequest({
-    config: sdkConfigV1_3 as CredentialRequestOptionsV1_3["config"],
+    config: sdkConfigV1_3,
     callbacks: {
+      hash: partialCallbacks.hash,
       signJwt: async (_, payload) => ({
         jwt: await new SignJWT(credentialCryptoContext)
           .setPayload(payload)
@@ -110,11 +111,13 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     issuerIdentifier: issuerConf.credential_issuer,
     nonce: c_nonce,
     keyAttestation: walletUnitAttestation,
-    signer: {
-      alg: "ES256",
-      method: "jwk",
-      publicJwk: signerJwk,
-    },
+    signers: [
+      {
+        alg: "ES256",
+        method: "jwk",
+        publicJwk: signerJwk,
+      },
+    ],
   });
 
   const dPopSignerJwk = await dPopCryptoContext.getPublicKey();
@@ -158,9 +161,13 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   const issuerCredentialConfig =
     issuerConf.credential_configurations_supported[credential_configuration_id];
 
+  if ("transaction_id" in credentialRes) {
+    throw new IoWalletError("Deferred issuance is not supported");
+  }
+
   // TODO: [SIW-2264] Handle multiple credentials
   return {
-    credential: credentialRes.credentials!.at(0)!.credential,
+    credential: credentialRes.credentials.at(0)!.credential,
     format: issuerCredentialConfig!.format,
   };
 };
