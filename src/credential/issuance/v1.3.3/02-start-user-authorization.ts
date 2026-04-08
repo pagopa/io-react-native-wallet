@@ -12,7 +12,7 @@ import { IoWalletError } from "../../../utils/errors";
 import {
   selectCredentialDefinition,
   selectResponseMode,
-} from "../common/authorization";
+} from "../common/02-start-user-authorization";
 
 export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
   async (issuerConf, credentialIds, proof, ctx) => {
