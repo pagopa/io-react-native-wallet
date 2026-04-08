@@ -12,6 +12,12 @@ type PartialCallbackContext = Omit<
   "signJwt" | "clientAuthentication"
 >;
 
+// Fix incompatibility between ArrayBuffer types
+type DigestFixed = (
+  data: string | ArrayBuffer | ArrayBufferView,
+  algorithm?: string
+) => Uint8Array;
+
 /**
  * Shared callbacks with React Native implementations for use
  * in IO Wallet SDK. Callbacks not found here must be provided by the caller,
@@ -19,7 +25,7 @@ type PartialCallbackContext = Omit<
  */
 export const partialCallbacks: PartialCallbackContext = {
   generateRandom: generateRandomBytes,
-  hash: digest,
+  hash: digest as DigestFixed,
   encryptJwe: async ({ publicJwk, alg, enc, kid }, data) => ({
     // @ts-expect-error `alg` and `enc` are strings, but EncryptJwe expects specific string literals
     jwe: await new EncryptJwe(data, { alg, enc, kid }).encrypt(publicJwk),

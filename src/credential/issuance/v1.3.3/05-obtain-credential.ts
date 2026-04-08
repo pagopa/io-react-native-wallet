@@ -212,9 +212,10 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     issuerConf.credential_configurations_supported[credential_configuration_id];
 
   if ("transaction_id" in credentialRes) {
-    throw new IoWalletError("Deferred issuance is not currently supported");
+    throw new IoWalletError("Deferred issuance is not supported");
   }
 
+  // TODO: [SIW-2264] Handle multiple credentials
   return {
     credential: credentialRes.credentials.at(0)!.credential,
     format: issuerCredentialConfig!.format,

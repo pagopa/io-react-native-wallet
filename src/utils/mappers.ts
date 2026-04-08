@@ -33,8 +33,8 @@ export function createMapper<I, O>(
 export function createMapper<I, O>(
   mapper: (input: I) => O,
   config?: {
-    inputSchema?: z.ZodType<I>;
-    outputSchema: z.ZodType<O>;
+    inputSchema?: z.ZodType<I, any>;
+    outputSchema: z.ZodType<O, any>;
   }
 ) {
   if (!config) {

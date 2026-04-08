@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { jsonWebKeySchema } from "@openid-federation/core";
+import { jsonWebKeySchema } from "@pagopa/io-wallet-oid-federation";
 import { FederationEntityMetadata } from "../../../trust/common/types";
 
 /**
