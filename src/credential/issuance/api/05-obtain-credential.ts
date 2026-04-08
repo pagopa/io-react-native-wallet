@@ -34,7 +34,6 @@ export interface ObtainCredentialApi {
     context: {
       dPopCryptoContext: CryptoContext;
       credentialCryptoContext: CryptoContext;
-      keyAttestationJwt: string;
       walletUnitAttestation?: string;
       appFetch?: GlobalFetch["fetch"];
     }
@@ -62,7 +61,7 @@ export interface ObtainCredentialApi {
     context: {
       dPopCryptoContext: CryptoContext;
       credentialCryptoContexts: CryptoContext[];
-      keyAttestationJwt: string;
+      walletUnitAttestation?: string;
       appFetch?: GlobalFetch["fetch"];
     }
   ): Promise<{ credential: string; format: CredentialFormat }[]>;
