@@ -19,7 +19,7 @@ export interface ObtainCredentialApi {
    * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link authorizeAccess}
    * @param context.credentialCryptoContext The crypto context used to obtain the credential
    * @param context.dPopCryptoContext The DPoP crypto context
-   * @param context.keyAttestationJwt The key attestation JWT, whose `attested_keys` must include the credential JWK
+   * @param context.walletUnitAttestation (optional) The Wallet Unit Attestation JWT bound to the provided credentialCryptoContext
    * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
    * @returns The credential response containing the credential
    */
@@ -35,6 +35,7 @@ export interface ObtainCredentialApi {
       dPopCryptoContext: CryptoContext;
       credentialCryptoContext: CryptoContext;
       keyAttestationJwt: string;
+      walletUnitAttestation?: string;
       appFetch?: GlobalFetch["fetch"];
     }
   ): Promise<{

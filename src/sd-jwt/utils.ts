@@ -8,6 +8,7 @@ import {
   IssuerResponseError,
   ValidationFailed,
 } from "../utils/errors";
+import { fixLegacyCredentialSdJwt } from "../utils/credentials";
 
 /**
  * Retrieve the Type Metadata for a credential and verify its integrity.
@@ -62,7 +63,10 @@ export const fetchTypeMetadata = async (
 export const getVerification = (
   credentialSdJwt: string
 ): Verification | undefined => {
-  const decoded = decodeSdJwtSync(credentialSdJwt, digest);
+  const decoded = decodeSdJwtSync(
+    fixLegacyCredentialSdJwt(credentialSdJwt),
+    digest
+  );
 
   const claims = getClaimsSync<Record<string, unknown>>(
     decoded.jwt.payload,

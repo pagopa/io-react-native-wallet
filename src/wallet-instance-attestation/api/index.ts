@@ -1,24 +1,31 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { IntegrityContext } from "../../utils/integrity";
-import type { DecodedAttestationJwt, WalletAttestation } from "./types";
+import type {
+  DecodedWalletInstanceAttestation,
+  WalletAttestation,
+  WalletAttestationRequestParams,
+} from "./types";
 
 export interface WalletInstanceAttestationApi {
   /**
    * Request a Wallet Instance Attestation (WIA) to the Wallet provider.
-   * The Wallet Attestation may be issued in different formats and components (Wallet App and Wallet Unit).
+   * The Wallet Instance Attestation may be issued in different formats.
    *
-   * @param params.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
-   * @param params.appFetch (optional) Http client
-   * @param walletProviderBaseUrl Base url for the Wallet Provider
+   * @param requestParams Wallet Provider data for the Wallet Attestation request
+   * @param ctx.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
+   * @param ctx.integrityContext The hardware key pair associated with the Wallet Instance
+   * @param ctx.appFetch (optional) Http client
    * @returns The retrieved Wallet Instance Attestation tokens
    * @throws {WalletProviderResponseError} with a specific code for more context
    */
-  getAttestation(ctx: {
-    wiaCryptoContext: CryptoContext;
-    integrityContext: IntegrityContext;
-    walletProviderBaseUrl: string;
-    appFetch?: GlobalFetch["fetch"];
-  }): Promise<WalletAttestation[]>;
+  getAttestation(
+    requestParams: WalletAttestationRequestParams,
+    ctx: {
+      wiaCryptoContext: CryptoContext;
+      integrityContext: IntegrityContext;
+      appFetch?: GlobalFetch["fetch"];
+    }
+  ): Promise<WalletAttestation[]>;
 
   /**
    * Decode a given JWT to get the parsed Wallet Instance Attestation object they define.
@@ -32,7 +39,7 @@ export interface WalletInstanceAttestationApi {
    * @throws A decoding error if the token doesn't resolve in a valid JWT
    * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
    */
-  decode(token: string): DecodedAttestationJwt;
+  decode(token: string): DecodedWalletInstanceAttestation;
 
   /**
    * Verify a given JWT to get the parsed Wallet Instance Attestation object they define.
@@ -44,5 +51,5 @@ export interface WalletInstanceAttestationApi {
    * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
    * @throws Invalid signature error if the token signature is not valid
    */
-  verify(token: string): Promise<DecodedAttestationJwt>;
+  verify(token: string): Promise<DecodedWalletInstanceAttestation>;
 }

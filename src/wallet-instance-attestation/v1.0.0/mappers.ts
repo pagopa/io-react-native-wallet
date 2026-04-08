@@ -1,15 +1,18 @@
 import { createMapper } from "../../utils/mappers";
-import { DecodedAttestationJwt, type WalletAttestation } from "../api/types";
+import {
+  DecodedWalletInstanceAttestation,
+  type WalletAttestation,
+} from "../api/types";
 import {
   WalletAttestationResponse,
   WalletInstanceAttestationJwt,
 } from "./types";
 
-export const mapToDecodedAttestationJwt = createMapper<
+export const mapToDecodedWalletInstanceAttestation = createMapper<
   WalletInstanceAttestationJwt,
-  DecodedAttestationJwt
+  DecodedWalletInstanceAttestation
 >((x) => x.payload, {
-  outputSchema: DecodedAttestationJwt,
+  outputSchema: DecodedWalletInstanceAttestation,
 });
 
 export const mapToWalletAttestations = createMapper<
@@ -17,7 +20,6 @@ export const mapToWalletAttestations = createMapper<
   WalletAttestation[]
 >((x) =>
   x.wallet_attestations.map((wa) => ({
-    type: "wallet_instance_attestation",
     format: wa.format,
     attestation: wa.wallet_attestation,
   }))

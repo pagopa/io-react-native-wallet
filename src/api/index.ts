@@ -1,5 +1,6 @@
 import * as WalletInstance from "../wallet-instance";
 import * as WIA from "../wallet-instance-attestation";
+import * as WUA from "../wallet-unit-attestation";
 import * as Trust from "../trust";
 import * as CredentialIssuance from "../credential/issuance";
 import * as CredentialStatus from "../credential/status";
@@ -16,6 +17,7 @@ export type ItwVersion = "1.0.0" | "1.3.3";
 export interface IoWalletApi {
   WalletInstance: WalletInstance.WalletInstanceApi;
   WalletInstanceAttestation: WIA.WalletInstanceAttestationApi;
+  WalletUnitAttestation: WUA.WalletUnitAttestationApi;
   Trust: Trust.TrustApi;
   CredentialIssuance: CredentialIssuance.IssuanceApi;
   CredentialStatus: CredentialStatus.CredentialStatusApi;
@@ -32,6 +34,7 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
   "1.0.0": {
     WalletInstance: WalletInstance.V1_0_0,
     WalletInstanceAttestation: WIA.V1_0_0,
+    WalletUnitAttestation: WUA.V1_0_0,
     Trust: Trust.V1_0_0,
     CredentialIssuance: CredentialIssuance.V1_0_0,
     CredentialStatus: CredentialStatus.V1_0_0,
@@ -44,6 +47,7 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
   "1.3.3": {
     WalletInstance: WalletInstance.V1_3_3,
     WalletInstanceAttestation: WIA.V1_3_3,
+    WalletUnitAttestation: WUA.V1_3_3,
     Trust: Trust.V1_0_0,
     CredentialIssuance: CredentialIssuance.V1_3_3,
     CredentialStatus: CredentialStatus.V1_3_3,
