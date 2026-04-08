@@ -21,7 +21,6 @@ import {
   IoWalletError,
   sdkUnexpectedStatusCodeToIssuerError,
 } from "../../../utils/errors";
-import { sdkConfigV1_3 } from "../../../utils/config";
 import type { IssuanceApi } from "../api";
 import { mapToRequestObject } from "./mappers";
 import type { RemotePresentation } from "../../presentation";

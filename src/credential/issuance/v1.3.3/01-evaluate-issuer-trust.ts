@@ -14,7 +14,6 @@ export const evaluateIssuerTrust: IssuanceApi["evaluateIssuerTrust"] = async (
   const issuerMetadata = (await fetchMetadata({
     config: sdkConfigV1_3,
     credentialIssuerUrl: issuerUrl,
-    config: sdkConfigV1_3,
     callbacks: {
       ...partialCallbacks,
       fetch: context.appFetch,
