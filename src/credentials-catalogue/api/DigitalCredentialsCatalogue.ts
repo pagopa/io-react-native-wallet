@@ -1,11 +1,23 @@
 import * as z from "zod";
 import { UnixTime } from "../../utils/zod";
 
+const AdministrativeExpirationUserInfo = z.object({
+  title_l10n_id: z.string(),
+  description_l10n_id: z.string(),
+});
+
+const AllowedState = z
+  .object({
+    title_l10n_id: z.string(),
+    description_l10n_id: z.string(),
+  })
+  .catchall(z.string());
+
 const CredentialPurpose = z.object({
   id: z.string(),
-  description: z.string(),
-  claims_required: z.array(z.string()),
-  claim_recommended: z.array(z.string()),
+  description: z.string().optional(),
+  claims_required: z.array(z.string()).optional(),
+  claim_recommended: z.array(z.string()).optional(),
 });
 
 const CredentialIssuer = z.object({
@@ -13,11 +25,14 @@ const CredentialIssuer = z.object({
   organization_name: z.string(),
   organization_code: z.string(),
   organization_country: z.string(),
+  legal_type: z.string().optional(),
   contacts: z.array(z.string()).optional(),
   homepage_uri: z.string().optional(),
   logo_uri: z.string().optional(),
   policy_uri: z.string().optional(),
   tos_uri: z.string().optional(),
+  service_documentation: z.string().optional(),
+  issuance_flows: z.object({ deferred_flow: z.boolean() }).optional(),
 });
 
 const AuthenticSource = z.object({
@@ -58,16 +73,32 @@ export const DigitalCredential = z.object({
   credential_type: z.string(),
   legal_type: z.string(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
+  restriction_policy: z
+    .object({
+      allowed_wallet_ids: z.array(z.string()),
+      allowed_issuer_ids: z.array(z.string()),
+      presentation_flows: z.object({
+        remote: z.boolean(),
+        proximity: z.boolean(),
+      }),
+    })
+    .optional(),
   validity_info: z.object({
     max_validity_days: z.number(),
     status_methods: z.array(z.string()),
-    allowed_states: z.array(z.string()),
+    administrative_expiration_user_info:
+      AdministrativeExpirationUserInfo.optional(),
+    allowed_states: z.array(z.union([z.string(), AllowedState])),
   }),
+  administrative_expiration_user_info:
+    AdministrativeExpirationUserInfo.optional(),
+  domains: z.array(z.object({ id: z.string() })).optional(),
+  classes: z.array(z.object({ id: z.string() })).optional(),
   purposes: z.array(CredentialPurpose),
   issuers: z.array(CredentialIssuer),
   authentic_sources: z.array(AuthenticSource),
-  formats: z.array(CredentialFormat),
+  formats: z.array(CredentialFormat).optional(),
   // claims: z.array(Claim), // TODO: [SIW-3978] Should we keep claims?
 });
 

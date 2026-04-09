@@ -40,8 +40,17 @@ export const mapToCredentialsCatalogue = createMapper<
     }): ApiAuthenticSource => {
       const as = authSourcesById.get(id);
       assert(as, `AS ${id} must be present in the Authentic Source Registry`);
-      const { ipa_code, ...rest } = as.organization_info;
-      return { id, organization_code: ipa_code, ...rest };
+      const {
+        ipa_code,
+        organization_name_l10n_id,
+        ...rest
+      } = as.organization_info;
+      return {
+        id,
+        organization_name: organization_name_l10n_id,
+        organization_code: ipa_code,
+        ...rest,
+      };
     };
 
     const resolveFormats = (credentialType: string): ApiCredentialFormat[] => {
@@ -60,8 +69,8 @@ export const mapToCredentialsCatalogue = createMapper<
       ...catalogueJwt.payload,
       taxonomy_uri: discoveryJwt.payload.endpoints.taxonomy,
       credentials: catalogueJwt.payload.credentials.map(
-        ({ authentic_sources, credential_name, ...credential }) => ({
-          name: credential_name,
+        ({ authentic_sources, credential_name_l10n_id, ...credential }) => ({
+          name: credential_name_l10n_id,
           formats: resolveFormats(credential.credential_type),
           authentic_sources: authentic_sources.map(resolveAuthSource),
           ...credential,
