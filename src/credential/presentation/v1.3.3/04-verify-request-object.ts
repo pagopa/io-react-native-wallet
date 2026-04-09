@@ -1,13 +1,15 @@
 import type { RemotePresentationApi } from "../api";
 import { parseAuthorizeRequest as sdkParseAuthorizeRequest } from "@pagopa/io-wallet-oid4vp";
 import { partialCallbacks } from "../../../utils/callbacks";
-import { mapToRequestObject } from "./mappers";
-import { mapSdkRequestObjectError } from "./sdkErrorMapper";
+import { sdkConfigV1_3 } from "../../../utils/config";
 import { InvalidRequestObjectError } from "../common/errors";
+import { mapSdkRequestObjectError } from "./sdkErrorMapper";
+import { mapToRequestObject } from "./mappers";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId, rpConf }) => {
     const parsedRequestObject = await sdkParseAuthorizeRequest({
+      config: sdkConfigV1_3,
       requestObjectJwt: requestObjectEncodedJwt,
       callbacks: {
         verifyJwt: partialCallbacks.verifyJwt,

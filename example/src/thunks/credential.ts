@@ -88,7 +88,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   }
   return await getCredential({
     itwVersion,
-    credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL,
+    credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
     trustAnchorUrl: WALLET_TA_BASE_URL,
     redirectUri: REDIRECT_URI,
     // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
@@ -125,7 +125,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
 
   return await getCredentialStatusAssertion(
     itwVersion,
-    issuerUrl,
+    issuerUrl.value(itwVersion),
     credential,
     format,
     credentialCryptoContext,
