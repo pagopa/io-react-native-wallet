@@ -157,10 +157,12 @@ describe("mapToCredentialsCatalogue", () => {
         authentic_sources: [
           {
             id: "source-1",
-            organization_name: "Source Org",
+            organization_name: "source_org.name",
             organization_code: "SRC123",
             organization_country: "IT",
             organization_type: "public",
+            contacts: ["info@source-org.example.com"],
+            homepage_uri: "https://source-org.example.com",
           },
         ],
         formats: [
