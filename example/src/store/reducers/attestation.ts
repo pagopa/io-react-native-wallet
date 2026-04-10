@@ -130,7 +130,7 @@ export const { attestationReset } = attestationSlice.actions;
 const persistConfig: PersistConfig<AttestationState> = {
   key: "attestation",
   storage: createSecureStorage(),
-  whitelist: ["attestation"],
+  whitelist: ["wia", "wua"],
 };
 
 /**

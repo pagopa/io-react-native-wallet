@@ -102,7 +102,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Evaluate issuer trust
   const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
-    WALLET_PID_PROVIDER_BASE_URL,
+    WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
     { appFetch }
   );
 
