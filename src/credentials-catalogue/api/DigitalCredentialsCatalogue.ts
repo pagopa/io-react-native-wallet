@@ -22,7 +22,8 @@ const CredentialPurpose = z.object({
 
 const CredentialIssuer = z.object({
   id: z.string(),
-  organization_name: z.string(),
+  organization_name: z.string().optional(),
+  organization_name_l10n_id: z.string().optional(),
   organization_code: z.string(),
   organization_country: z.string(),
   legal_type: z.string().optional(),
@@ -93,9 +94,9 @@ export const DigitalCredential = z.object({
   }),
   administrative_expiration_user_info:
     AdministrativeExpirationUserInfo.optional(),
-  domains: z.array(z.object({ id: z.string() })).optional(),
-  classes: z.array(z.object({ id: z.string() })).optional(),
-  purposes: z.array(CredentialPurpose),
+  domains: z.array(z.string()).optional(),
+  classes: z.array(z.string()).optional(),
+  purposes: z.array(z.union([z.string(), CredentialPurpose])),
   issuers: z.array(CredentialIssuer),
   authentic_sources: z.array(AuthenticSource),
   formats: z.array(CredentialFormat).optional(),

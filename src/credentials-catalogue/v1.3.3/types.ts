@@ -12,7 +12,7 @@ const ASDataCapability = z.object({
       mandatory: z.boolean(),
     })
   ),
-  domains: z.array(z.string()),
+  domains: z.array(z.string()).optional(),
   data_origin_l10n_id: z.string(),
   integration_endpoint: z.string(),
   integration_method: z.string(),
@@ -84,13 +84,9 @@ const AllowedState = z
   })
   .catchall(z.string());
 
-const CredentialPurpose = z.object({
-  id: z.string(),
-});
-
 const CredentialIssuer = z.object({
   id: z.string(),
-  organization_name: z.string(),
+  organization_name_l10n_id: z.string(),
   organization_code: z.string(),
   organization_country: z.string(),
   legal_type: z.string().optional(),
@@ -132,9 +128,9 @@ export const DigitalCredential = z.object({
     min_loa: z.string(),
     supported_schemes: z.array(z.string()),
   }),
-  domains: z.array(z.object({ id: z.string() })).optional(),
-  classes: z.array(z.object({ id: z.string() })).optional(),
-  purposes: z.array(CredentialPurpose),
+  domains: z.array(z.string()).optional(),
+  classes: z.array(z.string()).optional(),
+  purposes: z.array(z.string()),
   issuers: z.array(CredentialIssuer),
   authentic_sources: z.array(
     z.object({

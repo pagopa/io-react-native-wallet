@@ -96,15 +96,11 @@ describe("mapToCredentialsCatalogue", () => {
             min_loa: "high",
             supported_schemes: ["it_wallet"],
           },
-          purposes: [
-            {
-              id: "EDUCATION_ATTENDANCE_VERIFICATION",
-            },
-          ],
+          purposes: ["EDUCATION_ATTENDANCE_VERIFICATION"],
           issuers: [
             {
               id: "issuer-1",
-              organization_name: "Issuer Org",
+              organization_name_l10n_id: "Issuer Org",
               organization_code: "ORG123",
               organization_country: "IT",
             },
@@ -141,15 +137,11 @@ describe("mapToCredentialsCatalogue", () => {
             },
           ],
         },
-        purposes: [
-          {
-            id: "EDUCATION_ATTENDANCE_VERIFICATION",
-          },
-        ],
+        purposes: ["EDUCATION_ATTENDANCE_VERIFICATION"],
         issuers: [
           {
             id: "issuer-1",
-            organization_name: "Issuer Org",
+            organization_name_l10n_id: "Issuer Org",
             organization_code: "ORG123",
             organization_country: "IT",
           },
