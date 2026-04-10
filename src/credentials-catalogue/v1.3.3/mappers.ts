@@ -44,7 +44,7 @@ export const mapToCredentialsCatalogue = createMapper<
         as.organization_info;
       return {
         id,
-        organization_name: organization_name_l10n_id,
+        organization_name_l10n_id,
         organization_code: ipa_code,
         ...rest,
       };
@@ -67,7 +67,7 @@ export const mapToCredentialsCatalogue = createMapper<
       taxonomy_uri: discoveryJwt.payload.endpoints.taxonomy,
       credentials: catalogueJwt.payload.credentials.map(
         ({ authentic_sources, credential_name_l10n_id, ...credential }) => ({
-          name: credential_name_l10n_id,
+          name_l10n_id: credential_name_l10n_id,
           formats: resolveFormats(credential.credential_type),
           authentic_sources: authentic_sources.map(resolveAuthSource),
           ...credential,

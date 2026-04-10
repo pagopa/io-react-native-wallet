@@ -37,7 +37,8 @@ const CredentialIssuer = z.object({
 
 const AuthenticSource = z.object({
   id: z.string(),
-  organization_name: z.string(),
+  organization_name: z.string().optional(),
+  organization_name_l10n_id: z.string().optional(),
   organization_code: z.string().optional(),
   organization_country: z.string(),
   organization_type: z.string(),
@@ -72,12 +73,11 @@ export const DigitalCredential = z.object({
   version: z.string(),
   credential_type: z.string(),
   legal_type: z.string(),
-  name: z.string(),
+  name: z.string().optional(),
+  name_l10n_id: z.string().optional(),
   description: z.string().optional(),
   restriction_policy: z
     .object({
-      allowed_wallet_ids: z.array(z.string()),
-      allowed_issuer_ids: z.array(z.string()),
       presentation_flows: z.object({
         remote: z.boolean(),
         proximity: z.boolean(),

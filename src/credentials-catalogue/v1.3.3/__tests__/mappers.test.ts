@@ -129,7 +129,7 @@ describe("mapToCredentialsCatalogue", () => {
         version: "1.3",
         credential_type: "education_attendance",
         legal_type: "pub-eaa",
-        name: "education_attendance.name",
+        name_l10n_id: "education_attendance.name",
         validity_info: {
           max_validity_days: 365,
           status_methods: ["status_list"],
@@ -157,7 +157,7 @@ describe("mapToCredentialsCatalogue", () => {
         authentic_sources: [
           {
             id: "source-1",
-            organization_name: "source_org.name",
+            organization_name_l10n_id: "source_org.name",
             organization_code: "SRC123",
             organization_country: "IT",
             organization_type: "public",
