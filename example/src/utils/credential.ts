@@ -5,8 +5,6 @@ import {
   type ItwVersion,
   type CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
-import { v4 as uuidv4 } from "uuid";
-import { generate } from "@pagopa/io-react-native-crypto";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
@@ -23,6 +21,7 @@ import type {
  * @param credentialIssuerUrl - The credential issuer URL
  * @param redirectUri - The redirect URI for the authorization flow
  * @param credentialId - The id of the credential to obtain
+ * @param credentialKeyTag - The key tag of the crypto key to bind to the credential
  * @param pid - The PID credential
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
@@ -34,8 +33,10 @@ export const getCredential = async ({
   trustAnchorUrl,
   redirectUri,
   credentialId,
+  credentialKeyTag,
   pid,
   walletInstanceAttestation,
+  walletUnitAttestation,
   wiaCryptoContext,
 }: {
   itwVersion: ItwVersion;
@@ -43,14 +44,13 @@ export const getCredential = async ({
   trustAnchorUrl: string;
   redirectUri: string;
   credentialId: SupportedCredentialsWithoutPid;
+  credentialKeyTag: string;
   pid: PidResult;
   walletInstanceAttestation: string;
+  walletUnitAttestation?: string;
   wiaCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
-  // Create credential crypto context
-  const credentialKeyTag = uuidv4().toString();
-  await generate(credentialKeyTag);
   const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
   // Evaluate issuer trust
@@ -122,7 +122,7 @@ export const getCredential = async ({
       {
         credentialCryptoContext,
         dPopCryptoContext,
-        walletUnitAttestation: "", // TODO: [SIW-3937] Get the Wallet Unit Attestation
+        walletUnitAttestation,
         appFetch,
       }
     );
