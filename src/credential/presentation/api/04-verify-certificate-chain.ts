@@ -6,7 +6,7 @@ export interface VerifyAuthRequestCertificateChainApi {
    * @since 1.0.0
    *
    * @param requestObjectJwt The Request Object in JWT format
-   * @param params.caRootCerts The CA root certificate used to validate the chain
+   * @param params.caRootCert The CA root certificate used to validate the chain
    * @returns The certificate validation result
    * @throws {MissingX509CertsError} if the Request Object does not contain x5c
    * @throws {X509ValidationError} if the certificate chain validation fails

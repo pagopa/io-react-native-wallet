@@ -11,7 +11,7 @@ import {
 import { Logger, LogLevel } from "../../../utils/logging";
 
 export const verifyAuthRequestCertificateChain: RemotePresentationApi["verifyAuthRequestCertificateChain"] =
-  async (requestObjectJwt, { caRootCerts }) => {
+  async (requestObjectJwt, { caRootCert }) => {
     const x509Options: X509CertificateOptions = {
       requireCrl: false,
       connectTimeout: 10_000,
@@ -30,7 +30,7 @@ export const verifyAuthRequestCertificateChain: RemotePresentationApi["verifyAut
 
     const validationResult = await verifyCertificateChain(
       certChain,
-      caRootCerts,
+      caRootCert,
       x509Options
     );
 
