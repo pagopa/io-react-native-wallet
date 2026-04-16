@@ -14,7 +14,7 @@ export interface VerifyAuthRequestCertificateChainApi {
   verifyAuthRequestCertificateChain(
     requestObjectJwt: string,
     params: {
-      caRootCerts: string;
+      caRootCert: string;
     }
   ): Promise<CertificateValidationResult>;
 }
