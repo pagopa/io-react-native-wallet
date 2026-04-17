@@ -2,7 +2,7 @@ import { DcqlQuery, DcqlError } from "dcql";
 import { isValiError } from "valibot";
 import { CredentialsNotFoundError } from "../common/errors";
 import type { Credential4Dcql, RemotePresentationApi } from "../api";
-import type { CredentialPurpose } from "../api/05-evaluate-dcql-query";
+import type { CredentialPurpose } from "../api/06-evaluate-dcql-query";
 import * as sdJwtUtils from "../common/utils/sd-jwt";
 import {
   extractFailedCredentialsDetails,
