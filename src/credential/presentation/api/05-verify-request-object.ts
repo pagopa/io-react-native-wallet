@@ -17,7 +17,7 @@ export interface VerifyRequestObjectApi {
     requestObjectEncodedJwt: string,
     params: {
       clientId: string;
-      rpConf: RelyingPartyConfig;
+      rpConf?: RelyingPartyConfig;
       state?: string;
     }
   ): Promise<{ requestObject: RequestObject }>;
