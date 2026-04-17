@@ -9,7 +9,7 @@ import TestScenario, {
 import { H3, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { getEnv } from "../utils/environment";
-import { selectEnv } from "../store/reducers/environment";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 
 interface RelyingPartyUrls {
   pre: string;
@@ -50,6 +50,7 @@ export const TrustScreen = () => {
     WALLET_PID_PROVIDER_BASE_URL,
     WALLET_EAA_PROVIDER_BASE_URL,
   } = getEnv(env);
+  const itwVersion = useAppSelector(selectItwVersion);
 
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
   useDebugInfo({
@@ -112,8 +113,8 @@ export const TrustScreen = () => {
         id: "ipzs-iss-pid",
         title: "Validate Trust Chain (IPZS-ISS-PID)",
         relyingPartyUrls: {
-          prod: WALLET_PID_PROVIDER_BASE_URL,
-          pre: WALLET_PID_PROVIDER_BASE_URL,
+          prod: WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
+          pre: WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
         },
         icon: "locked",
         successMessage: "Chain Valid",
@@ -122,14 +123,14 @@ export const TrustScreen = () => {
         id: "ipzs-iss-eaa",
         title: "Validate Trust Chain (IPZS-ISS-EAA)",
         relyingPartyUrls: {
-          prod: WALLET_EAA_PROVIDER_BASE_URL,
-          pre: WALLET_EAA_PROVIDER_BASE_URL,
+          prod: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
+          pre: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
         },
         icon: "locked",
         successMessage: "Chain Valid",
       },
     ],
-    [WALLET_PID_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL]
+    [WALLET_PID_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL, itwVersion]
   );
 
   const scenariosWithUrls = useMemo((): ScenarioWithUrl[] => {
