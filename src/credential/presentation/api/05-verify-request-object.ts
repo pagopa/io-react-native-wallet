@@ -17,7 +17,7 @@ export interface VerifyRequestObjectApi {
     requestObjectEncodedJwt: string,
     params: {
       clientId: string;
-      rpConf?: RelyingPartyConfig;
+      rpConf: RelyingPartyConfig; // TODO: handle case where the RP is not part of the OpenID Federation
       state?: string;
     }
   ): Promise<{ requestObject: RequestObject }>;
