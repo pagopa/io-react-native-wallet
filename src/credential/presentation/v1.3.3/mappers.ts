@@ -29,6 +29,7 @@ export const mapToRequestObject = createMapper<RawRequestObject, RequestObject>(
     state: payload.state,
     response_mode: payload.response_mode,
     response_type: payload.response_type,
+    client_metadata: payload.client_metadata,
     x5c: header.x5c,
     trust_chain: header.trust_chain,
   })

@@ -7,7 +7,7 @@ import {
 import QuickCrypto from "react-native-quick-crypto";
 import { partialCallbacks } from "../../../utils/callbacks";
 import { sdkConfigV1_3 } from "../../../utils/config";
-import { assert } from "../../../utils/misc";
+import { IoWalletError } from "../../../utils/errors";
 import { InvalidRequestObjectError } from "../common/errors";
 import { mapSdkRequestObjectError } from "./sdkErrorMapper";
 import { mapToRequestObject } from "./mappers";
@@ -46,12 +46,13 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
 const validateOpenIDFederationClient = (
   requestObject: RawRequestObject,
   clientId: string,
-  rpConf?: RelyingPartyConfig
+  rpConf: RelyingPartyConfig | undefined
 ) => {
-  assert(
-    rpConf,
-    "Relying Party Configuration is required for OpenID Federation clients"
-  );
+  if (!rpConf) {
+    throw new IoWalletError(
+      "Relying Party Configuration is required for OpenID Federation clients"
+    );
+  }
 
   const isClientIdMatch =
     clientId === requestObject.payload.client_id && clientId === rpConf.subject;

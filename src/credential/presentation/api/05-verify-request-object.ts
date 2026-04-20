@@ -8,7 +8,7 @@ export interface VerifyRequestObjectApi {
    *
    * @param requestObjectEncodedJwt The Request Object in JWT format
    * @param params.clientId The client ID to verify
-   * @param params.rpConf The Entity Configuration of the Relying Party
+   * @param params.rpConf Optional Relying Party configuration (OpenID Federation clients only)
    * @param params.state Optional state
    * @returns The verified Request Object
    * @throws {InvalidRequestObjectError} if the Request Object cannot be validated
@@ -17,7 +17,7 @@ export interface VerifyRequestObjectApi {
     requestObjectEncodedJwt: string,
     params: {
       clientId: string;
-      rpConf: RelyingPartyConfig; // TODO: handle case where the RP is not part of the OpenID Federation
+      rpConf?: RelyingPartyConfig;
       state?: string;
     }
   ): Promise<{ requestObject: RequestObject }>;

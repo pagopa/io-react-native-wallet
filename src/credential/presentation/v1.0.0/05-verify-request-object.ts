@@ -1,6 +1,7 @@
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { type z } from "zod";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
+import { IoWalletError } from "../../../utils/errors";
 import { InvalidRequestObjectError } from "../common/errors";
 import { RawRequestObject } from "./types";
 import { mapToRequestObject } from "./mappers";
@@ -8,6 +9,12 @@ import { getJwksFromRpConfig } from "./utils.jwks";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId, rpConf, state }) => {
+    if (!rpConf) {
+      throw new IoWalletError(
+        "Relying Party Configuration is required for OpenID Federation clients"
+      );
+    }
+
     const requestObjectJwt = decodeJwt(requestObjectEncodedJwt);
 
     const pubKey = getSigPublicKey(
@@ -24,7 +31,10 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       );
     }
 
-    const rawRequestObject = validateRequestObjectShape(requestObjectJwt);
+    const rawRequestObject = validateRequestObjectShape({
+      header: requestObjectJwt.protectedHeader,
+      payload: requestObjectJwt.payload,
+    });
 
     const isClientIdMatch =
       clientId === rawRequestObject.payload.client_id &&
