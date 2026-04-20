@@ -11,7 +11,7 @@ import {
   type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
 import type { BaseEntityConfiguration } from "../trust/common/types";
-import { JWK } from "./jwk";
+import { JWK, JWKS } from "./jwk";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { IoWalletError } from "./errors";
 
@@ -156,16 +156,18 @@ export const getJwkFromTrustChain = (
   const baseEntityConfig =
     decodedEntityConfigJwt.payload as BaseEntityConfiguration["payload"];
 
-  if (baseEntityConfig.jwks.keys) {
-    keys.push(...baseEntityConfig.jwks.keys);
+  // Get top-level JWKS
+  if (baseEntityConfig.jwks) {
+    keys.push(...JWKS.parse(baseEntityConfig.jwks).keys);
   }
 
+  // Check metadata entries for additional JWKS like openid_credential_verifier
   if (baseEntityConfig.metadata) {
     for (const metadata of Object.values(
-      baseEntityConfig.metadata as Record<string, { jwks?: { keys: JWK[] } }>
+      baseEntityConfig.metadata as Record<string, { jwks?: JWKS }>
     )) {
-      if (metadata.jwks?.keys) {
-        keys.push(...metadata.jwks.keys);
+      if (metadata.jwks) {
+        keys.push(...JWKS.parse(metadata.jwks).keys);
       }
     }
   }
