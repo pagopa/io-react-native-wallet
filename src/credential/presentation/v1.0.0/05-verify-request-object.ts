@@ -2,7 +2,7 @@ import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
 import { type z } from "zod";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import { InvalidRequestObjectError } from "../common/errors";
-import { RequestObjectPayload } from "./types";
+import { RawRequestObject } from "./types";
 import { mapToRequestObject } from "./mappers";
 import { getJwksFromRpConfig } from "./utils.jwks";
 
@@ -24,10 +24,11 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       );
     }
 
-    const requestObject = validateRequestObjectShape(requestObjectJwt.payload);
+    const rawRequestObject = validateRequestObjectShape(requestObjectJwt);
 
     const isClientIdMatch =
-      clientId === requestObject.client_id && clientId === rpConf.subject;
+      clientId === rawRequestObject.payload.client_id &&
+      clientId === rpConf.subject;
 
     if (!isClientIdMatch) {
       throw new InvalidRequestObjectError(
@@ -35,15 +36,15 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       );
     }
 
-    const isStateMatch = state ? state === requestObject.state : true;
-
-    if (!isStateMatch) {
+    if (state && state !== rawRequestObject.payload.state) {
       throw new InvalidRequestObjectError(
         "The provided state does not match the Request Object's"
       );
     }
 
-    return { requestObject: mapToRequestObject(requestObject) };
+    return {
+      requestObject: mapToRequestObject(rawRequestObject),
+    };
   };
 
 /**
@@ -53,8 +54,8 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
  * @returns A valid Request Object
  * @throws {InvalidRequestObjectError} when the Request Object cannot be parsed
  */
-const validateRequestObjectShape = (payload: unknown): RequestObjectPayload => {
-  const requestObjectParse = RequestObjectPayload.safeParse(payload);
+const validateRequestObjectShape = (payload: unknown): RawRequestObject => {
+  const requestObjectParse = RawRequestObject.safeParse(payload);
 
   if (requestObjectParse.success) {
     return requestObjectParse.data;
@@ -97,7 +98,7 @@ const getSigPublicKey = (
  * Utility to format flattened Zod errors into a simplified string `key1: key1_error, key2: key2_error`
  */
 const formatFlattenedZodErrors = (
-  errors: z.core.$ZodFlattenedError<RequestObjectPayload>
+  errors: z.core.$ZodFlattenedError<RawRequestObject>
 ): string =>
   Object.entries(errors.fieldErrors)
     .map(([key, error]) => `${key}: ${error[0]}`)

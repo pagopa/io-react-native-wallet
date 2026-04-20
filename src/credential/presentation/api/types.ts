@@ -80,6 +80,8 @@ export type RequestObject = {
   dcql_query: Record<string, unknown>;
   response_type: "vp_token";
   response_mode: "direct_post.jwt";
+  x5c?: string[];
+  trust_chain?: string[];
 };
 
 /**

@@ -3,8 +3,6 @@ import {
   parseAuthorizeRequest as sdkParseAuthorizeRequest,
   ClientIdPrefix,
   extractClientIdPrefix,
-  type Openid4vpAuthorizationRequestHeaderV1_3,
-  type Openid4vpAuthorizationRequestPayload,
 } from "@pagopa/io-wallet-oid4vp";
 import QuickCrypto from "react-native-quick-crypto";
 import { partialCallbacks } from "../../../utils/callbacks";
@@ -13,6 +11,7 @@ import { assert } from "../../../utils/misc";
 import { InvalidRequestObjectError } from "../common/errors";
 import { mapSdkRequestObjectError } from "./sdkErrorMapper";
 import { mapToRequestObject } from "./mappers";
+import type { RawRequestObject } from "./types";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId, rpConf }) => {
@@ -24,30 +23,28 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
       },
     }).catch(mapSdkRequestObjectError);
 
-    const payload = parsedRequestObject.payload;
-    const header =
-      parsedRequestObject.header as Openid4vpAuthorizationRequestHeaderV1_3;
+    const rawRequestObject = parsedRequestObject as RawRequestObject;
 
     const clientIdPrefix = extractClientIdPrefix(clientId);
 
     if (clientIdPrefix === ClientIdPrefix.X509_HASH) {
-      validateX509HashClient(header.x5c, clientId);
+      validateX509HashClient(rawRequestObject.header.x5c, clientId);
     }
 
     if (
       clientIdPrefix === ClientIdPrefix.OPENID_FEDERATION ||
       clientIdPrefix === ClientIdPrefix.NONE
     ) {
-      validateOpenIDFederationClient(payload, clientId, rpConf);
+      validateOpenIDFederationClient(rawRequestObject, clientId, rpConf);
     }
 
     return {
-      requestObject: mapToRequestObject(payload),
+      requestObject: mapToRequestObject(rawRequestObject),
     };
   };
 
 const validateOpenIDFederationClient = (
-  requestObject: Openid4vpAuthorizationRequestPayload,
+  requestObject: RawRequestObject,
   clientId: string,
   rpConf?: RelyingPartyConfig
 ) => {
@@ -57,7 +54,7 @@ const validateOpenIDFederationClient = (
   );
 
   const isClientIdMatch =
-    clientId === requestObject.client_id && clientId === rpConf.subject;
+    clientId === requestObject.payload.client_id && clientId === rpConf.subject;
 
   if (!isClientIdMatch) {
     throw new InvalidRequestObjectError(

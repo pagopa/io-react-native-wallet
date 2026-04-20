@@ -17,7 +17,7 @@ import { ResponseUriResultShape } from "./types";
 import { getJwtFromFormPost } from "../../../utils/decoder";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import { RequestObjectPayload } from "../../presentation/v1.0.0/types";
+import { RawRequestObject } from "../../presentation/v1.0.0/types";
 import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.0.0";
 import type { IssuanceApi } from "../api";
 import type { RemotePresentation } from "../../presentation";
@@ -105,7 +105,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
       .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then((jws) => decode(jws))
-      .then((reqObj) => RequestObjectPayload.safeParse(reqObj.payload));
+      .then((reqObj) => RawRequestObject.safeParse(reqObj));
 
     if (!requestObject.success) {
       Logger.log(
@@ -117,7 +117,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
         reason: requestObject.error.message,
       });
     }
-    return requestObject.data;
+    return requestObject.data.payload;
   };
 
 export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
