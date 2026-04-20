@@ -1,6 +1,20 @@
 import * as z from "zod";
 import { UnixTime } from "../../utils/zod";
 
+export const LocalizationInfo = z.object({
+  available_locales: z.array(z.string()),
+  base_uri: z.string(),
+  default_locale: z.string(),
+  version: z.string(),
+});
+export type LocalizationInfo = z.infer<typeof LocalizationInfo>;
+
+/**
+ * Merged translations for one or more locales, keyed by locale code.
+ * Each locale maps l10n_id keys to their translated string values.
+ */
+export type CatalogueTranslations = Record<string, Record<string, string>>;
+
 const AdministrativeExpirationUserInfo = z.object({
   title_l10n_id: z.string(),
   description_l10n_id: z.string(),
@@ -108,6 +122,8 @@ export const DigitalCredentialsCatalogue = z.object({
   credentials: z.array(DigitalCredential),
   iat: UnixTime,
   exp: UnixTime,
+  localization: LocalizationInfo.optional(),
+  as_localization: LocalizationInfo.optional(),
 });
 export type DigitalCredentialsCatalogue = z.infer<
   typeof DigitalCredentialsCatalogue
