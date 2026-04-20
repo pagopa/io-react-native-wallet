@@ -105,7 +105,12 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
       .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
       .then((jws) => decode(jws))
-      .then((reqObj) => RawRequestObject.safeParse(reqObj));
+      .then((reqObj) =>
+        RawRequestObject.safeParse({
+          header: reqObj.protectedHeader,
+          payload: reqObj.payload,
+        })
+      );
 
     if (!requestObject.success) {
       Logger.log(
