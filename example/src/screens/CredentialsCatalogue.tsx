@@ -5,19 +5,33 @@ import type { TestScenarioProp } from "../components/TestScenario";
 import TestScenario from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { useAppDispatch, useAppSelector } from "../store/utils";
-import { getCredentialsCatalogueThunk } from "../thunks/credentialsCatalogue";
+import {
+  getCredentialsCatalogueThunk,
+  getCredentialsCatalogueTranslationsThunk,
+} from "../thunks/credentialsCatalogue";
 import {
   selectCredentialsCatalogue,
   selectCredentialsCatalogueAsyncStatus,
+  selectCredentialsCatalogueTranslations,
+  selectCredentialsCatalogueTranslationsAsyncStatus,
 } from "../store/reducers/credentialsCatalogue";
 
 export const CredentialsCatalogueScreen = () => {
   const asyncStatus = useAppSelector(selectCredentialsCatalogueAsyncStatus);
   const credentialsCatalogue = useAppSelector(selectCredentialsCatalogue);
+  const translationsAsyncStatus = useAppSelector(
+    selectCredentialsCatalogueTranslationsAsyncStatus
+  );
+  const translations = useAppSelector(selectCredentialsCatalogueTranslations);
 
   const dispatch = useAppDispatch();
 
-  useDebugInfo({ asyncStatus, credentialsCatalogue });
+  useDebugInfo({
+    asyncStatus,
+    credentialsCatalogue,
+    translationsAsyncStatus,
+    translations,
+  });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
@@ -33,8 +47,26 @@ export const CredentialsCatalogueScreen = () => {
         isPresent: !!credentialsCatalogue,
         successMessage: "OK",
       },
+      {
+        title: "Fetch Catalogue Translations (it)",
+        onPress: () => {
+          dispatch(getCredentialsCatalogueTranslationsThunk());
+        },
+        isLoading: translationsAsyncStatus.isLoading,
+        hasError: translationsAsyncStatus.hasError,
+        isDone: translationsAsyncStatus.isDone,
+        icon: "attachment",
+        isPresent: !!translations,
+        successMessage: `Fetched locales: ${Object.keys(translations ?? {}).join(", ") || "none"}`,
+      },
     ],
-    [dispatch, asyncStatus, credentialsCatalogue]
+    [
+      dispatch,
+      asyncStatus,
+      credentialsCatalogue,
+      translationsAsyncStatus,
+      translations,
+    ]
   );
 
   const renderItem = useCallback(

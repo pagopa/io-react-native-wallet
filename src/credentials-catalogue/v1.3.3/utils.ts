@@ -67,3 +67,36 @@ export const fetchRegistry = async <T>(
     `Unsupported content-type for ${url}: ${contentType}`
   );
 };
+
+/**
+ * Fetch a locale bundle file from the Registry Infrastructure.
+ * Bundle files are flat JSON objects mapping l10n_id keys to translated strings.
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html
+ *
+ * @param baseUri The base URI from a registry's localization object
+ * @param locale The locale code (e.g. "it", "en")
+ * @param appFetch Custom fetch implementation
+ * @returns Flat key→value translation map
+ */
+export const fetchLocaleBundle = async (
+  baseUri: string,
+  locale: string,
+  appFetch: GlobalFetch["fetch"] = fetch
+): Promise<Record<string, string>> => {
+  const url = `${baseUri.replace(/\/$/, "")}/${locale}.json`;
+
+  const response = await appFetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  }).then(hasStatusOrThrow(200));
+
+  const contentType = response.headers.get("Content-Type");
+  if (!contentType?.includes("application/json")) {
+    throw new IoWalletError(
+      `Locale bundle at ${url} returned unexpected Content-Type: ${contentType}`
+    );
+  }
+
+  const responseJson = await response.json();
+  return z.record(z.string(), z.string()).parse(responseJson);
+};

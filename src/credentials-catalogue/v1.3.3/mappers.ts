@@ -65,6 +65,8 @@ export const mapToCredentialsCatalogue = createMapper<
     return {
       ...catalogueJwt.payload,
       taxonomy_uri: discoveryJwt.payload.endpoints.taxonomy,
+      localization: catalogueJwt.payload.localization,
+      as_localization: authSourceRegistry.localization,
       credentials: catalogueJwt.payload.credentials.map(
         ({ authentic_sources, credential_name_l10n_id, ...credential }) => ({
           name_l10n_id: credential_name_l10n_id,
