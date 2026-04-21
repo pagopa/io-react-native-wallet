@@ -55,7 +55,8 @@ const validateOpenIDFederationClient = (
   }
 
   const isClientIdMatch =
-    clientId === requestObject.payload.client_id && clientId === rpConf.subject;
+    clientId === requestObject.payload.client_id &&
+    stripOpenIdFederationPrefix(clientId) === rpConf.subject;
 
   if (!isClientIdMatch) {
     throw new InvalidRequestObjectError(
@@ -80,3 +81,6 @@ const validateX509HashClient = (
     );
   }
 };
+
+const stripOpenIdFederationPrefix = (clientId: string) =>
+  clientId.replace("openid_federation:", "");

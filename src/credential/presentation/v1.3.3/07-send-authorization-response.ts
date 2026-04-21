@@ -101,25 +101,23 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
     { appFetch = fetch } = {}
   ) => {
     try {
-      const { presentations } = remotePresentation;
-
       if (!rpConf && !requestObject.client_metadata) {
         throw new IoWalletError(
-          "At least one of rpConf or requestObject.client_metadata must be provided"
+          "At least one of rpConf or requestObject.client_metadata must be provided to send the authorization response"
         );
       }
 
       // When the RP is not an OpenID Federation client, rpConf will be undefined
-      // so the keys are taken from the Request Object's client_metadata
+      // so the keys are taken from the Request Object's client_metadata.
       const rpJwks = {
-        jwks: (rpConf?.jwks ?? requestObject.client_metadata?.jwks)!,
+        jwks: rpConf?.jwks ?? requestObject.client_metadata!.jwks,
         encrypted_response_enc_values_supported:
-          (rpConf?.encrypted_response_enc_values_supported ??
-            requestObject.client_metadata
-              ?.encrypted_response_enc_values_supported)!,
+          rpConf?.encrypted_response_enc_values_supported ??
+          requestObject.client_metadata!
+            .encrypted_response_enc_values_supported,
       };
 
-      const vp_token = presentations.reduce(
+      const vp_token = remotePresentation.presentations.reduce(
         (acc, p) => {
           (acc[p.credentialId] ??= []).push(p.vpToken);
           return acc;

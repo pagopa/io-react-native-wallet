@@ -4,7 +4,12 @@ export interface VerifyAuthRequestCertificateChainApi {
   /**
    * Verify the X.509 certificate chain in the Request Object `x5c` header claim.
    *
-   * **Note:** the method is optional and might not be present in the interface.
+   * **Note:** the method is optional and might not be present in the interface. Always check for its presence before calling it.
+   * @example
+   * if (RemotePresentation.verifyAuthRequestCertificateChain) {
+   *   RemotePresentation.verifyAuthRequestCertificateChain(requestObjectJwt, { caRootCert })
+   * }
+   *
    * @since 1.3.3
    *
    * @param requestObjectJwt The Request Object in JWT format
