@@ -31,6 +31,13 @@ export const getCredentialsCatalogueTranslationsThunk = createAppAsyncThunk<
   }
 
   const wallet = new IoWallet({ version: itwVersion });
+
+  if (!wallet.CredentialsCatalogue.fetchTranslations) {
+    throw new Error(
+      "fetchTranslations is not supported by the current wallet version"
+    );
+  }
+
   return wallet.CredentialsCatalogue.fetchTranslations(
     {
       catalogue: catalogue.localization,

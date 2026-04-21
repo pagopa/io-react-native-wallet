@@ -33,13 +33,15 @@ export interface CredentialsCatalogueApi {
    * Locales not present in a registry's `available_locales` are silently skipped for that source.
    * On key conflicts, authentic-sources translations take precedence.
    *
+   * Optional: not supported by all versions. Check for existence before calling.
+   *
    * @since 1.3.3
    * @param localizations Localization metadata from a previously fetched catalogue
    * @param locales Array of locale codes to fetch (e.g. ["it", "en"])
    * @param ctx.appFetch (optional) fetch API implementation. Default: built-in fetch
    * @returns Record keyed by locale, each containing merged translation key→value pairs
    */
-  fetchTranslations(
+  fetchTranslations?(
     localizations: FetchTranslationsLocalizations,
     locales: string[],
     ctx?: FetchContext
