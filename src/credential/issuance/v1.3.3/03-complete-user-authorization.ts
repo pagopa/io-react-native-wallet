@@ -16,11 +16,11 @@ import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.3.3";
 import { partialCallbacks } from "../../../utils/callbacks";
+import { sdkConfigV1_3 } from "../../../utils/config";
 import {
   IoWalletError,
   sdkUnexpectedStatusCodeToIssuerError,
 } from "../../../utils/errors";
-import { sdkConfigV1_3 } from "../../../utils/config";
 import type { IssuanceApi } from "../api";
 import { mapToRequestObject } from "./mappers";
 import type { RemotePresentation } from "../../presentation";

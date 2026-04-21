@@ -10,6 +10,7 @@ import {
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
+  UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
 import { createDPopToken } from "../../../utils/dpop";
@@ -210,3 +211,8 @@ const handleObtainCredentialError = (e: unknown) => {
     })
     .buildFrom(e);
 };
+
+export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
+  () => {
+    throw new UnimplementedFeatureError("obtainCredentialsBatch", "1.0.0");
+  };

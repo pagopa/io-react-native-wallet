@@ -128,9 +128,9 @@ describe("mapToRequestObject", () => {
     const input: ParsedAuthorizeRequestResult = {
       header: {
         kid: "123",
-        x5c: [],
         alg: "alg",
         typ: "oauth-authz-req+jwt",
+        x5c: [""],
       },
       payload: {
         response_mode: "direct_post.jwt",
