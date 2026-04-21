@@ -26,7 +26,12 @@ export const CredentialsCatalogueScreen = () => {
 
   const dispatch = useAppDispatch();
 
-  useDebugInfo({ asyncStatus, credentialsCatalogue, translationsAsyncStatus, translations });
+  useDebugInfo({
+    asyncStatus,
+    credentialsCatalogue,
+    translationsAsyncStatus,
+    translations,
+  });
 
   const scenarios: Array<TestScenarioProp> = useMemo(
     () => [
