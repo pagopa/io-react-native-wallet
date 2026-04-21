@@ -11,7 +11,7 @@ type FetchRegistryParams<T> = {
 
 /**
  * Utility to fetch an entity from the Registry Infrastructure.
- * The function supports both `application/json` and `application/jwt` responses.
+ * The function supports `application/json` and signed JOSE/JWT responses.
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html
  *
  * @param url The url to fetch from
@@ -30,7 +30,7 @@ export const fetchRegistry = async <T>(
   const response = await appFetch(url, {
     method: "GET",
     headers: {
-      Accept: asJson ? "application/json" : "application/jwt",
+      Accept: asJson ? "application/json" : "application/jose, application/jwt",
     },
   }).then(hasStatusOrThrow(200));
 
@@ -41,7 +41,10 @@ export const fetchRegistry = async <T>(
     return schema.parse(responseJson);
   }
 
-  if (contentType?.includes("application/jwt")) {
+  if (
+    contentType?.includes("application/jwt") ||
+    contentType?.includes("application/jose")
+  ) {
     assert("jwks" in params, "params.jwks required when response is JWT");
 
     const responseText = await response.text();
@@ -60,5 +63,40 @@ export const fetchRegistry = async <T>(
     });
   }
 
-  throw new IoWalletError(`Unsupported content-type: ${contentType}`);
+  throw new IoWalletError(
+    `Unsupported content-type for ${url}: ${contentType}`
+  );
+};
+
+/**
+ * Fetch a locale bundle file from the Registry Infrastructure.
+ * Bundle files are flat JSON objects mapping l10n_id keys to translated strings.
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html
+ *
+ * @param baseUri The base URI from a registry's localization object
+ * @param locale The locale code (e.g. "it", "en")
+ * @param appFetch Custom fetch implementation
+ * @returns Flat key→value translation map
+ */
+export const fetchLocaleBundle = async (
+  baseUri: string,
+  locale: string,
+  appFetch: GlobalFetch["fetch"] = fetch
+): Promise<Record<string, string>> => {
+  const url = `${baseUri.replace(/\/$/, "")}/${locale}.json`;
+
+  const response = await appFetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  }).then(hasStatusOrThrow(200));
+
+  const contentType = response.headers.get("Content-Type");
+  if (!contentType?.includes("application/json")) {
+    throw new IoWalletError(
+      `Locale bundle at ${url} returned unexpected Content-Type: ${contentType}`
+    );
+  }
+
+  const responseJson = await response.json();
+  return z.record(z.string(), z.string()).parse(responseJson);
 };

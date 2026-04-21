@@ -2,7 +2,10 @@ import {
   createCryptoContextFor,
   CredentialIssuance,
   CredentialStatus,
+  IoWallet,
 } from "@pagopa/io-react-native-wallet";
+import { generate } from "@pagopa/io-react-native-crypto";
+import { v4 as uuidv4 } from "uuid";
 import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
@@ -21,7 +24,10 @@ import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import { selectPid } from "../store/reducers/pid";
 import { createAppAsyncThunk } from "./utils";
-import { getWalletInstanceAttestationThunk } from "./attestation";
+import {
+  getWalletInstanceAttestationThunk,
+  getWalletUnitAttestationThunk,
+} from "./attestation";
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -74,6 +80,8 @@ export const getCredentialThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   const itwVersion = selectItwVersion(getState());
+  const wallet = new IoWallet({ version: itwVersion });
+
   // Get env URLs
   const env = selectEnv(getState());
   const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
@@ -86,6 +94,20 @@ export const getCredentialThunk = createAppAsyncThunk<
   if (!pid) {
     throw new Error("PID not found");
   }
+
+  // Create credential crypto context and get the WUA if supported
+  const credentialKeyTag = uuidv4().toString();
+  let walletUnitAttestation: string | undefined;
+
+  if (wallet.WalletUnitAttestation.isSupported) {
+    const wua = await dispatch(
+      getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] })
+    ).unwrap();
+    walletUnitAttestation = wua.attestation;
+  } else {
+    await generate(credentialKeyTag);
+  }
+
   return await getCredential({
     itwVersion,
     credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
@@ -94,8 +116,10 @@ export const getCredentialThunk = createAppAsyncThunk<
     // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
     // and we restrict `getCredential` to issuing only one credential at a time.
     credentialId: credentialType,
+    credentialKeyTag,
     pid: pid,
     walletInstanceAttestation,
+    walletUnitAttestation,
     wiaCryptoContext,
   });
 });

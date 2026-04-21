@@ -4,7 +4,7 @@ import {
   type NotFoundDetail,
 } from "../../common/errors";
 import { legacyPid, mdl, pid } from "../../../../sd-jwt/__mocks__/sd-jwt";
-import { evaluateDcqlQuery } from "../05-evaluate-dcql-query";
+import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
 
 const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";

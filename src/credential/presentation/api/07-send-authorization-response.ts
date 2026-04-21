@@ -5,7 +5,7 @@ import type {
   RequestObject,
 } from "./types";
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
-import type { EvaluateDcqlQueryApi } from "./05-evaluate-dcql-query";
+import type { EvaluateDcqlQueryApi } from "./06-evaluate-dcql-query";
 import type { Out } from "../../../../src/utils/misc";
 type FetchContext = { appFetch?: GlobalFetch["fetch"] };
 

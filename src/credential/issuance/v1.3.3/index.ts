@@ -9,7 +9,10 @@ import {
   getRequestedCredentialToBePresented,
 } from "./03-complete-user-authorization";
 import { authorizeAccess } from "./04-authorize-access";
-import { obtainCredential } from "./05-obtain-credential";
+import {
+  obtainCredential,
+  obtainCredentialsBatch,
+} from "./05-obtain-credential";
 import { verifyAndParseCredential } from "./06-verify-and-parse-credential";
 import { MRTDPoP } from "../mrtd-pop";
 
@@ -23,6 +26,7 @@ export const Issuance: IssuanceApi = {
   completeUserAuthorizationWithFormPostJwtMode,
   authorizeAccess,
   obtainCredential,
+  obtainCredentialsBatch,
   verifyAndParseCredential,
   MRTDPoP,
 };
