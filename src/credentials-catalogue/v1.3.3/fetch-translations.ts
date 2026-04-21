@@ -1,7 +1,7 @@
 import type { CredentialsCatalogueApi as Api } from "../api";
 import { fetchLocaleBundle } from "./utils";
 
-export const fetchTranslations: Api["fetchTranslations"] = async (
+export const fetchTranslations: NonNullable<Api["fetchTranslations"]> = async (
   { catalogue, authenticSources },
   locales,
   { appFetch = fetch } = {}
