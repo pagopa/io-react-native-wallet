@@ -1,8 +1,14 @@
 import * as z from "zod";
-import { zOpenid4vpAuthorizationRequestPayload as sdkRequestObjectPayload } from "@pagopa/io-wallet-oid4vp";
+import {
+  zOpenid4vpAuthorizationRequestHeaderV1_3,
+  zOpenid4vpAuthorizationRequestPayload,
+} from "@pagopa/io-wallet-oid4vp";
 
-export type RequestObjectPayload = z.infer<typeof sdkRequestObjectPayload>;
-export const RequestObjectPayload = sdkRequestObjectPayload;
+export type RawRequestObject = z.infer<typeof RawRequestObject>;
+export const RawRequestObject = z.object({
+  header: zOpenid4vpAuthorizationRequestHeaderV1_3,
+  payload: zOpenid4vpAuthorizationRequestPayload,
+});
 
 export type AuthorizationResponse = z.infer<typeof AuthorizationResponse>;
 export const AuthorizationResponse = z.object({
