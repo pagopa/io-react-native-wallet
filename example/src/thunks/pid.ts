@@ -16,7 +16,10 @@ import { type PidAuthMethods, type PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
-import { getWalletInstanceAttestationThunk } from "./attestation";
+import {
+  getWalletInstanceAttestationThunk,
+  getWalletUnitAttestationThunk,
+} from "./attestation";
 import { createAppAsyncThunk } from "./utils";
 
 // This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
@@ -152,7 +155,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 export const continuePidFlowThunk = createAppAsyncThunk<
   PidResult,
   ContinuePidFlowThunkInput
->("pid/flowContinue", async (args, { getState }) => {
+>("pid/flowContinue", async (args, { getState, dispatch }) => {
   const { authRedirectUrl } = args;
 
   const itwVersion = selectItwVersion(getState());
@@ -183,11 +186,6 @@ export const continuePidFlowThunk = createAppAsyncThunk<
    * hoping it has not been deleted in the meanwhile. This can be improved later.
    */
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
-
-  // Create credential crypto context
-  const credentialKeyTag = uuidv4().toString();
-  await generate(credentialKeyTag);
-  const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
   // Create DPoP context for the whole issuance flow
   await regenerateCryptoKey(DPOP_KEYTAG);
@@ -225,6 +223,21 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     throw new Error("No credential configuration ID found for PID");
   }
 
+  // Create credential crypto context and get the WUA if supported
+  const credentialKeyTag = uuidv4().toString();
+  let walletUnitAttestation: string | undefined;
+
+  if (wallet.WalletUnitAttestation.isSupported) {
+    const wua = await dispatch(
+      getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] })
+    ).unwrap();
+    walletUnitAttestation = wua.attestation;
+  } else {
+    await generate(credentialKeyTag);
+  }
+
+  const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+
   // Get the credential identifier that was authorized
   const { credential, format } =
     await wallet.CredentialIssuance.obtainCredential(
@@ -238,6 +251,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       {
         credentialCryptoContext,
         dPopCryptoContext,
+        walletUnitAttestation,
         appFetch,
       }
     );

@@ -106,8 +106,8 @@ export const DigitalCredential = z.object({
   legal_type: z.string(),
   restriction_policy: z
     .object({
-      allowed_wallet_ids: z.array(z.string()),
-      allowed_issuer_ids: z.array(z.string()),
+      allowed_wallet_ids: z.array(z.string()).optional(),
+      allowed_issuer_ids: z.array(z.string()).optional(),
       presentation_flows: z.object({
         remote: z.boolean(),
         proximity: z.boolean(),

@@ -8,6 +8,8 @@ Credentials instead require a simpler authorization flow and they require other 
 
 The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step. Available credentials are identified with a unique `credential_configuration_id`, that must be used when requesting authorization. The Authorization Server returns an array of **credential identifiers** that map to the `credential_configuration_id` provided: to obtain the credential, one of the credential identifiers (or all of them) must be requested to the credential endpoint.
 
+In the newest versions of IT-Wallet specifications it is mandatory that the cryptographic keys bound to each credential are stored in a WSCD and attested in a **Wallet Unit Attestation**, that must be sent to the Issuer when requesting a credential.
+
 ## Sequence Diagram
 
 ```mermaid
@@ -20,8 +22,9 @@ graph TD;
     C4.1[completeUserAuthorizationWithFormPostJwtMode]
     E4[completeUserAuthorizationWithQueryMode]
     5[authorizeAccess]
-    6[obtainCredential]
-    7[verifyAndParseCredential]
+    6[WalletUnitAttestation.getAttestation]
+    7[obtainCredential]
+    8[verifyAndParseCredential]
     credSel{Is credential an eID?}
     proofSel{Requires MRTD PoP?}
     M1[continueUserAuthorizationWithMRTDPoPChallenge]
@@ -44,6 +47,7 @@ graph TD;
     E4 --> 5
     5 --> 6
     6 --> 7
+    7 --> 8
 
     M1 --> M2
     M2 --> M3
@@ -92,6 +96,10 @@ When the credential is different than an eID, the flow requires the user to pres
 
 The expected result from the authentication process is in `form_post.jwt` format as defined in [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)](https://openid.net/specs/oauth-v2-jarm.html#name-response-mode-form_postjwt).
 
+## Batch issuance
+
+To obtain a batch of credentials the Issuance module exposes a dedicated method—`obtainCredentialsBatch`—that returns a list of credentials of the same type with different cryptographic data. For this reason the caller must generate multiple keys and attest them in a single Wallet Unit Attestation.
+
 ## Examples
 
 <details>
@@ -119,12 +127,28 @@ const { WALLET_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI } =
  * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
  */
 const walletInstanceAttestation =
-  await WalletInstanceAttestation.getAttestation({
-    wiaCryptoContext,
-    integrityContext,
-    walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-    appFetch,
-  });
+  await wallet.WalletInstanceAttestation.getAttestation(
+    {
+      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      walletSolutionId: "exampleId",
+      walletSolutionVersion: "1.2.3",
+    },
+    {
+      wiaCryptoContext,
+      integrityContext,
+      appFetch,
+    }
+  );
+
+const credentialKeyTag = uuidv4().toString();
+let walletUnitAttestation: string | undefined;
+
+// Obtains a Wallet Unit Attestation if supported
+if (wallet.WalletUnitAttestation.isSupported) {
+  walletUnitAttestation = await wallet.WalletUnitAttestation.getAttestation(); // See the Wallet Unit Attestation README for more details
+} else {
+  await generate(credentialKeyTag); // Let's assume this function generates a new hardware-backed key pair
+}
 
 const pid = {
   credential: "example",
@@ -133,9 +157,6 @@ const pid = {
   credentialType: "PersonIdentificationData";
 };
 
-// Create credential crypto context
-const credentialKeyTag = uuidv4().toString();
-await generate(credentialKeyTag); // Let's assume this function generates a new hardware-backed key pair
 const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
 // Evaluate issuer trust
@@ -271,12 +292,18 @@ const { WALLET_PROVIDER_BASE_URL, WALLET_EID_PROVIDER_BASE_URL, REDIRECT_URI } =
  * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
  */
 const walletInstanceAttestation =
-  await WalletInstanceAttestation.getAttestation({
-    wiaCryptoContext,
-    integrityContext,
-    walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-    appFetch,
-  });
+  await wallet.WalletInstanceAttestation.getAttestation(
+    {
+      walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      walletSolutionId: "exampleId",
+      walletSolutionVersion: "1.2.3",
+    },
+    {
+      wiaCryptoContext,
+      integrityContext,
+      appFetch,
+    }
+  );
 
 const idpHit = "https://example.com"; // Let's assume this is the IDP hint
 
