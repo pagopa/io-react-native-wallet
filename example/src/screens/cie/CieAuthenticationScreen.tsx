@@ -15,7 +15,7 @@ import {
   continuePidFlowThunk,
   preparePidFlowParamsThunk,
 } from "../../thunks/pid";
-import { getCieIdpHint } from "../../utils/environment";
+import { getCieIdpHint, getEnv } from "../../utils/environment";
 import { getProgressEmojis } from "../../utils/strings";
 
 type ScreenProps = NativeStackScreenProps<
@@ -90,6 +90,7 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
   const handleAuthUrl = (url: string) => {
     if (pidFlowParams && pidFlowParams.ciePin) {
       setIsLoading(false);
+      CieManager.setCustomIdpUrl(getEnv(env).CIE_CUSTOM_IDP_URL);
       CieManager.startReading(pidFlowParams.ciePin, url);
       setText("Waiting for CIE card. Bring it closer to the NFC reader.");
     }

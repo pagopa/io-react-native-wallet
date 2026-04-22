@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { type ItwVersion } from "@pagopa/io-react-native-wallet";
 import {
   PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
@@ -22,6 +23,9 @@ import {
 import type { EnvType } from "../store/types";
 import * as z from "zod";
 
+const CIE_UAT_BASE_URL =
+  "https://collaudo.idserver.servizicie.interno.gov.it/idp/";
+
 /**
  * Environment type definition for both the pre and prod environments.
  */
@@ -33,6 +37,7 @@ export type Env = {
   REDIRECT_URI: string;
   GOOGLE_CLOUD_PROJECT_NUMBER: string;
   VERIFIER_BASE_URL: string;
+  CIE_CUSTOM_IDP_URL: string | undefined;
 };
 
 /**
@@ -73,6 +78,10 @@ export const getEnv = (env: EnvType): Env => {
         REDIRECT_URI: PRE_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
         VERIFIER_BASE_URL: PRE_VERIFIER_BASE_URL,
+        CIE_CUSTOM_IDP_URL: Platform.select({
+          ios: `${CIE_UAT_BASE_URL}Authn/SSL/Login2?`,
+          default: CIE_UAT_BASE_URL,
+        }),
       };
     case "prod":
       return {
@@ -89,6 +98,7 @@ export const getEnv = (env: EnvType): Env => {
         REDIRECT_URI: PROD_REDIRECT_URI,
         GOOGLE_CLOUD_PROJECT_NUMBER: PROD_GOOGLE_CLOUD_PROJECT_NUMBER,
         VERIFIER_BASE_URL: PROD_VERIFIER_BASE_URL,
+        CIE_CUSTOM_IDP_URL: undefined, // No override in prod
       };
   }
 };
