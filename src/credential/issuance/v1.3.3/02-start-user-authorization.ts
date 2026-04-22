@@ -3,11 +3,13 @@ import {
   fetchPushedAuthorizationResponse,
   createClientAttestationPopJwt,
 } from "@pagopa/io-wallet-oauth2";
-import type { CallbackContext, JwtSignerJwk } from "@pagopa/io-wallet-oauth2";
+import type { JwtSignerJwk } from "@pagopa/io-wallet-oauth2";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuanceApi } from "../api";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import { IoWalletError } from "../../../utils/errors";
 import {
   selectCredentialDefinition,
@@ -59,16 +61,8 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       alg: "ES256",
       publicJwk: await wiaCryptoContext.getPublicKey(),
     };
-    const signJwt: CallbackContext["signJwt"] = async (
-      _,
-      { header, payload }
-    ) => ({
-      jwt: await new SignJWT(wiaCryptoContext)
-        .setProtectedHeader(header)
-        .setPayload(payload)
-        .sign(),
-      signerJwk: wiaSigner.publicJwk,
-    });
+
+    const signJwt = createSignJwtFromCryptoContext(wiaCryptoContext);
 
     const parRequest = await createPushedAuthorizationRequest({
       callbacks: {
