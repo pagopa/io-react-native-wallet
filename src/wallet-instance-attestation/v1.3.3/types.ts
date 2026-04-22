@@ -15,6 +15,8 @@ export const WalletInstanceAttestationJwt = z.object({
     Jwt.shape.payload,
     z.object({
       sub: z.string(),
+      wallet_link: z.string().optional(),
+      wallet_name: z.string().optional(),
     })
   ),
 });

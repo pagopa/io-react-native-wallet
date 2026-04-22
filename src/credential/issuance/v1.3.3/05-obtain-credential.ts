@@ -19,7 +19,10 @@ import {
 } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { sdkConfigV1_3 } from "../../../utils/config";
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import type { IssuanceApi, IssuerConfig } from "../api";
 import { NonceResponse } from "./types";
 import type { AuthorizeAccessApi } from "../api/04-authorize-access";
@@ -115,20 +118,15 @@ export const requestCredentials = async ({
     signers,
   });
 
-  const dPopSignerJwk = await dPopCryptoContext.getPublicKey();
-
   const credentialDPoP = await createTokenDPoP({
     callbacks: {
       ...partialCallbacks,
-      signJwt: async (_, payload) => ({
-        jwt: await new SignJWT(dPopCryptoContext).setPayload(payload).sign(),
-        signerJwk: dPopSignerJwk,
-      }),
+      signJwt: createSignJwtFromCryptoContext(dPopCryptoContext),
     },
     signer: {
       method: "jwk",
       alg: "ES256",
-      publicJwk: dPopSignerJwk,
+      publicJwk: await dPopCryptoContext.getPublicKey(),
     },
     tokenRequest: {
       method: "POST",

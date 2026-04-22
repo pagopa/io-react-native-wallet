@@ -1,4 +1,9 @@
-import { EncryptJwe, getJwkFromHeader } from "@pagopa/io-react-native-jwt";
+import {
+  EncryptJwe,
+  getJwkFromHeader,
+  SignJWT,
+  type CryptoContext,
+} from "@pagopa/io-react-native-jwt";
 import { verify } from "@pagopa/io-react-native-jwt";
 import { type CallbackContext } from "@pagopa/io-wallet-oauth2";
 import { digest } from "@sd-jwt/crypto-nodejs";
@@ -86,5 +91,27 @@ export const createVerifyJwtFromJwks = (
     } catch {
       return { verified: false };
     }
+  };
+};
+
+/**
+ * Create a signJwt implementation that signs a JWT using the provided CryptoContext.
+ * @param cryptoContext The CryptoContext to use for signing the JWT
+ * @returns Function that implements `signJwt` callback
+ */
+export const createSignJwtFromCryptoContext = (
+  cryptoContext: CryptoContext
+): CallbackContext["signJwt"] => {
+  return async function signJwt(jwtSigner, { header, payload }) {
+    return {
+      jwt: await new SignJWT(cryptoContext)
+        .setProtectedHeader(header)
+        .setPayload(payload)
+        .sign(),
+      signerJwk:
+        jwtSigner.method === "jwk"
+          ? jwtSigner.publicJwk
+          : await cryptoContext.getPublicKey(),
+    };
   };
 };
