@@ -3,6 +3,7 @@ import {
   createTokenDPoP,
   fetchTokenResponse,
 } from "@pagopa/io-wallet-oauth2";
+import { v4 as uuidv4 } from "uuid";
 import {
   createSignJwtFromCryptoContext,
   partialCallbacks,
@@ -34,6 +35,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
       alg: "ES256",
       publicJwk: await dPopCryptoContext.getPublicKey(),
     },
+    jti: uuidv4(),
     tokenRequest: {
       method: "POST",
       url: issuerConf.token_endpoint,

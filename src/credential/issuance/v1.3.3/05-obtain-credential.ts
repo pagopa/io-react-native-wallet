@@ -9,6 +9,7 @@ import {
   createCredentialRequest,
 } from "@pagopa/io-wallet-oid4vci";
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
+import { v4 as uuidv4 } from "uuid";
 import { hasStatusOrThrow, type Out } from "../../../utils/misc";
 import {
   IoWalletError,
@@ -128,6 +129,7 @@ export const requestCredentials = async ({
       alg: "ES256",
       publicJwk: await dPopCryptoContext.getPublicKey(),
     },
+    jti: uuidv4(),
     tokenRequest: {
       method: "POST",
       url: issuerConf.credential_endpoint,
