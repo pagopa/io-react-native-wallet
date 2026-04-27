@@ -20,7 +20,7 @@ type ScreenProps = NativeStackScreenProps<
   "CieIdAuthentication"
 >;
 
-const IO_LOGIN_CIE_SOURCE_APP = "iologincie";
+const IO_LOGIN_CIE_SOURCE_APP = "iowallelogincie";
 const IO_LOGIN_CIE_URL_SCHEME = `${IO_LOGIN_CIE_SOURCE_APP}:`;
 const CIE_ID_ERROR = "cieiderror";
 const CIE_ID_ERROR_MESSAGE = "cieid_error_message=";
