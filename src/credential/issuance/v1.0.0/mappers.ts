@@ -17,7 +17,10 @@ export const mapToIssuerConfig = createMapper<
     credential_issuer: openid_credential_issuer.credential_issuer,
     credential_configurations_supported:
       openid_credential_issuer.credential_configurations_supported,
-    keys: openid_credential_issuer.jwks.keys,
+    keys: [
+      ...openid_credential_issuer.jwks.keys,
+      ...oauth_authorization_server.jwks.keys,
+    ],
     pushed_authorization_request_endpoint:
       oauth_authorization_server.pushed_authorization_request_endpoint,
     token_endpoint: oauth_authorization_server.token_endpoint,
