@@ -3,16 +3,18 @@ import {
   fetchPushedAuthorizationResponse,
   createClientAttestationPopJwt,
 } from "@pagopa/io-wallet-oauth2";
-import type { CallbackContext } from "@pagopa/io-wallet-oauth2";
+import type { JwtSignerJwk } from "@pagopa/io-wallet-oauth2";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuanceApi } from "../api";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import { IoWalletError } from "../../../utils/errors";
 import {
   selectCredentialDefinition,
   selectResponseMode,
-} from "../common/authorization";
+} from "../common/02-start-user-authorization";
 
 export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
   async (issuerConf, credentialIds, proof, ctx) => {
@@ -54,11 +56,13 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       });
     }
 
-    const signerJwk = await wiaCryptoContext.getPublicKey();
-    const signJwt: CallbackContext["signJwt"] = async (_, payload) => ({
-      jwt: await new SignJWT(wiaCryptoContext).setPayload(payload).sign(),
-      signerJwk,
-    });
+    const wiaSigner: JwtSignerJwk = {
+      method: "jwk",
+      alg: "ES256",
+      publicJwk: await wiaCryptoContext.getPublicKey(),
+    };
+
+    const signJwt = createSignJwtFromCryptoContext(wiaCryptoContext);
 
     const parRequest = await createPushedAuthorizationRequest({
       callbacks: {
@@ -74,19 +78,19 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       codeChallengeMethodsSupported: ["S256"],
       responseMode,
       redirectUri,
+      dpop: {
+        signer: wiaSigner,
+      },
     });
 
     const clientAttestationPoP = await createClientAttestationPopJwt({
       callbacks: {
+        generateRandom: partialCallbacks.generateRandom,
         signJwt,
       },
       clientAttestation: walletInstanceAttestation,
       authorizationServer: issuerConf.authorization_endpoint,
-      signer: {
-        method: "jwk",
-        alg: "ES256",
-        publicJwk: signerJwk,
-      },
+      signer: wiaSigner,
     });
 
     const { request_uri } = await fetchPushedAuthorizationResponse({

@@ -38,6 +38,7 @@
 				<key>CFBundleURLSchemes</key>
 				<array>
 					<string>iowalletexample</string>
+					<string>iowallelogincie</string>
 				</array>
 			</dict>
 		</array>
@@ -102,6 +103,12 @@
 			<string>RobotoMono-LightItalic.ttf</string>
 			<string>RobotoMono-Regular.ttf</string>
 			<string>RobotoMono-RegularItalic.ttf</string>
+		</array>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>http</string>
+			<string>https</string>
+			<string>CIEID</string>
 		</array>
 	</dict>
 </plist>

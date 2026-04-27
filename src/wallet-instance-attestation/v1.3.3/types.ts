@@ -15,13 +15,8 @@ export const WalletInstanceAttestationJwt = z.object({
     Jwt.shape.payload,
     z.object({
       sub: z.string(),
-      eudi_wallet_info: z.object({
-        general_info: z.object({
-          wallet_provider_name: z.string(),
-          wallet_solution_id: z.string(),
-          wallet_solution_version: z.string(),
-        }),
-      }),
+      wallet_link: z.string().optional(),
+      wallet_name: z.string().optional(),
     })
   ),
 });

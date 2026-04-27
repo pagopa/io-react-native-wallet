@@ -1,10 +1,13 @@
 import { SignJWT } from "@pagopa/io-react-native-jwt";
-import { fetchMrtdPopVerify } from "@pagopa/io-wallet-oauth2";
-import { v4 as uuidv4 } from "uuid";
-import { createPopToken } from "../../../utils/pop";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from 1.0.0 version
+import {
+  createClientAttestationPopJwt,
+  fetchMrtdPopVerify,
+} from "@pagopa/io-wallet-oauth2";
 import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 
 export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
@@ -23,17 +26,22 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
   } = context;
 
   const aud = issuerConf.credential_issuer;
-  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
-    .payload.cnf.jwk.kid;
 
-  const signedWiaPoP = await createPopToken(
-    {
-      jti: uuidv4(),
-      aud,
-      iss,
+  const wiaPublicJwk = await wiaCryptoContext.getPublicKey();
+
+  const clientAttestationDPoP = await createClientAttestationPopJwt({
+    callbacks: {
+      generateRandom: partialCallbacks.generateRandom,
+      signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
     },
-    wiaCryptoContext
-  );
+    clientAttestation: walletInstanceAttestation,
+    authorizationServer: aud,
+    signer: {
+      method: "jwk",
+      alg: "ES256",
+      publicJwk: wiaPublicJwk,
+    },
+  });
 
   const { kid } = await wiaCryptoContext.getPublicKey();
 
@@ -43,7 +51,7 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
       kid,
     })
     .setPayload({
-      iss,
+      iss: wiaPublicJwk.kid,
       aud,
       document_type: "cie",
       mrtd,
@@ -57,7 +65,7 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
     popVerifyEndpoint: verifyUrl,
     mrtdAuthSession: mrtd_auth_session,
     mrtdPopNonce: mrtd_pop_nonce,
-    clientAttestationDPoP: signedWiaPoP,
+    clientAttestationDPoP,
     mrtdValidationJwt,
     walletAttestation: walletInstanceAttestation,
     callbacks: {
