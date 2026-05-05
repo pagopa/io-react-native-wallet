@@ -233,3 +233,45 @@ export const RegistryDiscoveryJwt = z.object({
   }),
 });
 export type RegistryDiscoveryJwt = z.infer<typeof RegistryDiscoveryJwt>;
+
+/**
+ * Taxonomy purpose within a domain.
+ */
+const TaxonomyPurpose = z.object({
+  id: z.string(),
+  name_l10n_id: z.string(),
+  description_l10n_id: z.string(),
+});
+
+/**
+ * Taxonomy domain containing purposes.
+ */
+const TaxonomyDomain = z.object({
+  id: z.string(),
+  name_l10n_id: z.string(),
+  description_l10n_id: z.string(),
+  purposes: z.array(TaxonomyPurpose),
+});
+
+/**
+ * Taxonomy registry, available at a dedicated endpoint.
+ * Provides a hierarchical classification of domains and purposes.
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#taxonomy
+ */
+export const TaxonomyRegistry = z.object({
+  version: z.string(),
+  last_modified: z.string(),
+  id: z.string(),
+  localization: z
+    .object({
+      available_locales: z.array(z.string()),
+      base_uri: z.string(),
+      default_locale: z.string(),
+      version: z.string(),
+    })
+    .optional(),
+  name_l10n_id: z.string(),
+  description_l10n_id: z.string(),
+  domains: z.array(TaxonomyDomain),
+});
+export type TaxonomyRegistry = z.infer<typeof TaxonomyRegistry>;

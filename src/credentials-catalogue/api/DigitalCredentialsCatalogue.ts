@@ -117,8 +117,33 @@ export const DigitalCredential = z.object({
   // claims: z.array(Claim), // TODO: [SIW-3978] Should we keep claims?
 });
 
+const TaxonomyPurpose = z.object({
+  id: z.string(),
+  name_l10n_id: z.string(),
+  description_l10n_id: z.string(),
+});
+export type TaxonomyPurpose = z.infer<typeof TaxonomyPurpose>;
+
+const TaxonomyDomain = z.object({
+  id: z.string(),
+  name_l10n_id: z.string(),
+  description_l10n_id: z.string(),
+  purposes: z.array(TaxonomyPurpose),
+});
+export type TaxonomyDomain = z.infer<typeof TaxonomyDomain>;
+
+export const Taxonomy = z.object({
+  id: z.string(),
+  name_l10n_id: z.string(),
+  description_l10n_id: z.string(),
+  domains: z.array(TaxonomyDomain),
+  localization: LocalizationInfo.optional(),
+});
+export type Taxonomy = z.infer<typeof Taxonomy>;
+
 export const DigitalCredentialsCatalogue = z.object({
   taxonomy_uri: z.string().url(),
+  taxonomy: Taxonomy.optional(),
   credentials: z.array(DigitalCredential),
   iat: UnixTime,
   exp: UnixTime,

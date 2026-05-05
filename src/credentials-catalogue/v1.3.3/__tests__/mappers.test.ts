@@ -5,6 +5,7 @@ import type {
   DigitalCredentialsCatalogueJwt,
   RegistryDiscoveryJwt,
   SchemaRegistry,
+  TaxonomyRegistry,
 } from "../types";
 
 describe("mapToCredentialsCatalogue", () => {
@@ -57,6 +58,47 @@ describe("mapToCredentialsCatalogue", () => {
           policy_uri: "https://source-org.example.com/privacy",
         },
         data_capabilities: [],
+      },
+    ],
+  };
+
+  const taxonomyRegistry: TaxonomyRegistry = {
+    version: "1.0",
+    last_modified: "2025-04-10T12:00:00Z",
+    id: "urn:taxonomy:it-wallet",
+    localization: {
+      default_locale: "it",
+      available_locales: ["it", "en"],
+      base_uri:
+        "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
+      version: "1.0.0",
+    },
+    name_l10n_id: "taxonomy.name",
+    description_l10n_id: "taxonomy.description",
+    domains: [
+      {
+        id: "IDENTITY",
+        name_l10n_id: "domain.identity.name",
+        description_l10n_id: "domain.identity.description",
+        purposes: [
+          {
+            id: "PERSON_IDENTIFICATION",
+            name_l10n_id: "purpose.person_identification.name",
+            description_l10n_id: "purpose.person_identification.description",
+          },
+        ],
+      },
+      {
+        id: "AUTHORIZATION",
+        name_l10n_id: "domain.authorization.name",
+        description_l10n_id: "domain.authorization.description",
+        purposes: [
+          {
+            id: "DRIVING_LICENSE",
+            name_l10n_id: "purpose.driving_license.name",
+            description_l10n_id: "purpose.driving_license.description",
+          },
+        ],
       },
     ],
   };
@@ -118,6 +160,45 @@ describe("mapToCredentialsCatalogue", () => {
 
   const expected: DigitalCredentialsCatalogue = {
     taxonomy_uri: "https://issuer-example.com/taxonomy.json",
+    taxonomy: {
+      id: "urn:taxonomy:it-wallet",
+      name_l10n_id: "taxonomy.name",
+      description_l10n_id: "taxonomy.description",
+      localization: {
+        default_locale: "it",
+        available_locales: ["it", "en"],
+        base_uri:
+          "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
+        version: "1.0.0",
+      },
+      domains: [
+        {
+          id: "IDENTITY",
+          name_l10n_id: "domain.identity.name",
+          description_l10n_id: "domain.identity.description",
+          purposes: [
+            {
+              id: "PERSON_IDENTIFICATION",
+              name_l10n_id: "purpose.person_identification.name",
+              description_l10n_id:
+                "purpose.person_identification.description",
+            },
+          ],
+        },
+        {
+          id: "AUTHORIZATION",
+          name_l10n_id: "domain.authorization.name",
+          description_l10n_id: "domain.authorization.description",
+          purposes: [
+            {
+              id: "DRIVING_LICENSE",
+              name_l10n_id: "purpose.driving_license.name",
+              description_l10n_id: "purpose.driving_license.description",
+            },
+          ],
+        },
+      ],
+    },
     iat: 1730000000,
     exp: 1730003600,
     credentials: [
@@ -178,6 +259,7 @@ describe("mapToCredentialsCatalogue", () => {
         credentialsCatalogueJwt,
         authSourceRegistry,
         schemaRegistry,
+        taxonomyRegistry,
       ])
     ).toEqual(expected);
   });
