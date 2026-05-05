@@ -128,7 +128,7 @@ const TaxonomyDomain = z.object({
   id: z.string(),
   name_l10n_id: z.string(),
   description_l10n_id: z.string(),
-  purposes: z.array(TaxonomyPurpose),
+  purposes: z.array(TaxonomyPurpose).optional(),
 });
 export type TaxonomyDomain = z.infer<typeof TaxonomyDomain>;
 
