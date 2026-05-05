@@ -120,15 +120,21 @@ export const DigitalCredential = z.object({
 const TaxonomyPurpose = z.object({
   id: z.string(),
   name_l10n_id: z.string(),
-  description_l10n_id: z.string(),
 });
 export type TaxonomyPurpose = z.infer<typeof TaxonomyPurpose>;
+
+const TaxonomyClass = z.object({
+  id: z.string(),
+  name_l10n_id: z.string(),
+  supported_purposes: z.array(z.string()),
+});
+export type TaxonomyClass = z.infer<typeof TaxonomyClass>;
 
 const TaxonomyDomain = z.object({
   id: z.string(),
   name_l10n_id: z.string(),
   description_l10n_id: z.string(),
-  purposes: z.array(TaxonomyPurpose).optional(),
+  classes: z.array(TaxonomyClass),
 });
 export type TaxonomyDomain = z.infer<typeof TaxonomyDomain>;
 
@@ -137,6 +143,7 @@ export const Taxonomy = z.object({
   name_l10n_id: z.string(),
   description_l10n_id: z.string(),
   domains: z.array(TaxonomyDomain),
+  purposes: z.array(TaxonomyPurpose),
   localization: LocalizationInfo.optional(),
 });
 export type Taxonomy = z.infer<typeof Taxonomy>;

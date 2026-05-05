@@ -63,8 +63,8 @@ describe("mapToCredentialsCatalogue", () => {
   };
 
   const taxonomyRegistry: TaxonomyRegistry = {
-    version: "1.0",
-    last_modified: "2025-04-10T12:00:00Z",
+    version: "1.0.0",
+    last_modified: "2026-03-11T00:00:00Z",
     id: "urn:taxonomy:it-wallet",
     localization: {
       default_locale: "it",
@@ -80,11 +80,14 @@ describe("mapToCredentialsCatalogue", () => {
         id: "IDENTITY",
         name_l10n_id: "domain.identity.name",
         description_l10n_id: "domain.identity.description",
-        purposes: [
+        classes: [
           {
-            id: "PERSON_IDENTIFICATION",
-            name_l10n_id: "purpose.person_identification.name",
-            description_l10n_id: "purpose.person_identification.description",
+            id: "IDENTIFICATION_DOCUMENTS",
+            name_l10n_id: "class.identification_documents.name",
+            supported_purposes: [
+              "IDENTITY_VERIFICATION",
+              "PERSON_IDENTIFICATION",
+            ],
           },
         ],
       },
@@ -92,13 +95,27 @@ describe("mapToCredentialsCatalogue", () => {
         id: "AUTHORIZATION",
         name_l10n_id: "domain.authorization.name",
         description_l10n_id: "domain.authorization.description",
-        purposes: [
+        classes: [
           {
-            id: "DRIVING_LICENSE",
-            name_l10n_id: "purpose.driving_license.name",
-            description_l10n_id: "purpose.driving_license.description",
+            id: "LICENSES_AUTHORIZATIONS",
+            name_l10n_id: "class.licenses_authorizations.name",
+            supported_purposes: ["DRIVING_RIGHTS_VERIFICATION"],
           },
         ],
+      },
+    ],
+    purposes: [
+      {
+        id: "IDENTITY_VERIFICATION",
+        name_l10n_id: "purpose.identity_verification.name",
+      },
+      {
+        id: "PERSON_IDENTIFICATION",
+        name_l10n_id: "purpose.person_identification.name",
+      },
+      {
+        id: "DRIVING_RIGHTS_VERIFICATION",
+        name_l10n_id: "purpose.driving_rights_verification.name",
       },
     ],
   };
@@ -176,12 +193,14 @@ describe("mapToCredentialsCatalogue", () => {
           id: "IDENTITY",
           name_l10n_id: "domain.identity.name",
           description_l10n_id: "domain.identity.description",
-          purposes: [
+          classes: [
             {
-              id: "PERSON_IDENTIFICATION",
-              name_l10n_id: "purpose.person_identification.name",
-              description_l10n_id:
-                "purpose.person_identification.description",
+              id: "IDENTIFICATION_DOCUMENTS",
+              name_l10n_id: "class.identification_documents.name",
+              supported_purposes: [
+                "IDENTITY_VERIFICATION",
+                "PERSON_IDENTIFICATION",
+              ],
             },
           ],
         },
@@ -189,13 +208,27 @@ describe("mapToCredentialsCatalogue", () => {
           id: "AUTHORIZATION",
           name_l10n_id: "domain.authorization.name",
           description_l10n_id: "domain.authorization.description",
-          purposes: [
+          classes: [
             {
-              id: "DRIVING_LICENSE",
-              name_l10n_id: "purpose.driving_license.name",
-              description_l10n_id: "purpose.driving_license.description",
+              id: "LICENSES_AUTHORIZATIONS",
+              name_l10n_id: "class.licenses_authorizations.name",
+              supported_purposes: ["DRIVING_RIGHTS_VERIFICATION"],
             },
           ],
+        },
+      ],
+      purposes: [
+        {
+          id: "IDENTITY_VERIFICATION",
+          name_l10n_id: "purpose.identity_verification.name",
+        },
+        {
+          id: "PERSON_IDENTIFICATION",
+          name_l10n_id: "purpose.person_identification.name",
+        },
+        {
+          id: "DRIVING_RIGHTS_VERIFICATION",
+          name_l10n_id: "purpose.driving_rights_verification.name",
         },
       ],
     },

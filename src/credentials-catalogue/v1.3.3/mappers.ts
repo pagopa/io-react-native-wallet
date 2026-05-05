@@ -78,6 +78,7 @@ export const mapToCredentialsCatalogue = createMapper<
         name_l10n_id: taxonomyRegistry.name_l10n_id,
         description_l10n_id: taxonomyRegistry.description_l10n_id,
         domains: taxonomyRegistry.domains,
+        purposes: taxonomyRegistry.purposes,
         localization: taxonomyRegistry.localization,
       },
       localization: catalogueJwt.payload.localization,
