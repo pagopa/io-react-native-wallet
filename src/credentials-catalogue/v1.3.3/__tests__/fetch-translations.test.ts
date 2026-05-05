@@ -15,6 +15,13 @@ const asLocalization: LocalizationInfo = {
   version: "1.0",
 };
 
+const taxonomyLocalization: LocalizationInfo = {
+  available_locales: ["it", "en"],
+  base_uri: "https://registry.example.it/.well-known/l10n/taxonomy",
+  default_locale: "it",
+  version: "1.0",
+};
+
 const catalogueItBundle: Record<string, string> = {
   "mDL.name": "Patente di Guida",
   "mDL.issuer.name": "Emittente Esempio",
@@ -37,6 +44,18 @@ const asEnBundle: Record<string, string> = {
   "as1.name": "Example Ministry",
   "as1.dataset1.origin": "Data Origin",
   "shared.key": "as value en",
+};
+
+const taxonomyItBundle: Record<string, string> = {
+  "taxonomy.name": "Tassonomia IT-Wallet",
+  "domain.identity.name": "Identità",
+  "purpose.person_identification.name": "Identificazione Persona",
+};
+
+const taxonomyEnBundle: Record<string, string> = {
+  "taxonomy.name": "IT-Wallet Taxonomy",
+  "domain.identity.name": "Identity",
+  "purpose.person_identification.name": "Person Identification",
 };
 
 const makeFetch =
@@ -70,6 +89,10 @@ describe("fetchTranslations", () => {
       asItBundle,
     "https://registry.example.it/.well-known/authentic-sources/en.json":
       asEnBundle,
+    "https://registry.example.it/.well-known/l10n/taxonomy/it.json":
+      taxonomyItBundle,
+    "https://registry.example.it/.well-known/l10n/taxonomy/en.json":
+      taxonomyEnBundle,
   };
 
   it("returns merged translations for each requested locale", async () => {
@@ -127,11 +150,16 @@ describe("fetchTranslations", () => {
       ...asLocalization,
       available_locales: ["it"],
     };
+    const itOnlyTaxonomyLocalization: LocalizationInfo = {
+      ...taxonomyLocalization,
+      available_locales: ["it"],
+    };
 
     const result = await fetchTranslations(
       {
         catalogue: itOnlyLocalization,
         authenticSources: itOnlyAsLocalization,
+        taxonomy: itOnlyTaxonomyLocalization,
       },
       ["it", "en"],
       { appFetch: makeFetch(bundleMap) }
@@ -169,5 +197,79 @@ describe("fetchTranslations", () => {
     });
 
     expect(result).toEqual({});
+  });
+
+  it("includes taxonomy translations when taxonomy localization is provided", async () => {
+    const result = await fetchTranslations(
+      {
+        catalogue: catalogueLocalization,
+        authenticSources: asLocalization,
+        taxonomy: taxonomyLocalization,
+      },
+      ["it"],
+      { appFetch: makeFetch(bundleMap) }
+    );
+
+    expect(result.it).toMatchObject({
+      "mDL.name": "Patente di Guida",
+      "as1.name": "Ministero Esempio",
+      "taxonomy.name": "Tassonomia IT-Wallet",
+      "domain.identity.name": "Identità",
+      "purpose.person_identification.name": "Identificazione Persona",
+    });
+  });
+
+  it("works with only taxonomy localization provided", async () => {
+    const result = await fetchTranslations(
+      { taxonomy: taxonomyLocalization },
+      ["it", "en"],
+      { appFetch: makeFetch(bundleMap) }
+    );
+
+    expect(result.it).toMatchObject({
+      "taxonomy.name": "Tassonomia IT-Wallet",
+      "domain.identity.name": "Identità",
+    });
+    expect(result.en).toMatchObject({
+      "taxonomy.name": "IT-Wallet Taxonomy",
+      "domain.identity.name": "Identity",
+    });
+    expect(result.it).not.toHaveProperty("mDL.name");
+    expect(result.it).not.toHaveProperty("as1.name");
+  });
+
+  it("taxonomy keys take precedence over catalogue and AS keys on conflict", async () => {
+    const catalogueWithConflict: LocalizationInfo = {
+      ...catalogueLocalization,
+      available_locales: ["it"],
+    };
+    const taxonomyWithConflict: LocalizationInfo = {
+      ...taxonomyLocalization,
+      available_locales: ["it"],
+    };
+
+    // Add a conflicting key via a custom bundle map
+    const conflictBundleMap: Record<string, Record<string, string>> = {
+      ...bundleMap,
+      "https://registry.example.it/.well-known/credential-catalog/it.json": {
+        ...catalogueItBundle,
+        "conflict.key": "from catalogue",
+      },
+      "https://registry.example.it/.well-known/l10n/taxonomy/it.json": {
+        ...taxonomyItBundle,
+        "conflict.key": "from taxonomy",
+      },
+    };
+
+    const result = await fetchTranslations(
+      {
+        catalogue: catalogueWithConflict,
+        taxonomy: taxonomyWithConflict,
+      },
+      ["it"],
+      { appFetch: makeFetch(conflictBundleMap) }
+    );
+
+    expect(result.it!["conflict.key"]).toBe("from taxonomy");
   });
 });

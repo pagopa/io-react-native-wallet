@@ -2,7 +2,7 @@ import type { CredentialsCatalogueApi as Api } from "../api";
 import { fetchLocaleBundle } from "./utils";
 
 export const fetchTranslations: NonNullable<Api["fetchTranslations"]> = async (
-  { catalogue, authenticSources },
+  { catalogue, authenticSources, taxonomy },
   locales,
   { appFetch = fetch } = {}
 ) => {
@@ -10,16 +10,19 @@ export const fetchTranslations: NonNullable<Api["fetchTranslations"]> = async (
 
   await Promise.all(
     locales.map(async (locale) => {
-      const [catalogueBundle, asBundle] = await Promise.all([
+      const [catalogueBundle, asBundle, taxonomyBundle] = await Promise.all([
         catalogue?.available_locales.includes(locale)
           ? fetchLocaleBundle(catalogue.base_uri, locale, appFetch)
           : Promise.resolve({}),
         authenticSources?.available_locales.includes(locale)
           ? fetchLocaleBundle(authenticSources.base_uri, locale, appFetch)
           : Promise.resolve({}),
+        taxonomy?.available_locales.includes(locale)
+          ? fetchLocaleBundle(taxonomy.base_uri, locale, appFetch)
+          : Promise.resolve({}),
       ]);
 
-      const merged = { ...catalogueBundle, ...asBundle };
+      const merged = { ...catalogueBundle, ...asBundle, ...taxonomyBundle };
 
       // Only include the locale in the result if at least one source provided translations
       if (Object.keys(merged).length > 0) {

@@ -11,6 +11,7 @@ import {
   DigitalCredentialsCatalogueJwt,
   RegistryDiscoveryJwt,
   SchemaRegistry,
+  TaxonomyRegistry,
 } from "./types";
 
 export const mapToCredentialsCatalogue = createMapper<
@@ -19,10 +20,17 @@ export const mapToCredentialsCatalogue = createMapper<
     DigitalCredentialsCatalogueJwt,
     AuthenticSourceRegistry,
     SchemaRegistry,
+    TaxonomyRegistry,
   ],
   DigitalCredentialsCatalogue
 >(
-  ([discoveryJwt, catalogueJwt, authSourceRegistry, schemaRegistry]) => {
+  ([
+    discoveryJwt,
+    catalogueJwt,
+    authSourceRegistry,
+    schemaRegistry,
+    taxonomyRegistry,
+  ]) => {
     const authSourcesById = keyBy(
       authSourceRegistry.authentic_sources,
       "entity_id"
@@ -65,6 +73,14 @@ export const mapToCredentialsCatalogue = createMapper<
     return {
       ...catalogueJwt.payload,
       taxonomy_uri: discoveryJwt.payload.endpoints.taxonomy,
+      taxonomy: {
+        id: taxonomyRegistry.id,
+        name_l10n_id: taxonomyRegistry.name_l10n_id,
+        description_l10n_id: taxonomyRegistry.description_l10n_id,
+        domains: taxonomyRegistry.domains,
+        purposes: taxonomyRegistry.purposes,
+        localization: taxonomyRegistry.localization,
+      },
       localization: catalogueJwt.payload.localization,
       as_localization: authSourceRegistry.localization,
       credentials: catalogueJwt.payload.credentials.map(
