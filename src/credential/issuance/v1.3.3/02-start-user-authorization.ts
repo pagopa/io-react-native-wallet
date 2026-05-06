@@ -4,6 +4,7 @@ import {
   createClientAttestationPopJwt,
 } from "@pagopa/io-wallet-oauth2";
 import type { JwtSignerJwk } from "@pagopa/io-wallet-oauth2";
+import { v4 as uuidv4 } from "uuid";
 import { LogLevel, Logger } from "../../../utils/logging";
 import type { IssuanceApi } from "../api";
 import {
@@ -72,6 +73,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       authorizationServerMetadata: {
         require_signed_request_object: true,
       },
+      jti: uuidv4(),
       clientId,
       audience: issuerConf.credential_issuer,
       authorization_details: credentialDefinition,
@@ -91,6 +93,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       clientAttestation: walletInstanceAttestation,
       authorizationServer: issuerConf.authorization_endpoint,
       signer: wiaSigner,
+      jti: uuidv4(),
     });
 
     const { request_uri } = await fetchPushedAuthorizationResponse({
