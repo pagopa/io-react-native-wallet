@@ -46,5 +46,8 @@ export interface StatusListApi {
   verifyAndParse(
     issuerConf: IssuerConfig,
     statusListParams: Out<StatusListApi["get"]>
-  ): Promise<{ status: number }>;
+  ): Promise<{
+    statusBit: number;
+    status: string;
+  }>;
 }
