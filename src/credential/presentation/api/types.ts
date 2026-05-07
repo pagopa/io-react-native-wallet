@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
 import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
 
 export type PresentationParams = z.infer<typeof PresentationParams>;
@@ -68,6 +69,18 @@ export type RemotePresentationDetails = {
   vpToken: string;
 };
 
+type ClientMetadata = {
+  jwks: jsonWebKeySet;
+  encrypted_response_enc_values_supported: string[];
+  client_id: string;
+  client_name: string;
+  logo_uri: string;
+  application_type: "web";
+  request_uris: string[];
+  response_uris: string[];
+  vp_formats_supported: Record<string, { "sd-jwt_alg_values"?: string[] }>;
+};
+
 /**
  * Common Request Object type, decoupled from specific IT-Wallet versions
  */
@@ -80,6 +93,9 @@ export type RequestObject = {
   dcql_query: Record<string, unknown>;
   response_type: "vp_token";
   response_mode: "direct_post.jwt";
+  x5c?: string[];
+  trust_chain?: string[];
+  client_metadata?: ClientMetadata;
 };
 
 /**

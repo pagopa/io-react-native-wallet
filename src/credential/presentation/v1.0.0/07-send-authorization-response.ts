@@ -3,6 +3,7 @@ import { NoSuitableKeysFoundInEntityConfiguration } from "../common/errors";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import type { JWK } from "../../../utils/jwk";
 import {
+  IoWalletError,
   RelyingPartyResponseError,
   RelyingPartyResponseErrorCodes,
   ResponseErrorBuilder,
@@ -118,6 +119,12 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
     rpConf,
     { appFetch = fetch } = {}
   ) => {
+    if (!rpConf) {
+      throw new IoWalletError(
+        "Relying Party Configuration is required for OpenID Federation clients"
+      );
+    }
+
     const { presentations } = remotePresentation;
     // 1. Prepare the VP token as a JSON object with keys corresponding to the DCQL query credential IDs
     const requestBody = await buildDirectPostJwtBody(requestObject, rpConf, {

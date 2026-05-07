@@ -1,4 +1,5 @@
 import {
+  IoWalletError,
   RelyingPartyResponseError,
   RelyingPartyResponseErrorCodes,
 } from "../../../../utils/errors";
@@ -151,6 +152,12 @@ describe("sendAuthorizationResponse", () => {
       }
     }
   );
+
+  it("should throw if no Relying Party configuration is provided", async () => {
+    await expect(() =>
+      sendAuthorizationResponse(mockRequestObject, remotePresentations)
+    ).rejects.toThrow(IoWalletError);
+  });
 });
 
 describe("sendAuthorizationErrorResponse", () => {
