@@ -24,7 +24,7 @@ import {
   type QrScannerScreenParams,
 } from "../screens/QrScannerScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import { CredentialStatusScreen } from "../screens/StatusAssertionScreen";
+import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
 import {
   TrustmarkQrCodeScreen,
   TrustmarkScreen,

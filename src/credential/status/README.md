@@ -111,7 +111,7 @@ const res = await wallet.CredentialStatus.statusList.get(
 );
 
 // Verify and parse the status list response to get the credential status
-const { status } =
+const { status, statusBit } =
   await wallet.CredentialStatus.statusList.verifyAndParse(
     issuerConf,
     res
@@ -120,6 +120,7 @@ const { status } =
 return {
   statusList: res.statusList,
   status,
+  statusBit,
 };
 ```
 
