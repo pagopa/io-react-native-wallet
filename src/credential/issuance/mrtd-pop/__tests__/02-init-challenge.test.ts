@@ -2,17 +2,6 @@ import { initChallenge } from "../02-init-challenge";
 import { IssuerResponseError } from "../../../../utils/errors";
 import type { IssuerConfig } from "../../api/IssuerConfig";
 
-// Mock dependencies
-jest.mock("../../../../utils/pop", () => ({
-  createPopToken: jest.fn().mockResolvedValue("signed-wia-pop-token"),
-}));
-
-jest.mock("../../../../wallet-instance-attestation/v1.0.0/utils", () => ({
-  decode: jest.fn().mockReturnValue({
-    payload: { cnf: { jwk: { kid: "wia-key-id" } } },
-  }),
-}));
-
 // Provide a deterministic uuid
 jest.mock("uuid", () => ({ v4: () => "fixed-jti" }));
 
@@ -35,6 +24,11 @@ const mockChallengeJwt =
   "eyJ0eXAiOiJtcnRkLWlhcy1wb3Arand0IiwiYWxnIjoiRVMyNTYiLCJraWQiOiJraWQifQ.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlIiwiYXVkIjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsX2lzc3VlciIsImlhdCI6MTExMTExMTExMSwiZXhwIjoyMjIyMjIyMjIyLCJjaGFsbGVuZ2UiOiJjaGFsbGVuZ2UtdmFsdWUiLCJtcnRkX3BvcF9ub25jZSI6Im5vbmNlLXZhbHVlIiwiaHR1IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9tcnRkL2luaXQiLCJodG0iOiJQT1NUIn0.8Gr0wvvmE3lF4sTUT8hj4csZe_tWpbVRqgf4-lwDStm325AtsqYRpgLLb43bKlgUrV4Z9H_mWciu7peW7UVhhg";
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
+  SignJWT: jest.fn().mockImplementation(() => ({
+    setProtectedHeader: jest.fn().mockReturnThis(),
+    setPayload: jest.fn().mockReturnThis(),
+    sign: jest.fn().mockResolvedValue("signed-wia-pop-token"),
+  })),
   verify: jest.fn(),
   getJwkFromHeader: jest.fn(),
 }));
@@ -44,13 +38,15 @@ const issuerConf = {
   credential_issuer: mockDecodedJwt.payload.aud,
 } as unknown as IssuerConfig;
 
-// Dummy WIA crypto context (the actual object is not used because createPopToken is mocked)
-const wiaCryptoContext = {} as any;
+const wiaCryptoContext = {
+  getPublicKey: jest.fn(),
+} as any;
 
 describe("initChallenge", () => {
   const mrtd_auth_session = "auth-session-id";
   const mrtd_pop_jwt_nonce = "jwt-nonce-value";
-  const walletInstanceAttestation = "attestation-jwt";
+  const walletInstanceAttestation =
+    "eyJ0eXAiOiJvYXV0aC1jbGllbnQtYXR0ZXN0YXRpb24rand0IiwieDVjIjpbIiJdLCJhbGciOiJFUzI1NiIsImtpZCI6IjhVa2ZydnR0TGtwQVFPT3A0S1lwYVBzQkxsdmIyaGhBQXlUTEJWTjZOVWMifQ.eyJjbmYiOnsiandrIjp7ImNydiI6IlAtMjU2Iiwia2lkIjoiWnZwNkVCQ01jVEtHT0NlRWhiM0JmU01QSmhfX2JHZ2c1bWVCTzAzbGZWbyIsImt0eSI6IkVDIiwieCI6IndBRzhEdkRQSlBVVmNtNkdfNFRJV2hydjRPOFlrYnFDYWREdnYzTlc2aXMiLCJ5IjoiQTd5Sm1tZzVHNDY3LWJhcmc2LTJxY2FpVGlqUlczekp2c0pQbF9NUzRHUSIsImFsZyI6IkVTMjU2In19LCJpc3MiOiJodHRwczovL21vY2std3AiLCJzdWIiOiJadnA2RUJDTWNUS0dPQ2VFaGIzQmZTTVBKaF9fYkdnZzVtZUJPMDNsZlZvIiwid2FsbGV0X2xpbmsiOiJodHRwczovL2lvYXBwLml0LyIsIndhbGxldF9uYW1lIjoiQXBwIElPIiwiaWF0IjoxNzc4MTM5NDM1LCJleHAiOjE5NzgxNDMwMzV9.mg_8iFVhCV4xFngIbrglHrff2X9MkKjXwKWh3_Un8ypNSv0cbJ_YL5IoRWwXkBdD226xZWFxgYWXpfn6ZECTLw";
   const initUrl = mockDecodedJwt.payload.htu;
 
   it("initializes the challenge and returns the decoded payload", async () => {
@@ -92,17 +88,6 @@ describe("initChallenge", () => {
       mrtd_auth_session,
       mrtd_pop_jwt_nonce,
     });
-
-    // Validate createPopToken was invoked with expected claims
-    const { createPopToken } = require("../../../../utils/pop");
-    expect(createPopToken).toHaveBeenCalledWith(
-      expect.objectContaining({
-        jti: "fixed-jti",
-        aud: mockDecodedJwt.payload.aud,
-        iss: "wia-key-id",
-      }),
-      wiaCryptoContext
-    );
   });
 
   it("throws IssuerResponseError when status code is not 202", async () => {

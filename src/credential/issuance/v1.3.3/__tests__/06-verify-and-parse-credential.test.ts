@@ -66,6 +66,20 @@ describe("verifyAndParseCredential", () => {
             ],
           },
           {
+            path: ["place_of_birth", "locality"],
+            display: [
+              { locale: "it-IT", name: "Località di nascita" },
+              { locale: "en-US", name: "Birth locality" },
+            ],
+          },
+          {
+            path: ["place_of_birth", "country"],
+            display: [
+              { locale: "it-IT", name: "Paese di nascita" },
+              { locale: "en-US", name: "Birth country" },
+            ],
+          },
+          {
             path: ["tax_id_code"],
             display: [
               { locale: "it-IT", name: "Codice Fiscale" },
@@ -114,7 +128,15 @@ describe("verifyAndParseCredential", () => {
           name: { "it-IT": "Nazionalità", "en-US": "Nationalities" },
         },
         place_of_birth: {
-          value: { locality: "ROMA" },
+          value: {
+            locality: {
+              value: "ROMA",
+              name: {
+                "it-IT": "Località di nascita",
+                "en-US": "Birth locality",
+              },
+            },
+          },
           name: { "it-IT": "Luogo di nascita", "en-US": "Place of birth" },
         },
       },

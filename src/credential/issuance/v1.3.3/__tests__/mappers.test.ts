@@ -9,6 +9,9 @@ describe("mapToIssuerConfig", () => {
         authorization_endpoint: "https://issuer.example/authorize",
         pushed_authorization_request_endpoint: "https://issuer.example/par",
         token_endpoint: "https://issuer.example/token",
+        jwks: {
+          keys: [{ kty: "EC", kid: "sig-kid-1", use: "sig" }],
+        },
       },
       openid_credential_issuer: {
         credential_endpoint: "https://issuer.example/credential",
@@ -16,7 +19,7 @@ describe("mapToIssuerConfig", () => {
         status_attestation_endpoint: "https://issuer.example/status",
         nonce_endpoint: "https://issuer.example/nonce",
         jwks: {
-          keys: [{ kty: "EC", kid: "sig-kid", use: "sig" }],
+          keys: [{ kty: "EC", kid: "sig-kid-2", use: "sig" }],
         },
         batch_credential_issuance: {
           batch_size: 10,
@@ -85,7 +88,10 @@ describe("mapToIssuerConfig", () => {
           claims: [],
         },
       },
-      keys: [{ kty: "EC", kid: "sig-kid", use: "sig" }],
+      keys: [
+        { kty: "EC", kid: "sig-kid-2", use: "sig" },
+        { kty: "EC", kid: "sig-kid-1", use: "sig" },
+      ],
       pushed_authorization_request_endpoint: "https://issuer.example/par",
       token_endpoint: "https://issuer.example/token",
       nonce_endpoint: "https://issuer.example/nonce",

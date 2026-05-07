@@ -43,12 +43,10 @@ export const validateChallenge: MRTDPoPApi["validateChallenge"] = async (
     },
   });
 
-  const { kid } = await wiaCryptoContext.getPublicKey();
-
   const mrtdValidationJwt = await new SignJWT(wiaCryptoContext)
     .setProtectedHeader({
       typ: "mrtd-ias+jwt",
-      kid,
+      kid: wiaPublicJwk.kid,
     })
     .setPayload({
       iss: wiaPublicJwk.kid,
