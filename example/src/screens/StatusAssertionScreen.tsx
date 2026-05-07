@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   selectCredential,
-  selectStatusAssertionAsyncStatuses,
-  selectStatusAssertions,
+  selectStatusAsyncStatuses,
+  selectStatuses,
 } from "../store/reducers/credential";
-import { getCredentialStatusAssertionThunk } from "../thunks/credential";
+import {
+  getCredentialStatusAssertionThunk,
+  getCredentialStatusListThunk,
+} from "../thunks/credential";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
@@ -13,15 +17,16 @@ import { FlatList } from "react-native";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectPid } from "../store/reducers/pid";
+import { selectItwVersion } from "../store/reducers/environment";
 
 /**
- * This component (screen in a future PR) is used to test the status assertion functionalities for the credentials already obtained.
+ * This screen is used to test the status functionalities for the credentials already obtained.
  */
-export const StatusAssertionScreen = () => {
+export const CredentialStatusScreen = () => {
   const dispatch = useAppDispatch();
 
-  const statusAssertion = useAppSelector(selectStatusAssertions);
-  const asyncStatus = useAppSelector(selectStatusAssertionAsyncStatuses);
+  const status = useAppSelector(selectStatuses);
+  const asyncStatus = useAppSelector(selectStatusAsyncStatuses);
 
   const pid = useAppSelector(selectPid);
   const mDL = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
@@ -29,16 +34,40 @@ export const StatusAssertionScreen = () => {
     selectCredential("dc_sd_jwt_EuropeanDisabilityCard")
   );
 
+  const itwVersion = useAppSelector(selectItwVersion);
+
+  const wallet = useMemo(
+    () => new IoWallet({ version: itwVersion }),
+    [itwVersion]
+  );
+
   useDebugInfo({
-    pidStatusAssertionState: asyncStatus.PersonIdentificationData,
-    mdlStatusAssertionState: asyncStatus.dc_sd_jwt_mDL,
-    dcStatusAssertionState: asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
-    pidStatusAssertion: statusAssertion.PersonIdentificationData,
-    mdlStatusAssertion: statusAssertion.dc_sd_jwt_mDL,
-    dcStatusAssertion: statusAssertion.dc_sd_jwt_EuropeanDisabilityCard,
+    pidStatusState: asyncStatus.PersonIdentificationData,
+    mdlStatusState: asyncStatus.dc_sd_jwt_mDL,
+    dcStatusState: asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
+    pidStatus: status.PersonIdentificationData,
+    mdlStatus: status.dc_sd_jwt_mDL,
+    dcStatus: status.dc_sd_jwt_EuropeanDisabilityCard,
   });
 
-  const scenarios: Array<TestScenarioProp | undefined> = [
+  const statusListScenarios: Array<TestScenarioProp | undefined> = [
+    pid && {
+      title: "Get Status List (PID)",
+      onPress: () =>
+        dispatch(
+          getCredentialStatusListThunk({
+            format: pid.format,
+            credential: pid.credential,
+            credentialType: "PersonIdentificationData",
+          })
+        ),
+      ...asyncStatus.PersonIdentificationData,
+      icon: "fiscalCodeIndividual",
+      isPresent: !!status.PersonIdentificationData,
+    },
+  ];
+
+  const statusAssertionScenarios: Array<TestScenarioProp | undefined> = [
     pid && {
       title: "Get Status Assertion (PID)",
       onPress: () =>
@@ -52,7 +81,7 @@ export const StatusAssertionScreen = () => {
         ),
       ...asyncStatus.PersonIdentificationData,
       icon: "fiscalCodeIndividual",
-      isPresent: !!statusAssertion.PersonIdentificationData,
+      isPresent: !!status.PersonIdentificationData,
     },
     mDL && {
       title: "Get Status Assertion (MDL)",
@@ -67,7 +96,7 @@ export const StatusAssertionScreen = () => {
         ),
       ...asyncStatus.dc_sd_jwt_mDL,
       icon: "car",
-      isPresent: !!statusAssertion.dc_sd_jwt_mDL,
+      isPresent: !!status.dc_sd_jwt_mDL,
     },
     dc && {
       title: "Get Status Assertion (DC)",
@@ -82,16 +111,26 @@ export const StatusAssertionScreen = () => {
         ),
       ...asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
       icon: "accessibility",
-      isPresent: !!statusAssertion.dc_sd_jwt_EuropeanDisabilityCard,
+      isPresent: !!status.dc_sd_jwt_EuropeanDisabilityCard,
     },
   ];
+
+  const getScenarios = () => {
+    if (wallet.CredentialStatus.statusList.isSupported) {
+      return statusListScenarios;
+    }
+    if (wallet.CredentialStatus.statusAssertion.isSupported) {
+      return statusAssertionScenarios;
+    }
+    return [];
+  };
 
   return (
     <FlatList
       contentContainerStyle={{
         margin: IOVisualCostants.appMarginDefault,
       }}
-      data={scenarios}
+      data={getScenarios()}
       keyExtractor={(item, index) => `${item?.title}-${index}`}
       renderItem={({ item }) => (
         <>

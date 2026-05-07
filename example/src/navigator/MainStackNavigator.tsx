@@ -24,7 +24,7 @@ import {
   type QrScannerScreenParams,
 } from "../screens/QrScannerScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import { StatusAssertionScreen } from "../screens/StatusAssertionScreen";
+import { CredentialStatusScreen } from "../screens/StatusAssertionScreen";
 import {
   TrustmarkQrCodeScreen,
   TrustmarkScreen,
@@ -49,7 +49,7 @@ export type MainStackNavParamList = {
   WalletInstance: undefined;
   Pid: undefined;
   Credentials: undefined;
-  StatusAssertion: undefined;
+  CredentialStatus: undefined;
   Trustmark: undefined;
   TrustmarkQrCode: { credentialType: SupportedCredentialsWithoutPid };
   Login: undefined;
@@ -170,9 +170,9 @@ export const MainStackNavigator = () => {
               options={{ title: "Credentials issuance" }}
             />
             <Stack.Screen
-              name="StatusAssertion"
-              component={StatusAssertionScreen}
-              options={{ title: "Credentials assertions" }}
+              name="CredentialStatus"
+              component={CredentialStatusScreen}
+              options={{ title: "Credential status" }}
             />
             <Stack.Screen
               name="Presentations"

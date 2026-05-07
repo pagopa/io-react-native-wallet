@@ -242,3 +242,38 @@ export const getCredentialStatusAssertion = async (
     credentialType,
   };
 };
+
+/**
+ * Get the status of a credential via the Token Status List.
+ */
+export const getCredentialStatus = async (
+  itwVersion: ItwVersion,
+  credential: string,
+  format: CredentialIssuance.CredentialFormat,
+  credentialIssuerUrl: string
+) => {
+  const wallet = new IoWallet({ version: itwVersion });
+
+  if (!wallet.CredentialStatus.statusList.isSupported) {
+    throw new Error(`Status list is not supported in version ${itwVersion}`);
+  }
+
+  const { issuerConf } =
+    await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
+
+  const statusListParams = await wallet.CredentialStatus.statusList.get(
+    credential,
+    format,
+    { appFetch }
+  );
+
+  const result = await wallet.CredentialStatus.statusList.verifyAndParse(
+    issuerConf,
+    statusListParams
+  );
+
+  return {
+    statusList: statusListParams.statusList,
+    ...result,
+  };
+};
