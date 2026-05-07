@@ -6,29 +6,15 @@ import { IssuerResponseError } from "../../../../utils/errors";
 import type { MrtdPayload, IasPayload } from "../../api/mrtd-pop";
 import type { IssuerConfig } from "../../api/IssuerConfig";
 
-// Mock dependencies
-jest.mock("../../../../utils/pop", () => ({
-  createPopToken: jest.fn().mockResolvedValue("signed-wia-pop-token"),
-}));
-
-jest.mock("../../../../wallet-instance-attestation/v1.0.0/utils", () => ({
-  decode: jest.fn().mockReturnValue({
-    payload: { cnf: { jwk: { kid: "wia-key-id" } } },
-  }),
-}));
-
-// Provide a deterministic uuid
-jest.mock("uuid", () => ({ v4: () => "fixed-jti" }));
-
 // Mock SignJWT from @pagopa/io-react-native-jwt
-const mockSign = jest.fn().mockResolvedValue("signed-mrtd-validation-jwt");
+const mockSign = jest.fn();
 const mockSetExpirationTime = jest.fn().mockReturnValue({ sign: mockSign });
 const mockSetIssuedAt = jest
   .fn()
   .mockReturnValue({ setExpirationTime: mockSetExpirationTime });
 const mockSetPayload = jest
   .fn()
-  .mockReturnValue({ setIssuedAt: mockSetIssuedAt });
+  .mockReturnValue({ setIssuedAt: mockSetIssuedAt, sign: mockSign });
 const mockSetProtectedHeader = jest
   .fn()
   .mockReturnValue({ setPayload: mockSetPayload });
@@ -59,14 +45,17 @@ const iasPayload: IasPayload = {
 
 // Mock WIA crypto context with getPublicKey method
 const wiaCryptoContext = {
-  getPublicKey: jest.fn().mockResolvedValue({ kid: "crypto-kid" }),
+  getPublicKey: jest
+    .fn()
+    .mockResolvedValue({ kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo" }),
 } as any;
 
 describe("validateChallenge", () => {
   const verifyUrl = "https://issuer.example/mrtd/verify";
   const mrtd_auth_session = "auth-session-id";
   const mrtd_pop_nonce = "pop-nonce-value";
-  const walletInstanceAttestation = "attestation-jwt";
+  const walletInstanceAttestation =
+    "eyJ0eXAiOiJvYXV0aC1jbGllbnQtYXR0ZXN0YXRpb24rand0IiwieDVjIjpbIiJdLCJhbGciOiJFUzI1NiIsImtpZCI6IjhVa2ZydnR0TGtwQVFPT3A0S1lwYVBzQkxsdmIyaGhBQXlUTEJWTjZOVWMifQ.eyJjbmYiOnsiandrIjp7ImNydiI6IlAtMjU2Iiwia2lkIjoiWnZwNkVCQ01jVEtHT0NlRWhiM0JmU01QSmhfX2JHZ2c1bWVCTzAzbGZWbyIsImt0eSI6IkVDIiwieCI6IndBRzhEdkRQSlBVVmNtNkdfNFRJV2hydjRPOFlrYnFDYWREdnYzTlc2aXMiLCJ5IjoiQTd5Sm1tZzVHNDY3LWJhcmc2LTJxY2FpVGlqUlczekp2c0pQbF9NUzRHUSIsImFsZyI6IkVTMjU2In19LCJpc3MiOiJodHRwczovL21vY2std3AiLCJzdWIiOiJadnA2RUJDTWNUS0dPQ2VFaGIzQmZTTVBKaF9fYkdnZzVtZUJPMDNsZlZvIiwid2FsbGV0X2xpbmsiOiJodHRwczovL2lvYXBwLml0LyIsIndhbGxldF9uYW1lIjoiQXBwIElPIiwiaWF0IjoxNzc4MTM5NDM1LCJleHAiOjE5NzgxNDMwMzV9.mg_8iFVhCV4xFngIbrglHrff2X9MkKjXwKWh3_Un8ypNSv0cbJ_YL5IoRWwXkBdD226xZWFxgYWXpfn6ZECTLw";
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -86,6 +75,9 @@ describe("validateChallenge", () => {
         headers: { "content-type": "application/json" },
       })
     );
+
+    mockSign.mockResolvedValueOnce("signed-wia-pop-token");
+    mockSign.mockResolvedValueOnce("signed-mrtd-validation-jwt");
 
     const result = await validateChallenge(
       issuerConf,
@@ -122,17 +114,6 @@ describe("validateChallenge", () => {
       mrtd_auth_session,
       mrtd_pop_nonce,
     });
-
-    // Validate createPopToken was invoked with expected claims
-    const { createPopToken } = require("../../../../utils/pop");
-    expect(createPopToken).toHaveBeenCalledWith(
-      expect.objectContaining({
-        jti: "fixed-jti",
-        aud: "https://issuer.example/credential_issuer",
-        iss: "wia-key-id",
-      }),
-      wiaCryptoContext
-    );
   });
 
   it("creates the MRTD validation JWT with correct structure", async () => {
@@ -162,11 +143,10 @@ describe("validateChallenge", () => {
     // Verify SignJWT was called with correct parameters
     expect(mockSetProtectedHeader).toHaveBeenCalledWith({
       typ: "mrtd-ias+jwt",
-      kid: "crypto-kid",
+      kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
     });
-
     expect(mockSetPayload).toHaveBeenCalledWith({
-      iss: "wia-key-id",
+      iss: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
       aud: "https://issuer.example/credential_issuer",
       document_type: "cie",
       mrtd: mrtdPayload,

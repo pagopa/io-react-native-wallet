@@ -1,16 +1,20 @@
-import { v4 as uuidv4 } from "uuid";
-import { fetchMrtdPopInit } from "@pagopa/io-wallet-oauth2";
+import {
+  createClientAttestationPopJwt,
+  fetchMrtdPopInit,
+} from "@pagopa/io-wallet-oauth2";
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
-import { createPopToken } from "../../../utils/pop";
 import { Logger, LogLevel } from "../../../utils/logging";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from version 1.0.0
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
 } from "../../../utils/errors";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
-import { createVerifyJwtFromJwks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  createVerifyJwtFromJwks,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 
 export const initChallenge: MRTDPoPApi["initChallenge"] = async (
   issuerConf,
@@ -25,24 +29,26 @@ export const initChallenge: MRTDPoPApi["initChallenge"] = async (
     wiaCryptoContext,
   } = context;
 
-  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
-    .payload.cnf.jwk.kid;
-
-  const signedWiaPoP = await createPopToken(
-    {
-      jti: uuidv4(),
-      aud: issuerConf.credential_issuer,
-      iss,
+  const clientAttestationDPoP = await createClientAttestationPopJwt({
+    callbacks: {
+      generateRandom: partialCallbacks.generateRandom,
+      signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
     },
-    wiaCryptoContext
-  );
+    clientAttestation: walletInstanceAttestation,
+    authorizationServer: issuerConf.credential_issuer,
+    signer: {
+      method: "jwk",
+      alg: "ES256",
+      publicJwk: await wiaCryptoContext.getPublicKey(),
+    },
+  });
 
   const initResult = await fetchMrtdPopInit({
     popInitEndpoint: initUrl,
     mrtdAuthSession: mrtd_auth_session,
     mrtdPopJwtNonce: mrtd_pop_jwt_nonce,
     walletAttestation: walletInstanceAttestation,
-    clientAttestationDPoP: signedWiaPoP,
+    clientAttestationDPoP,
     callbacks: {
       verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
       fetch: appFetch,

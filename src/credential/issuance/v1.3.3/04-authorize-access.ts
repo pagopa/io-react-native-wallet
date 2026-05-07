@@ -1,9 +1,13 @@
-import { SignJWT } from "@pagopa/io-react-native-jwt";
-import { createTokenDPoP, fetchTokenResponse } from "@pagopa/io-wallet-oauth2";
+import {
+  createClientAttestationPopJwt,
+  createTokenDPoP,
+  fetchTokenResponse,
+} from "@pagopa/io-wallet-oauth2";
 import { v4 as uuidv4 } from "uuid";
-import { createPopToken } from "../../../utils/pop";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import { IoWalletError } from "../../../utils/errors";
 import type { IssuanceApi, TokenResponse } from "../api";
 
@@ -21,37 +25,36 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
     dPopCryptoContext,
   } = context;
 
-  const dPopSignerJwk = await dPopCryptoContext.getPublicKey();
   const tokenDPoP = await createTokenDPoP({
     callbacks: {
       ...partialCallbacks,
-      signJwt: async (_, payload) => ({
-        jwt: await new SignJWT(wiaCryptoContext).setPayload(payload).sign(),
-        signerJwk: dPopSignerJwk,
-      }),
+      signJwt: createSignJwtFromCryptoContext(dPopCryptoContext),
     },
     signer: {
-      alg: "ES256",
       method: "jwk",
-      publicJwk: dPopSignerJwk,
+      alg: "ES256",
+      publicJwk: await dPopCryptoContext.getPublicKey(),
     },
+    jti: uuidv4(),
     tokenRequest: {
       method: "POST",
       url: issuerConf.token_endpoint,
     },
   });
 
-  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
-    .payload.cnf.jwk.kid;
-
-  const signedWiaPoP = await createPopToken(
-    {
-      jti: uuidv4(),
-      aud: issuerConf.credential_issuer,
-      iss,
+  const clientAttestationDPoP = await createClientAttestationPopJwt({
+    callbacks: {
+      generateRandom: partialCallbacks.generateRandom,
+      signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
     },
-    wiaCryptoContext
-  );
+    clientAttestation: walletInstanceAttestation,
+    authorizationServer: issuerConf.credential_issuer,
+    signer: {
+      method: "jwk",
+      alg: "ES256",
+      publicJwk: await wiaCryptoContext.getPublicKey(),
+    },
+  });
 
   const tokenResponse = await fetchTokenResponse({
     accessTokenEndpoint: issuerConf.token_endpoint,
@@ -61,7 +64,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
     },
     walletAttestation: walletInstanceAttestation,
     dPoP: tokenDPoP.jwt,
-    clientAttestationDPoP: signedWiaPoP,
+    clientAttestationDPoP,
     accessTokenRequest: {
       code,
       grant_type: "authorization_code",

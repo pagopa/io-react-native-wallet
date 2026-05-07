@@ -1,6 +1,6 @@
 PODS:
   - boost (1.84.0)
-  - CieSDK (0.1.13)
+  - CieSDK (0.1.19)
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
   - FBLazyVector (0.78.3)
@@ -9,8 +9,8 @@ PODS:
   - hermes-engine (0.78.3):
     - hermes-engine/Pre-built (= 0.78.3)
   - hermes-engine/Pre-built (0.78.3)
-  - IoReactNativeCie (1.2.2):
-    - CieSDK (~> 0.1.13)
+  - IoReactNativeCie (1.3.4):
+    - CieSDK (~> 0.1.19)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -58,6 +58,27 @@ PODS:
   - IOWalletProximity (1.3.0)
   - JOSESwift (3.0.0)
   - OpenSSL-Universal (3.3.3001)
+  - pagopa-io-react-native-cieid (0.4.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - pagopa-io-react-native-crypto (1.2.3):
     - DoubleConversion
     - glog
@@ -2108,6 +2129,7 @@ DEPENDENCIES:
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - "IoReactNativeCie (from `../node_modules/@pagopa/io-react-native-cie`)"
   - "IoReactNativeIso18013 (from `../node_modules/@pagopa/io-react-native-iso18013`)"
+  - "pagopa-io-react-native-cieid (from `../node_modules/@pagopa/io-react-native-cieid`)"
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
   - "pagopa-io-react-native-integrity (from `../node_modules/@pagopa/io-react-native-integrity`)"
   - "pagopa-io-react-native-jwt (from `../node_modules/@pagopa/io-react-native-jwt`)"
@@ -2218,6 +2240,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@pagopa/io-react-native-cie"
   IoReactNativeIso18013:
     :path: "../node_modules/@pagopa/io-react-native-iso18013"
+  pagopa-io-react-native-cieid:
+    :path: "../node_modules/@pagopa/io-react-native-cieid"
   pagopa-io-react-native-crypto:
     :path: "../node_modules/@pagopa/io-react-native-crypto"
   pagopa-io-react-native-integrity:
@@ -2375,19 +2399,20 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  CieSDK: 80884e397d0eef6e07fb8d5580fc4c7604b971e0
+  CieSDK: 171477d376b174988b7c3b2e69324e95ca38f1cf
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: e053802577a711add20e45bbbf5dd1180b6ca62e
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
-  IoReactNativeCie: ba3765ecdf9689b0050cbecccb4961c8662776c5
+  IoReactNativeCie: da543569fefebf0a7f5d00dc296e717e39bec52a
   IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
   IOWalletCBOR: 92742ef1cbd1b627ba153d0c7c11b81ad22f45cc
   IOWalletProximity: 1836d6b5df0a64a97e09f355d15d5155f086f830
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
+  pagopa-io-react-native-cieid: cf8c440aca2fb7270f02a2cde44a1c1077a1c096
   pagopa-io-react-native-crypto: aa7a368286a7c0aa9536325d1e49f956c4ce3f6b
   pagopa-io-react-native-integrity: a4c4c7ebd2ea699e40536f969bd62371f82638c0
   pagopa-io-react-native-jwt: 5c0eac212ff06d4368b3949cd74649a5e8349a95

@@ -9,6 +9,7 @@ import {
   createCredentialRequest,
 } from "@pagopa/io-wallet-oid4vci";
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
+import { v4 as uuidv4 } from "uuid";
 import { hasStatusOrThrow, type Out } from "../../../utils/misc";
 import {
   IoWalletError,
@@ -19,7 +20,10 @@ import {
 } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { sdkConfigV1_3 } from "../../../utils/config";
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import type { IssuanceApi, IssuerConfig } from "../api";
 import { NonceResponse } from "./types";
 import type { AuthorizeAccessApi } from "../api/04-authorize-access";
@@ -115,21 +119,17 @@ export const requestCredentials = async ({
     signers,
   });
 
-  const dPopSignerJwk = await dPopCryptoContext.getPublicKey();
-
   const credentialDPoP = await createTokenDPoP({
     callbacks: {
       ...partialCallbacks,
-      signJwt: async (_, payload) => ({
-        jwt: await new SignJWT(dPopCryptoContext).setPayload(payload).sign(),
-        signerJwk: dPopSignerJwk,
-      }),
+      signJwt: createSignJwtFromCryptoContext(dPopCryptoContext),
     },
     signer: {
       method: "jwk",
       alg: "ES256",
-      publicJwk: dPopSignerJwk,
+      publicJwk: await dPopCryptoContext.getPublicKey(),
     },
+    jti: uuidv4(),
     tokenRequest: {
       method: "POST",
       url: issuerConf.credential_endpoint,
