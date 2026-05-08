@@ -12,10 +12,8 @@ import {
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { IoWalletError } from "../../../utils/errors";
-import {
-  selectCredentialDefinition,
-  selectResponseMode,
-} from "../common/02-start-user-authorization";
+import { sdkConfigV1_3 } from "../../../utils/config";
+import { selectCredentialDefinition } from "../common/02-start-user-authorization";
 
 export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
   async (issuerConf, credentialIds, proof, ctx) => {
@@ -35,8 +33,6 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       );
       throw new IoWalletError("No public key found");
     }
-
-    const responseMode = selectResponseMode(issuerConf, credentialIds);
 
     const credentialDefinition = credentialIds.map((c) =>
       selectCredentialDefinition(issuerConf, c)
@@ -66,6 +62,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
     const signJwt = createSignJwtFromCryptoContext(wiaCryptoContext);
 
     const parRequest = await createPushedAuthorizationRequest({
+      config: sdkConfigV1_3,
       callbacks: {
         ...partialCallbacks,
         signJwt,
@@ -78,7 +75,6 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       audience: issuerConf.credential_issuer,
       authorization_details: credentialDefinition,
       codeChallengeMethodsSupported: ["S256"],
-      responseMode,
       redirectUri,
       dpop: {
         signer: wiaSigner,
@@ -86,6 +82,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
     });
 
     const clientAttestationPoP = await createClientAttestationPopJwt({
+      config: sdkConfigV1_3,
       callbacks: {
         generateRandom: partialCallbacks.generateRandom,
         signJwt,

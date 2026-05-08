@@ -1,10 +1,11 @@
-import {
-  validateChallenge,
-  buildChallengeCallbackUrl,
-} from "../03-validate-challenge";
 import { IssuerResponseError } from "../../../../utils/errors";
+import { sdkConfigV1_0 } from "../../../../utils/config";
 import type { MrtdPayload, IasPayload } from "../../api/mrtd-pop";
 import type { IssuerConfig } from "../../api/IssuerConfig";
+import {
+  createValidateChallenge,
+  buildChallengeCallbackUrl,
+} from "../03-validate-challenge";
 
 // Mock SignJWT from @pagopa/io-react-native-jwt
 const mockSign = jest.fn();
@@ -49,6 +50,8 @@ const wiaCryptoContext = {
     .fn()
     .mockResolvedValue({ kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo" }),
 } as any;
+
+const validateChallenge = createValidateChallenge({ sdkConfig: sdkConfigV1_0 });
 
 describe("validateChallenge", () => {
   const verifyUrl = "https://issuer.example/mrtd/verify";

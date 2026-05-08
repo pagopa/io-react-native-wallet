@@ -1,12 +1,11 @@
 import { createAppAsyncThunk } from "./utils";
 import { IoWallet, RemotePresentation } from "@pagopa/io-react-native-wallet";
-import { shouldRequestWalletInstanceAttestationSelector } from "../store/reducers/attestation";
-import { getWalletInstanceAttestationThunk } from "./attestation";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
 import { selectItwVersion } from "../store/reducers/environment";
+import { ClientIdPrefix } from "@pagopa/io-wallet-oid4vp";
 
 type DcqlQuery = Parameters<
   RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
@@ -31,14 +30,9 @@ export type RemoteCrossDevicePresentationThunkOutput = {
 export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   RemoteCrossDevicePresentationThunkOutput,
   RemoteCrossDevicePresentationThunkInput
->("presentation/remote", async (args, { getState, dispatch }) => {
+>("presentation/remote", async (args, { getState }) => {
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
-
-  // Checks if the wallet instance attestation needs to be requested
-  if (shouldRequestWalletInstanceAttestationSelector(getState())) {
-    await dispatch(getWalletInstanceAttestationThunk());
-  }
 
   const url = new URL(args.qrcode);
 
@@ -51,9 +45,13 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
       | "post",
   });
 
-  const { rpConf } = await wallet.RemotePresentation.evaluateRelyingPartyTrust(
-    qrParams.client_id
+  const rpUrl = qrParams.client_id.replace(
+    `${ClientIdPrefix.OPENID_FEDERATION}:`,
+    ""
   );
+
+  const { rpConf } =
+    await wallet.RemotePresentation.evaluateRelyingPartyTrust(rpUrl);
 
   const { requestObjectEncodedJwt } =
     await wallet.RemotePresentation.getRequestObject(args.qrcode);
