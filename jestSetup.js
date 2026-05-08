@@ -18,3 +18,5 @@ jest.mock("@pagopa/io-react-native-iso18013", () => {
     },
   };
 });
+
+jest.mock("react-native-quick-crypto", () => ({}));

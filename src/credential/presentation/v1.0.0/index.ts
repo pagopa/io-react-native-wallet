@@ -2,7 +2,6 @@ import type { RemotePresentationApi } from "../api";
 import { startFlowFromQR } from "./01-start-flow";
 import { evaluateRelyingPartyTrust } from "./02-evaluate-rp-trust";
 import { getRequestObject } from "./03-get-request-object";
-import { verifyAuthRequestCertificateChain } from "./04-verify-certificate-chain";
 import { verifyRequestObject } from "./05-verify-request-object";
 import { evaluateDcqlQuery } from "./06-evaluate-dcql-query";
 import {
@@ -15,7 +14,6 @@ export const RemotePresentation: RemotePresentationApi = {
   startFlowFromQR,
   evaluateRelyingPartyTrust,
   getRequestObject,
-  verifyAuthRequestCertificateChain,
   verifyRequestObject,
   evaluateDcqlQuery,
   prepareRemotePresentations,

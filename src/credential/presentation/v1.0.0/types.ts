@@ -2,21 +2,29 @@ import * as z from "zod";
 import { UnixTime } from "../../../utils/zod";
 import { ErrorResponse } from "../api/types";
 
-export type RequestObjectPayload = z.infer<typeof RequestObjectPayload>;
-export const RequestObjectPayload = z.object({
-  iss: z.string(),
-  iat: UnixTime,
-  exp: UnixTime,
-  state: z.string(),
-  nonce: z.string(),
-  response_uri: z.string(),
-  request_uri_method: z.string().optional(),
-  response_type: z.literal("vp_token"),
-  response_mode: z.literal("direct_post.jwt"),
-  client_id: z.string(),
-  dcql_query: z.record(z.string(), z.any()), // Validation happens within the `dcql` library, no need to duplicate it here
-  scope: z.string().optional(),
-  wallet_nonce: z.string().optional(),
+export type RawRequestObject = z.infer<typeof RawRequestObject>;
+export const RawRequestObject = z.object({
+  header: z.object({
+    alg: z.string(),
+    kid: z.string(),
+    typ: z.literal("oauth-authz-req+jwt"),
+    trust_chain: z.array(z.string()).optional(),
+  }),
+  payload: z.object({
+    iss: z.string(),
+    iat: UnixTime,
+    exp: UnixTime,
+    state: z.string(),
+    nonce: z.string(),
+    response_uri: z.string(),
+    request_uri_method: z.string().optional(),
+    response_type: z.literal("vp_token"),
+    response_mode: z.literal("direct_post.jwt"),
+    client_id: z.string(),
+    dcql_query: z.record(z.string(), z.any()), // Validation happens within the `dcql` library, no need to duplicate it here
+    scope: z.string().optional(),
+    wallet_nonce: z.string().optional(),
+  }),
 });
 
 /**

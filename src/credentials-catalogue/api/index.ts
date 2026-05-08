@@ -2,6 +2,7 @@ import {
   type CatalogueTranslations,
   type DigitalCredentialsCatalogue,
   type LocalizationInfo,
+  type Taxonomy,
 } from "./DigitalCredentialsCatalogue";
 
 type FetchContext = { appFetch?: GlobalFetch["fetch"] };
@@ -9,6 +10,7 @@ type FetchContext = { appFetch?: GlobalFetch["fetch"] };
 type FetchTranslationsLocalizations = {
   catalogue?: LocalizationInfo;
   authenticSources?: LocalizationInfo;
+  taxonomy?: LocalizationInfo;
 };
 
 export interface CredentialsCatalogueApi {
@@ -27,11 +29,11 @@ export interface CredentialsCatalogueApi {
   ): Promise<DigitalCredentialsCatalogue>;
 
   /**
-   * Fetch locale bundle files for the credential catalogue and authentic sources.
-   * For each requested locale, fetches translations from both registries (if the locale
+   * Fetch locale bundle files for the credential catalogue, authentic sources, and taxonomy.
+   * For each requested locale, fetches translations from all registries (if the locale
    * is listed in their respective `available_locales`) and merges the keys.
    * Locales not present in a registry's `available_locales` are silently skipped for that source.
-   * On key conflicts, authentic-sources translations take precedence.
+   * On key conflicts, later sources (authenticSources, taxonomy) take precedence.
    *
    * Optional: not supported by all versions. Check for existence before calling.
    *
@@ -52,4 +54,5 @@ export {
   type CatalogueTranslations,
   type DigitalCredentialsCatalogue,
   type LocalizationInfo,
+  type Taxonomy,
 };
