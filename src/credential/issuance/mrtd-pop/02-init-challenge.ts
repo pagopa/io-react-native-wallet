@@ -26,7 +26,7 @@ type Config = {
 /**
  * Factory function to create `initChallenge` for MRTD PoP flow.
  * The factory is needed to inject version specific SDK configuration.
- * @param config Configuration object containing the Io Wallet SDK configuration
+ * @param config Configuration object containing the IO Wallet SDK configuration
  * @returns `initChallenge` function compliant with the public API
  */
 export function createInitChallenge(

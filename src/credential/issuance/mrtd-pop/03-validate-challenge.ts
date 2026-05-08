@@ -16,9 +16,9 @@ type Config = {
 };
 
 /**
- * Factory function to create `validateChallenge` for MRTD PoP flow
+ * Factory function to create `validateChallenge` for MRTD PoP flow.
  * The factory is needed to inject version specific SDK configuration.
- * @param config Configuration object containing the Io Wallet SDK configuration
+ * @param config Configuration object containing the IO Wallet SDK configuration
  * @returns `validateChallenge` function compliant with the public API
  */
 export function createValidateChallenge(
