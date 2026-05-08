@@ -38,14 +38,14 @@ export interface SendAuthorizationResponseApi {
    *
    * @param requestObject The request details, including presentation requirements.
    * @param remotePresentation The presentations to send, each with their VP token
-   * @param rpConf The Relying Party common configuration
+   * @param rpConf Optional Relying Party configuration (OpenID Federation clients only)
    * @param context Contains optional custom fetch implementation.
    * @returns Parsed and validated authorization response from the Relying Party.
    */
   sendAuthorizationResponse(
     requestObject: RequestObject,
     remotePresentation: RemotePresentation,
-    rpConf: RelyingPartyConfig,
+    rpConf?: RelyingPartyConfig,
     context?: FetchContext
   ): Promise<AuthorizationResponse>;
 
