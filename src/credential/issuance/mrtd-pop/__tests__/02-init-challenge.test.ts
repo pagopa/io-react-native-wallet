@@ -1,6 +1,7 @@
-import { initChallenge } from "../02-init-challenge";
 import { IssuerResponseError } from "../../../../utils/errors";
+import { sdkConfigV1_0 } from "../../../../utils/config";
 import type { IssuerConfig } from "../../api/IssuerConfig";
+import { createInitChallenge } from "../02-init-challenge";
 
 // Provide a deterministic uuid
 jest.mock("uuid", () => ({ v4: () => "fixed-jti" }));
@@ -41,6 +42,8 @@ const issuerConf = {
 const wiaCryptoContext = {
   getPublicKey: jest.fn(),
 } as any;
+
+const initChallenge = createInitChallenge({ sdkConfig: sdkConfigV1_0 });
 
 describe("initChallenge", () => {
   const mrtd_auth_session = "auth-session-id";

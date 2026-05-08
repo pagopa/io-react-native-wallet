@@ -14,7 +14,7 @@ import {
   obtainCredentialsBatch,
 } from "./05-obtain-credential";
 import { verifyAndParseCredential } from "./06-verify-and-parse-credential";
-import { MRTDPoP } from "../mrtd-pop";
+import { MRTDPoPv1_3 } from "../mrtd-pop";
 
 export const Issuance: IssuanceApi = {
   evaluateIssuerTrust,
@@ -28,5 +28,5 @@ export const Issuance: IssuanceApi = {
   obtainCredential,
   obtainCredentialsBatch,
   verifyAndParseCredential,
-  MRTDPoP,
+  MRTDPoP: MRTDPoPv1_3,
 };
