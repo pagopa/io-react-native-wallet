@@ -6,24 +6,28 @@ import {
 import parseUrl from "parse-url";
 import type { DcqlQuery } from "dcql";
 import {
-  fetchAuthorizationRequest,
+  createAuthorizationResponse as sdkCreateAuthorizationResponse,
   parseAuthorizeRequest,
 } from "@pagopa/io-wallet-oid4vp";
 import { sendAuthorizationResponseAndExtractCode } from "@pagopa/io-wallet-oid4vci";
 import { parseMrtdChallenge } from "@pagopa/io-wallet-oauth2";
-import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.3.3";
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createVerifyJwtFromJwks,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import { sdkConfigV1_3 } from "../../../utils/config";
 import {
   IoWalletError,
+  IssuerResponseError,
   sdkUnexpectedStatusCodeToIssuerError,
 } from "../../../utils/errors";
-import type { IssuanceApi } from "../api";
+import type { IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
-import type { RemotePresentation } from "../../presentation";
+import type { RemotePresentation, RequestObject } from "../../presentation";
+import { hasStatusOrThrow } from "../../../utils/misc";
 
 export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
   async (authRedirectUrl) => {
@@ -94,29 +98,26 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
       `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`
     );
 
-    const authRequest = await fetchAuthorizationRequest({
-      authorizeRequestUrl: `${authzRequestEndpoint}?${params.toString()}`,
-      callbacks: {
-        fetch: appFetch,
-      },
-    }).catch(sdkUnexpectedStatusCodeToIssuerError);
+    const requestObjectJwt = await appFetch(
+      `${authzRequestEndpoint}?${params.toString()}`,
+      { method: "GET" }
+    )
+      .then(hasStatusOrThrow(200, IssuerResponseError))
+      .then((res) => res.text());
 
     const parsedAuthRequest = await parseAuthorizeRequest({
       config: sdkConfigV1_3,
-      requestObjectJwt: authRequest.requestObjectJwt,
-      callbacks: partialCallbacks,
+      requestObjectJwt,
+      callbacks: {
+        verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
+      },
     });
 
     return mapToRequestObject(parsedAuthRequest);
   };
 
 export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
-  async (
-    requestObject,
-    issuerConfig,
-    pid,
-    { wiaCryptoContext, pidKeyTag, appFetch = fetch }
-  ) => {
+  async (requestObject, issuerConfig, pid, { pidKeyTag, appFetch = fetch }) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
@@ -139,16 +140,13 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
         authRequestObject
       );
 
-    const authzResponsePayload = await createAuthzResponsePayload({
-      state: requestObject.state,
+    const authzResponse = await createAuthorizationResponse({
+      requestObject,
+      issuerConfig,
       remotePresentation,
-      wiaCryptoContext,
     });
 
-    Logger.log(
-      LogLevel.DEBUG,
-      `Authz response payload: ${authzResponsePayload}`
-    );
+    Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
 
     const issuerSigKey = issuerConfig.keys.find((key) => key.use === "sig");
     if (!issuerSigKey) {
@@ -158,7 +156,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     }
 
     return sendAuthorizationResponseAndExtractCode({
-      authorizationResponseJarm: authzResponsePayload,
+      authorizationResponseJarm: authzResponse.jarm.responseJwe,
       callbacks: {
         ...partialCallbacks,
         fetch: appFetch,
@@ -214,38 +212,33 @@ export const parseAuthorizationResponse = (
  * @param remotePresentation The presentations to send, each with their VP token
  * @returns The Base64 encoded authorization response payload.
  */
-const createAuthzResponsePayload = async ({
-  state,
+const createAuthorizationResponse = async ({
+  issuerConfig,
+  requestObject,
   remotePresentation,
-  wiaCryptoContext,
 }: {
-  state?: string;
+  requestObject: RequestObject;
+  issuerConfig: IssuerConfig;
   remotePresentation: RemotePresentation;
-  wiaCryptoContext: CryptoContext;
-}): Promise<string> => {
-  const { kid } = await wiaCryptoContext.getPublicKey();
+}) => {
+  const vp_token = remotePresentation.presentations.reduce(
+    (acc, { credentialId, vpToken }) => ({ ...acc, [credentialId]: [vpToken] }),
+    {} as Record<string, string[]>
+  );
 
-  return new SignJWT(wiaCryptoContext)
-    .setProtectedHeader({
-      typ: "jwt",
-      kid,
-    })
-    .setPayload({
-      /**
-       * TODO [SIW-2264]: `state` coming from `requestObject` is marked as `optional`
-       * At the moment, it is not entirely clear whether this value can indeed be omitted
-       * and, if so, what the consequences of its absence might be.
-       */
-      ...(state ? { state } : {}),
-      vp_token: remotePresentation.presentations.reduce(
-        (vp_token, { credentialId, vpToken }) => ({
-          ...vp_token,
-          [credentialId]: [vpToken],
-        }),
-        {}
-      ),
-    })
-    .setIssuedAt()
-    .setExpirationTime("1h")
-    .sign();
+  return await sdkCreateAuthorizationResponse({
+    requestObject,
+    rpJwks: {
+      jwks: requestObject.client_metadata?.jwks ?? { keys: issuerConfig.keys },
+      encrypted_response_enc_values_supported:
+        requestObject.client_metadata
+          ?.encrypted_response_enc_values_supported ??
+        issuerConfig.encrypted_response_enc_values_supported,
+    },
+    vp_token,
+    callbacks: {
+      encryptJwe: partialCallbacks.encryptJwe,
+      generateRandom: partialCallbacks.generateRandom,
+    },
+  });
 };

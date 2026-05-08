@@ -88,7 +88,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
         signJwt,
       },
       clientAttestation: walletInstanceAttestation,
-      authorizationServer: issuerConf.authorization_endpoint,
+      authorizationServer: issuerConf.credential_issuer,
       signer: wiaSigner,
       jti: uuidv4(),
     });

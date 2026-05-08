@@ -41,6 +41,7 @@ export const mapToIssuerConfig = createMapper<
     const {
       oauth_authorization_server,
       openid_credential_issuer,
+      openid_credential_verifier,
       federation_entity,
     } = x.metadata;
 
@@ -71,6 +72,8 @@ export const mapToIssuerConfig = createMapper<
       federation_entity: federation_entity ?? {},
       credential_issuance_batch_size:
         openid_credential_issuer.batch_credential_issuance?.batch_size,
+      encrypted_response_enc_values_supported:
+        openid_credential_verifier?.encrypted_response_enc_values_supported,
     };
   },
   { outputSchema: IssuerConfig } // Output validation for extra-safety
