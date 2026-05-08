@@ -5,6 +5,7 @@ import {
   DigitalCredentialsCatalogueJwt,
   RegistryDiscoveryJwt,
   SchemaRegistry,
+  TaxonomyRegistry,
 } from "./types";
 import { mapToCredentialsCatalogue } from "./mappers";
 import { fetchRegistry } from "./utils";
@@ -43,6 +44,11 @@ export const fetchAndParseCatalogue: Api["fetchAndParseCatalogue"] = async (
     }),
     fetchRegistry(endpoints.schema_registry, {
       schema: SchemaRegistry,
+      asJson: true,
+      appFetch,
+    }),
+    fetchRegistry(endpoints.taxonomy, {
+      schema: TaxonomyRegistry,
       asJson: true,
       appFetch,
     }),

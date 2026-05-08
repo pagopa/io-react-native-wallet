@@ -5,6 +5,7 @@ import type {
   DigitalCredentialsCatalogueJwt,
   RegistryDiscoveryJwt,
   SchemaRegistry,
+  TaxonomyRegistry,
 } from "../types";
 
 describe("mapToCredentialsCatalogue", () => {
@@ -57,6 +58,64 @@ describe("mapToCredentialsCatalogue", () => {
           policy_uri: "https://source-org.example.com/privacy",
         },
         data_capabilities: [],
+      },
+    ],
+  };
+
+  const taxonomyRegistry: TaxonomyRegistry = {
+    version: "1.0.0",
+    last_modified: "2026-03-11T00:00:00Z",
+    id: "urn:taxonomy:it-wallet",
+    localization: {
+      default_locale: "it",
+      available_locales: ["it", "en"],
+      base_uri:
+        "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
+      version: "1.0.0",
+    },
+    name_l10n_id: "taxonomy.name",
+    description_l10n_id: "taxonomy.description",
+    domains: [
+      {
+        id: "IDENTITY",
+        name_l10n_id: "domain.identity.name",
+        description_l10n_id: "domain.identity.description",
+        classes: [
+          {
+            id: "IDENTIFICATION_DOCUMENTS",
+            name_l10n_id: "class.identification_documents.name",
+            supported_purposes: [
+              "IDENTITY_VERIFICATION",
+              "PERSON_IDENTIFICATION",
+            ],
+          },
+        ],
+      },
+      {
+        id: "AUTHORIZATION",
+        name_l10n_id: "domain.authorization.name",
+        description_l10n_id: "domain.authorization.description",
+        classes: [
+          {
+            id: "LICENSES_AUTHORIZATIONS",
+            name_l10n_id: "class.licenses_authorizations.name",
+            supported_purposes: ["DRIVING_RIGHTS_VERIFICATION"],
+          },
+        ],
+      },
+    ],
+    purposes: [
+      {
+        id: "IDENTITY_VERIFICATION",
+        name_l10n_id: "purpose.identity_verification.name",
+      },
+      {
+        id: "PERSON_IDENTIFICATION",
+        name_l10n_id: "purpose.person_identification.name",
+      },
+      {
+        id: "DRIVING_RIGHTS_VERIFICATION",
+        name_l10n_id: "purpose.driving_rights_verification.name",
       },
     ],
   };
@@ -118,6 +177,61 @@ describe("mapToCredentialsCatalogue", () => {
 
   const expected: DigitalCredentialsCatalogue = {
     taxonomy_uri: "https://issuer-example.com/taxonomy.json",
+    taxonomy: {
+      id: "urn:taxonomy:it-wallet",
+      name_l10n_id: "taxonomy.name",
+      description_l10n_id: "taxonomy.description",
+      localization: {
+        default_locale: "it",
+        available_locales: ["it", "en"],
+        base_uri:
+          "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
+        version: "1.0.0",
+      },
+      domains: [
+        {
+          id: "IDENTITY",
+          name_l10n_id: "domain.identity.name",
+          description_l10n_id: "domain.identity.description",
+          classes: [
+            {
+              id: "IDENTIFICATION_DOCUMENTS",
+              name_l10n_id: "class.identification_documents.name",
+              supported_purposes: [
+                "IDENTITY_VERIFICATION",
+                "PERSON_IDENTIFICATION",
+              ],
+            },
+          ],
+        },
+        {
+          id: "AUTHORIZATION",
+          name_l10n_id: "domain.authorization.name",
+          description_l10n_id: "domain.authorization.description",
+          classes: [
+            {
+              id: "LICENSES_AUTHORIZATIONS",
+              name_l10n_id: "class.licenses_authorizations.name",
+              supported_purposes: ["DRIVING_RIGHTS_VERIFICATION"],
+            },
+          ],
+        },
+      ],
+      purposes: [
+        {
+          id: "IDENTITY_VERIFICATION",
+          name_l10n_id: "purpose.identity_verification.name",
+        },
+        {
+          id: "PERSON_IDENTIFICATION",
+          name_l10n_id: "purpose.person_identification.name",
+        },
+        {
+          id: "DRIVING_RIGHTS_VERIFICATION",
+          name_l10n_id: "purpose.driving_rights_verification.name",
+        },
+      ],
+    },
     iat: 1730000000,
     exp: 1730003600,
     credentials: [
@@ -178,6 +292,7 @@ describe("mapToCredentialsCatalogue", () => {
         credentialsCatalogueJwt,
         authSourceRegistry,
         schemaRegistry,
+        taxonomyRegistry,
       ])
     ).toEqual(expected);
   });

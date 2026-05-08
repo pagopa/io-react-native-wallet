@@ -42,6 +42,7 @@ export const getCredentialsCatalogueTranslationsThunk = createAppAsyncThunk<
     {
       catalogue: catalogue.localization,
       authenticSources: catalogue.as_localization,
+      taxonomy: catalogue.taxonomy?.localization,
     },
     ["it"]
   );
