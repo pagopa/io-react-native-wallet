@@ -95,18 +95,19 @@ export const getCredentialThunk = createAppAsyncThunk<
     throw new Error("PID not found");
   }
 
-  // Create credential crypto context and get the WUA if supported
+  // Create credential crypto context
   const credentialKeyTag = uuidv4().toString();
-  let walletUnitAttestation: string | undefined;
 
-  if (wallet.WalletUnitAttestation.isSupported) {
-    const wua = await dispatch(
-      getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] })
-    ).unwrap();
-    walletUnitAttestation = wua.attestation;
-  } else {
+  const generateKeyWithAttestation = async (): Promise<string | undefined> => {
+    if (wallet.WalletUnitAttestation.isSupported) {
+      const wua = await dispatch(
+        getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] })
+      ).unwrap();
+      return wua.attestation;
+    }
     await generate(credentialKeyTag);
-  }
+    return undefined;
+  };
 
   return await getCredential({
     itwVersion,
@@ -119,7 +120,7 @@ export const getCredentialThunk = createAppAsyncThunk<
     credentialKeyTag,
     pid: pid,
     walletInstanceAttestation,
-    walletUnitAttestation,
+    generateKeyWithAttestation,
     wiaCryptoContext,
   });
 });

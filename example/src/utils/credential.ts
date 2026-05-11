@@ -36,7 +36,7 @@ export const getCredential = async ({
   credentialKeyTag,
   pid,
   walletInstanceAttestation,
-  walletUnitAttestation,
+  generateKeyWithAttestation,
   wiaCryptoContext,
 }: {
   itwVersion: ItwVersion;
@@ -47,7 +47,7 @@ export const getCredential = async ({
   credentialKeyTag: string;
   pid: PidResult;
   walletInstanceAttestation: string;
-  walletUnitAttestation?: string;
+  generateKeyWithAttestation: () => Promise<string | undefined>;
   wiaCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
@@ -108,6 +108,8 @@ export const getCredential = async ({
   // For simplicity, in this example flow we work on a single credential.
   const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details[0]!;
+
+  const walletUnitAttestation = await generateKeyWithAttestation();
 
   // Obtain the credential
   const { credential, format } =
