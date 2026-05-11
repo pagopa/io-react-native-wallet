@@ -82,13 +82,8 @@ export const mapToIssuerConfig = createMapper<
 export const mapToRequestObject = createMapper<
   ParsedAuthorizeRequestResult,
   RequestObject
->(({ payload }) => ({
-  iss: payload.iss ?? "UNKNOWN_ISSUER",
-  client_id: payload.client_id,
-  dcql_query: payload.dcql_query,
-  nonce: payload.nonce,
-  response_uri: payload.response_uri,
-  state: payload.state,
-  response_mode: payload.response_mode,
-  response_type: payload.response_type,
+>(({ header, payload }) => ({
+  ...payload,
+  trust_chain: header.trust_chain,
+  x5c: header.x5c as string[] | undefined,
 }));

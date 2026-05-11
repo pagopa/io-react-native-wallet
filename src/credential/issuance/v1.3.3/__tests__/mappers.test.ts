@@ -136,7 +136,7 @@ describe("mapToRequestObject", () => {
         kid: "123",
         alg: "alg",
         typ: "oauth-authz-req+jwt",
-        x5c: [""],
+        x5c: ["cert1"],
       },
       payload: {
         response_mode: "direct_post.jwt",
@@ -147,6 +147,11 @@ describe("mapToRequestObject", () => {
         nonce: "nonce-123",
         response_uri: "https://verifier.example/response",
         state: "state-123",
+        client_metadata: {
+          jwks: {
+            keys: [{ kty: "EC", kid: "kid-1", use: "enc" }],
+          },
+        } as ParsedAuthorizeRequestResult["payload"]["client_metadata"],
       },
     };
 
@@ -159,6 +164,12 @@ describe("mapToRequestObject", () => {
       state: "state-123",
       response_mode: "direct_post.jwt",
       response_type: "vp_token",
+      client_metadata: {
+        jwks: {
+          keys: [{ kty: "EC", kid: "kid-1", use: "enc" }],
+        },
+      },
+      x5c: ["cert1"],
     });
   });
 });
