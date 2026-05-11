@@ -113,7 +113,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
-      ["dc_sd_jwt_PersonIdentificationData"],
+      [getPidSdJwtConfigurationId(issuerConf)],
       withMRTDPoP
         ? { proofType: "mrtd-pop", idpHinting: idpHint }
         : { proofType: "none" },
@@ -273,3 +273,21 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     format,
   };
 });
+
+/**
+ * Get the credential configuration ID for the PID in sd-jwt format.
+ * Different versions of IT-Wallet may use different naming conventions for the PID.
+ * @param issuerConf The issuer configuration obtained from the {@link evaluateIssuerTrust}
+ * @returns The PID configuration ID to use for issuance
+ */
+function getPidSdJwtConfigurationId(
+  issuerConf: CredentialIssuance.IssuerConfig
+) {
+  const result = Object.entries(
+    issuerConf.credential_configurations_supported
+  ).find(
+    ([, c]) =>
+      c.format === "dc+sd-jwt" && /PersonIdentificationData|pid/i.test(c.scope)
+  );
+  return result!.at(0) as string;
+}
