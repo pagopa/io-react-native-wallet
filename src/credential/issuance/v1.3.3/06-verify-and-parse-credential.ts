@@ -23,7 +23,9 @@ export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
           issuerConf,
           credential,
           credentialConfigurationId,
-          context
+          // TODO: set validateCertificateChain to true once the issued PID contains `x5c`
+          { validateCertificateChain: false, ...context },
+          x509CertRoot
         );
       }
       case "mso_mdoc": {

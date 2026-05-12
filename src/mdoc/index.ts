@@ -1,19 +1,12 @@
 import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
-import {
-  verifyCertificateChain,
-  type CertificateValidationResult,
-  type PublicKey,
-  type X509CertificateOptions,
-} from "@pagopa/io-react-native-crypto";
-import {
-  MissingX509CertsError,
-  X509ValidationError,
-} from "../trust/common/errors";
+import { type PublicKey } from "@pagopa/io-react-native-crypto";
+import { MissingX509CertsError } from "../trust/common/errors";
 import { IoWalletError } from "../utils/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
-import type { Presentation } from "src/credential/presentation";
+import type { Presentation } from "../credential/presentation";
 import { removePadding } from "@pagopa/io-react-native-jwt";
+import { verifyX509Chain } from "../utils/x509";
 export * from "./utils";
 
 export const verify = async (
@@ -37,7 +30,7 @@ export const verify = async (
   const x5chain =
     issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
   // Verify the x5chain
-  await verifyX5chain(x5chain, x509CertRoot);
+  await verifyX509Chain(x5chain, x509CertRoot);
 
   const coseSign1 = issuerSigned.issuerAuth.rawValue;
 
@@ -50,35 +43,6 @@ export const verify = async (
   return { issuerSigned };
 };
 
-/**
- * This function checks whether the x509 certificate chain is valid against a specified Certificate Authority (CA)
- *
- * @param x5chain The mdoc's x509 certificate chain
- * @param x509CertRoot The Trust Anchor CA
- * @param options Options for certificate validation
- */
-const verifyX5chain = async (
-  x5chain: string[],
-  x509CertRoot: string,
-  options: X509CertificateOptions = {
-    connectTimeout: 10000,
-    readTimeout: 10000,
-    requireCrl: true,
-  }
-) => {
-  const x509ValidationResult: CertificateValidationResult =
-    await verifyCertificateChain(x5chain, x509CertRoot, options);
-
-  if (!x509ValidationResult.isValid) {
-    throw new X509ValidationError(
-      `X.509 certificate chain validation failed. Status: ${x509ValidationResult.validationStatus}. Error: ${x509ValidationResult.errorMessage}`,
-      {
-        x509ValidationStatus: x509ValidationResult.validationStatus,
-        x509ErrorMessage: x509ValidationResult.errorMessage,
-      }
-    );
-  }
-};
 /**
  * This function verifies that the signature is valid for the given certificate.
  * If not, it throws an error
