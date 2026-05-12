@@ -1,10 +1,10 @@
 import {
-  getJwkFromHeader,
   type CryptoContext,
-  decode,
+  verify as verifyJwt,
 } from "@pagopa/io-react-native-jwt";
 import { type SDJwt, SDJwtInstance } from "@sd-jwt/core";
-import { digest, ES256 } from "@sd-jwt/crypto-nodejs";
+import { digest } from "@sd-jwt/crypto-nodejs";
+import type { Verifier } from "@sd-jwt/types";
 import { isPathEqual, isPrefixOf } from "../../../utils/parser";
 import { IoWalletError } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
@@ -152,6 +152,27 @@ const parseCredentialSdJwt = (
 };
 
 /**
+ * JWT verifier implementing the interface expected by the SD-JWT library.
+ * Verification is delegated to `io-react-native-jwt` to leverage its support for multiple algorithms.
+ * @returns Boolean indicating whether the verification succeeded or not
+ */
+const sdJwtInstanceVerifier: Verifier<{ issuerKeys: JWK[] }> = async (
+  data,
+  signature,
+  options
+) => {
+  if (!options?.issuerKeys) {
+    return false;
+  }
+  try {
+    await verifyJwt(`${data}.${signature}`, options.issuerKeys);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Given a credential, verify it's in the supported format
  * and the credential is correctly signed
  * and it's bound to the given key
@@ -171,16 +192,13 @@ async function verifyCredentialSdJwt(
   issuerKeys: JWK[],
   holderBindingContext: CryptoContext
 ): Promise<SDJwt> {
-  const { protectedHeader } = decode(rawCredential);
-  const verifierJwk = getJwkFromHeader(protectedHeader, issuerKeys);
-
   const sdJwtInstance = new SDJwtInstance({
     hasher: digest,
-    verifier: await ES256.getVerifier(verifierJwk),
+    verifier: sdJwtInstanceVerifier,
   });
 
   const [verifiedCredential, holderBindingKey] = await Promise.all([
-    sdJwtInstance.verify(rawCredential),
+    sdJwtInstance.verify(rawCredential, { issuerKeys }),
     holderBindingContext.getPublicKey(),
   ]);
 
