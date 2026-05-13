@@ -146,7 +146,7 @@ describe("verifyAndParseCredential", () => {
     });
   });
 
-  it("should throw if no x5c header is present in the header", async () => {
+  it("should throw if no x5c claim is present in the SD-JWT header", async () => {
     await expect(() =>
       verifyAndParseCredential(
         mockIssuerConf,
