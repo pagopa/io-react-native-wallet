@@ -32,7 +32,7 @@ describe("verifyAndParseCredential", () => {
     federation_entity: {},
     keys: [issuerJwk],
     credential_configurations_supported: {
-      dc_sd_jwt_PersonIdentificationData: {
+      dc_sd_jwt_pid: {
         format: "dc+sd-jwt",
         display: [],
         vct: "urn:it-wallet:pid:1",
@@ -103,8 +103,8 @@ describe("verifyAndParseCredential", () => {
     const result = await verifyAndParseCredential(
       mockIssuerConf,
       pid1_3,
-      "dc_sd_jwt_PersonIdentificationData",
-      { credentialCryptoContext }
+      "dc_sd_jwt_pid",
+      { credentialCryptoContext, validateCertificateChain: false }
     );
     expect(result).toEqual({
       parsedCredential: {
@@ -144,5 +144,17 @@ describe("verifyAndParseCredential", () => {
       expiration: new Date(4105033200000),
       issuedAt: new Date(1777026094000),
     });
+  });
+
+  it("should throw if no x5c header is present in the header", async () => {
+    await expect(() =>
+      verifyAndParseCredential(
+        mockIssuerConf,
+        pid1_3,
+        "dc_sd_jwt_pid",
+        { credentialCryptoContext },
+        "mockCertRoot"
+      )
+    ).rejects.toThrow("Missing x509 certificates");
   });
 });
