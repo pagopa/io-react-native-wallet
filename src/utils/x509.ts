@@ -21,8 +21,15 @@ export const verifyX509Chain = async (
     requireCrl: true,
   }
 ) => {
+  // Strip the trust anchor from the chain if the issuer included it,
+  // since verifyCertificateChain expects it passed separately.
+  const certChain =
+    x5chain.length > 1 && x5chain.at(-1) === x509CertRoot
+      ? x5chain.slice(0, -1)
+      : x5chain;
+
   const x509ValidationResult: CertificateValidationResult =
-    await verifyCertificateChain(x5chain, x509CertRoot, options);
+    await verifyCertificateChain(certChain, x509CertRoot, options);
 
   if (!x509ValidationResult.isValid) {
     throw new X509ValidationError(
