@@ -10,6 +10,7 @@ declare module "@env" {
   export const PRE_GOOGLE_CLOUD_PROJECT_NUMBER: string;
   export const PRE_VERIFIER_BASE_URL: string;
   export const PRE_LOGGING_SERVER: string;
+  export const PRE_X509_CERT_ROOT: string;
   // PROD SECTION
   export const PROD_WALLET_PROVIDER_BASE_URL: string;
   export const PROD_WALLET_PID_PROVIDER_BASE_URL_V1_0: string;
@@ -21,4 +22,5 @@ declare module "@env" {
   export const PROD_GOOGLE_CLOUD_PROJECT_NUMBER: string;
   export const PROD_VERIFIER_BASE_URL: string;
   export const PROD_LOGGING_SERVER: string;
+  export const PROD_X509_CERT_ROOT: string;
 }

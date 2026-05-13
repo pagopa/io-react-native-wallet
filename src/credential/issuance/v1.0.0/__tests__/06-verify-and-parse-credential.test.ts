@@ -16,6 +16,7 @@ import { verifyAndParseCredential } from "../06-verify-and-parse-credential";
 jest.mock("@pagopa/io-react-native-jwt", () => ({
   decode: jest.fn().mockReturnValue({}),
   thumbprint: jest.fn().mockImplementation(async (jwk) => jwk.kid),
+  verify: jest.fn().mockReturnValue(true),
   getJwkFromHeader: jest.fn().mockImplementation(
     (_, jwks) => jwks[0] // In the following tests there is always one JWK
   ),

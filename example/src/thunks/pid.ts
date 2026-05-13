@@ -158,6 +158,8 @@ export const continuePidFlowThunk = createAppAsyncThunk<
 >("pid/flowContinue", async (args, { getState, dispatch }) => {
   const { authRedirectUrl } = args;
 
+  const env = selectEnv(getState());
+  const { X509_CERT_ROOT } = getEnv(env);
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
@@ -261,7 +263,8 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       issuerConf,
       credential,
       credential_configuration_id,
-      { credentialCryptoContext, ignoreMissingAttributes: true }
+      { credentialCryptoContext, ignoreMissingAttributes: true },
+      X509_CERT_ROOT
     );
 
   return {

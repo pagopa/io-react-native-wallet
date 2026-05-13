@@ -32,6 +32,10 @@ export interface VerifyAndParseCredentialApi {
        * Include attributes that are not explicitly mapped in the issuer configuration.
        */
       includeUndefinedAttributes?: boolean;
+      /**
+       * Validate the certificate chain of the credential against the provided `x509CertRoot`.
+       */
+      validateCertificateChain?: boolean;
     },
     x509CertRoot?: string
   ): Promise<{
