@@ -23,7 +23,8 @@ export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
           issuerConf,
           credential,
           credentialConfigurationId,
-          context
+          { validateCertificateChain: true, ...context },
+          x509CertRoot
         );
       }
       case "mso_mdoc": {
