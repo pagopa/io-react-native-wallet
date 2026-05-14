@@ -10,6 +10,7 @@ import {
   parseAuthorizeRequest,
 } from "@pagopa/io-wallet-oid4vp";
 import { sendAuthorizationResponseAndExtractCode } from "@pagopa/io-wallet-oid4vci";
+import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
 import { parseMrtdChallenge } from "@pagopa/io-wallet-oauth2";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
@@ -19,11 +20,7 @@ import {
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { sdkConfigV1_3 } from "../../../utils/config";
-import {
-  IoWalletError,
-  IssuerResponseError,
-  sdkUnexpectedStatusCodeToIssuerError,
-} from "../../../utils/errors";
+import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
 import type { IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
 import type { RemotePresentation, RequestObject } from "../../presentation";
@@ -128,17 +125,18 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       [[pidKeyTag, pid]]
     );
 
-    const authRequestObject = {
-      nonce: requestObject.nonce,
-      clientId: requestObject.client_id,
-      responseUri: requestObject.response_uri,
-    };
+    // Strip any prefix from the client_id so it's not included in the vp_token
+    const clientId = requestObject.client_id.replace(
+      /^(openid_federation|x509_hash):/i,
+      ""
+    );
 
     const remotePresentation =
-      await RemotePresentationFlow.prepareRemotePresentations(
-        dcqlQueryResult,
-        authRequestObject
-      );
+      await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
+        clientId,
+        nonce: requestObject.nonce,
+        responseUri: requestObject.response_uri,
+      });
 
     const authzResponse = await createAuthorizationResponse({
       requestObject,
@@ -212,7 +210,7 @@ export const parseAuthorizationResponse = (
  * @param remotePresentation The presentations to send, each with their VP token
  * @returns The Base64 encoded authorization response payload.
  */
-const createAuthorizationResponse = async ({
+const createAuthorizationResponse = ({
   issuerConfig,
   requestObject,
   remotePresentation,
@@ -226,10 +224,12 @@ const createAuthorizationResponse = async ({
     {} as Record<string, string[]>
   );
 
-  return await sdkCreateAuthorizationResponse({
+  return sdkCreateAuthorizationResponse({
     requestObject,
     rpJwks: {
-      jwks: requestObject.client_metadata?.jwks ?? { keys: issuerConfig.keys },
+      jwks:
+        requestObject.client_metadata?.jwks ??
+        ({ keys: issuerConfig.keys } as jsonWebKeySet),
       encrypted_response_enc_values_supported:
         requestObject.client_metadata
           ?.encrypted_response_enc_values_supported ??
