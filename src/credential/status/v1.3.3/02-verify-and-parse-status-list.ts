@@ -1,9 +1,5 @@
 import { verify } from "@pagopa/io-react-native-jwt";
 import { getListFromStatusListJWT } from "@sd-jwt/jwt-status-list";
-import {
-  IssuerResponseError,
-  IssuerResponseErrorCodes,
-} from "../../../utils/errors";
 import type { StatusListApi } from "../api/status-list";
 
 /**
@@ -29,18 +25,6 @@ export const verifyAndParseStatusList: StatusListApi["verifyAndParse"] = async (
   const statusList = getListFromStatusListJWT(rawStatusList);
   const statusBit = statusList.getStatus(idx) as CredentialStatusBit;
   const status = CredentialStatusMap[statusBit];
-
-  // Throwing IssuerResponseError for backward compatibility with 1.0 (status assertion)
-  // After the status assertion is fully deprecated, a more specific error can be thrown
-  // or the status can be returned as is.
-  if (status === "invalid" || status === "suspended") {
-    throw new IssuerResponseError({
-      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
-      message: "Invalid status found for the given credential",
-      statusCode: 200,
-      reason: { error: status },
-    });
-  }
 
   return { status, statusBit };
 };
