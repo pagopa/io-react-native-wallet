@@ -17,7 +17,10 @@ function addAuthHeaders(options: RequestInit, authHeaders: AuthHeaders) {
   };
 }
 
-export default function appFetch(request: RequestInfo, options: RequestInit) {
+export default function appFetch(
+  request: RequestInfo,
+  options: RequestInit = {}
+) {
   const state = store.getState();
   const env = selectEnv(state);
   const { WALLET_PROVIDER_BASE_URL } = getEnv(env);

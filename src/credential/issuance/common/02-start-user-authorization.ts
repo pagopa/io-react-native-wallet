@@ -1,3 +1,4 @@
+import { IoWalletError } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { AuthorizationDetail } from "../../../utils/par";
 import type { IssuerConfig } from "../api";
@@ -30,7 +31,7 @@ export const selectCredentialDefinition = (
       LogLevel.ERROR,
       `Requested credential ${credentialId} is not supported by the issuer according to its configuration ${JSON.stringify(credential_configurations_supported)}`
     );
-    throw new Error(`No credential support the type '${credentialId}'`);
+    throw new IoWalletError(`No credential support the type '${credentialId}'`);
   }
   return result;
 };
@@ -61,7 +62,7 @@ export const selectResponseMode = (
       LogLevel.ERROR,
       `${credentialIds} have incompatible response_mode: ${[...responseModeSet.values()]}`
     );
-    throw new Error(
+    throw new IoWalletError(
       "Requested credentials have incompatible response_mode and cannot be requested with the same PAR request"
     );
   }
@@ -79,7 +80,9 @@ export const selectResponseMode = (
       LogLevel.ERROR,
       `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`
     );
-    throw new Error(`No response mode support for IDs '${credentialIds}'`);
+    throw new IoWalletError(
+      `No response mode support for IDs '${credentialIds}'`
+    );
   }
 
   return responseMode!;

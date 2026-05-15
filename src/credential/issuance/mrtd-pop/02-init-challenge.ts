@@ -1,61 +1,85 @@
-import { v4 as uuidv4 } from "uuid";
-import { fetchMrtdPopInit } from "@pagopa/io-wallet-oauth2";
-import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
-import { createPopToken } from "../../../utils/pop";
+import {
+  createClientAttestationPopJwt,
+  fetchMrtdPopInit,
+} from "@pagopa/io-wallet-oauth2";
+import {
+  IoWalletSdkConfig,
+  UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError,
+} from "@pagopa/io-wallet-utils";
 import { Logger, LogLevel } from "../../../utils/logging";
-import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils"; // TODO: decouple from version 1.0.0
 import {
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
 } from "../../../utils/errors";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
-import { createVerifyJwtFromJwks } from "../../../utils/callbacks";
+import {
+  createSignJwtFromCryptoContext,
+  createVerifyJwtFromJwks,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 
-export const initChallenge: MRTDPoPApi["initChallenge"] = async (
-  issuerConf,
-  initUrl,
-  mrtd_auth_session,
-  mrtd_pop_jwt_nonce,
-  context
-) => {
-  const {
-    appFetch = fetch,
-    walletInstanceAttestation,
-    wiaCryptoContext,
-  } = context;
-
-  const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
-    .payload.cnf.jwk.kid;
-
-  const signedWiaPoP = await createPopToken(
-    {
-      jti: uuidv4(),
-      aud: issuerConf.credential_issuer,
-      iss,
-    },
-    wiaCryptoContext
-  );
-
-  const initResult = await fetchMrtdPopInit({
-    popInitEndpoint: initUrl,
-    mrtdAuthSession: mrtd_auth_session,
-    mrtdPopJwtNonce: mrtd_pop_jwt_nonce,
-    walletAttestation: walletInstanceAttestation,
-    clientAttestationDPoP: signedWiaPoP,
-    callbacks: {
-      verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
-      fetch: appFetch,
-    },
-  }).catch(handleInitChallengeError);
-
-  return {
-    challenge: initResult.challenge,
-    mrtd_pop_nonce: initResult.mrtdPopNonce,
-    pop_verify_endpoint: initResult.popVerifyEndpoint,
-    mrz: initResult.mrz,
-  };
+type Config = {
+  sdkConfig: IoWalletSdkConfig;
 };
+
+/**
+ * Factory function to create `initChallenge` for MRTD PoP flow.
+ * The factory is needed to inject version specific SDK configuration.
+ * @param config Configuration object containing the IO Wallet SDK configuration
+ * @returns `initChallenge` function compliant with the public API
+ */
+export function createInitChallenge(
+  config: Config
+): MRTDPoPApi["initChallenge"] {
+  return async function initChallenge(
+    issuerConf,
+    initUrl,
+    mrtd_auth_session,
+    mrtd_pop_jwt_nonce,
+    context
+  ) {
+    const {
+      appFetch = fetch,
+      walletInstanceAttestation,
+      wiaCryptoContext,
+    } = context;
+
+    const clientAttestationDPoP = await createClientAttestationPopJwt({
+      config: config.sdkConfig,
+      callbacks: {
+        generateRandom: partialCallbacks.generateRandom,
+        signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
+      },
+      clientAttestation: walletInstanceAttestation,
+      authorizationServer: issuerConf.credential_issuer,
+      signer: {
+        method: "jwk",
+        alg: "ES256",
+        publicJwk: await wiaCryptoContext.getPublicKey(),
+      },
+    });
+
+    const initResult = await fetchMrtdPopInit({
+      popInitEndpoint: initUrl,
+      mrtdAuthSession: mrtd_auth_session,
+      mrtdPopJwtNonce: mrtd_pop_jwt_nonce,
+      walletAttestation: walletInstanceAttestation,
+      clientAttestationDPoP,
+      callbacks: {
+        verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
+        fetch: appFetch,
+      },
+    }).catch(handleInitChallengeError);
+
+    return {
+      challenge: initResult.challenge,
+      mrtd_pop_nonce: initResult.mrtdPopNonce,
+      pop_verify_endpoint: initResult.popVerifyEndpoint,
+      mrz: initResult.mrz,
+    };
+  };
+}
 
 const handleInitChallengeError = (e: unknown) => {
   Logger.log(LogLevel.ERROR, `Failed to get MRTD challenge: ${e}`);
