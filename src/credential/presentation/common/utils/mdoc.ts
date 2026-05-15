@@ -5,8 +5,8 @@ import type {
   Credential4Dcql,
   EvaluatedDisclosure,
   PresentationFrame,
-} from "../api";
-import { getValidDcqlClaims } from "../common/utils/dcql";
+} from "../../api";
+import { getValidDcqlClaims } from "./dcql";
 
 type CustomDcqlMdocCredential = DcqlMdocCredential & {
   original_credential: Credential4Dcql;
