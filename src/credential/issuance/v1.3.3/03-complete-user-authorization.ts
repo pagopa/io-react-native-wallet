@@ -19,7 +19,7 @@ import {
   createVerifyJwtFromJwks,
   partialCallbacks,
 } from "../../../utils/callbacks";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_3, sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
 import type { IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
@@ -125,15 +125,9 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       [[pidKeyTag, pid]]
     );
 
-    // Strip any prefix from the client_id so it's not included in the vp_token
-    const clientId = requestObject.client_id.replace(
-      /^(openid_federation|x509_hash):/i,
-      ""
-    );
-
     const remotePresentation =
       await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
-        clientId,
+        clientId: requestObject.client_id,
         nonce: requestObject.nonce,
         responseUri: requestObject.response_uri,
       });
@@ -225,14 +219,13 @@ const createAuthorizationResponse = ({
   );
 
   return sdkCreateAuthorizationResponse({
+    // The SDK 1.4 config is used here in order to resolve the encryption data from the Request Object
+    // client_metadata, otherwise OpenID Federation clients always ignore client_metadata as per 1.3.3 specs.
+    config: sdkConfigV1_4,
     requestObject,
     rpJwks: {
-      jwks:
-        requestObject.client_metadata?.jwks ??
-        ({ keys: issuerConfig.keys } as jsonWebKeySet),
+      jwks: { keys: issuerConfig.keys } as jsonWebKeySet,
       encrypted_response_enc_values_supported:
-        requestObject.client_metadata
-          ?.encrypted_response_enc_values_supported ??
         issuerConfig.encrypted_response_enc_values_supported,
     },
     vp_token,
