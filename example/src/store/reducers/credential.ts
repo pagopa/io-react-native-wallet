@@ -27,6 +27,14 @@ import {
 } from "../../thunks/trustmark";
 
 /**
+ * Supported tokens for the status list flow. They can be either SD-JWT credentials
+ * or regular JWTs like the Wallet Unit Attestation.
+ */
+export type StatusSupportedTokens =
+  | SupportedCredentials
+  | "walletUnitAttestation";
+
+/**
  * State type definition for the credential slice.
  * It contains:
  * - credentials: the obtained credentials which are persisted, except for the PID which is stored in the PID slice {@link pidSlice}
@@ -40,8 +48,8 @@ type CredentialState = {
     CredentialResult | undefined
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-  status: Record<SupportedCredentials, CredentialStatusResult | undefined>;
-  statusAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
+  status: Record<StatusSupportedTokens, CredentialStatusResult | undefined>;
+  statusAsyncStatus: Record<StatusSupportedTokens, AsyncStatus>;
   trustmark: Record<
     SupportedCredentialsWithoutPid,
     GetTrustmarkThunkOutput | undefined
@@ -74,6 +82,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_attendance: asyncStatusInitial,
   },
   status: {
+    walletUnitAttestation: undefined,
     PersonIdentificationData: undefined,
     dc_sd_jwt_mDL: undefined,
     mso_mdoc_mDL: undefined,
@@ -86,6 +95,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_attendance: undefined,
   },
   statusAsyncStatus: {
+    walletUnitAttestation: asyncStatusInitial,
     PersonIdentificationData: asyncStatusInitial,
     dc_sd_jwt_mDL: asyncStatusInitial,
     mso_mdoc_mDL: asyncStatusInitial,

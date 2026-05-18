@@ -17,10 +17,10 @@ const CredentialStatusMap = {
 type CredentialStatusBit = keyof typeof CredentialStatusMap;
 
 export const verifyAndParseStatusList: StatusListApi["verifyAndParse"] = async (
-  issuerConf,
+  keys,
   { statusList: rawStatusList, idx }
 ) => {
-  await verify(rawStatusList, issuerConf.keys);
+  await verify(rawStatusList, keys);
 
   const statusList = getListFromStatusListJWT(rawStatusList);
   const statusBit = statusList.getStatus(idx) as CredentialStatusBit;

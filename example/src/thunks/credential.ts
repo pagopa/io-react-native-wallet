@@ -19,7 +19,7 @@ import type {
 import {
   getCredential,
   getCredentialStatusAssertion,
-  getCredentialStatus,
+  getCredentialStatusFromStatusList,
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
@@ -29,6 +29,7 @@ import {
   getWalletInstanceAttestationThunk,
   getWalletUnitAttestationThunk,
 } from "./attestation";
+import type { StatusSupportedTokens } from "../store/reducers/credential";
 
 /**
  * Discriminated union representing the unified credential status result,
@@ -45,7 +46,7 @@ export type CredentialStatusResult =
   | {
       type: "status_list";
       status: string;
-      credentialType: SupportedCredentials;
+      credentialType: StatusSupportedTokens;
       statusList: string;
       statusBit: number;
     };
@@ -72,7 +73,7 @@ type GetCredentialStatusAssertionThunkInput = {
  */
 type GetCredentialStatusListThunkInput = {
   credential: string;
-  credentialType: SupportedCredentials;
+  credentialType: StatusSupportedTokens;
   format: CredentialIssuance.CredentialFormat;
 };
 
@@ -187,24 +188,21 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   };
 });
 
+/**
+ * Thunk to obtain a credential status from its Token Status List.
+ */
 export const getCredentialStatusListThunk = createAppAsyncThunk<
   CredentialStatusResult,
   GetCredentialStatusListThunkInput
 >("credential/statusListGet", async (args, { getState }) => {
   const itwVersion = selectItwVersion(getState());
 
-  const env = getEnv(selectEnv(getState()));
-
-  const issuerUrl =
-    args.credentialType === "PersonIdentificationData"
-      ? env.WALLET_PID_PROVIDER_BASE_URL
-      : env.WALLET_EAA_PROVIDER_BASE_URL;
-
-  const result = await getCredentialStatus(
+  const result = await getCredentialStatusFromStatusList(
     itwVersion,
+    getEnv(selectEnv(getState())),
     args.credential,
-    args.format,
-    issuerUrl.value(itwVersion)
+    args.credentialType,
+    args.format
   );
 
   return {

@@ -5,6 +5,7 @@ import {
   type ItwVersion,
   type CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
@@ -14,6 +15,7 @@ import type {
   SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
+import type { Env } from "./environment";
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -245,12 +247,19 @@ export const getCredentialStatusAssertion = async (
 
 /**
  * Get the status of a credential via the Token Status List.
+ * @param itwVersion IT-Wallet specifications version
+ * @param env The environment variables
+ * @param credentialType The type of the credential
+ * @param credential The raw credential to obtain the status for
+ * @param format The format of the credential
+ * @returns The credential status
  */
-export const getCredentialStatus = async (
+export const getCredentialStatusFromStatusList = async (
   itwVersion: ItwVersion,
+  env: Env,
   credential: string,
-  format: CredentialIssuance.CredentialFormat,
-  credentialIssuerUrl: string
+  credentialType: string,
+  format: CredentialIssuance.CredentialFormat
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
 
@@ -258,8 +267,12 @@ export const getCredentialStatus = async (
     throw new Error(`Status list is not supported in version ${itwVersion}`);
   }
 
-  const { issuerConf } =
-    await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
+  const keys = await getKeysForStatusListVerification(
+    itwVersion,
+    env,
+    credential,
+    credentialType
+  );
 
   const statusListParams = await wallet.CredentialStatus.statusList.get(
     credential,
@@ -268,7 +281,7 @@ export const getCredentialStatus = async (
   );
 
   const result = await wallet.CredentialStatus.statusList.verifyAndParse(
-    issuerConf,
+    keys,
     statusListParams
   );
 
@@ -276,4 +289,44 @@ export const getCredentialStatus = async (
     statusList: statusListParams.statusList,
     ...result,
   };
+};
+
+const getKeysForStatusListVerification = async (
+  itwVersion: ItwVersion,
+  env: Env,
+  credential: string,
+  credentialType: string
+) => {
+  if (credentialType === "walletUnitAttestation") {
+    const decodedWua = decodeJwt(credential);
+
+    const { payload } = await fetch(
+      `${decodedWua.payload.iss}/.well-known/openid-federation`
+    )
+      .then((res) => res.text())
+      .then(decodeJwt);
+
+    // This type should be parsed and validated more robustly (or even moved to the library),
+    // but for simplicity it is casted to the expected shape as this is just an example.
+    const walletProviderJwt = payload as {
+      metadata: {
+        wallet_solution: {
+          jwks: { keys: CredentialIssuance.IssuerConfig["keys"] };
+        };
+      };
+    };
+
+    return walletProviderJwt.metadata.wallet_solution.jwks.keys;
+  }
+
+  const wallet = new IoWallet({ version: itwVersion });
+  const issuerUrl =
+    credentialType === "PersonIdentificationData"
+      ? env.WALLET_PID_PROVIDER_BASE_URL
+      : env.WALLET_EAA_PROVIDER_BASE_URL;
+
+  const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
+    issuerUrl.value(itwVersion)
+  );
+  return issuerConf.keys;
 };

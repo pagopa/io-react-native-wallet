@@ -12,6 +12,7 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectPid } from "../store/reducers/pid";
+import { selectWalletUnitAttestation } from "../store/reducers/attestation";
 import { selectIoAuthToken } from "../store/reducers/session";
 import { useAppSelector } from "../store/utils";
 
@@ -25,6 +26,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
   const pid = useAppSelector(selectPid);
+  const wua = useAppSelector(selectWalletUnitAttestation);
   const session = useAppSelector(selectIoAuthToken);
   const credentials = useAppSelector(selectCredentials);
 
@@ -84,9 +86,9 @@ const HomeScreen = () => {
           "Obtain the status of a credential (Status Assertion/Status List)",
         icon: "chevronRight",
         onPress: () =>
-          pid
+          wua || pid
             ? navigation.navigate("CredentialStatus")
-            : Alert.alert("Obtain a PID first"),
+            : Alert.alert("Obtain a WUA or a PID first"),
       },
       {
         label: "Trustmark",
@@ -119,7 +121,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, hasSomeCredential]
+    [hasIntegrityKeyTag, navigation, pid, wua, hasSomeCredential]
   );
 
   return (

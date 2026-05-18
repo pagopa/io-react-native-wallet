@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { IoWallet } from "@pagopa/io-react-native-wallet";
+import compact from "lodash/compact";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   selectCredential,
@@ -17,6 +18,7 @@ import { FlatList } from "react-native";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectPid } from "../store/reducers/pid";
+import { selectWalletUnitAttestation } from "../store/reducers/attestation";
 import { selectItwVersion } from "../store/reducers/environment";
 
 /**
@@ -27,6 +29,7 @@ export const CredentialStatusScreen = () => {
 
   const status = useAppSelector(selectStatuses);
   const asyncStatus = useAppSelector(selectStatusAsyncStatuses);
+  const wua = useAppSelector(selectWalletUnitAttestation);
 
   const pid = useAppSelector(selectPid);
   const mDL = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
@@ -45,12 +48,28 @@ export const CredentialStatusScreen = () => {
     pidStatusState: asyncStatus.PersonIdentificationData,
     mdlStatusState: asyncStatus.dc_sd_jwt_mDL,
     dcStatusState: asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
+    wuaStatusState: asyncStatus.walletUnitAttestation,
     pidStatus: status.PersonIdentificationData,
     mdlStatus: status.dc_sd_jwt_mDL,
     dcStatus: status.dc_sd_jwt_EuropeanDisabilityCard,
+    wuaStatus: status.walletUnitAttestation,
   });
 
-  const statusListScenarios: Array<TestScenarioProp | undefined> = [
+  const statusListScenarios = compact<TestScenarioProp>([
+    wua && {
+      title: "Get Status List (WUA)",
+      onPress: () =>
+        dispatch(
+          getCredentialStatusListThunk({
+            format: "dc+sd-jwt",
+            credential: wua,
+            credentialType: "walletUnitAttestation",
+          })
+        ),
+      ...asyncStatus.walletUnitAttestation,
+      icon: "locked",
+      isPresent: !!status.walletUnitAttestation,
+    },
     pid && {
       title: "Get Status List (PID)",
       onPress: () =>
@@ -65,9 +84,9 @@ export const CredentialStatusScreen = () => {
       icon: "fiscalCodeIndividual",
       isPresent: !!status.PersonIdentificationData,
     },
-  ];
+  ]);
 
-  const statusAssertionScenarios: Array<TestScenarioProp | undefined> = [
+  const statusAssertionScenarios = compact<TestScenarioProp>([
     pid && {
       title: "Get Status Assertion (PID)",
       onPress: () =>
@@ -113,7 +132,7 @@ export const CredentialStatusScreen = () => {
       icon: "accessibility",
       isPresent: !!status.dc_sd_jwt_EuropeanDisabilityCard,
     },
-  ];
+  ]);
 
   const getScenarios = () => {
     if (wallet.CredentialStatus.statusList.isSupported) {
