@@ -34,14 +34,14 @@ const getStatusListEntry = async (
 export const getStatusList: StatusListApi["get"] = async (
   credential,
   format,
-  { appFetch = fetch } = {}
+  { appFetch = fetch, cacheControl } = {}
 ) => {
   const { uri, idx } = await getStatusListEntry(credential, format);
 
   const statusList = await appFetch(uri, {
     headers: {
       Accept: "application/statuslist+jwt",
-      "Cache-control": "no-cache", // Temporary?
+      ...(cacheControl && { "Cache-Control": cacheControl }),
     },
   })
     .then(hasStatusOrThrow(200))
