@@ -1489,7 +1489,7 @@
     "@babel/parser" "^7.27.2"
     "@babel/types" "^7.27.1"
 
-"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3":
+"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3", "@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.27.3", "@babel/traverse@^7.28.0":
   version "7.28.0"
   resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.0.tgz#518aa113359b062042379e333db18380b537e34b"
   integrity sha512-mGe7UK5wWyh0bKRfupsUchrQGqvDbZDbKJw+kcRGSmdHVYrv+ltd0pnpDTVpiTqnaBru9iEvA8pz8W46v0Amwg==
@@ -1514,19 +1514,6 @@
     "@babel/types" "^7.25.4"
     debug "^4.3.1"
     globals "^11.1.0"
-
-"@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.27.3", "@babel/traverse@^7.28.0":
-  version "7.28.0"
-  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.0.tgz#518aa113359b062042379e333db18380b537e34b"
-  integrity sha512-mGe7UK5wWyh0bKRfupsUchrQGqvDbZDbKJw+kcRGSmdHVYrv+ltd0pnpDTVpiTqnaBru9iEvA8pz8W46v0Amwg==
-  dependencies:
-    "@babel/code-frame" "^7.27.1"
-    "@babel/generator" "^7.28.0"
-    "@babel/helper-globals" "^7.28.0"
-    "@babel/parser" "^7.28.0"
-    "@babel/template" "^7.27.2"
-    "@babel/types" "^7.28.0"
-    debug "^4.3.1"
 
 "@babel/traverse@^7.25.9", "@babel/traverse@^7.26.9":
   version "7.26.9"
@@ -2008,10 +1995,10 @@
     react-native-safe-area-context "^5.4.1"
     react-native-svg "^15.12.0"
 
-"@pagopa/io-react-native-cie@^1.3.4":
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cie/-/io-react-native-cie-1.3.4.tgz#8a8506f31bf3957af9d5b1d8a7513073c13561e6"
-  integrity sha512-gDOFX6FXRueN+R0DcX6L3v1XogXbz2ZjpTldE2Wsnlh5XC27lftkfLNcspI55m6sliut1lKQK6XDBsPvha2mGQ==
+"@pagopa/io-react-native-cie@^1.3.6":
+  version "1.3.6"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cie/-/io-react-native-cie-1.3.6.tgz#832824e2636dbdeef742e4ff51109e11471067eb"
+  integrity sha512-3DNrCT0G5rguskrPtmhahovjmlwJd7E3uEPZmsH+mZStHs63TueNBLyK9L8fbgRLhZaZ1ZZkRp06XH+2x0lnWA==
   dependencies:
     zod "^3.24.4"
 
