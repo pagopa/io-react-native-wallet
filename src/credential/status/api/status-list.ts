@@ -21,7 +21,6 @@ export interface StatusListApi {
    * @param credential The credential to get the status list for
    * @param format The credential format
    * @param context.appFetch Optional fetch function to use for the network request
-   * @param context.cacheControl Optional cache control directive to include in the request headers
    * @returns The raw status list, the index of the credential and other metadata
    */
   get(
@@ -29,7 +28,6 @@ export interface StatusListApi {
     format: CredentialFormat,
     context?: {
       appFetch?: GlobalFetch["fetch"];
-      cacheControl?: string;
     }
   ): Promise<{
     statusList: string;

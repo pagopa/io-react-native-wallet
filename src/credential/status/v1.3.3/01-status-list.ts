@@ -1,4 +1,5 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import {
   getStatusListFromJWT,
   type StatusListEntry,
@@ -34,18 +35,32 @@ const getStatusListEntry = async (
 export const getStatusList: StatusListApi["get"] = async (
   credential,
   format,
-  { appFetch = fetch, cacheControl } = {}
+  { appFetch = fetch } = {}
 ) => {
   const { uri, idx } = await getStatusListEntry(credential, format);
 
-  const statusList = await appFetch(uri, {
-    headers: {
-      Accept: "application/statuslist+jwt",
-      ...(cacheControl && { "Cache-Control": cacheControl }),
-    },
-  })
-    .then(hasStatusOrThrow(200))
-    .then((response) => response.text());
+  const fetchStatusList = (options: { cacheDisabled?: boolean } = {}) =>
+    appFetch(uri, {
+      headers: {
+        Accept: "application/statuslist+jwt",
+        ...(options.cacheDisabled && { "Cache-Control": "no-cache" }),
+      },
+    })
+      .then(hasStatusOrThrow(200))
+      .then((response) => response.text());
 
+  // When the HTTP response includes cache headers, fetch will return a cached response and the JWT might be expired
+  let statusList = await fetchStatusList();
+  const decoded = decodeJwt(statusList);
+
+  const expirationDate = decoded.payload.exp
+    ? new Date(decoded.payload.exp * 1000)
+    : undefined;
+
+  // If the status list JWT is expired, try to fetch it again bypassing the HTTP cache.
+  // If it is still expired after the refetch, `verifyAndParseStatusList` will throw.
+  if (expirationDate && expirationDate < new Date()) {
+    statusList = await fetchStatusList({ cacheDisabled: true });
+  }
   return { statusList, uri, idx, format: "jwt" };
 };
