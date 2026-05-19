@@ -48,7 +48,7 @@ export type CredentialStatusResult =
       status: string;
       credentialType: StatusSupportedTokens;
       statusList: string;
-      statusBit: number;
+      statusBit: string;
     };
 
 /**
