@@ -19,6 +19,7 @@ import type {
 import {
   getCredential,
   getCredentialStatusAssertion,
+  getCredentialStatusFromStatusList,
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
@@ -28,6 +29,27 @@ import {
   getWalletInstanceAttestationThunk,
   getWalletUnitAttestationThunk,
 } from "./attestation";
+import type { StatusSupportedTokens } from "../store/reducers/credential";
+
+/**
+ * Discriminated union representing the unified credential status result,
+ * covering both status assertion and status list flows.
+ */
+export type CredentialStatusResult =
+  | {
+      type: "status_assertion";
+      status: string;
+      credentialType: SupportedCredentials;
+      statusAssertion: string;
+      parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
+    }
+  | {
+      type: "status_list";
+      status: string;
+      credentialType: StatusSupportedTokens;
+      statusList: string;
+      statusBit: string;
+    };
 
 /**
  * Type definition for the input of the {@link getCredentialThunk}.
@@ -47,12 +69,12 @@ type GetCredentialStatusAssertionThunkInput = {
 };
 
 /**
- * Type definition for the output of the {@link getCredentialStatusAssertionThunk}.
+ * Type definition for the input of the {@link getCredentialStatusListThunk}.
  */
-export type GetCredentialStatusAssertionThunkOutput = {
-  statusAssertion: string;
-  parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
-  credentialType: SupportedCredentials;
+type GetCredentialStatusListThunkInput = {
+  credential: string;
+  credentialType: StatusSupportedTokens;
+  format: CredentialIssuance.CredentialFormat;
 };
 
 /**
@@ -130,7 +152,7 @@ export const getCredentialThunk = createAppAsyncThunk<
  * @returns The obtained credential result
  */
 export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
-  GetCredentialStatusAssertionThunkOutput,
+  CredentialStatusResult,
   GetCredentialStatusAssertionThunkInput
 >("credential/statusAssertionGet", async (args, { getState }) => {
   const { credential, format, keyTag, credentialType } = args;
@@ -147,7 +169,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
       ? env.WALLET_PID_PROVIDER_BASE_URL
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 
-  return await getCredentialStatusAssertion(
+  const result = await getCredentialStatusAssertion(
     itwVersion,
     issuerUrl.value(itwVersion),
     credential,
@@ -156,4 +178,38 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
     wiaCryptoContext,
     credentialType
   );
+
+  return {
+    type: "status_assertion",
+    status: result.parsedStatusAssertion.credential_status_type,
+    credentialType: result.credentialType,
+    statusAssertion: result.statusAssertion,
+    parsedStatusAssertion: result.parsedStatusAssertion,
+  };
+});
+
+/**
+ * Thunk to obtain a credential status from its Token Status List.
+ */
+export const getCredentialStatusListThunk = createAppAsyncThunk<
+  CredentialStatusResult,
+  GetCredentialStatusListThunkInput
+>("credential/statusListGet", async (args, { getState }) => {
+  const itwVersion = selectItwVersion(getState());
+
+  const result = await getCredentialStatusFromStatusList(
+    itwVersion,
+    getEnv(selectEnv(getState())),
+    args.credential,
+    args.credentialType,
+    args.format
+  );
+
+  return {
+    type: "status_list",
+    status: result.status,
+    credentialType: args.credentialType,
+    statusList: result.statusList,
+    statusBit: result.statusBit,
+  };
 });

@@ -2,18 +2,32 @@ import { verify } from "@pagopa/io-react-native-jwt";
 import { getListFromStatusListJWT } from "@sd-jwt/jwt-status-list";
 import type { StatusListApi } from "../api/status-list";
 
+/**
+ * Mapping of status bits to their corresponding meaning as defined in the specification.
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/credential-revocation.html#token-status-lists
+ */
+const CredentialStatusMap = {
+  0x00: "VALID",
+  0x01: "INVALID",
+  0x02: "SUSPENDED",
+  0x03: "UPDATE",
+  0x0b: "ATTRIBUTE_UPDATE",
+} as const;
+
+type CredentialStatusBit = keyof typeof CredentialStatusMap;
+
 export const verifyAndParseStatusList: StatusListApi["verifyAndParse"] = async (
-  issuerConf,
+  keys,
   { statusList: rawStatusList, idx }
 ) => {
-  await verify(rawStatusList, issuerConf.keys);
+  await verify(rawStatusList, keys);
 
   const statusList = getListFromStatusListJWT(rawStatusList);
+  const statusBit = statusList.getStatus(idx) as CredentialStatusBit;
+  const status = CredentialStatusMap[statusBit];
 
-  const status = statusList.getStatus(idx);
-
-  // TODO: [SIW-3992] Improve the return object with additional data, throw CredentialInvalidStatus when invalid
   return {
     status,
+    statusBit: `0x${statusBit.toString(16).padStart(2, "0").toUpperCase()}`,
   };
 };
