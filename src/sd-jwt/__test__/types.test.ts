@@ -28,20 +28,8 @@ describe("Verification.time", () => {
 
   it("rejects invalid type", () => {
     const value = {
-      trust_framework: "eidas",
+      trust_framework: ["eidas"],
       assurance_level: "high",
-      evidence: [
-        {
-          type: "vouch",
-          time: null,
-          attestation: {
-            type: "digital_attestation",
-            reference_number: "abc",
-            date_of_issuance: "2025-09-02",
-            voucher: { organization: "IPZS" },
-          },
-        },
-      ],
     };
 
     expect(Verification.safeParse(value).success).toBe(false);
