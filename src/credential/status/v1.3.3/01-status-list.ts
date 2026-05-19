@@ -53,13 +53,11 @@ export const getStatusList: StatusListApi["get"] = async (
   let statusList = await fetchStatusList();
   const decoded = decodeJwt(statusList);
 
-  const expirationDate = decoded.payload.exp
-    ? new Date(decoded.payload.exp * 1000)
-    : undefined;
+  const { exp } = decoded.payload;
 
   // If the status list JWT is expired, try to fetch it again bypassing the HTTP cache.
   // If it is still expired after the refetch, `verifyAndParseStatusList` will throw.
-  if (expirationDate && expirationDate < new Date()) {
+  if (exp && exp < Math.floor(Date.now() / 1000)) {
     statusList = await fetchStatusList({ cacheDisabled: true });
   }
   return { statusList, uri, idx, format: "jwt" };
