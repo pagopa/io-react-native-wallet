@@ -23,28 +23,28 @@ describe("verifyAndParseStatusList", () => {
   it.each([
     {
       idx: 0,
-      expectedStatus: "valid",
-      expectedStatusBit: 0,
+      expectedStatus: "VALID",
+      expectedStatusBit: "0x00",
     },
     {
       idx: 1,
-      expectedStatus: "invalid",
-      expectedStatusBit: 1,
+      expectedStatus: "INVALID",
+      expectedStatusBit: "0x01",
     },
     {
       idx: 3,
-      expectedStatus: "suspended",
-      expectedStatusBit: 2,
+      expectedStatus: "SUSPENDED",
+      expectedStatusBit: "0x02",
     },
     {
       idx: 5,
-      expectedStatus: "update",
-      expectedStatusBit: 3,
+      expectedStatus: "UPDATE",
+      expectedStatusBit: "0x03",
     },
     {
       idx: 7,
-      expectedStatus: "attribute_update",
-      expectedStatusBit: 11,
+      expectedStatus: "ATTRIBUTE_UPDATE",
+      expectedStatusBit: "0x0B",
     },
   ])(
     "should extract the correct status and status bit for index $idx -> $expectedStatus",

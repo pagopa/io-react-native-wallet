@@ -43,12 +43,13 @@ export interface StatusListApi {
    * @since 1.3.3
    * @param keys The JSON Web Key Set to verify the status list signature
    * @param statusListParams The raw status list, the index to read and other metadata
+   * @return The status of the credential and the raw status bit in hexadecimal format (e.g. "0x01")
    */
   verifyAndParse(
     keys: JWK[],
     statusListParams: Out<StatusListApi["get"]>
   ): Promise<{
-    statusBit: number;
+    statusBit: string;
     status: string;
   }>;
 }
