@@ -6,8 +6,9 @@ import {
 import { type PersistConfig, persistReducer } from "redux-persist";
 import {
   getCredentialStatusAssertionThunk,
-  type GetCredentialStatusAssertionThunkOutput,
+  type CredentialStatusResult,
   getCredentialThunk,
+  getCredentialStatusListThunk,
 } from "../../thunks/credential";
 import type {
   AsyncStatus,
@@ -26,12 +27,20 @@ import {
 } from "../../thunks/trustmark";
 
 /**
+ * Supported tokens for the status list flow. They can be either SD-JWT credentials
+ * or regular JWTs like the Wallet Unit Attestation.
+ */
+export type StatusSupportedTokens =
+  | SupportedCredentials
+  | "walletUnitAttestation";
+
+/**
  * State type definition for the credential slice.
  * It contains:
  * - credentials: the obtained credentials which are persisted, except for the PID which is stored in the PID slice {@link pidSlice}
  * - credentialsState: the state of the async operation to get each credential
- * - statusAssertion: the status assertion for the credentials
- * - statusAssertionAsyncStatus: the state of the async operation to get each credential status assertion
+ * - status: the status result for each credential (either a status assertion or a status list entry)
+ * - statusAsyncStatus: the state of the async operation to get each credential status
  */
 type CredentialState = {
   credentials: Record<
@@ -39,11 +48,8 @@ type CredentialState = {
     CredentialResult | undefined
   >;
   credentialsAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-  statusAssertion: Record<
-    SupportedCredentials,
-    GetCredentialStatusAssertionThunkOutput | undefined
-  >;
-  statusAssertionAsyncStatus: Record<SupportedCredentials, AsyncStatus>;
+  status: Record<StatusSupportedTokens, CredentialStatusResult | undefined>;
+  statusAsyncStatus: Record<StatusSupportedTokens, AsyncStatus>;
   trustmark: Record<
     SupportedCredentialsWithoutPid,
     GetTrustmarkThunkOutput | undefined
@@ -75,7 +81,8 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_diploma: asyncStatusInitial,
     dc_sd_jwt_education_attendance: asyncStatusInitial,
   },
-  statusAssertion: {
+  status: {
+    walletUnitAttestation: undefined,
     PersonIdentificationData: undefined,
     dc_sd_jwt_mDL: undefined,
     mso_mdoc_mDL: undefined,
@@ -87,7 +94,8 @@ const initialState: CredentialState = {
     dc_sd_jwt_education_diploma: undefined,
     dc_sd_jwt_education_attendance: undefined,
   },
-  statusAssertionAsyncStatus: {
+  statusAsyncStatus: {
+    walletUnitAttestation: asyncStatusInitial,
     PersonIdentificationData: asyncStatusInitial,
     dc_sd_jwt_mDL: asyncStatusInitial,
     mso_mdoc_mDL: asyncStatusInitial,
@@ -195,21 +203,18 @@ const credentialSlice = createSlice({
     });
 
     /**
-     * Status Assertion Thunk
+     * Status Thunks (status assertion and status list)
      */
 
     /* Dispatched when a getCredentialStatusAssertionThunk thunk resolves.
-     * Sets the status assertion and its state to isDone for the requested credential while resetting isLoading and hasError
-     * for the requested credential.
+     * Sets the status and its state to isDone for the requested credential.
      */
     builder.addCase(
       getCredentialStatusAssertionThunk.fulfilled,
       (state, action) => {
         const credentialType = action.payload.credentialType;
-        // Set the credential
-        state.statusAssertion[credentialType] = action.payload;
-        // Set the status
-        state.statusAssertionAsyncStatus[credentialType] = {
+        state.status[credentialType] = action.payload;
+        state.statusAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
           isDone: true,
         };
@@ -217,14 +222,13 @@ const credentialSlice = createSlice({
     );
 
     /* Dispatched when a getCredentialStatusAssertionThunk thunk is pending.
-     * Sets the status assertion state to isLoading while resetting isDone and hasError
-     * for the requested credential.
+     * Sets the status state to isLoading for the requested credential.
      */
     builder.addCase(
       getCredentialStatusAssertionThunk.pending,
       (state, action) => {
         const credentialType = action.meta.arg.credentialType;
-        state.statusAssertionAsyncStatus[credentialType] = {
+        state.statusAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
           isLoading: true,
         };
@@ -232,19 +236,52 @@ const credentialSlice = createSlice({
     );
 
     /* Dispatched when a getCredentialStatusAssertionThunk thunk rejected.
-     * Sets the status assertion state to hasError while resetting isLoading and hasError
-     * for the requested credential.
+     * Sets the status state to hasError for the requested credential.
      */
     builder.addCase(
       getCredentialStatusAssertionThunk.rejected,
       (state, action) => {
         const credentialType = action.meta.arg.credentialType;
-        state.statusAssertionAsyncStatus[credentialType] = {
+        state.statusAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
           hasError: { status: true, error: action.error },
         };
       }
     );
+
+    /* Dispatched when a getStatusListThunk thunk resolves.
+     * Sets the status and its state to isDone for the requested credential.
+     */
+    builder.addCase(getCredentialStatusListThunk.fulfilled, (state, action) => {
+      const credentialType = action.payload.credentialType;
+      state.status[credentialType] = action.payload;
+      state.statusAsyncStatus[credentialType] = {
+        ...asyncStatusInitial,
+        isDone: true,
+      };
+    });
+
+    /* Dispatched when a getStatusListThunk thunk is pending.
+     * Sets the status state to isLoading for the requested credential.
+     */
+    builder.addCase(getCredentialStatusListThunk.pending, (state, action) => {
+      const credentialType = action.meta.arg.credentialType;
+      state.statusAsyncStatus[credentialType] = {
+        ...asyncStatusInitial,
+        isLoading: true,
+      };
+    });
+
+    /* Dispatched when a getStatusListThunk thunk rejected.
+     * Sets the status state to hasError for the requested credential.
+     */
+    builder.addCase(getCredentialStatusListThunk.rejected, (state, action) => {
+      const credentialType = action.meta.arg.credentialType;
+      state.statusAsyncStatus[credentialType] = {
+        ...asyncStatusInitial,
+        hasError: { status: true, error: action.error },
+      };
+    });
 
     /**
      * Trustmark thunk
@@ -350,18 +387,17 @@ export const selectCredentialAsyncStatus =
     state.credential.credentialsAsyncStatus[credentialType];
 
 /**
- * Selects the status assertions for all available credentials.
- * @returns The status assertions keyed by credential
+ * Selects the status result for all available credentials.
+ * @returns The status results keyed by credential
  */
-export const selectStatusAssertions = (state: RootState) =>
-  state.credential.statusAssertion;
+export const selectStatuses = (state: RootState) => state.credential.status;
 
 /**
- * Selects the state of the status assertion async operation of all available credentials.
+ * Selects the state of the status async operation of all available credentials.
  * @returns The state of the async operations keyed by credential {@link AsyncStatus}
  */
-export const selectStatusAssertionAsyncStatuses = (state: RootState) =>
-  state.credential.statusAssertionAsyncStatus;
+export const selectStatusAsyncStatuses = (state: RootState) =>
+  state.credential.statusAsyncStatus;
 
 /**
  * Selects the trustmark signed JWT from the trustmark state.

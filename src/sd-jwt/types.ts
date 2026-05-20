@@ -64,19 +64,6 @@ export type Verification = z.infer<typeof Verification>;
 export const Verification = z.object({
   trust_framework: z.string(),
   assurance_level: z.string(),
-  evidence: z.array(
-    z.object({
-      type: z.literal("vouch"),
-      // Support both string and UNIX timestamp for backward compatibility
-      time: z.union([z.string(), z.number()]),
-      attestation: z.object({
-        type: z.literal("digital_attestation"),
-        reference_number: z.string(),
-        date_of_issuance: z.string(),
-        voucher: z.object({ organization: z.string() }),
-      }),
-    })
-  ),
 });
 
 /**

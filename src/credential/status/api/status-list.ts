@@ -1,8 +1,6 @@
 import type { Out } from "../../../utils/misc";
-import type {
-  CredentialFormat,
-  IssuerConfig,
-} from "../../../credential/issuance/api";
+import type { CredentialFormat } from "../../../credential/issuance/api";
+import type { JWK } from "../../../utils/jwk";
 
 export interface StatusListApi {
   isSupported: true;
@@ -22,6 +20,7 @@ export interface StatusListApi {
    * @since 1.3.3
    * @param credential The credential to get the status list for
    * @param format The credential format
+   * @param context.appFetch Optional fetch function to use for the network request
    * @returns The raw status list, the index of the credential and other metadata
    */
   get(
@@ -40,11 +39,15 @@ export interface StatusListApi {
   /**
    * Verifies the signature of a status list and extract the status at the specified index.
    * @since 1.3.3
-   * @param issuerConf The Credential Issuer common configuration
+   * @param keys The JSON Web Key Set to verify the status list signature
    * @param statusListParams The raw status list, the index to read and other metadata
+   * @return The status of the credential and the raw status bit in hexadecimal format (e.g. "0x01")
    */
   verifyAndParse(
-    issuerConf: IssuerConfig,
+    keys: JWK[],
     statusListParams: Out<StatusListApi["get"]>
-  ): Promise<{ status: number }>;
+  ): Promise<{
+    statusBit: string;
+    status: string;
+  }>;
 }

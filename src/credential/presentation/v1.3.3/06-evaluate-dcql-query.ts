@@ -2,13 +2,13 @@ import { DcqlQuery, DcqlError } from "dcql";
 import { isValiError } from "valibot";
 import { CredentialsNotFoundError } from "../common/errors";
 import type { CredentialPurpose } from "../api/06-evaluate-dcql-query";
-import * as mdocUtils from "./utils.mdoc";
-import type { Credential4Dcql, RemotePresentationApi } from "../api";
 import * as sdJwtUtils from "../common/utils/sd-jwt";
-import { getClaimsFromDcqlMatch } from "./utils.mdoc";
+import * as mdocUtils from "../common/utils/mdoc";
+import type { Credential4Dcql, RemotePresentationApi } from "../api";
 import {
   extractFailedCredentialsDetails,
   getDcqlQueryMatches,
+  getClaimsFromDcqlMatch,
   getPresentationFrameFromDcqlMatch,
 } from "../common/utils/dcql";
 

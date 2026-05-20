@@ -91,8 +91,8 @@ const attestationSlice = createSlice({
     builder.addCase(
       getWalletUnitAttestationThunk.fulfilled,
       (state, action) => {
-        state.wua.asyncStatus.isDone = true;
         state.wua.value = action.payload.attestation;
+        state.wua.asyncStatus.isDone = true;
         state.wua.asyncStatus.isLoading =
           initialState.wua.asyncStatus.isLoading;
         state.wua.asyncStatus.hasError = initialState.wua.asyncStatus.hasError;
