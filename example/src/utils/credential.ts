@@ -145,7 +145,7 @@ export const getCredential = async ({
     );
 
   const x509CertRoot =
-    format === "mso_mdoc"
+    format === "mso_mdoc" || itwVersion !== "1.0.0"
       ? await getTrustAnchorX509Certificate(itwVersion, trustAnchorUrl)
       : undefined;
 
