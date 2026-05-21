@@ -6,9 +6,10 @@ import {
 import parseUrl from "parse-url";
 import type { DcqlQuery } from "dcql";
 import {
-  createAuthorizationResponse as sdkCreateAuthorizationResponse,
+  createAuthorizationResponse,
   parseAuthorizeRequest,
   fetchAuthorizationResponse,
+  type CreateAuthorizationResponseResult,
 } from "@pagopa/io-wallet-oid4vp";
 import { sendAuthorizationResponseAndExtractCode } from "@pagopa/io-wallet-oid4vci";
 import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
@@ -24,7 +25,7 @@ import { sdkConfigV1_3, sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
 import type { IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
-import type { RemotePresentation, RequestObject } from "../../presentation";
+import type { RequestObject } from "../../presentation";
 import { hasStatusOrThrow } from "../../../utils/misc";
 
 export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
@@ -121,22 +122,10 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       "The requested credential is not a PID, completing the user authorization with form_post.jwt mode"
     );
 
-    const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
-      requestObject.dcql_query as DcqlQuery,
-      [pid]
-    );
-
-    const remotePresentation =
-      await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
-        clientId: requestObject.client_id,
-        nonce: requestObject.nonce,
-        responseUri: requestObject.response_uri,
-      });
-
-    const authzResponse = await createAuthorizationResponse({
+    const authzResponse = await processPidPresentationAndCreateAuthzResponse({
       requestObject,
       issuerConfig,
-      remotePresentation,
+      pid,
     });
 
     Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
@@ -178,22 +167,10 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
       "The requested credential is not a PID, completing the user authorization with query mode"
     );
 
-    const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
-      requestObject.dcql_query as DcqlQuery,
-      [pid]
-    );
-
-    const remotePresentation =
-      await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
-        clientId: requestObject.client_id,
-        nonce: requestObject.nonce,
-        responseUri: requestObject.response_uri,
-      });
-
-    const authzResponse = await createAuthorizationResponse({
+    const authzResponse = await processPidPresentationAndCreateAuthzResponse({
       requestObject,
       issuerConfig,
-      remotePresentation,
+      pid,
     });
 
     Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
@@ -259,28 +236,39 @@ export const parseAuthorizationResponse = (
 };
 
 /**
- * Creates the authorization response payload to be sent.
- * This payload includes the state and the VP tokens for the presented credentials.
- * The payload is encoded in Base64.
- * @param state - The state parameter from the request object (optional).
- * @param remotePresentation The presentations to send, each with their VP token
- * @returns The Base64 encoded authorization response payload.
+ * Utility function to process the DCQL query for PID presentation and to create the authorization response to send to the Issuer.
+ * @param params.requestObject - The request object containing the DCQL query
+ * @param params.issuerConfig - The Issuer unified configuration
+ * @param params.pid - The PID credential to be presented, as a tuple of [keyTag, credential]
+ * @returns The authorization response containing the JARM to be sent to the Issuer
  */
-const createAuthorizationResponse = ({
-  issuerConfig,
+const processPidPresentationAndCreateAuthzResponse = async ({
   requestObject,
-  remotePresentation,
+  issuerConfig,
+  pid,
 }: {
   requestObject: RequestObject;
   issuerConfig: IssuerConfig;
-  remotePresentation: RemotePresentation;
-}) => {
+  pid: [keyTag: string, credential: string];
+}): Promise<CreateAuthorizationResponseResult> => {
+  const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
+    requestObject.dcql_query as DcqlQuery,
+    [pid]
+  );
+
+  const remotePresentation =
+    await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
+      clientId: requestObject.client_id,
+      nonce: requestObject.nonce,
+      responseUri: requestObject.response_uri,
+    });
+
   const vp_token = remotePresentation.presentations.reduce(
     (acc, { credentialId, vpToken }) => ({ ...acc, [credentialId]: [vpToken] }),
     {} as Record<string, string[]>
   );
 
-  return sdkCreateAuthorizationResponse({
+  return createAuthorizationResponse({
     // The SDK 1.4 config is used here in order to resolve the encryption data from the Request Object
     // client_metadata, otherwise OpenID Federation clients always ignore client_metadata as per 1.3.3 specs.
     config: sdkConfigV1_4,
