@@ -64,5 +64,11 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       }
     );
 
-    return { issuerRequestUri, clientId, codeVerifier, credentialDefinition };
+    return {
+      issuerRequestUri,
+      clientId,
+      codeVerifier,
+      credentialDefinition,
+      responseMode,
+    };
   };

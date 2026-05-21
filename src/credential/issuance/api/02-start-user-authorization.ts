@@ -46,5 +46,6 @@ export interface StartUserAuthorizationApi {
     clientId: string;
     codeVerifier: string;
     credentialDefinition: AuthorizationDetail[];
+    responseMode?: string;
   }>;
 }

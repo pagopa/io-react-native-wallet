@@ -179,7 +179,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   } = flowParams;
 
   const { code } =
-    await wallet.CredentialIssuance.completeUserAuthorizationWithQueryMode(
+    await wallet.CredentialIssuance.completePidUserAuthorizationWithQueryMode(
       authRedirectUrl
     );
 

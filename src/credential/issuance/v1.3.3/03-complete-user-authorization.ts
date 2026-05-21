@@ -8,6 +8,7 @@ import type { DcqlQuery } from "dcql";
 import {
   createAuthorizationResponse as sdkCreateAuthorizationResponse,
   parseAuthorizeRequest,
+  fetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
 import { sendAuthorizationResponseAndExtractCode } from "@pagopa/io-wallet-oid4vci";
 import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
@@ -30,7 +31,7 @@ export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continu
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
+      "The requested credential is a PID and requires MRTD PoP, starting MRTD PoP validation from auth redirect"
     );
     try {
       const parsedChallenge = parseMrtdChallenge({
@@ -66,11 +67,11 @@ export const buildAuthorizationUrl: IssuanceApi["buildAuthorizationUrl"] =
     return { authUrl };
   };
 
-export const completeUserAuthorizationWithQueryMode: IssuanceApi["completeUserAuthorizationWithQueryMode"] =
+export const completePidUserAuthorizationWithQueryMode: IssuanceApi["completePidUserAuthorizationWithQueryMode"] =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData, completing the user authorization with query mode`
+      "The requested credential is a PID, completing the user authorization with query mode"
     );
     const query = parseUrl(authRedirectUrl).query;
 
@@ -81,7 +82,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is not a PersonIdentificationData, requesting the credential to be presented`
+      "The requested credential is not a PID, requesting the credential to be presented"
     );
 
     const authzRequestEndpoint = issuerConf.authorization_endpoint;
@@ -114,15 +115,15 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
   };
 
 export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
-  async (requestObject, issuerConfig, pid, { pidKeyTag, appFetch = fetch }) => {
+  async (requestObject, issuerConfig, pid, { appFetch = fetch }) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
+      "The requested credential is not a PID, completing the user authorization with form_post.jwt mode"
     );
 
     const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
       requestObject.dcql_query as DcqlQuery,
-      [[pidKeyTag, pid]]
+      [pid]
     );
 
     const remotePresentation =
@@ -162,6 +163,67 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
         publicJwk: issuerSigKey,
       },
     });
+  };
+
+export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaaUserAuthorizationWithQueryMode"] =
+  async (
+    requestObject,
+    issuerConfig,
+    pid,
+    clientRedirectUri,
+    { appFetch = fetch }
+  ) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      "The requested credential is not a PID, completing the user authorization with query mode"
+    );
+
+    const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
+      requestObject.dcql_query as DcqlQuery,
+      [pid]
+    );
+
+    const remotePresentation =
+      await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
+        clientId: requestObject.client_id,
+        nonce: requestObject.nonce,
+        responseUri: requestObject.response_uri,
+      });
+
+    const authzResponse = await createAuthorizationResponse({
+      requestObject,
+      issuerConfig,
+      remotePresentation,
+    });
+
+    Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
+
+    const { redirect_uri } = await fetchAuthorizationResponse({
+      authorizationResponseJarm: authzResponse.jarm.responseJwe,
+      presentationResponseUri: requestObject.response_uri,
+      callbacks: {
+        ...partialCallbacks,
+        fetch: appFetch,
+      },
+    });
+
+    if (!redirect_uri) {
+      const errorMessage =
+        "The authorization server did not return a redirect_uri to continue the authorization flow";
+      Logger.log(LogLevel.ERROR, errorMessage);
+      throw new AuthorizationError(errorMessage);
+    }
+
+    const response = await appFetch(redirect_uri);
+    const finalRedirectUri = response.headers.get("Location");
+
+    if (!finalRedirectUri || !finalRedirectUri.startsWith(clientRedirectUri)) {
+      const errorMessage = `The authorization server did not redirect to the provided client redirect URI: ${clientRedirectUri}`;
+      Logger.log(LogLevel.ERROR, errorMessage);
+      throw new AuthorizationError(errorMessage);
+    }
+
+    return parseAuthorizationResponse(parseUrl(finalRedirectUri).query);
   };
 
 /**

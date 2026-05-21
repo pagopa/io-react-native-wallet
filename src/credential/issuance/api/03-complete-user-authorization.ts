@@ -39,8 +39,30 @@ export interface CompleteUserAuthorizationApi {
    * @param authRedirectUrl The URL to which the end user should be redirected to start the authentication flow
    * @returns the authorization response which contains code, state and iss
    */
-  completeUserAuthorizationWithQueryMode(
+  completePidUserAuthorizationWithQueryMode(
     authRedirectUrl: string
+  ): Promise<AuthorizationResult>;
+
+  /**
+   * Complete user authorization when the response mode is "query" and the requested credential is an Electronic Attestation of Attributes (EAA).
+   * This type of credentials requires a PID to be presented to complete the authorization process and then obtain an access token.
+   * @since 1.3.3
+   *
+   * @param requestObject - The request object containing the necessary parameters for authorization.
+   * @param issuerConfig - The issuer configuration returned by {@link evaluateIssuerTrust}
+   * @param pid The PID to present as a tuple [keyTag, credential].
+   * @param redirectUri The client redirect URI to which the authorization server will redirect after completing the authorization process.
+   * @param appFetch (optional) fetch api implementation. Default: built-in fetch
+   * @returns The authorization response which contains code, state and iss
+   */
+  completeEaaUserAuthorizationWithQueryMode(
+    requestObject: RequestObject,
+    issuerConf: IssuerConfig,
+    pid: [keyTag: string, credential: string],
+    redirectUri: string,
+    context: {
+      appFetch?: GlobalFetch["fetch"];
+    }
   ): Promise<AuthorizationResult>;
 
   /**
@@ -52,7 +74,7 @@ export interface CompleteUserAuthorizationApi {
    * @since 1.0.0
    *
    * @param requestObject - The request object containing the necessary parameters for authorization.
-   * @param pid The `PID` that must be presented for the issuance of credentials.
+   * @param pid The PID to present as a tuple [keyTag, credential].
    * @param appFetch (optional) fetch api implementation. Default: built-in fetch
    * @returns the authorization response which contains code, state and iss
    * @throws {ValidationFailed} if an error while validating the response
@@ -60,10 +82,9 @@ export interface CompleteUserAuthorizationApi {
   completeUserAuthorizationWithFormPostJwtMode(
     requestObject: RequestObject,
     issuerConf: IssuerConfig,
-    pid: string,
+    pid: [keyTag: string, credential: string],
     context: {
       wiaCryptoContext: CryptoContext;
-      pidKeyTag: string;
       appFetch?: GlobalFetch["fetch"];
     }
   ): Promise<AuthorizationResult>;

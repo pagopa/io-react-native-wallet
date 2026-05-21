@@ -60,7 +60,7 @@ export const getCredential = async ({
     await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
   // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier } =
+  const { issuerRequestUri, clientId, codeVerifier, responseMode } =
     await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
       [credentialId],
@@ -81,14 +81,27 @@ export const getCredential = async ({
       appFetch
     );
 
-  // Complete the user authorization via form_post.jwt mode
-  const { code } =
-    await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
-      requestObject,
-      issuerConf,
-      pid.credential,
-      { wiaCryptoContext, pidKeyTag: pid.keyTag }
-    );
+  let code: string;
+  if (responseMode === "form_post.jwt") {
+    // Complete the user authorization via form_post.jwt mode
+    ({ code } =
+      await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
+        requestObject,
+        issuerConf,
+        [pid.keyTag, pid.credential],
+        { wiaCryptoContext, appFetch }
+      ));
+  } else {
+    // Complete the user authorization via query mode
+    ({ code } =
+      await wallet.CredentialIssuance.completeEaaUserAuthorizationWithQueryMode(
+        requestObject,
+        issuerConf,
+        [pid.keyTag, pid.credential],
+        redirectUri,
+        { appFetch }
+      ));
+  }
 
   // Generate the DPoP context which will be used for the whole issuance flow
   await regenerateCryptoKey(DPOP_KEYTAG);

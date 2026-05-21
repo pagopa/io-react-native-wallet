@@ -3,7 +3,8 @@ import { evaluateIssuerTrust } from "./01-evaluate-issuer-trust";
 import { startUserAuthorization } from "./02-start-user-authorization";
 import {
   continueUserAuthorizationWithMRTDPoPChallenge,
-  completeUserAuthorizationWithQueryMode,
+  completePidUserAuthorizationWithQueryMode,
+  completeEaaUserAuthorizationWithQueryMode,
   completeUserAuthorizationWithFormPostJwtMode,
   buildAuthorizationUrl,
   getRequestedCredentialToBePresented,
@@ -20,7 +21,8 @@ export const Issuance: IssuanceApi = {
   evaluateIssuerTrust,
   startUserAuthorization,
   buildAuthorizationUrl,
-  completeUserAuthorizationWithQueryMode,
+  completePidUserAuthorizationWithQueryMode,
+  completeEaaUserAuthorizationWithQueryMode,
   continueUserAuthorizationWithMRTDPoPChallenge,
   getRequestedCredentialToBePresented,
   completeUserAuthorizationWithFormPostJwtMode,
