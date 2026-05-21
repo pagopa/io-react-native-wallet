@@ -1,7 +1,7 @@
 import { AuthorizationError, AuthorizationIdpError } from "../../common/errors";
 import {
   buildAuthorizationUrl,
-  completeUserAuthorizationWithQueryMode,
+  completePidUserAuthorizationWithQueryMode,
 } from "../03-complete-user-authorization";
 import type { IssuerConfig } from "../../api";
 
@@ -15,7 +15,7 @@ describe("authorizeUserWithQueryMode", () => {
     const authRedirectUrl = `test://cb?code=abcdefg&state=123456&iss=123456`;
 
     const authResParsed =
-      await completeUserAuthorizationWithQueryMode(authRedirectUrl);
+      await completePidUserAuthorizationWithQueryMode(authRedirectUrl);
 
     expect(authResParsed).toMatchObject(authRes);
   });
@@ -29,7 +29,7 @@ describe("authorizeUserWithQueryMode", () => {
     const authRedirectUrl = `test://cb?${authErr.toString()}`;
 
     try {
-      await completeUserAuthorizationWithQueryMode(authRedirectUrl);
+      await completePidUserAuthorizationWithQueryMode(authRedirectUrl);
     } catch (error) {
       expect(error).toBeInstanceOf(AuthorizationIdpError);
     }
@@ -43,7 +43,7 @@ describe("authorizeUserWithQueryMode", () => {
     const authRedirectUrl = `test://cb?${wrongAuthRes.toString()}`;
 
     try {
-      await completeUserAuthorizationWithQueryMode(authRedirectUrl);
+      await completePidUserAuthorizationWithQueryMode(authRedirectUrl);
     } catch (error) {
       expect(error).toBeInstanceOf(AuthorizationError);
     }
