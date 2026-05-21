@@ -84,6 +84,7 @@ export const mapToRequestObject = createMapper<
   RequestObject
 >(({ header, payload }) => ({
   ...payload,
+  iss: payload.iss!,
   trust_chain: header.trust_chain,
   x5c: header.x5c as string[] | undefined,
 }));

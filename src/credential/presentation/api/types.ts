@@ -72,13 +72,9 @@ export type RemotePresentationDetails = {
 type ClientMetadata = {
   jwks: jsonWebKeySet;
   encrypted_response_enc_values_supported: string[];
-  client_id: string;
-  client_name: string;
-  logo_uri: string;
-  application_type: "web";
-  request_uris: string[];
-  response_uris: string[];
   vp_formats_supported: Record<string, { "sd-jwt_alg_values"?: string[] }>;
+  client_name?: string;
+  logo_uri?: string;
 };
 
 /**
@@ -88,7 +84,7 @@ export type RequestObject = {
   iss: string;
   response_uri: string;
   nonce: string;
-  state: string;
+  state?: string;
   client_id: string;
   dcql_query: Record<string, unknown>;
   response_type: "vp_token";

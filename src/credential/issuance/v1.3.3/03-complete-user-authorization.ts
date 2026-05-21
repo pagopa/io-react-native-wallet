@@ -195,7 +195,7 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
     const finalRedirectUri = response.headers.get("Location");
 
     if (!finalRedirectUri || !finalRedirectUri.startsWith(clientRedirectUri)) {
-      const errorMessage = `The authorization server did not redirect to the provided client redirect URI: ${clientRedirectUri}`;
+      const errorMessage = `The authorization server did not redirect to the provided client redirect URI. Expected: ${clientRedirectUri}, got: ${finalRedirectUri}`;
       Logger.log(LogLevel.ERROR, errorMessage);
       throw new AuthorizationError(errorMessage);
     }
