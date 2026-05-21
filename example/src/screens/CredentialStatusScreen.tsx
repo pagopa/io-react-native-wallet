@@ -84,6 +84,34 @@ export const CredentialStatusScreen = () => {
       icon: "fiscalCodeIndividual",
       isPresent: !!status.PersonIdentificationData,
     },
+    mDL && {
+      title: "Get Status List (MDL)",
+      onPress: () =>
+        dispatch(
+          getCredentialStatusListThunk({
+            credentialType: "dc_sd_jwt_mDL",
+            format: mDL.format,
+            credential: mDL.credential,
+          })
+        ),
+      ...asyncStatus.dc_sd_jwt_mDL,
+      icon: "car",
+      isPresent: !!status.dc_sd_jwt_mDL,
+    },
+    dc && {
+      title: "Get Status List (DC)",
+      onPress: () =>
+        dispatch(
+          getCredentialStatusListThunk({
+            credentialType: "dc_sd_jwt_EuropeanDisabilityCard",
+            format: dc.format,
+            credential: dc.credential,
+          })
+        ),
+      ...asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
+      icon: "accessibility",
+      isPresent: !!status.dc_sd_jwt_EuropeanDisabilityCard,
+    },
   ]);
 
   const statusAssertionScenarios = compact<TestScenarioProp>([
