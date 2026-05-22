@@ -27,7 +27,6 @@ const AllowedState = z
   })
   .catchall(z.string());
 
-
 /**
  * Given a statusBit (e.g. "0x00", "0x0B") and a DigitalCredential from the
  * catalogue, returns the matching l10n IDs or undefined if not found.
