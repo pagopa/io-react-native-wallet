@@ -24,7 +24,12 @@ const attrUpdateState = {
   description_l10n_id: "mDL.ATTRIBUTE_UPDATE.description",
 };
 
-const allowedStates = [validState, invalidState, suspendedState, attrUpdateState];
+const allowedStates = [
+  validState,
+  invalidState,
+  suspendedState,
+  attrUpdateState,
+];
 
 describe("getStatusL10nIds", () => {
   it("returns l10n ids for a matching lowercase statusBit", () => {
