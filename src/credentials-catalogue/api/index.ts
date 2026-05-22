@@ -1,4 +1,6 @@
 import {
+  getStatusL10nIds,
+  type AllowedState,
   type CatalogueTranslations,
   type DigitalCredentialsCatalogue,
   type LocalizationInfo,
@@ -51,6 +53,8 @@ export interface CredentialsCatalogueApi {
 }
 
 export {
+  getStatusL10nIds,
+  type AllowedState,
   type CatalogueTranslations,
   type DigitalCredentialsCatalogue,
   type LocalizationInfo,
