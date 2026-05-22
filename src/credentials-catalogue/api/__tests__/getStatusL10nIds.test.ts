@@ -1,4 +1,14 @@
-import { getStatusL10nIds } from "../DigitalCredentialsCatalogue";
+import {
+  getStatusL10nIds,
+  type DigitalCredential,
+} from "../DigitalCredentialsCatalogue";
+
+const makeCredential = (
+  allowedStates: DigitalCredential["validity_info"]["allowed_states"]
+): DigitalCredential =>
+  ({
+    validity_info: { allowed_states: allowedStates },
+  }) as DigitalCredential;
 
 const validState = {
   "0x00": "VALID",
@@ -24,45 +34,53 @@ const attrUpdateState = {
   description_l10n_id: "mDL.ATTRIBUTE_UPDATE.description",
 };
 
-const allowedStates = [
-  validState,
-  invalidState,
-  suspendedState,
-  attrUpdateState,
-];
-
 describe("getStatusL10nIds", () => {
   it("returns l10n ids for a matching lowercase statusBit", () => {
-    expect(getStatusL10nIds("0x00", allowedStates)).toEqual({
+    const credential = makeCredential([
+      validState,
+      invalidState,
+      suspendedState,
+      attrUpdateState,
+    ]);
+    expect(getStatusL10nIds("0x00", credential)).toEqual({
       titleL10nId: "mDL.VALID.title",
       descriptionL10nId: "mDL.VALID.description",
     });
   });
 
   it("returns l10n ids for a matching uppercase statusBit (case-insensitive)", () => {
-    expect(getStatusL10nIds("0x0B", allowedStates)).toEqual({
+    const credential = makeCredential([
+      validState,
+      invalidState,
+      suspendedState,
+      attrUpdateState,
+    ]);
+    expect(getStatusL10nIds("0x0B", credential)).toEqual({
       titleL10nId: "mDL.ATTRIBUTE_UPDATE.title",
       descriptionL10nId: "mDL.ATTRIBUTE_UPDATE.description",
     });
   });
 
   it("returns undefined when statusBit is not in the list", () => {
-    expect(getStatusL10nIds("0x03", allowedStates)).toBeUndefined();
+    const credential = makeCredential([validState, invalidState]);
+    expect(getStatusL10nIds("0x03", credential)).toBeUndefined();
   });
 
-  it("returns undefined for an empty allowedStates array", () => {
-    expect(getStatusL10nIds("0x00", [])).toBeUndefined();
+  it("returns undefined for an empty allowed_states array", () => {
+    const credential = makeCredential([]);
+    expect(getStatusL10nIds("0x00", credential)).toBeUndefined();
   });
 
   it("skips string entries (v1.0.0 format) without crashing", () => {
-    const mixedStates = ["VALID", "INVALID", validState];
-    expect(getStatusL10nIds("0x00", mixedStates)).toEqual({
+    const credential = makeCredential(["VALID", "INVALID", validState]);
+    expect(getStatusL10nIds("0x00", credential)).toEqual({
       titleL10nId: "mDL.VALID.title",
       descriptionL10nId: "mDL.VALID.description",
     });
   });
 
-  it("returns undefined when allowedStates contains only strings", () => {
-    expect(getStatusL10nIds("0x00", ["VALID", "INVALID"])).toBeUndefined();
+  it("returns undefined when allowed_states contains only strings", () => {
+    const credential = makeCredential(["VALID", "INVALID"]);
+    expect(getStatusL10nIds("0x00", credential)).toBeUndefined();
   });
 });

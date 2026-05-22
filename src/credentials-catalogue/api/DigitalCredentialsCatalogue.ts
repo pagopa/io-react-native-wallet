@@ -27,21 +27,20 @@ const AllowedState = z
   })
   .catchall(z.string());
 
-export type AllowedState = z.infer<typeof AllowedState>;
 
 /**
- * Given a statusBit (e.g. "0x00", "0x0B") and the allowed_states array
- * from the catalogue, returns the matching l10n IDs or undefined if not found.
+ * Given a statusBit (e.g. "0x00", "0x0B") and a DigitalCredential from the
+ * catalogue, returns the matching l10n IDs or undefined if not found.
  * The comparison is case-insensitive to handle uppercase statusBit values
  * returned by verifyAndParseStatusList against lowercase keys in the catalogue.
  */
 export const getStatusL10nIds = (
   statusBit: string,
-  allowedStates: Array<string | AllowedState>
+  credentialConfig: DigitalCredential
 ): { titleL10nId: string; descriptionL10nId: string } | undefined => {
   const normalizedBit = statusBit.toLowerCase();
-  const match = allowedStates.find(
-    (s): s is AllowedState =>
+  const match = credentialConfig.validity_info.allowed_states.find(
+    (s): s is z.infer<typeof AllowedState> =>
       typeof s === "object" &&
       Object.keys(s).some((k) => k.toLowerCase() === normalizedBit)
   );
@@ -141,6 +140,7 @@ export const DigitalCredential = z.object({
   formats: z.array(CredentialFormat).optional(),
   // claims: z.array(Claim), // TODO: [SIW-3978] Should we keep claims?
 });
+export type DigitalCredential = z.infer<typeof DigitalCredential>;
 
 const TaxonomyPurpose = z.object({
   id: z.string(),
