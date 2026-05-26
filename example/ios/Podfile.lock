@@ -79,7 +79,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - pagopa-io-react-native-crypto (1.2.3):
+  - pagopa-io-react-native-crypto (1.2.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -101,7 +101,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - pagopa-io-react-native-integrity (0.3.1):
+  - pagopa-io-react-native-integrity (0.3.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -123,7 +123,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SwiftCBOR
     - Yoga
-  - pagopa-io-react-native-jwt (2.1.0):
+  - pagopa-io-react-native-jwt (2.2.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -145,7 +145,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - pagopa-io-react-native-secure-storage (0.2.0):
+  - pagopa-io-react-native-secure-storage (0.2.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2405,7 +2405,7 @@ SPEC CHECKSUMS:
   FBLazyVector: e053802577a711add20e45bbbf5dd1180b6ca62e
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
-  hermes-engine: b5c9cfbe6415f1b0b24759f2942c8f33e9af6347
+  hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
   IoReactNativeCie: 3f16d7310a0d2c632c5260d5c68cc223c10b9feb
   IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
   IOWalletCBOR: 92742ef1cbd1b627ba153d0c7c11b81ad22f45cc
@@ -2413,10 +2413,10 @@ SPEC CHECKSUMS:
   JOSESwift: 7784b1b844194d0f534eb6ac4fba5af683bccc79
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   pagopa-io-react-native-cieid: cf8c440aca2fb7270f02a2cde44a1c1077a1c096
-  pagopa-io-react-native-crypto: aa7a368286a7c0aa9536325d1e49f956c4ce3f6b
-  pagopa-io-react-native-integrity: a4c4c7ebd2ea699e40536f969bd62371f82638c0
-  pagopa-io-react-native-jwt: 5c0eac212ff06d4368b3949cd74649a5e8349a95
-  pagopa-io-react-native-secure-storage: ab6e73803b542d8d5f7259a7aa9f83b8e4896404
+  pagopa-io-react-native-crypto: 9e7e7f59a8c9a3c75157407d75b09edbf5ee47e1
+  pagopa-io-react-native-integrity: 7a4d98dd5eec5fe9acf2d4322d153b17f5eefb7f
+  pagopa-io-react-native-jwt: 1371ea1a1da0a600a939958e57244bfc0e08b58d
+  pagopa-io-react-native-secure-storage: 58296f306cf79a2bb68438d1d47505fb5645e62c
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: cf39863b43871c2031050605fb884019b6193910
   RCTRequired: 8fdd66f4a97f352b66f38cfef13fc11b12d2c884
