@@ -1,8 +1,8 @@
 import {
-  getStatusL10nIds,
   type CatalogueTranslations,
   type DigitalCredential,
   type DigitalCredentialsCatalogue,
+  type GetStatusL10nIds,
   type LocalizationInfo,
   type Taxonomy,
 } from "./DigitalCredentialsCatalogue";
@@ -50,13 +50,23 @@ export interface CredentialsCatalogueApi {
     locales: string[],
     ctx?: FetchContext
   ): Promise<CatalogueTranslations>;
+
+  /**
+   * Given a statusBit (e.g. "0x00", "0x0B") and a DigitalCredential from the
+   * catalogue, returns the matching l10n IDs or undefined if not found.
+   * The comparison is case-insensitive to handle uppercase statusBit values
+   * returned by verifyAndParseStatusList against lowercase keys in the catalogue.
+   *
+   * @since 1.0.0
+   */
+  getStatusL10nIds: GetStatusL10nIds;
 }
 
 export {
-  getStatusL10nIds,
   type CatalogueTranslations,
   type DigitalCredential,
   type DigitalCredentialsCatalogue,
+  type GetStatusL10nIds,
   type LocalizationInfo,
   type Taxonomy,
 };

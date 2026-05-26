@@ -1,6 +1,11 @@
 import * as z from "zod";
 import { UnixTime } from "../../utils/zod";
 
+export type GetStatusL10nIds = (
+  statusBit: string,
+  credentialConfig: DigitalCredential
+) => { titleL10nId: string; descriptionL10nId: string } | undefined;
+
 export const LocalizationInfo = z.object({
   available_locales: z.array(z.string()),
   base_uri: z.string(),
@@ -20,35 +25,14 @@ const AdministrativeExpirationUserInfo = z.object({
   description_l10n_id: z.string(),
 });
 
-const AllowedState = z
+export const AllowedState = z
   .object({
     title_l10n_id: z.string(),
     description_l10n_id: z.string(),
   })
   .catchall(z.string());
-
-/**
- * Given a statusBit (e.g. "0x00", "0x0B") and a DigitalCredential from the
- * catalogue, returns the matching l10n IDs or undefined if not found.
- * The comparison is case-insensitive to handle uppercase statusBit values
- * returned by verifyAndParseStatusList against lowercase keys in the catalogue.
- */
-export const getStatusL10nIds = (
-  statusBit: string,
-  credentialConfig: DigitalCredential
-): { titleL10nId: string; descriptionL10nId: string } | undefined => {
-  const normalizedBit = statusBit.toLowerCase();
-  const match = credentialConfig.validity_info.allowed_states.find(
-    (s): s is z.infer<typeof AllowedState> =>
-      typeof s === "object" &&
-      Object.keys(s).some((k) => k.toLowerCase() === normalizedBit)
-  );
-  if (!match) return undefined;
-  return {
-    titleL10nId: match.title_l10n_id,
-    descriptionL10nId: match.description_l10n_id,
-  };
-};
+  
+export type AllowedState = z.infer<typeof AllowedState>;
 
 const CredentialPurpose = z.object({
   id: z.string(),

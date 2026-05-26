@@ -1,10 +1,8 @@
-import {
-  getStatusL10nIds,
-  type DigitalCredential,
-} from "../DigitalCredentialsCatalogue";
+import { getStatusL10nIds } from "../get-status-l10n-ids";
+import type { DigitalCredential } from "../../api/DigitalCredentialsCatalogue";
 
 const makeCredential = (
-  allowedStates: DigitalCredential["validity_info"]["allowed_states"]
+  allowedStates: DigitalCredential["validity_info"]["allowed_states"],
 ): DigitalCredential =>
   ({
     validity_info: { allowed_states: allowedStates },
