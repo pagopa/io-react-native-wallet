@@ -21,7 +21,7 @@ export const mapToRelyingPartyConfig = createMapper<
 
 export const mapToRequestObject = createMapper<RawRequestObject, RequestObject>(
   ({ payload, header }) => ({
-    iss: payload.iss,
+    iss: payload.iss ?? "",
     client_id: payload.client_id,
     dcql_query: payload.dcql_query,
     nonce: payload.nonce,

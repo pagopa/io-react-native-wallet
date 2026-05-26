@@ -68,7 +68,7 @@ export const mapToIssuerConfig = createMapper<
       pushed_authorization_request_endpoint:
         oauth_authorization_server.pushed_authorization_request_endpoint,
       token_endpoint: oauth_authorization_server.token_endpoint,
-      nonce_endpoint: openid_credential_issuer.nonce_endpoint!,
+      nonce_endpoint: openid_credential_issuer.nonce_endpoint ?? "",
       federation_entity: federation_entity ?? {},
       credential_issuance_batch_size:
         openid_credential_issuer.batch_credential_issuance?.batch_size,
@@ -84,7 +84,7 @@ export const mapToRequestObject = createMapper<
   RequestObject
 >(({ header, payload }) => ({
   ...payload,
-  iss: payload.iss!,
+  iss: payload.iss ?? "",
   trust_chain: header.trust_chain,
   x5c: header.x5c as string[] | undefined,
 }));

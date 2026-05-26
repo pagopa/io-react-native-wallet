@@ -115,6 +115,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
     return mapToRequestObject(parsedAuthRequest);
   };
 
+// NOTE: this function is not used in the 1.3 issuance flow. It may be removed.
 export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
   async (requestObject, issuerConfig, pid, { appFetch = fetch }) => {
     Logger.log(
@@ -144,7 +145,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
         fetch: appFetch,
       },
       iss: requestObject.iss,
-      state: requestObject.state!,
+      state: requestObject.state ?? "",
       presentationResponseUri: requestObject.response_uri,
       signer: {
         alg: "ES256",
