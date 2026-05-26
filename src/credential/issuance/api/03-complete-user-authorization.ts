@@ -48,8 +48,8 @@ export interface CompleteUserAuthorizationApi {
    * This type of credentials requires a PID to be presented to complete the authorization process and then obtain an access token.
    * @since 1.3.3
    *
-   * @param requestObject - The request object containing the necessary parameters for authorization.
-   * @param issuerConfig - The issuer configuration returned by {@link evaluateIssuerTrust}
+   * @param requestObject The request object containing the necessary parameters for authorization.
+   * @param issuerConfig The issuer configuration returned by {@link evaluateIssuerTrust}
    * @param pid The PID to present as a tuple [keyTag, credential].
    * @param redirectUri The client redirect URI to which the authorization server will redirect after completing the authorization process.
    * @param appFetch (optional) fetch api implementation. Default: built-in fetch
@@ -73,7 +73,7 @@ export interface CompleteUserAuthorizationApi {
    * Following this,the redirect_uri from the response is used to obtain the final authorization response.
    * @since 1.0.0
    *
-   * @param requestObject - The request object containing the necessary parameters for authorization.
+   * @param requestObject The request object containing the necessary parameters for authorization.
    * @param pid The PID to present as a tuple [keyTag, credential].
    * @param appFetch (optional) fetch api implementation. Default: built-in fetch
    * @returns the authorization response which contains code, state and iss
