@@ -31,7 +31,7 @@ export const AllowedState = z
     description_l10n_id: z.string(),
   })
   .catchall(z.string());
-  
+
 export type AllowedState = z.infer<typeof AllowedState>;
 
 const CredentialPurpose = z.object({
