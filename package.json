@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "@pagopa/io-react-native-crypto": "^1.2.3",
+    "@pagopa/io-react-native-http-client": "^1.2.0",
     "@pagopa/io-react-native-iso18013": "^0.7.0",
     "@pagopa/io-react-native-jwt": "^2.1.0",
     "@react-native/babel-preset": "0.78.3",
@@ -81,6 +82,7 @@
   },
   "peerDependencies": {
     "@pagopa/io-react-native-crypto": "*",
+    "@pagopa/io-react-native-http-client": "*",
     "@pagopa/io-react-native-iso18013": "*",
     "@pagopa/io-react-native-jwt": "*",
     "react": "*",

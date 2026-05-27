@@ -1,4 +1,5 @@
 PODS:
+  - Alamofire (5.11.2)
   - boost (1.84.0)
   - CieSDK (0.1.21)
   - DoubleConversion (1.1.6)
@@ -11,6 +12,28 @@ PODS:
   - hermes-engine/Pre-built (0.78.3)
   - IoReactNativeCie (1.3.6):
     - CieSDK (~> 0.1.21)
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - IoReactNativeHttpClient (1.2.0):
+    - Alamofire (~> 5.11)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2128,6 +2151,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - "IoReactNativeCie (from `../node_modules/@pagopa/io-react-native-cie`)"
+  - "IoReactNativeHttpClient (from `../node_modules/@pagopa/io-react-native-http-client`)"
   - "IoReactNativeIso18013 (from `../node_modules/@pagopa/io-react-native-iso18013`)"
   - "pagopa-io-react-native-cieid (from `../node_modules/@pagopa/io-react-native-cieid`)"
   - "pagopa-io-react-native-crypto (from `../node_modules/@pagopa/io-react-native-crypto`)"
@@ -2212,6 +2236,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - Alamofire
     - CieSDK
     - IOWalletCBOR
     - IOWalletProximity
@@ -2238,6 +2263,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2025-01-13-RNv0.78.0-a942ef374897d85da38e9c8904574f8376555388
   IoReactNativeCie:
     :path: "../node_modules/@pagopa/io-react-native-cie"
+  IoReactNativeHttpClient:
+    :path: "../node_modules/@pagopa/io-react-native-http-client"
   IoReactNativeIso18013:
     :path: "../node_modules/@pagopa/io-react-native-iso18013"
   pagopa-io-react-native-cieid:
@@ -2398,6 +2425,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  Alamofire: 400275dd1c6d87d95a041861d2a59da4b520a203
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   CieSDK: 832ee98a89d0fc79c1a429c6ad8f31a056741d59
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
@@ -2407,6 +2435,7 @@ SPEC CHECKSUMS:
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
   IoReactNativeCie: 3f16d7310a0d2c632c5260d5c68cc223c10b9feb
+  IoReactNativeHttpClient: d04e0602d063c4545372b7f2c06f8b406a7c6b49
   IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
   IOWalletCBOR: 92742ef1cbd1b627ba153d0c7c11b81ad22f45cc
   IOWalletProximity: 1836d6b5df0a64a97e09f355d15d5155f086f830

@@ -1489,7 +1489,7 @@
     "@babel/parser" "^7.27.2"
     "@babel/types" "^7.27.1"
 
-"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3", "@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.27.3", "@babel/traverse@^7.28.0":
+"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3":
   version "7.28.0"
   resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.0.tgz#518aa113359b062042379e333db18380b537e34b"
   integrity sha512-mGe7UK5wWyh0bKRfupsUchrQGqvDbZDbKJw+kcRGSmdHVYrv+ltd0pnpDTVpiTqnaBru9iEvA8pz8W46v0Amwg==
@@ -1514,6 +1514,19 @@
     "@babel/types" "^7.25.4"
     debug "^4.3.1"
     globals "^11.1.0"
+
+"@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.27.3", "@babel/traverse@^7.28.0":
+  version "7.28.0"
+  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.0.tgz#518aa113359b062042379e333db18380b537e34b"
+  integrity sha512-mGe7UK5wWyh0bKRfupsUchrQGqvDbZDbKJw+kcRGSmdHVYrv+ltd0pnpDTVpiTqnaBru9iEvA8pz8W46v0Amwg==
+  dependencies:
+    "@babel/code-frame" "^7.27.1"
+    "@babel/generator" "^7.28.0"
+    "@babel/helper-globals" "^7.28.0"
+    "@babel/parser" "^7.28.0"
+    "@babel/template" "^7.27.2"
+    "@babel/types" "^7.28.0"
+    debug "^4.3.1"
 
 "@babel/traverse@^7.25.9", "@babel/traverse@^7.26.9":
   version "7.26.9"
@@ -2011,6 +2024,11 @@
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.4.tgz#c7cc76a638edf6ebec74bb7a726c2c93c9bd2735"
   integrity sha512-g0bNLIKVeUwmO3AnReJKqUGLg3rnrtt6rF0b1fYWLtTMX6FwCXc/folxYvujtkRCeuXhCg8WmmV+o/uLiCws2Q==
+
+"@pagopa/io-react-native-http-client@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-http-client/-/io-react-native-http-client-1.2.0.tgz#4fe00d025136f96534c5d60465f361d2ec4a5633"
+  integrity sha512-epPFCfN1uTONByP5OotkrmmWE8YOIXehvgGj2n6KbutCHhVSmKA/+3Jp/S3GBTNexABH3o7yKPUH/ZSlL9EY9w==
 
 "@pagopa/io-react-native-integrity@^0.3.2":
   version "0.3.2"

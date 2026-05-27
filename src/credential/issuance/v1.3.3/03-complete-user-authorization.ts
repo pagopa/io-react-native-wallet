@@ -6,6 +6,10 @@ import {
 import parseUrl from "parse-url";
 import type { DcqlQuery } from "dcql";
 import {
+  nativeRequest,
+  isSuccessResponse,
+} from "@pagopa/io-react-native-http-client";
+import {
   createAuthorizationResponse,
   parseAuthorizeRequest,
   fetchAuthorizationResponse,
@@ -192,8 +196,24 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
       throw new AuthorizationError(errorMessage);
     }
 
-    const response = await appFetch(redirect_uri);
-    const finalRedirectUri = response.headers.get("Location");
+    // The final redirect URI to get the code for the access token is provided in
+    // the Location header after a 302 when fetching `redirect_uri`.
+    // The native fetch implementation handles redirects differently between iOS and Android, so we rely on nativeRequest
+    // to stop following redirects and extract the code in a consistent way across platforms.
+    const response = await nativeRequest({
+      url: redirect_uri,
+      verb: "get",
+      followRedirects: false,
+    });
+
+    if (!isSuccessResponse(response)) {
+      const errorMessage = `Failed to continue the authorization flow. The redirect URI returned an error: ${response.message}`;
+      Logger.log(LogLevel.ERROR, errorMessage);
+      throw new AuthorizationError(errorMessage);
+    }
+
+    const finalRedirectUri =
+      response.headers.location ?? response.headers.Location;
 
     if (!finalRedirectUri || !finalRedirectUri.startsWith(clientRedirectUri)) {
       const errorMessage = `The authorization server did not redirect to the provided client redirect URI. Expected: ${clientRedirectUri}, got: ${finalRedirectUri}`;
