@@ -2433,7 +2433,7 @@ SPEC CHECKSUMS:
   FBLazyVector: e053802577a711add20e45bbbf5dd1180b6ca62e
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
-  hermes-engine: 1b7a5e0c78375718b4787269f7b416dea267f730
+  hermes-engine: b5c9cfbe6415f1b0b24759f2942c8f33e9af6347
   IoReactNativeCie: 3f16d7310a0d2c632c5260d5c68cc223c10b9feb
   IoReactNativeHttpClient: d04e0602d063c4545372b7f2c06f8b406a7c6b49
   IoReactNativeIso18013: 97fa4ad6e48521084bab4bffd8ea9f8692b7b804
