@@ -3003,11 +3003,6 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
   integrity sha512-Pmzr3N8YiF0JS+sYAOxiBYeBXfJq13NfCc7sTQ+RnYuT9GqgOKOLrF6YeJdv1VZ/YyLg2IhH7dAYiWueSAwj8g==
 
-"@pagopa/io-react-native-http-client@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-http-client/-/io-react-native-http-client-1.2.0.tgz#4fe00d025136f96534c5d60465f361d2ec4a5633"
-  integrity sha512-epPFCfN1uTONByP5OotkrmmWE8YOIXehvgGj2n6KbutCHhVSmKA/+3Jp/S3GBTNexABH3o7yKPUH/ZSlL9EY9w==
-
 "@pagopa/io-react-native-iso18013@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-iso18013/-/io-react-native-iso18013-0.7.0.tgz#bddbf7ed2e96b835268d65b559da31254599ad9b"

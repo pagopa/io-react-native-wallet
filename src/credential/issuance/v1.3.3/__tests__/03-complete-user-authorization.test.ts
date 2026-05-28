@@ -69,19 +69,25 @@ const mockIssuerConfig = {
   encrypted_response_enc_values_supported: ["A128GCM"],
 } as IssuerConfig;
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+function mockFetchWithResponseUrl(url: string) {
+  return jest.fn(async () => {
+    const res = new Response(null, { status: 200 });
+    Object.defineProperty(res, "url", { value: url });
+    return res;
+  });
+}
 
 describe("completeEaaUserAuthorizationWithQueryMode", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should return the authorization result when all steps succeed", async () => {
     mockFetchAuthorizationResponse.mockResolvedValue({
       redirect_uri: "https://issuer.example.com/auth/redirect",
     });
 
-    const appFetch = jest.fn().mockResolvedValue({
-      headers: { get: () => finalRedirectUri },
-    });
+    const appFetch = mockFetchWithResponseUrl(finalRedirectUri);
 
     const result = await completeEaaUserAuthorizationWithQueryMode(
       mockRequestObject,
@@ -116,14 +122,12 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
     ).rejects.toBeInstanceOf(AuthorizationError);
   });
 
-  it("should throw AuthorizationError when the final response has no Location header", async () => {
+  it("should throw AuthorizationError when the redirect_uri cannot be fetched successfully", async () => {
     mockFetchAuthorizationResponse.mockResolvedValue({
       redirect_uri: "https://issuer.example.com/auth/redirect",
     });
 
-    const appFetch = jest.fn().mockResolvedValue({
-      headers: { get: () => null },
-    });
+    const appFetch = jest.fn(async () => new Response(null, { status: 404 }));
 
     await expect(
       completeEaaUserAuthorizationWithQueryMode(
@@ -136,17 +140,14 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
     ).rejects.toBeInstanceOf(AuthorizationError);
   });
 
-  it("should throw AuthorizationError when the Location header does not start with clientRedirectUri", async () => {
+  it("should throw AuthorizationError when the final redirect url does not start with clientRedirectUri", async () => {
     mockFetchAuthorizationResponse.mockResolvedValue({
       redirect_uri: "https://issuer.example.com/auth/redirect",
     });
 
-    const appFetch = jest.fn().mockResolvedValue({
-      headers: {
-        get: () =>
-          "https://unexpected.example.com/callback?code=abc&state=123&iss=iss",
-      },
-    });
+    const appFetch = mockFetchWithResponseUrl(
+      "https://unexpected.example.com/callback?code=abc&state=123&iss=iss"
+    );
 
     await expect(
       completeEaaUserAuthorizationWithQueryMode(
@@ -166,9 +167,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       redirect_uri: intermediateRedirectUri,
     });
 
-    const appFetch = jest.fn().mockResolvedValue({
-      headers: { get: () => finalRedirectUri },
-    });
+    const appFetch = mockFetchWithResponseUrl(finalRedirectUri);
 
     await completeEaaUserAuthorizationWithQueryMode(
       mockRequestObject,
