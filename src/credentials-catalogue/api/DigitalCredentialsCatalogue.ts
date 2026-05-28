@@ -1,11 +1,6 @@
 import * as z from "zod";
 import { UnixTime } from "../../utils/zod";
 
-export type GetStatusL10nIds = (
-  statusBit: string,
-  credentialConfig: DigitalCredential
-) => { titleL10nId: string; descriptionL10nId: string } | undefined;
-
 export const LocalizationInfo = z.object({
   available_locales: z.array(z.string()),
   base_uri: z.string(),
