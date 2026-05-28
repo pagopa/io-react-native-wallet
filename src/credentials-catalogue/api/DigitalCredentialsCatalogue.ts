@@ -20,12 +20,14 @@ const AdministrativeExpirationUserInfo = z.object({
   description_l10n_id: z.string(),
 });
 
-const AllowedState = z
+export const AllowedState = z
   .object({
     title_l10n_id: z.string(),
     description_l10n_id: z.string(),
   })
   .catchall(z.string());
+
+export type AllowedState = z.infer<typeof AllowedState>;
 
 const CredentialPurpose = z.object({
   id: z.string(),
@@ -116,6 +118,7 @@ export const DigitalCredential = z.object({
   formats: z.array(CredentialFormat).optional(),
   // claims: z.array(Claim), // TODO: [SIW-3978] Should we keep claims?
 });
+export type DigitalCredential = z.infer<typeof DigitalCredential>;
 
 const TaxonomyPurpose = z.object({
   id: z.string(),
