@@ -1,7 +1,5 @@
-import {
-  AllowedState,
-  type DigitalCredential,
-} from "../api/DigitalCredentialsCatalogue";
+import { AllowedState } from "../api/DigitalCredentialsCatalogue";
+import { type CredentialsCatalogueApi } from "../api";
 
 /**
  * Given a statusBit (e.g. "0x00", "0x0B") and a DigitalCredential from the
@@ -9,10 +7,10 @@ import {
  * The comparison is case-insensitive to handle uppercase statusBit values
  * returned by verifyAndParseStatusList against lowercase keys in the catalogue.
  */
-export const getStatusL10nIds = (
-  statusBit: string,
-  credentialConfig: DigitalCredential
-): { titleL10nId: string; descriptionL10nId: string } | undefined => {
+export const getStatusL10nIds: CredentialsCatalogueApi["getStatusL10nIds"] = (
+  statusBit,
+  credentialConfig
+) => {
   const normalizedBit = statusBit.toLowerCase();
   const match = credentialConfig.validity_info.allowed_states.find(
     (s): s is AllowedState =>

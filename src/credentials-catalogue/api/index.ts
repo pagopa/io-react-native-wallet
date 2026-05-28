@@ -2,7 +2,6 @@ import {
   type CatalogueTranslations,
   type DigitalCredential,
   type DigitalCredentialsCatalogue,
-  type GetStatusL10nIds,
   type LocalizationInfo,
   type Taxonomy,
 } from "./DigitalCredentialsCatalogue";
@@ -59,14 +58,16 @@ export interface CredentialsCatalogueApi {
    *
    * @since 1.0.0
    */
-  getStatusL10nIds: GetStatusL10nIds;
+  getStatusL10nIds(
+    statusBit: string,
+    credentialConfig: DigitalCredential
+  ): { titleL10nId: string; descriptionL10nId: string } | undefined;
 }
 
 export {
   type CatalogueTranslations,
   type DigitalCredential,
   type DigitalCredentialsCatalogue,
-  type GetStatusL10nIds,
   type LocalizationInfo,
   type Taxonomy,
 };
