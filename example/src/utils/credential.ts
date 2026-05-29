@@ -144,7 +144,7 @@ export const getCredential = async ({
           clientId,
           credentialDefinition,
           {
-            credentialCryptoContexts: keyTags.map(createCryptoContextFor),
+            credentialCryptoContexts,
             dPopCryptoContext,
             walletUnitAttestation,
             appFetch,
