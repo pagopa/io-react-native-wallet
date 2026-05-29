@@ -5,7 +5,6 @@ import {
   IoWallet,
 } from "@pagopa/io-react-native-wallet";
 import { generate } from "@pagopa/io-react-native-crypto";
-import { v4 as uuidv4 } from "uuid";
 import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
@@ -56,6 +55,7 @@ export type CredentialStatusResult =
  */
 type GetCredentialThunkInput = {
   credentialType: SupportedCredentialsWithoutPid;
+  batchSize?: number;
 };
 
 /**
@@ -109,7 +109,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
     getEnv(env);
 
-  const { credentialType } = args;
+  const { credentialType, batchSize } = args;
 
   // Get the PID from the store
   const pid = selectPid(getState());
@@ -117,17 +117,16 @@ export const getCredentialThunk = createAppAsyncThunk<
     throw new Error("PID not found");
   }
 
-  // Create credential crypto context
-  const credentialKeyTag = uuidv4().toString();
-
-  const generateKeyWithAttestation = async (): Promise<string | undefined> => {
+  const generateKeysWithAttestation = async (
+    credentialKeyTags: string[]
+  ): Promise<string | undefined> => {
     if (wallet.WalletUnitAttestation.isSupported) {
       const wua = await dispatch(
-        getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] })
+        getWalletUnitAttestationThunk({ keyTags: credentialKeyTags })
       ).unwrap();
       return wua.attestation;
     }
-    await generate(credentialKeyTag);
+    await Promise.all(credentialKeyTags.map(generate));
     return undefined;
   };
 
@@ -139,11 +138,11 @@ export const getCredentialThunk = createAppAsyncThunk<
     // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
     // and we restrict `getCredential` to issuing only one credential at a time.
     credentialId: credentialType,
-    credentialKeyTag,
     pid: pid,
     walletInstanceAttestation,
-    generateKeyWithAttestation,
+    generateKeysWithAttestation,
     wiaCryptoContext,
+    batchSize,
   });
 });
 

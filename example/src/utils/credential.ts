@@ -6,6 +6,7 @@ import {
   type CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { v4 as uuidv4 } from "uuid";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
@@ -35,25 +36,26 @@ export const getCredential = async ({
   trustAnchorUrl,
   redirectUri,
   credentialId,
-  credentialKeyTag,
   pid,
   walletInstanceAttestation,
-  generateKeyWithAttestation,
+  generateKeysWithAttestation,
   wiaCryptoContext,
+  batchSize = 1,
 }: {
   itwVersion: ItwVersion;
   credentialIssuerUrl: string;
   trustAnchorUrl: string;
   redirectUri: string;
   credentialId: SupportedCredentialsWithoutPid;
-  credentialKeyTag: string;
   pid: PidResult;
   walletInstanceAttestation: string;
-  generateKeyWithAttestation: () => Promise<string | undefined>;
+  generateKeysWithAttestation: (
+    keyTags: string[]
+  ) => Promise<string | undefined>;
   wiaCryptoContext: CryptoContext;
+  batchSize?: number;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
-  const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 
   // Evaluate issuer trust
   const { issuerConf } =
@@ -124,30 +126,57 @@ export const getCredential = async ({
   const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details[0]!;
 
-  const walletUnitAttestation = await generateKeyWithAttestation();
+  // Create as many key tags as the batch size
+  const keyTags = Array.from({ length: batchSize }, () => uuidv4().toString());
+  const walletUnitAttestation = await generateKeysWithAttestation(keyTags);
+  const credentialCryptoContexts = keyTags.map(createCryptoContextFor);
 
-  // Obtain the credential
-  const { credential, format } =
-    await wallet.CredentialIssuance.obtainCredential(
-      issuerConf,
-      accessToken,
-      clientId,
-      {
-        credential_configuration_id,
-        credential_identifier: credential_identifiers[0],
-      },
-      {
-        credentialCryptoContext,
-        dPopCryptoContext,
-        walletUnitAttestation,
-        appFetch,
-      }
-    );
+  const credentialDefinition = {
+    credential_configuration_id,
+    credential_identifier: credential_identifiers[0]!,
+  };
+
+  const credentialResult =
+    batchSize > 1
+      ? await wallet.CredentialIssuance.obtainCredentialsBatch(
+          issuerConf,
+          accessToken,
+          clientId,
+          credentialDefinition,
+          {
+            credentialCryptoContexts: keyTags.map(createCryptoContextFor),
+            dPopCryptoContext,
+            walletUnitAttestation,
+            appFetch,
+          }
+        )
+      : await wallet.CredentialIssuance.obtainCredential(
+          issuerConf,
+          accessToken,
+          clientId,
+          credentialDefinition,
+          {
+            credentialCryptoContext: credentialCryptoContexts[0]!,
+            dPopCryptoContext,
+            walletUnitAttestation,
+            appFetch,
+          }
+        );
+
+  // In the example app we are not interested in storing the entire batch: it is sufficient
+  // that the batch size is respected, so we return only the first credential for simplicity.
+  // For production use cases, you should properly handle the entire batch.
+  const { credential, format } = Array.isArray(credentialResult)
+    ? credentialResult[0]!
+    : credentialResult;
 
   const x509CertRoot =
     format === "mso_mdoc" || itwVersion !== "1.0.0"
       ? await getTrustAnchorX509Certificate(itwVersion, trustAnchorUrl)
       : undefined;
+
+  const credentialKeyTag = keyTags[0]!;
+  const credentialCryptoContext = credentialCryptoContexts[0]!;
 
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
   const { parsedCredential } =

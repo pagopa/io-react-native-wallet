@@ -69,6 +69,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: undefined,
     dc_sd_jwt_education_diploma: undefined,
     dc_sd_jwt_education_attendance: undefined,
+    mso_mdoc_proof_of_age: undefined,
   },
   credentialsAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
@@ -80,6 +81,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: asyncStatusInitial,
     dc_sd_jwt_education_diploma: asyncStatusInitial,
     dc_sd_jwt_education_attendance: asyncStatusInitial,
+    mso_mdoc_proof_of_age: asyncStatusInitial,
   },
   status: {
     walletUnitAttestation: undefined,
@@ -93,6 +95,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: undefined,
     dc_sd_jwt_education_diploma: undefined,
     dc_sd_jwt_education_attendance: undefined,
+    mso_mdoc_proof_of_age: undefined,
   },
   statusAsyncStatus: {
     walletUnitAttestation: asyncStatusInitial,
@@ -106,6 +109,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: asyncStatusInitial,
     dc_sd_jwt_education_diploma: asyncStatusInitial,
     dc_sd_jwt_education_attendance: asyncStatusInitial,
+    mso_mdoc_proof_of_age: asyncStatusInitial,
   },
   trustmark: {
     dc_sd_jwt_mDL: undefined,
@@ -117,6 +121,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: undefined,
     dc_sd_jwt_education_diploma: undefined,
     dc_sd_jwt_education_attendance: undefined,
+    mso_mdoc_proof_of_age: undefined,
   },
   trustmarkAsyncStatus: {
     dc_sd_jwt_mDL: asyncStatusInitial,
@@ -128,6 +133,7 @@ const initialState: CredentialState = {
     dc_sd_jwt_residency: asyncStatusInitial,
     dc_sd_jwt_education_diploma: asyncStatusInitial,
     dc_sd_jwt_education_attendance: asyncStatusInitial,
+    mso_mdoc_proof_of_age: asyncStatusInitial,
   },
 };
 

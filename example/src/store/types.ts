@@ -42,7 +42,8 @@ export type SupportedCredentials =
   | "dc_sd_jwt_education_enrollment"
   | "dc_sd_jwt_residency"
   | "dc_sd_jwt_education_diploma"
-  | "dc_sd_jwt_education_attendance";
+  | "dc_sd_jwt_education_attendance"
+  | "mso_mdoc_proof_of_age";
 
 /**
  * Type definition for the supported credentials without the PersonIdentificationData.

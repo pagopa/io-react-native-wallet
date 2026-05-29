@@ -261,6 +261,12 @@ export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
       throw new IoWalletError("Deferred issuance is not currently supported");
     }
 
+    if (credentialRes.credentials.length !== credentialCryptoContexts.length) {
+      throw new IoWalletError(
+        `Batch size mismatch: expected ${credentialCryptoContexts.length} credentials, but got ${credentialRes.credentials.length}`
+      );
+    }
+
     return credentialRes.credentials.map(({ credential }) => ({
       credential,
       format: issuerCredentialConfig!.format,
