@@ -38,7 +38,7 @@ export const getCredential = async ({
   credentialKeyTag,
   pid,
   walletInstanceAttestation,
-  walletUnitAttestation,
+  generateKeyWithAttestation,
   wiaCryptoContext,
 }: {
   itwVersion: ItwVersion;
@@ -49,7 +49,7 @@ export const getCredential = async ({
   credentialKeyTag: string;
   pid: PidResult;
   walletInstanceAttestation: string;
-  walletUnitAttestation?: string;
+  generateKeyWithAttestation: () => Promise<string | undefined>;
   wiaCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
@@ -60,7 +60,7 @@ export const getCredential = async ({
     await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
   // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier } =
+  const { issuerRequestUri, clientId, codeVerifier, responseMode } =
     await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
       [credentialId],
@@ -81,14 +81,27 @@ export const getCredential = async ({
       appFetch
     );
 
-  // Complete the user authorization via form_post.jwt mode
-  const { code } =
-    await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
-      requestObject,
-      issuerConf,
-      pid.credential,
-      { wiaCryptoContext, pidKeyTag: pid.keyTag }
-    );
+  let code: string;
+  if (responseMode === "form_post.jwt") {
+    // Complete the user authorization via form_post.jwt mode
+    ({ code } =
+      await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
+        requestObject,
+        issuerConf,
+        [pid.keyTag, pid.credential],
+        { wiaCryptoContext, appFetch }
+      ));
+  } else {
+    // Complete the user authorization via query mode
+    ({ code } =
+      await wallet.CredentialIssuance.completeEaaUserAuthorizationWithQueryMode(
+        requestObject,
+        issuerConf,
+        [pid.keyTag, pid.credential],
+        redirectUri,
+        { appFetch }
+      ));
+  }
 
   // Generate the DPoP context which will be used for the whole issuance flow
   await regenerateCryptoKey(DPOP_KEYTAG);
@@ -111,6 +124,8 @@ export const getCredential = async ({
   const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details[0]!;
 
+  const walletUnitAttestation = await generateKeyWithAttestation();
+
   // Obtain the credential
   const { credential, format } =
     await wallet.CredentialIssuance.obtainCredential(
@@ -130,7 +145,7 @@ export const getCredential = async ({
     );
 
   const x509CertRoot =
-    format === "mso_mdoc"
+    format === "mso_mdoc" || itwVersion !== "1.0.0"
       ? await getTrustAnchorX509Certificate(itwVersion, trustAnchorUrl)
       : undefined;
 

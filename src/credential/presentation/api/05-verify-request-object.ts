@@ -7,7 +7,7 @@ export interface VerifyRequestObjectApi {
    * @since 1.0.0
    *
    * @param requestObjectEncodedJwt The Request Object in JWT format
-   * @param params.clientId The client ID to verify
+   * @param params.clientId The client ID to verify (it may include a prefix)
    * @param params.rpConf Optional Relying Party configuration (OpenID Federation clients only)
    * @param params.state Optional state
    * @returns The verified Request Object

@@ -7,7 +7,11 @@ import {
 import { hasStatusOrThrow } from "../../../utils/misc";
 import parseUrl from "parse-url";
 import type { DcqlQuery } from "dcql";
-import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
+import {
+  IssuerResponseError,
+  UnimplementedFeatureError,
+  ValidationFailed,
+} from "../../../utils/errors";
 import {
   decode,
   SignJWT,
@@ -70,7 +74,7 @@ export const buildAuthorizationUrl: IssuanceApi["buildAuthorizationUrl"] =
     return { authUrl };
   };
 
-export const completeUserAuthorizationWithQueryMode: IssuanceApi["completeUserAuthorizationWithQueryMode"] =
+export const completePidUserAuthorizationWithQueryMode: IssuanceApi["completePidUserAuthorizationWithQueryMode"] =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -79,6 +83,14 @@ export const completeUserAuthorizationWithQueryMode: IssuanceApi["completeUserAu
     const query = parseUrl(authRedirectUrl).query;
 
     return parseAuthorizationResponse(query);
+  };
+
+export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaaUserAuthorizationWithQueryMode"] =
+  () => {
+    throw new UnimplementedFeatureError(
+      "completeEaaUserAuthorizationWithQueryMode",
+      "1.0.0"
+    );
   };
 
 export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCredentialToBePresented"] =
@@ -130,7 +142,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     requestObject,
     _issuerConfig,
     pid,
-    { wiaCryptoContext, pidKeyTag, appFetch = fetch }
+    { wiaCryptoContext, appFetch = fetch }
   ) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -139,7 +151,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
 
     const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
       requestObject.dcql_query as DcqlQuery,
-      [[pidKeyTag, pid]]
+      [pid]
     );
 
     const authRequestObject = {

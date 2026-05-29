@@ -9,6 +9,7 @@ export const mapToIssuerConfig = createMapper<
   const {
     oauth_authorization_server,
     openid_credential_issuer,
+    openid_credential_verifier,
     federation_entity,
   } = x.payload.metadata;
   return {
@@ -28,5 +29,9 @@ export const mapToIssuerConfig = createMapper<
       openid_credential_issuer.status_attestation_endpoint,
     nonce_endpoint: openid_credential_issuer.nonce_endpoint,
     federation_entity,
+    encrypted_response_enc_values_supported:
+      openid_credential_verifier?.authorization_encrypted_response_enc
+        ? [openid_credential_verifier.authorization_encrypted_response_enc]
+        : undefined,
   };
 });

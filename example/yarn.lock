@@ -1489,7 +1489,7 @@
     "@babel/parser" "^7.27.2"
     "@babel/types" "^7.27.1"
 
-"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3", "@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.27.3", "@babel/traverse@^7.28.0":
+"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3":
   version "7.28.0"
   resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.0.tgz#518aa113359b062042379e333db18380b537e34b"
   integrity sha512-mGe7UK5wWyh0bKRfupsUchrQGqvDbZDbKJw+kcRGSmdHVYrv+ltd0pnpDTVpiTqnaBru9iEvA8pz8W46v0Amwg==
@@ -1514,6 +1514,19 @@
     "@babel/types" "^7.25.4"
     debug "^4.3.1"
     globals "^11.1.0"
+
+"@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.27.3", "@babel/traverse@^7.28.0":
+  version "7.28.0"
+  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.0.tgz#518aa113359b062042379e333db18380b537e34b"
+  integrity sha512-mGe7UK5wWyh0bKRfupsUchrQGqvDbZDbKJw+kcRGSmdHVYrv+ltd0pnpDTVpiTqnaBru9iEvA8pz8W46v0Amwg==
+  dependencies:
+    "@babel/code-frame" "^7.27.1"
+    "@babel/generator" "^7.28.0"
+    "@babel/helper-globals" "^7.28.0"
+    "@babel/parser" "^7.28.0"
+    "@babel/template" "^7.27.2"
+    "@babel/types" "^7.28.0"
+    debug "^4.3.1"
 
 "@babel/traverse@^7.25.9", "@babel/traverse@^7.26.9":
   version "7.26.9"
@@ -2007,15 +2020,15 @@
   resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-cieid/-/io-react-native-cieid-0.4.0.tgz#f863ffab949bced6d70ac48b96e4874b7b55fa90"
   integrity sha512-hOAIoFFzZ0HMJ1EDbcTq0+ZePt6Fa+jtRgizxQpCEWEBrFcb2AeS+6ykwMEjlHDGxOC/22poT7i6zl5eGR6pXQ==
 
-"@pagopa/io-react-native-crypto@^1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.3.tgz#aa0b76db3ac80019988c2a473c6de48e2d2b839d"
-  integrity sha512-Pmzr3N8YiF0JS+sYAOxiBYeBXfJq13NfCc7sTQ+RnYuT9GqgOKOLrF6YeJdv1VZ/YyLg2IhH7dAYiWueSAwj8g==
+"@pagopa/io-react-native-crypto@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-crypto/-/io-react-native-crypto-1.2.4.tgz#c7cc76a638edf6ebec74bb7a726c2c93c9bd2735"
+  integrity sha512-g0bNLIKVeUwmO3AnReJKqUGLg3rnrtt6rF0b1fYWLtTMX6FwCXc/folxYvujtkRCeuXhCg8WmmV+o/uLiCws2Q==
 
-"@pagopa/io-react-native-integrity@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.3.1.tgz#4dc23b221452b4101ea7a5bf35aedbe2e5a3a5fe"
-  integrity sha512-ZQP58OSLSus8LbFRa8jHtGo2BoR2Jn8lY1SirhBCfk9qo2qLcwRwanZ5T/tzO9inFOaTxPCvPu7uMdSdi8uRUQ==
+"@pagopa/io-react-native-integrity@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-integrity/-/io-react-native-integrity-0.3.2.tgz#09a382127cbad5b372992e6ea530b2c8cf0f315d"
+  integrity sha512-399Wfz9uzVOMVwW8GfDHmQEI9p6NBx6w7dHSDQsVsGKfxToxueagQWAkx1sMGyTH0Pomk8k0OIKfoXSqzF1gMA==
 
 "@pagopa/io-react-native-iso18013@^0.3.0":
   version "0.3.0"
@@ -2024,18 +2037,18 @@
   dependencies:
     zod "^3.25.67"
 
-"@pagopa/io-react-native-jwt@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-2.1.0.tgz#a25efcf58d4efddb48db05053321d2ed79b69a74"
-  integrity sha512-KLesesGbDmQorBiqx6rMTh0gRMfTNv6JT8yHOIU89maESWkR0bjt/s0eBKyz45uWoBuPY2NmAq/Aubk/aEjHsQ==
+"@pagopa/io-react-native-jwt@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-jwt/-/io-react-native-jwt-2.2.0.tgz#4403381b049c297f5664f5e80eee563cd44e57b4"
+  integrity sha512-eQsOJ8syRHMfXlvK41hvXwBb0tk622J8+PHByzOX2hpAm7dg+qy5FfDE2W5xX5VLUXf18EwKeVcKkPJezNttLg==
   dependencies:
     js-base64 "^3.7.7"
     zod "^3.22.4"
 
-"@pagopa/io-react-native-secure-storage@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-secure-storage/-/io-react-native-secure-storage-0.2.0.tgz#386982f350fcefa7bf8dc56e26ff390a9c94db03"
-  integrity sha512-nPdYOKa9DAMtmPanIOwyKzOJ6JpBINfLgOp3wzVT7pCOJPRo0FYHBwyt0nxrKufE42rz9z9Sh8K7Y0faB0kuMw==
+"@pagopa/io-react-native-secure-storage@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-react-native-secure-storage/-/io-react-native-secure-storage-0.2.1.tgz#fe14170341705f5b69adb0ce433d508c9396200b"
+  integrity sha512-Z4cmS+ENzz1nHL7RzDY14we9HUX5lknMZAUjL3waLXD5b2d4q6vykyjPnglhXy0nQ8we7xbujH0Nx4SE+RVsDQ==
 
 "@react-native-async-storage/async-storage@^2.1.2":
   version "2.1.2"

@@ -14,7 +14,7 @@ import { mapToRequestObject } from "./mappers";
 import type { RawRequestObject } from "./types";
 
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
-  async (requestObjectEncodedJwt, { clientId, rpConf }) => {
+  async (requestObjectEncodedJwt, { clientId: fullClientId, rpConf }) => {
     const parsedRequestObject = await sdkParseAuthorizeRequest({
       config: sdkConfigV1_3,
       requestObjectJwt: requestObjectEncodedJwt,
@@ -25,17 +25,22 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
 
     const rawRequestObject = parsedRequestObject as RawRequestObject;
 
-    const clientIdPrefix = extractClientIdPrefix(clientId);
+    const { prefix, clientId } = extractClientIdPrefix(fullClientId);
 
-    if (clientIdPrefix === ClientIdPrefix.X509_HASH) {
+    if (prefix === ClientIdPrefix.X509_HASH) {
       validateX509HashClient(rawRequestObject.header.x5c, clientId);
     }
 
     if (
-      clientIdPrefix === ClientIdPrefix.OPENID_FEDERATION ||
-      clientIdPrefix === ClientIdPrefix.NONE
+      prefix === ClientIdPrefix.OPENID_FEDERATION ||
+      prefix === ClientIdPrefix.NONE
     ) {
-      validateOpenIDFederationClient(rawRequestObject, clientId, rpConf);
+      validateOpenIDFederationClient(
+        rawRequestObject,
+        fullClientId,
+        clientId,
+        rpConf
+      );
     }
 
     return {
@@ -45,6 +50,7 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
 
 const validateOpenIDFederationClient = (
   requestObject: RawRequestObject,
+  fullClientId: string,
   clientId: string,
   rpConf: RelyingPartyConfig | undefined
 ) => {
@@ -55,8 +61,8 @@ const validateOpenIDFederationClient = (
   }
 
   const isClientIdMatch =
-    clientId === requestObject.payload.client_id &&
-    stripOpenIdFederationPrefix(clientId) === rpConf.subject;
+    fullClientId === requestObject.payload.client_id &&
+    clientId === rpConf.subject;
 
   if (!isClientIdMatch) {
     throw new InvalidRequestObjectError(
@@ -67,10 +73,8 @@ const validateOpenIDFederationClient = (
 
 const validateX509HashClient = (
   certificateChain: string[],
-  clientId: string
+  x509Hash: string
 ) => {
-  const [, x509Hash] = clientId.split(":");
-
   const calculatedHash = QuickCrypto.createHash("sha-256")
     .update(certificateChain[0]!, "base64")
     .digest("base64url");
@@ -81,6 +85,3 @@ const validateX509HashClient = (
     );
   }
 };
-
-const stripOpenIdFederationPrefix = (clientId: string) =>
-  clientId.replace("openid_federation:", "");

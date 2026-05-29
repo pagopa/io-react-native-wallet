@@ -19,8 +19,8 @@ graph TD;
     2[evaluateIssuerTrust]
     3[startUserAuthorization]
     C4[getRequestedCredentialToBePresented]
-    C4.1[completeUserAuthorizationWithFormPostJwtMode]
-    E4[completeUserAuthorizationWithQueryMode]
+    C4.1[completeEaaUserAuthorizationWithQueryMode]
+    E4[completePidUserAuthorizationWithQueryMode]
     5[authorizeAccess]
     6[WalletUnitAttestation.getAttestation]
     7[obtainCredential]
@@ -86,11 +86,15 @@ MRTD Verification is a sub-flow of the Issuance flow and is used when the reques
 1. **Primary Authentication**: LoA3 electronic identification (SPID or CIEid L2).
 2. **MRTD Proof of Possession (PoP)**: Electronic document reading and cryptographic verification.
 
-This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completeUserAuthorizationWithQueryMode` function.
+This process is initiated by the Authorization Server responding to the primary authentication step with a redirect that includes a challenge in the query string, which is handled by the `continueUserAuthorizationWithMRTDPoPChallenge` function. Once the MRTD PoP is completed, the user must continue the PID issuance flow with the `completePidUserAuthorizationWithQueryMode` function.
 
 Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/README.md)
 
-## Authentication through credentials (Form Post JWT Mode)
+## Authentication through credentials (Query  Mode) - v1.3
+
+When the credential is different than an eID, the flow requires the user to present other credentials in order to obtain the requested one. Starting from IT-Wallet specifications v1.3, the EAA issuance flow uses the query mode to complete the user authorization. This is done through the `getRequestedCredentialToBePresented` followed by the `completeEaaUserAuthorizationWithQueryMode`.
+
+## Authentication through credentials (Form Post JWT Mode) - v1.0
 
 When the credential is different than an eID, the flow requires the user to present other credentials in order to obtain the requested one. This is done through the `getRequestedCredentialToBePresented` followed by the `completeUserAuthorizationWithFormPostJwtMode`.
 
@@ -163,7 +167,7 @@ const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
 const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(WALLET_EAA_PROVIDER_BASE_URL);
 
 // Start user authorization
-const { issuerRequestUri, clientId, codeVerifier } =
+const { issuerRequestUri, clientId, codeVerifier, responseMode } =
   await wallet.CredentialIssuance.startUserAuthorization(
     issuerConf,
     ["someCredentialId"],
@@ -184,13 +188,27 @@ const requestObject =
     appFetch
   );
 
-// Complete the user authorization via form_post.jwt mode
-const { code } =
-  await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
-    requestObject,
-    pid.credential,
-    { wiaCryptoContext, pidCryptoContext: createCryptoContextFor(pid.keyTag) }
-  );
+let code: string;
+if (responseMode === "form_post.jwt") {
+  // Complete the user authorization via form_post.jwt mode
+  ({ code } =
+    await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
+      requestObject,
+      issuerConf,
+      [pid.keyTag, pid.credential],
+      { wiaCryptoContext, appFetch }
+    ));
+} else {
+  // Complete the user authorization via query mode
+  ({ code } =
+    await wallet.CredentialIssuance.completeEaaUserAuthorizationWithQueryMode(
+      requestObject,
+      issuerConf,
+      [pid.keyTag, pid.credential],
+      REDIRECT_URI,
+      { appFetch }
+    ));
+}
 
 // Generate the DPoP context which will be used for the whole issuance flow
 await regenerateCryptoKey(DPOP_KEYTAG); // Let's assume this function regenerates this ephemeral key for the DPoP
@@ -330,7 +348,7 @@ const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
 const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
   await wallet.CredentialIssuance.startUserAuthorization(
     issuerConf,
-    ["dc_sd_jwt_PersonIdentificationData"], // Request authorization for one or more credentials
+    ["dc_sd_jwt_pid"], // Request authorization for one or more credentials
     { proofType: "none" },
     {
       walletInstanceAttestation,
@@ -342,7 +360,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
 
 // Complete the authorization process with query mode with the authorizationContext which opens the browser
 const { code } =
-  await wallet.CredentialIssuance.completeUserAuthorizationWithQueryMode(
+  await wallet.CredentialIssuance.completePidUserAuthorizationWithQueryMode(
     issuerRequestUri
   );
 

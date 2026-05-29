@@ -6,30 +6,33 @@ import {
 import parseUrl from "parse-url";
 import type { DcqlQuery } from "dcql";
 import {
-  fetchAuthorizationRequest,
+  createAuthorizationResponse,
   parseAuthorizeRequest,
+  fetchAuthorizationResponse,
+  type CreateAuthorizationResponseResult,
 } from "@pagopa/io-wallet-oid4vp";
 import { sendAuthorizationResponseAndExtractCode } from "@pagopa/io-wallet-oid4vci";
+import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
 import { parseMrtdChallenge } from "@pagopa/io-wallet-oauth2";
-import { SignJWT, type CryptoContext } from "@pagopa/io-react-native-jwt";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
 import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.3.3";
-import { partialCallbacks } from "../../../utils/callbacks";
-import { sdkConfigV1_3 } from "../../../utils/config";
 import {
-  IoWalletError,
-  sdkUnexpectedStatusCodeToIssuerError,
-} from "../../../utils/errors";
-import type { IssuanceApi } from "../api";
+  createVerifyJwtFromJwks,
+  partialCallbacks,
+} from "../../../utils/callbacks";
+import { sdkConfigV1_3, sdkConfigV1_4 } from "../../../utils/config";
+import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
+import type { IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
-import type { RemotePresentation } from "../../presentation";
+import type { RequestObject } from "../../presentation";
+import { hasStatusOrThrow } from "../../../utils/misc";
 
 export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
+      "The requested credential is a PID and requires MRTD PoP, starting MRTD PoP validation from auth redirect"
     );
     try {
       const parsedChallenge = parseMrtdChallenge({
@@ -65,11 +68,11 @@ export const buildAuthorizationUrl: IssuanceApi["buildAuthorizationUrl"] =
     return { authUrl };
   };
 
-export const completeUserAuthorizationWithQueryMode: IssuanceApi["completeUserAuthorizationWithQueryMode"] =
+export const completePidUserAuthorizationWithQueryMode: IssuanceApi["completePidUserAuthorizationWithQueryMode"] =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData, completing the user authorization with query mode`
+      "The requested credential is a PID, completing the user authorization with query mode"
     );
     const query = parseUrl(authRedirectUrl).query;
 
@@ -80,7 +83,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is not a PersonIdentificationData, requesting the credential to be presented`
+      "The requested credential is not a PID, requesting the credential to be presented"
     );
 
     const authzRequestEndpoint = issuerConf.authorization_endpoint;
@@ -94,61 +97,39 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
       `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`
     );
 
-    const authRequest = await fetchAuthorizationRequest({
-      authorizeRequestUrl: `${authzRequestEndpoint}?${params.toString()}`,
-      callbacks: {
-        fetch: appFetch,
-      },
-    }).catch(sdkUnexpectedStatusCodeToIssuerError);
+    const requestObjectJwt = await appFetch(
+      `${authzRequestEndpoint}?${params.toString()}`,
+      { method: "GET" }
+    )
+      .then(hasStatusOrThrow(200, IssuerResponseError))
+      .then((res) => res.text());
 
     const parsedAuthRequest = await parseAuthorizeRequest({
       config: sdkConfigV1_3,
-      requestObjectJwt: authRequest.requestObjectJwt,
-      callbacks: partialCallbacks,
+      requestObjectJwt,
+      callbacks: {
+        verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
+      },
     });
 
     return mapToRequestObject(parsedAuthRequest);
   };
 
+// NOTE: this function is not used in the 1.3 issuance flow. It may be removed in the future.
 export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
-  async (
-    requestObject,
-    issuerConfig,
-    pid,
-    { wiaCryptoContext, pidKeyTag, appFetch = fetch }
-  ) => {
+  async (requestObject, issuerConfig, pid, { appFetch = fetch }) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
+      "The requested credential is not a PID, completing the user authorization with form_post.jwt mode"
     );
 
-    const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
-      requestObject.dcql_query as DcqlQuery,
-      [[pidKeyTag, pid]]
-    );
-
-    const authRequestObject = {
-      nonce: requestObject.nonce,
-      clientId: requestObject.client_id,
-      responseUri: requestObject.response_uri,
-    };
-
-    const remotePresentation =
-      await RemotePresentationFlow.prepareRemotePresentations(
-        dcqlQueryResult,
-        authRequestObject
-      );
-
-    const authzResponsePayload = await createAuthzResponsePayload({
-      state: requestObject.state,
-      remotePresentation,
-      wiaCryptoContext,
+    const authzResponse = await processPidPresentationAndCreateAuthzResponse({
+      requestObject,
+      issuerConfig,
+      pid,
     });
 
-    Logger.log(
-      LogLevel.DEBUG,
-      `Authz response payload: ${authzResponsePayload}`
-    );
+    Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
 
     const issuerSigKey = issuerConfig.keys.find((key) => key.use === "sig");
     if (!issuerSigKey) {
@@ -158,13 +139,13 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     }
 
     return sendAuthorizationResponseAndExtractCode({
-      authorizationResponseJarm: authzResponsePayload,
+      authorizationResponseJarm: authzResponse.jarm.responseJwe,
       callbacks: {
         ...partialCallbacks,
         fetch: appFetch,
       },
       iss: requestObject.iss,
-      state: requestObject.state!,
+      state: requestObject.state ?? "",
       presentationResponseUri: requestObject.response_uri,
       signer: {
         alg: "ES256",
@@ -172,6 +153,62 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
         publicJwk: issuerSigKey,
       },
     });
+  };
+
+export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaaUserAuthorizationWithQueryMode"] =
+  async (
+    requestObject,
+    issuerConfig,
+    pid,
+    clientRedirectUri,
+    { appFetch = fetch }
+  ) => {
+    Logger.log(
+      LogLevel.DEBUG,
+      "The requested credential is not a PID, completing the user authorization with query mode"
+    );
+
+    const authzResponse = await processPidPresentationAndCreateAuthzResponse({
+      requestObject,
+      issuerConfig,
+      pid,
+    });
+
+    Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
+
+    const { redirect_uri } = await fetchAuthorizationResponse({
+      authorizationResponseJarm: authzResponse.jarm.responseJwe,
+      presentationResponseUri: requestObject.response_uri,
+      callbacks: {
+        ...partialCallbacks,
+        fetch: appFetch,
+      },
+    });
+
+    if (!redirect_uri) {
+      const errorMessage =
+        "The authorization server did not return a redirect_uri to continue the authorization flow";
+      Logger.log(LogLevel.ERROR, errorMessage);
+      throw new AuthorizationError(errorMessage);
+    }
+
+    const response = await appFetch(redirect_uri).catch(() => null);
+
+    if (!response || !response.ok) {
+      const errorMessage = `An error occurred while completing the authorization flow. Ensure ${clientRedirectUri} is a valid HTTP url for redirect`;
+      Logger.log(LogLevel.ERROR, errorMessage);
+      throw new AuthorizationError(errorMessage);
+    }
+
+    const finalRedirectUri = response.url;
+
+    if (!finalRedirectUri || !finalRedirectUri.startsWith(clientRedirectUri)) {
+      const errorMessage = `The authorization server did not redirect to the provided client redirect URI. Expected: ${clientRedirectUri}, got: ${finalRedirectUri}`;
+      Logger.log(LogLevel.ERROR, errorMessage);
+      throw new AuthorizationError(errorMessage);
+    }
+
+    return parseAuthorizationResponse(parseUrl(finalRedirectUri).query);
   };
 
 /**
@@ -207,45 +244,52 @@ export const parseAuthorizationResponse = (
 };
 
 /**
- * Creates the authorization response payload to be sent.
- * This payload includes the state and the VP tokens for the presented credentials.
- * The payload is encoded in Base64.
- * @param state - The state parameter from the request object (optional).
- * @param remotePresentation The presentations to send, each with their VP token
- * @returns The Base64 encoded authorization response payload.
+ * Utility function to process the DCQL query for PID presentation and to create the authorization response to send to the Issuer.
+ * @param params.requestObject - The request object containing the DCQL query
+ * @param params.issuerConfig - The Issuer unified configuration
+ * @param params.pid - The PID credential to be presented, as a tuple of [keyTag, credential]
+ * @returns The authorization response containing the JARM to be sent to the Issuer
  */
-const createAuthzResponsePayload = async ({
-  state,
-  remotePresentation,
-  wiaCryptoContext,
+const processPidPresentationAndCreateAuthzResponse = async ({
+  requestObject,
+  issuerConfig,
+  pid,
 }: {
-  state?: string;
-  remotePresentation: RemotePresentation;
-  wiaCryptoContext: CryptoContext;
-}): Promise<string> => {
-  const { kid } = await wiaCryptoContext.getPublicKey();
+  requestObject: RequestObject;
+  issuerConfig: IssuerConfig;
+  pid: [keyTag: string, credential: string];
+}): Promise<CreateAuthorizationResponseResult> => {
+  const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
+    requestObject.dcql_query as DcqlQuery,
+    [pid]
+  );
 
-  return new SignJWT(wiaCryptoContext)
-    .setProtectedHeader({
-      typ: "jwt",
-      kid,
-    })
-    .setPayload({
-      /**
-       * TODO [SIW-2264]: `state` coming from `requestObject` is marked as `optional`
-       * At the moment, it is not entirely clear whether this value can indeed be omitted
-       * and, if so, what the consequences of its absence might be.
-       */
-      ...(state ? { state } : {}),
-      vp_token: remotePresentation.presentations.reduce(
-        (vp_token, { credentialId, vpToken }) => ({
-          ...vp_token,
-          [credentialId]: [vpToken],
-        }),
-        {}
-      ),
-    })
-    .setIssuedAt()
-    .setExpirationTime("1h")
-    .sign();
+  const remotePresentation =
+    await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
+      clientId: requestObject.client_id,
+      nonce: requestObject.nonce,
+      responseUri: requestObject.response_uri,
+    });
+
+  const vp_token = remotePresentation.presentations.reduce(
+    (acc, { credentialId, vpToken }) => ({ ...acc, [credentialId]: [vpToken] }),
+    {} as Record<string, string[]>
+  );
+
+  return createAuthorizationResponse({
+    // The SDK 1.4 config is used here in order to resolve the encryption data from the Request Object
+    // client_metadata, otherwise OpenID Federation clients always ignore client_metadata as per 1.3.3 specs.
+    config: sdkConfigV1_4,
+    requestObject,
+    rpJwks: {
+      jwks: { keys: issuerConfig.keys } as jsonWebKeySet,
+      encrypted_response_enc_values_supported:
+        issuerConfig.encrypted_response_enc_values_supported,
+    },
+    vp_token,
+    callbacks: {
+      encryptJwe: partialCallbacks.encryptJwe,
+      generateRandom: partialCallbacks.generateRandom,
+    },
+  });
 };

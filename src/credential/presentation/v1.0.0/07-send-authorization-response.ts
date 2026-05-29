@@ -81,7 +81,7 @@ export const buildDirectPostJwtBody = async (
   // Build the x-www-form-urlencoded form body
   const formBody = new URLSearchParams({
     response: encryptedResponse,
-    state: requestObject.state,
+    ...(requestObject.state && { state: requestObject.state }),
   });
   return formBody.toString();
 };

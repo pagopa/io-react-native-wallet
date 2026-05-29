@@ -60,6 +60,7 @@ export const IssuerConfig = z.object({
   credential_configurations_supported: z.record(z.string(), CredentialConfig),
   federation_entity: FederationEntityMetadata,
   credential_issuance_batch_size: z.number().optional(),
+  encrypted_response_enc_values_supported: z.array(z.string()).optional(),
   /**
    * @deprecated
    */

@@ -9,11 +9,11 @@ import type { DirectAuthorizationBodyPayload } from "../../v1.0.0/types";
  * @returns A URL-encoded string suitable for an `application/x-www-form-urlencoded` POST body.
  */
 export const buildDirectPostBody = async (
-  requestObject: RequestObject,
+  { state }: RequestObject,
   payload: DirectAuthorizationBodyPayload
 ): Promise<string> => {
   const formUrlEncodedBody = new URLSearchParams({
-    state: requestObject.state,
+    ...(state && { state }),
     ...Object.entries(payload).reduce(
       (acc, [key, value]) => ({
         ...acc,

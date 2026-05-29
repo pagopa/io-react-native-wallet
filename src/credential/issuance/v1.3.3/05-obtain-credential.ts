@@ -112,7 +112,7 @@ export const requestCredentials = async ({
     },
     clientId,
     credential_identifier: credentialIdentifier,
-    issuerIdentifier: issuerConf.credential_issuer,
+    issuerIdentifier: issuerConf.credential_endpoint,
     maxBatchSize: issuerConf.credential_issuance_batch_size,
     nonce: c_nonce,
     keyAttestation: keyAttestationJwt,
