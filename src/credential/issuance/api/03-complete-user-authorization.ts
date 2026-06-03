@@ -60,7 +60,7 @@ export interface CompleteUserAuthorizationApi {
     issuerConf: IssuerConfig,
     pid: [keyTag: string, credential: string],
     redirectUri: string,
-    context: {
+    context?: {
       appFetch?: GlobalFetch["fetch"];
     }
   ): Promise<AuthorizationResult>;
