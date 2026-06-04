@@ -161,7 +161,7 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
     issuerConfig,
     pid,
     clientRedirectUri,
-    { appFetch = fetch }
+    { appFetch = fetch } = {}
   ) => {
     Logger.log(
       LogLevel.DEBUG,
