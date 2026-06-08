@@ -14,6 +14,7 @@ export const iconByCredentialType: Record<
   dc_sd_jwt_residency: "messageLegal",
   dc_sd_jwt_education_diploma: "messageLegal",
   dc_sd_jwt_education_attendance: "messageLegal",
+  mso_mdoc_proof_of_age: "ok",
 };
 
 export const labelByCredentialType: Record<
@@ -29,4 +30,5 @@ export const labelByCredentialType: Record<
   dc_sd_jwt_residency: "RES",
   dc_sd_jwt_education_diploma: "EDIP",
   dc_sd_jwt_education_attendance: "EDAT",
+  mso_mdoc_proof_of_age: "PoA",
 };
