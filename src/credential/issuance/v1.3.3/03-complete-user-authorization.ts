@@ -174,7 +174,10 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
       pid,
     });
 
-    Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
+    Logger.log(
+      LogLevel.DEBUG,
+      `Authz response: ${JSON.stringify(authzResponse)}`
+    );
 
     const { redirect_uri } = await fetchAuthorizationResponse({
       authorizationResponseJarm: authzResponse.jarm.responseJwe,

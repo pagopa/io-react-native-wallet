@@ -1,12 +1,10 @@
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
-import { extractElementValueAsDate } from "../../../mdoc/converter";
 import {
   getParsedCredentialClaimKey,
   verify as verifyMdoc,
 } from "../../../mdoc";
-import { MDOC_DEFAULT_NAMESPACE } from "../../../mdoc/const";
 import { IoWalletError } from "../../../utils/errors";
 import type { Out } from "../../../utils/misc";
 import { isSameThumbprint } from "../../../utils/jwk";
@@ -209,28 +207,14 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
       ignoreMissingAttributes
     );
 
-    const expirationDate = extractElementValueAsDate(
-      parsedCredential?.[
-        getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "expiry_date")
-      ]?.value as string
-    );
-    if (!expirationDate) {
-      throw new IoWalletError(`expirationDate must be present!!`);
-    }
-    expirationDate.setDate(expirationDate.getDate() + 1);
-
-    const maybeIssuedAt = extractElementValueAsDate(
-      parsedCredential?.[
-        getParsedCredentialClaimKey(MDOC_DEFAULT_NAMESPACE, "issue_date")
-      ]?.value as string
-    );
-    maybeIssuedAt?.setDate(maybeIssuedAt.getDate() + 1);
+    const { signed, validUntil } =
+      decoded.issuerSigned.issuerAuth.payload.validityInfo;
 
     return {
       parsedCredential,
       credential,
       credentialConfigurationId,
-      expiration: expirationDate,
-      issuedAt: maybeIssuedAt ?? undefined,
+      expiration: validUntil,
+      issuedAt: signed,
     };
   };
