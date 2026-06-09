@@ -52,7 +52,6 @@ export interface CompleteUserAuthorizationApi {
    * @param issuerConfig The issuer configuration returned by {@link evaluateIssuerTrust}
    * @param pid The PID to present as a tuple [keyTag, credential].
    * @param redirectUri The client redirect URI to which the authorization server will redirect after completing the authorization process.
-   * @param appFetch (optional) fetch api implementation. Default: built-in fetch
    * @returns The authorization response which contains code, state and iss
    */
   completeEaaUserAuthorizationWithQueryMode(
@@ -61,7 +60,10 @@ export interface CompleteUserAuthorizationApi {
     pid: [keyTag: string, credential: string],
     redirectUri: string,
     context?: {
+      /** Fetch api implementation. Default: built-in fetch. */
       appFetch?: GlobalFetch["fetch"];
+      /** Function to fetch the final redirect uri; it allows full control on how redirects are handled. If not provided, `appFetch` is used. */
+      fetchFinalRedirectUri?: (url: string) => Promise<string | undefined>;
     }
   ): Promise<AuthorizationResult>;
 

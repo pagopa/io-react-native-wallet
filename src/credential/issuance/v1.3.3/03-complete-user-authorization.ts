@@ -161,7 +161,7 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
     issuerConfig,
     pid,
     clientRedirectUri,
-    { appFetch = fetch } = {}
+    { appFetch = fetch, fetchFinalRedirectUri } = {}
   ) => {
     Logger.log(
       LogLevel.DEBUG,
@@ -195,15 +195,19 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
       throw new AuthorizationError(errorMessage);
     }
 
-    const response = await appFetch(redirect_uri).catch(() => null);
+    let finalRedirectUri: string | undefined;
 
-    if (!response || !response.ok) {
-      const errorMessage = `An error occurred while completing the authorization flow. Ensure ${clientRedirectUri} is a valid HTTP url for redirect`;
-      Logger.log(LogLevel.ERROR, errorMessage);
-      throw new AuthorizationError(errorMessage);
+    if (fetchFinalRedirectUri) {
+      finalRedirectUri = await fetchFinalRedirectUri(redirect_uri);
+    } else {
+      const response = await appFetch(redirect_uri).catch(() => null);
+      if (!response || !response.ok) {
+        const errorMessage = `An error occurred while completing the authorization flow. Ensure ${clientRedirectUri} is a valid HTTP url for redirect`;
+        Logger.log(LogLevel.ERROR, errorMessage);
+        throw new AuthorizationError(errorMessage);
+      }
+      finalRedirectUri = response.url;
     }
-
-    const finalRedirectUri = response.url;
 
     if (!finalRedirectUri || !finalRedirectUri.startsWith(clientRedirectUri)) {
       const errorMessage = `The authorization server did not redirect to the provided client redirect URI. Expected: ${clientRedirectUri}, got: ${finalRedirectUri}`;
