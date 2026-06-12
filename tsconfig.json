@@ -23,6 +23,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
+    "types": ["jest", "node"],
     "verbatimModuleSyntax": true,
     "moduleSuffixes": [".ios", ".android", ".native", ""]
   }
