@@ -24,5 +24,25 @@ export const getCredentialOfferThunk = createAppAsyncThunk<
   );
 
   // 2) Extract grant details
-  return wallet.CredentialsOffer.extractGrantDetails(credentialOffer);
+  const grantDetails =
+    wallet.CredentialsOffer.extractGrantDetails(credentialOffer);
+
+  // 3) Evaluate issuer trust
+  const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
+    credentialOffer.credential_issuer,
+    {
+      authorizationServer:
+        grantDetails.authorizationCodeGrant.authorizationServer,
+    }
+  );
+
+  // 4) Validate credential offer
+  await wallet.CredentialsOffer.validateCredentialOffer({
+    offer: credentialOffer,
+    credentialIssuerMetadata: {
+      authorization_servers: issuerConf.authorization_servers,
+    },
+  });
+
+  return grantDetails;
 });

@@ -27,6 +27,8 @@ export interface StartUserAuthorizationApi {
    * @param context.walletInstanceAttestation: the Wallet Instance's attestation
    * @param context.redirectUri: the redirect URI
    * @param context.appFetch: (optional) the fetch implementation
+   * @param context.scope: (optional) the OAuth 2.0 scope, forwarded to the PAR. When the issuance is started from a Credential Offer, it comes from the `authorization_code` grant.
+   * @param context.issuerState: (optional) the issuer state, forwarded to the PAR to correlate the authorization request with the Credential Offer.
    * @returns The URI to which the end user should be redirected to start the authentication flow, along with additional authentication parameters
    */
   startUserAuthorization(
@@ -40,6 +42,8 @@ export interface StartUserAuthorizationApi {
       walletInstanceAttestation: string;
       redirectUri: string;
       appFetch?: GlobalFetch["fetch"];
+      scope?: string;
+      issuerState?: string;
     }
   ): Promise<{
     issuerRequestUri: string;
