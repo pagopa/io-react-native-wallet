@@ -33,6 +33,7 @@ export const getCredentialOfferThunk = createAppAsyncThunk<
     {
       authorizationServer:
         grantDetails.authorizationCodeGrant.authorizationServer,
+      appFetch,
     }
   );
 
