@@ -1,17 +1,12 @@
-import {
-  InvalidQRCodeError,
-  InvalidCredentialOfferError,
-} from "../../common/errors";
+import { InvalidQRCodeError } from "../../common/errors";
 import { resolveCredentialOffer } from "../01-resolve-credential-offer";
+import { sdkConfigV1_3 } from "../../../../utils/config";
 
 const mockResolveCredentialOffer = jest.fn();
-const mockValidateCredentialOffer = jest.fn();
 
 jest.mock("@pagopa/io-wallet-oid4vci", () => ({
   resolveCredentialOffer: (...args: unknown[]) =>
     mockResolveCredentialOffer(...args),
-  validateCredentialOffer: (...args: unknown[]) =>
-    mockValidateCredentialOffer(...args),
   CredentialOfferError: jest.requireActual("@pagopa/io-wallet-oid4vci")
     .CredentialOfferError,
 }));
@@ -31,11 +26,9 @@ const validCredentialOffer = {
 describe("resolveCredentialOffer", () => {
   beforeEach(() => {
     mockResolveCredentialOffer.mockReset();
-    mockValidateCredentialOffer.mockReset();
-    mockValidateCredentialOffer.mockResolvedValue(undefined);
   });
 
-  it("should resolve and validate a credential offer by value", async () => {
+  it("should resolve a credential offer by value", async () => {
     const uri =
       "openid-credential-offer://?credential_offer=" +
       encodeURIComponent(JSON.stringify(validCredentialOffer));
@@ -45,16 +38,14 @@ describe("resolveCredentialOffer", () => {
     const result = await resolveCredentialOffer(uri);
 
     expect(mockResolveCredentialOffer).toHaveBeenCalledWith({
+      config: sdkConfigV1_3,
       credentialOffer: uri,
       callbacks: { fetch: expect.any(Function) },
-    });
-    expect(mockValidateCredentialOffer).toHaveBeenCalledWith({
-      credentialOffer: validCredentialOffer,
     });
     expect(result).toEqual(validCredentialOffer);
   });
 
-  it("should resolve and validate a credential offer by reference", async () => {
+  it("should resolve a credential offer by reference", async () => {
     const uri =
       "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
 
@@ -63,6 +54,7 @@ describe("resolveCredentialOffer", () => {
     const result = await resolveCredentialOffer(uri);
 
     expect(mockResolveCredentialOffer).toHaveBeenCalledWith({
+      config: sdkConfigV1_3,
       credentialOffer: uri,
       callbacks: { fetch: expect.any(Function) },
     });
@@ -76,6 +68,7 @@ describe("resolveCredentialOffer", () => {
     await resolveCredentialOffer("some-uri", { fetch: customFetch });
 
     expect(mockResolveCredentialOffer).toHaveBeenCalledWith({
+      config: sdkConfigV1_3,
       credentialOffer: "some-uri",
       callbacks: { fetch: customFetch },
     });
@@ -94,33 +87,9 @@ describe("resolveCredentialOffer", () => {
     );
   });
 
-  it("should throw InvalidCredentialOfferError when validation fails with CredentialOfferError", async () => {
-    const { CredentialOfferError } = jest.requireActual(
-      "@pagopa/io-wallet-oid4vci"
-    );
-    mockResolveCredentialOffer.mockResolvedValue(validCredentialOffer);
-    mockValidateCredentialOffer.mockRejectedValue(
-      new CredentialOfferError("credential_issuer must be an HTTPS URL")
-    );
-
-    await expect(
-      resolveCredentialOffer("openid-credential-offer://?credential_offer=foo")
-    ).rejects.toThrow(InvalidCredentialOfferError);
-  });
-
   it("should rethrow non-CredentialOfferError from resolve", async () => {
     const unexpectedError = new Error("network failure");
     mockResolveCredentialOffer.mockRejectedValue(unexpectedError);
-
-    await expect(resolveCredentialOffer("some-uri")).rejects.toThrow(
-      unexpectedError
-    );
-  });
-
-  it("should rethrow non-CredentialOfferError from validation", async () => {
-    const unexpectedError = new Error("unexpected");
-    mockResolveCredentialOffer.mockResolvedValue(validCredentialOffer);
-    mockValidateCredentialOffer.mockRejectedValue(unexpectedError);
 
     await expect(resolveCredentialOffer("some-uri")).rejects.toThrow(
       unexpectedError

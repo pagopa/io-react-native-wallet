@@ -8,4 +8,7 @@ export const Offer: OfferApi = {
   extractGrantDetails() {
     throw new UnimplementedFeatureError("extractGrantDetails", "1.0.0");
   },
+  validateCredentialOffer() {
+    throw new UnimplementedFeatureError("validateCredentialOffer", "1.0.0");
+  },
 };

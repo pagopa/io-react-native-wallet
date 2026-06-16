@@ -1,6 +1,7 @@
 import type { CredentialOffer } from "@pagopa/io-wallet-oid4vci";
 import { extractGrantDetails } from "../02-extract-grant-details";
 import { InvalidCredentialOfferError } from "../../common/errors";
+import { sdkConfigV1_3 } from "../../../../utils/config";
 
 const mockExtractGrantDetails = jest.fn();
 
@@ -41,7 +42,10 @@ describe("extractGrantDetails", () => {
     const result = extractGrantDetails(validOffer);
 
     expect(result).toEqual(sdkResult);
-    expect(mockExtractGrantDetails).toHaveBeenCalledWith(validOffer);
+    expect(mockExtractGrantDetails).toHaveBeenCalledWith({
+      config: sdkConfigV1_3,
+      credentialOffer: validOffer,
+    });
   });
 
   it("should throw InvalidCredentialOfferError when SDK throws CredentialOfferError", () => {

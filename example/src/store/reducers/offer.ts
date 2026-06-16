@@ -7,7 +7,7 @@ import { asyncStatusInitial } from "../utils";
 import type { CredentialOffer } from "@pagopa/io-react-native-wallet";
 
 type CredentialOfferState = {
-  offer?: CredentialOffer.ExtractGrantDetailsResult;
+  offer?: CredentialOffer.CredentialOffer;
   asyncStatus: AsyncStatus;
 };
 
