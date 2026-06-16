@@ -45,8 +45,17 @@ export const mapToIssuerConfig = createMapper<
       federation_entity,
     } = x.metadata;
 
+    // The Issuer's own `oauth_authorization_server` always describes the Issuer
+    // itself. When a credential offer selected a *different* Authorization
+    // Server, its metadata is surfaced separately through that server's
+    // federation claims, and the Authorization Server endpoints must be taken
+    // from there. Fall back to the Issuer's own server otherwise.
+    const oauthAuthorizationServer =
+      x.authorization_server_federation_claims?.metadata
+        ?.oauth_authorization_server ?? oauth_authorization_server;
+
     assert(
-      oauth_authorization_server,
+      oauthAuthorizationServer,
       "oauth_authorization_server is required in Issuer metadata"
     );
     assert(
@@ -55,19 +64,20 @@ export const mapToIssuerConfig = createMapper<
     );
 
     return {
-      authorization_endpoint: oauth_authorization_server.authorization_endpoint,
+      authorization_endpoint: oauthAuthorizationServer.authorization_endpoint,
       credential_endpoint: openid_credential_issuer.credential_endpoint,
       credential_issuer: openid_credential_issuer.credential_issuer,
+      authorization_servers: openid_credential_issuer.authorization_servers,
       credential_configurations_supported: mapCredentialConfigurationsSupported(
         openid_credential_issuer
       ),
       keys: [
         ...openid_credential_issuer.jwks.keys,
-        ...oauth_authorization_server.jwks.keys,
+        ...oauthAuthorizationServer.jwks.keys,
       ] as JWK[],
       pushed_authorization_request_endpoint:
-        oauth_authorization_server.pushed_authorization_request_endpoint,
-      token_endpoint: oauth_authorization_server.token_endpoint,
+        oauthAuthorizationServer.pushed_authorization_request_endpoint,
+      token_endpoint: oauthAuthorizationServer.token_endpoint,
       nonce_endpoint: openid_credential_issuer.nonce_endpoint ?? "",
       federation_entity: federation_entity ?? {},
       credential_issuance_batch_size:

@@ -23,18 +23,20 @@ import type { Env } from "./environment";
 /**
  * Implements a flow to obtain a generic credential.
  * @param itwVersion IT-Wallet specifications version
- * @param credentialIssuerUrl - The credential issuer URL
+ * @param issuerConf - The resolved Issuer configuration (issuer trust already evaluated)
  * @param redirectUri - The redirect URI for the authorization flow
  * @param credentialId - The id of the credential to obtain
  * @param credentialKeyTag - The key tag of the crypto key to bind to the credential
  * @param pid - The PID credential
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
+ * @param scope - (optional) OAuth 2.0 scope forwarded to the PAR, from a credential offer
+ * @param issuerState - (optional) issuer state forwarded to the PAR, from a credential offer
  * @returns The obtained credential result
  */
 export const getCredential = async ({
   itwVersion,
-  credentialIssuerUrl,
+  issuerConf,
   trustAnchorUrl,
   redirectUri,
   credentialId,
@@ -43,9 +45,11 @@ export const getCredential = async ({
   generateKeysWithAttestation,
   wiaCryptoContext,
   batchSize = 1,
+  scope,
+  issuerState,
 }: {
   itwVersion: ItwVersion;
-  credentialIssuerUrl: string;
+  issuerConf: CredentialIssuance.IssuerConfig;
   trustAnchorUrl: string;
   redirectUri: string;
   credentialId: SupportedCredentialsWithoutPid;
@@ -56,12 +60,10 @@ export const getCredential = async ({
   ) => Promise<string | undefined>;
   wiaCryptoContext: CryptoContext;
   batchSize?: number;
+  scope?: string;
+  issuerState?: string;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
-
-  // Evaluate issuer trust
-  const { issuerConf } =
-    await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
   // Start user authorization
   const { issuerRequestUri, clientId, codeVerifier, responseMode } =
@@ -74,6 +76,8 @@ export const getCredential = async ({
         redirectUri,
         wiaCryptoContext,
         appFetch,
+        scope,
+        issuerState,
       }
     );
 
