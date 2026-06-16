@@ -12,6 +12,7 @@ import last from "lodash/last";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { DcqlQuery } from "dcql";
 import type {
   CredentialResult,
   PidResult,
@@ -85,6 +86,11 @@ export const getCredential = async ({
       appFetch
     );
 
+  const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
+    requestObject.dcql_query as DcqlQuery.Input,
+    [[pid.keyTag, pid.credential]]
+  );
+
   let code: string;
   if (responseMode === "form_post.jwt") {
     // Complete the user authorization via form_post.jwt mode
@@ -92,7 +98,7 @@ export const getCredential = async ({
       await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
         requestObject,
         issuerConf,
-        [pid.keyTag, pid.credential],
+        evaluatedDcqlQuery,
         { wiaCryptoContext, appFetch }
       ));
   } else {
@@ -101,7 +107,7 @@ export const getCredential = async ({
       await wallet.CredentialIssuance.completeEaaUserAuthorizationWithQueryMode(
         requestObject,
         issuerConf,
-        [pid.keyTag, pid.credential],
+        evaluatedDcqlQuery,
         redirectUri,
         {
           appFetch,

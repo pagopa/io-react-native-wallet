@@ -96,7 +96,7 @@ When the credential is different than an eID, the flow requires the user to pres
 
 ## Authentication through credentials (Form Post JWT Mode) - v1.0
 
-When the credential is different than an eID, the flow requires the user to present other credentials in order to obtain the requested one. This is done through the `getRequestedCredentialToBePresented` followed by the `completeUserAuthorizationWithFormPostJwtMode`.
+When the credential is different than an eID, the flow requires the user to present other credentials in order to obtain the requested one. This is done through the `getRequestedCredentialToBePresented`, followed by evaluating the returned `dcql_query` with `RemotePresentation.evaluateDcqlQuery`, and then by completing the authorization with `completeUserAuthorizationWithFormPostJwtMode` or `completeEaaUserAuthorizationWithQueryMode`.
 
 The expected result from the authentication process is in `form_post.jwt` format as defined in [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)](https://openid.net/specs/oauth-v2-jarm.html#name-response-mode-form_postjwt).
 
@@ -188,6 +188,11 @@ const requestObject =
     appFetch
   );
 
+const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
+  requestObject.dcql_query,
+  [[pid.keyTag, pid.credential]]
+);
+
 let code: string;
 if (responseMode === "form_post.jwt") {
   // Complete the user authorization via form_post.jwt mode
@@ -195,7 +200,7 @@ if (responseMode === "form_post.jwt") {
     await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
       requestObject,
       issuerConf,
-      [pid.keyTag, pid.credential],
+      evaluatedDcqlQuery,
       { wiaCryptoContext, appFetch }
     ));
 } else {
@@ -204,7 +209,7 @@ if (responseMode === "form_post.jwt") {
     await wallet.CredentialIssuance.completeEaaUserAuthorizationWithQueryMode(
       requestObject,
       issuerConf,
-      [pid.keyTag, pid.credential],
+      evaluatedDcqlQuery,
       REDIRECT_URI,
       { appFetch }
     ));

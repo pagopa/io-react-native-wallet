@@ -17,5 +17,6 @@ export interface IssuanceApi
 }
 
 export type { IssuerConfig } from "./IssuerConfig";
+export type { EvaluatedDcqlQueryResult } from "./03-complete-user-authorization";
 export type * as MRTDPoP from "./mrtd-pop";
 export type * from "./types";
