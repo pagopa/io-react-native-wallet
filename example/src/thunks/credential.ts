@@ -1,6 +1,7 @@
 import {
   createCryptoContextFor,
   CredentialIssuance,
+  CredentialOffer,
   CredentialStatus,
   IoWallet,
 } from "@pagopa/io-react-native-wallet";
@@ -21,6 +22,7 @@ import {
   getCredentialStatusFromStatusList,
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
+import appFetch from "../utils/fetch";
 import { getEnv } from "../utils/environment";
 import { selectPid } from "../store/reducers/pid";
 import { createAppAsyncThunk } from "./utils";
@@ -56,6 +58,7 @@ export type CredentialStatusResult =
 type GetCredentialThunkInput = {
   credentialType: SupportedCredentialsWithoutPid;
   batchSize?: number;
+  credentialOffer?: CredentialOffer.CredentialOffer;
 };
 
 /**
@@ -81,6 +84,9 @@ type GetCredentialStatusListThunkInput = {
  * Thunk to obtain a new credential.
  * @param args.idPhint- The idPhint for the Identity Provider to use if the requested credential is a `PersonIdentificationData`
  * @param args.credentialType - The type of the requested credential to obtain
+ * @param args.credentialOffer - (optional) A resolved credential offer. When provided, the issuer URL
+ *   and the authorization parameters (authorization server, scope, issuer state) are taken from it, and
+ *   the offer is validated against the resolved Issuer metadata before starting the issuance.
  * @returns The obtained credential result
  */
 export const getCredentialThunk = createAppAsyncThunk<
@@ -109,7 +115,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
     getEnv(env);
 
-  const { credentialType, batchSize } = args;
+  const { credentialType, batchSize, credentialOffer } = args;
 
   // Get the PID from the store
   const pid = selectPid(getState());
@@ -130,9 +136,44 @@ export const getCredentialThunk = createAppAsyncThunk<
     return undefined;
   };
 
+  // When the issuance originates from a credential offer, the issuer URL comes
+  // from the offer and overrides the default EAA provider. The authorization_code
+  // grant may also carry a specific authorization server (required when the Issuer
+  // relies on more than one), as well as the `scope` and `issuer_state` to be
+  // forwarded to the PAR.
+  const issuerUrl = credentialOffer
+    ? credentialOffer.credential_issuer
+    : WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion);
+
+  const authorizationCodeGrant = credentialOffer
+    ? wallet.CredentialsOffer.extractGrantDetails(credentialOffer)
+        .authorizationCodeGrant
+    : undefined;
+
+  // Evaluate issuer trust, selecting the authorization server from the offer
+  // when present.
+  const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
+    issuerUrl,
+    {
+      appFetch,
+      authorizationServer: authorizationCodeGrant?.authorizationServer,
+    }
+  );
+
+  // Validate the credential offer against the resolved Issuer metadata. Only
+  // performed when the issuance was started from a credential offer.
+  if (credentialOffer) {
+    await wallet.CredentialsOffer.validateCredentialOffer({
+      offer: credentialOffer,
+      credentialIssuerMetadata: issuerConf.authorization_servers
+        ? { authorization_servers: issuerConf.authorization_servers }
+        : {},
+    });
+  }
+
   return await getCredential({
     itwVersion,
-    credentialIssuerUrl: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
+    issuerConf,
     trustAnchorUrl: WALLET_TA_BASE_URL,
     redirectUri: REDIRECT_URI,
     // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
@@ -143,6 +184,8 @@ export const getCredentialThunk = createAppAsyncThunk<
     generateKeysWithAttestation,
     wiaCryptoContext,
     batchSize,
+    scope: authorizationCodeGrant?.scope,
+    issuerState: authorizationCodeGrant?.issuerState,
   });
 });
 
