@@ -50,6 +50,12 @@ const CredentialConfig = z.intersection(
 export type IssuerConfig = z.infer<typeof IssuerConfig>;
 export const IssuerConfig = z.object({
   credential_issuer: z.string(),
+  /**
+   * Authorization Servers advertised by the Credential Issuer. Present when the
+   * Issuer relies on one or more external Authorization Servers; used to validate
+   * the `authorization_server` selected by a credential offer.
+   */
+  authorization_servers: z.tuple([z.string()], z.string()).optional(),
   pushed_authorization_request_endpoint: z.string(),
   authorization_endpoint: z.string(),
   token_endpoint: z.string(),

@@ -14,9 +14,9 @@ const ASDataCapability = z.object({
   ),
   domains: z.array(z.string()).optional(),
   data_origin_l10n_id: z.string(),
-  integration_endpoint: z.string(),
+  integration_endpoint: z.string().optional(),
   integration_method: z.string(),
-  user_information_l10n_id: z.string(),
+  user_information_l10n_id: z.string().optional(),
   // optional per spec (api_specification required in spec but absent in actual responses)
   api_specification: z.string().optional(),
   background_color: z.string().optional(),
