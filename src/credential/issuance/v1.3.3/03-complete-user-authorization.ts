@@ -22,9 +22,7 @@ import {
 } from "../../../utils/callbacks";
 import { sdkConfigV1_3, sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
-import type {
-  EvaluatedDcqlQuery, IssuanceApi, IssuerConfig
-} from "../api";
+import type { EvaluatedDcqlQuery, IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
 import type { RequestObject } from "../../presentation";
 import { hasStatusOrThrow } from "../../../utils/misc";
