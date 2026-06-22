@@ -16,5 +16,6 @@ export interface RemotePresentationApi
     EvaluateDcqlQueryApi,
     SendAuthorizationResponseApi {}
 
+export type { DcqlQuery } from "./06-evaluate-dcql-query";
 export type { RelyingPartyConfig };
 export * from "./types";

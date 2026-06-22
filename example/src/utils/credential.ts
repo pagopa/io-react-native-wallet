@@ -1,7 +1,7 @@
 import {
   createCryptoContextFor,
   IoWallet,
-  RemotePresentation,
+  type RemotePresentation,
   Trust,
   type ItwVersion,
   type CredentialIssuance,
@@ -20,10 +20,6 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import type { Env } from "./environment";
-
-type DcqlQuery = Parameters<
-  RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
->[0];
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -95,7 +91,7 @@ export const getCredential = async ({
     );
 
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
-    requestObject.dcql_query as DcqlQuery,
+    requestObject.dcql_query as RemotePresentation.DcqlQuery,
     [[pid.keyTag, pid.credential]]
   );
 
