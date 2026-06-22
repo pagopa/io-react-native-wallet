@@ -1,7 +1,7 @@
-import type { DcqlQuery as DcqlQueryLib } from "dcql";
 import type {
   Credential4Dcql,
   CredentialFormat,
+  DcqlQuery,
   PresentationFrame,
 } from "./types";
 
@@ -24,8 +24,6 @@ export type EvaluatedDisclosure = {
   name: string;
   value: unknown;
 };
-
-export type DcqlQuery = DcqlQueryLib.Input;
 
 export interface EvaluateDcqlQueryApi {
   /**

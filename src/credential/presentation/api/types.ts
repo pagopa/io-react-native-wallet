@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { DcqlQuery as DcqlQueryLib } from "dcql";
 import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
 import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
 
@@ -111,6 +112,8 @@ export type RemotePresentation = {
  * A pair that associate a key tag with a credential, used in DCQL queries
  */
 export type Credential4Dcql = [string /* keyTag */, string /* credential */];
+
+export type DcqlQuery = DcqlQueryLib.Input;
 
 /**
  * An object that defines claims to disclose. Nested claims must use a nested structure.

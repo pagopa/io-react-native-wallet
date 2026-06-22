@@ -5,7 +5,7 @@ import {
 import { RemotePresentation } from "../../../presentation/v1.3.3";
 import { completeEaaUserAuthorizationWithQueryMode } from "../03-complete-user-authorization";
 import { AuthorizationError } from "../../common/errors";
-import type { EvaluatedDcqlQueryResult, IssuerConfig } from "../../api";
+import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";
 import type { RequestObject } from "../../../presentation";
 
 jest.mock("@pagopa/io-wallet-oid4vp", () => ({
@@ -36,7 +36,7 @@ const mockEvaluatedDcqlQuery = [
     purposes: [],
     vct: "",
   },
-] satisfies EvaluatedDcqlQueryResult;
+] satisfies EvaluatedDcqlQuery;
 
 jest.mocked(createAuthorizationResponse).mockResolvedValue({
   jarm: { responseJwe: "mock-jwe", encryptionJwk: { kty: "" } },

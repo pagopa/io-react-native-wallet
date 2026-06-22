@@ -23,7 +23,7 @@ import {
 import { sdkConfigV1_3, sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
 import type {
-  EvaluatedDcqlQueryResult,
+  EvaluatedDcqlQuery,
   IssuanceApi,
   IssuerConfig,
 } from "../api";
@@ -272,7 +272,7 @@ const processPidPresentationAndCreateAuthzResponse = async ({
 }: {
   requestObject: RequestObject;
   issuerConfig: IssuerConfig;
-  evaluatedDcqlQuery: EvaluatedDcqlQueryResult;
+  evaluatedDcqlQuery: EvaluatedDcqlQuery;
 }): Promise<CreateAuthorizationResponseResult> => {
   const remotePresentation =
     await RemotePresentationFlow.prepareRemotePresentations(
