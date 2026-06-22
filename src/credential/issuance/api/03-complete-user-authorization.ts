@@ -8,7 +8,7 @@ import type { EvaluateDcqlQueryApi } from "../../../credential/presentation/api/
 import type { Out } from "../../../utils/misc";
 import type { IssuerConfig } from "./IssuerConfig";
 
-export type EvaluatedDcqlQueryResult = Out<
+export type EvaluatedDcqlQuery = Out<
   EvaluateDcqlQueryApi["evaluateDcqlQuery"]
 >;
 
