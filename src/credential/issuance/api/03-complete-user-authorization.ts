@@ -63,7 +63,7 @@ export interface CompleteUserAuthorizationApi {
   completeEaaUserAuthorizationWithQueryMode(
     requestObject: RequestObject,
     issuerConf: IssuerConfig,
-    evaluatedDcqlQuery: EvaluatedDcqlQueryResult,
+    evaluatedDcqlQuery: EvaluatedDcqlQuery,
     redirectUri: string,
     context?: {
       /** Fetch api implementation. Default: built-in fetch. */
@@ -90,7 +90,7 @@ export interface CompleteUserAuthorizationApi {
   completeUserAuthorizationWithFormPostJwtMode(
     requestObject: RequestObject,
     issuerConf: IssuerConfig,
-    evaluatedDcqlQuery: EvaluatedDcqlQueryResult,
+    evaluatedDcqlQuery: EvaluatedDcqlQuery,
     context: {
       wiaCryptoContext: CryptoContext;
       appFetch?: GlobalFetch["fetch"];

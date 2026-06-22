@@ -90,9 +90,9 @@ This process is initiated by the Authorization Server responding to the primary 
 
 Complete documentation for the MRTD PoP flow can be found here: [mrtd-pop](./mrtd-pop/README.md)
 
-## Authentication through credentials (Query  Mode) - v1.3
+## Authentication through credentials (Query Mode) - v1.3
 
-When the credential is different than an eID, the flow requires the user to present other credentials in order to obtain the requested one. Starting from IT-Wallet specifications v1.3, the EAA issuance flow uses the query mode to complete the user authorization. This is done through the `getRequestedCredentialToBePresented` followed by the `completeEaaUserAuthorizationWithQueryMode`.
+When the credential is different than an eID, the flow requires the user to present other credentials in order to obtain the requested one. Starting from IT-Wallet specifications v1.3, the EAA issuance flow uses the query mode to complete the user authorization. This is done through `getRequestedCredentialToBePresented`, followed by evaluating the returned `dcql_query` with `RemotePresentation.evaluateDcqlQuery`, and then by completing the authorization with `completeEaaUserAuthorizationWithQueryMode`.
 
 ## Authentication through credentials (Form Post JWT Mode) - v1.0
 

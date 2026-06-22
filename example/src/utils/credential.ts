@@ -1,6 +1,7 @@
 import {
   createCryptoContextFor,
   IoWallet,
+  RemotePresentation,
   Trust,
   type ItwVersion,
   type CredentialIssuance,
@@ -12,7 +13,6 @@ import last from "lodash/last";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { DcqlQuery } from "dcql";
 import type {
   CredentialResult,
   PidResult,
@@ -20,6 +20,10 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import type { Env } from "./environment";
+
+type DcqlQuery = Parameters<
+  RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
+>[0];
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -91,7 +95,7 @@ export const getCredential = async ({
     );
 
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
-    requestObject.dcql_query as DcqlQuery.Input,
+    requestObject.dcql_query as DcqlQuery,
     [[pid.keyTag, pid.credential]]
   );
 
