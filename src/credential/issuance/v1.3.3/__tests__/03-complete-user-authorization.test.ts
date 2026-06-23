@@ -5,7 +5,7 @@ import {
 import { RemotePresentation } from "../../../presentation/v1.3.3";
 import { completeEaaUserAuthorizationWithQueryMode } from "../03-complete-user-authorization";
 import { AuthorizationError } from "../../common/errors";
-import type { IssuerConfig } from "../../api";
+import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";
 import type { RequestObject } from "../../../presentation";
 
 jest.mock("@pagopa/io-wallet-oid4vp", () => ({
@@ -25,12 +25,7 @@ jest.mock("../../../presentation/v1.3.3", () => ({
 const CLIENT_REDIRECT_URI = "https://wallet.example.com/callback";
 const mockPid: [string, string] = ["pid-key-tag", "mock-pid-credential"];
 const finalRedirectUri = `${CLIENT_REDIRECT_URI}?code=auth-code-123&state=mock-state&iss=https%3A%2F%2Fissuer.example.com`;
-
-jest.mocked(createAuthorizationResponse).mockResolvedValue({
-  jarm: { responseJwe: "mock-jwe", encryptionJwk: { kty: "" } },
-  authorizationResponsePayload: { vp_token: {} },
-});
-jest.mocked(RemotePresentation.evaluateDcqlQuery).mockResolvedValue([
+const mockEvaluatedDcqlQuery = [
   {
     id: "pid",
     format: "dc+sd-jwt",
@@ -41,7 +36,12 @@ jest.mocked(RemotePresentation.evaluateDcqlQuery).mockResolvedValue([
     purposes: [],
     vct: "",
   },
-]);
+] satisfies EvaluatedDcqlQuery;
+
+jest.mocked(createAuthorizationResponse).mockResolvedValue({
+  jarm: { responseJwe: "mock-jwe", encryptionJwk: { kty: "" } },
+  authorizationResponsePayload: { vp_token: {} },
+});
 jest.mocked(RemotePresentation.prepareRemotePresentations).mockResolvedValue({
   presentations: [
     {
@@ -92,7 +92,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
     const result = await completeEaaUserAuthorizationWithQueryMode(
       mockRequestObject,
       mockIssuerConfig,
-      mockPid,
+      mockEvaluatedDcqlQuery,
       CLIENT_REDIRECT_URI,
       { appFetch }
     );
@@ -102,6 +102,15 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       state: "mock-state",
       iss: "https://issuer.example.com",
     });
+    expect(RemotePresentation.evaluateDcqlQuery).not.toHaveBeenCalled();
+    expect(RemotePresentation.prepareRemotePresentations).toHaveBeenCalledWith(
+      mockEvaluatedDcqlQuery,
+      {
+        clientId: mockRequestObject.client_id,
+        nonce: mockRequestObject.nonce,
+        responseUri: mockRequestObject.response_uri,
+      }
+    );
   });
 
   it("should throw AuthorizationError when fetchAuthorizationResponse returns no redirect_uri", async () => {
@@ -115,7 +124,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       completeEaaUserAuthorizationWithQueryMode(
         mockRequestObject,
         mockIssuerConfig,
-        mockPid,
+        mockEvaluatedDcqlQuery,
         CLIENT_REDIRECT_URI,
         { appFetch }
       )
@@ -133,7 +142,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       completeEaaUserAuthorizationWithQueryMode(
         mockRequestObject,
         mockIssuerConfig,
-        mockPid,
+        mockEvaluatedDcqlQuery,
         CLIENT_REDIRECT_URI,
         { appFetch }
       )
@@ -153,7 +162,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       completeEaaUserAuthorizationWithQueryMode(
         mockRequestObject,
         mockIssuerConfig,
-        mockPid,
+        mockEvaluatedDcqlQuery,
         CLIENT_REDIRECT_URI,
         { appFetch }
       )
@@ -172,7 +181,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
     await completeEaaUserAuthorizationWithQueryMode(
       mockRequestObject,
       mockIssuerConfig,
-      mockPid,
+      mockEvaluatedDcqlQuery,
       CLIENT_REDIRECT_URI,
       { appFetch }
     );

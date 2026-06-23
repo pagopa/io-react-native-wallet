@@ -1,6 +1,7 @@
 import {
   createCryptoContextFor,
   IoWallet,
+  type RemotePresentation,
   Trust,
   type ItwVersion,
   type CredentialIssuance,
@@ -89,6 +90,11 @@ export const getCredential = async ({
       appFetch
     );
 
+  const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
+    requestObject.dcql_query as RemotePresentation.DcqlQuery,
+    [[pid.keyTag, pid.credential]]
+  );
+
   let code: string;
   if (responseMode === "form_post.jwt") {
     // Complete the user authorization via form_post.jwt mode
@@ -96,7 +102,7 @@ export const getCredential = async ({
       await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
         requestObject,
         issuerConf,
-        [pid.keyTag, pid.credential],
+        evaluatedDcqlQuery,
         { wiaCryptoContext, appFetch }
       ));
   } else {
@@ -105,7 +111,7 @@ export const getCredential = async ({
       await wallet.CredentialIssuance.completeEaaUserAuthorizationWithQueryMode(
         requestObject,
         issuerConf,
-        [pid.keyTag, pid.credential],
+        evaluatedDcqlQuery,
         redirectUri,
         {
           appFetch,

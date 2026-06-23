@@ -4,7 +4,6 @@ import {
   type AuthorizationResult,
 } from "../../../utils/auth";
 import parseUrl from "parse-url";
-import type { DcqlQuery } from "dcql";
 import {
   createAuthorizationResponse,
   parseAuthorizeRequest,
@@ -23,7 +22,7 @@ import {
 } from "../../../utils/callbacks";
 import { sdkConfigV1_3, sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
-import type { IssuanceApi, IssuerConfig } from "../api";
+import type { EvaluatedDcqlQuery, IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
 import type { RequestObject } from "../../presentation";
 import { hasStatusOrThrow } from "../../../utils/misc";
@@ -117,7 +116,12 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
 
 // NOTE: this function is not used in the 1.3 issuance flow. It may be removed in the future.
 export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["completeUserAuthorizationWithFormPostJwtMode"] =
-  async (requestObject, issuerConfig, pid, { appFetch = fetch }) => {
+  async (
+    requestObject,
+    issuerConfig,
+    evaluatedDcqlQuery,
+    { appFetch = fetch }
+  ) => {
     Logger.log(
       LogLevel.DEBUG,
       "The requested credential is not a PID, completing the user authorization with form_post.jwt mode"
@@ -126,7 +130,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     const authzResponse = await processPidPresentationAndCreateAuthzResponse({
       requestObject,
       issuerConfig,
-      pid,
+      evaluatedDcqlQuery,
     });
 
     Logger.log(LogLevel.DEBUG, `Authz response: ${authzResponse}`);
@@ -159,7 +163,7 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
   async (
     requestObject,
     issuerConfig,
-    pid,
+    evaluatedDcqlQuery,
     clientRedirectUri,
     { appFetch = fetch, fetchFinalRedirectUri } = {}
   ) => {
@@ -171,7 +175,7 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
     const authzResponse = await processPidPresentationAndCreateAuthzResponse({
       requestObject,
       issuerConfig,
-      pid,
+      evaluatedDcqlQuery,
     });
 
     Logger.log(
@@ -254,29 +258,27 @@ export const parseAuthorizationResponse = (
  * Utility function to process the DCQL query for PID presentation and to create the authorization response to send to the Issuer.
  * @param params.requestObject - The request object containing the DCQL query
  * @param params.issuerConfig - The Issuer unified configuration
- * @param params.pid - The PID credential to be presented, as a tuple of [keyTag, credential]
+ * @param params.evaluatedDcqlQuery - Credentials that satisfy the request object's DCQL query
  * @returns The authorization response containing the JARM to be sent to the Issuer
  */
 const processPidPresentationAndCreateAuthzResponse = async ({
   requestObject,
   issuerConfig,
-  pid,
+  evaluatedDcqlQuery,
 }: {
   requestObject: RequestObject;
   issuerConfig: IssuerConfig;
-  pid: [keyTag: string, credential: string];
+  evaluatedDcqlQuery: EvaluatedDcqlQuery;
 }): Promise<CreateAuthorizationResponseResult> => {
-  const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
-    requestObject.dcql_query as DcqlQuery,
-    [pid]
-  );
-
   const remotePresentation =
-    await RemotePresentationFlow.prepareRemotePresentations(dcqlQueryResult, {
-      clientId: requestObject.client_id,
-      nonce: requestObject.nonce,
-      responseUri: requestObject.response_uri,
-    });
+    await RemotePresentationFlow.prepareRemotePresentations(
+      evaluatedDcqlQuery,
+      {
+        clientId: requestObject.client_id,
+        nonce: requestObject.nonce,
+        responseUri: requestObject.response_uri,
+      }
+    );
 
   const vp_token = remotePresentation.presentations.reduce(
     (acc, { credentialId, vpToken }) => ({ ...acc, [credentialId]: [vpToken] }),

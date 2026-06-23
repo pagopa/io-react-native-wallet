@@ -1,7 +1,7 @@
-import type { DcqlQuery } from "dcql";
 import type {
   Credential4Dcql,
   CredentialFormat,
+  DcqlQuery,
   PresentationFrame,
 } from "./types";
 
@@ -38,7 +38,7 @@ export interface EvaluateDcqlQueryApi {
    * @throws {DcqlError} if the provided DCQL query is not valid
    */
   evaluateDcqlQuery(
-    query: DcqlQuery.Input,
+    query: DcqlQuery,
     credentialsSdJwt: Credential4Dcql[],
     credentialsMdoc?: Credential4Dcql[]
   ): Promise<

@@ -4,11 +4,15 @@ import type {
   AuthorizationResult,
 } from "../../../utils/auth";
 import type { RequestObject } from "../../../credential/presentation/api";
+import type { EvaluateDcqlQueryApi } from "../../../credential/presentation/api/06-evaluate-dcql-query";
+import type { Out } from "../../../utils/misc";
 import type { IssuerConfig } from "./IssuerConfig";
+
+export type EvaluatedDcqlQuery = Out<EvaluateDcqlQueryApi["evaluateDcqlQuery"]>;
 
 export interface CompleteUserAuthorizationApi {
   /**
-   * WARNING: This function must be called after {@link startUserAuthorization}. The next function to be called is {@link completeUserAuthorizationWithFormPostJwtMode}.
+   * WARNING: This function must be called after {@link startUserAuthorization}. The next step is evaluating the returned request object's DCQL query with {@link EvaluateDcqlQueryApi.evaluateDcqlQuery}.
    *
    * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
    * It is used as a first step to complete the user authorization by obtaining the requested credential to be presented from the authorization server.
@@ -50,14 +54,14 @@ export interface CompleteUserAuthorizationApi {
    *
    * @param requestObject The request object containing the necessary parameters for authorization.
    * @param issuerConfig The issuer configuration returned by {@link evaluateIssuerTrust}
-   * @param pid The PID to present as a tuple [keyTag, credential].
+   * @param evaluatedDcqlQuery The result of evaluating the request object's DCQL query against the credentials to present.
    * @param redirectUri The client redirect URI to which the authorization server will redirect after completing the authorization process.
    * @returns The authorization response which contains code, state and iss
    */
   completeEaaUserAuthorizationWithQueryMode(
     requestObject: RequestObject,
     issuerConf: IssuerConfig,
-    pid: [keyTag: string, credential: string],
+    evaluatedDcqlQuery: EvaluatedDcqlQuery,
     redirectUri: string,
     context?: {
       /** Fetch api implementation. Default: built-in fetch. */
@@ -68,7 +72,7 @@ export interface CompleteUserAuthorizationApi {
   ): Promise<AuthorizationResult>;
 
   /**
-   * WARNING: This function must be called after {@link getRequestedCredentialToBePresented}. The next function to be called is {@link authorizeAccess}.
+   * WARNING: This function must be called after {@link getRequestedCredentialToBePresented} and after evaluating the request object's DCQL query with {@link EvaluateDcqlQueryApi.evaluateDcqlQuery}. The next function to be called is {@link authorizeAccess}.
    *
    * The interface of the phase to complete User authorization via presentation of existing credentials when the response mode is "form_post.jwt".
    * The information is obtained by performing a POST request to the endpoint received in the response_uri field of the requestObject, where the Authorization Response payload is posted.
@@ -76,7 +80,7 @@ export interface CompleteUserAuthorizationApi {
    * @since 1.0.0
    *
    * @param requestObject The request object containing the necessary parameters for authorization.
-   * @param pid The PID to present as a tuple [keyTag, credential].
+   * @param evaluatedDcqlQuery The result of evaluating the request object's DCQL query against the credentials to present.
    * @param appFetch (optional) fetch api implementation. Default: built-in fetch
    * @returns the authorization response which contains code, state and iss
    * @throws {ValidationFailed} if an error while validating the response
@@ -84,7 +88,7 @@ export interface CompleteUserAuthorizationApi {
   completeUserAuthorizationWithFormPostJwtMode(
     requestObject: RequestObject,
     issuerConf: IssuerConfig,
-    pid: [keyTag: string, credential: string],
+    evaluatedDcqlQuery: EvaluatedDcqlQuery,
     context: {
       wiaCryptoContext: CryptoContext;
       appFetch?: GlobalFetch["fetch"];

@@ -6,7 +6,6 @@ import {
 } from "../../../utils/auth";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import parseUrl from "parse-url";
-import type { DcqlQuery } from "dcql";
 import {
   IssuerResponseError,
   UnimplementedFeatureError,
@@ -141,17 +140,12 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
   async (
     requestObject,
     _issuerConfig,
-    pid,
+    evaluatedDcqlQuery,
     { wiaCryptoContext, appFetch = fetch }
   ) => {
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
-    );
-
-    const dcqlQueryResult = await RemotePresentationFlow.evaluateDcqlQuery(
-      requestObject.dcql_query as DcqlQuery,
-      [pid]
     );
 
     const authRequestObject = {
@@ -162,7 +156,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
 
     const remotePresentation =
       await RemotePresentationFlow.prepareRemotePresentations(
-        dcqlQueryResult,
+        evaluatedDcqlQuery,
         authRequestObject
       );
 

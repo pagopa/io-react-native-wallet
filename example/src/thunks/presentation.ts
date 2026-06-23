@@ -1,15 +1,14 @@
 import { createAppAsyncThunk } from "./utils";
-import { IoWallet, RemotePresentation } from "@pagopa/io-react-native-wallet";
+import {
+  IoWallet,
+  type RemotePresentation,
+} from "@pagopa/io-react-native-wallet";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectPid } from "../store/reducers/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { isDefined } from "../utils/misc";
 import { selectItwVersion } from "../store/reducers/environment";
 import { ClientIdPrefix } from "@pagopa/io-wallet-oid4vp";
-
-type DcqlQuery = Parameters<
-  RemotePresentation.RemotePresentationApi["evaluateDcqlQuery"]
->[0];
 
 export type RequestObject = RemotePresentation.RequestObject;
 
@@ -94,7 +93,7 @@ const processPresentation = async (
   credentialsSdJwt: [string, string][]
 ) => {
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
-    requestObject.dcql_query as DcqlQuery,
+    requestObject.dcql_query as RemotePresentation.DcqlQuery,
     credentialsSdJwt
   );
 
