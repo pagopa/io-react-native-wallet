@@ -1,19 +1,17 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import {
-  getStatusListFromJWT,
-  type StatusListEntry,
-} from "@sd-jwt/jwt-status-list";
+import { getStatusListFromJWT } from "@sd-jwt/jwt-status-list";
 import { IoWalletError } from "../../../utils/errors";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import type { CredentialFormat } from "../../../credential/issuance/api";
 import type { StatusListApi } from "../api/status-list";
+import { StatusListReference } from "../api/types";
 
 const getStatusListEntry = async (
   credential: string,
   format: CredentialFormat
-): Promise<StatusListEntry> => {
-  let statusListEntry: StatusListEntry | undefined;
+): Promise<StatusListReference> => {
+  let statusListEntry: unknown;
 
   if (format === "mso_mdoc") {
     // TODO: improve typing
@@ -29,28 +27,29 @@ const getStatusListEntry = async (
     throw new IoWalletError("Status list reference not found in credential");
   }
 
-  return statusListEntry;
+  return StatusListReference.parse(statusListEntry);
 };
 
-export const getStatusList: StatusListApi["get"] = async (
-  credential,
-  format,
+const fetchStatusList = (
+  uri: string,
+  appFetch: GlobalFetch["fetch"],
+  options: { cacheDisabled?: boolean } = {}
+) =>
+  appFetch(uri, {
+    headers: {
+      Accept: "application/statuslist+jwt",
+      ...(options.cacheDisabled && { "Cache-Control": "no-cache" }),
+    },
+  })
+    .then(hasStatusOrThrow(200))
+    .then((response) => response.text());
+
+export const getStatusListByUri: StatusListApi["getByUri"] = async (
+  uri,
   { appFetch = fetch } = {}
 ) => {
-  const { uri, idx } = await getStatusListEntry(credential, format);
-
-  const fetchStatusList = (options: { cacheDisabled?: boolean } = {}) =>
-    appFetch(uri, {
-      headers: {
-        Accept: "application/statuslist+jwt",
-        ...(options.cacheDisabled && { "Cache-Control": "no-cache" }),
-      },
-    })
-      .then(hasStatusOrThrow(200))
-      .then((response) => response.text());
-
   // When the HTTP response includes cache headers, fetch will return a cached response and the JWT might be expired
-  let statusList = await fetchStatusList();
+  let statusList = await fetchStatusList(uri, appFetch);
   const decoded = decodeJwt(statusList);
 
   const { exp } = decoded.payload;
@@ -58,7 +57,17 @@ export const getStatusList: StatusListApi["get"] = async (
   // If the status list JWT is expired, try to fetch it again bypassing the HTTP cache.
   // If it is still expired after the refetch, `verifyAndParseStatusList` will throw.
   if (exp && exp < Math.floor(Date.now() / 1000)) {
-    statusList = await fetchStatusList({ cacheDisabled: true });
+    statusList = await fetchStatusList(uri, appFetch, { cacheDisabled: true });
   }
-  return { statusList, uri, idx, format: "jwt" };
+
+  return statusList;
+};
+
+export const getStatusList: StatusListApi["get"] = async (
+  credential,
+  format,
+  context
+) => {
+  const { uri } = await getStatusListEntry(credential, format);
+  return getStatusListByUri(uri, context);
 };

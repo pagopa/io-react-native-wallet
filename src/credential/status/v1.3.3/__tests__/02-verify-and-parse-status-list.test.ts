@@ -1,62 +1,59 @@
+import { verify } from "@pagopa/io-react-native-jwt";
 import { verifyAndParseStatusList } from "../02-verify-and-parse-status-list";
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
+  ...jest.requireActual("@pagopa/io-react-native-jwt"),
   verify: jest.fn(),
 }));
 
 describe("verifyAndParseStatusList", () => {
-  /*
-    [0] VALID             0x00
-    [1] INVALID           0x01
-    [2] VALID             0x00
-    [3] SUSPENDED         0x02
-    [4] VALID             0x00
-    [5] UPDATE            0x03
-    [6] VALID             0x00
-    [7] ATTRIBUTE_UPDATE  0x0b
-    [8] VALID             0x00
-    [9] SUSPENDED         0x02
-  */
-  const statusList =
-    "eyJ0eXAiOiJzdGF0dXNsaXN0K2p3dCIsImFsZyI6IkVTMjU2Iiwia2lkIjoiMWJkNDM2N2ItMDllOS00NjEwLWJjYTUtZGZmNjllZGNlZjM2In0.eyJzdGF0dXNfbGlzdCI6eyJiaXRzIjo0LCJsc3QiOiJINHNJQUFBQUFBQUFFeE5RTU5pZ0FBQkJwREQ5QlFBQUFBIn0sInN1YiI6Imh0dHBzOi8vZXhhbXBsZS93cCIsImlhdCI6MTc3ODg0OTQ2MywiZXhwIjoxNzc4OTM1ODYzfQ.I8_pqFlkghh7KWLwaFL6z2gowZ8IzCN61UXzK-Yq4BB2Ntg9-GCdZmmhe40iwPzmW6tALzQ5LpDKBMs7SQ28tQ";
+  const verifyMock = verify as jest.MockedFunction<typeof verify>;
+  const statusListPayload = {
+    sub: "https://example/status-list",
+    iss: "https://example/issuer",
+    iat: 1778849463,
+    ttl: 3600,
+    status_list: {
+      bits: 4,
+      lst: "H4sIAAAAAAAEExNQMNigAABBpDD9BQAAAA",
+      aggregation_uri: "https://example/status-list-aggregation",
+    },
+    extra_claim: "kept",
+  };
 
-  it.each([
-    {
-      idx: 0,
-      expectedStatus: "VALID",
-      expectedStatusBit: "0x00",
-    },
-    {
-      idx: 1,
-      expectedStatus: "INVALID",
-      expectedStatusBit: "0x01",
-    },
-    {
-      idx: 3,
-      expectedStatus: "SUSPENDED",
-      expectedStatusBit: "0x02",
-    },
-    {
-      idx: 5,
-      expectedStatus: "UPDATE",
-      expectedStatusBit: "0x03",
-    },
-    {
-      idx: 7,
-      expectedStatus: "ATTRIBUTE_UPDATE",
-      expectedStatusBit: "0x0B",
-    },
-  ])(
-    "should extract the correct status and status bit for index $idx -> $expectedStatus",
-    async ({ idx, expectedStatus, expectedStatusBit }) => {
-      const { status, statusBit } = await verifyAndParseStatusList([], {
-        format: "jwt",
-        uri: "https://example/wp/status-list",
-        statusList,
-        idx,
-      });
-      expect(status).toBe(expectedStatus);
-      expect(statusBit).toBe(expectedStatusBit);
-    }
-  );
+  beforeEach(() => {
+    verifyMock.mockClear();
+  });
+
+  it("should verify and parse a status list token payload", async () => {
+    const statusListJwt = makeJwt(statusListPayload);
+
+    await expect(verifyAndParseStatusList([], statusListJwt)).resolves.toEqual(
+      statusListPayload
+    );
+    expect(verifyMock).toHaveBeenCalledWith(statusListJwt, []);
+  });
+
+  it("should validate documented required status list payload fields", async () => {
+    const payloadWithoutIat = Object.fromEntries(
+      Object.entries(statusListPayload).filter(([key]) => key !== "iat")
+    );
+
+    await expect(
+      verifyAndParseStatusList([], makeJwt(payloadWithoutIat))
+    ).rejects.toThrow();
+    expect(verifyMock).toHaveBeenCalledTimes(1);
+  });
 });
+
+function makeJwt(payload: unknown) {
+  return [
+    base64url({ typ: "statuslist+jwt", alg: "ES256" }),
+    base64url(payload),
+    "signature",
+  ].join(".");
+}
+
+function base64url(value: unknown) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
