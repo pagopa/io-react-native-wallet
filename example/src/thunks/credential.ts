@@ -48,7 +48,7 @@ export type CredentialStatusResult =
       type: "status_list";
       status: string;
       credentialType: StatusSupportedTokens;
-      statusList: string;
+      statusList: CredentialStatus.StatusList;
       statusBit: string;
     };
 
