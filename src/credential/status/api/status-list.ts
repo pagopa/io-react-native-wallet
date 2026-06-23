@@ -67,7 +67,7 @@ export interface StatusListApi {
    * @return The status of the credential and the raw status bit in hexadecimal format (e.g. "0x01")
    */
   getStatus(
-    statusList: StatusList,
+    statusList: StatusList["status_list"],
     idx: number
   ): {
     statusBit: string;

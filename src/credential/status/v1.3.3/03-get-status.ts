@@ -21,8 +21,8 @@ const formatStatusBit = (statusBit: number) =>
 
 export const getStatus: StatusListApi["getStatus"] = (statusList, idx) => {
   const decodedStatusList = JwtStatusList.decompressStatusList(
-    statusList.status_list.lst,
-    statusList.status_list.bits
+    statusList.lst,
+    statusList.bits
   );
   const statusBit = decodedStatusList.getStatus(idx) as CredentialStatusBit;
   const status = CredentialStatusMap[statusBit];

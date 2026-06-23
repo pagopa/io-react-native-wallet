@@ -344,7 +344,10 @@ export const getCredentialStatusFromStatusList = async (
     statusListJwt
   );
 
-  const result = wallet.CredentialStatus.statusList.getStatus(statusList, idx);
+  const result = wallet.CredentialStatus.statusList.getStatus(
+    statusList.status_list,
+    idx
+  );
 
   return {
     statusList,
