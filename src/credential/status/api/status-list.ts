@@ -29,7 +29,12 @@ export interface StatusListApi {
     context?: {
       appFetch?: GlobalFetch["fetch"];
     }
-  ): Promise<string>;
+  ): Promise<{
+    statusList: string;
+    format: "jwt";
+    uri: string;
+    idx: number;
+  }>;
 
   /**
    * Get a status list token from its uri.

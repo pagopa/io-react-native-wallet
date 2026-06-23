@@ -1,6 +1,5 @@
 import {
   createCryptoContextFor,
-  CredentialStatus,
   IoWallet,
   type RemotePresentation,
   Trust,
@@ -8,11 +7,9 @@ import {
   type CredentialIssuance,
 } from "@pagopa/io-react-native-wallet";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { getRedirects } from "@pagopa/io-react-native-login-utils";
 import { v4 as uuidv4 } from "uuid";
 import last from "lodash/last";
-import get from "lodash/get";
 import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
@@ -338,39 +335,21 @@ export const getCredentialStatusFromStatusList = async (
     credentialType
   );
 
-  const statusListJwt = await wallet.CredentialStatus.statusList.get(
-    credential,
-    format,
-    { appFetch }
-  );
+  const { statusList: statusListJwt, idx } =
+    await wallet.CredentialStatus.statusList.get(credential, format, {
+      appFetch,
+    });
   const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
     keys,
     statusListJwt
   );
 
-  const result = wallet.CredentialStatus.statusList.getStatus(
-    statusList,
-    await getCredentialStatusListIndex(credential, format)
-  );
+  const result = wallet.CredentialStatus.statusList.getStatus(statusList, idx);
 
   return {
     statusList,
     ...result,
   };
-};
-
-const getCredentialStatusListIndex = async (
-  credential: string,
-  format: CredentialIssuance.CredentialFormat
-) => {
-  const statusList =
-    format === "mso_mdoc"
-      ? get(
-          await CBOR.decode(credential),
-          "issuerAuth.payload.status.status_list"
-        )
-      : get(decodeJwt(credential), "payload.status.status_list");
-  return CredentialStatus.StatusListReference.parse(statusList).idx;
 };
 
 const getKeysForStatusListVerification = async (
