@@ -12,7 +12,7 @@ interface UnsupportedApi {
  *
  * @example
  * if (CredentialStatus.statusList.isSupported) {
- *   const statusListJwt = await CredentialStatus.statusList.get(credential, format)
+ *   const { statusList: statusListJwt, idx } = await CredentialStatus.statusList.get(credential, format)
  *   const statusList = await CredentialStatus.statusList.verifyAndParse(keys, statusListJwt)
  *   const status = CredentialStatus.statusList.getStatus(statusList, idx)
  * }

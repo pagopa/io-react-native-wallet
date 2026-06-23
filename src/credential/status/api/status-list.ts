@@ -21,7 +21,7 @@ export interface StatusListApi {
    * @param credential The credential to get the status list for
    * @param format The credential format
    * @param context.appFetch Optional fetch function to use for the network request
-   * @returns The encoded status list token
+   * @returns The encoded status list token with its credential reference metadata
    */
   get(
     credential: string,

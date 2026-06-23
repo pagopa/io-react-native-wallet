@@ -22,14 +22,19 @@ describe("getStatusList", () => {
     },
   });
 
-  it("should fetch the raw status list token referenced by a credential", async () => {
+  it("should fetch the status list token and reference metadata", async () => {
     const appFetchMock = jest.fn().mockResolvedValue(response(statusListJwt));
 
     const result = await getStatusList(credential, "dc+sd-jwt", {
       appFetch: appFetchMock,
     });
 
-    expect(result).toBe(statusListJwt);
+    expect(result).toEqual({
+      statusList: statusListJwt,
+      format: "jwt",
+      uri: "https://example/status-list",
+      idx: 1,
+    });
     expect(appFetchMock).toHaveBeenCalledWith("https://example/status-list", {
       headers: {
         Accept: "application/statuslist+jwt",

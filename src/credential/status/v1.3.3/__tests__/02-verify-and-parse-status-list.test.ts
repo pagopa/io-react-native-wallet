@@ -18,7 +18,10 @@ describe("verifyAndParseStatusList", () => {
       lst: "H4sIAAAAAAAEExNQMNigAABBpDD9BQAAAA",
       aggregation_uri: "https://example/status-list-aggregation",
     },
-    extra_claim: "kept",
+  };
+  const statusListPayloadWithExtraClaim = {
+    ...statusListPayload,
+    extra_claim: "stripped",
   };
 
   beforeEach(() => {
@@ -26,7 +29,7 @@ describe("verifyAndParseStatusList", () => {
   });
 
   it("should verify and parse a status list token payload", async () => {
-    const statusListJwt = makeJwt(statusListPayload);
+    const statusListJwt = makeJwt(statusListPayloadWithExtraClaim);
 
     await expect(verifyAndParseStatusList([], statusListJwt)).resolves.toEqual(
       statusListPayload
