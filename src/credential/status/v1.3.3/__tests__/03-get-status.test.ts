@@ -53,9 +53,9 @@ describe("getStatus", () => {
   ])(
     "should extract the correct status and status bit for index $idx -> $expectedStatus",
     ({ idx, expectedStatus, expectedStatusBit }) => {
-      const { status, statusBit } = getStatus(statusList.status_list, idx);
+      const { status, rawStatus } = getStatus(statusList.status_list, idx);
       expect(status).toBe(expectedStatus);
-      expect(statusBit).toBe(expectedStatusBit);
+      expect(rawStatus).toBe(expectedStatusBit);
     }
   );
 });

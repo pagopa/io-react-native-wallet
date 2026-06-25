@@ -117,12 +117,12 @@ const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
 );
 
 // Read the credential status from the decoded status list
-const { status, statusBit } = wallet.CredentialStatus.statusList.getStatus(statusList, idx);
+const { status, rawStatus } = wallet.CredentialStatus.statusList.getStatus(statusList, idx);
 
 return {
   statusList,
   status,
-  statusBit,
+  rawStatus,
 };
 ```
 

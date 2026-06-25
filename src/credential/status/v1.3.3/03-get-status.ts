@@ -35,6 +35,6 @@ export const getStatus: StatusListApi["getStatus"] = (statusList, idx) => {
 
   return {
     status,
-    statusBit: formatStatusBit(statusBit),
+    rawStatus: formatStatusBit(statusBit),
   };
 };

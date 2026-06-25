@@ -64,13 +64,13 @@ export interface StatusListApi {
    * @since 1.3.3
    * @param statusList The decoded status list
    * @param idx The index to read
-   * @return The status of the credential and the raw status bit in hexadecimal format (e.g. "0x01")
+   * @return The status of the credential and the raw status in hexadecimal format (e.g. "0x01")
    */
   getStatus(
     statusList: StatusList["status_list"],
     idx: number
   ): {
-    statusBit: string;
+    rawStatus: string;
     status: string;
   };
 }
