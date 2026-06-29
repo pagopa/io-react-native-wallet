@@ -31,8 +31,10 @@ graph TD;
   1[verifyAndParseStatusAssertion]
   2[getStatusList]
   3[verifyAndParseStatusList]
+  4[getStatus]
   0 --> 1
   2 --> 3
+  3 --> 4
 ```
 
 ## Mapped results
@@ -104,23 +106,23 @@ const credentialIssuerUrl = "https://issuer.example.com";
 
 const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
-// Get the status list
-const res = await wallet.CredentialStatus.statusList.get(
-  credential,
-  format,
+// Get the status list token and credential reference index
+const { statusList: statusListJwt, idx } =
+  await wallet.CredentialStatus.statusList.get(credential, format);
+
+// Verify and parse the status list token
+const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
+  issuerConf.keys,
+  statusListJwt,
 );
 
-// Verify and parse the status list response to get the credential status
-const { status, statusBit } =
-  await wallet.CredentialStatus.statusList.verifyAndParse(
-    issuerConf.keys,
-    res
-  );
+// Read the credential status from the decoded status list
+const { status, rawStatus } = wallet.CredentialStatus.statusList.getStatus(statusList, idx);
 
 return {
-  statusList: res.statusList,
+  statusList,
   status,
-  statusBit,
+  rawStatus,
 };
 ```
 

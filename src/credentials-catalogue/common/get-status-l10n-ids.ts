@@ -5,7 +5,7 @@ import { type CredentialsCatalogueApi } from "../api";
  * Given a statusBit (e.g. "0x00", "0x0B") and a DigitalCredential from the
  * catalogue, returns the matching l10n IDs or undefined if not found.
  * The comparison is case-insensitive to handle uppercase statusBit values
- * returned by verifyAndParseStatusList against lowercase keys in the catalogue.
+ * returned by getStatus against lowercase keys in the catalogue.
  */
 export const getStatusL10nIds: CredentialsCatalogueApi["getStatusL10nIds"] = (
   statusBit,

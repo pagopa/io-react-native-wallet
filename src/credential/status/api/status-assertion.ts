@@ -38,7 +38,7 @@ export interface StatusAssertionApi {
    * - The assertion is correctly signed;
    * - It's bound to the given key.
    * @since 1.0.0
-   * @deprecated since 1.3.3 - Use `statusList.verifyAndParse`
+   * @deprecated since 1.3.3 - Use `statusList.get`, `statusList.verifyAndParse` and `statusList.getStatus`
    *
    * @param issuerConf The Issuer configuration returned by `evaluateIssuerTrust`
    * @param statusAssertion The encoded status assertion returned by `statusAssertion.get`
