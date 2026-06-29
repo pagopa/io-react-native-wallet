@@ -335,19 +335,22 @@ export const getCredentialStatusFromStatusList = async (
     credentialType
   );
 
-  const statusListParams = await wallet.CredentialStatus.statusList.get(
-    credential,
-    format,
-    { appFetch }
+  const { statusList: statusListJwt, idx } =
+    await wallet.CredentialStatus.statusList.get(credential, format, {
+      appFetch,
+    });
+  const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
+    keys,
+    statusListJwt
   );
 
-  const result = await wallet.CredentialStatus.statusList.verifyAndParse(
-    keys,
-    statusListParams
+  const result = wallet.CredentialStatus.statusList.getStatus(
+    statusList.status_list,
+    idx
   );
 
   return {
-    statusList: statusListParams.statusList,
+    statusList,
     ...result,
   };
 };

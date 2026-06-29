@@ -48,8 +48,8 @@ export type CredentialStatusResult =
       type: "status_list";
       status: string;
       credentialType: StatusSupportedTokens;
-      statusList: string;
-      statusBit: string;
+      statusList: CredentialStatus.StatusList;
+      rawStatus: string;
     };
 
 /**
@@ -253,6 +253,6 @@ export const getCredentialStatusListThunk = createAppAsyncThunk<
     status: result.status,
     credentialType: args.credentialType,
     statusList: result.statusList,
-    statusBit: result.statusBit,
+    rawStatus: result.rawStatus,
   };
 });
