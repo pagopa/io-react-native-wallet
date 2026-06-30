@@ -132,12 +132,10 @@ export const DigitalCredential = z.object({
   classes: z.array(z.string()).optional(),
   purposes: z.array(z.string()),
   issuers: z.array(CredentialIssuer),
-  authentic_sources: z.array(
-    z.object({
-      id: z.string(),
-      dataset_id: z.string(),
-    })
-  ),
+  authentic_sources: z
+    .array(z.object({ id: z.string(), dataset_id: z.string() }))
+    .optional(),
+  parent_credentials: z.array(z.string()).optional(),
 });
 
 const JwtHeader = z.object({
