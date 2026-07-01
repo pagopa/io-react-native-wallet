@@ -65,7 +65,7 @@ export const mapToCredentialsCatalogue = createMapper<
         `Schemas for ${credentialType} must be present in the Schema Registry`
       );
       return schemas.map((schema) => ({
-        configuration_id: schema.id, // TODO: [SIW-3978] Does schema ID corresponds to configuration_id?
+        configuration_id: schema.id, // TODO: [SIW-3978] Fix this, the schema ID does not correspond to configuration_id
         ...schema,
       }));
     };
@@ -87,7 +87,9 @@ export const mapToCredentialsCatalogue = createMapper<
         ({ authentic_sources, credential_name_l10n_id, ...credential }) => ({
           name_l10n_id: credential_name_l10n_id,
           formats: resolveFormats(credential.credential_type),
-          authentic_sources: authentic_sources.map(resolveAuthSource),
+          authentic_sources: authentic_sources
+            ? authentic_sources.map(resolveAuthSource)
+            : [],
           ...credential,
         })
       ),

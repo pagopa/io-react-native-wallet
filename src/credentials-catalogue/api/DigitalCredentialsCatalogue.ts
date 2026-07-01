@@ -115,6 +115,7 @@ export const DigitalCredential = z.object({
   purposes: z.array(z.union([z.string(), CredentialPurpose])),
   issuers: z.array(CredentialIssuer),
   authentic_sources: z.array(AuthenticSource),
+  parent_credentials: z.array(z.string()).optional(),
   formats: z.array(CredentialFormat).optional(),
   // claims: z.array(Claim), // TODO: [SIW-3978] Should we keep claims?
 });

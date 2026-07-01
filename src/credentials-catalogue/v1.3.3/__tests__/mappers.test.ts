@@ -38,6 +38,15 @@ describe("mapToCredentialsCatalogue", () => {
           "https://issuer-example.com/.well-known/schemas/education_attendance",
         "schema_uri#integrity": "x",
       },
+      {
+        id: "av+mso_mdoc+eu.europa.ec.av.1",
+        version: "1.3",
+        credential_type: "av",
+        format: "mso_mdoc",
+        docType: "eu.europa.ec.av.1",
+        schema_uri: "https://issuer-example.com/schemas/v1.3.3/av.cddl",
+        "schema_uri#integrity": "y",
+      },
     ],
   };
 
@@ -171,6 +180,45 @@ describe("mapToCredentialsCatalogue", () => {
             },
           ],
         },
+        {
+          version: "1",
+          credential_type: "av",
+          credential_name_l10n_id: "av.name",
+          legal_type: "pub-eaa",
+          validity_info: {
+            max_validity_days: 90,
+            status_methods: ["status_list"],
+            administrative_expiration_user_info: {
+              title_l10n_id: "av.administrative_expiration_user_info.title",
+              description_l10n_id:
+                "av.administrative_expiration_user_info.description",
+            },
+            allowed_states: [
+              {
+                "0x00": "VALID",
+                title_l10n_id: "av.VALID.title",
+                description_l10n_id: "av.VALID.description",
+              },
+            ],
+          },
+          authentication: {
+            user_auth_required: true,
+            min_loa: "substantial",
+            supported_schemes: ["it_wallet"],
+          },
+          domains: ["IDENTITY"],
+          classes: ["IDENTIFICATION_DOCUMENTS"],
+          purposes: ["AGE_VERIFICATION"],
+          issuers: [
+            {
+              id: "issuer-1",
+              organization_name_l10n_id: "org123.organization_name",
+              organization_code: "ORG123",
+              organization_country: "IT",
+            },
+          ],
+          parent_credentials: ["pid"], // Credential without Authentic Source
+        },
       ],
     },
   };
@@ -279,6 +327,50 @@ describe("mapToCredentialsCatalogue", () => {
             schema_uri:
               "https://issuer-example.com/.well-known/schemas/education_attendance",
             "schema_uri#integrity": "x",
+          },
+        ],
+      },
+      {
+        version: "1",
+        credential_type: "av",
+        name_l10n_id: "av.name",
+        legal_type: "pub-eaa",
+        validity_info: {
+          max_validity_days: 90,
+          status_methods: ["status_list"],
+          administrative_expiration_user_info: {
+            title_l10n_id: "av.administrative_expiration_user_info.title",
+            description_l10n_id:
+              "av.administrative_expiration_user_info.description",
+          },
+          allowed_states: [
+            {
+              "0x00": "VALID",
+              title_l10n_id: "av.VALID.title",
+              description_l10n_id: "av.VALID.description",
+            },
+          ],
+        },
+        domains: ["IDENTITY"],
+        classes: ["IDENTIFICATION_DOCUMENTS"],
+        purposes: ["AGE_VERIFICATION"],
+        issuers: [
+          {
+            id: "issuer-1",
+            organization_name_l10n_id: "org123.organization_name",
+            organization_code: "ORG123",
+            organization_country: "IT",
+          },
+        ],
+        parent_credentials: ["pid"],
+        authentic_sources: [],
+        formats: [
+          {
+            configuration_id: "av+mso_mdoc+eu.europa.ec.av.1",
+            format: "mso_mdoc",
+            docType: "eu.europa.ec.av.1",
+            schema_uri: "https://issuer-example.com/schemas/v1.3.3/av.cddl",
+            "schema_uri#integrity": "y",
           },
         ],
       },
