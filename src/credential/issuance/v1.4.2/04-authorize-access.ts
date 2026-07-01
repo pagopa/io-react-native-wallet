@@ -9,7 +9,7 @@ import {
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { IoWalletError } from "../../../utils/errors";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 import type { IssuanceApi, TokenResponse } from "../api";
 
 export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
@@ -44,7 +44,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   });
 
   const clientAttestationDPoP = await createClientAttestationPopJwt({
-    config: sdkConfigV1_3,
+    config: sdkConfigV1_4,
     callbacks: {
       generateRandom: partialCallbacks.generateRandom,
       signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),

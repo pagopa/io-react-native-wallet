@@ -12,7 +12,7 @@ import {
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { IoWalletError } from "../../../utils/errors";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 import { selectCredentialDefinition } from "../common/02-start-user-authorization";
 
 export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
@@ -64,7 +64,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
     const signJwt = createSignJwtFromCryptoContext(wiaCryptoContext);
 
     const parRequest = await createPushedAuthorizationRequest({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       callbacks: {
         ...partialCallbacks,
         signJwt,
@@ -89,7 +89,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
     });
 
     const clientAttestationPoP = await createClientAttestationPopJwt({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       callbacks: {
         generateRandom: partialCallbacks.generateRandom,
         signJwt,

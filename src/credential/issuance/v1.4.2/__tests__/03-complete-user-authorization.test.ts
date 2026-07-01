@@ -2,7 +2,7 @@ import {
   createAuthorizationResponse,
   fetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
-import { RemotePresentation } from "../../../presentation/v1.3.3";
+import { RemotePresentation } from "../../../presentation/v1.4.2";
 import { completeEaaUserAuthorizationWithQueryMode } from "../03-complete-user-authorization";
 import { AuthorizationError } from "../../common/errors";
 import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";

@@ -1,4 +1,4 @@
-import { sdkConfigV1_0, sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_0, sdkConfigV1_4 } from "../../../utils/config";
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 import { verifyAndParseChallengeInfo } from "./01-verify-and-parse-challenge-info";
 import { createInitChallenge } from "./02-init-challenge";
@@ -16,7 +16,7 @@ export const MRTDPoPv1_0: MRTDPoPApi = {
 
 export const MRTDPoPv1_3: MRTDPoPApi = {
   verifyAndParseChallengeInfo,
-  initChallenge: createInitChallenge({ sdkConfig: sdkConfigV1_3 }),
-  validateChallenge: createValidateChallenge({ sdkConfig: sdkConfigV1_3 }),
+  initChallenge: createInitChallenge({ sdkConfig: sdkConfigV1_4 }),
+  validateChallenge: createValidateChallenge({ sdkConfig: sdkConfigV1_4 }),
   buildChallengeCallbackUrl,
 };

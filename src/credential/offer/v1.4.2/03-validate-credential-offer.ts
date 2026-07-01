@@ -4,7 +4,7 @@ import {
 } from "@pagopa/io-wallet-oid4vci";
 import { InvalidCredentialOfferError } from "../common/errors";
 import type { OfferApi } from "../api";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 
 /**
  * v1.3.3 implementation — validates a resolved Credential Offer against the
@@ -21,7 +21,7 @@ import { sdkConfigV1_3 } from "../../../utils/config";
 export const validateCredentialOffer: OfferApi["validateCredentialOffer"] =
   async ({ offer, credentialIssuerMetadata }) => {
     await sdkValidateCredentialOffer({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       credentialOffer: offer,
       credentialIssuerMetadata,
     }).catch((e: unknown) => {

@@ -19,7 +19,7 @@ import {
   ValidationFailed,
 } from "../../../utils/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 import {
   createSignJwtFromCryptoContext,
   partialCallbacks,
@@ -105,7 +105,7 @@ export const requestCredentials = async ({
   }));
 
   const credentialRequest = await createCredentialRequest({
-    config: sdkConfigV1_3,
+    config: sdkConfigV1_4,
     callbacks: {
       hash: partialCallbacks.hash,
       signJwt,

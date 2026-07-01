@@ -1,7 +1,7 @@
 import type { CredentialOffer } from "@pagopa/io-wallet-oid4vci";
 import { validateCredentialOffer } from "../03-validate-credential-offer";
 import { InvalidCredentialOfferError } from "../../common/errors";
-import { sdkConfigV1_3 } from "../../../../utils/config";
+import { sdkConfigV1_4 } from "../../../../utils/config";
 
 const mockValidateCredentialOffer = jest.fn();
 
@@ -42,7 +42,7 @@ describe("validateCredentialOffer", () => {
     });
 
     expect(mockValidateCredentialOffer).toHaveBeenCalledWith({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       credentialOffer: validOffer,
       credentialIssuerMetadata,
     });

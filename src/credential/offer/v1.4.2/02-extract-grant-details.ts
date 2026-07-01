@@ -5,7 +5,7 @@ import {
 import { InvalidCredentialOfferError } from "../common/errors";
 import { withMappedErrors } from "../../../utils/errors";
 import type { OfferApi } from "../api";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 
 /**
  * v1.3.3 implementation — second and final step of the User Request Flow
@@ -24,7 +24,7 @@ export const extractGrantDetails: OfferApi["extractGrantDetails"] = (offer) =>
   withMappedErrors(
     () =>
       sdkExtractGrantDetails({
-        config: sdkConfigV1_3,
+        config: sdkConfigV1_4,
         credentialOffer: offer,
       }),
     CredentialOfferError,

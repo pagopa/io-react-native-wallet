@@ -15,12 +15,12 @@ import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
 import { parseMrtdChallenge } from "@pagopa/io-wallet-oauth2";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { LogLevel, Logger } from "../../../utils/logging";
-import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.3.3";
+import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.4.2";
 import {
   createVerifyJwtFromJwks,
   partialCallbacks,
 } from "../../../utils/callbacks";
-import { sdkConfigV1_3, sdkConfigV1_4 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
 import type { EvaluatedDcqlQuery, IssuanceApi, IssuerConfig } from "../api";
 import { mapToRequestObject } from "./mappers";
@@ -104,7 +104,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
       .then((res) => res.text());
 
     const parsedAuthRequest = await parseAuthorizeRequest({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       requestObjectJwt,
       callbacks: {
         verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
@@ -286,8 +286,6 @@ const processPidPresentationAndCreateAuthzResponse = async ({
   );
 
   return createAuthorizationResponse({
-    // The SDK 1.4 config is used here in order to resolve the encryption data from the Request Object
-    // client_metadata, otherwise OpenID Federation clients always ignore client_metadata as per 1.3.3 specs.
     config: sdkConfigV1_4,
     requestObject,
     rpJwks: {

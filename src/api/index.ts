@@ -9,7 +9,7 @@ import * as CredentialsCatalogue from "../credentials-catalogue";
 import * as Trustmark from "../credential/trustmark";
 import * as CredentialsOffer from "../credential/offer";
 
-export type ItwVersion = "1.0.0" | "1.3.3";
+export type ItwVersion = "1.0.0" | "1.4.2";
 
 /**
  * The Wallet public API.
@@ -43,17 +43,16 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     Trustmark: Trustmark.V1_0_0,
     CredentialsOffer: CredentialsOffer.V1_0_0,
   },
-  // TODO: replace v1.0.0 with v1.3.3 implementations
-  "1.3.3": {
+  "1.4.2": {
     WalletInstance: WalletInstance.V1_3_3,
     WalletInstanceAttestation: WIA.V1_3_3,
     WalletUnitAttestation: WUA.V1_3_3,
     Trust: Trust.V1_0_0,
-    CredentialIssuance: CredentialIssuance.V1_3_3,
-    CredentialStatus: CredentialStatus.V1_3_3,
-    RemotePresentation: RemotePresentation.V1_3_3,
+    CredentialIssuance: CredentialIssuance.V1_4_2,
+    CredentialStatus: CredentialStatus.V1_4_2,
+    RemotePresentation: RemotePresentation.V1_4_2,
     CredentialsCatalogue: CredentialsCatalogue.V1_3_3,
-    Trustmark: Trustmark.V1_3_3,
-    CredentialsOffer: CredentialsOffer.V1_3_3,
+    Trustmark: Trustmark.V1_4_2,
+    CredentialsOffer: CredentialsOffer.V1_4_2,
   },
 };

@@ -17,7 +17,7 @@ import { AuthorizationResponse } from "./types";
 import { buildDirectPostBody } from "../common/utils/http";
 import { prepareVpToken } from "../../../sd-jwt";
 import { createCryptoContextFor } from "../../../utils/crypto";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 import { prepareVpTokenMdoc } from "../../../mdoc";
 
 /**
@@ -127,7 +127,7 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
       );
 
       const { jarm } = await sdkCreateAuthorizationResponse({
-        config: sdkConfigV1_3,
+        config: sdkConfigV1_4,
         requestObject,
         rpJwks,
         vp_token,

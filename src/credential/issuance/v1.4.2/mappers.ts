@@ -3,7 +3,7 @@ import type { ParsedAuthorizeRequestResult } from "@pagopa/io-wallet-oid4vp";
 import { assert } from "../../../utils/misc";
 import { createMapper } from "../../../utils/mappers";
 import type { JWK } from "../../../utils/jwk";
-import type { RequestObject } from "../../../credential/presentation";
+import type { RequestObject } from "../../presentation";
 import { IssuerConfig } from "../api/IssuerConfig";
 
 type CredentialConfigurations =

@@ -4,7 +4,7 @@ import {
 } from "@pagopa/io-wallet-oid4vci";
 import { InvalidQRCodeError } from "../common/errors";
 import type { OfferApi } from "../api";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 
 /**
  * v1.3.3 implementation — first step of the User Request Flow
@@ -28,7 +28,7 @@ export const resolveCredentialOffer: OfferApi["resolveCredentialOffer"] =
 
     // Parse the URI and fetch the offer when transmitted by reference
     const resolved = await sdkResolveCredentialOffer({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       credentialOffer,
       callbacks: { fetch: fetchFn },
     }).catch((e: unknown) => {

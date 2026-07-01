@@ -1,6 +1,6 @@
 import { InvalidQRCodeError } from "../../common/errors";
 import { resolveCredentialOffer } from "../01-resolve-credential-offer";
-import { sdkConfigV1_3 } from "../../../../utils/config";
+import { sdkConfigV1_4 } from "../../../../utils/config";
 
 const mockResolveCredentialOffer = jest.fn();
 
@@ -38,7 +38,7 @@ describe("resolveCredentialOffer", () => {
     const result = await resolveCredentialOffer(uri);
 
     expect(mockResolveCredentialOffer).toHaveBeenCalledWith({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       credentialOffer: uri,
       callbacks: { fetch: expect.any(Function) },
     });
@@ -54,7 +54,7 @@ describe("resolveCredentialOffer", () => {
     const result = await resolveCredentialOffer(uri);
 
     expect(mockResolveCredentialOffer).toHaveBeenCalledWith({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       credentialOffer: uri,
       callbacks: { fetch: expect.any(Function) },
     });
@@ -68,7 +68,7 @@ describe("resolveCredentialOffer", () => {
     await resolveCredentialOffer("some-uri", { fetch: customFetch });
 
     expect(mockResolveCredentialOffer).toHaveBeenCalledWith({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       credentialOffer: "some-uri",
       callbacks: { fetch: customFetch },
     });

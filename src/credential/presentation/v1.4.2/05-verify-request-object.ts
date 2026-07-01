@@ -6,7 +6,7 @@ import {
 } from "@pagopa/io-wallet-oid4vp";
 import QuickCrypto from "react-native-quick-crypto";
 import { partialCallbacks } from "../../../utils/callbacks";
-import { sdkConfigV1_3 } from "../../../utils/config";
+import { sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError } from "../../../utils/errors";
 import { InvalidRequestObjectError } from "../common/errors";
 import { mapSdkRequestObjectError } from "./sdkErrorMapper";
@@ -16,7 +16,7 @@ import type { RawRequestObject } from "./types";
 export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId: fullClientId, rpConf }) => {
     const parsedRequestObject = await sdkParseAuthorizeRequest({
-      config: sdkConfigV1_3,
+      config: sdkConfigV1_4,
       requestObjectJwt: requestObjectEncodedJwt,
       callbacks: {
         verifyJwt: partialCallbacks.verifyJwt,
