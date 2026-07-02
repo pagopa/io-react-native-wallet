@@ -18,6 +18,12 @@ import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 type CredentialConf =
   IssuerConfig["credential_configurations_supported"][string];
 
+type ClaimConfig = CredentialConf["claims"][number];
+
+type ClaimsWithDisplay = Omit<ClaimConfig, "display"> & {
+  display: NonNullable<ClaimConfig["display"]>;
+};
+
 /**
  * Parse a Sd-Jwt credential according to the issuer configuration
  * @param credentialConfig - the list of supported credentials, as defined in the issuer configuration with their claims metadata
@@ -32,7 +38,11 @@ const parseCredentialSdJwt = (
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const claimsMetadata = credentialConfig.claims || [];
+  // Claims without display property (such as `iat`, `exp`, `iss`, etc.)
+  // must be ignored as they are not meant to be displayed to the user.
+  const claimsMetadata = (credentialConfig.claims || []).filter(
+    (c) => c.display !== undefined
+  ) as ClaimsWithDisplay[];
 
   // Check that all mandatory attributes defined in the issuer configuration are present in the credential
   if (!ignoreMissingAttributes) {
