@@ -13,6 +13,12 @@ import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 type CredentialConf =
   IssuerConfig["credential_configurations_supported"][string];
 
+type ClaimConfig = CredentialConf["claims"][number];
+
+type DisplayableClaim = Omit<ClaimConfig, "display"> & {
+  display: NonNullable<ClaimConfig["display"]>;
+};
+
 type DecodedMDocCredential = Out<typeof verifyMdoc> & {
   issuerSigned: CBOR.IssuerSigned;
 };
@@ -75,7 +81,13 @@ const parseCredentialMDoc = (
     throw new IoWalletError("Missing claims in the credential subject");
   }
 
-  const attrDefinitions = credentialConfig.claims.map<
+  // Claims without display property (such as `iat`, `exp`, `iss`, etc.)
+  // must be ignored as they are not meant to be displayed to the user.
+  const displayableClaims = credentialConfig.claims.filter(
+    (c) => c.display !== undefined
+  ) as DisplayableClaim[];
+
+  const attrDefinitions = displayableClaims.map<
     [string, string, { name: string; locale: string }[]]
   >(({ path: [namespace, attribute], display }) => [
     namespace as string,
@@ -183,7 +195,11 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     issuerConf,
     credential,
     credentialConfigurationId,
-    { credentialCryptoContext, ignoreMissingAttributes },
+    {
+      credentialCryptoContext,
+      ignoreMissingAttributes,
+      includeUndefinedAttributes,
+    },
     x509CertRoot
   ) => {
     if (!x509CertRoot) {
@@ -204,7 +220,7 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
       credentialConfig,
       decoded,
       ignoreMissingAttributes,
-      ignoreMissingAttributes
+      includeUndefinedAttributes
     );
 
     const { signed, validUntil } =

@@ -20,7 +20,7 @@ type CredentialConf =
 
 type ClaimConfig = CredentialConf["claims"][number];
 
-type ClaimsWithDisplay = Omit<ClaimConfig, "display"> & {
+type DisplayableClaim = Omit<ClaimConfig, "display"> & {
   display: NonNullable<ClaimConfig["display"]>;
 };
 
@@ -40,15 +40,15 @@ const parseCredentialSdJwt = (
 ): ParsedCredential => {
   // Claims without display property (such as `iat`, `exp`, `iss`, etc.)
   // must be ignored as they are not meant to be displayed to the user.
-  const claimsMetadata = (credentialConfig.claims || []).filter(
+  const displayableClaims = (credentialConfig.claims || []).filter(
     (c) => c.display !== undefined
-  ) as ClaimsWithDisplay[];
+  ) as DisplayableClaim[];
 
   // Check that all mandatory attributes defined in the issuer configuration are present in the credential
   if (!ignoreMissingAttributes) {
     const missingPaths: string[] = [];
     const rootKeysToVerify = new Set(
-      claimsMetadata
+      displayableClaims
         .map((c) => c.path[0])
         .filter((p): p is string => typeof p === "string")
     );
@@ -74,7 +74,7 @@ const parseCredentialSdJwt = (
   const getDisplayNames = (
     path: (string | number | null)[]
   ): Record<string, string> | undefined => {
-    const match = claimsMetadata.find((c) => isPathEqual(c.path, path));
+    const match = displayableClaims.find((c) => isPathEqual(c.path, path));
     if (!match) return undefined;
 
     const nameMap: Record<string, string> = {};
@@ -109,7 +109,7 @@ const parseCredentialSdJwt = (
 
     // Identify unique keys in config at this level
     const configKeysAtThisLevel: (string | number)[] = [];
-    for (const claim of claimsMetadata) {
+    for (const claim of displayableClaims) {
       // Check if the claim path starts with the current path
       if (isPrefixOf(currentPath, claim.path)) {
         const nextPart = claim.path[currentPath.length];
