@@ -76,7 +76,6 @@ describe("mapToIssuerConfig", () => {
             },
             {
               path: ["family_name"],
-              display: [],
             },
           ],
         },
