@@ -25,7 +25,7 @@ const mapCredentialConfigurationsSupported = (
         claims:
           config.credential_metadata.claims?.map((claim) => ({
             path: claim.path,
-            display: claim.display ?? [],
+            display: claim.display,
           })) ?? [],
       };
       return acc;
