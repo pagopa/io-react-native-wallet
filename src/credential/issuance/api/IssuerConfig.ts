@@ -9,7 +9,7 @@ const DisplayConfig = z.object({
 
 const ClaimConfig = z.object({
   path: z.array(z.union([z.string(), z.number(), z.null()])),
-  display: z.array(DisplayConfig),
+  display: z.array(DisplayConfig).optional(),
 });
 
 const IssuanceErrorSupported = z.object({

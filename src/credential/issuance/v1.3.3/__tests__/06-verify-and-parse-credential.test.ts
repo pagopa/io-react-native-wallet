@@ -39,6 +39,12 @@ describe("verifyAndParseCredential", () => {
         scope: "PersonIdentificationData",
         claims: [
           {
+            path: ["iss"],
+          },
+          {
+            path: ["iat"],
+          },
+          {
             path: ["given_name"],
             display: [
               { locale: "it-IT", name: "Nome" },

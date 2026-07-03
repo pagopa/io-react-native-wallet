@@ -18,6 +18,12 @@ import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 type CredentialConf =
   IssuerConfig["credential_configurations_supported"][string];
 
+type ClaimConfig = CredentialConf["claims"][number];
+
+type DisplayableClaim = Omit<ClaimConfig, "display"> & {
+  display: NonNullable<ClaimConfig["display"]>;
+};
+
 /**
  * Parse a Sd-Jwt credential according to the issuer configuration
  * @param credentialConfig - the list of supported credentials, as defined in the issuer configuration with their claims metadata
@@ -32,13 +38,17 @@ const parseCredentialSdJwt = (
   ignoreMissingAttributes: boolean = false,
   includeUndefinedAttributes: boolean = false
 ): ParsedCredential => {
-  const claimsMetadata = credentialConfig.claims || [];
+  // Claims without display property (such as `iat`, `exp`, `iss`, etc.)
+  // must be ignored as they are not meant to be displayed to the user.
+  const displayableClaims = (credentialConfig.claims || []).filter(
+    (c) => c.display !== undefined
+  ) as DisplayableClaim[];
 
   // Check that all mandatory attributes defined in the issuer configuration are present in the credential
   if (!ignoreMissingAttributes) {
     const missingPaths: string[] = [];
     const rootKeysToVerify = new Set(
-      claimsMetadata
+      displayableClaims
         .map((c) => c.path[0])
         .filter((p): p is string => typeof p === "string")
     );
@@ -64,7 +74,7 @@ const parseCredentialSdJwt = (
   const getDisplayNames = (
     path: (string | number | null)[]
   ): Record<string, string> | undefined => {
-    const match = claimsMetadata.find((c) => isPathEqual(c.path, path));
+    const match = displayableClaims.find((c) => isPathEqual(c.path, path));
     if (!match) return undefined;
 
     const nameMap: Record<string, string> = {};
@@ -99,7 +109,7 @@ const parseCredentialSdJwt = (
 
     // Identify unique keys in config at this level
     const configKeysAtThisLevel: (string | number)[] = [];
-    for (const claim of claimsMetadata) {
+    for (const claim of displayableClaims) {
       // Check if the claim path starts with the current path
       if (isPrefixOf(currentPath, claim.path)) {
         const nextPart = claim.path[currentPath.length];
