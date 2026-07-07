@@ -63,6 +63,7 @@ const AuthenticSource = z.object({
   homepage_uri: z.string().optional(),
   logo_uri: z.string().optional(),
   user_information: z.string().optional(),
+  user_information_l10n_id: z.string().optional(),
 });
 export type AuthenticSource = z.infer<typeof AuthenticSource>;
 
