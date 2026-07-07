@@ -66,7 +66,16 @@ describe("mapToCredentialsCatalogue", () => {
           contacts: ["info@source-org.example.com"],
           policy_uri: "https://source-org.example.com/privacy",
         },
-        data_capabilities: [],
+        data_capabilities: [
+          {
+            dataset_id: "dataset-1",
+            available_claims: [],
+            data_origin_l10n_id: "source_dataorigin.name",
+            integration_method: "",
+            intended_purposes: [],
+            user_information_l10n_id: "source_userinfo.name",
+          },
+        ],
       },
     ],
   };
@@ -317,6 +326,7 @@ describe("mapToCredentialsCatalogue", () => {
             organization_type: "public",
             contacts: ["info@source-org.example.com"],
             homepage_uri: "https://source-org.example.com",
+            user_information_l10n_id: "source_userinfo.name",
           },
         ],
         formats: [

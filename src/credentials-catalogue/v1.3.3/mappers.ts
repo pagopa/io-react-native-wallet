@@ -42,6 +42,7 @@ export const mapToCredentialsCatalogue = createMapper<
 
     const resolveAuthSource = ({
       id,
+      dataset_id,
     }: {
       id: string;
       dataset_id: string;
@@ -50,10 +51,14 @@ export const mapToCredentialsCatalogue = createMapper<
       assert(as, `AS ${id} must be present in the Authentic Source Registry`);
       const { ipa_code, organization_name_l10n_id, ...rest } =
         as.organization_info;
+      const dataCapability = as.data_capabilities.find(
+        (dc) => dc.dataset_id === dataset_id
+      );
       return {
         id,
         organization_name_l10n_id,
         organization_code: ipa_code,
+        user_information_l10n_id: dataCapability?.user_information_l10n_id,
         ...rest,
       };
     };
