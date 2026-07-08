@@ -6,13 +6,12 @@ import {
 } from "@sd-jwt/jwt-status-list";
 import { IoWalletError } from "../../../utils/errors";
 import { hasStatusOrThrow } from "../../../utils/misc";
-import type { CredentialFormat } from "../../../credential/issuance/api";
 import type { StatusListApi } from "../api/status-list";
 
-const getStatusListEntry = async (
-  credential: string,
-  format: CredentialFormat
-): Promise<StatusListEntry> => {
+export const getStatusListEntry: StatusListApi["getStatusListEntry"] = async (
+  credential,
+  format
+) => {
   let statusListEntry: StatusListEntry | undefined;
 
   if (format === "mso_mdoc") {

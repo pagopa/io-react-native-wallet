@@ -73,4 +73,18 @@ export interface StatusListApi {
     rawStatus: string;
     status: string;
   };
+
+  /**
+   * Extracts the status list entry from a raw credential, i.e. the object containing `uri` and `ìdx`.
+   *
+   * This method **does not perform any HTTP request** to fetch the list. Use {@link get} or {@link getByUri} instead to fetch it.
+   * @since 1.3.3
+   * @param credential The raw credential
+   * @param format The credential format
+   * @returns The status list entry extracted from the credential
+   */
+  getStatusListEntry(
+    credential: string,
+    format: CredentialFormat
+  ): Promise<{ idx: number; uri: string }>;
 }

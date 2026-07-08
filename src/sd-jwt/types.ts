@@ -14,7 +14,7 @@ const StatusAssertion = z.object({
 });
 
 const StatusList = z.object({
-  idx: z.string(),
+  idx: z.number(),
   uri: z.string(),
 });
 
