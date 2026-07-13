@@ -127,7 +127,7 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
     );
 
     const response = await api
-      .post("/wallet-unit-attestations", {
+      .post("/key-attestations", {
         header: {
           "Content-Type": "text/plain",
         },
