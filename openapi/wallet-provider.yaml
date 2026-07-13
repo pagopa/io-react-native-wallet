@@ -380,13 +380,13 @@ components:
         hardware_key_tag:
           minLength: 1
           type: string
+        is_renewal:
+          type: boolean
+          default: false
       example:
         challenge: string
         key_attestation: string
         hardware_key_tag: string
-        is_renewal:
-          type: boolean
-          default: false
     CreateWalletAttestationBody:
       required:
       - assertion
