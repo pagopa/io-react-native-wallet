@@ -1,4 +1,5 @@
 import * as z from "zod";
+
 import { AuthorizationDetail, TokenResponse } from "../api/types";
 
 // Reusing the following API types because they are the same in v1.0.0
@@ -10,7 +11,7 @@ export const CredentialResponse = z.object({
   credentials: z.array(
     z.object({
       credential: z.string(),
-    })
+    }),
   ),
   notification_id: z.string().optional(),
 });

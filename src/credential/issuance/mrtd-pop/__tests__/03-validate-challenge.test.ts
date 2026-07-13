@@ -1,11 +1,12 @@
-import { IssuerResponseError } from "../../../../utils/errors";
-import { sdkConfigV1_0 } from "../../../../utils/config";
-import type { MrtdPayload, IasPayload } from "../../api/mrtd-pop";
 import type { IssuerConfig } from "../../api/IssuerConfig";
+import type { IasPayload, MrtdPayload } from "../../api/mrtd-pop";
+
 import {
-  createValidateChallenge,
   buildChallengeCallbackUrl,
+  createValidateChallenge,
 } from "../03-validate-challenge";
+import { sdkConfigV1_0 } from "../../../../utils/config";
+import { IssuerResponseError } from "../../../../utils/errors";
 
 // Mock SignJWT from @pagopa/io-react-native-jwt
 const mockSign = jest.fn();
@@ -39,9 +40,9 @@ const mrtdPayload: MrtdPayload = {
 };
 
 const iasPayload: IasPayload = {
+  challenge_signed: "base64-encoded-challenge-signed",
   ias_pk: "base64-encoded-ias-pk",
   sod_ias: "base64-encoded-sod-ias",
-  challenge_signed: "base64-encoded-challenge-signed",
 };
 
 // Mock WIA crypto context with getPublicKey method
@@ -66,17 +67,17 @@ describe("validateChallenge", () => {
 
   it("validates the MRTD challenge and returns the verification result", async () => {
     const mockVerificationResult = {
-      status: "require_interaction" as const,
-      type: "redirect_to_web" as const,
       mrtd_val_pop_nonce: "validation-nonce",
       redirect_uri: "https://issuer.example/redirect",
+      status: "require_interaction" as const,
+      type: "redirect_to_web" as const,
     };
 
     const appFetch = jest.fn().mockResolvedValue(
       new Response(JSON.stringify(mockVerificationResult), {
-        status: 202,
         headers: { "content-type": "application/json" },
-      })
+        status: 202,
+      }),
     );
 
     mockSign.mockResolvedValueOnce("signed-wia-pop-token");
@@ -89,7 +90,7 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { wiaCryptoContext, walletInstanceAttestation, appFetch }
+      { appFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
     // Verify the result matches the expected verification result
@@ -104,33 +105,33 @@ describe("validateChallenge", () => {
     expect(calledUrl).toBe(verifyUrl);
     expect(options.method).toBe("POST");
     expect(options.headers["OAuth-Client-Attestation"]).toBe(
-      walletInstanceAttestation
+      walletInstanceAttestation,
     );
     expect(options.headers["OAuth-Client-Attestation-PoP"]).toBe(
-      "signed-wia-pop-token"
+      "signed-wia-pop-token",
     );
     expect(options.headers["Content-Type"]).toBe("application/json");
 
     const requestBody = JSON.parse(options.body);
     expect(requestBody).toEqual({
-      mrtd_validation_jwt: "signed-mrtd-validation-jwt",
       mrtd_auth_session,
       mrtd_pop_nonce,
+      mrtd_validation_jwt: "signed-mrtd-validation-jwt",
     });
   });
 
   it("creates the MRTD validation JWT with correct structure", async () => {
     const mockVerificationResult = {
-      status: "require_interaction" as const,
-      type: "redirect_to_web" as const,
       mrtd_val_pop_nonce: "validation-nonce",
       redirect_uri: "https://issuer.example/redirect",
+      status: "require_interaction" as const,
+      type: "redirect_to_web" as const,
     };
 
     const appFetch = jest.fn().mockResolvedValue(
       new Response(JSON.stringify(mockVerificationResult), {
         status: 202,
-      })
+      }),
     );
 
     await validateChallenge(
@@ -140,20 +141,20 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { wiaCryptoContext, walletInstanceAttestation, appFetch }
+      { appFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
     // Verify SignJWT was called with correct parameters
     expect(mockSetProtectedHeader).toHaveBeenCalledWith({
-      typ: "mrtd-ias+jwt",
       kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
+      typ: "mrtd-ias+jwt",
     });
     expect(mockSetPayload).toHaveBeenCalledWith({
-      iss: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
       aud: "https://issuer.example/credential_issuer",
       document_type: "cie",
-      mrtd: mrtdPayload,
       ias: iasPayload,
+      iss: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
+      mrtd: mrtdPayload,
     });
 
     expect(mockSetIssuedAt).toHaveBeenCalled();
@@ -164,9 +165,9 @@ describe("validateChallenge", () => {
   it("throws IssuerResponseError when status code is not 202", async () => {
     const appFetch = jest.fn().mockResolvedValue(
       new Response(JSON.stringify({ error: "invalid_request" }), {
-        status: 400,
         headers: { "content-type": "application/json" },
-      })
+        status: 400,
+      }),
     );
 
     try {
@@ -177,7 +178,7 @@ describe("validateChallenge", () => {
         mrtd_pop_nonce,
         mrtdPayload,
         iasPayload,
-        { wiaCryptoContext, walletInstanceAttestation, appFetch }
+        { appFetch, walletInstanceAttestation, wiaCryptoContext },
       );
       fail("Should have thrown IssuerResponseError");
     } catch (err) {
@@ -195,9 +196,9 @@ describe("validateChallenge", () => {
 
     const appFetch = jest.fn().mockResolvedValue(
       new Response(JSON.stringify(invalidResponse), {
-        status: 202,
         headers: { "content-type": "application/json" },
-      })
+        status: 202,
+      }),
     );
 
     await expect(
@@ -208,23 +209,23 @@ describe("validateChallenge", () => {
         mrtd_pop_nonce,
         mrtdPayload,
         iasPayload,
-        { wiaCryptoContext, walletInstanceAttestation, appFetch }
-      )
+        { appFetch, walletInstanceAttestation, wiaCryptoContext },
+      ),
     ).rejects.toThrow();
   });
 
   it("uses provided appFetch implementation", async () => {
     const mockVerificationResult = {
-      status: "require_interaction" as const,
-      type: "redirect_to_web" as const,
       mrtd_val_pop_nonce: "validation-nonce",
       redirect_uri: "https://issuer.example/redirect",
+      status: "require_interaction" as const,
+      type: "redirect_to_web" as const,
     };
 
     const customFetch = jest
       .fn()
       .mockResolvedValue(
-        new Response(JSON.stringify(mockVerificationResult), { status: 202 })
+        new Response(JSON.stringify(mockVerificationResult), { status: 202 }),
       );
 
     await validateChallenge(
@@ -234,7 +235,7 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { wiaCryptoContext, walletInstanceAttestation, appFetch: customFetch }
+      { appFetch: customFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
     expect(customFetch).toHaveBeenCalled();
@@ -242,17 +243,17 @@ describe("validateChallenge", () => {
 
   it("uses default fetch when appFetch is not provided", async () => {
     const mockVerificationResult = {
-      status: "require_interaction" as const,
-      type: "redirect_to_web" as const,
       mrtd_val_pop_nonce: "validation-nonce",
       redirect_uri: "https://issuer.example/redirect",
+      status: "require_interaction" as const,
+      type: "redirect_to_web" as const,
     };
 
     // Mock global fetch
     global.fetch = jest
       .fn()
       .mockResolvedValue(
-        new Response(JSON.stringify(mockVerificationResult), { status: 202 })
+        new Response(JSON.stringify(mockVerificationResult), { status: 202 }),
       ) as jest.Mock;
 
     await validateChallenge(
@@ -262,29 +263,29 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { wiaCryptoContext, walletInstanceAttestation }
+      { walletInstanceAttestation, wiaCryptoContext },
     );
 
     expect(global.fetch).toHaveBeenCalledWith(
       verifyUrl,
       expect.objectContaining({
         method: "POST",
-      })
+      }),
     );
   });
 
   it("retrieves public key from crypto context", async () => {
     const mockVerificationResult = {
-      status: "require_interaction" as const,
-      type: "redirect_to_web" as const,
       mrtd_val_pop_nonce: "validation-nonce",
       redirect_uri: "https://issuer.example/redirect",
+      status: "require_interaction" as const,
+      type: "redirect_to_web" as const,
     };
 
     const appFetch = jest
       .fn()
       .mockResolvedValue(
-        new Response(JSON.stringify(mockVerificationResult), { status: 202 })
+        new Response(JSON.stringify(mockVerificationResult), { status: 202 }),
       );
 
     await validateChallenge(
@@ -294,7 +295,7 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { wiaCryptoContext, walletInstanceAttestation, appFetch }
+      { appFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
     expect(wiaCryptoContext.getPublicKey).toHaveBeenCalled();
@@ -310,11 +311,11 @@ describe("buildChallengeCallbackUrl", () => {
     const result = await buildChallengeCallbackUrl(
       redirectUri,
       valPopNonce,
-      authSession
+      authSession,
     );
 
     expect(result.callbackUrl).toBe(
-      "https://issuer.example/callback?mrtd_val_pop_nonce=validation-nonce-123&mrtd_auth_session=auth-session-456"
+      "https://issuer.example/callback?mrtd_val_pop_nonce=validation-nonce-123&mrtd_auth_session=auth-session-456",
     );
   });
 
@@ -326,15 +327,15 @@ describe("buildChallengeCallbackUrl", () => {
     const result = await buildChallengeCallbackUrl(
       redirectUri,
       valPopNonce,
-      authSession
+      authSession,
     );
 
     const url = new URL(result.callbackUrl);
     expect(url.searchParams.get("mrtd_val_pop_nonce")).toBe(
-      "nonce with spaces"
+      "nonce with spaces",
     );
     expect(url.searchParams.get("mrtd_auth_session")).toBe(
-      "session&special=chars"
+      "session&special=chars",
     );
   });
 
@@ -346,7 +347,7 @@ describe("buildChallengeCallbackUrl", () => {
     const result = await buildChallengeCallbackUrl(
       redirectUri,
       valPopNonce,
-      authSession
+      authSession,
     );
 
     expect(result.callbackUrl).toContain("?");
@@ -362,7 +363,7 @@ describe("buildChallengeCallbackUrl", () => {
     const result = await buildChallengeCallbackUrl(
       redirectUri,
       valPopNonce,
-      authSession
+      authSession,
     );
 
     expect(result.callbackUrl).toContain("#fragment");
@@ -378,7 +379,7 @@ describe("buildChallengeCallbackUrl", () => {
     const result = await buildChallengeCallbackUrl(
       redirectUri,
       valPopNonce,
-      authSession
+      authSession,
     );
 
     expect(result).toHaveProperty("callbackUrl");

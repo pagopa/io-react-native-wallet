@@ -1,20 +1,22 @@
+import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
+
+import type { StatusAssertionApi } from "../api/status-assertion";
+
+import { extractJwkFromCredential } from "../../../utils/credentials";
 import {
   IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
 } from "../../../utils/errors";
-import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
+import { isSameThumbprint } from "../../../utils/jwk";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { mapToParsedStatusAssertion } from "./mappers";
 import {
   type InvalidStatusErrorReason,
   ParsedStatusAssertionErrorJwt,
   ParsedStatusAssertionResponse,
   StatusType,
 } from "./types";
-import { Logger, LogLevel } from "../../../utils/logging";
-import { extractJwkFromCredential } from "../../../utils/credentials";
-import { isSameThumbprint } from "../../../utils/jwk";
-import type { StatusAssertionApi } from "../api/status-assertion";
-import { mapToParsedStatusAssertion } from "./mappers";
 
 export const verifyAndParseStatusAssertion: StatusAssertionApi["verifyAndParse"] =
   async (issuerConf, rawStatusAssertion, credential, format) => {
@@ -30,7 +32,7 @@ export const verifyAndParseStatusAssertion: StatusAssertionApi["verifyAndParse"]
 
     Logger.log(
       LogLevel.DEBUG,
-      `Parsed status assertion: ${JSON.stringify(parsedStatusAssertion)}`
+      `Parsed status assertion: ${JSON.stringify(parsedStatusAssertion)}`,
     );
 
     // Errors are transmitted in the JWT and use a 200 HTTP status code
@@ -38,8 +40,8 @@ export const verifyAndParseStatusAssertion: StatusAssertionApi["verifyAndParse"]
       throw new IssuerResponseError({
         code: IssuerResponseErrorCodes.CredentialInvalidStatus,
         message: "The status assertion contains an error",
-        statusCode: 200,
         reason: buildErrorReason(parsedStatusAssertion),
+        statusCode: 200,
       });
     }
 
@@ -56,8 +58,8 @@ export const verifyAndParseStatusAssertion: StatusAssertionApi["verifyAndParse"]
       throw new IssuerResponseError({
         code: IssuerResponseErrorCodes.CredentialInvalidStatus,
         message: "Invalid status found for the given credential",
-        statusCode: 200,
         reason: buildErrorReason(parsedStatusAssertion),
+        statusCode: 200,
       });
     }
 
@@ -67,7 +69,7 @@ export const verifyAndParseStatusAssertion: StatusAssertionApi["verifyAndParse"]
   };
 
 const isStatusAssertionError = (
-  assertion: ParsedStatusAssertionResponse
+  assertion: ParsedStatusAssertionResponse,
 ): assertion is ParsedStatusAssertionErrorJwt =>
   assertion.header.typ === "status-assertion-error+jwt";
 

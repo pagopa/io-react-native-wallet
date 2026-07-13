@@ -1,25 +1,27 @@
 import { v4 as uuidv4 } from "uuid";
-import { hasStatusOrThrow } from "../../../utils/misc";
-import { createDPopToken } from "../../../utils/dpop";
-import { createPopToken } from "../../../utils/pop";
-import { TokenResponse } from "./types";
-import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
-import { LogLevel, Logger } from "../../../utils/logging";
+
 import type { IssuanceApi } from "../api";
+
+import { createDPopToken } from "../../../utils/dpop";
+import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { hasStatusOrThrow } from "../../../utils/misc";
+import { createPopToken } from "../../../utils/pop";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
+import { TokenResponse } from "./types";
 
 export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   issuerConf,
   code,
   redirectUri,
   codeVerifier,
-  context
+  context,
 ) => {
   const {
     appFetch = fetch,
+    dPopCryptoContext,
     walletInstanceAttestation,
     wiaCryptoContext,
-    dPopCryptoContext,
   } = context;
   const aud = issuerConf.credential_issuer;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
@@ -33,26 +35,26 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
       htu: tokenUrl,
       jti: `${uuidv4()}`,
     },
-    dPopCryptoContext
+    dPopCryptoContext,
   );
 
   Logger.log(LogLevel.DEBUG, `Token request DPoP: ${tokenRequestSignedDPop}`);
 
   const signedWiaPoP = await createPopToken(
     {
-      jti: `${uuidv4()}`,
       aud,
       iss,
+      jti: `${uuidv4()}`,
     },
-    wiaCryptoContext
+    wiaCryptoContext,
   );
 
   Logger.log(LogLevel.DEBUG, `WIA DPoP token: ${signedWiaPoP}`);
 
   const requestBody = {
-    grant_type: "authorization_code",
     code,
     code_verifier: codeVerifier,
+    grant_type: "authorization_code",
     redirect_uri: redirectUri,
   };
 
@@ -60,18 +62,18 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
 
   Logger.log(
     LogLevel.DEBUG,
-    `Auth form request body: ${authorizationRequestFormBody}`
+    `Auth form request body: ${authorizationRequestFormBody}`,
   );
 
   const tokenRes = await appFetch(tokenUrl, {
-    method: "POST",
+    body: authorizationRequestFormBody.toString(),
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       DPoP: tokenRequestSignedDPop,
       "OAuth-Client-Attestation": walletInstanceAttestation,
       "OAuth-Client-Attestation-PoP": signedWiaPoP,
     },
-    body: authorizationRequestFormBody.toString(),
+    method: "POST",
   })
     .then(hasStatusOrThrow(200, IssuerResponseError))
     .then((res) => res.json())
@@ -80,7 +82,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   if (!tokenRes.success) {
     Logger.log(
       LogLevel.ERROR,
-      `Token Response validation failed: ${tokenRes.error.message}`
+      `Token Response validation failed: ${tokenRes.error.message}`,
     );
 
     throw new ValidationFailed({

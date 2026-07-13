@@ -1,16 +1,17 @@
-import { AuthorizationError, AuthorizationIdpError } from "../../common/errors";
+import type { IssuerConfig } from "../../api";
+
 import {
   buildAuthorizationUrl,
   completePidUserAuthorizationWithQueryMode,
 } from "../03-complete-user-authorization";
-import type { IssuerConfig } from "../../api";
+import { AuthorizationError, AuthorizationIdpError } from "../../common/errors";
 
 describe("authorizeUserWithQueryMode", () => {
   it("should return the authorization result when the authorization server responds with a valid response", async () => {
     const authRes = {
       code: "abcdefg",
-      state: "123456",
       iss: "123456",
+      state: "123456",
     };
     const authRedirectUrl = `test://cb?code=abcdefg&state=123456&iss=123456`;
 
@@ -58,7 +59,7 @@ describe("buildAuthorizationUrl", () => {
       {
         authorization_endpoint: "https://issuer.com/authorize",
       } as IssuerConfig,
-      "idpHint"
+      "idpHint",
     );
 
     expect(authUrl).toMatchObject({
@@ -73,7 +74,7 @@ describe("buildAuthorizationUrl", () => {
       "clientId",
       {
         authorization_endpoint: "https://issuer.com/authorize",
-      } as IssuerConfig
+      } as IssuerConfig,
     );
 
     expect(authUrl).toMatchObject({

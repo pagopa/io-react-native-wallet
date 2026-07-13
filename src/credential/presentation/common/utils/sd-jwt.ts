@@ -1,11 +1,14 @@
-import { SDJwtInstance, type SDJwt } from "@sd-jwt/core";
-import { getClaims } from "@sd-jwt/decode";
-import { digest } from "@sd-jwt/crypto-nodejs";
 import type { DcqlSdJwtVcCredential } from "dcql";
-import { IoWalletError } from "../../../../utils/errors";
+
+import { type SDJwt, SDJwtInstance } from "@sd-jwt/core";
+import { digest } from "@sd-jwt/crypto-nodejs";
+import { getClaims } from "@sd-jwt/decode";
+
+import type { Credential4Dcql } from "../../api";
+
 import { LEGACY_SD_JWT } from "../../../../sd-jwt/types";
 import { fixLegacyCredentialSdJwt } from "../../../../utils/credentials";
-import type { Credential4Dcql } from "../../api";
+import { IoWalletError } from "../../../../utils/errors";
 
 type CustomDcqlSdJwtVcCredential = DcqlSdJwtVcCredential & {
   original_credential: Credential4Dcql;
@@ -27,7 +30,7 @@ const getClaimsFromDecodedSdJwt = async (decodedRawSdJwt: SDJwt) => {
   const claims = await getClaims<DcqlSdJwtVcCredential["claims"]>(
     decodedRawSdJwt.jwt.payload,
     decodedRawSdJwt.disclosures ?? [],
-    digest
+    digest,
   );
 
   for (const claim of NON_DISCLOSABLE_CLAIMS) {
@@ -44,7 +47,7 @@ const getClaimsFromDecodedSdJwt = async (decodedRawSdJwt: SDJwt) => {
  * @returns List of `dcql` compatible objects
  */
 export const mapCredentialsToObj = async (
-  credentials: Credential4Dcql[]
+  credentials: Credential4Dcql[],
 ): Promise<CustomDcqlSdJwtVcCredential[]> => {
   const sdJwt = new SDJwtInstance({
     hasher: digest,
@@ -53,19 +56,19 @@ export const mapCredentialsToObj = async (
   return Promise.all(
     credentials.map(async (credential) => {
       const decodedRawSdJwt = await sdJwt.decode(
-        fixLegacyCredentialSdJwt(credential[1])
+        fixLegacyCredentialSdJwt(credential[1]),
       );
       const claims = await getClaimsFromDecodedSdJwt(decodedRawSdJwt);
       return {
-        vct: decodedRawSdJwt.jwt?.payload?.vct as string,
+        claims,
         credential_format:
           decodedRawSdJwt.jwt?.header?.typ === LEGACY_SD_JWT
             ? LEGACY_SD_JWT
             : "dc+sd-jwt",
         cryptographic_holder_binding: true,
-        claims,
         original_credential: credential,
+        vct: decodedRawSdJwt.jwt?.payload?.vct as string,
       } satisfies CustomDcqlSdJwtVcCredential;
-    })
+    }),
   );
 };

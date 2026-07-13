@@ -1,5 +1,4 @@
 import type { DigitalCredentialsCatalogue } from "../../api/DigitalCredentialsCatalogue";
-import { mapToCredentialsCatalogue } from "../mappers";
 import type {
   AuthenticSourceRegistry,
   DigitalCredentialsCatalogueJwt,
@@ -8,96 +7,84 @@ import type {
   TaxonomyRegistry,
 } from "../types";
 
+import { mapToCredentialsCatalogue } from "../mappers";
+
 describe("mapToCredentialsCatalogue", () => {
   const registryDiscovery: RegistryDiscoveryJwt = {
     header: {
-      typ: "JOSE",
       alg: "ES256",
       kid: "kid-1",
+      typ: "JOSE",
     },
     payload: {
-      registry_version: "1.3",
-      last_updated: "",
       endpoints: {
         taxonomy: "https://issuer-example.com/taxonomy.json",
       } as RegistryDiscoveryJwt["payload"]["endpoints"],
+      last_updated: "",
+      registry_version: "1.3",
     },
   };
 
   const schemaRegistry: SchemaRegistry = {
-    version: "1.3",
     last_modified: "2026-02-25T15:03:53.134Z",
     schemas: [
       {
         credential_type: "education_attendance",
-        id: "dc_sd_jwt_education_attendance",
         format: "dc+sd-jwt",
-        vct: "https://issuer-example.com/vct/education_attendance",
-        version: "1.3",
+        id: "dc_sd_jwt_education_attendance",
         schema_uri:
           "https://issuer-example.com/.well-known/schemas/education_attendance",
         "schema_uri#integrity": "x",
+        vct: "https://issuer-example.com/vct/education_attendance",
+        version: "1.3",
       },
       {
-        id: "av+mso_mdoc+eu.europa.ec.av.1",
-        version: "1.3",
         credential_type: "av",
-        format: "mso_mdoc",
         docType: "eu.europa.ec.av.1",
+        format: "mso_mdoc",
+        id: "av+mso_mdoc+eu.europa.ec.av.1",
         schema_uri: "https://issuer-example.com/schemas/v1.3.3/av.cddl",
         "schema_uri#integrity": "y",
+        version: "1.3",
       },
     ],
+    version: "1.3",
   };
 
   const authSourceRegistry: AuthenticSourceRegistry = {
-    version: "1.3",
-    last_modified: "2026-02-25T15:03:53.134Z",
     authentic_sources: [
       {
-        entity_id: "source-1",
-        organization_info: {
-          organization_name_l10n_id: "source_org.name",
-          ipa_code: "SRC123",
-          organization_country: "IT",
-          organization_type: "public",
-          legal_identifier: "01234567890",
-          homepage_uri: "https://source-org.example.com",
-          contacts: ["info@source-org.example.com"],
-          policy_uri: "https://source-org.example.com/privacy",
-        },
         data_capabilities: [
           {
-            dataset_id: "dataset-1",
             available_claims: [],
             data_origin_l10n_id: "source_dataorigin.name",
+            dataset_id: "dataset-1",
             integration_method: "",
             intended_purposes: [],
             user_information_l10n_id: "source_userinfo.name",
           },
         ],
+        entity_id: "source-1",
+        organization_info: {
+          contacts: ["info@source-org.example.com"],
+          homepage_uri: "https://source-org.example.com",
+          ipa_code: "SRC123",
+          legal_identifier: "01234567890",
+          organization_country: "IT",
+          organization_name_l10n_id: "source_org.name",
+          organization_type: "public",
+          policy_uri: "https://source-org.example.com/privacy",
+        },
       },
     ],
+    last_modified: "2026-02-25T15:03:53.134Z",
+    version: "1.3",
   };
 
   const taxonomyRegistry: TaxonomyRegistry = {
-    version: "1.0.0",
-    last_modified: "2026-03-11T00:00:00Z",
-    id: "urn:taxonomy:it-wallet",
-    localization: {
-      default_locale: "it",
-      available_locales: ["it", "en"],
-      base_uri:
-        "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
-      version: "1.0.0",
-    },
-    name_l10n_id: "taxonomy.name",
     description_l10n_id: "taxonomy.description",
     domains: [
       {
-        id: "IDENTITY",
-        name_l10n_id: "domain.identity.name",
-        description_l10n_id: "domain.identity.description",
         classes: [
           {
             id: "IDENTIFICATION_DOCUMENTS",
@@ -108,11 +95,11 @@ describe("mapToCredentialsCatalogue", () => {
             ],
           },
         ],
+        description_l10n_id: "domain.identity.description",
+        id: "IDENTITY",
+        name_l10n_id: "domain.identity.name",
       },
       {
-        id: "AUTHORIZATION",
-        name_l10n_id: "domain.authorization.name",
-        description_l10n_id: "domain.authorization.description",
         classes: [
           {
             id: "LICENSES_AUTHORIZATIONS",
@@ -120,8 +107,21 @@ describe("mapToCredentialsCatalogue", () => {
             supported_purposes: ["DRIVING_RIGHTS_VERIFICATION"],
           },
         ],
+        description_l10n_id: "domain.authorization.description",
+        id: "AUTHORIZATION",
+        name_l10n_id: "domain.authorization.name",
       },
     ],
+    id: "urn:taxonomy:it-wallet",
+    last_modified: "2026-03-11T00:00:00Z",
+    localization: {
+      available_locales: ["it", "en"],
+      base_uri:
+        "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
+      default_locale: "it",
+      version: "1.0.0",
+    },
+    name_l10n_id: "taxonomy.name",
     purposes: [
       {
         id: "IDENTITY_VERIFICATION",
@@ -136,120 +136,204 @@ describe("mapToCredentialsCatalogue", () => {
         name_l10n_id: "purpose.driving_rights_verification.name",
       },
     ],
+    version: "1.0.0",
   };
 
   const credentialsCatalogueJwt: DigitalCredentialsCatalogueJwt = {
     header: {
-      typ: "JOSE",
       alg: "ES256",
       kid: "kid-1",
+      typ: "JOSE",
     },
     payload: {
-      iss: "https://ta.example.com",
-      id: "urn:credential-catalog:it-wallet",
-      version: "1.3",
-      last_modified: "2026-02-25T15:03:53.134Z",
-      iat: 1730000000,
-      exp: 1730003600,
       credentials: [
         {
-          version: "1.3",
-          credential_type: "education_attendance",
-          legal_type: "pub-eaa",
-          credential_name_l10n_id: "education_attendance.name",
-          validity_info: {
-            max_validity_days: 365,
-            status_methods: ["status_list"],
-            allowed_states: [
-              {
-                "0x00": "VALID",
-                title_l10n_id: "education_attendance.VALID.title",
-                description_l10n_id: "education_attendance.VALID.description",
-              },
-            ],
-          },
-          authentication: {
-            user_auth_required: true,
-            min_loa: "high",
-            supported_schemes: ["it_wallet"],
-          },
-          purposes: ["EDUCATION_ATTENDANCE_VERIFICATION"],
-          issuers: [
-            {
-              id: "issuer-1",
-              organization_name_l10n_id: "Issuer Org",
-              organization_code: "ORG123",
-              organization_country: "IT",
-            },
-          ],
           authentic_sources: [
             {
-              id: "source-1",
               dataset_id: "dataset-1",
+              id: "source-1",
             },
           ],
+          authentication: {
+            min_loa: "high",
+            supported_schemes: ["it_wallet"],
+            user_auth_required: true,
+          },
+          credential_name_l10n_id: "education_attendance.name",
+          credential_type: "education_attendance",
+          issuers: [
+            {
+              id: "issuer-1",
+              organization_code: "ORG123",
+              organization_country: "IT",
+              organization_name_l10n_id: "Issuer Org",
+            },
+          ],
+          legal_type: "pub-eaa",
+          purposes: ["EDUCATION_ATTENDANCE_VERIFICATION"],
+          validity_info: {
+            allowed_states: [
+              {
+                "0x00": "VALID",
+                description_l10n_id: "education_attendance.VALID.description",
+                title_l10n_id: "education_attendance.VALID.title",
+              },
+            ],
+            max_validity_days: 365,
+            status_methods: ["status_list"],
+          },
+          version: "1.3",
         },
         {
-          version: "1",
-          credential_type: "av",
+          authentication: {
+            min_loa: "substantial",
+            supported_schemes: ["it_wallet"],
+            user_auth_required: true,
+          },
+          classes: ["IDENTIFICATION_DOCUMENTS"],
           credential_name_l10n_id: "av.name",
+          credential_type: "av",
+          domains: ["IDENTITY"],
+          issuers: [
+            {
+              id: "issuer-1",
+              organization_code: "ORG123",
+              organization_country: "IT",
+              organization_name_l10n_id: "org123.organization_name",
+            },
+          ],
           legal_type: "pub-eaa",
+          parent_credentials: ["pid"], // Credential without Authentic Source
+          purposes: ["AGE_VERIFICATION"],
           validity_info: {
-            max_validity_days: 90,
-            status_methods: ["status_list"],
             administrative_expiration_user_info: {
-              title_l10n_id: "av.administrative_expiration_user_info.title",
               description_l10n_id:
                 "av.administrative_expiration_user_info.description",
+              title_l10n_id: "av.administrative_expiration_user_info.title",
             },
             allowed_states: [
               {
                 "0x00": "VALID",
-                title_l10n_id: "av.VALID.title",
                 description_l10n_id: "av.VALID.description",
+                title_l10n_id: "av.VALID.title",
               },
             ],
+            max_validity_days: 90,
+            status_methods: ["status_list"],
           },
-          authentication: {
-            user_auth_required: true,
-            min_loa: "substantial",
-            supported_schemes: ["it_wallet"],
-          },
-          domains: ["IDENTITY"],
-          classes: ["IDENTIFICATION_DOCUMENTS"],
-          purposes: ["AGE_VERIFICATION"],
-          issuers: [
-            {
-              id: "issuer-1",
-              organization_name_l10n_id: "org123.organization_name",
-              organization_code: "ORG123",
-              organization_country: "IT",
-            },
-          ],
-          parent_credentials: ["pid"], // Credential without Authentic Source
+          version: "1",
         },
       ],
+      exp: 1730003600,
+      iat: 1730000000,
+      id: "urn:credential-catalog:it-wallet",
+      iss: "https://ta.example.com",
+      last_modified: "2026-02-25T15:03:53.134Z",
+      version: "1.3",
     },
   };
 
   const expected: DigitalCredentialsCatalogue = {
-    taxonomy_uri: "https://issuer-example.com/taxonomy.json",
-    taxonomy: {
-      id: "urn:taxonomy:it-wallet",
-      name_l10n_id: "taxonomy.name",
-      description_l10n_id: "taxonomy.description",
-      localization: {
-        default_locale: "it",
-        available_locales: ["it", "en"],
-        base_uri:
-          "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
-        version: "1.0.0",
+    credentials: [
+      {
+        authentic_sources: [
+          {
+            contacts: ["info@source-org.example.com"],
+            homepage_uri: "https://source-org.example.com",
+            id: "source-1",
+            organization_code: "SRC123",
+            organization_country: "IT",
+            organization_name_l10n_id: "source_org.name",
+            organization_type: "public",
+            user_information_l10n_id: "source_userinfo.name",
+          },
+        ],
+        credential_type: "education_attendance",
+        formats: [
+          {
+            configuration_id: "dc_sd_jwt_education_attendance",
+            format: "dc+sd-jwt",
+            schema_uri:
+              "https://issuer-example.com/.well-known/schemas/education_attendance",
+            "schema_uri#integrity": "x",
+            vct: "https://issuer-example.com/vct/education_attendance",
+          },
+        ],
+        issuers: [
+          {
+            id: "issuer-1",
+            organization_code: "ORG123",
+            organization_country: "IT",
+            organization_name_l10n_id: "Issuer Org",
+          },
+        ],
+        legal_type: "pub-eaa",
+        name_l10n_id: "education_attendance.name",
+        purposes: ["EDUCATION_ATTENDANCE_VERIFICATION"],
+        validity_info: {
+          allowed_states: [
+            {
+              "0x00": "VALID",
+              description_l10n_id: "education_attendance.VALID.description",
+              title_l10n_id: "education_attendance.VALID.title",
+            },
+          ],
+          max_validity_days: 365,
+          status_methods: ["status_list"],
+        },
+        version: "1.3",
       },
+      {
+        authentic_sources: [],
+        classes: ["IDENTIFICATION_DOCUMENTS"],
+        credential_type: "av",
+        domains: ["IDENTITY"],
+        formats: [
+          {
+            configuration_id: "av+mso_mdoc+eu.europa.ec.av.1",
+            docType: "eu.europa.ec.av.1",
+            format: "mso_mdoc",
+            schema_uri: "https://issuer-example.com/schemas/v1.3.3/av.cddl",
+            "schema_uri#integrity": "y",
+          },
+        ],
+        issuers: [
+          {
+            id: "issuer-1",
+            organization_code: "ORG123",
+            organization_country: "IT",
+            organization_name_l10n_id: "org123.organization_name",
+          },
+        ],
+        legal_type: "pub-eaa",
+        name_l10n_id: "av.name",
+        parent_credentials: ["pid"],
+        purposes: ["AGE_VERIFICATION"],
+        validity_info: {
+          administrative_expiration_user_info: {
+            description_l10n_id:
+              "av.administrative_expiration_user_info.description",
+            title_l10n_id: "av.administrative_expiration_user_info.title",
+          },
+          allowed_states: [
+            {
+              "0x00": "VALID",
+              description_l10n_id: "av.VALID.description",
+              title_l10n_id: "av.VALID.title",
+            },
+          ],
+          max_validity_days: 90,
+          status_methods: ["status_list"],
+        },
+        version: "1",
+      },
+    ],
+    exp: 1730003600,
+    iat: 1730000000,
+    taxonomy: {
+      description_l10n_id: "taxonomy.description",
       domains: [
         {
-          id: "IDENTITY",
-          name_l10n_id: "domain.identity.name",
-          description_l10n_id: "domain.identity.description",
           classes: [
             {
               id: "IDENTIFICATION_DOCUMENTS",
@@ -260,11 +344,11 @@ describe("mapToCredentialsCatalogue", () => {
               ],
             },
           ],
+          description_l10n_id: "domain.identity.description",
+          id: "IDENTITY",
+          name_l10n_id: "domain.identity.name",
         },
         {
-          id: "AUTHORIZATION",
-          name_l10n_id: "domain.authorization.name",
-          description_l10n_id: "domain.authorization.description",
           classes: [
             {
               id: "LICENSES_AUTHORIZATIONS",
@@ -272,8 +356,20 @@ describe("mapToCredentialsCatalogue", () => {
               supported_purposes: ["DRIVING_RIGHTS_VERIFICATION"],
             },
           ],
+          description_l10n_id: "domain.authorization.description",
+          id: "AUTHORIZATION",
+          name_l10n_id: "domain.authorization.name",
         },
       ],
+      id: "urn:taxonomy:it-wallet",
+      localization: {
+        available_locales: ["it", "en"],
+        base_uri:
+          "https://trust-registry.eid-wallet.example.it/.well-known/l10n/taxonomy/",
+        default_locale: "it",
+        version: "1.0.0",
+      },
+      name_l10n_id: "taxonomy.name",
       purposes: [
         {
           id: "IDENTITY_VERIFICATION",
@@ -289,102 +385,7 @@ describe("mapToCredentialsCatalogue", () => {
         },
       ],
     },
-    iat: 1730000000,
-    exp: 1730003600,
-    credentials: [
-      {
-        version: "1.3",
-        credential_type: "education_attendance",
-        legal_type: "pub-eaa",
-        name_l10n_id: "education_attendance.name",
-        validity_info: {
-          max_validity_days: 365,
-          status_methods: ["status_list"],
-          allowed_states: [
-            {
-              "0x00": "VALID",
-              title_l10n_id: "education_attendance.VALID.title",
-              description_l10n_id: "education_attendance.VALID.description",
-            },
-          ],
-        },
-        purposes: ["EDUCATION_ATTENDANCE_VERIFICATION"],
-        issuers: [
-          {
-            id: "issuer-1",
-            organization_name_l10n_id: "Issuer Org",
-            organization_code: "ORG123",
-            organization_country: "IT",
-          },
-        ],
-        authentic_sources: [
-          {
-            id: "source-1",
-            organization_name_l10n_id: "source_org.name",
-            organization_code: "SRC123",
-            organization_country: "IT",
-            organization_type: "public",
-            contacts: ["info@source-org.example.com"],
-            homepage_uri: "https://source-org.example.com",
-            user_information_l10n_id: "source_userinfo.name",
-          },
-        ],
-        formats: [
-          {
-            configuration_id: "dc_sd_jwt_education_attendance",
-            format: "dc+sd-jwt",
-            vct: "https://issuer-example.com/vct/education_attendance",
-            schema_uri:
-              "https://issuer-example.com/.well-known/schemas/education_attendance",
-            "schema_uri#integrity": "x",
-          },
-        ],
-      },
-      {
-        version: "1",
-        credential_type: "av",
-        name_l10n_id: "av.name",
-        legal_type: "pub-eaa",
-        validity_info: {
-          max_validity_days: 90,
-          status_methods: ["status_list"],
-          administrative_expiration_user_info: {
-            title_l10n_id: "av.administrative_expiration_user_info.title",
-            description_l10n_id:
-              "av.administrative_expiration_user_info.description",
-          },
-          allowed_states: [
-            {
-              "0x00": "VALID",
-              title_l10n_id: "av.VALID.title",
-              description_l10n_id: "av.VALID.description",
-            },
-          ],
-        },
-        domains: ["IDENTITY"],
-        classes: ["IDENTIFICATION_DOCUMENTS"],
-        purposes: ["AGE_VERIFICATION"],
-        issuers: [
-          {
-            id: "issuer-1",
-            organization_name_l10n_id: "org123.organization_name",
-            organization_code: "ORG123",
-            organization_country: "IT",
-          },
-        ],
-        parent_credentials: ["pid"],
-        authentic_sources: [],
-        formats: [
-          {
-            configuration_id: "av+mso_mdoc+eu.europa.ec.av.1",
-            format: "mso_mdoc",
-            docType: "eu.europa.ec.av.1",
-            schema_uri: "https://issuer-example.com/schemas/v1.3.3/av.cddl",
-            "schema_uri#integrity": "y",
-          },
-        ],
-      },
-    ],
+    taxonomy_uri: "https://issuer-example.com/taxonomy.json",
   };
 
   it("maps types correctly", () => {
@@ -395,7 +396,7 @@ describe("mapToCredentialsCatalogue", () => {
         authSourceRegistry,
         schemaRegistry,
         taxonomyRegistry,
-      ])
+      ]),
     ).toEqual(expected);
   });
 });

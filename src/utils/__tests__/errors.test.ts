@@ -1,4 +1,5 @@
 import type { IssuerConfig } from "../../credential/issuance";
+
 import {
   extractErrorMessageFromIssuerConf,
   isIssuerResponseError,
@@ -22,7 +23,7 @@ describe("extractErrorMessageFromIssuerConf", () => {
         issuerConf: {
           credential_configurations_supported: {},
         } as IssuerConfig,
-      })
+      }),
     ).toThrow();
   });
 
@@ -36,7 +37,7 @@ describe("extractErrorMessageFromIssuerConf", () => {
             MDL: {},
           },
         } as IssuerConfig,
-      })
+      }),
     ).toBeUndefined();
 
     expect(
@@ -52,7 +53,7 @@ describe("extractErrorMessageFromIssuerConf", () => {
             },
           },
         } as IssuerConfig,
-      })
+      }),
     ).toBeUndefined();
   });
 
@@ -67,18 +68,18 @@ describe("extractErrorMessageFromIssuerConf", () => {
               issuance_errors_supported: {
                 credential_revoked: {
                   display: [
-                    { title: "Ciao", description: "Ciao", locale: "it-IT" },
-                    { title: "Hello", description: "Hello", locale: "en-US" },
+                    { description: "Ciao", locale: "it-IT", title: "Ciao" },
+                    { description: "Hello", locale: "en-US", title: "Hello" },
                   ],
                 },
               },
             },
           },
         } as IssuerConfig,
-      })
+      }),
     ).toEqual({
-      "it-IT": { title: "Ciao", description: "Ciao" },
-      "en-US": { title: "Hello", description: "Hello" },
+      "en-US": { description: "Hello", title: "Hello" },
+      "it-IT": { description: "Ciao", title: "Ciao" },
     });
   });
 });
@@ -147,12 +148,12 @@ describe("ResponseErrorBuilder", () => {
       expect(error.message).toEqual(target.message);
       expect(error.reason).toEqual(target.reason);
       expect(error.statusCode).toEqual(target.statusCode);
-    }
+    },
   );
 
   it("should return the original error when nothing matches", () => {
     const errorBuilderWithoutFallback = new ResponseErrorBuilder(
-      IssuerResponseError
+      IssuerResponseError,
     ).handle(403, {
       code: IssuerResponseErrorCodes.CredentialInvalidStatus,
       message: "A message",
@@ -172,8 +173,8 @@ describe("ResponseErrorBuilder", () => {
 describe("Error type guards", () => {
   const typeGuards = {
     isIssuerResponseError,
-    isWalletProviderResponseError,
     isRelyingPartyResponseError,
+    isWalletProviderResponseError,
   };
 
   test.each([
@@ -194,7 +195,7 @@ describe("Error type guards", () => {
     const [correctCode, wrongCode] = Object.keys(errorCodes);
 
     const error = new ErrorClass({
-      // @ts-ignore
+      // @ts-expect-error wrong on purpose
       code: correctCode,
       message: "A message",
       reason: "A reason",
@@ -202,9 +203,9 @@ describe("Error type guards", () => {
     });
 
     expect(typeGuard(error)).toBe(true);
-    // @ts-ignore
+    // @ts-expect-error wrong on purpose
     expect(typeGuard(error, correctCode)).toBe(true);
-    // @ts-ignore
+    // @ts-expect-error wrong on purpose
     expect(typeGuard(error, wrongCode)).toBe(false);
   });
 });

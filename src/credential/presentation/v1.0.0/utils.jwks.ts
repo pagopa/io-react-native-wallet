@@ -1,5 +1,6 @@
-import { JWKS, type JWK } from "../../../utils/jwk";
 import type { RelyingPartyConfig } from "../api";
+
+import { type JWK, JWKS } from "../../../utils/jwk";
 
 /**
  * Fetches the JSON Web Key Set (JWKS) from the Relying Party's Entity Configuration.
@@ -7,7 +8,7 @@ import type { RelyingPartyConfig } from "../api";
  * @returns An object containing an array of JSON Web Keys (JWKs).
  */
 export const getJwksFromRpConfig = (
-  rpConfig: RelyingPartyConfig
+  rpConfig: RelyingPartyConfig,
 ): { keys: JWK[] } => {
   const jwks = rpConfig.jwks.keys;
 
@@ -18,7 +19,7 @@ export const getJwksFromRpConfig = (
   const parsed = JWKS.safeParse({ keys: jwks });
   if (!parsed.success) {
     throw new Error(
-      "JWKS contains unsupported or invalid keys (only RSA/EC JWK supported)"
+      "JWKS contains unsupported or invalid keys (only RSA/EC JWK supported)",
     );
   }
 

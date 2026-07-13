@@ -8,13 +8,13 @@ import type { SendAuthorizationResponseApi } from "./07-send-authorization-respo
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
 
 export interface RemotePresentationApi
-  extends StartFlowApi,
+  extends EvaluateDcqlQueryApi,
     EvaluateRelyingPartyTrustApi,
     GetRequestObjectApi,
+    SendAuthorizationResponseApi,
+    StartFlowApi,
     VerifyAuthRequestCertificateChainApi,
-    VerifyRequestObjectApi,
-    EvaluateDcqlQueryApi,
-    SendAuthorizationResponseApi {}
+    VerifyRequestObjectApi {}
 
 export type { RelyingPartyConfig };
 export * from "./types";

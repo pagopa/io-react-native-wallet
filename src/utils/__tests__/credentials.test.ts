@@ -18,6 +18,6 @@ describe("fixLegacyCredentialSdJwt", () => {
     "should fix legacy credentials SD-JWT (%#) [Non-regression test for bug fix SIW-4091]",
     (input, expected) => {
       expect(fixLegacyCredentialSdJwt(input)).toEqual(expected);
-    }
+    },
   );
 });

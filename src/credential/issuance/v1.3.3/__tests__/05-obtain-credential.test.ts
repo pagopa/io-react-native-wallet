@@ -1,7 +1,10 @@
-import { fetchCredentialResponse } from "@pagopa/io-wallet-oid4vci";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import { requestCredentials } from "../05-obtain-credential";
+
+import { fetchCredentialResponse } from "@pagopa/io-wallet-oid4vci";
+
 import type { IssuerConfig } from "../../api";
+
+import { requestCredentials } from "../05-obtain-credential";
 
 jest.mock("@pagopa/io-wallet-oid4vci", () => ({
   ...jest.requireActual("@pagopa/io-wallet-oid4vci"),
@@ -10,14 +13,14 @@ jest.mock("@pagopa/io-wallet-oid4vci", () => ({
 
 const createMockCryptoContext = (
   keyTag: string,
-  y: string
+  y: string,
 ): jest.Mocked<CryptoContext> => ({
   getPublicKey: jest.fn(async () => ({
+    alg: "ES256",
+    crv: "P-256",
+    kid: keyTag,
     kty: "EC",
     use: "sig",
-    alg: "ES256",
-    kid: keyTag,
-    crv: "P-256",
     x: "1",
     y,
   })),
@@ -30,8 +33,8 @@ describe("requestCredentials", () => {
   });
 
   const mockIssuerConf = {
-    nonce_endpoint: "https://issuer-example/nonce",
     credential_endpoint: "https://issuer-example/credential",
+    nonce_endpoint: "https://issuer-example/nonce",
   } as IssuerConfig;
 
   it("calls fetchCredentialResponse with the correct credential request", async () => {
@@ -41,23 +44,23 @@ describe("requestCredentials", () => {
 
     appFetch.mockResolvedValueOnce(
       new Response(JSON.stringify({ c_nonce: "mock-nonce" }), {
-        status: 200,
         headers: { "content-type": "application/json" },
-      })
+        status: 200,
+      }),
     );
 
     await requestCredentials({
-      issuerConf: mockIssuerConf,
+      accessToken: {} as any,
+      appFetch,
       clientId: "client123",
-      credentialIdentifier: "credid-123",
       credentialCryptoContexts: [
         createMockCryptoContext("key-1", "1"),
         createMockCryptoContext("key-2", "2"),
       ],
+      credentialIdentifier: "credid-123",
       dPopCryptoContext: createMockCryptoContext("key-3", "3"),
+      issuerConf: mockIssuerConf,
       keyAttestationJwt: "mock-key-attestation",
-      accessToken: {} as any,
-      appFetch,
     });
 
     expect(fetchCredentialResponse).toHaveBeenCalledWith(
@@ -71,7 +74,7 @@ describe("requestCredentials", () => {
             ],
           },
         },
-      })
+      }),
     );
   });
 });

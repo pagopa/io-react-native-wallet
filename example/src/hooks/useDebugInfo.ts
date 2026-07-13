@@ -1,13 +1,14 @@
 import { useFocusEffect } from "@react-navigation/native";
 import React from "react";
-import { useAppDispatch } from "../store/utils";
+
 import { resetDebugData, setDebugData } from "../store/reducers/debug";
+import { useAppDispatch } from "../store/utils";
 
 /**
  * Sets debug data for the mounted component. Removes it when the component is unmounted
  * @param data Data to be displayes in debug mode
  */
-export const useDebugInfo = (data: Record<string, any>) => {
+export const useDebugInfo = (data: Record<string, unknown>) => {
   const dispatch = useAppDispatch();
 
   useFocusEffect(
@@ -17,6 +18,6 @@ export const useDebugInfo = (data: Record<string, any>) => {
       return () => {
         dispatch(resetDebugData(Object.keys(data)));
       };
-    }, [dispatch, data])
+    }, [dispatch, data]),
   );
 };

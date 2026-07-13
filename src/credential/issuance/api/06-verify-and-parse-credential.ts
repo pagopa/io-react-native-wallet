@@ -1,4 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import type { IssuerConfig } from "./IssuerConfig";
 import type { ParsedCredential } from "./types";
 
@@ -37,10 +38,10 @@ export interface VerifyAndParseCredentialApi {
        */
       validateCertificateChain?: boolean;
     },
-    x509CertRoot?: string
+    x509CertRoot?: string,
   ): Promise<{
-    parsedCredential: ParsedCredential;
     expiration: Date;
     issuedAt: Date | undefined;
+    parsedCredential: ParsedCredential;
   }>;
 }

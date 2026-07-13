@@ -1,13 +1,16 @@
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import { H2, LoadingSpinner } from "@pagopa/io-app-design-system";
 import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
+
+import type { CieWebViewError } from "../../components/cie/CieWebView";
+import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
 import { CieAuthenticationWebview } from "../../components/cie/CieAuthenticationWebView";
 import { CieAuthorizationWebview } from "../../components/cie/CieAuthorizationWebView";
 import { CiePinDialog } from "../../components/cie/CiePinDialog";
-import type { CieWebViewError } from "../../components/cie/CieWebView";
-import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { selectEnv } from "../../store/reducers/environment";
 import { pidFlowReset, selectPidFlowParams } from "../../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
@@ -35,12 +38,12 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
   const [authorizationUrl, setAuthorizationUrl] = useState<string>();
 
   const handleOnError = useCallback(
-    (error: NfcError | CieWebViewError) => {
+    (error: CieWebViewError | NfcError) => {
       navigation.goBack();
       dispatch(pidFlowReset());
       Alert.alert(`❌ Error`, `${JSON.stringify(error)}`);
     },
-    [navigation, dispatch]
+    [navigation, dispatch],
   );
 
   useEffect(() => {
@@ -49,7 +52,7 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
       CieManager.addListener("onEvent", (event) => {
         setText(
           "I'm reading the CIE. Do not remove it from the device\n" +
-            getProgressEmojis(event.progress)
+            getProgressEmojis(event.progress),
         );
       }),
       // Start listening for errors
@@ -78,9 +81,9 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
       dispatch(
         preparePidFlowParamsThunk({
           authMethod: "cieL3",
-          idpHint: getCieIdpHint(env),
           ciePin: pin,
-        })
+          idpHint: getCieIdpHint(env),
+        }),
       );
     } else {
       Alert.alert(`❌ Invalid CIE PIN`);
@@ -108,11 +111,11 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
   return (
     <SafeAreaView>
       <CiePinDialog
-        type="PIN"
-        visible={isPinInputVisible}
+        onCancel={handlePinClose}
         onChangePin={setPin}
         onConfirm={handlePinConfirm}
-        onCancel={handlePinClose}
+        type="PIN"
+        visible={isPinInputVisible}
       />
       {isLoading && (
         <View style={styles.progress}>
@@ -122,8 +125,8 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
       {pidFlowParams && pidFlowParams.ciePin && (
         <CieAuthenticationWebview
           authenticationUrl={pidFlowParams.authUrl}
-          onSuccess={handleAuthUrl}
           onError={handleOnError}
+          onSuccess={handleAuthUrl}
         />
       )}
       {authorizationUrl && (
@@ -143,21 +146,21 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
 };
 
 const styles = StyleSheet.create({
+  content: {
+    alignContent: "center",
+    alignItems: "center",
+    gap: 16,
+    height: "100%",
+  },
   progress: {
     ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
-  },
-  content: {
-    height: "100%",
-    alignItems: "center",
-    alignContent: "center",
-    gap: 16,
   },
   text: {
-    marginTop: 64,
-    marginHorizontal: 24,
-    textAlign: "center",
     backgroundColor: "red",
+    marginHorizontal: 24,
+    marginTop: 64,
+    textAlign: "center",
   },
 });

@@ -1,8 +1,10 @@
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo } from "react";
-import { FlatList, View, type ListRenderItemInfo } from "react-native";
+import { FlatList, type ListRenderItemInfo, View } from "react-native";
+
 import type { TestScenarioProp } from "../components/TestScenario";
+
 import TestScenario from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
@@ -19,30 +21,31 @@ export const OfferScreen = () => {
     useAppSelector(selectCredentialOfferState);
 
   useDebugInfo({
-    credentialOfferState,
     credentialOfferDetails,
+    credentialOfferState,
   });
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       dispatch(credentialOfferReset());
-    };
-  }, [dispatch]);
+    },
+    [dispatch],
+  );
 
-  const scenarios: Array<TestScenarioProp> = useMemo(
+  const scenarios: TestScenarioProp[] = useMemo(
     () => [
       {
-        title: "Scan Credential Offer QR Code",
+        hasError: credentialOfferState.hasError,
+        icon: "qrCode",
+        isDone: credentialOfferState.isDone,
+        isLoading: credentialOfferState.isLoading,
+        isPresent: !!credentialOfferDetails.offer,
         onPress: () =>
           navigation.navigate("QrScanner", {
             mode: "offer",
           }),
-        isLoading: credentialOfferState.isLoading,
-        hasError: credentialOfferState.hasError,
-        isDone: credentialOfferState.isDone,
-        icon: "qrCode",
-        isPresent: !!credentialOfferDetails.offer,
         successMessage: "OK",
+        title: "Scan Credential Offer QR Code",
       },
     ],
     [
@@ -51,14 +54,14 @@ export const OfferScreen = () => {
       credentialOfferState.isDone,
       credentialOfferState.isLoading,
       credentialOfferDetails.offer,
-    ]
+    ],
   );
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<TestScenarioProp>) => (
       <TestScenario {...item} />
     ),
-    []
+    [],
   );
   return (
     <View>
@@ -67,9 +70,9 @@ export const OfferScreen = () => {
           margin: IOVisualCostants.appMarginDefault,
         }}
         data={scenarios}
+        ItemSeparatorComponent={VSpacer}
         keyExtractor={(item, index) => `${item.title}-${index}`}
         renderItem={renderItem}
-        ItemSeparatorComponent={VSpacer}
       />
     </View>
   );

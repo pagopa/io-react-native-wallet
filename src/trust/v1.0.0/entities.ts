@@ -1,16 +1,18 @@
+import type { z } from "zod";
+
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+
 import {
-  WalletProviderEntityConfiguration,
+  type FetchOptions,
+  getSignedEntityConfiguration,
+} from "../common/utils";
+import {
   CredentialIssuerEntityConfiguration,
   EntityConfiguration,
   RelyingPartyEntityConfiguration,
   TrustAnchorEntityConfiguration,
+  WalletProviderEntityConfiguration,
 } from "./types";
-import type { z } from "zod";
-import {
-  getSignedEntityConfiguration,
-  type FetchOptions,
-} from "../common/utils";
 
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
@@ -33,7 +35,7 @@ import {
 async function fetchAndParseEntityConfiguration<T extends EntityConfiguration>(
   entityBaseUrl: string,
   schema: z.ZodType<T>,
-  { appFetch = fetch }: FetchOptions = {}
+  { appFetch = fetch }: FetchOptions = {},
 ): Promise<T> {
   const responseText = await getSignedEntityConfiguration(entityBaseUrl, {
     appFetch,
@@ -48,46 +50,46 @@ async function fetchAndParseEntityConfiguration<T extends EntityConfiguration>(
 
 export const getWalletProviderEntityConfiguration = (
   entityBaseUrl: string,
-  options?: FetchOptions
+  options?: FetchOptions,
 ) =>
   fetchAndParseEntityConfiguration(
     entityBaseUrl,
     WalletProviderEntityConfiguration,
-    options
+    options,
   );
 
 export const getCredentialIssuerEntityConfiguration = (
   entityBaseUrl: string,
-  options?: FetchOptions
+  options?: FetchOptions,
 ) =>
   fetchAndParseEntityConfiguration(
     entityBaseUrl,
     CredentialIssuerEntityConfiguration,
-    options
+    options,
   );
 
 export const getTrustAnchorEntityConfiguration = (
   entityBaseUrl: string,
-  options?: FetchOptions
+  options?: FetchOptions,
 ) =>
   fetchAndParseEntityConfiguration(
     entityBaseUrl,
     TrustAnchorEntityConfiguration,
-    options
+    options,
   );
 
 export const getRelyingPartyEntityConfiguration = (
   entityBaseUrl: string,
-  options?: FetchOptions
+  options?: FetchOptions,
 ) =>
   fetchAndParseEntityConfiguration(
     entityBaseUrl,
     RelyingPartyEntityConfiguration,
-    options
+    options,
   );
 
 export const getEntityConfiguration = (
   entityBaseUrl: string,
-  options?: FetchOptions
+  options?: FetchOptions,
 ) =>
   fetchAndParseEntityConfiguration(entityBaseUrl, EntityConfiguration, options);

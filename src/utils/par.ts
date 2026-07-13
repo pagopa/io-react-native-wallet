@@ -1,26 +1,27 @@
 import {
-  sha256ToBase64,
   type CryptoContext,
+  sha256ToBase64,
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import * as z from "zod";
+
+import { IssuerResponseError } from "./errors";
+import { Logger, LogLevel } from "./logging";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
-import { IssuerResponseError } from "./errors";
-import { LogLevel, Logger } from "./logging";
 
 export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export const AuthorizationDetail = z.union([
   z.object({
-    type: z.literal("openid_credential"),
     credential_configuration_id: z.string(),
+    type: z.literal("openid_credential"),
   }),
   z.object({
-    type: z.literal("it_l2+document_proof"),
-    idphinting: z.string(),
     challenge_method: z.literal("mrtd+ias"),
     challenge_redirect_uri: z.string(),
+    idphinting: z.string(),
+    type: z.literal("it_l2+document_proof"),
   }),
 ]);
 
@@ -29,45 +30,45 @@ export const AuthorizationDetails = z.array(AuthorizationDetail);
 
 export type ParResponse = z.infer<typeof ParResponse>;
 export const ParResponse = z.object({
-  request_uri: z.string(),
   expires_in: z.number(),
+  request_uri: z.string(),
 });
 
 type AuthDetailsOrScope =
   | { authorizationDetails: AuthorizationDetails; scope?: string }
   | { authorizationDetails?: AuthorizationDetails; scope: string };
 
-type ParRequestPayload = {
+type ParRequestPayload = AuthDetailsOrScope & {
+  aud: string;
   clientId: string;
   codeVerifier: string;
   redirectUri: string;
   responseMode: string;
-  aud: string;
-} & AuthDetailsOrScope;
+};
 
 /**
  * Make a PAR request to the issuer and return the response url
  */
 export const makeParRequest =
   ({
-    wiaCryptoContext,
     appFetch,
+    wiaCryptoContext,
   }: {
-    wiaCryptoContext: CryptoContext;
     appFetch: GlobalFetch["fetch"];
+    wiaCryptoContext: CryptoContext;
   }) =>
   async (
     parEndpoint: string,
     walletInstanceAttestation: string,
     {
-      codeVerifier,
-      responseMode,
-      clientId,
-      redirectUri,
-      authorizationDetails,
-      scope,
       aud,
-    }: ParRequestPayload
+      authorizationDetails,
+      clientId,
+      codeVerifier,
+      redirectUri,
+      responseMode,
+      scope,
+    }: ParRequestPayload,
   ): Promise<string> => {
     const wiaPublicKey = await wiaCryptoContext.getPublicKey();
 
@@ -75,11 +76,11 @@ export const makeParRequest =
 
     const signedWiaPoP = await createPopToken(
       {
-        jti: `${uuidv4()}`,
         aud,
         iss: clientId,
+        jti: `${uuidv4()}`,
       },
-      wiaCryptoContext
+      wiaCryptoContext,
     );
 
     /** A code challenge is provided so that the PAR is bound
@@ -94,20 +95,20 @@ export const makeParRequest =
         The key is matched by its kid */
     const signedJwtForPar = await new SignJWT(wiaCryptoContext)
       .setProtectedHeader({
-        typ: "jwt",
         kid: wiaPublicKey.kid,
+        typ: "jwt",
       })
       .setPayload({
-        jti: `${uuidv4()}`,
         aud,
-        response_type: "code",
-        response_mode: responseMode,
         client_id: clientId,
-        iss: clientId,
-        state: generateRandomAlphaNumericString(32),
         code_challenge: codeChallenge,
         code_challenge_method: codeChallengeMethod,
+        iss: clientId,
+        jti: `${uuidv4()}`,
         redirect_uri: redirectUri,
+        response_mode: responseMode,
+        response_type: "code",
+        state: generateRandomAlphaNumericString(32),
         ...(authorizationDetails && {
           authorization_details: authorizationDetails,
         }),
@@ -118,24 +119,24 @@ export const makeParRequest =
       .sign();
 
     /** The request body for the Pushed Authorization Request */
-    var formBody = new URLSearchParams({
+    const formBody = new URLSearchParams({
       client_id: clientId,
       request: signedJwtForPar,
     });
 
     Logger.log(
       LogLevel.DEBUG,
-      `Sending to PAR endpoint ${parEndpoint}: ${formBody}`
+      `Sending to PAR endpoint ${parEndpoint}: ${formBody}`,
     );
 
     return await appFetch(parEndpoint, {
-      method: "POST",
+      body: formBody.toString(),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         "OAuth-Client-Attestation": walletInstanceAttestation,
         "OAuth-Client-Attestation-PoP": signedWiaPoP,
       },
-      body: formBody.toString(),
+      method: "POST",
     })
       .then(hasStatusOrThrow(201, IssuerResponseError))
       .then((res) => res.json())

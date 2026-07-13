@@ -1,18 +1,18 @@
-import {
-  createCryptoContextFor,
-  IoWallet,
-  type RemotePresentation,
-  Trust,
-  type ItwVersion,
-  type CredentialIssuance,
-} from "@pagopa/io-react-native-wallet";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { getRedirects } from "@pagopa/io-react-native-login-utils";
-import { v4 as uuidv4 } from "uuid";
+import {
+  createCryptoContextFor,
+  type CredentialIssuance,
+  IoWallet,
+  type ItwVersion,
+  type RemotePresentation,
+  Trust,
+} from "@pagopa/io-react-native-wallet";
 import last from "lodash/last";
-import appFetch from "../utils/fetch";
-import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { v4 as uuidv4 } from "uuid";
+
 import type {
   CredentialResult,
   PidResult,
@@ -20,6 +20,9 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import type { Env } from "./environment";
+
+import appFetch from "../utils/fetch";
+import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -36,50 +39,50 @@ import type { Env } from "./environment";
  * @returns The obtained credential result
  */
 export const getCredential = async ({
-  itwVersion,
-  issuerConf,
-  trustAnchorUrl,
-  redirectUri,
-  credentialId,
-  pid,
-  walletInstanceAttestation,
-  generateKeysWithAttestation,
-  wiaCryptoContext,
   batchSize = 1,
-  scope,
+  credentialId,
+  generateKeysWithAttestation,
+  issuerConf,
   issuerState,
+  itwVersion,
+  pid,
+  redirectUri,
+  scope,
+  trustAnchorUrl,
+  walletInstanceAttestation,
+  wiaCryptoContext,
 }: {
-  itwVersion: ItwVersion;
-  issuerConf: CredentialIssuance.IssuerConfig;
-  trustAnchorUrl: string;
-  redirectUri: string;
-  credentialId: SupportedCredentialsWithoutPid;
-  pid: PidResult;
-  walletInstanceAttestation: string;
-  generateKeysWithAttestation: (
-    keyTags: string[]
-  ) => Promise<string | undefined>;
-  wiaCryptoContext: CryptoContext;
   batchSize?: number;
-  scope?: string;
+  credentialId: SupportedCredentialsWithoutPid;
+  generateKeysWithAttestation: (
+    keyTags: string[],
+  ) => Promise<string | undefined>;
+  issuerConf: CredentialIssuance.IssuerConfig;
   issuerState?: string;
+  itwVersion: ItwVersion;
+  pid: PidResult;
+  redirectUri: string;
+  scope?: string;
+  trustAnchorUrl: string;
+  walletInstanceAttestation: string;
+  wiaCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
 
   // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier, responseMode } =
+  const { clientId, codeVerifier, issuerRequestUri, responseMode } =
     await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
       [credentialId],
       { proofType: "none" },
       {
-        walletInstanceAttestation,
-        redirectUri,
-        wiaCryptoContext,
         appFetch,
-        scope,
         issuerState,
-      }
+        redirectUri,
+        scope,
+        walletInstanceAttestation,
+        wiaCryptoContext,
+      },
     );
 
   const requestObject =
@@ -87,12 +90,12 @@ export const getCredential = async ({
       issuerRequestUri,
       clientId,
       issuerConf,
-      appFetch
+      appFetch,
     );
 
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    [[pid.keyTag, pid.credential]]
+    [[pid.keyTag, pid.credential]],
   );
 
   let code: string;
@@ -103,7 +106,7 @@ export const getCredential = async ({
         requestObject,
         issuerConf,
         evaluatedDcqlQuery,
-        { wiaCryptoContext, appFetch }
+        { appFetch, wiaCryptoContext },
       ));
   } else {
     // Complete the user authorization via query mode
@@ -118,7 +121,7 @@ export const getCredential = async ({
           // Temporary workaround for a known bug affecting React Native 0.82-0.83. See https://github.com/facebook/react-native/issues/55248
           fetchFinalRedirectUri: (url) =>
             getRedirects(url, {}, "code").then(last),
-        }
+        },
       ));
   }
 
@@ -132,11 +135,11 @@ export const getCredential = async ({
     redirectUri,
     codeVerifier,
     {
+      appFetch,
+      dPopCryptoContext,
       walletInstanceAttestation,
       wiaCryptoContext,
-      dPopCryptoContext,
-      appFetch,
-    }
+    },
   );
 
   // For simplicity, in this example flow we work on a single credential.
@@ -161,11 +164,11 @@ export const getCredential = async ({
           clientId,
           credentialDefinition,
           {
+            appFetch,
             credentialCryptoContexts,
             dPopCryptoContext,
             walletUnitAttestation,
-            appFetch,
-          }
+          },
         )
       : await wallet.CredentialIssuance.obtainCredential(
           issuerConf,
@@ -173,11 +176,11 @@ export const getCredential = async ({
           clientId,
           credentialDefinition,
           {
+            appFetch,
             credentialCryptoContext: credentialCryptoContexts[0]!,
             dPopCryptoContext,
             walletUnitAttestation,
-            appFetch,
-          }
+          },
         );
 
   // In the example app we are not interested in storing the entire batch: it is sufficient
@@ -202,17 +205,17 @@ export const getCredential = async ({
       credential,
       credential_configuration_id,
       { credentialCryptoContext, ignoreMissingAttributes: true },
-      x509CertRoot
+      x509CertRoot,
     );
 
   return {
-    parsedCredential,
     credential,
-    keyTag: credentialKeyTag,
+    credentialConfigurationId: credential_configuration_id,
     credentialType:
       credential_configuration_id as SupportedCredentialsWithoutPid,
-    credentialConfigurationId: credential_configuration_id,
     format,
+    keyTag: credentialKeyTag,
+    parsedCredential,
   };
 };
 
@@ -225,7 +228,7 @@ export const getCredential = async ({
  */
 export const getTrustAnchorX509Certificate = async (
   itwVersion: ItwVersion,
-  trustAnchorUrl: string
+  trustAnchorUrl: string,
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
   const trustAnchorEntityConfig =
@@ -234,13 +237,13 @@ export const getTrustAnchorX509Certificate = async (
     });
   const taHeaderKid = trustAnchorEntityConfig.jwt.header.kid;
   const taSigningJwk = trustAnchorEntityConfig.keys.find(
-    (key) => key.kid === taHeaderKid
+    (key) => key.kid === taHeaderKid,
   );
 
   if (!taSigningJwk) {
     throw new Trust.Errors.FederationError(
       `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' not found in Trust Anchor's JWKS.`,
-      { trustAnchorKid: taHeaderKid, reason: "JWK not found for header kid" }
+      { reason: "JWK not found for header kid", trustAnchorKid: taHeaderKid },
     );
   }
 
@@ -250,7 +253,7 @@ export const getTrustAnchorX509Certificate = async (
 
   throw new Trust.Errors.FederationError(
     `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' does not contain a valid 'x5c' certificate array.`,
-    { trustAnchorKid: taHeaderKid, reason: "Missing or empty x5c in JWK" }
+    { reason: "Missing or empty x5c in JWK", trustAnchorKid: taHeaderKid },
   );
 };
 
@@ -270,13 +273,13 @@ export const getCredentialStatusAssertion = async (
   format: CredentialIssuance.CredentialFormat,
   credentialCryptoContext: CryptoContext,
   wiaCryptoContext: CryptoContext,
-  credentialType: SupportedCredentials
+  credentialType: SupportedCredentials,
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
 
   if (!wallet.CredentialStatus.statusAssertion.isSupported) {
     throw new Error(
-      `Status assertion is not supported in version ${itwVersion}`
+      `Status assertion is not supported in version ${itwVersion}`,
     );
   }
 
@@ -288,7 +291,7 @@ export const getCredentialStatusAssertion = async (
     issuerConf,
     credential,
     format,
-    { credentialCryptoContext, wiaCryptoContext }
+    { credentialCryptoContext, wiaCryptoContext },
   );
 
   const parsedStatusAssertion =
@@ -296,7 +299,7 @@ export const getCredentialStatusAssertion = async (
       issuerConf,
       statusAssertion,
       credential,
-      format
+      format,
     );
 
   return {
@@ -320,7 +323,7 @@ export const getCredentialStatusFromStatusList = async (
   env: Env,
   credential: string,
   credentialType: string,
-  format: CredentialIssuance.CredentialFormat
+  format: CredentialIssuance.CredentialFormat,
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
 
@@ -332,21 +335,21 @@ export const getCredentialStatusFromStatusList = async (
     itwVersion,
     env,
     credential,
-    credentialType
+    credentialType,
   );
 
-  const { statusList: statusListJwt, idx } =
+  const { idx, statusList: statusListJwt } =
     await wallet.CredentialStatus.statusList.get(credential, format, {
       appFetch,
     });
   const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
     keys,
-    statusListJwt
+    statusListJwt,
   );
 
   const result = wallet.CredentialStatus.statusList.getStatus(
     statusList.status_list,
-    idx
+    idx,
   );
 
   return {
@@ -359,13 +362,13 @@ const getKeysForStatusListVerification = async (
   itwVersion: ItwVersion,
   env: Env,
   credential: string,
-  credentialType: string
+  credentialType: string,
 ) => {
   if (credentialType === "walletUnitAttestation") {
     const decodedWua = decodeJwt(credential);
 
     const { payload } = await fetch(
-      `${decodedWua.payload.iss}/.well-known/openid-federation`
+      `${decodedWua.payload.iss}/.well-known/openid-federation`,
     )
       .then((res) => res.text())
       .then(decodeJwt);
@@ -390,7 +393,7 @@ const getKeysForStatusListVerification = async (
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 
   const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
-    issuerUrl.value(itwVersion)
+    issuerUrl.value(itwVersion),
   );
   return issuerConf.keys;
 };

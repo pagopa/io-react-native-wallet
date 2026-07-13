@@ -23,7 +23,7 @@ export const mapToCredentialsCatalogue = createMapper<
           ({ source_type, ...as }) => ({
             ...as,
             organization_type: source_type,
-          })
+          }),
         ),
       })),
     };
@@ -31,5 +31,5 @@ export const mapToCredentialsCatalogue = createMapper<
   {
     inputSchema: DigitalCredentialsCatalogueJwt,
     outputSchema: DigitalCredentialsCatalogue,
-  }
+  },
 );

@@ -22,6 +22,6 @@ export interface VerifyAuthRequestCertificateChainApi {
     requestObjectJwt: string,
     params: {
       caRootCert: string;
-    }
+    },
   ): Promise<CertificateValidationResult>;
 }

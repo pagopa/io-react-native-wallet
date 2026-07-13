@@ -1,4 +1,5 @@
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+
 import { WalletUnitAttestationJwt } from "./types";
 
 /**

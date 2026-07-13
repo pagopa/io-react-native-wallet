@@ -1,15 +1,16 @@
-import {
-  IoWalletError,
-  RelyingPartyResponseError,
-  RelyingPartyResponseErrorCodes,
-} from "../../../../utils/errors";
+import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
+import type { RemotePresentation, RequestObject } from "../../api/types";
+
 import {
   buildDirectPostJwtBody,
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
 } from "../07-send-authorization-response";
-import type { RemotePresentation, RequestObject } from "../../api/types";
-import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
+import {
+  IoWalletError,
+  RelyingPartyResponseError,
+  RelyingPartyResponseErrorCodes,
+} from "../../../../utils/errors";
 import { buildDirectPostBody } from "../../common/utils/http";
 
 jest.mock("@pagopa/io-react-native-jwt", () => {
@@ -19,46 +20,46 @@ jest.mock("@pagopa/io-react-native-jwt", () => {
     EncryptJwe: jest.fn().mockImplementation(() => ({
       encrypt: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
     })),
+    sha256ToBase64: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
     SignJWT: jest.fn().mockImplementation(() => ({
-      setProtectedHeader: jest.fn().mockReturnThis(),
-      setPayload: jest.fn().mockReturnThis(),
       setAudience: jest.fn().mockReturnThis(),
-      setIssuedAt: jest.fn().mockReturnThis(),
       setExpirationTime: jest.fn().mockReturnThis(),
+      setIssuedAt: jest.fn().mockReturnThis(),
+      setPayload: jest.fn().mockReturnThis(),
+      setProtectedHeader: jest.fn().mockReturnThis(),
       sign: jest.fn().mockResolvedValue("mock_signed_kbjwt"),
     })),
-    sha256ToBase64: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
   };
 });
 
 const mockRequestObject: RequestObject = {
-  iss: "https://mock.rp",
   client_id: "mock_client_id",
-  nonce: "mock_nonce",
-  response_uri: "https://mock.rp/response",
-  state: "mock_state",
-  response_mode: "direct_post.jwt",
-  response_type: "vp_token",
   dcql_query: {
     credentials: [
       {
-        id: "PID",
         format: "dc+sd-jwt",
+        id: "PID",
         meta: { vct_values: ["PersonIdentificationData"] },
       },
     ],
   },
+  iss: "https://mock.rp",
+  nonce: "mock_nonce",
+  response_mode: "direct_post.jwt",
+  response_type: "vp_token",
+  response_uri: "https://mock.rp/response",
+  state: "mock_state",
 };
 
 const mockRpConf: RelyingPartyConfig = {
-  subject: "mock_client_id",
   federation_entity: {},
   jwks: {
     keys: [
-      { kid: "rsa-key-1", use: "enc", kty: "RSA" },
-      { kid: "something-else", use: "sig", kty: "EC" },
+      { kid: "rsa-key-1", kty: "RSA", use: "enc" },
+      { kid: "something-else", kty: "EC", use: "sig" },
     ],
   },
+  subject: "mock_client_id",
 };
 
 describe("buildDirectPostBody", () => {
@@ -93,10 +94,10 @@ describe("sendAuthorizationResponse", () => {
   const remotePresentations: RemotePresentation = {
     presentations: [
       {
-        requestedClaims: ["name", "surname"],
         credentialId: "PID",
-        vpToken: "mock_vp_token",
         format: "dc+sd-jwt",
+        requestedClaims: ["name", "surname"],
+        vpToken: "mock_vp_token",
       },
     ],
   };
@@ -107,22 +108,22 @@ describe("sendAuthorizationResponse", () => {
   it("should use buildDirectPostJwtBody when response_mode is direct_post.jwt", async () => {
     mockFetch.mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),
+      json: () => Promise.resolve({ response_code: "200", status: "ok" }),
       status: 200,
-      json: () => Promise.resolve({ status: "ok", response_code: "200" }),
     });
 
     await sendAuthorizationResponse(
       mockRequestObject,
       remotePresentations,
       mockRpConf,
-      { appFetch: mockFetch }
+      { appFetch: mockFetch },
     );
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith("https://mock.rp/response", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: "response=mock_encrypted_jwe&state=mock_state",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: "POST",
     });
   });
 
@@ -135,8 +136,8 @@ describe("sendAuthorizationResponse", () => {
     async (errorCode, status) => {
       mockFetch.mockResolvedValue({
         headers: new Headers({ "content-type": "application/json" }),
-        status,
         json: () => Promise.resolve(""),
+        status,
       });
 
       try {
@@ -144,18 +145,18 @@ describe("sendAuthorizationResponse", () => {
           mockRequestObject,
           remotePresentations,
           mockRpConf,
-          { appFetch: mockFetch }
+          { appFetch: mockFetch },
         );
       } catch (error) {
         expect(error).toBeInstanceOf(RelyingPartyResponseError);
         expect((error as RelyingPartyResponseError).code).toEqual(errorCode);
       }
-    }
+    },
   );
 
   it("should throw if no Relying Party configuration is provided", async () => {
     await expect(() =>
-      sendAuthorizationResponse(mockRequestObject, remotePresentations)
+      sendAuthorizationResponse(mockRequestObject, remotePresentations),
     ).rejects.toThrow(IoWalletError);
   });
 });
@@ -164,8 +165,8 @@ describe("sendAuthorizationErrorResponse", () => {
   it("should send an error code building the body using buildDirectPostBody", async () => {
     const mockFetch = jest.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),
+      json: () => Promise.resolve({ response_code: "200", status: "ok" }),
       status: 200,
-      json: () => Promise.resolve({ status: "ok", response_code: "200" }),
     });
 
     const res = await sendAuthorizationErrorResponse(
@@ -174,15 +175,15 @@ describe("sendAuthorizationErrorResponse", () => {
         error: "access_denied",
         errorDescription: "an_error_occurred",
       },
-      { appFetch: mockFetch }
+      { appFetch: mockFetch },
     );
 
-    expect(res).toEqual({ status: "ok", response_code: "200" });
+    expect(res).toEqual({ response_code: "200", status: "ok" });
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith("https://mock.rp/response", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: "state=mock_state&error=access_denied&error_description=an_error_occurred",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: "POST",
     });
   });
 });

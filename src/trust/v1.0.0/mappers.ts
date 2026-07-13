@@ -1,6 +1,7 @@
+import type { TrustAnchorConfig } from "../api/TrustAnchorConfig";
+
 import { createMapper } from "../../utils/mappers";
 import { TrustAnchorEntityConfiguration } from "./types";
-import type { TrustAnchorConfig } from "../api/TrustAnchorConfig";
 
 export const mapToTrustAnchorConfig = createMapper<
   TrustAnchorEntityConfiguration,
@@ -8,8 +9,8 @@ export const mapToTrustAnchorConfig = createMapper<
 >((x) => {
   const { federation_entity } = x.payload.metadata;
   return {
+    federation_entity,
     jwt: { header: x.header },
     keys: x.payload.jwks.keys,
-    federation_entity,
   };
 });

@@ -5,18 +5,18 @@
  */
 
 export const credentialCnfJwk = {
-  kty: "EC" as const,
-  kid: "eede745a-4f47-44e7-8551-50c6a1fc0bd6",
   crv: "P-256",
+  kid: "eede745a-4f47-44e7-8551-50c6a1fc0bd6",
+  kty: "EC" as const,
   x: "zHDlxhC3Z1kVF31K8haSKiVUaosZPSo5359SPYymrrk",
   y: "fJZ7J4VRJGLBAkiRJhuJX9X09ftDZbyRyrKbnjGo3ns",
 };
 
 export const issuerJwk = {
-  kty: "EC" as const,
   alg: "ES256",
-  kid: "a38f4a2a-3b7a-49b1-96fe-44e6aced358b",
   crv: "P-256",
+  kid: "a38f4a2a-3b7a-49b1-96fe-44e6aced358b",
+  kty: "EC" as const,
   x: "W5cpFOUymIH2Ro2JIkmfiWqg89Y4doEdRnR-fNps7II",
   y: "NC1WrZ64MEi4CVWyXoRPnjxp3EEMT1sePgIwATZEfyc",
 };

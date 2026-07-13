@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+
 import type { AppDispatch, RootState } from "../store/types";
 
 /**
@@ -6,7 +7,7 @@ import type { AppDispatch, RootState } from "../store/types";
  * which would otherwise be wrongly inferred.
  */
 export const createAppAsyncThunk = createAsyncThunk.withTypes<{
-  state: RootState;
   dispatch: AppDispatch;
   rejectValue: unknown;
+  state: RootState;
 }>();

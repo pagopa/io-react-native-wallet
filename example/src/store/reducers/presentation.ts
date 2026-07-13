@@ -1,26 +1,20 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createSlice } from "@reduxjs/toolkit";
+import { type PersistConfig, persistReducer } from "redux-persist";
+
+import type { AsyncStatus, RootState } from "../types";
 
 import {
   remoteCrossDevicePresentationThunk as remoteCrossDevicePresentationThunk,
   type RequestObject,
 } from "../../thunks/presentation";
-import { persistReducer, type PersistConfig } from "redux-persist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
-import type { RootState, AsyncStatus } from "../types";
 import { sessionReset } from "./session";
 
 /**
- * State type definition for a single presentaion scenario
- * the state contains:
- * - async state: isLoading, isDone, hasError as defined in {@link AsyncStatus}
+ * exporting a keytype of {@link PresentationState}
  */
-type SinglePresentationState = {
-  redirectUri: string | undefined;
-  asyncStatus: AsyncStatus;
-  requestObject: RequestObject | undefined;
-  requestedClaims: string[] | undefined;
-};
+export type PresentationStateKeys = keyof PresentationState;
 
 /**
  * State type definition for the presentation slice
@@ -28,29 +22,36 @@ type SinglePresentationState = {
  * - acceptanceState : {@link SinglePresentationState}
  * - refusalState : {@link SinglePresentationState}
  */
-type PresentationState = {
+interface PresentationState {
   acceptanceState: SinglePresentationState;
   refusalState: SinglePresentationState;
-};
+}
 
 /**
- * exporting a keytype of {@link PresentationState}
+ * State type definition for a single presentaion scenario
+ * the state contains:
+ * - async state: isLoading, isDone, hasError as defined in {@link AsyncStatus}
  */
-export type PresentationStateKeys = keyof PresentationState;
+interface SinglePresentationState {
+  asyncStatus: AsyncStatus;
+  redirectUri: string | undefined;
+  requestedClaims: string[] | undefined;
+  requestObject: RequestObject | undefined;
+}
 
 // Initial state for the presentation slice
 const initialState: PresentationState = {
   acceptanceState: {
-    redirectUri: undefined,
-    requestObject: undefined,
-    requestedClaims: undefined,
     asyncStatus: { ...asyncStatusInitial },
+    redirectUri: undefined,
+    requestedClaims: undefined,
+    requestObject: undefined,
   },
   refusalState: {
-    redirectUri: undefined,
-    requestObject: undefined,
-    requestedClaims: undefined,
     asyncStatus: { ...asyncStatusInitial },
+    redirectUri: undefined,
+    requestedClaims: undefined,
+    requestObject: undefined,
   },
 };
 
@@ -58,11 +59,6 @@ const initialState: PresentationState = {
  * Redux slice for the presentation state which contains the key tag used to register the wallet presentation.
  */
 const presentationSlice = createSlice({
-  name: "presentation",
-  initialState,
-  reducers: {
-    presentationReset: () => initialState,
-  },
   extraReducers: (builder) => {
     // Dispatched when is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
     builder.addCase(
@@ -79,7 +75,7 @@ const presentationSlice = createSlice({
           initialState[action.meta.arg.allowed].asyncStatus.isLoading;
         state[action.meta.arg.allowed].asyncStatus.hasError =
           initialState[action.meta.arg.allowed].asyncStatus.hasError;
-      }
+      },
     );
 
     // Dispatched when is pending. Sets the state to isLoading and resets isDone and hasError.
@@ -90,7 +86,7 @@ const presentationSlice = createSlice({
         state[action.meta.arg.allowed].asyncStatus.isLoading = true;
         state[action.meta.arg.allowed].asyncStatus.hasError =
           initialState[action.meta.arg.allowed].asyncStatus.hasError;
-      }
+      },
     );
 
     // Dispatched when is rejected. Sets the state to hasError and resets isLoading and isDone.
@@ -102,14 +98,19 @@ const presentationSlice = createSlice({
         state[action.meta.arg.allowed].asyncStatus.isLoading =
           initialState[action.meta.arg.allowed].asyncStatus.isLoading;
         state[action.meta.arg.allowed].asyncStatus.hasError = {
-          status: true,
           error: action.error,
+          status: true,
         };
-      }
+      },
     );
 
     // Reset the attestation state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
+  },
+  initialState,
+  name: "presentation",
+  reducers: {
+    presentationReset: () => initialState,
   },
 });
 
@@ -132,7 +133,7 @@ const persistConfig: PersistConfig<PresentationState> = {
  */
 export const presentationReducer = persistReducer(
   persistConfig,
-  presentationSlice.reducer
+  presentationSlice.reducer,
 );
 
 /**

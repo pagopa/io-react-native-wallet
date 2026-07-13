@@ -1,7 +1,8 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import type { Out } from "../../../utils/misc";
-import type { IssuerConfig } from "./IssuerConfig";
 import type { AuthorizeAccessApi } from "./04-authorize-access";
+import type { IssuerConfig } from "./IssuerConfig";
 import type { CredentialFormat } from "./types";
 
 export interface ObtainCredentialApi {
@@ -32,11 +33,11 @@ export interface ObtainCredentialApi {
       credential_identifier?: string;
     },
     context: {
-      dPopCryptoContext: CryptoContext;
-      credentialCryptoContext: CryptoContext;
-      walletUnitAttestation?: string;
       appFetch?: GlobalFetch["fetch"];
-    }
+      credentialCryptoContext: CryptoContext;
+      dPopCryptoContext: CryptoContext;
+      walletUnitAttestation?: string;
+    },
   ): Promise<{
     credential: string;
     format: CredentialFormat;
@@ -59,10 +60,10 @@ export interface ObtainCredentialApi {
       credential_identifier: string;
     },
     context: {
-      dPopCryptoContext: CryptoContext;
-      credentialCryptoContexts: CryptoContext[];
-      walletUnitAttestation?: string;
       appFetch?: GlobalFetch["fetch"];
-    }
+      credentialCryptoContexts: CryptoContext[];
+      dPopCryptoContext: CryptoContext;
+      walletUnitAttestation?: string;
+    },
   ): Promise<{ credential: string; format: CredentialFormat }[]>;
 }

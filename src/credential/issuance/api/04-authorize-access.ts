@@ -1,4 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import type { IssuerConfig } from "./IssuerConfig";
 import type { TokenResponse } from "./types";
 
@@ -28,10 +29,10 @@ export interface AuthorizeAccessApi {
     redirectUri: string,
     codeVerifier: string,
     context: {
+      appFetch?: GlobalFetch["fetch"];
+      dPopCryptoContext: CryptoContext;
       walletInstanceAttestation: string;
       wiaCryptoContext: CryptoContext;
-      dPopCryptoContext: CryptoContext;
-      appFetch?: GlobalFetch["fetch"];
-    }
+    },
   ): Promise<{ accessToken: TokenResponse }>;
 }

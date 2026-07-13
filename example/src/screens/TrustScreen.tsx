@@ -1,64 +1,65 @@
+import { H3, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import { useAppDispatch, useAppSelector } from "../store/utils";
-import { selectTrustValidationState } from "../store/reducers/trustValidation";
-import { validateTrustChainThunk } from "../thunks/trustValidation";
+
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
-import { H3, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { getEnv } from "../utils/environment";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectTrustValidationState } from "../store/reducers/trustValidation";
+import { useAppDispatch, useAppSelector } from "../store/utils";
+import { validateTrustChainThunk } from "../thunks/trustValidation";
+import { getEnv } from "../utils/environment";
+
+interface BaseScenarioItem {
+  icon: TestScenarioProp["icon"];
+  id: string;
+  relyingPartyUrls: RelyingPartyUrls;
+  successMessage: string;
+  title: string;
+}
 
 interface RelyingPartyUrls {
   pre: string;
   prod: string;
 }
 
-type BaseScenarioItem = {
-  id: string;
-  title: string;
-  relyingPartyUrls: RelyingPartyUrls;
-  icon: TestScenarioProp["icon"];
-  successMessage: string;
-};
-
-interface ScenarioWithUrl {
-  id: string;
-  title: string;
-  relyingPartyUrls: string;
-  icon: TestScenarioProp["icon"];
-  successMessage: string;
+interface ScenarioData extends ScenarioWithUrl {
+  hasError: { error?: any; status: boolean };
+  isDone: boolean;
+  isLoading: boolean;
+  isPresent: boolean;
+  onPress: () => void;
 }
 
-interface ScenarioData extends ScenarioWithUrl {
-  onPress: () => void;
-  isLoading: boolean;
-  hasError: { status: boolean; error?: any };
-  isDone: boolean;
-  isPresent: boolean;
+interface ScenarioWithUrl {
+  icon: TestScenarioProp["icon"];
+  id: string;
+  relyingPartyUrls: string;
+  successMessage: string;
+  title: string;
 }
 
 export const TrustScreen = () => {
   const dispatch = useAppDispatch();
-  const { isValid, validatedChain, validationError, asyncStatus } =
+  const { asyncStatus, isValid, validatedChain, validationError } =
     useAppSelector(selectTrustValidationState);
   const env = useAppSelector(selectEnv);
   const {
-    WALLET_TA_BASE_URL,
-    WALLET_PID_PROVIDER_BASE_URL,
     WALLET_EAA_PROVIDER_BASE_URL,
+    WALLET_PID_PROVIDER_BASE_URL,
+    WALLET_TA_BASE_URL,
   } = getEnv(env);
   const itwVersion = useAppSelector(selectItwVersion);
 
-  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
+  const [activeScenarioId, setActiveScenarioId] = useState<null | string>(null);
   useDebugInfo({
     trustValidationState: {
+      activeScenarioId,
+      asyncStatus,
       isValid,
       validationError,
-      asyncStatus,
-      activeScenarioId,
     },
     validatedChain,
   });
@@ -70,99 +71,101 @@ export const TrustScreen = () => {
         validateTrustChainThunk({
           relyingPartyUrl,
           trustAnchorUrl: WALLET_TA_BASE_URL,
-        })
+        }),
       );
     },
-    [WALLET_TA_BASE_URL, dispatch]
+    [WALLET_TA_BASE_URL, dispatch],
   );
 
   // Add mock scenarios for testing purposes if needed
   const baseScenarioConfig = useMemo(
     (): BaseScenarioItem[] => [
       {
+        icon: "locked",
         id: "pagopa-wp",
-        title: "Validate Trust Chain (PagoPA-WP)",
         relyingPartyUrls: {
-          prod: "https://wallet.io.pagopa.it",
           pre: "https://foo11.blob.core.windows.net/foo",
+          prod: "https://wallet.io.pagopa.it",
         },
-        icon: "locked",
         successMessage: "Chain Valid",
+        title: "Validate Trust Chain (PagoPA-WP)",
       },
       {
+        icon: "locked",
         id: "pagopa-rp",
-        title: "Validate Trust Chain (PagoPA-RP)",
         relyingPartyUrls: {
-          prod: "https://foo11.blob.core.windows.net/rp-test",
           pre: "https://foo11.blob.core.windows.net/rp-test",
+          prod: "https://foo11.blob.core.windows.net/rp-test",
         },
-        icon: "locked",
         successMessage: "Chain Valid",
+        title: "Validate Trust Chain (PagoPA-RP)",
       },
       {
+        icon: "locked",
         id: "reg-toscana-rp",
-        title: "Validate Trust Chain (Reg-Toscana-RP)",
         relyingPartyUrls: {
-          prod: "https://auth.regione.toscana.it/r_toscan",
           pre: "https://lab.auth.regione.toscana.it/r_toscan",
+          prod: "https://auth.regione.toscana.it/r_toscan",
         },
-        icon: "locked",
         successMessage: "Chain Valid",
+        title: "Validate Trust Chain (Reg-Toscana-RP)",
       },
       {
+        icon: "locked",
         id: "ipzs-iss-pid",
-        title: "Validate Trust Chain (IPZS-ISS-PID)",
         relyingPartyUrls: {
-          prod: WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
           pre: WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
+          prod: WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
         },
-        icon: "locked",
         successMessage: "Chain Valid",
+        title: "Validate Trust Chain (IPZS-ISS-PID)",
       },
       {
-        id: "ipzs-iss-eaa",
-        title: "Validate Trust Chain (IPZS-ISS-EAA)",
-        relyingPartyUrls: {
-          prod: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
-          pre: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
-        },
         icon: "locked",
+        id: "ipzs-iss-eaa",
+        relyingPartyUrls: {
+          pre: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
+          prod: WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion),
+        },
         successMessage: "Chain Valid",
+        title: "Validate Trust Chain (IPZS-ISS-EAA)",
       },
     ],
-    [WALLET_PID_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL, itwVersion]
+    [WALLET_PID_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL, itwVersion],
   );
 
-  const scenariosWithUrls = useMemo((): ScenarioWithUrl[] => {
-    return baseScenarioConfig.map((scenario) => ({
-      id: scenario.id,
-      title: scenario.title,
-      icon: scenario.icon,
-      successMessage: scenario.successMessage,
-      relyingPartyUrls:
-        env === "pre"
-          ? scenario.relyingPartyUrls.pre
-          : scenario.relyingPartyUrls.prod,
-    }));
-  }, [baseScenarioConfig, env]);
+  const scenariosWithUrls = useMemo(
+    (): ScenarioWithUrl[] =>
+      baseScenarioConfig.map((scenario) => ({
+        icon: scenario.icon,
+        id: scenario.id,
+        relyingPartyUrls:
+          env === "pre"
+            ? scenario.relyingPartyUrls.pre
+            : scenario.relyingPartyUrls.prod,
+        successMessage: scenario.successMessage,
+        title: scenario.title,
+      })),
+    [baseScenarioConfig, env],
+  );
 
-  const scenarios: Array<ScenarioData> = useMemo(
+  const scenarios: ScenarioData[] = useMemo(
     () =>
       scenariosWithUrls.map((scenario) => {
         const isActive = scenario.id === activeScenarioId;
         return {
           ...scenario,
-          onPress: () => handleValidate(scenario.relyingPartyUrls, scenario.id),
-          isLoading: isActive && asyncStatus.isLoading,
           hasError:
             isActive && asyncStatus.hasError.status
               ? asyncStatus.hasError
               : { status: false },
           isDone: isActive && asyncStatus.isDone && isValid === true,
+          isLoading: isActive && asyncStatus.isLoading,
           isPresent: isActive && asyncStatus.isDone && isValid === true,
+          onPress: () => handleValidate(scenario.relyingPartyUrls, scenario.id),
         };
       }),
-    [scenariosWithUrls, asyncStatus, isValid, activeScenarioId, handleValidate]
+    [scenariosWithUrls, asyncStatus, isValid, activeScenarioId, handleValidate],
   );
 
   const showGlobalFeedbackForActiveScenario =
@@ -176,14 +179,14 @@ export const TrustScreen = () => {
         renderItem={({ item }) => (
           <>
             <TestScenario
-              onPress={item.onPress}
-              title={item.title}
-              isLoading={item.isLoading}
               hasError={item.hasError}
-              isDone={item.isDone}
               icon={item.icon}
+              isDone={item.isDone}
+              isLoading={item.isLoading}
               isPresent={item.isPresent}
+              onPress={item.onPress}
               successMessage={item.successMessage}
+              title={item.title}
             />
             <VSpacer />
           </>
@@ -200,7 +203,7 @@ export const TrustScreen = () => {
               keyExtractor={(token, index) =>
                 `token-${index}-${token.header.kid || index}`
               }
-              renderItem={({ item, index }) => (
+              renderItem={({ index, item }) => (
                 <View style={styles.tokenItem}>
                   <Text style={styles.tokenText}>Token {index + 1}:</Text>
                   <Text style={styles.tokenTextSmall}>
@@ -227,10 +230,10 @@ const styles = StyleSheet.create({
     padding: IOVisualCostants.appMarginDefault,
   },
   tokenItem: {
-    marginTop: 8,
-    padding: 8,
     backgroundColor: "#f0f0f0",
     borderRadius: 4,
+    marginTop: 8,
+    padding: 8,
   },
   tokenText: {
     fontWeight: "bold",

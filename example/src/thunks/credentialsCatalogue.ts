@@ -1,11 +1,12 @@
 import {
-  IoWallet,
   type CredentialsCatalogue,
+  IoWallet,
 } from "@pagopa/io-react-native-wallet";
+
+import { selectCredentialsCatalogue } from "../store/reducers/credentialsCatalogue";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { getEnv } from "../utils/environment";
 import { createAppAsyncThunk } from "./utils";
-import { selectCredentialsCatalogue } from "../store/reducers/credentialsCatalogue";
 
 export const getCredentialsCatalogueThunk = createAppAsyncThunk<
   CredentialsCatalogue.DigitalCredentialsCatalogue,
@@ -34,16 +35,16 @@ export const getCredentialsCatalogueTranslationsThunk = createAppAsyncThunk<
 
   if (!wallet.CredentialsCatalogue.fetchTranslations) {
     throw new Error(
-      "fetchTranslations is not supported by the current wallet version"
+      "fetchTranslations is not supported by the current wallet version",
     );
   }
 
   return wallet.CredentialsCatalogue.fetchTranslations(
     {
-      catalogue: catalogue.localization,
       authenticSources: catalogue.as_localization,
+      catalogue: catalogue.localization,
       taxonomy: catalogue.taxonomy?.localization,
     },
-    ["it"]
+    ["it"],
   );
 });

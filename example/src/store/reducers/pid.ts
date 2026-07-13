@@ -1,25 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { persistReducer, type PersistConfig } from "redux-persist";
-import {
-  continuePidFlowThunk,
-  preparePidFlowParamsThunk,
-} from "../../thunks/pid";
+import { type PersistConfig, persistReducer } from "redux-persist";
 
-import { createSecureStorage } from "../storage";
+import type { PreparePidFlowParamsThunkOutput } from "../../thunks/pid";
 import type {
   AsyncStatus,
   PidAuthMethods,
   PidResult,
   RootState,
 } from "../types";
-import { asyncStatusInitial } from "../utils";
-import { instanceReset } from "./instance";
-import { sessionReset } from "./session";
-import type { PreparePidFlowParamsThunkOutput } from "../../thunks/pid";
+
 import {
   initPidMrtdChallengeThunk,
   validatePidMrtdChallengeThunk,
 } from "../../thunks/mrtd";
+import {
+  continuePidFlowThunk,
+  preparePidFlowParamsThunk,
+} from "../../thunks/pid";
+import { createSecureStorage } from "../storage";
+import { asyncStatusInitial } from "../utils";
+import { instanceReset } from "./instance";
+import { sessionReset } from "./session";
 
 /**
  * State type definition for the PID slice.
@@ -28,19 +29,19 @@ import {
  * - pidAsyncStatus: the state of the async operation to get the PID for each supported authentication method, namely spid, CiE L2 and CiE L3
  * - pidFlowParams: the parameters for the PID flow
  */
-type PidState = {
+interface PidState {
   pid: PidResult | undefined;
   pidAsyncStatus: Record<PidAuthMethods, AsyncStatus>;
   pidFlowParams: PreparePidFlowParamsThunkOutput | undefined;
-};
+}
 
 // Initial state for the pid slice
 const initialState: PidState = {
   pid: undefined,
   pidAsyncStatus: {
-    spid: asyncStatusInitial,
     cieL2: asyncStatusInitial,
     cieL3: asyncStatusInitial,
+    spid: asyncStatusInitial,
   },
   pidFlowParams: undefined,
 };
@@ -49,16 +50,6 @@ const initialState: PidState = {
  * Redux slice for the pid state. It contains the pid, the pid async operation state and the CiE L3 flow params.
  */
 const pidSlice = createSlice({
-  name: "pid",
-  initialState,
-  reducers: {
-    pidReset: () => initialState,
-    pidFlowReset: (state) => ({
-      ...state,
-      pidFlowParams: initialState.pidFlowParams,
-      pidAsyncStatus: initialState.pidAsyncStatus,
-    }),
-  },
   extraReducers: (builder) => {
     /**
      * PID flow Params Thunk
@@ -95,7 +86,7 @@ const pidSlice = createSlice({
       state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
+        hasError: { error: action.error, status: true },
       };
     });
 
@@ -139,7 +130,7 @@ const pidSlice = createSlice({
       state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
+        hasError: { error: action.error, status: true },
       };
     });
 
@@ -157,7 +148,7 @@ const pidSlice = createSlice({
       state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
+        hasError: { error: action.error, status: true },
       };
     });
     builder.addCase(validatePidMrtdChallengeThunk.rejected, (state, action) => {
@@ -167,9 +158,19 @@ const pidSlice = createSlice({
       state.pidFlowParams = initialState.pidFlowParams;
       state.pidAsyncStatus[authMethod] = {
         ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
+        hasError: { error: action.error, status: true },
       };
     });
+  },
+  initialState,
+  name: "pid",
+  reducers: {
+    pidFlowReset: (state) => ({
+      ...state,
+      pidAsyncStatus: initialState.pidAsyncStatus,
+      pidFlowParams: initialState.pidFlowParams,
+    }),
+    pidReset: () => initialState,
   },
 });
 
@@ -214,6 +215,5 @@ export const selectPidAsyncStatus =
  * @param state - The root state of the Redux store
  * @returns the CiE L3 flow params
  */
-export const selectPidFlowParams = (state: RootState) => {
-  return state.pid.pidFlowParams;
-};
+export const selectPidFlowParams = (state: RootState) =>
+  state.pid.pidFlowParams;

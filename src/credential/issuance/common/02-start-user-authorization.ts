@@ -1,9 +1,10 @@
-import { IoWalletError } from "../../../utils/errors";
-import { LogLevel, Logger } from "../../../utils/logging";
-import { AuthorizationDetail } from "../../../utils/par";
 import type { IssuerConfig } from "../api";
 
-type ResponseMode = "query" | "form_post.jwt";
+import { IoWalletError } from "../../../utils/errors";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { AuthorizationDetail } from "../../../utils/par";
+
+type ResponseMode = "form_post.jwt" | "query";
 
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
@@ -14,7 +15,7 @@ type ResponseMode = "query" | "form_post.jwt";
  */
 export const selectCredentialDefinition = (
   issuerConf: IssuerConfig,
-  credentialId: string
+  credentialId: string,
 ): AuthorizationDetail => {
   const credential_configurations_supported =
     issuerConf.credential_configurations_supported;
@@ -29,7 +30,7 @@ export const selectCredentialDefinition = (
   if (!result) {
     Logger.log(
       LogLevel.ERROR,
-      `Requested credential ${credentialId} is not supported by the issuer according to its configuration ${JSON.stringify(credential_configurations_supported)}`
+      `Requested credential ${credentialId} is not supported by the issuer according to its configuration ${JSON.stringify(credential_configurations_supported)}`,
     );
     throw new IoWalletError(`No credential support the type '${credentialId}'`);
   }
@@ -45,7 +46,7 @@ export const selectCredentialDefinition = (
  */
 export const selectResponseMode = (
   issuerConf: IssuerConfig,
-  credentialIds: string[]
+  credentialIds: string[],
 ): ResponseMode => {
   const responseModeSet = new Set<ResponseMode>();
 
@@ -53,17 +54,17 @@ export const selectResponseMode = (
     responseModeSet.add(
       credentialId.match(/PersonIdentificationData/i)
         ? "query"
-        : "form_post.jwt"
+        : "form_post.jwt",
     );
   }
 
   if (responseModeSet.size !== 1) {
     Logger.log(
       LogLevel.ERROR,
-      `${credentialIds} have incompatible response_mode: ${[...responseModeSet.values()]}`
+      `${credentialIds} have incompatible response_mode: ${[...responseModeSet.values()]}`,
     );
     throw new IoWalletError(
-      "Requested credentials have incompatible response_mode and cannot be requested with the same PAR request"
+      "Requested credentials have incompatible response_mode and cannot be requested with the same PAR request",
     );
   }
 
@@ -71,17 +72,17 @@ export const selectResponseMode = (
 
   Logger.log(
     LogLevel.DEBUG,
-    `Selected response mode ${responseMode} for credential IDs ${credentialIds}`
+    `Selected response mode ${responseMode} for credential IDs ${credentialIds}`,
   );
 
   const responseModeSupported = issuerConf.response_modes_supported;
   if (responseModeSupported && !responseModeSupported.includes(responseMode!)) {
     Logger.log(
       LogLevel.ERROR,
-      `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`
+      `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`,
     );
     throw new IoWalletError(
-      `No response mode support for IDs '${credentialIds}'`
+      `No response mode support for IDs '${credentialIds}'`,
     );
   }
 

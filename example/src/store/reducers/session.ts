@@ -1,10 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { persistReducer, type PersistConfig } from "redux-persist";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { type PersistConfig, persistReducer } from "redux-persist";
+
 import type { RootState } from "../types";
 
 // State type definition for the session slice
-type SessionState = { ioAuthToken: string | undefined };
+interface SessionState {
+  ioAuthToken: string | undefined;
+}
 
 // Initial state for the session slice
 const initialState: SessionState = { ioAuthToken: undefined };
@@ -13,22 +16,22 @@ const initialState: SessionState = { ioAuthToken: undefined };
  * Redux slice for the session state. It contains the IO auth token.
  */
 export const sessionSlice = createSlice({
-  name: "session",
   initialState,
+  name: "session",
   reducers: {
+    // Resets the session state when logging out
+    sessionReset: () => initialState,
     // Sets the IO auth token
     sessionSet: (state, action: PayloadAction<string>) => {
       state.ioAuthToken = action.payload;
     },
-    // Resets the session state when logging out
-    sessionReset: () => initialState,
   },
 });
 
 /**
  * Exports the actions for the session slice.
  */
-export const { sessionSet, sessionReset } = sessionSlice.actions;
+export const { sessionReset, sessionSet } = sessionSlice.actions;
 
 /**
  * Redux persist configuration for the session slice.
@@ -44,7 +47,7 @@ const persistConfig: PersistConfig<SessionState> = {
  */
 export const sessionReducer = persistReducer(
   persistConfig,
-  sessionSlice.reducer
+  sessionSlice.reducer,
 );
 
 /**

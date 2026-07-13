@@ -1,7 +1,9 @@
 import { verifyMrtdChallenge } from "@pagopa/io-wallet-oauth2";
-import { IoWalletError } from "../../../utils/errors";
-import { createVerifyJwtFromJwks } from "../../../utils/callbacks";
+
 import type { MRTDPoPApi } from "../api/mrtd-pop";
+
+import { createVerifyJwtFromJwks } from "../../../utils/callbacks";
+import { IoWalletError } from "../../../utils/errors";
 
 export const verifyAndParseChallengeInfo: MRTDPoPApi["verifyAndParseChallengeInfo"] =
   async (issuerConf, challengeInfoJwt, { wiaCryptoContext }) => {
@@ -9,16 +11,16 @@ export const verifyAndParseChallengeInfo: MRTDPoPApi["verifyAndParseChallengeInf
 
     if (!clientId) {
       throw new IoWalletError(
-        "Could not extract client_id from Wallet Attestation"
+        "Could not extract client_id from Wallet Attestation",
       );
     }
 
     const verified = await verifyMrtdChallenge({
-      challengeJwt: challengeInfoJwt,
-      clientId,
       callbacks: {
         verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
       },
+      challengeJwt: challengeInfoJwt,
+      clientId,
     });
 
     return verified.payload;

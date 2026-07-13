@@ -1,8 +1,9 @@
+import type { IssuanceApi } from "../api";
+
+import { IoWalletError } from "../../../utils/errors";
+import { Logger, LogLevel } from "../../../utils/logging";
 import { generateRandomAlphaNumericString } from "../../../utils/misc";
 import { makeParRequest } from "../../../utils/par";
-import { LogLevel, Logger } from "../../../utils/logging";
-import { IoWalletError } from "../../../utils/errors";
-import type { IssuanceApi } from "../api";
 import {
   selectCredentialDefinition,
   selectResponseMode,
@@ -11,10 +12,10 @@ import {
 export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
   async (issuerConf, credentialIds, proof, ctx) => {
     const {
-      wiaCryptoContext,
-      walletInstanceAttestation,
-      redirectUri,
       appFetch = fetch,
+      redirectUri,
+      walletInstanceAttestation,
+      wiaCryptoContext,
     } = ctx;
 
     const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
@@ -22,7 +23,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
     if (!clientId) {
       Logger.log(
         LogLevel.ERROR,
-        `Public key associated with kid ${clientId} not found in the device`
+        `Public key associated with kid ${clientId} not found in the device`,
       );
       throw new IoWalletError("No public key found");
     }
@@ -30,10 +31,10 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
     const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
     const aud = issuerConf.credential_issuer;
     const responseMode = selectResponseMode(issuerConf, credentialIds);
-    const getPar = makeParRequest({ wiaCryptoContext, appFetch });
+    const getPar = makeParRequest({ appFetch, wiaCryptoContext });
 
     const credentialDefinition = credentialIds.map((c) =>
-      selectCredentialDefinition(issuerConf, c)
+      selectCredentialDefinition(issuerConf, c),
     );
 
     if (proof.proofType === "mrtd-pop") {
@@ -44,10 +45,10 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
        * See https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-issuance-endpoint.html#pushed-authorization-request-endpoint
        */
       credentialDefinition.push({
-        type: "it_l2+document_proof",
-        idphinting: proof.idpHinting,
         challenge_method: "mrtd+ias",
         challenge_redirect_uri: redirectUri,
+        idphinting: proof.idpHinting,
+        type: "it_l2+document_proof",
       });
     }
 
@@ -56,19 +57,19 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       walletInstanceAttestation,
       {
         aud,
+        authorizationDetails: credentialDefinition,
         clientId,
         codeVerifier,
         redirectUri,
         responseMode,
-        authorizationDetails: credentialDefinition,
-      }
+      },
     );
 
     return {
-      issuerRequestUri,
       clientId,
       codeVerifier,
       credentialDefinition,
+      issuerRequestUri,
       responseMode,
     };
   };

@@ -1,5 +1,6 @@
-import { fetchTranslations } from "../fetch-translations";
 import type { LocalizationInfo } from "../../api";
+
+import { fetchTranslations } from "../fetch-translations";
 
 const catalogueLocalization: LocalizationInfo = {
   available_locales: ["it", "en"],
@@ -23,39 +24,39 @@ const taxonomyLocalization: LocalizationInfo = {
 };
 
 const catalogueItBundle: Record<string, string> = {
-  "mDL.name": "Patente di Guida",
   "mDL.issuer.name": "Emittente Esempio",
+  "mDL.name": "Patente di Guida",
   "shared.key": "catalogue value",
 };
 
 const catalogueEnBundle: Record<string, string> = {
-  "mDL.name": "Driving Licence",
   "mDL.issuer.name": "Example Issuer",
+  "mDL.name": "Driving Licence",
   "shared.key": "catalogue value en",
 };
 
 const asItBundle: Record<string, string> = {
-  "as1.name": "Ministero Esempio",
   "as1.dataset1.origin": "Origine Dati",
+  "as1.name": "Ministero Esempio",
   "shared.key": "as value",
 };
 
 const asEnBundle: Record<string, string> = {
-  "as1.name": "Example Ministry",
   "as1.dataset1.origin": "Data Origin",
+  "as1.name": "Example Ministry",
   "shared.key": "as value en",
 };
 
 const taxonomyItBundle: Record<string, string> = {
-  "taxonomy.name": "Tassonomia IT-Wallet",
   "domain.identity.name": "Identità",
   "purpose.person_identification.name": "Identificazione Persona",
+  "taxonomy.name": "Tassonomia IT-Wallet",
 };
 
 const taxonomyEnBundle: Record<string, string> = {
-  "taxonomy.name": "IT-Wallet Taxonomy",
   "domain.identity.name": "Identity",
   "purpose.person_identification.name": "Person Identification",
+  "taxonomy.name": "IT-Wallet Taxonomy",
 };
 
 const makeFetch =
@@ -65,59 +66,59 @@ const makeFetch =
     const bundle = bundles[url];
     if (!bundle) {
       return Promise.resolve({
-        status: 404,
         headers: { get: () => null },
         json: () => Promise.resolve(null),
+        status: 404,
         text: () => Promise.resolve(""),
       } as unknown as Response);
     }
     return Promise.resolve({
-      status: 200,
       headers: { get: () => "application/json" },
       json: () => Promise.resolve(bundle),
+      status: 200,
       text: () => Promise.resolve(JSON.stringify(bundle)),
     } as unknown as Response);
   };
 
 describe("fetchTranslations", () => {
   const bundleMap: Record<string, Record<string, string>> = {
-    "https://registry.example.it/.well-known/credential-catalog/it.json":
-      catalogueItBundle,
-    "https://registry.example.it/.well-known/credential-catalog/en.json":
-      catalogueEnBundle,
-    "https://registry.example.it/.well-known/authentic-sources/it.json":
-      asItBundle,
     "https://registry.example.it/.well-known/authentic-sources/en.json":
       asEnBundle,
-    "https://registry.example.it/.well-known/l10n/taxonomy/it.json":
-      taxonomyItBundle,
+    "https://registry.example.it/.well-known/authentic-sources/it.json":
+      asItBundle,
+    "https://registry.example.it/.well-known/credential-catalog/en.json":
+      catalogueEnBundle,
+    "https://registry.example.it/.well-known/credential-catalog/it.json":
+      catalogueItBundle,
     "https://registry.example.it/.well-known/l10n/taxonomy/en.json":
       taxonomyEnBundle,
+    "https://registry.example.it/.well-known/l10n/taxonomy/it.json":
+      taxonomyItBundle,
   };
 
   it("returns merged translations for each requested locale", async () => {
     const result = await fetchTranslations(
-      { catalogue: catalogueLocalization, authenticSources: asLocalization },
+      { authenticSources: asLocalization, catalogue: catalogueLocalization },
       ["it", "en"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     expect(Object.keys(result)).toEqual(expect.arrayContaining(["it", "en"]));
     expect(result.it).toMatchObject({
-      "mDL.name": "Patente di Guida",
       "as1.name": "Ministero Esempio",
+      "mDL.name": "Patente di Guida",
     });
     expect(result.en).toMatchObject({
-      "mDL.name": "Driving Licence",
       "as1.name": "Example Ministry",
+      "mDL.name": "Driving Licence",
     });
   });
 
   it("authentic-sources keys override catalogue keys on conflict", async () => {
     const result = await fetchTranslations(
-      { catalogue: catalogueLocalization, authenticSources: asLocalization },
+      { authenticSources: asLocalization, catalogue: catalogueLocalization },
       ["it"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     expect(result.it!["shared.key"]).toBe("as value");
@@ -130,9 +131,9 @@ describe("fetchTranslations", () => {
     };
 
     const result = await fetchTranslations(
-      { catalogue: itOnlyLocalization, authenticSources: asLocalization },
+      { authenticSources: asLocalization, catalogue: itOnlyLocalization },
       ["it", "en"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     // "en" is not in catalogue available_locales but IS in AS → still present (from AS only)
@@ -157,12 +158,12 @@ describe("fetchTranslations", () => {
 
     const result = await fetchTranslations(
       {
-        catalogue: itOnlyLocalization,
         authenticSources: itOnlyAsLocalization,
+        catalogue: itOnlyLocalization,
         taxonomy: itOnlyTaxonomyLocalization,
       },
       ["it", "en"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     expect(result).toHaveProperty("it");
@@ -173,7 +174,7 @@ describe("fetchTranslations", () => {
     const result = await fetchTranslations(
       { catalogue: catalogueLocalization },
       ["it"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     expect(result.it).toMatchObject({ "mDL.name": "Patente di Guida" });
@@ -184,7 +185,7 @@ describe("fetchTranslations", () => {
     const result = await fetchTranslations(
       { authenticSources: asLocalization },
       ["it"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     expect(result.it).toMatchObject({ "as1.name": "Ministero Esempio" });
@@ -202,20 +203,20 @@ describe("fetchTranslations", () => {
   it("includes taxonomy translations when taxonomy localization is provided", async () => {
     const result = await fetchTranslations(
       {
-        catalogue: catalogueLocalization,
         authenticSources: asLocalization,
+        catalogue: catalogueLocalization,
         taxonomy: taxonomyLocalization,
       },
       ["it"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     expect(result.it).toMatchObject({
-      "mDL.name": "Patente di Guida",
       "as1.name": "Ministero Esempio",
-      "taxonomy.name": "Tassonomia IT-Wallet",
       "domain.identity.name": "Identità",
+      "mDL.name": "Patente di Guida",
       "purpose.person_identification.name": "Identificazione Persona",
+      "taxonomy.name": "Tassonomia IT-Wallet",
     });
   });
 
@@ -223,16 +224,16 @@ describe("fetchTranslations", () => {
     const result = await fetchTranslations(
       { taxonomy: taxonomyLocalization },
       ["it", "en"],
-      { appFetch: makeFetch(bundleMap) }
+      { appFetch: makeFetch(bundleMap) },
     );
 
     expect(result.it).toMatchObject({
-      "taxonomy.name": "Tassonomia IT-Wallet",
       "domain.identity.name": "Identità",
+      "taxonomy.name": "Tassonomia IT-Wallet",
     });
     expect(result.en).toMatchObject({
-      "taxonomy.name": "IT-Wallet Taxonomy",
       "domain.identity.name": "Identity",
+      "taxonomy.name": "IT-Wallet Taxonomy",
     });
     expect(result.it).not.toHaveProperty("mDL.name");
     expect(result.it).not.toHaveProperty("as1.name");
@@ -267,7 +268,7 @@ describe("fetchTranslations", () => {
         taxonomy: taxonomyWithConflict,
       },
       ["it"],
-      { appFetch: makeFetch(conflictBundleMap) }
+      { appFetch: makeFetch(conflictBundleMap) },
     );
 
     expect(result.it!["conflict.key"]).toBe("from taxonomy");

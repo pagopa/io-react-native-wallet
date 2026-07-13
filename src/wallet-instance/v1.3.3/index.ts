@@ -1,14 +1,15 @@
 import type { WalletInstanceApi } from "../api";
+
 import {
   createWalletInstance,
-  revokeWalletInstance,
-  getWalletInstanceStatus,
   getCurrentWalletInstanceStatus,
+  getWalletInstanceStatus,
+  revokeWalletInstance,
 } from "../common/wallet-instance";
 
 export const WalletInstance: WalletInstanceApi = {
   createWalletInstance,
-  revokeWalletInstance,
-  getWalletInstanceStatus,
   getCurrentWalletInstanceStatus,
+  getWalletInstanceStatus,
+  revokeWalletInstance,
 };

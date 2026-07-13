@@ -5,24 +5,25 @@ import {
   useIOToast,
 } from "@pagopa/io-app-design-system";
 import React, { useCallback, useEffect, useState } from "react";
+
 import type { AsyncStatus } from "../store/types";
 
 export type TestScenarioProp = {
-  title: string;
-  onPress: () => void;
   icon: IOIcons;
   isPresent?: boolean;
+  onPress: () => void;
   successMessage?: string;
+  title: string;
 } & AsyncStatus;
 
 export default function TestScenario({
-  title,
-  onPress,
-  isLoading,
   hasError,
   icon,
-  successMessage = "OBTAINED",
+  isLoading,
   isPresent = false,
+  onPress,
+  successMessage = "OBTAINED",
+  title,
 }: TestScenarioProp) {
   const [hasLoaded, setHasLoaded] = useState(false); // This in needed to avoid the error toast to be shown on the first render
   const toast = useIOToast();
@@ -52,11 +53,11 @@ export default function TestScenario({
 
   return (
     <ModuleCredential
-      label={title}
-      icon={icon}
-      onPress={onPress}
-      isFetching={isLoading}
       badge={getBadge()}
+      icon={icon}
+      isFetching={isLoading}
+      label={title}
+      onPress={onPress}
     />
   );
 }

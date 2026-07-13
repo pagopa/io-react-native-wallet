@@ -1,9 +1,10 @@
 // __tests__/evaluateRelyingPartyTrust.test.ts
 
+import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
+
 import { evaluateRelyingPartyTrust } from "../02-evaluate-rp-trust";
 import { getRelyingPartyEntityConfiguration } from "../../../../trust/v1.0.0/entities";
 import { RelyingPartyEntityConfiguration } from "../../../../trust/v1.0.0/types";
-import type { RelyingPartyConfig } from "../../api/RelyingPartyConfig";
 
 // Mock the getRelyingPartyEntityConfiguration module
 jest.mock("../../../../trust/v1.0.0/entities", () => ({
@@ -18,22 +19,22 @@ const mockedGetRelyingPartyEntityConfiguration =
 describe("evaluateRelyingPartyTrust", () => {
   const sampleRpUrl = "https://example.com/rp";
   const sampleMetadata = {
+    federation_entity: {
+      organization_name: "Example RP",
+    },
     // Populate with sample metadata as per RelyingPartyEntityConfiguration["payload"]["metadata"]
     openid_credential_verifier: {
       jwks: { keys: [] },
-    },
-    federation_entity: {
-      organization_name: "Example RP",
     },
     // ... other metadata fields
   };
 
   const mappedRpEntityConfiguration: RelyingPartyConfig = {
-    jwks: {
-      keys: [],
-    },
     federation_entity: {
       organization_name: "Example RP",
+    },
+    jwks: {
+      keys: [],
     },
     subject: sampleRpUrl,
   };
@@ -46,8 +47,8 @@ describe("evaluateRelyingPartyTrust", () => {
     // Arrange: Mock the getRelyingPartyEntityConfiguration to return a resolved promise
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
-        sub: sampleRpUrl,
         metadata: sampleMetadata,
+        sub: sampleRpUrl,
       },
     } as unknown as RelyingPartyEntityConfiguration);
 
@@ -59,7 +60,7 @@ describe("evaluateRelyingPartyTrust", () => {
       sampleRpUrl,
       {
         appFetch: expect.any(Function),
-      }
+      },
     );
 
     // Assert: Check that the result contains the expected metadata
@@ -72,8 +73,8 @@ describe("evaluateRelyingPartyTrust", () => {
 
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
-        sub: sampleRpUrl,
         metadata: sampleMetadata,
+        sub: sampleRpUrl,
       },
     } as unknown as RelyingPartyEntityConfiguration);
 
@@ -87,7 +88,7 @@ describe("evaluateRelyingPartyTrust", () => {
       sampleRpUrl,
       {
         appFetch: customFetch,
-      }
+      },
     );
 
     expect(result).toEqual({ rpConf: mappedRpEntityConfiguration });
@@ -100,7 +101,7 @@ describe("evaluateRelyingPartyTrust", () => {
 
     // Act & Assert: Expect the function to reject with the same error
     await expect(evaluateRelyingPartyTrust(sampleRpUrl)).rejects.toThrow(
-      "Failed to fetch RP configuration"
+      "Failed to fetch RP configuration",
     );
 
     // Assert: Ensure getRelyingPartyEntityConfiguration was called
@@ -108,7 +109,7 @@ describe("evaluateRelyingPartyTrust", () => {
       sampleRpUrl,
       {
         appFetch: expect.any(Function),
-      }
+      },
     );
   });
 
@@ -120,8 +121,8 @@ describe("evaluateRelyingPartyTrust", () => {
 
     mockedGetRelyingPartyEntityConfiguration.mockResolvedValue({
       payload: {
-        sub: sampleRpUrl,
         metadata: sampleMetadata,
+        sub: sampleRpUrl,
       },
     } as unknown as RelyingPartyEntityConfiguration);
 
@@ -132,7 +133,7 @@ describe("evaluateRelyingPartyTrust", () => {
       sampleRpUrl,
       {
         appFetch: global.fetch,
-      }
+      },
     );
 
     expect(result).toEqual({ rpConf: mappedRpEntityConfiguration });

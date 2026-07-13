@@ -1,7 +1,9 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
-import { Verification } from "../sd-jwt/types";
+
 import type { IssuanceApi } from "../credential/issuance";
 import type { Out } from "../utils/misc";
+
+import { Verification } from "../sd-jwt/types";
 import { MDOC_VERIFICATION_IDENTIFIER } from "./const";
 
 /**
@@ -23,10 +25,10 @@ export const getParsedCredentialClaimKey = (namespace: string, key: string) =>
 export const getVerificationFromParsedCredential = (
   parsedCredential: Out<
     IssuanceApi["verifyAndParseCredential"]
-  >["parsedCredential"]
+  >["parsedCredential"],
 ) => {
   const verificationKey = Object.keys(parsedCredential).find((key) =>
-    key.endsWith(MDOC_VERIFICATION_IDENTIFIER)
+    key.endsWith(MDOC_VERIFICATION_IDENTIFIER),
   );
   const verification = verificationKey
     ? parsedCredential[verificationKey]?.value
@@ -48,7 +50,7 @@ export const getVerification = async (token: string) => {
   const flattenedClaims = Object.values(issuerSigned.nameSpaces).flat();
 
   const verification = flattenedClaims?.find(
-    (x) => x.elementIdentifier === MDOC_VERIFICATION_IDENTIFIER
+    (x) => x.elementIdentifier === MDOC_VERIFICATION_IDENTIFIER,
   )?.elementValue;
 
   return verification ? Verification.parse(verification) : undefined;

@@ -15,6 +15,6 @@ export interface GetRequestObjectApi {
     context?: {
       appFetch?: GlobalFetch["fetch"];
       walletCapabilities?: RequestObjectWalletCapabilities;
-    }
+    },
   ): Promise<{ requestObjectEncodedJwt: string }>;
 }

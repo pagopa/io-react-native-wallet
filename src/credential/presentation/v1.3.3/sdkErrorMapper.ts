@@ -1,17 +1,19 @@
+import type { RelyingPartyResponseErrorCode } from "src/utils/error-codes";
+
 import { ValidationError as SdkValidationError } from "@openid4vc/utils";
+import { Oauth2JwtParseError as SdkOauth2JwtParseError } from "@pagopa/io-wallet-oauth2";
 import {
-  FetchAuthorizationResponseError as SdkFetchAuthorizationResponseError,
   CreateAuthorizationResponseError as SdkCreateAuthorizationResponseError,
+  FetchAuthorizationResponseError as SdkFetchAuthorizationResponseError,
 } from "@pagopa/io-wallet-oid4vp";
+import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
+
 import {
   RelyingPartyResponseError,
   RelyingPartyResponseErrorCodes,
   ResponseErrorBuilder,
 } from "../../../utils/errors";
-import { Oauth2JwtParseError as SdkOauth2JwtParseError } from "@pagopa/io-wallet-oauth2";
 import { InvalidRequestObjectError } from "../common/errors";
-import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
-import type { RelyingPartyResponseErrorCode } from "src/utils/error-codes";
 
 /**
  * Helper to create a generic RelyingPartyResponseError
@@ -19,7 +21,7 @@ import type { RelyingPartyResponseErrorCode } from "src/utils/error-codes";
 const toRelyingPartyResponseError = (
   message: string,
   statusCode: number,
-  code: RelyingPartyResponseErrorCode = RelyingPartyResponseErrorCodes.RelyingPartyGenericError
+  code: RelyingPartyResponseErrorCode = RelyingPartyResponseErrorCodes.RelyingPartyGenericError,
 ) =>
   new RelyingPartyResponseError({
     code,
@@ -46,13 +48,13 @@ export const mapSdkRequestObjectError = (err: unknown) => {
   if (err instanceof SdkValidationError) {
     throw new InvalidRequestObjectError(
       "The Request Object structure is invalid",
-      err.message
+      err.message,
     );
   }
 
   if (err instanceof SdkOauth2JwtParseError) {
     throw new InvalidRequestObjectError(
-      "The Request Object is not a valid JWT"
+      "The Request Object is not a valid JWT",
     );
   }
 

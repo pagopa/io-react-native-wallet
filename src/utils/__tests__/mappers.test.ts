@@ -1,9 +1,14 @@
 import * as z from "zod";
+
 import { createMapper, withMapper, withMapperAsync } from "../mappers";
 
 describe("createMapper", () => {
-  type Input = { value: string };
-  type Output = { mapped_value: string };
+  interface Input {
+    value: string;
+  }
+  interface Output {
+    mapped_value: string;
+  }
 
   const Input = z.object({ value: z.string() });
   const Output = z.object({ mapped_value: z.string() });
@@ -34,7 +39,7 @@ describe("createMapper", () => {
   it("maps I to O with output-only runtime validation (success)", () => {
     const mapper = createMapper<Input, Output>(
       (x) => ({ mapped_value: x.value }),
-      { outputSchema: Output }
+      { outputSchema: Output },
     );
     expect(mapper({ value: "A" })).toEqual({ mapped_value: "A" });
   });
@@ -43,7 +48,7 @@ describe("createMapper", () => {
     const mapper = createMapper<Input, Output>(
       // @ts-expect-error force wrong output type to trigger runtime validation
       (x) => ({ wrong_value: x.value }),
-      { outputSchema: Output }
+      { outputSchema: Output },
     );
     expect(() => mapper({ value: "A" })).toThrow();
   });
@@ -61,6 +66,6 @@ describe("withMapperAsync", () => {
   it("works correctly", async () => {
     const fn = async (input: number) => input * 2;
     const mapper = (input: number) => input.toFixed(2);
-    expect(await withMapperAsync(mapper, fn)(4)).toEqual("8.00");
+    await expect(withMapperAsync(mapper, fn)(4)).resolves.toEqual("8.00");
   });
 });

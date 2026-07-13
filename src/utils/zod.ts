@@ -6,16 +6,16 @@ import { z } from "zod";
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 
-type Literal = z.infer<typeof literalSchema>;
+type Json = Json[] | Literal | { [key: string]: Json };
 
-type Json = Literal | { [key: string]: Json } | Json[];
+type Literal = z.infer<typeof literalSchema>;
 
 const jsonSchema: z.ZodType<Json> = z.lazy(() =>
   z.union([
     literalSchema,
     z.array(jsonSchema),
     z.record(z.string(), jsonSchema),
-  ])
+  ]),
 );
 
 export const json = () => jsonSchema;

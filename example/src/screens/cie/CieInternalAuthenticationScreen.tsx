@@ -1,17 +1,20 @@
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import { H2 } from "@pagopa/io-app-design-system";
 import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
 import { type WebViewNavigation } from "react-native-webview";
 import { useSelector } from "react-redux";
+
+import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
 import { CiePinDialog } from "../../components/cie/CiePinDialog";
 import {
   CieWebView,
   type CieWebViewError,
 } from "../../components/cie/CieWebView";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
-import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { pidFlowReset } from "../../store/reducers/pid";
 import { useAppDispatch } from "../../store/utils";
 import { validatePidMrtdChallengeThunk } from "../../thunks/mrtd";
@@ -29,8 +32,8 @@ type ScreenProps = NativeStackScreenProps<
 >;
 
 export const CieInternalAuthenticationScreen = ({
-  route,
   navigation,
+  route,
 }: ScreenProps) => {
   const dispatch = useAppDispatch();
   const { challenge, redirectUri } = route.params;
@@ -43,19 +46,19 @@ export const CieInternalAuthenticationScreen = ({
   const status = useSelector(selectMrtdAsyncStatus);
 
   useDebugInfo({
+    callbackUrl,
     challenge,
     redirectUri,
-    callbackUrl,
     status,
   });
 
   const handleOnError = useCallback(
-    (error: NfcError | CieWebViewError) => {
+    (error: CieWebViewError | NfcError) => {
       navigation.goBack();
       dispatch(pidFlowReset());
       Alert.alert(`❌ Error`, `${JSON.stringify(error)}`);
     },
-    [navigation, dispatch]
+    [navigation, dispatch],
   );
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export const CieInternalAuthenticationScreen = ({
       CieManager.addListener("onEvent", (event) => {
         setText(
           "I'm reading the CIE. Do not remove it from the device\n" +
-            getProgressEmojis(event.progress)
+            getProgressEmojis(event.progress),
         );
       }),
       // Start listening for errors
@@ -77,19 +80,19 @@ export const CieInternalAuthenticationScreen = ({
         ({ mrtd_data, nis_data }) => {
           dispatch(
             validatePidMrtdChallengeThunk({
+              ias: {
+                challenge_signed: nis_data.signedChallenge,
+                ias_pk: nis_data.publicKey,
+                sod_ias: nis_data.sod,
+              },
               mrtd: {
                 dg1: mrtd_data.dg1,
                 dg11: mrtd_data.dg11,
                 sod_mrtd: mrtd_data.sod,
               },
-              ias: {
-                sod_ias: nis_data.sod,
-                challenge_signed: nis_data.signedChallenge,
-                ias_pk: nis_data.publicKey,
-              },
-            })
+            }),
           );
-        }
+        },
       ),
     ];
 
@@ -124,7 +127,7 @@ export const CieInternalAuthenticationScreen = ({
         dispatch(
           continuePidFlowThunk({
             authRedirectUrl: url,
-          })
+          }),
         );
         navigation.goBack();
       } catch (error) {
@@ -137,11 +140,11 @@ export const CieInternalAuthenticationScreen = ({
   return (
     <SafeAreaView>
       <CiePinDialog
-        type="CAN"
-        visible={isCanInputVisible}
+        onCancel={handleCanClose}
         onChangePin={setCan}
         onConfirm={handleCanConfirm}
-        onCancel={handleCanClose}
+        type="CAN"
+        visible={isCanInputVisible}
       />
       <View style={styles.content}>
         {text && <H2 style={styles.text}>{text}</H2>}
@@ -149,7 +152,6 @@ export const CieInternalAuthenticationScreen = ({
       {callbackUrl && (
         <View style={StyleSheet.absoluteFillObject}>
           <CieWebView
-            source={{ uri: callbackUrl }}
             onNavigationStateChange={handleNavigationStateChange}
             onWebViewError={handleOnError}
             originWhitelist={[
@@ -158,6 +160,7 @@ export const CieInternalAuthenticationScreen = ({
               "http://*",
               redirectUri,
             ]}
+            source={{ uri: callbackUrl }}
           />
         </View>
       )}
@@ -166,21 +169,21 @@ export const CieInternalAuthenticationScreen = ({
 };
 
 const styles = StyleSheet.create({
+  content: {
+    alignContent: "center",
+    alignItems: "center",
+    gap: 16,
+    height: "100%",
+  },
   progress: {
     ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
-  },
-  content: {
-    height: "100%",
-    alignItems: "center",
-    alignContent: "center",
-    gap: 16,
   },
   text: {
-    marginTop: 64,
-    marginHorizontal: 24,
-    textAlign: "center",
     backgroundColor: "red",
+    marginHorizontal: 24,
+    marginTop: 64,
+    textAlign: "center",
   },
 });

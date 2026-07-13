@@ -1,24 +1,25 @@
-import { Platform } from "react-native";
+import { generate } from "@pagopa/io-react-native-crypto";
+import { getAttestation } from "@pagopa/io-react-native-integrity";
 import {
   createCryptoContextFor,
   IoWallet,
+  type KeyAttestationCryptoContext,
   type WalletInstanceAttestation as Wia,
   type WalletUnitAttestation as Wua,
-  type KeyAttestationCryptoContext,
 } from "@pagopa/io-react-native-wallet";
-import { getAttestation } from "@pagopa/io-react-native-integrity";
-import { generate } from "@pagopa/io-react-native-crypto";
+import { Platform } from "react-native";
+
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectInstanceKeyTag } from "../store/reducers/instance";
+import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import { isAndroid } from "../utils/device";
+import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
-import { createAppAsyncThunk } from "./utils";
 import {
   ensureIntegrityServiceIsReady,
   getIntegrityContext,
 } from "../utils/integrity";
-import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
-import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
-import { getEnv } from "../utils/environment";
-import { isAndroid } from "../utils/device";
+import { createAppAsyncThunk } from "./utils";
 
 type GetAttestationThunkOutput = Awaited<
   ReturnType<Wia.WalletInstanceAttestationApi["getAttestation"]>
@@ -44,7 +45,7 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
 
   // Get env URLs
   const env = selectEnv(getState());
-  const { WALLET_PROVIDER_BASE_URL, GOOGLE_CLOUD_PROJECT_NUMBER } = getEnv(env);
+  const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } = getEnv(env);
   const googleCloudProjectNumber = isAndroid
     ? GOOGLE_CLOUD_PROJECT_NUMBER
     : undefined;
@@ -64,17 +65,17 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
         walletSolutionVersion: "3.26.0",
       },
       {
-        wiaCryptoContext,
-        integrityContext,
         appFetch,
-      }
+        integrityContext,
+        wiaCryptoContext,
+      },
     );
   return issuingAttestation;
 });
 
-type GetWalletUnitAttestationThunkInput = {
+interface GetWalletUnitAttestationThunkInput {
   keyTags: string[];
-};
+}
 type GetWalletUnitAttestationThunkOutput = Awaited<
   ReturnType<Wua.WalletUnitAttestationSupportedApi["getAttestation"]>
 >;
@@ -87,7 +88,7 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
 
   if (!wallet.WalletUnitAttestation.isSupported) {
     throw new Error(
-      `Wallet Unit Attestation is not supported in v${itwVersion}`
+      `Wallet Unit Attestation is not supported in v${itwVersion}`,
     );
   }
 
@@ -100,7 +101,7 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
 
   // Get env URLs
   const env = selectEnv(getState());
-  const { WALLET_PROVIDER_BASE_URL, GOOGLE_CLOUD_PROJECT_NUMBER } = getEnv(env);
+  const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } = getEnv(env);
   const googleCloudProjectNumber = isAndroid
     ? GOOGLE_CLOUD_PROJECT_NUMBER
     : undefined;
@@ -113,30 +114,30 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
       walletSolutionVersion: "3.26.0",
     },
     {
+      appFetch,
       integrityContext,
       keysToAttest: keyTags.map(createKeyAttestationCryptoContextFor),
-      appFetch,
-    }
+    },
   );
 });
 
 const createKeyAttestationCryptoContextFor = (
-  keyTag: string
+  keyTag: string,
 ): KeyAttestationCryptoContext => ({
   ...createCryptoContextFor(keyTag),
   generateKeyWithAttestation(challenge) {
     return Platform.select({
       android: async () => {
         const attestation = await getAttestation(challenge, keyTag);
-        return { success: true, attestation };
+        return { attestation, success: true };
+      },
+      default: () => {
+        throw new Error("Unsupported platform");
       },
       // No key attestation on iOS, only key pair creation
       ios: async () => {
         await generate(keyTag);
         return { success: true };
-      },
-      default: () => {
-        throw new Error("Unsupported platform");
       },
     })();
   },

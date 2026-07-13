@@ -1,4 +1,5 @@
 const path = require("path");
+
 const pak = require("../package.json");
 
 const dependencies = {
@@ -8,6 +9,7 @@ const dependencies = {
 };
 
 module.exports = {
+  assets: ["./assets/fonts"],
   dependencies: {
     ...dependencies,
     "@pagopa/react-native-cie": {
@@ -16,5 +18,4 @@ module.exports = {
       },
     },
   },
-  assets: ["./assets/fonts"],
 };

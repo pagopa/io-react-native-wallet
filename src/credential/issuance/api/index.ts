@@ -7,16 +7,16 @@ import { type VerifyAndParseCredentialApi } from "./06-verify-and-parse-credenti
 import { type MRTDPoPApi } from "./mrtd-pop";
 
 export interface IssuanceApi
-  extends EvaluateIssuerTrustApi,
-    StartUserAuthorizationApi,
+  extends AuthorizeAccessApi,
     CompleteUserAuthorizationApi,
-    AuthorizeAccessApi,
+    EvaluateIssuerTrustApi,
     ObtainCredentialApi,
+    StartUserAuthorizationApi,
     VerifyAndParseCredentialApi {
   MRTDPoP: MRTDPoPApi;
 }
 
-export type { IssuerConfig } from "./IssuerConfig";
 export type { EvaluatedDcqlQuery } from "./03-complete-user-authorization";
+export type { IssuerConfig } from "./IssuerConfig";
 export type * as MRTDPoP from "./mrtd-pop";
 export type * from "./types";

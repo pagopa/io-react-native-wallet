@@ -1,32 +1,34 @@
 import { ModuleSummary } from "@pagopa/io-app-design-system";
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert, SafeAreaView, StyleSheet } from "react-native";
 import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
 import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
-import { useDebugInfo } from "../hooks/useDebugInfo";
-import { useAppSelector } from "../store/utils";
-import { selectCredential } from "../store/reducers/credential";
+import { addPadding } from "@pagopa/io-react-native-jwt";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, SafeAreaView, StyleSheet } from "react-native";
+
 import type { CredentialResult, EnvType } from "../store/types";
+
+import { QrCodeImage } from "../components/QrCodeImage";
+import { useDebugInfo } from "../hooks/useDebugInfo";
+import { selectWalletInstanceAttestationAsMdoc } from "../store/reducers/attestation";
+import { selectCredential } from "../store/reducers/credential";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { useAppSelector } from "../store/utils";
+import { getTrustAnchorX509Certificate } from "../utils/credential";
+import { WIA_KEYTAG } from "../utils/crypto";
+import { getEnv } from "../utils/environment";
 import {
+  type EventsPayload,
   generateAcceptedFields,
   requestBlePermissions,
-  WELL_KNOWN_CREDENTIALS,
-  type EventsPayload,
   type RequestedDocument,
   type VerifierRequest,
+  WELL_KNOWN_CREDENTIALS,
 } from "../utils/proximity";
-import { addPadding } from "@pagopa/io-react-native-jwt";
-import { selectWalletInstanceAttestationAsMdoc } from "../store/reducers/attestation";
-import { WIA_KEYTAG } from "../utils/crypto";
-import { QrCodeImage } from "../components/QrCodeImage";
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
-import { getEnv } from "../utils/environment";
-import { getTrustAnchorX509Certificate } from "../utils/credential";
 
 const {
-  ErrorCode,
   addListener,
   close,
+  ErrorCode,
   generateResponse,
   getQrCodeString,
   parseEventError,
@@ -45,15 +47,15 @@ const {
  * - STOPPED: The flow has been stopped, either by the user or due to an error.
  */
 enum PROXIMITY_STATUS {
-  STARTING = "STARTING",
-  STARTED = "STARTED",
   PRESENTING = "PRESENTING",
+  STARTED = "STARTED",
+  STARTING = "STARTING",
   STOPPED = "STOPPED",
 }
 
 export const ProximityScreen = () => {
   const walletAttestationMdoc = useAppSelector(
-    selectWalletInstanceAttestationAsMdoc
+    selectWalletInstanceAttestationAsMdoc,
   );
   const mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
   const env = useAppSelector(selectEnv);
@@ -71,19 +73,19 @@ export const ProximityScreen = () => {
   );
 };
 
-type ContentViewProps = {
+interface ContentViewProps {
   attestation: string;
   credential: CredentialResult;
   env: EnvType;
-};
+}
 
 const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   const [status, setStatus] = useState<PROXIMITY_STATUS>(
-    PROXIMITY_STATUS.STARTING
+    PROXIMITY_STATUS.STARTING,
   );
-  const [qrCode, setQrCode] = useState<string | null>(null);
-  const [request, setRequest] = useState<VerifierRequest["request"] | null>(
-    null
+  const [qrCode, setQrCode] = useState<null | string>(null);
+  const [request, setRequest] = useState<null | VerifierRequest["request"]>(
+    null,
   );
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
   const { WALLET_TA_BASE_URL } = getEnv(env);
@@ -115,7 +117,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * @param verifierRequest - The request object received from the verifier app
    */
   const sendDocument = async (verifierRequest: VerifierRequest["request"]) => {
-    const documents: Array<RequestedDocument> = [
+    const documents: RequestedDocument[] = [
       {
         alias: WIA_KEYTAG,
         docType: WELL_KNOWN_CREDENTIALS.wia,
@@ -156,7 +158,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   /**
    * Close utility function to close the proximity flow.
    */
-  const closeFlow = useCallback(async (sendError: boolean = false) => {
+  const closeFlow = useCallback(async (sendError = false) => {
     try {
       if (sendError) {
         await sendErrorResponse(ErrorCode.SESSION_TERMINATED);
@@ -205,7 +207,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         await closeFlow();
       }
     },
-    [closeFlow]
+    [closeFlow],
   );
 
   /**
@@ -224,7 +226,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         Alert.alert("Failed to send error response");
       }
     },
-    []
+    [],
   );
 
   /**
@@ -250,7 +252,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         const parsedRequest = parseVerifierRequest(parsedJson);
         console.log("Parsed request:", JSON.stringify(parsedRequest));
         const isTrusted = Object.values(parsedRequest.request).every(
-          (item) => item.isAuthenticated
+          (item) => item.isAuthenticated,
         );
         console.log("RP is trusted:", isTrusted);
         setRequest(parsedRequest.request);
@@ -261,7 +263,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         sendError(ErrorCode.SESSION_TERMINATED);
       }
     },
-    [sendError]
+    [sendError],
   );
 
   /**
@@ -277,7 +279,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
     if (!hasPermission) {
       Alert.alert(
         "Permission Required",
-        "BLE permissions are needed to proceed."
+        "BLE permissions are needed to proceed.",
       );
       setStatus(PROXIMITY_STATUS.STOPPED);
       return;
@@ -330,54 +332,54 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
           <Body>Starting the proximity flow</Body>
         )}
         {status === PROXIMITY_STATUS.STARTED && qrCode && (
-          <QrCodeImage value={qrCode} size={"60%"} correctionLevel="L" />
+          <QrCodeImage correctionLevel="L" size={"60%"} value={qrCode} />
         )}
         {status === PROXIMITY_STATUS.PRESENTING && request && (
           <>
             <IOAlert
-              variant={rpIsTrusted ? "success" : "error"}
               content={rpIsTrusted ? "Trusted RP" : "Untrusted RP"}
+              variant={rpIsTrusted ? "success" : "error"}
             />
             <ModuleSummary
-              label="Send document"
               icon="documentAdd"
+              label="Send document"
               onPress={() => sendDocument(request)}
             />
             <ModuleSummary
+              icon="errorFilled"
               label={`Send error ${ErrorCode.CBOR_DECODING} (${
                 ErrorCode[ErrorCode.CBOR_DECODING]
               })`}
-              icon="errorFilled"
               onPress={() => sendError(ErrorCode.CBOR_DECODING)}
             />
             <ModuleSummary
+              icon="errorFilled"
               label={`Send error ${ErrorCode.SESSION_ENCRYPTION} (${
                 ErrorCode[ErrorCode.SESSION_ENCRYPTION]
               })`}
-              icon="errorFilled"
               onPress={() => sendError(ErrorCode.SESSION_ENCRYPTION)}
             />
             <ModuleSummary
+              icon="errorFilled"
               label={`Send error ${ErrorCode.SESSION_TERMINATED} (${
                 ErrorCode[ErrorCode.SESSION_TERMINATED]
               })`}
-              icon="errorFilled"
               onPress={() => sendError(ErrorCode.SESSION_TERMINATED)}
             />
           </>
         )}
         {status === PROXIMITY_STATUS.STOPPED && (
           <ModuleSummary
-            label="Generate QR Engagement"
             icon="qrCode"
+            label="Generate QR Engagement"
             onPress={() => startFlow()}
           />
         )}
         {(status === PROXIMITY_STATUS.PRESENTING ||
           status === PROXIMITY_STATUS.STARTED) && (
           <ModuleSummary
-            label={"Close QR Engagement"}
             icon="logout"
+            label={"Close QR Engagement"}
             onPress={() =>
               closeFlow(status === PROXIMITY_STATUS.PRESENTING ? true : false)
             }
@@ -390,10 +392,10 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
+    flex: 1,
+    justifyContent: "center",
     padding: 20,
   },
 });

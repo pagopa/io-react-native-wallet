@@ -10,8 +10,8 @@ describe("fetchJwksFromConfig", () => {
     const mockConfig = {
       jwks: {
         keys: [
-          { kty: "RSA", kid: "key1" },
-          { kty: "EC", kid: "key2" },
+          { kid: "key1", kty: "RSA" },
+          { kid: "key2", kty: "EC" },
         ],
       },
     } as unknown as RelyingPartyConfig;
@@ -29,7 +29,7 @@ describe("fetchJwksFromConfig", () => {
     } as unknown as RelyingPartyConfig;
 
     expect(() => getJwksFromRpConfig(mockConfigMissingJWKS)).toThrow(
-      "JWKS not found in Relying Party configuration."
+      "JWKS not found in Relying Party configuration.",
     );
   });
 
@@ -39,7 +39,7 @@ describe("fetchJwksFromConfig", () => {
     } as unknown as RelyingPartyConfig;
 
     expect(() => getJwksFromRpConfig(mockConfigInvalidJWKS)).toThrow(
-      "JWKS not found in Relying Party configuration."
+      "JWKS not found in Relying Party configuration.",
     );
   });
 });

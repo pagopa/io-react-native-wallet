@@ -1,26 +1,28 @@
 import { generate } from "@pagopa/io-react-native-crypto";
 import { decode } from "@pagopa/io-react-native-jwt";
-import { createCryptoContextFor } from "../../../../utils/crypto";
-import { startUserAuthorization } from "../02-start-user-authorization";
+
 import type { IssuerConfig } from "../../api";
 
+import { startUserAuthorization } from "../02-start-user-authorization";
+import { createCryptoContextFor } from "../../../../utils/crypto";
+
 const mockIssuerConf = {
-  pushed_authorization_request_endpoint: "https://issuer.example/par",
-  response_modes_supported: ["query", "form_post.jwt"],
   credential_configurations_supported: {
-    PersonIdentificationData: {},
     MDL: {},
+    PersonIdentificationData: {},
     TS: {},
   },
+  pushed_authorization_request_endpoint: "https://issuer.example/par",
+  response_modes_supported: ["query", "form_post.jwt"],
 } as unknown as IssuerConfig;
 
 const createMockFetch = () =>
   jest.fn().mockResolvedValue({
-    status: 201,
     json: jest.fn().mockResolvedValue({
-      request_uri: "https://issuer.example/123456",
       expires_in: 1000000,
+      request_uri: "https://issuer.example/123456",
     }),
+    status: 201,
   });
 
 const mockWia =
@@ -46,11 +48,11 @@ describe("startUserAuthorization", () => {
       ["PersonIdentificationData"],
       { proofType: "none" },
       {
-        wiaCryptoContext: ephemeralContext,
+        appFetch: mockFetch,
         redirectUri: "https://redirect",
         walletInstanceAttestation: mockWia,
-        appFetch: mockFetch,
-      }
+        wiaCryptoContext: ephemeralContext,
+      },
     );
 
     expect(result.issuerRequestUri).toEqual("https://issuer.example/123456");
@@ -76,11 +78,11 @@ describe("startUserAuthorization", () => {
       ["TS", "MDL"],
       { proofType: "none" },
       {
-        wiaCryptoContext: ephemeralContext,
+        appFetch: mockFetch,
         redirectUri: "https://redirect",
         walletInstanceAttestation: mockWia,
-        appFetch: mockFetch,
-      }
+        wiaCryptoContext: ephemeralContext,
+      },
     );
 
     expect(result.issuerRequestUri).toEqual("https://issuer.example/123456");
@@ -96,7 +98,7 @@ describe("startUserAuthorization", () => {
     ]);
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(extractParPayloadFromMock(mockFetch).response_mode).toEqual(
-      "form_post.jwt"
+      "form_post.jwt",
     );
   });
 
@@ -112,12 +114,12 @@ describe("startUserAuthorization", () => {
         ["PersonIdentificationData", "MDL"],
         { proofType: "none" },
         {
-          wiaCryptoContext: ephemeralContext,
+          appFetch: createMockFetch(),
           redirectUri: "https://redirect",
           walletInstanceAttestation: mockWia,
-          appFetch: createMockFetch(),
-        }
+          wiaCryptoContext: ephemeralContext,
+        },
       );
-    }
+    },
   );
 });

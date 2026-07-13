@@ -11,7 +11,7 @@
  */
 export const until = (
   conditionFunction: () => boolean,
-  timeoutSeconds?: number
+  timeoutSeconds?: number,
 ): Promise<void> =>
   new Promise<void>((resolve, reject) => {
     const start = Date.now();
@@ -50,5 +50,5 @@ export const createAbortPromiseFromSignal = (signal: AbortSignal) => {
   };
 };
 
-export const isDefined = <T>(x: T | undefined | null | ""): x is T =>
+export const isDefined = <T>(x: "" | null | T | undefined): x is T =>
   Boolean(x);

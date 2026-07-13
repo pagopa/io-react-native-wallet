@@ -1,35 +1,32 @@
 import { createSlice } from "@reduxjs/toolkit";
+
 import type { AsyncStatus, RootState } from "../types";
-import { asyncStatusInitial } from "../utils";
+
 import {
+  type InitPidMrtdChallengeOutput,
   initPidMrtdChallengeThunk,
   validatePidMrtdChallengeThunk,
-  type InitPidMrtdChallengeOutput,
   type VerifyPidMrtdChallengeOutput,
 } from "../../thunks/mrtd";
+import { asyncStatusInitial } from "../utils";
 
-type MrtdState = {
+interface MrtdState {
   asyncStatus: AsyncStatus;
   flowParams?: InitPidMrtdChallengeOutput;
   validation?: VerifyPidMrtdChallengeOutput;
-};
+}
 
 const initialState: MrtdState = {
   asyncStatus: asyncStatusInitial,
 };
 
 const mrtdSlice = createSlice({
-  name: "mrtd",
-  initialState,
-  reducers: {
-    mrtdReset: () => initialState,
-  },
   extraReducers: (builder) => {
     builder
       .addCase(initPidMrtdChallengeThunk.pending, (state) => {
         state.asyncStatus.isLoading = true;
         state.asyncStatus.isDone = false;
-        state.asyncStatus.hasError = { status: false, error: undefined };
+        state.asyncStatus.hasError = { error: undefined, status: false };
       })
       .addCase(initPidMrtdChallengeThunk.fulfilled, (state, action) => {
         state.asyncStatus.isLoading = false;
@@ -40,8 +37,8 @@ const mrtdSlice = createSlice({
         state.asyncStatus.isLoading = false;
         state.asyncStatus.isDone = false;
         state.asyncStatus.hasError = {
-          status: true,
           error: action.error,
+          status: true,
         };
         state.flowParams = undefined;
         state.validation = undefined;
@@ -49,7 +46,7 @@ const mrtdSlice = createSlice({
       .addCase(validatePidMrtdChallengeThunk.pending, (state) => {
         state.asyncStatus.isLoading = true;
         state.asyncStatus.isDone = false;
-        state.asyncStatus.hasError = { status: false, error: undefined };
+        state.asyncStatus.hasError = { error: undefined, status: false };
       })
       .addCase(validatePidMrtdChallengeThunk.fulfilled, (state, action) => {
         state.asyncStatus.isLoading = false;
@@ -60,12 +57,17 @@ const mrtdSlice = createSlice({
         state.asyncStatus.isLoading = false;
         state.asyncStatus.isDone = false;
         state.asyncStatus.hasError = {
-          status: true,
           error: action.error,
+          status: true,
         };
         state.flowParams = undefined;
         state.validation = undefined;
       });
+  },
+  initialState,
+  name: "mrtd",
+  reducers: {
+    mrtdReset: () => initialState,
   },
 });
 

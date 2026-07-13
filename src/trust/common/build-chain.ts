@@ -1,3 +1,8 @@
+import { z } from "zod";
+
+import type { TrustApi } from "../api";
+import type { BaseEntityConfiguration, EntityStatement } from "./types";
+
 import {
   BuildTrustChainError,
   MissingFederationFetchEndpointError,
@@ -11,14 +16,11 @@ import {
   getSignedEntityStatement,
   verify,
 } from "./utils";
-import { z } from "zod";
-import type { TrustApi } from "../api";
-import type { BaseEntityConfiguration, EntityStatement } from "./types";
 
-type BuilderConfig = {
-  EntityStatementShape: z.ZodType<EntityStatement>;
+interface BuilderConfig {
   EntityConfigurationShape: z.ZodType<BaseEntityConfiguration>;
-};
+  EntityStatementShape: z.ZodType<EntityStatement>;
+}
 
 /**
  * Factory function to create `buildTrustChain`.
@@ -26,12 +28,12 @@ type BuilderConfig = {
  * @returns `buildTrustChain` function compliant with the public API
  */
 export function createBuildTrustChain(
-  config: BuilderConfig
+  config: BuilderConfig,
 ): TrustApi["buildTrustChain"] {
   return async function buildTrustChain(
     relyingPartyEntityBaseUrl,
     trustAnchorConfig,
-    appFetch = fetch
+    appFetch = fetch,
   ) {
     // 1: Verify if the RP is authorized by the Trust Anchor's federation list
     // Extract the Trust Anchor's signing key and federation_list_endpoint
@@ -40,7 +42,7 @@ export function createBuildTrustChain(
 
     if (!trustAnchorKey) {
       throw new BuildTrustChainError(
-        "Cannot verify trust anchor: missing signing key in entity configuration."
+        "Cannot verify trust anchor: missing signing key in entity configuration.",
       );
     }
 
@@ -55,7 +57,10 @@ export function createBuildTrustChain(
       if (!federationList.includes(relyingPartyEntityBaseUrl)) {
         throw new RelyingPartyNotAuthorizedError(
           "Relying Party entity base URL is not authorized by the Trust Anchor's federation list.",
-          { relyingPartyUrl: relyingPartyEntityBaseUrl, federationListEndpoint }
+          {
+            federationListEndpoint,
+            relyingPartyUrl: relyingPartyEntityBaseUrl,
+          },
         );
       }
     }
@@ -65,14 +70,14 @@ export function createBuildTrustChain(
     // 1: Recursively gather the trust chain from the RP up to the Trust Anchor
     const trustChain = await gatherTrustChain(
       relyingPartyEntityBaseUrl,
-      appFetch
+      appFetch,
     );
     // 2: Trust Anchor signature verification
     const chainTrustAnchorJwt = trustChain[trustChain.length - 1];
     if (!chainTrustAnchorJwt) {
       throw new BuildTrustChainError(
         "Cannot verify trust anchor: missing entity configuration in gathered chain.",
-        { relyingPartyUrl: relyingPartyEntityBaseUrl }
+        { relyingPartyUrl: relyingPartyEntityBaseUrl },
       );
     }
 
@@ -98,7 +103,7 @@ export function createGatherTrustChain({
   return async function gatherTrustChain(
     entityBaseUrl: string,
     appFetch: GlobalFetch["fetch"],
-    isLeaf: boolean = true
+    isLeaf = true,
   ): Promise<string[]> {
     const chain: string[] = [];
 
@@ -126,7 +131,7 @@ export function createGatherTrustChain({
     // Fetch parent EC
     const parentECJwt = await getSignedEntityConfiguration(
       parentEntityBaseUrl,
-      { appFetch }
+      { appFetch },
     );
     const parentEC = EntityConfigurationShape.parse(decode(parentECJwt));
     // Fetch ES
@@ -135,13 +140,13 @@ export function createGatherTrustChain({
     if (!federationFetchEndpoint) {
       throw new MissingFederationFetchEndpointError(
         `Missing federation_fetch_endpoint in parent's (${parentEntityBaseUrl}) configuration when gathering chain for ${entityBaseUrl}.`,
-        { entityBaseUrl, missingInEntityUrl: parentEntityBaseUrl }
+        { entityBaseUrl, missingInEntityUrl: parentEntityBaseUrl },
       );
     }
     const entityStatementJwt = await getSignedEntityStatement(
       federationFetchEndpoint,
       entityBaseUrl,
-      { appFetch }
+      { appFetch },
     );
     // Validate the ES
     EntityStatementShape.parse(decode(entityStatementJwt));
@@ -153,7 +158,7 @@ export function createGatherTrustChain({
     const parentChain = await gatherTrustChain(
       parentEntityBaseUrl,
       appFetch,
-      false
+      false,
     );
 
     return chain.concat(parentChain);

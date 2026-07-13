@@ -1,5 +1,6 @@
-import { interpolateUrl } from "..";
 import type { EndpointParameters } from "../generated/wallet-provider";
+
+import { interpolateUrl } from "..";
 
 type TestCase = [string, EndpointParameters, string];
 
@@ -9,13 +10,13 @@ describe("interpolateUrl", () => {
     ["/url/with/{id}/param", { path: { id: "A" } }, "/url/with/A/param"],
     [
       "/url/with/{id}/{code}/params",
-      { path: { id: "A", code: "B" } },
+      { path: { code: "B", id: "A" } },
       "/url/with/A/B/params",
     ],
-  ] as Array<TestCase>)(
+  ] as TestCase[])(
     "it should interpolate %s with %o to %s",
     (url, params, expected) => {
       expect(interpolateUrl(url, params)).toEqual(expected);
-    }
+    },
   );
 });

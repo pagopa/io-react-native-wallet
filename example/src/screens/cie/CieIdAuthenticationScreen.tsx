@@ -1,13 +1,16 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import { isCieIdAvailable, openCieIdApp } from "@pagopa/io-react-native-cieid";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { type WebViewNavigation } from "react-native-webview";
+
+import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
 import {
   CieWebView,
   type CieWebViewError,
 } from "../../components/cie/CieWebView";
-import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { selectEnv } from "../../store/reducers/environment";
 import { pidFlowReset } from "../../store/reducers/pid";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
@@ -31,8 +34,8 @@ const isAuthenticationUrl = (url: string) => {
 };
 
 export const CieIdAuthenticationScreen = ({
-  route,
   navigation,
+  route,
 }: ScreenProps) => {
   const env = useAppSelector(selectEnv);
   const isUat = env === "pre";
@@ -58,7 +61,7 @@ export const CieIdAuthenticationScreen = ({
           }
           setFinalAuthUrl(result.url);
         },
-        isUat
+        isUat,
       );
     }
 
@@ -80,13 +83,13 @@ export const CieIdAuthenticationScreen = ({
           dispatch(
             initPidMrtdChallengeThunk({
               authRedirectUrl: url,
-            })
+            }),
           );
         } else {
           dispatch(
             continuePidFlowThunk({
               authRedirectUrl: url,
-            })
+            }),
           );
         }
 
@@ -103,7 +106,7 @@ export const CieIdAuthenticationScreen = ({
       Alert.alert(`❌ Error`, `${JSON.stringify(error)}`);
       goBackAndReset();
     },
-    [goBackAndReset]
+    [goBackAndReset],
   );
 
   const handleShouldStartLoading = (event: WebViewNavigation): boolean => {
@@ -136,13 +139,13 @@ export const CieIdAuthenticationScreen = ({
           Alert.alert(
             `❌ CieID Error`,
             continueUrl?.split(CIE_ID_ERROR_MESSAGE)[1] ??
-              "Unexpected error from CieID"
+              "Unexpected error from CieID",
           );
           return goBackAndReset();
         }
 
         setFinalAuthUrl(continueUrl);
-      }
+      },
     );
 
     return () => urlListenerSubscription.remove();
@@ -151,12 +154,12 @@ export const CieIdAuthenticationScreen = ({
   return (
     <View style={StyleSheet.absoluteFillObject}>
       <CieWebView
-        style={styles.webview}
-        source={{ uri: finalAuthUrl ?? authUrl }}
         onNavigationStateChange={handleNavigationStateChange}
         onShouldStartLoadWithRequest={handleShouldStartLoading}
         onWebViewError={handleOnError}
         originWhitelist={["https://*", "intent://*", "http://*", redirectUri]}
+        source={{ uri: finalAuthUrl ?? authUrl }}
+        style={styles.webview}
       />
     </View>
   );

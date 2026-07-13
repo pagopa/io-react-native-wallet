@@ -24,18 +24,18 @@ import * as z from "zod";
 export function createMapper<I, O>(mapper: (input: I) => O): (input: I) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
-  config: { inputSchema: z.ZodType<I>; outputSchema: z.ZodType<O> }
+  config: { inputSchema: z.ZodType<I>; outputSchema: z.ZodType<O> },
 ): (input: unknown) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
-  config: { outputSchema: z.ZodType<O> }
+  config: { outputSchema: z.ZodType<O> },
 ): (input: I) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
   config?: {
     inputSchema?: z.ZodType<I, any>;
     outputSchema: z.ZodType<O, any>;
-  }
+  },
 ) {
   if (!config) {
     return mapper;
@@ -60,12 +60,11 @@ export function createMapper<I, O>(
  */
 export const withMapper = <A extends any[], I, O>(
   mapper: (input: I) => O,
-  fn: (...args: A) => I
-) => {
-  return function wrappedFunction(...args: A) {
+  fn: (...args: A) => I,
+) =>
+  function wrappedFunction(...args: A) {
     return mapper(fn(...args));
   };
-};
 
 /**
  * Higher order function to pipe an async function return value to the provided mapper.
@@ -76,9 +75,8 @@ export const withMapper = <A extends any[], I, O>(
  */
 export const withMapperAsync = <A extends any[], I, O>(
   mapper: (input: I) => O,
-  fn: (...args: A) => Promise<I>
-) => {
-  return async function wrappedAsyncFunction(...args: A) {
+  fn: (...args: A) => Promise<I>,
+) =>
+  async function wrappedAsyncFunction(...args: A) {
     return mapper(await fn(...args));
   };
-};

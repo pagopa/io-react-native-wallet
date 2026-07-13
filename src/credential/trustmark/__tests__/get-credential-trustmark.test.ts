@@ -1,5 +1,6 @@
 import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
-import { decode, type CryptoContext } from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, decode } from "@pagopa/io-react-native-jwt";
+
 import { IoWallet } from "../../../IoWallet";
 import { UnimplementedFeatureError } from "../../../utils/errors";
 
@@ -39,13 +40,13 @@ describe("getCredentialTrustmarkJwt", () => {
     const wallet = new IoWallet({ version: "1.0.0" });
     const credentialType = "MDL";
 
-    const { jwt, expirationTime } =
+    const { expirationTime, jwt } =
       await wallet.Trustmark.getCredentialTrustmark({
-        walletInstanceAttestation,
-        wiaCryptoContext,
         credentialType,
         docNumber: "1234567890",
         expirationTime: "2m",
+        walletInstanceAttestation,
+        wiaCryptoContext,
       });
 
     const decoded = decode(jwt);
@@ -63,11 +64,11 @@ describe("getCredentialTrustmarkJwt", () => {
     const wallet = new IoWallet({ version: "1.0.0" });
 
     const { expirationTime } = await wallet.Trustmark.getCredentialTrustmark({
-      walletInstanceAttestation,
-      wiaCryptoContext,
       credentialType: "MDL",
       docNumber: "1234567890",
       expirationTime: "10s",
+      walletInstanceAttestation,
+      wiaCryptoContext,
     });
     expect(expirationTime).toBe(1732004587);
   });
@@ -80,11 +81,11 @@ describe("getCredentialTrustmarkJwt", () => {
     const wallet = new IoWallet({ version: "1.0.0" });
 
     const { expirationTime } = await wallet.Trustmark.getCredentialTrustmark({
-      walletInstanceAttestation,
-      wiaCryptoContext,
       credentialType: "MDL",
       docNumber: "1234567890",
       expirationTime: 1732004577,
+      walletInstanceAttestation,
+      wiaCryptoContext,
     });
     expect(expirationTime).toBe(1732004577);
   });
@@ -98,12 +99,12 @@ describe("getCredentialTrustmarkJwt", () => {
 
     await expect(() =>
       wallet.Trustmark.getCredentialTrustmark({
-        walletInstanceAttestation,
-        wiaCryptoContext,
         credentialType: "MDL",
         docNumber: "1234567890",
         expirationTime: "2m",
-      })
+        walletInstanceAttestation,
+        wiaCryptoContext,
+      }),
     ).rejects.toThrow();
   });
 
@@ -115,11 +116,11 @@ describe("getCredentialTrustmarkJwt", () => {
 
     await expect(() =>
       wallet.Trustmark.getCredentialTrustmark({
-        walletInstanceAttestation: "walletInstanceAttestation",
-        wiaCryptoContext,
         credentialType: "MDL",
         docNumber: "1234567890",
-      })
+        walletInstanceAttestation: "walletInstanceAttestation",
+        wiaCryptoContext,
+      }),
     ).rejects.toThrow();
   });
 
@@ -128,10 +129,10 @@ describe("getCredentialTrustmarkJwt", () => {
 
     await expect(
       wallet.Trustmark.getCredentialTrustmark({
+        credentialType: "MDL",
         walletInstanceAttestation: "walletInstanceAttestation",
         wiaCryptoContext,
-        credentialType: "MDL",
-      })
+      }),
     ).rejects.toThrow(UnimplementedFeatureError);
   });
 });

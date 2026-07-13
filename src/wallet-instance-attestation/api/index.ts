@@ -1,4 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import type { IntegrityContext } from "../../utils/integrity";
 import type {
   DecodedWalletInstanceAttestation,
@@ -7,6 +8,20 @@ import type {
 } from "./types";
 
 export interface WalletInstanceAttestationApi {
+  /**
+   * Decode a given JWT to get the parsed Wallet Instance Attestation object they define.
+   * It ensures provided data is in a valid shape.
+   *
+   * It DOES NOT verify token signature nor check disclosures are correctly referenced by the JWT.
+   * Use {@link verify} instead
+   *
+   * @param token The encoded token that represents a valid jwt for Wallet Instance Attestation
+   * @returns The validated Wallet Instance Attestation object
+   * @throws A decoding error if the token doesn't resolve in a valid JWT
+   * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
+   */
+  decode(token: string): DecodedWalletInstanceAttestation;
+
   /**
    * Request a Wallet Instance Attestation (WIA) to the Wallet provider.
    * The Wallet Instance Attestation may be issued in different formats.
@@ -21,25 +36,11 @@ export interface WalletInstanceAttestationApi {
   getAttestation(
     requestParams: WalletAttestationRequestParams,
     ctx: {
-      wiaCryptoContext: CryptoContext;
-      integrityContext: IntegrityContext;
       appFetch?: GlobalFetch["fetch"];
-    }
+      integrityContext: IntegrityContext;
+      wiaCryptoContext: CryptoContext;
+    },
   ): Promise<WalletAttestation[]>;
-
-  /**
-   * Decode a given JWT to get the parsed Wallet Instance Attestation object they define.
-   * It ensures provided data is in a valid shape.
-   *
-   * It DOES NOT verify token signature nor check disclosures are correctly referenced by the JWT.
-   * Use {@link verify} instead
-   *
-   * @param token The encoded token that represents a valid jwt for Wallet Instance Attestation
-   * @returns The validated Wallet Instance Attestation object
-   * @throws A decoding error if the token doesn't resolve in a valid JWT
-   * @throws A validation error if the provided data doesn't result in a valid Wallet Instance Attestation
-   */
-  decode(token: string): DecodedWalletInstanceAttestation;
 
   /**
    * Verify a given JWT to get the parsed Wallet Instance Attestation object they define.
