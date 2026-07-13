@@ -137,11 +137,11 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
 
     Logger.log(
       LogLevel.DEBUG,
-      `Obtained Wallet Unit Attestation: ${response.wallet_unit_attestation}`
+      `Obtained Wallet Unit Attestation: ${response.key_attestation}`
     );
 
     return {
       format: "jwt",
-      attestation: response.wallet_unit_attestation,
+      attestation: response.key_attestation,
     };
   };
