@@ -24,6 +24,7 @@ const createMockCryptoContext = (
     x: "1",
     y,
   })),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- mock arg intentionally unused
   getSignature: jest.fn(async (_) => `mock-signature-${keyTag}`),
 });
 
@@ -50,7 +51,9 @@ describe("requestCredentials", () => {
     );
 
     await requestCredentials({
-      accessToken: {} as any,
+      accessToken: {} as unknown as Parameters<
+        typeof requestCredentials
+      >[0]["accessToken"],
       appFetch,
       clientId: "client123",
       credentialCryptoContexts: [

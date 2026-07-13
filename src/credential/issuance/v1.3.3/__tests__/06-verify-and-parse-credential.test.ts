@@ -7,7 +7,7 @@ import {
   credentialCnfJwk,
   issuerJwk,
   pid1_3,
-} from "../../../../sd-jwt/__mocks__/sd-jwt";
+} from "../../../../sd-jwt/__fixtures__/sd-jwt";
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
   decode: jest.fn().mockReturnValue({}),

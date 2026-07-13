@@ -94,7 +94,7 @@ export const CieIdAuthenticationScreen = ({
         }
 
         navigation.goBack();
-      } catch (error) {
+      } catch {
         //In case of error, return to the previous screen
         navigation.goBack();
       }

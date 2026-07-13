@@ -198,6 +198,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     appFetch,
     clientId,
     credentialCryptoContexts: [credentialCryptoContext],
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
     credentialIdentifier: credential_identifier!,
     dPopCryptoContext,
     issuerConf,
@@ -219,7 +220,9 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
   // TODO: [SIW-2264] Handle multiple credentials
   return {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
     credential: credentialRes.credentials.at(0)!.credential,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
     format: issuerCredentialConfig!.format,
   };
 };
@@ -271,6 +274,7 @@ export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
 
     return credentialRes.credentials.map(({ credential }) => ({
       credential,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
       format: issuerCredentialConfig!.format,
     }));
   };

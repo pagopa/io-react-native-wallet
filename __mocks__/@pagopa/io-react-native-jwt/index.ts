@@ -18,7 +18,7 @@ function mockHexToBase64(hexstring: string) {
   return btoa(g);
 }
 
-export const thumbprint = (jwk: any) => {
+export const thumbprint = (jwk: JWK) => {
   const canonical = {
     crv: jwk.crv,
     kty: jwk.kty,

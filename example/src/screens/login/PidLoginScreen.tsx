@@ -76,7 +76,7 @@ export default function PidSpidLoginScreen({ navigation, route }: Props) {
         }
 
         navigation.goBack();
-      } catch (error) {
+      } catch {
         //In case of error, return to the previous screen
         navigation.goBack();
       }

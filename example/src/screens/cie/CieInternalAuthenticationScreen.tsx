@@ -130,7 +130,7 @@ export const CieInternalAuthenticationScreen = ({
           }),
         );
         navigation.goBack();
-      } catch (error) {
+      } catch {
         //In case of error, return to the previous screen
         navigation.goBack();
       }

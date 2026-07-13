@@ -27,6 +27,7 @@ const mapCredentialConfigurationsSupported = (
             display: claim.display,
             path: claim.path,
           })) ?? [],
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
         display: config.credential_metadata.display!,
         scope: config.scope,
       };

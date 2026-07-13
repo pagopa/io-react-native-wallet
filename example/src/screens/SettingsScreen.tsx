@@ -63,7 +63,7 @@ const HomeScreen = () => {
       dispatch(loggingAddressSet(debugAddress));
       initLogging(debugAddress);
       toast.success("Logging server set correctly");
-    } catch (e) {
+    } catch {
       toast.error("Invalid logging server address");
     }
   };

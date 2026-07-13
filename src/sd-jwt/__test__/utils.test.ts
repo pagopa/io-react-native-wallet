@@ -1,5 +1,5 @@
 import { getVerification } from "..";
-import { legacyPid, pid } from "../__mocks__/sd-jwt";
+import { legacyPid, pid } from "../__fixtures__/sd-jwt";
 
 describe("SD-JWT getVerification", () => {
   it("extracts the verification claims correctly", () => {

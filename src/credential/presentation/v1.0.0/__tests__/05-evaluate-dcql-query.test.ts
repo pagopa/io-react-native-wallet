@@ -1,7 +1,8 @@
+/* eslint-disable max-lines-per-function */
 import { DcqlError, type DcqlQuery } from "dcql";
 
 import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
-import { legacyPid, mdl, pid } from "../../../../sd-jwt/__mocks__/sd-jwt";
+import { legacyPid, mdl, pid } from "../../../../sd-jwt/__fixtures__/sd-jwt";
 import {
   CredentialsNotFoundError,
   type NotFoundDetail,

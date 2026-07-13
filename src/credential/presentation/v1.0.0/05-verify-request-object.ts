@@ -27,7 +27,7 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
     try {
       // Standard claims are verified within `verify`
       await verify(requestObjectEncodedJwt, pubKey, { issuer: clientId });
-    } catch (_) {
+    } catch {
       throw new InvalidRequestObjectError(
         "The Request Object signature verification failed",
       );
@@ -99,7 +99,7 @@ const getSigPublicKey = (
     if (!pubKey) throw new Error();
 
     return pubKey;
-  } catch (_) {
+  } catch {
     throw new InvalidRequestObjectError(
       `The public key for signature verification (${kid}) cannot be found in the Entity Configuration`,
     );

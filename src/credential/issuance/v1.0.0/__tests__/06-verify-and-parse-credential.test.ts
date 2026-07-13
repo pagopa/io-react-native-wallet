@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 import type { IssuerConfig } from "../../api";
@@ -13,7 +14,7 @@ import {
   mdl,
   pid,
   residency,
-} from "../../../../sd-jwt/__mocks__/sd-jwt";
+} from "../../../../sd-jwt/__fixtures__/sd-jwt";
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
   decode: jest.fn().mockReturnValue({}),

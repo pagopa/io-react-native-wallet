@@ -19,6 +19,7 @@ export class FederationError extends IoWalletError {
  */
 export class BuildTrustChainError extends FederationError {
   code = "ERR_FED_BUILD_TRUST_CHAIN_FAILED";
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- narrows the `details` type for this error subclass
   constructor(
     message: string,
     details?: {
@@ -33,6 +34,7 @@ export class BuildTrustChainError extends FederationError {
 
 export class FederationListParseError extends FederationError {
   code = "ERR_FED_FEDERATION_LIST_PARSE_FAILED";
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- narrows the `details` type for this error subclass
   constructor(message: string, details: { parseError?: string; url: string }) {
     super(message, details);
   }
@@ -43,6 +45,7 @@ export class FederationListParseError extends FederationError {
  */
 export class MissingFederationFetchEndpointError extends FederationError {
   code = "ERR_FED_MISSING_FEDERATION_FETCH_ENDPOINT";
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- narrows the `details` type for this error subclass
   constructor(
     message: string,
     details: { entityBaseUrl: string; missingInEntityUrl: string },
@@ -66,6 +69,7 @@ export class MissingX509CertsError extends FederationError {
  */
 export class RelyingPartyNotAuthorizedError extends FederationError {
   code = "ERR_FED_RELYING_PARTY_NOT_AUTHORIZED";
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- narrows the `details` type for this error subclass
   constructor(
     message: string,
     details: { federationListEndpoint?: string; relyingPartyUrl: string },
@@ -100,6 +104,7 @@ export class TrustChainEmptyError extends FederationError {
  */
 export class TrustChainRenewalError extends FederationError {
   code = "ERR_FED_TRUST_CHAIN_RENEWAL_FAILED";
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- narrows the `details` type for this error subclass
   constructor(
     message: string,
     details?: { [key: string]: unknown; originalChain?: string[] },
@@ -113,6 +118,7 @@ export class TrustChainRenewalError extends FederationError {
  */
 export class TrustChainTokenMissingError extends FederationError {
   code = "ERR_FED_TRUST_CHAIN_TOKEN_MISSING";
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- narrows the `details` type for this error subclass
   constructor(message: string, details?: { index?: number }) {
     super(message, details);
   }
@@ -124,6 +130,7 @@ export class TrustChainTokenMissingError extends FederationError {
  */
 export class X509ValidationError extends FederationError {
   code = "ERR_FED_X509_VALIDATION_FAILED";
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor -- narrows the `details` type for this error subclass
   constructor(
     message: string,
     details?: {

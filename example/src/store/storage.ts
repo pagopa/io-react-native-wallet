@@ -5,7 +5,7 @@ export const createSecureStorage = (): Storage => ({
   getItem: async (key) => {
     try {
       return await SecureStorage.get(key);
-    } catch (err) {
+    } catch {
       return undefined;
     }
   },

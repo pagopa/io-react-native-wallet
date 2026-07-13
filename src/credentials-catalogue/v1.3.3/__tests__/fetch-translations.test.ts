@@ -121,6 +121,7 @@ describe("fetchTranslations", () => {
       { appFetch: makeFetch(bundleMap) },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
     expect(result.it!["shared.key"]).toBe("as value");
   });
 
@@ -139,6 +140,7 @@ describe("fetchTranslations", () => {
     // "en" is not in catalogue available_locales but IS in AS → still present (from AS only)
     expect(result.en).toBeDefined();
     expect(result.en).not.toHaveProperty(["mDL.name"]);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
     expect(result.en!["as1.name"]).toBe("Example Ministry");
   });
 
@@ -271,6 +273,7 @@ describe("fetchTranslations", () => {
       { appFetch: makeFetch(conflictBundleMap) },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
     expect(result.it!["conflict.key"]).toBe("from taxonomy");
   });
 });

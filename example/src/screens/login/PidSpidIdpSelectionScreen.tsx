@@ -50,7 +50,7 @@ export default function PidSpidIdpSelectionScreen({
             redirectUri,
             withDocumentProof,
           });
-        } catch (error) {
+        } catch {
           toast.error("Error during authentication");
         }
       }
