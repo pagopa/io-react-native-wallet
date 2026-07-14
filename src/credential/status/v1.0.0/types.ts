@@ -85,7 +85,7 @@ export enum StatusType {
   VALID = "0x00",
 }
 
-export interface InvalidStatusErrorReason {
+export type InvalidStatusErrorReason = {
   error: string;
   error_description: string;
-}
+};

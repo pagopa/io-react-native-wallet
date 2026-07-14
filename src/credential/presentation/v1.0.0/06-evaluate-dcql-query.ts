@@ -1,11 +1,11 @@
 import { DcqlError, DcqlQuery } from "dcql";
-import { IoWalletError } from "src/utils/errors";
 import { isValiError } from "valibot";
 
 import type { Credential4Dcql, RemotePresentationApi } from "../api";
 import type { CredentialPurpose } from "../api/06-evaluate-dcql-query";
 
 import { LEGACY_SD_JWT } from "../../../sd-jwt/types";
+import { IoWalletError } from "../../../utils/errors";
 import { CredentialsNotFoundError } from "../common/errors";
 import {
   extractFailedCredentialsDetails,

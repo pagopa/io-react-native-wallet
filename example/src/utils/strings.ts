@@ -1,3 +1,9 @@
+export type TruncatableValue =
+  | Primitive
+  | TruncatableArray
+  | TruncatableObject
+  | TruncatableSet;
+
 type Primitive = boolean | null | number | string | undefined;
 
 type TruncatableArray = TruncatableValue[];
@@ -5,13 +11,7 @@ type TruncatableArray = TruncatableValue[];
 interface TruncatableObject {
   [key: string]: TruncatableValue;
 }
-
 type TruncatableSet = Set<TruncatableValue>;
-type TruncatableValue =
-  | Primitive
-  | TruncatableArray
-  | TruncatableObject
-  | TruncatableSet;
 
 /**
  * Truncates all string values in an object or array structure to a specified maximum length.

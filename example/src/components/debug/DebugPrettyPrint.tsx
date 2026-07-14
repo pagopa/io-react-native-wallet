@@ -12,6 +12,8 @@ import {
 import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
+import type { TruncatableValue } from "../../utils/strings";
+
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
 import { truncateObjectStrings } from "../../utils/strings";
 
@@ -57,7 +59,11 @@ export const DebugPrettyPrint = ({
           size={12}
           weight="Medium"
         >
-          {JSON.stringify(truncateObjectStrings(data), null, 2)}
+          {JSON.stringify(
+            truncateObjectStrings(data as TruncatableValue),
+            null,
+            2,
+          )}
         </IOText>
       </View>
     );

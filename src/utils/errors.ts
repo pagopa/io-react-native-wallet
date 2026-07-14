@@ -60,9 +60,9 @@ export const serializeAttrs = (
  *   (e) => new InvalidCredentialOfferError(e.message)
  * );
  */
-export const withMappedErrors = <T, E extends Error>(
+export const withMappedErrors = <T, E extends Error, Args extends unknown[]>(
   fn: () => T,
-  sourceError: new (...args: unknown[]) => E,
+  sourceError: new (...args: Args) => E,
   mapError: (error: E) => Error,
 ): T => {
   try {
