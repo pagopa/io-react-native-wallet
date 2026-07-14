@@ -140,12 +140,10 @@ describe("evaluateDcqlQuery", () => {
   ] as [DcqlQuery.Input, NotFoundDetail[]][])(
     "should throw error when no credential satisfies the DCQL query /%#",
     async (dcqlQuery, expected) => {
-      try {
-        await evaluateDcqlQuery(dcqlQuery, credentials);
-      } catch (err) {
-        expect(err).toBeInstanceOf(CredentialsNotFoundError);
-        expect((err as CredentialsNotFoundError).details).toEqual(expected);
-      }
+      const promise = evaluateDcqlQuery(dcqlQuery, credentials);
+
+      await expect(promise).rejects.toBeInstanceOf(CredentialsNotFoundError);
+      await expect(promise).rejects.toMatchObject({ details: expected });
     },
   );
 

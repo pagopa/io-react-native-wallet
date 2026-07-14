@@ -40,9 +40,11 @@ export const parseRawHttpResponse = <T extends Record<string, unknown>>(
 
 // extract a type from an async function output
 // helpful to bind the input of a function to the output of another
-export type Out<FN> = FN extends (...args: unknown[]) => Promise<unknown>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Out<FN> = FN extends (...args: any[]) => Promise<unknown>
   ? Awaited<ReturnType<FN>>
-  : FN extends (...args: unknown[]) => unknown
+  : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    FN extends (...args: any[]) => any
     ? ReturnType<FN>
     : never;
 

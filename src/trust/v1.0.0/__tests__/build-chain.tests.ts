@@ -5,7 +5,7 @@ import {
   leafEntityStatement,
   signed,
   trustAnchorEntityConfiguration,
-} from "../__mocks__/entity-statements";
+} from "../__fixtures__/entity-statements";
 import { buildTrustChain } from "../build-chain";
 import { mapToTrustAnchorConfig } from "../mappers";
 import { verifyTrustChain } from "../verify-chain";
@@ -39,7 +39,7 @@ const mockResponses: Record<
   [`${taBaseUrl}/list`]: [leafBaseUrl, intermediateBaseUrl],
 };
 
-export const customFetch: GlobalFetch["fetch"] = async (requestInfo, _) => {
+const customFetch: GlobalFetch["fetch"] = async (requestInfo, _) => {
   const url = typeof requestInfo === "string" ? requestInfo : requestInfo.url;
 
   const mockResponse = mockResponses[url];

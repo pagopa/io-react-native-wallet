@@ -102,20 +102,16 @@ describe("initChallenge", () => {
       }),
     );
 
-    try {
-      await initChallenge(
-        issuerConf,
-        initUrl,
-        mrtd_auth_session,
-        mrtd_pop_jwt_nonce,
-        { appFetch, walletInstanceAttestation, wiaCryptoContext },
-      );
-      fail("Should have thrown IssuerResponseError");
-    } catch (err) {
-      expect(err).toBeInstanceOf(IssuerResponseError);
-      const e = err as IssuerResponseError;
-      expect(e.statusCode).toBe(400);
-    }
+    const promise = initChallenge(
+      issuerConf,
+      initUrl,
+      mrtd_auth_session,
+      mrtd_pop_jwt_nonce,
+      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+    );
+
+    await expect(promise).rejects.toBeInstanceOf(IssuerResponseError);
+    await expect(promise).rejects.toMatchObject({ statusCode: 400 });
   });
 
   it("uses provided appFetch implementation", async () => {

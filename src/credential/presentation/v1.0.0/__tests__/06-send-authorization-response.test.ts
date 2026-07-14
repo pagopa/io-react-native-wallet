@@ -140,17 +140,15 @@ describe("sendAuthorizationResponse", () => {
         status,
       });
 
-      try {
-        await sendAuthorizationResponse(
-          mockRequestObject,
-          remotePresentations,
-          mockRpConf,
-          { appFetch: mockFetch },
-        );
-      } catch (error) {
-        expect(error).toBeInstanceOf(RelyingPartyResponseError);
-        expect((error as RelyingPartyResponseError).code).toEqual(errorCode);
-      }
+      const promise = sendAuthorizationResponse(
+        mockRequestObject,
+        remotePresentations,
+        mockRpConf,
+        { appFetch: mockFetch },
+      );
+
+      await expect(promise).rejects.toBeInstanceOf(RelyingPartyResponseError);
+      await expect(promise).rejects.toMatchObject({ code: errorCode });
     },
   );
 

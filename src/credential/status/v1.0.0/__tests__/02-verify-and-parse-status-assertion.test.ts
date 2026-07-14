@@ -49,54 +49,44 @@ describe("verifyAndParseStatusAssertion", () => {
   });
 
   it("parses a valid assertion for an invalid credential", async () => {
-    try {
-      await verifyAndParseStatusAssertion(
-        mockIssuerConf,
-        {
-          statusAssertion:
-            "eyJraWQiOiI3YWM2MzljNy1kZDhhLTRjMzgtOGMwYy00OTVhM2E2NmEwODAiLCJ0eXAiOiJzdGF0dXMtYXNzZXJ0aW9uK2p3dCIsImFsZyI6IkVTMjU2In0.eyJjcmVkZW50aWFsX3N0YXR1c190eXBlIjoiMHgwMSIsImNyZWRlbnRpYWxfc3RhdHVzX2RldGFpbCI6eyJzdGF0ZSI6InJldm9rZWQiLCJkZXNjcmlwdGlvbiI6IkxvcmVtIGlwc3VtIn0sImNyZWRlbnRpYWxfaGFzaF9hbGciOiJzaGEtMjU2IiwiaXNzIjoiaHR0cHM6Ly9wcmUuZWFhLndhbGxldC5pcHpzLml0LzEtMCIsImNyZWRlbnRpYWxfaGFzaCI6ImM2YzZmZDhmNjhhZjE5NDBhYzVkYzVhNDljYzAxODg2ZjNmZWEwYzVhYzA3Njk4ZTY1ZGQ5N2IwODVhMmIyMWEiLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiYWxnIjoiRVMyNTYiLCJraWQiOiI3YWM2MzljNy1kZDhhLTRjMzgtOGMwYy00OTVhM2E2NmEwODAiLCJjcnYiOiJQLTI1NiIsIngiOiJzN1pjdDlKYS1wYUtsSkR1bVo5aUJ3ZGx5UmZEQUpnLUlzaG9TSXJadnVZIiwieSI6Im0zOEZuRlh5ZDE2bXFVTzZ4cHowTXJjRGllZEpGaHRMSkxFTlg1OW5FakkifX0sImV4cCI6MTc1MjgzMjU1NywiaWF0IjoxNzUyNzQ2MTU3LCJqdGkiOiIxNDQ4NTZlOC04MTRhLTRmNjItYmI0NS0xOTZlMjU5ZmFlZTYifQ.-b9RC0Gd1gjmInwELJvLwgF3XMFzBrHV669x-oJQO9b1tH3PQN_U6LQ0TBnHlyN9n0MCGJY3n3Sj4vqBKMwL8A",
-        },
-        mockCredential,
-        format,
-      );
-    } catch (err) {
-      expect(err).toBeInstanceOf(IssuerResponseError);
-      const error = err as IssuerResponseError;
-      expect(error.code).toEqual(
-        IssuerResponseErrorCodes.CredentialInvalidStatus,
-      );
-      expect(error.reason).toEqual(
-        expect.objectContaining({
-          error: "revoked",
-          error_description: "Lorem ipsum",
-        }),
-      );
-    }
+    const promise = verifyAndParseStatusAssertion(
+      mockIssuerConf,
+      {
+        statusAssertion:
+          "eyJraWQiOiI3YWM2MzljNy1kZDhhLTRjMzgtOGMwYy00OTVhM2E2NmEwODAiLCJ0eXAiOiJzdGF0dXMtYXNzZXJ0aW9uK2p3dCIsImFsZyI6IkVTMjU2In0.eyJjcmVkZW50aWFsX3N0YXR1c190eXBlIjoiMHgwMSIsImNyZWRlbnRpYWxfc3RhdHVzX2RldGFpbCI6eyJzdGF0ZSI6InJldm9rZWQiLCJkZXNjcmlwdGlvbiI6IkxvcmVtIGlwc3VtIn0sImNyZWRlbnRpYWxfaGFzaF9hbGciOiJzaGEtMjU2IiwiaXNzIjoiaHR0cHM6Ly9wcmUuZWFhLndhbGxldC5pcHpzLml0LzEtMCIsImNyZWRlbnRpYWxfaGFzaCI6ImM2YzZmZDhmNjhhZjE5NDBhYzVkYzVhNDljYzAxODg2ZjNmZWEwYzVhYzA3Njk4ZTY1ZGQ5N2IwODVhMmIyMWEiLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiYWxnIjoiRVMyNTYiLCJraWQiOiI3YWM2MzljNy1kZDhhLTRjMzgtOGMwYy00OTVhM2E2NmEwODAiLCJjcnYiOiJQLTI1NiIsIngiOiJzN1pjdDlKYS1wYUtsSkR1bVo5aUJ3ZGx5UmZEQUpnLUlzaG9TSXJadnVZIiwieSI6Im0zOEZuRlh5ZDE2bXFVTzZ4cHowTXJjRGllZEpGaHRMSkxFTlg1OW5FakkifX0sImV4cCI6MTc1MjgzMjU1NywiaWF0IjoxNzUyNzQ2MTU3LCJqdGkiOiIxNDQ4NTZlOC04MTRhLTRmNjItYmI0NS0xOTZlMjU5ZmFlZTYifQ.-b9RC0Gd1gjmInwELJvLwgF3XMFzBrHV669x-oJQO9b1tH3PQN_U6LQ0TBnHlyN9n0MCGJY3n3Sj4vqBKMwL8A",
+      },
+      mockCredential,
+      format,
+    );
+
+    await expect(promise).rejects.toBeInstanceOf(IssuerResponseError);
+    await expect(promise).rejects.toMatchObject({
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      reason: expect.objectContaining({
+        error: "revoked",
+        error_description: "Lorem ipsum",
+      }),
+    });
   });
 
   it("parses an assertion with an error", async () => {
-    try {
-      await verifyAndParseStatusAssertion(
-        mockIssuerConf,
-        {
-          statusAssertion:
-            "eyJraWQiOiI3YWM2MzljNy1kZDhhLTRjMzgtOGMwYy00OTVhM2E2NmEwODAiLCJ0eXAiOiJzdGF0dXMtYXNzZXJ0aW9uLWVycm9yK2p3dCIsImFsZyI6IkVTMjU2In0.eyJjcmVkZW50aWFsX2hhc2hfYWxnIjoic2hhLTI1NiIsImVycm9yX2Rlc2NyaXB0aW9uIjoiQ3JlZGVudGlhbCBub3QgZm91bmQiLCJpc3MiOiJodHRwczovL3ByZS5lYWEud2FsbGV0LmlwenMuaXQvMS0wIiwiY3JlZGVudGlhbF9oYXNoIjoiYjdkY2RhMjc1YjJjNzE3ZGMwMWNiZmU4YmExNjM5MjIwMmJkZGJiOTUwODU2MjIwMzY0NDdhZDA3MzFiMDJmYyIsImV4cCI6MTc1MjgyNTg5OSwiZXJyb3IiOiJjcmVkZW50aWFsX25vdF9mb3VuZCIsImlhdCI6MTc1MjczOTQ5OX0.WanqL5c_JmikZtQugw2YbUaX45mA6NLRUm32Id2W4HBNGKR_Sbt6DbmE3tDijQGyQV_TnjZ1LmKRrxyC1LmYeQ",
-        },
-        mockCredential,
-        format,
-      );
-    } catch (err) {
-      expect(err).toBeInstanceOf(IssuerResponseError);
-      const error = err as IssuerResponseError;
-      expect(error.code).toEqual(
-        IssuerResponseErrorCodes.CredentialInvalidStatus,
-      );
-      expect(error.reason).toEqual(
-        expect.objectContaining({
-          error: "credential_not_found",
-          error_description: "Credential not found",
-        }),
-      );
-    }
+    const promise = verifyAndParseStatusAssertion(
+      mockIssuerConf,
+      {
+        statusAssertion:
+          "eyJraWQiOiI3YWM2MzljNy1kZDhhLTRjMzgtOGMwYy00OTVhM2E2NmEwODAiLCJ0eXAiOiJzdGF0dXMtYXNzZXJ0aW9uLWVycm9yK2p3dCIsImFsZyI6IkVTMjU2In0.eyJjcmVkZW50aWFsX2hhc2hfYWxnIjoic2hhLTI1NiIsImVycm9yX2Rlc2NyaXB0aW9uIjoiQ3JlZGVudGlhbCBub3QgZm91bmQiLCJpc3MiOiJodHRwczovL3ByZS5lYWEud2FsbGV0LmlwenMuaXQvMS0wIiwiY3JlZGVudGlhbF9oYXNoIjoiYjdkY2RhMjc1YjJjNzE3ZGMwMWNiZmU4YmExNjM5MjIwMmJkZGJiOTUwODU2MjIwMzY0NDdhZDA3MzFiMDJmYyIsImV4cCI6MTc1MjgyNTg5OSwiZXJyb3IiOiJjcmVkZW50aWFsX25vdF9mb3VuZCIsImlhdCI6MTc1MjczOTQ5OX0.WanqL5c_JmikZtQugw2YbUaX45mA6NLRUm32Id2W4HBNGKR_Sbt6DbmE3tDijQGyQV_TnjZ1LmKRrxyC1LmYeQ",
+      },
+      mockCredential,
+      format,
+    );
+
+    await expect(promise).rejects.toBeInstanceOf(IssuerResponseError);
+    await expect(promise).rejects.toMatchObject({
+      code: IssuerResponseErrorCodes.CredentialInvalidStatus,
+      reason: expect.objectContaining({
+        error: "credential_not_found",
+        error_description: "Credential not found",
+      }),
+    });
   });
 });

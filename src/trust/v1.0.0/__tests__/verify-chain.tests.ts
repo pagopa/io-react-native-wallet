@@ -1,11 +1,11 @@
-import * as mockEC from "../__mocks__/entity-configurations";
+import * as mockEC from "../__fixtures__/entity-configurations";
 import {
   intermediateEntityStatement,
   leafEntityConfiguration,
   leafEntityStatement,
   signed,
   trustAnchorEntityConfiguration,
-} from "../__mocks__/entity-statements";
+} from "../__fixtures__/entity-statements";
 import {
   getCredentialIssuerEntityConfiguration,
   getEntityConfiguration,

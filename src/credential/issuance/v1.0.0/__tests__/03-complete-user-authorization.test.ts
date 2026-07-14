@@ -29,11 +29,9 @@ describe("authorizeUserWithQueryMode", () => {
 
     const authRedirectUrl = `test://cb?${authErr.toString()}`;
 
-    try {
-      await completePidUserAuthorizationWithQueryMode(authRedirectUrl);
-    } catch (error) {
-      expect(error).toBeInstanceOf(AuthorizationIdpError);
-    }
+    await expect(
+      completePidUserAuthorizationWithQueryMode(authRedirectUrl),
+    ).rejects.toBeInstanceOf(AuthorizationIdpError);
   });
 
   it("should throw an AuthorizationError when the authorization response is not recognized", async () => {
@@ -43,11 +41,9 @@ describe("authorizeUserWithQueryMode", () => {
 
     const authRedirectUrl = `test://cb?${wrongAuthRes.toString()}`;
 
-    try {
-      await completePidUserAuthorizationWithQueryMode(authRedirectUrl);
-    } catch (error) {
-      expect(error).toBeInstanceOf(AuthorizationError);
-    }
+    await expect(
+      completePidUserAuthorizationWithQueryMode(authRedirectUrl),
+    ).rejects.toBeInstanceOf(AuthorizationError);
   });
 });
 
