@@ -18,7 +18,6 @@ const integrityContextMock: jest.Mocked<IntegrityContext> = {
 const createMockKeyAttestationCryptoContext = (
   keyTag: string,
 ): jest.Mocked<KeyAttestationCryptoContext> => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   generateKeyWithAttestation: jest.fn(async (_) => ({
     attestation: `mock-key-attestation-${keyTag}`,
     success: true,

@@ -77,8 +77,16 @@ const validateX509HashClient = (
   certificateChain: string[],
   x509Hash: string,
 ) => {
+  const cert = certificateChain[0];
+
+  if (!cert) {
+    throw new InvalidRequestObjectError(
+      "Certificate chain is empty, cannot validate x509_hash",
+    );
+  }
+
   const calculatedHash = QuickCrypto.createHash("sha-256")
-    .update(certificateChain[0]!, "base64")
+    .update(cert, "base64")
     .digest("base64url");
 
   if (x509Hash !== calculatedHash) {

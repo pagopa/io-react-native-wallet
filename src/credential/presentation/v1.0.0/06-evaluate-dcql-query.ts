@@ -1,4 +1,5 @@
 import { DcqlError, DcqlQuery } from "dcql";
+import { IoWalletError } from "src/utils/errors";
 import { isValiError } from "valibot";
 
 import type { Credential4Dcql, RemotePresentationApi } from "../api";
@@ -57,7 +58,15 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
             "vct" in matchOutput)
         ) {
           const { vct } = matchOutput;
-          const [keyTag, credential] = credentialsByVct[vct]!;
+          const cred = credentialsByVct[vct];
+
+          if (!cred) {
+            throw new IoWalletError(
+              `Credential with vct ${vct} not found in the provided credentials`,
+            );
+          }
+
+          const [keyTag, credential] = cred;
 
           const requiredDisclosures = getClaimsFromDcqlMatch(match);
           const presentationFrame = getPresentationFrameFromDcqlMatch(

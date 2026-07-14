@@ -46,7 +46,7 @@ import { labelByCredentialType } from "../utils/ui";
 /**
  * MainStackNav parameters list for each defined screen.
  */
-export interface MainStackNavParamList {
+export type MainStackNavParamList = {
   CieAuthentication: undefined;
   CieIdAuthentication: {
     authUrl: string;

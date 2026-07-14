@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import { DcqlError, type DcqlQuery } from "dcql";
 
 import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";

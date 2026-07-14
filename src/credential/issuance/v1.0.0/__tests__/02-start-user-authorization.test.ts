@@ -102,14 +102,13 @@ describe("startUserAuthorization", () => {
     );
   });
 
-  it.failing(
-    "should throw when multiple credentials have incompatible response_mode",
-    async () => {
-      const ephemeralKeytag = `ephemeral-${Math.random()}`;
-      await generate(ephemeralKeytag);
-      const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
+  it("should throw when multiple credentials have incompatible response_mode", async () => {
+    const ephemeralKeytag = `ephemeral-${Math.random()}`;
+    await generate(ephemeralKeytag);
+    const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
 
-      await startUserAuthorization(
+    await expect(() =>
+      startUserAuthorization(
         mockIssuerConf,
         ["PersonIdentificationData", "MDL"],
         { proofType: "none" },
@@ -119,7 +118,7 @@ describe("startUserAuthorization", () => {
           walletInstanceAttestation: mockWia,
           wiaCryptoContext: ephemeralContext,
         },
-      );
-    },
-  );
+      ),
+    ).rejects.toThrow();
+  });
 });

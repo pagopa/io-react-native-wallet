@@ -157,9 +157,9 @@ describe("validateChallenge", () => {
       mrtd: mrtdPayload,
     });
 
-    expect(mockSetIssuedAt).toHaveBeenCalled();
+    expect(mockSetIssuedAt).toHaveBeenCalledWith();
     expect(mockSetExpirationTime).toHaveBeenCalledWith("5m");
-    expect(mockSign).toHaveBeenCalled();
+    expect(mockSign).toHaveBeenCalledWith();
   });
 
   it("throws IssuerResponseError when status code is not 202", async () => {
@@ -170,22 +170,18 @@ describe("validateChallenge", () => {
       }),
     );
 
-    try {
-      await validateChallenge(
-        issuerConf,
-        verifyUrl,
-        mrtd_auth_session,
-        mrtd_pop_nonce,
-        mrtdPayload,
-        iasPayload,
-        { appFetch, walletInstanceAttestation, wiaCryptoContext },
-      );
-      fail("Should have thrown IssuerResponseError");
-    } catch (err) {
-      expect(err).toBeInstanceOf(IssuerResponseError);
-      const e = err as IssuerResponseError;
-      expect(e.statusCode).toBe(400);
-    }
+    const execution = validateChallenge(
+      issuerConf,
+      verifyUrl,
+      mrtd_auth_session,
+      mrtd_pop_nonce,
+      mrtdPayload,
+      iasPayload,
+      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+    );
+
+    await expect(execution).rejects.toThrow(IssuerResponseError);
+    await expect(execution).rejects.toHaveProperty("statusCode", 400);
   });
 
   it("throws an error when the response doesn't match MrtdPopVerificationResult schema", async () => {

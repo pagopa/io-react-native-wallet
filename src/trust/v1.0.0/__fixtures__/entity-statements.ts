@@ -181,12 +181,12 @@ export const leafEntityConfiguration = {
   },
 };
 
-// Encodes a jwt object and append a stub signature
-export const signed = async (jwt: any) => {
-  const keytag = `${Math.random()}`;
-  await generate(keytag);
-  return new SignJWT(createCryptoContextFor(keytag))
-    .setPayload(jwt.payload)
-    .setProtectedHeader(jwt.header)
-    .sign();
-};
+// // Encodes a jwt object and append a stub signature
+// export const signed = async (jwt: any) => {
+//   const keytag = `${Math.random()}`;
+//   await generate(keytag);
+//   return new SignJWT(createCryptoContextFor(keytag))
+//     .setPayload(jwt.payload)
+//     .setProtectedHeader(jwt.header)
+//     .sign();
+// };

@@ -62,7 +62,7 @@ export const serializeAttrs = (
  */
 export const withMappedErrors = <T, E extends Error>(
   fn: () => T,
-  sourceError: new (...args: any[]) => E,
+  sourceError: new (...args: unknown[]) => E,
   mapError: (error: E) => Error,
 ): T => {
   try {

@@ -33,11 +33,11 @@ const getClaimsFromDecodedSdJwt = async (decodedRawSdJwt: SDJwt) => {
     digest,
   );
 
-  for (const claim of NON_DISCLOSABLE_CLAIMS) {
-    delete claims[claim];
-  }
-
-  return claims;
+  return Object.fromEntries(
+    Object.entries(claims).filter(
+      ([key]) => !NON_DISCLOSABLE_CLAIMS.includes(key),
+    ),
+  );
 };
 
 /**

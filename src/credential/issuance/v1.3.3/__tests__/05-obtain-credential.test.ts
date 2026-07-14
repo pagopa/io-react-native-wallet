@@ -24,7 +24,6 @@ const createMockCryptoContext = (
     x: "1",
     y,
   })),
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- mock arg intentionally unused
   getSignature: jest.fn(async (_) => `mock-signature-${keyTag}`),
 });
 

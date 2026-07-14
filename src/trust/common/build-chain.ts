@@ -1,3 +1,4 @@
+import { IoWalletError } from "src/utils/errors";
 import { z } from "zod";
 
 import type { TrustApi } from "../api";
@@ -126,7 +127,12 @@ export function createGatherTrustChain({
       }
       return chain;
     }
-    const parentEntityBaseUrl = authorityHints[0]!;
+
+    const parentEntityBaseUrl = authorityHints[0];
+
+    if (!parentEntityBaseUrl) {
+      throw new Error("AuthorityHints array is empty.");
+    }
 
     // Fetch parent EC
     const parentECJwt = await getSignedEntityConfiguration(

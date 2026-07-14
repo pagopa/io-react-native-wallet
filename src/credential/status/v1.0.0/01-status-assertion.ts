@@ -74,7 +74,11 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
 
   const [statusAttestationJwt] = result.status_assertion_responses;
 
-  return { statusAssertion: statusAttestationJwt! };
+  if (!statusAttestationJwt) {
+    throw new IoWalletError("Status assertion response is empty");
+  }
+
+  return { statusAssertion: statusAttestationJwt };
 };
 
 /**

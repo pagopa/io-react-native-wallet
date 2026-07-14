@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 import type { IssuerConfig } from "../../api";

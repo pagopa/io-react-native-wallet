@@ -28,12 +28,15 @@ export function createMapper<I, O>(
 ): (input: unknown) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
   config: { outputSchema: z.ZodType<O> },
 ): (input: I) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
   config?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     inputSchema?: z.ZodType<I, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outputSchema: z.ZodType<O, any>;
   },
 ) {
@@ -58,6 +61,7 @@ export function createMapper<I, O>(
  * @fn The function to wrap
  * @return The original function with the mapper applied to its return value
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const withMapper = <A extends any[], I, O>(
   mapper: (input: I) => O,
   fn: (...args: A) => I,
@@ -73,6 +77,7 @@ export const withMapper = <A extends any[], I, O>(
  * @fn The function to wrap
  * @return The original function with the mapper applied to its return value
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const withMapperAsync = <A extends any[], I, O>(
   mapper: (input: I) => O,
   fn: (...args: A) => Promise<I>,

@@ -9,6 +9,7 @@ import type { IssuanceApi } from "../api";
 
 import { createDPopToken } from "../../../utils/dpop";
 import {
+  IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
@@ -171,10 +172,24 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   const issuerCredentialConfig =
     issuerConf.credential_configurations_supported[credential_configuration_id];
 
+  const credential = credentialRes.data.credentials[0]?.credential;
+  if (!credential) {
+    throw new IoWalletError(
+      `No credential found in the response for credential_configuration_id ${credential_configuration_id}`,
+    );
+  }
+
+  const format = issuerCredentialConfig?.format;
+  if (!format) {
+    throw new IoWalletError(
+      `No format found for credential_configuration_id ${credential_configuration_id} in the issuer configuration`,
+    );
+  }
+
   // TODO: [SIW-2264] Handle multiple credentials
   return {
-    credential: credentialRes.data.credentials.at(0)!.credential,
-    format: issuerCredentialConfig!.format,
+    credential,
+    format,
   };
 };
 

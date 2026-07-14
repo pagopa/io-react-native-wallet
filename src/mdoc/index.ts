@@ -39,8 +39,15 @@ export const verify = async (
   if (!coseSign1) {
     throw new IoWalletError("Missing coseSign1");
   }
+
+  const firstCert = x5chain[0];
+
+  if (!firstCert) {
+    throw new IoWalletError("x5chain is empty, cannot verify signature");
+  }
+
   // Once the x5chain is verified, the signatures verification can be performed
-  await verifyMdocSignature(coseSign1, x5chain[0]!);
+  await verifyMdocSignature(coseSign1, firstCert);
 
   return { issuerSigned };
 };
