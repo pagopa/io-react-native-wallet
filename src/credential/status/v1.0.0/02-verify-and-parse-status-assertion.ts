@@ -80,10 +80,18 @@ const isStatusAssertionError = (
  */
 const buildErrorReason = ({
   payload,
-}: ParsedStatusAssertionResponse): InvalidStatusErrorReason =>
-  "error" in payload
-    ? payload
-    : {
-        error: payload.credential_status_detail!.state,
-        error_description: payload.credential_status_detail!.description,
-      };
+}: ParsedStatusAssertionResponse): InvalidStatusErrorReason => {
+  if ("error" in payload) return payload;
+
+  const { credential_status_detail } = payload;
+  if (!credential_status_detail) {
+    throw new IoWalletError(
+      "Missing credential_status_detail in an invalid status assertion",
+    );
+  }
+
+  return {
+    error: credential_status_detail.state,
+    error_description: credential_status_detail.description,
+  };
+};

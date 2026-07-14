@@ -63,8 +63,14 @@ const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   const pemcert = convertBase64DerToPem(cert);
   const jwk = getSigninJwkFromCert(pemcert);
 
-  jwk.x = b64utob64(jwk.x!);
-  jwk.y = b64utob64(jwk.y!);
+  if (!jwk.x || !jwk.y) {
+    throw new IoWalletError(
+      "Missing x or y coordinate in the certificate's public key",
+    );
+  }
+
+  jwk.x = b64utob64(jwk.x);
+  jwk.y = b64utob64(jwk.y);
 
   const signatureCorrect = await COSE.verify(coseSign1, jwk as PublicKey);
 

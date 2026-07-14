@@ -38,6 +38,7 @@ import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
  * @param issuerState - (optional) issuer state forwarded to the PAR, from a credential offer
  * @returns The obtained credential result
  */
+// eslint-disable-next-line max-lines-per-function
 export const getCredential = async ({
   batchSize = 1,
   credentialId,
@@ -143,17 +144,31 @@ export const getCredential = async ({
   );
 
   // For simplicity, in this example flow we work on a single credential.
+  const [firstAuthorizationDetail] = accessToken.authorization_details;
+  if (!firstAuthorizationDetail) {
+    throw new Error("No authorization details found in the access token");
+  }
   const { credential_configuration_id, credential_identifiers } =
-    accessToken.authorization_details[0]!;
+    firstAuthorizationDetail;
 
   // Create as many key tags as the batch size
   const keyTags = Array.from({ length: batchSize }, () => uuidv4().toString());
   const walletUnitAttestation = await generateKeysWithAttestation(keyTags);
   const credentialCryptoContexts = keyTags.map(createCryptoContextFor);
 
+  const [firstCredentialCryptoContext] = credentialCryptoContexts;
+  if (!firstCredentialCryptoContext) {
+    throw new Error("No crypto context generated for the credential batch");
+  }
+
+  const [firstCredentialIdentifier] = credential_identifiers;
+  if (!firstCredentialIdentifier) {
+    throw new Error("No credential identifiers found in the access token");
+  }
+
   const credentialDefinition = {
     credential_configuration_id,
-    credential_identifier: credential_identifiers[0]!,
+    credential_identifier: firstCredentialIdentifier,
   };
 
   const credentialResult =
@@ -177,7 +192,7 @@ export const getCredential = async ({
           credentialDefinition,
           {
             appFetch,
-            credentialCryptoContext: credentialCryptoContexts[0]!,
+            credentialCryptoContext: firstCredentialCryptoContext,
             dPopCryptoContext,
             walletUnitAttestation,
           },
@@ -186,17 +201,24 @@ export const getCredential = async ({
   // In the example app we are not interested in storing the entire batch: it is sufficient
   // that the batch size is respected, so we return only the first credential for simplicity.
   // For production use cases, you should properly handle the entire batch.
-  const { credential, format } = Array.isArray(credentialResult)
-    ? credentialResult[0]!
-    : credentialResult;
+  const [firstCredentialResult] = Array.isArray(credentialResult)
+    ? credentialResult
+    : [credentialResult];
+  if (!firstCredentialResult) {
+    throw new Error("No credential returned by the issuance flow");
+  }
+  const { credential, format } = firstCredentialResult;
 
   const x509CertRoot =
     format === "mso_mdoc" || itwVersion !== "1.0.0"
       ? await getTrustAnchorX509Certificate(itwVersion, trustAnchorUrl)
       : undefined;
 
-  const credentialKeyTag = keyTags[0]!;
-  const credentialCryptoContext = credentialCryptoContexts[0]!;
+  const credentialKeyTag = keyTags[0];
+  if (!credentialKeyTag) {
+    throw new Error("No key tag generated for the credential batch");
+  }
+  const credentialCryptoContext = firstCredentialCryptoContext;
 
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
   const { parsedCredential } =

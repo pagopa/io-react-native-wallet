@@ -215,9 +215,12 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     );
 
     const credentialConfig =
-      issuerConf.credential_configurations_supported[
-        credentialConfigurationId
-      ]!;
+      issuerConf.credential_configurations_supported[credentialConfigurationId];
+    if (!credentialConfig) {
+      throw new IoWalletError(
+        `Missing credential configuration for ${credentialConfigurationId}`,
+      );
+    }
     const parsedCredential = parseCredentialMDoc(
       credentialConfig,
       decoded,

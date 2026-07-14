@@ -293,5 +293,5 @@ function getPidSdJwtConfigurationId(
     ([, c]) =>
       c.format === "dc+sd-jwt" && /PersonIdentificationData|pid/i.test(c.scope),
   );
-  return result!.at(0) as string;
+  return result?.at(0) as string;
 }

@@ -182,9 +182,9 @@ export const getValidDcqlClaims = (match: DcqlQueryResult.CredentialMatch) => {
   // We select claims in the order they are defined in the set
   if (validClaimSet) {
     return (
-      validClaimSet.valid_claim_indexes?.map(
-        (i) => validClaims.find((c) => c.claim_index === i)!,
-      ) ?? []
+      validClaimSet.valid_claim_indexes
+        ?.map((i) => validClaims.find((c) => c.claim_index === i))
+        .filter((c): c is NonNullable<typeof c> => c != null) ?? []
     );
   }
 

@@ -69,6 +69,11 @@ export const selectResponseMode = (
   }
 
   const [responseMode] = responseModeSet.values();
+  if (!responseMode) {
+    throw new IoWalletError(
+      `No response mode found for requested credential IDs '${credentialIds}'`,
+    );
+  }
 
   Logger.log(
     LogLevel.DEBUG,
@@ -76,7 +81,7 @@ export const selectResponseMode = (
   );
 
   const responseModeSupported = issuerConf.response_modes_supported;
-  if (responseModeSupported && !responseModeSupported.includes(responseMode!)) {
+  if (responseModeSupported && !responseModeSupported.includes(responseMode)) {
     Logger.log(
       LogLevel.ERROR,
       `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`,
@@ -86,5 +91,5 @@ export const selectResponseMode = (
     );
   }
 
-  return responseMode!;
+  return responseMode;
 };
