@@ -1,9 +1,7 @@
 import pagopa from "@pagopa/eslint-config/jest";
 
 export default [
-  ...pagopa,
   {
-    // Only lint TypeScript sources, matching the previous `--ext .ts,.tsx` scope.
     ignores: [
       "src/client/generated/**/*",
       "lib/**/*",
@@ -14,6 +12,9 @@ export default [
       "**/metro.config.js",
       "**/react-native.config.js",
     ],
+  },
+  ...pagopa,
+  {
     rules: {
       // START: OVERWRITTEN RULES FROM PAGOPA/ESLINT-CONFIG
       //

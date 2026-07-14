@@ -57,7 +57,13 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
 
         if (matchOutput?.credential_format === "dc+sd-jwt") {
           const { vct } = matchOutput;
-          const [keyTag, credential] = credentialsById[vct]!;
+          const sdjwtCredential = credentialsById[vct];
+          if (!sdjwtCredential) {
+            throw new Error(
+              `Credential with vct ${vct} not found in the provided credentials.`,
+            );
+          }
+          const [keyTag, credential] = sdjwtCredential;
 
           const requiredDisclosures = getClaimsFromDcqlMatch(match);
           const presentationFrame = getPresentationFrameFromDcqlMatch(
@@ -81,7 +87,13 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
 
         if (matchOutput?.credential_format === "mso_mdoc") {
           const { doctype } = matchOutput;
-          const [keyTag, credential] = credentialsById[doctype]!;
+          const mdocCredential = credentialsById[doctype];
+          if (!mdocCredential) {
+            throw new Error(
+              `Credential with doctype ${doctype} not found in the provided credentials.`,
+            );
+          }
+          const [keyTag, credential] = mdocCredential;
 
           const requiredDisclosures = mdocUtils.getClaimsFromDcqlMatch(match);
           const presentationFrame = mdocUtils.getPresentationFrameFromClaims(

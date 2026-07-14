@@ -69,13 +69,16 @@ export default function IdpLoginScreen({ route }: Props) {
   const handleNavigationStateChange = ({ url }: WebViewNavigation) => {
     if (!url.includes("profile.html")) return;
 
-    let { hash, searchParams } = new URL(url);
+    const { hash } = new URLParse(url);
+    let { searchParams } = new URL(url);
     if (hash) {
       const paramsString = hash.startsWith("#") ? hash.slice(1) : hash;
       searchParams = new URLSearchParams(paramsString);
     }
     const token = searchParams.get("token");
-    token && dispatch(sessionSet(token));
+    if (token) {
+      dispatch(sessionSet(token));
+    }
   };
 
   return (

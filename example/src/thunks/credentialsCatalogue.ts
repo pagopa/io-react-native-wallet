@@ -10,7 +10,7 @@ import { createAppAsyncThunk } from "./utils";
 
 export const getCredentialsCatalogueThunk = createAppAsyncThunk<
   CredentialsCatalogue.DigitalCredentialsCatalogue,
-  void
+  undefined
 >("credentialsCatalogue/get", async (_, { getState }) => {
   const env = selectEnv(getState());
   const { WALLET_TA_BASE_URL } = getEnv(env);
@@ -22,7 +22,7 @@ export const getCredentialsCatalogueThunk = createAppAsyncThunk<
 
 export const getCredentialsCatalogueTranslationsThunk = createAppAsyncThunk<
   CredentialsCatalogue.CatalogueTranslations,
-  void
+  undefined
 >("credentialsCatalogue/getTranslations", async (_, { getState }) => {
   const itwVersion = selectItwVersion(getState());
   const catalogue = selectCredentialsCatalogue(getState());

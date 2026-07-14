@@ -29,7 +29,7 @@ type GetAttestationThunkOutput = Awaited<
  */
 export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
   GetAttestationThunkOutput,
-  void
+  undefined
 >("walletinstance/walletinstanceattestation", async (_, { getState }) => {
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());

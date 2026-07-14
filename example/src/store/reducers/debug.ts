@@ -4,7 +4,7 @@ import type { RootState } from "../types";
 
 // State type definition for the session slice
 interface DebugState {
-  debugData: Record<string, any>;
+  debugData: Record<string, unknown>;
   isVisible: boolean;
 }
 
@@ -25,7 +25,7 @@ export const debugSlice = createSlice({
         ),
       );
     },
-    setDebugData: (state, action: PayloadAction<Record<string, any>>) => {
+    setDebugData: (state, action: PayloadAction<Record<string, unknown>>) => {
       state.debugData = action.payload;
     },
     setDebugVisibility: (state, action: PayloadAction<boolean>) => {

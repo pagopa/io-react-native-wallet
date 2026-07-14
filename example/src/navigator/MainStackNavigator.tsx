@@ -77,7 +77,7 @@ export type MainStackNavParamList = {
   Trustmark: undefined;
   TrustmarkQrCode: { credentialType: SupportedCredentialsWithoutPid };
   WalletInstance: undefined;
-}
+};
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
 

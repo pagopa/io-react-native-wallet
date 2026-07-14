@@ -18,6 +18,7 @@ import { getCredentialThunk } from "../thunks/credential";
  * Component (screen in a future PR) to test the credential functionalities.
  * This includes issuing a credential and getting its status attestation.
  */
+// eslint-disable-next-line max-lines-per-function
 export const CredentialScreen = () => {
   const dispatch = useAppDispatch();
 

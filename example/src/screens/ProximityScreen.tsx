@@ -79,6 +79,7 @@ interface ContentViewProps {
   env: EnvType;
 }
 
+// eslint-disable-next-line max-lines-per-function
 const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   const [status, setStatus] = useState<PROXIMITY_STATUS>(
     PROXIMITY_STATUS.STARTING,

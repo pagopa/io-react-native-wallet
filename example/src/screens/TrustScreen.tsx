@@ -1,6 +1,10 @@
+import type { SerializedError } from "@reduxjs/toolkit";
+
 import { H3, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
+
+import type { AsyncStatus } from "../store/types";
 
 import TestScenario, {
   type TestScenarioProp,
@@ -26,7 +30,7 @@ interface RelyingPartyUrls {
 }
 
 interface ScenarioData extends ScenarioWithUrl {
-  hasError: { error?: any; status: boolean };
+  hasError: AsyncStatus["hasError"];
   isDone: boolean;
   isLoading: boolean;
   isPresent: boolean;
@@ -158,7 +162,7 @@ export const TrustScreen = () => {
           hasError:
             isActive && asyncStatus.hasError.status
               ? asyncStatus.hasError
-              : { status: false },
+              : { error: undefined, status: false },
           isDone: isActive && asyncStatus.isDone && isValid === true,
           isLoading: isActive && asyncStatus.isLoading,
           isPresent: isActive && asyncStatus.isDone && isValid === true,

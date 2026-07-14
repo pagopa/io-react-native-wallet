@@ -149,10 +149,13 @@ export const getPresentationFrameFromDcqlMatch = (
 
   // Build a presentation frame from each claim's path
   return getValidDcqlClaims(match).reduce((acc, c) => {
-    const pf = pathToPresentationFrame(
-      typedQueryClaims[c.claim_index]!.path,
-      c.output,
-    );
+    const path = typedQueryClaims[c.claim_index]?.path;
+    if (!path) {
+      throw new Error(
+        `Claim at index ${c.claim_index} does not have a path in the original query.`,
+      );
+    }
+    const pf = pathToPresentationFrame(path, c.output);
     // Merge objects with the same key to not lose objects that are already in the accumulator
     for (const [key, value] of Object.entries(pf)) {
       acc[key] = isObject(value) ? Object.assign(value, acc[key]) : value;
