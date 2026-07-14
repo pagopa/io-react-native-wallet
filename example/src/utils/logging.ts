@@ -6,7 +6,7 @@ import {
 } from "react-native-logs";
 
 const getRemoteServerTransport = (address: string) => {
-  const customTransport: transportFunctionType<{}> = async (props) => {
+  const customTransport: transportFunctionType<object> = async (props) => {
     await fetch(address, {
       body: JSON.stringify({ msg: props.msg, ...props.level }),
       headers: {

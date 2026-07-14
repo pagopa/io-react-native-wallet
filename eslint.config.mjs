@@ -44,4 +44,13 @@ export default [
       "max-lines-per-function": "off",
     },
   },
+  {
+    // Static image assets must be loaded via `require()` for the React Native
+    rules: {
+      "@typescript-eslint/no-require-imports": [
+        "error",
+        { allow: ["\\.(png|jpg|jpeg|gif|webp)$"] },
+      ],
+    },
+  },
 ];

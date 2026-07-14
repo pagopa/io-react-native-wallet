@@ -7,6 +7,11 @@ import {
   pathToPresentationFrame,
 } from "../dcql";
 
+// The `claims` field is irrelevant for these tests but we use this type to cast the empty object
+type UnusedFailedCredentialClaims = NonNullable<
+  DcqlQueryResult["credential_matches"][string]["failed_credentials"]
+>[number]["claims"];
+
 describe("pathToPresentationFrame", () => {
   test.each([
     [["name"], { name: "Mario" }, { name: true }],
@@ -60,7 +65,7 @@ describe("extractFailedCredentialsDetails", () => {
           credential_query_id: "PersonIdentificationData",
           failed_credentials: [
             {
-              claims: {} as any,
+              claims: {} as unknown as UnusedFailedCredentialClaims,
               input_credential_index: 0,
               meta: {
                 issues: {
@@ -79,7 +84,7 @@ describe("extractFailedCredentialsDetails", () => {
               trusted_authorities: { success: true },
             },
             {
-              claims: {} as any,
+              claims: {} as unknown as UnusedFailedCredentialClaims,
               input_credential_index: 1,
               meta: {
                 issues: {

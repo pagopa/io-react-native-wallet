@@ -1,3 +1,5 @@
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import type { IssuerConfig } from "../../api/IssuerConfig";
 import type { IasPayload, MrtdPayload } from "../../api/mrtd-pop";
 
@@ -50,7 +52,8 @@ const wiaCryptoContext = {
   getPublicKey: jest
     .fn()
     .mockResolvedValue({ kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo" }),
-} as any;
+  getSignature: jest.fn(),
+} as CryptoContext;
 
 const validateChallenge = createValidateChallenge({ sdkConfig: sdkConfigV1_0 });
 
@@ -234,7 +237,16 @@ describe("validateChallenge", () => {
       { appFetch: customFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
-    expect(customFetch).toHaveBeenCalled();
+    expect(customFetch).toHaveBeenCalledWith(
+      verifyUrl,
+      expect.objectContaining({
+        body: JSON.stringify({
+          mrtd_auth_session,
+          mrtd_pop_nonce,
+        }),
+        method: "POST",
+      }),
+    );
   });
 
   it("uses default fetch when appFetch is not provided", async () => {
@@ -294,7 +306,7 @@ describe("validateChallenge", () => {
       { appFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
-    expect(wiaCryptoContext.getPublicKey).toHaveBeenCalled();
+    expect(wiaCryptoContext.getPublicKey).toHaveBeenCalledWith();
   });
 });
 

@@ -1,4 +1,3 @@
-import { IoWalletError } from "src/utils/errors";
 import { z } from "zod";
 
 import type { TrustApi } from "../api";

@@ -5,9 +5,9 @@ export type AuthorizationDetail = z.infer<typeof AuthorizationDetail>;
 export type CredentialFormat = "dc+sd-jwt" | "mso_mdoc";
 
 // The credential as a collection of attributes in plain value
-export interface ParsedCredential {
-  /** Attribute key */
-  [claim: string]: {
+export type ParsedCredential = Record<
+  string,
+  {
     name:
       | /* if i18n is provided */ Record<
           string /* locale */,
@@ -16,8 +16,9 @@ export interface ParsedCredential {
       | /* if no i18n is provided */ string
       | undefined; // Add undefined as a possible value for the name property
     value: unknown;
-  };
-}
+  }
+>;
+
 export const AuthorizationDetail = z.object({
   credential_configuration_id: z.string(),
   credential_identifiers: z.array(z.string()),

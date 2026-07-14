@@ -1,5 +1,3 @@
-import type { SerializedError } from "@reduxjs/toolkit";
-
 import { H3, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";

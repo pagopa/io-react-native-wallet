@@ -13,7 +13,6 @@ export const mapToCredentialsCatalogue = createMapper<
   DigitalCredentialsCatalogueType
 >(
   ({ payload }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { catalog_version, ...rest } = payload;
     return {
       ...rest,

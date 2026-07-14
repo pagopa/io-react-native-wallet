@@ -155,7 +155,7 @@ describe("mapToRequestObject", () => {
       },
     };
 
-    expect(mapToRequestObject(input as any)).toEqual({
+    expect(mapToRequestObject(input)).toEqual({
       client_id: "wallet-client-id",
       client_metadata: {
         jwks: {

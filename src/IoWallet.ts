@@ -1,5 +1,6 @@
 import { type IoWalletApi, ioWalletApiByVersion, type ItwVersion } from "./api";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unsafe-declaration-merging
 export interface IoWallet extends IoWalletApi {}
 
 interface DigitalWalletConfig {
@@ -18,6 +19,7 @@ interface DigitalWalletConfig {
  * const wallet = new IoWallet({ version: "1.0.0" })
  * wallet.Credential.Issuance.exampleMethod()
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class IoWallet {
   /**
    * Get the IT-Wallet specifications version bound to this instance.

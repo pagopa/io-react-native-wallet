@@ -1,3 +1,5 @@
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import type { IssuerConfig } from "../../api/IssuerConfig";
 
 import { createInitChallenge } from "../02-init-challenge";
@@ -42,7 +44,8 @@ const issuerConf = {
 
 const wiaCryptoContext = {
   getPublicKey: jest.fn(),
-} as any;
+  getSignature: jest.fn(),
+} as CryptoContext;
 
 const initChallenge = createInitChallenge({ sdkConfig: sdkConfigV1_0 });
 
@@ -127,6 +130,15 @@ describe("initChallenge", () => {
       { appFetch: customFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
-    expect(customFetch).toHaveBeenCalled();
+    expect(customFetch).toHaveBeenCalledWith(
+      initUrl,
+      expect.objectContaining({
+        body: JSON.stringify({
+          mrtd_auth_session,
+          mrtd_pop_jwt_nonce,
+        }),
+        method: "POST",
+      }),
+    );
   });
 });

@@ -64,10 +64,11 @@ const processBody = (body: unknown): string =>
 export const interpolateUrl = (url: string, params?: EndpointParameters) => {
   if (!params?.path) return url;
 
-  for (const [key, value] of Object.entries(params.path)) {
-    if (typeof value === "string") {
-      url = url.replace(`{${key}}`, value);
-    }
-  }
-  return url;
+  return Object.entries(params.path).reduce(
+    (interpolatedUrl, [key, value]) =>
+      typeof value === "string"
+        ? interpolatedUrl.replace(`{${key}}`, value)
+        : interpolatedUrl,
+    url,
+  );
 };
