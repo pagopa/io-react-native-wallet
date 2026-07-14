@@ -123,7 +123,7 @@ export interface RemotePresentationDetails {
 /**
  * Common Request Object type, decoupled from specific IT-Wallet versions
  */
-export interface RequestObject {
+export type RequestObject = {
   client_id: string;
   client_metadata?: ClientMetadata;
   dcql_query: Record<string, unknown>;
@@ -135,12 +135,12 @@ export interface RequestObject {
   state?: string;
   trust_chain?: string[];
   x5c?: string[];
-}
+};
 
-interface ClientMetadata {
+type ClientMetadata = {
   client_name?: string;
   encrypted_response_enc_values_supported: string[];
   jwks: jsonWebKeySet;
   logo_uri?: string;
   vp_formats_supported: Record<string, { "sd-jwt_alg_values"?: string[] }>;
-}
+};
