@@ -30,13 +30,14 @@ describe("mapToCredentialsCatalogue", () => {
     schemas: [
       {
         credential_type: "education_attendance",
-        id: "dc_sd_jwt_education_attendance",
+        id: "education_attendance+dc+sd-jwt+urn:it-wallet:education_attendance:it:1",
         format: "dc+sd-jwt",
         vct: "https://issuer-example.com/vct/education_attendance",
         version: "1.3",
         schema_uri:
           "https://issuer-example.com/.well-known/schemas/education_attendance",
         "schema_uri#integrity": "x",
+        description: "Schema for education attendance",
       },
       {
         id: "av+mso_mdoc+eu.europa.ec.av.1",
@@ -376,7 +377,7 @@ describe("mapToCredentialsCatalogue", () => {
         authentic_sources: [],
         formats: [
           {
-            configuration_id: "av+mso_mdoc+eu.europa.ec.av.1",
+            configuration_id: "mso_mdoc_av",
             format: "mso_mdoc",
             docType: "eu.europa.ec.av.1",
             schema_uri: "https://issuer-example.com/schemas/v1.3.3/av.cddl",
