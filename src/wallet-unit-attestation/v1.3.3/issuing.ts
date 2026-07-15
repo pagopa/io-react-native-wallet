@@ -136,6 +136,7 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
 
     const response = await api
       .post("/key-attestations", {
+        body: signedAttestationRequest,
         header: {
           "Content-Type": "text/plain",
         },
