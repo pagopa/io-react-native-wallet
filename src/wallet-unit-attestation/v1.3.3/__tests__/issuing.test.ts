@@ -43,7 +43,7 @@ const createMockFetch = () => {
   );
 
   appFetch.mockResolvedValueOnce(
-    new Response(JSON.stringify({ wallet_unit_attestation: "wua" }), {
+    new Response(JSON.stringify({ key_attestation: "wua" }), {
       status: 200,
       headers: { "content-type": "application/json" },
     })
