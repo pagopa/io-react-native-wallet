@@ -323,7 +323,7 @@ describe("buildChallengeCallbackUrl", () => {
     );
 
     expect(result.callbackUrl).toBe(
-      "https://issuer.example/callback?mrtd_val_pop_nonce=validation-nonce-123&mrtd_auth_session=auth-session-456",
+      "https://issuer.example/callback?mrtd_auth_session=auth-session-456&mrtd_val_pop_nonce=validation-nonce-123",
     );
   });
 
