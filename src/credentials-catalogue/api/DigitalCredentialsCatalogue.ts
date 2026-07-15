@@ -119,7 +119,6 @@ export const DigitalCredential = z.object({
     status_methods: z.array(z.string()),
   }),
   version: z.string(),
-  // claims: z.array(Claim), // TODO: [SIW-3978] Should we keep claims?
 });
 export type DigitalCredential = z.infer<typeof DigitalCredential>;
 

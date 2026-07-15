@@ -70,8 +70,14 @@ export const mapToCredentialsCatalogue = createMapper<
         `Schemas for ${credentialType} must be present in the Schema Registry`,
       );
       return schemas.map((schema) => ({
-        configuration_id: schema.id, // TODO: [SIW-3978] Fix this, the schema ID does not correspond to configuration_id
-        ...schema,
+        // Since the schema registry does not contain the actual configuration ID, it is composed according
+        // to the IT-Wallet Credential Issuer's convention. Note that this might not be true for every Issuer.
+        configuration_id: `${schema.format.replace(/[+-]/g, "_")}_${schema.credential_type}`,
+        docType: schema.docType,
+        format: schema.format,
+        schema_uri: schema.schema_uri,
+        "schema_uri#integrity": schema["schema_uri#integrity"],
+        vct: schema.vct,
       }));
     };
 
