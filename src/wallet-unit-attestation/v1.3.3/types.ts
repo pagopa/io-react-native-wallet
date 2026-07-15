@@ -17,5 +17,5 @@ export type WalletUnitAttestationResponse = z.infer<
   typeof WalletUnitAttestationResponse
 >;
 export const WalletUnitAttestationResponse = z.object({
-  wallet_unit_attestation: z.string(),
+  key_attestation: z.string(),
 });
