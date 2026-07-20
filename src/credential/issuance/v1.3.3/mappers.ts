@@ -1,4 +1,4 @@
-import type { MetadataResponseV1_3 } from "@pagopa/io-wallet-oid4vci";
+import type { MetadataResponseV1_4 } from "@pagopa/io-wallet-oid4vci";
 import type { ParsedAuthorizeRequestResult } from "@pagopa/io-wallet-oid4vp";
 
 import type { RequestObject } from "../../../credential/presentation";
@@ -11,7 +11,7 @@ import { IssuerConfig } from "../api/IssuerConfig";
 type CredentialConfigurations =
   IssuerConfig["credential_configurations_supported"];
 type OpenIdCredentialIssuer =
-  MetadataResponseV1_3["metadata"]["openid_credential_issuer"];
+  MetadataResponseV1_4["metadata"]["openid_credential_issuer"];
 
 const mapCredentialConfigurationsSupported = (
   oidIssuer: NonNullable<OpenIdCredentialIssuer>,
@@ -37,7 +37,7 @@ const mapCredentialConfigurationsSupported = (
   );
 
 export const mapToIssuerConfig = createMapper<
-  MetadataResponseV1_3,
+  MetadataResponseV1_4,
   IssuerConfig
 >(
   (x) => {
