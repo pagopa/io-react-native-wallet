@@ -22,7 +22,7 @@ src/<feature>/
 ├── common/         # Shared logic across versions
 ├── v1.0.0/         # v1.0.0 implementation
 ├── v1.3.3/         # v1.3.3 implementation
-└── index.ts        # Exports V1_0_0 and V1_3_3 named implementations
+└── index.ts        # Exports V1_0_0 and V1_4_4 named implementations
 ```
 
 Version dispatch happens in `src/api/index.ts` via `ioWalletApiByVersion`.

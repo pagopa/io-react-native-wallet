@@ -119,18 +119,20 @@ The Credential Offer flow ends once `extractGrantDetails` returns. The Issuance 
   <summary>Offer by reference</summary>
 
 ```ts
-import { CredentialOffer } from "@pagopa/io-react-native-wallet";
+import { ioWallet } from "@pagopa/io-react-native-wallet";
+
+const wallet = new IoWallet({ version: "1.4.4" });
 
 const uri =
   "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
 
 // 1) Resolve — fetches the offer from the URI and validates it
-const offer = await CredentialOffer.V1_3_3.resolveCredentialOffer(uri, {
+const offer = await wallet.CredentialsOffer.resolveCredentialOffer(uri, {
   fetch: appFetch,
 });
 
 // 2) Extract grant details
-const grant = CredentialOffer.V1_3_3.extractGrantDetails(offer);
+const grant = wallet.CredentialsOffer.extractGrantDetails(offer);
 // {
 //   grantType: "authorization_code",
 //   authorizationCodeGrant: { scope: "org.iso.18013.5.1.mDL", ... }
@@ -143,16 +145,18 @@ const grant = CredentialOffer.V1_3_3.extractGrantDetails(offer);
   <summary>Offer by value</summary>
 
 ```ts
-import { CredentialOffer } from "@pagopa/io-react-native-wallet";
+import { ioWallet } from "@pagopa/io-react-native-wallet";
+
+const wallet = new IoWallet({ version: "1.4.4" });
 
 const uri =
   "openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example.com%22%2C%22credential_configuration_ids%22%3A%5B%22UniversityDegree%22%5D%2C%22grants%22%3A%7B%22authorization_code%22%3A%7B%22scope%22%3A%22UniversityDegree%22%7D%7D%7D";
 
 // 1) Resolve — decodes the inline offer and validates it
-const offer = await CredentialOffer.V1_3_3.resolveCredentialOffer(uri);
+const offer = await wallet.CredentialsOffer.resolveCredentialOffer(uri);
 
 // 2) Extract grant details
-const grant = CredentialOffer.V1_3_3.extractGrantDetails(offer);
+const grant = wallet.CredentialsOffer.extractGrantDetails(offer);
 ```
 
 </details>
