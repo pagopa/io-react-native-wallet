@@ -1,7 +1,7 @@
 import type { RelyingPartyConfig } from "../api/RelyingPartyConfig";
 import type { RequestObject } from "../api/types";
 
-import { RelyingPartyEntityConfiguration } from "../../../trust/v1.3.3/types";
+import { RelyingPartyEntityConfiguration } from "../../../trust/v1.4.4/types";
 import { createMapper } from "../../../utils/mappers";
 import { RawRequestObject } from "./types";
 

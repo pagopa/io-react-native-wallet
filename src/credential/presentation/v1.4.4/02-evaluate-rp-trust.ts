@@ -1,6 +1,6 @@
 import type { RemotePresentationApi } from "../api";
 
-import { getRelyingPartyEntityConfiguration } from "../../../trust/v1.3.3/entities";
+import { getRelyingPartyEntityConfiguration } from "../../../trust/v1.4.4/entities";
 import { mapToRelyingPartyConfig } from "./mappers";
 
 export const evaluateRelyingPartyTrust: RemotePresentationApi["evaluateRelyingPartyTrust"] =
