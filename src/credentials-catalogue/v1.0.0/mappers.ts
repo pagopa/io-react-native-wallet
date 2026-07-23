@@ -13,7 +13,6 @@ export const mapToCredentialsCatalogue = createMapper<
   DigitalCredentialsCatalogueType
 >(
   ({ payload }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { catalog_version, ...rest } = payload;
     return {
       ...rest,
@@ -23,7 +22,7 @@ export const mapToCredentialsCatalogue = createMapper<
           ({ source_type, ...as }) => ({
             ...as,
             organization_type: source_type,
-          })
+          }),
         ),
       })),
     };
@@ -31,5 +30,5 @@ export const mapToCredentialsCatalogue = createMapper<
   {
     inputSchema: DigitalCredentialsCatalogueJwt,
     outputSchema: DigitalCredentialsCatalogue,
-  }
+  },
 );

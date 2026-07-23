@@ -1,10 +1,9 @@
-import {
-  getCredentialHashWithouDiscloures,
-  hasStatusOrThrow,
-} from "../../../utils/misc";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
-import { StatusAssertionResponse } from "./types";
+
+import type { StatusAssertionApi } from "../api/status-assertion";
+
+import { extractJwkFromCredential } from "../../../utils/credentials";
 import {
   IoWalletError,
   IssuerResponseError,
@@ -13,16 +12,19 @@ import {
   UnexpectedStatusCodeError,
 } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
-import { extractJwkFromCredential } from "../../../utils/credentials";
-import type { StatusAssertionApi } from "../api/status-assertion";
+import {
+  getCredentialHashWithouDiscloures,
+  hasStatusOrThrow,
+} from "../../../utils/misc";
+import { StatusAssertionResponse } from "./types";
 
 export const getStatusAssertion: StatusAssertionApi["get"] = async (
   issuerConf,
   credential,
   format,
-  ctx
+  ctx,
 ) => {
-  const { credentialCryptoContext, wiaCryptoContext, appFetch = fetch } = ctx;
+  const { appFetch = fetch, credentialCryptoContext, wiaCryptoContext } = ctx;
 
   const jwk = await extractJwkFromCredential(credential, format);
   const issuerJwk = await wiaCryptoContext.getPublicKey();
@@ -31,22 +33,22 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
 
   if (!statusAttUrl) {
     throw new IoWalletError(
-      "Status assertion endpoint not found in the Issuer configuration"
+      "Status assertion endpoint not found in the Issuer configuration",
     );
   }
 
   const credentialPop = await new SignJWT(credentialCryptoContext)
     .setPayload({
-      iss: issuerJwk.kid,
       aud: statusAttUrl,
-      jti: uuidv4().toString(),
       credential_hash: credentialHash,
       credential_hash_alg: "sha-256",
+      iss: issuerJwk.kid,
+      jti: uuidv4().toString(),
     })
     .setProtectedHeader({
       alg: "ES256",
-      typ: "status-assertion-request+jwt",
       kid: jwk.kid,
+      typ: "status-assertion-request+jwt",
     })
     .setIssuedAt()
     .setExpirationTime("5m")
@@ -59,11 +61,11 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
   Logger.log(LogLevel.DEBUG, `Credential pop: ${credentialPop}`);
 
   const result = await appFetch(statusAttUrl, {
-    method: "POST",
+    body: JSON.stringify(body),
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(body),
+    method: "POST",
   })
     .then(hasStatusOrThrow(200))
     .then((raw) => raw.json())
@@ -72,7 +74,11 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
 
   const [statusAttestationJwt] = result.status_assertion_responses;
 
-  return { statusAssertion: statusAttestationJwt! };
+  if (!statusAttestationJwt) {
+    throw new IoWalletError("Status assertion response is empty");
+  }
+
+  return { statusAssertion: statusAttestationJwt };
 };
 
 /**

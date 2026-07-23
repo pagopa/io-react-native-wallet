@@ -1,27 +1,29 @@
-import { createAppAsyncThunk } from "./utils";
 import {
   IoWallet,
   type RemotePresentation,
 } from "@pagopa/io-react-native-wallet";
-import type { PresentationStateKeys } from "../store/reducers/presentation";
-import { selectPid } from "../store/reducers/pid";
-import { selectCredentials } from "../store/reducers/credential";
-import { isDefined } from "../utils/misc";
-import { selectItwVersion } from "../store/reducers/environment";
 import { ClientIdPrefix } from "@pagopa/io-wallet-oid4vp";
 
-export type RequestObject = RemotePresentation.RequestObject;
+import type { PresentationStateKeys } from "../store/reducers/presentation";
 
-export type RemoteCrossDevicePresentationThunkInput = {
-  qrcode: string;
+import { selectCredentials } from "../store/reducers/credential";
+import { selectItwVersion } from "../store/reducers/environment";
+import { selectPid } from "../store/reducers/pid";
+import { isDefined } from "../utils/misc";
+import { createAppAsyncThunk } from "./utils";
+
+export interface RemoteCrossDevicePresentationThunkInput {
   allowed: PresentationStateKeys;
-};
+  qrcode: string;
+}
 
-export type RemoteCrossDevicePresentationThunkOutput = {
+export interface RemoteCrossDevicePresentationThunkOutput {
   authResponse: RemotePresentation.AuthorizationResponse;
-  requestObject: RequestObject;
   requestedClaims: string[];
-};
+  requestObject: RequestObject;
+}
+
+export type RequestObject = RemotePresentation.RequestObject;
 
 /**
  * Thunk to present credential.
@@ -36,17 +38,17 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const url = new URL(args.qrcode);
 
   const qrParams = wallet.RemotePresentation.startFlowFromQR({
-    request_uri: url.searchParams.get("request_uri"),
     client_id: url.searchParams.get("client_id"),
-    state: url.searchParams.get("state"),
+    request_uri: url.searchParams.get("request_uri"),
     request_uri_method: url.searchParams.get("request_uri_method") as
       | "get"
       | "post",
+    state: url.searchParams.get("state"),
   });
 
   const rpUrl = qrParams.client_id.replace(
     `${ClientIdPrefix.OPENID_FEDERATION}:`,
-    ""
+    "",
   );
 
   const { rpConf } =
@@ -58,10 +60,10 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const { requestObject } = await wallet.RemotePresentation.verifyRequestObject(
     requestObjectEncodedJwt,
     {
-      rpConf,
       clientId: qrParams.client_id,
+      rpConf,
       state: qrParams.state,
-    }
+    },
   );
 
   const pid = selectPid(getState());
@@ -90,45 +92,45 @@ const processPresentation = async (
   wallet: IoWallet,
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig,
-  credentialsSdJwt: [string, string][]
+  credentialsSdJwt: [string, string][],
 ) => {
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    credentialsSdJwt
+    credentialsSdJwt,
   );
 
   const authRequestObject = {
-    nonce: requestObject.nonce,
     clientId: requestObject.client_id,
+    nonce: requestObject.nonce,
     responseUri: requestObject.response_uri,
   };
 
   const remotePresentations =
     await wallet.RemotePresentation.prepareRemotePresentations(
       evaluatedDcqlQuery,
-      authRequestObject
+      authRequestObject,
     );
 
   const authResponse =
     await wallet.RemotePresentation.sendAuthorizationResponse(
       requestObject,
       remotePresentations,
-      rpConf
+      rpConf,
     );
 
   return {
     authResponse,
-    requestObject,
     requestedClaims: remotePresentations.presentations.flatMap(
-      (c) => c.requestedClaims
+      (c) => c.requestedClaims,
     ),
+    requestObject,
   };
 };
 
 // Mock an error in the presentation flow
 const processRefusedPresentation = async (
   wallet: IoWallet,
-  requestObject: RequestObject
+  requestObject: RequestObject,
 ) => {
   const authResponse =
     await wallet.RemotePresentation.sendAuthorizationErrorResponse(
@@ -136,7 +138,7 @@ const processRefusedPresentation = async (
       {
         error: "invalid_request_object",
         errorDescription: "Mock error during request object validation",
-      }
+      },
     );
-  return { authResponse, requestObject, requestedClaims: [] };
+  return { authResponse, requestedClaims: [], requestObject };
 };

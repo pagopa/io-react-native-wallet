@@ -1,8 +1,9 @@
-import { getStatusL10nIds } from "../get-status-l10n-ids";
 import type { DigitalCredential } from "../../api/DigitalCredentialsCatalogue";
 
+import { getStatusL10nIds } from "../get-status-l10n-ids";
+
 const makeCredential = (
-  allowedStates: DigitalCredential["validity_info"]["allowed_states"]
+  allowedStates: DigitalCredential["validity_info"]["allowed_states"],
 ): DigitalCredential =>
   ({
     validity_info: { allowed_states: allowedStates },
@@ -10,26 +11,26 @@ const makeCredential = (
 
 const validState = {
   "0x00": "VALID",
-  title_l10n_id: "mDL.VALID.title",
   description_l10n_id: "mDL.VALID.description",
+  title_l10n_id: "mDL.VALID.title",
 };
 
 const invalidState = {
   "0x01": "INVALID",
-  title_l10n_id: "mDL.INVALID.title",
   description_l10n_id: "mDL.INVALID.description",
+  title_l10n_id: "mDL.INVALID.title",
 };
 
 const suspendedState = {
   "0x02": "SUSPENDED",
-  title_l10n_id: "mDL.SUSPENDED.title",
   description_l10n_id: "mDL.SUSPENDED.description",
+  title_l10n_id: "mDL.SUSPENDED.title",
 };
 
 const attrUpdateState = {
   "0x0b": "ATTRIBUTE_UPDATE",
-  title_l10n_id: "mDL.ATTRIBUTE_UPDATE.title",
   description_l10n_id: "mDL.ATTRIBUTE_UPDATE.description",
+  title_l10n_id: "mDL.ATTRIBUTE_UPDATE.title",
 };
 
 describe("getStatusL10nIds", () => {
@@ -41,8 +42,8 @@ describe("getStatusL10nIds", () => {
       attrUpdateState,
     ]);
     expect(getStatusL10nIds("0x00", credential)).toEqual({
-      titleL10nId: "mDL.VALID.title",
       descriptionL10nId: "mDL.VALID.description",
+      titleL10nId: "mDL.VALID.title",
     });
   });
 
@@ -54,8 +55,8 @@ describe("getStatusL10nIds", () => {
       attrUpdateState,
     ]);
     expect(getStatusL10nIds("0x0B", credential)).toEqual({
-      titleL10nId: "mDL.ATTRIBUTE_UPDATE.title",
       descriptionL10nId: "mDL.ATTRIBUTE_UPDATE.description",
+      titleL10nId: "mDL.ATTRIBUTE_UPDATE.title",
     });
   });
 
@@ -72,8 +73,8 @@ describe("getStatusL10nIds", () => {
   it("skips string entries (v1.0.0 format) without crashing", () => {
     const credential = makeCredential(["VALID", "INVALID", validState]);
     expect(getStatusL10nIds("0x00", credential)).toEqual({
-      titleL10nId: "mDL.VALID.title",
       descriptionL10nId: "mDL.VALID.description",
+      titleL10nId: "mDL.VALID.title",
     });
   });
 

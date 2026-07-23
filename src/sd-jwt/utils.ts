@@ -1,14 +1,15 @@
 import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/decode";
 import { digest } from "@sd-jwt/crypto-nodejs";
-import { hasStatusOrThrow } from "../utils/misc";
-import { TypeMetadata, Verification } from "./types";
+import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/decode";
+
+import { fixLegacyCredentialSdJwt } from "../utils/credentials";
 import {
   IoWalletError,
   IssuerResponseError,
   ValidationFailed,
 } from "../utils/errors";
-import { fixLegacyCredentialSdJwt } from "../utils/credentials";
+import { hasStatusOrThrow } from "../utils/misc";
+import { TypeMetadata, Verification } from "./types";
 
 /**
  * Retrieve the Type Metadata for a credential and verify its integrity.
@@ -22,7 +23,7 @@ export const fetchTypeMetadata = async (
   vctIntegrity: string,
   context: {
     appFetch?: GlobalFetch["fetch"];
-  } = {}
+  } = {},
 ): Promise<TypeMetadata> => {
   const { appFetch = fetch } = context;
   const { origin, pathname } = new URL(vct);
@@ -61,17 +62,17 @@ export const fetchTypeMetadata = async (
  * @returns The verification claim or undefined if it wasn't found
  */
 export const getVerification = (
-  credentialSdJwt: string
-): Verification | undefined => {
+  credentialSdJwt: string,
+): undefined | Verification => {
   const decoded = decodeSdJwtSync(
     fixLegacyCredentialSdJwt(credentialSdJwt),
-    digest
+    digest,
   );
 
   const claims = getClaimsSync<Record<string, unknown>>(
     decoded.jwt.payload,
     decoded.disclosures,
-    digest
+    digest,
   );
 
   return claims.verification

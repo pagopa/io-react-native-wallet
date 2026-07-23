@@ -33,7 +33,7 @@ export const WELL_KNOWN_CREDENTIALS = {
   wia: "org.iso.18013.5.1.IT.WalletAttestation",
 } as const;
 
-const PERMISSIONS_TO_CHECK: Array<Permission> =
+const PERMISSIONS_TO_CHECK: Permission[] =
   Platform.OS === "android"
     ? Platform.Version >= 31
       ? [
@@ -54,7 +54,7 @@ export const requestBlePermissions = async (): Promise<boolean> => {
 
     // Filter out already granted permissions
     const permissionsToRequest = PERMISSIONS_TO_CHECK.filter(
-      (permission) => statuses[permission] !== RESULTS.GRANTED
+      (permission) => statuses[permission] !== RESULTS.GRANTED,
     );
 
     if (permissionsToRequest.length > 0) {
@@ -63,7 +63,7 @@ export const requestBlePermissions = async (): Promise<boolean> => {
 
       // Verify if all requested permissions are granted
       return permissionsToRequest.every(
-        (permission) => requestResults[permission] === RESULTS.GRANTED
+        (permission) => requestResults[permission] === RESULTS.GRANTED,
       );
     }
     return true; // All permissions were already granted
@@ -96,12 +96,12 @@ const acceptAllFields = <T extends NestedBooleanMap>(input: T): T =>
  * @returns A new object representing the accepted fields, with each requested field set to true
  */
 export const generateAcceptedFields = (
-  request: VerifierRequest["request"]
+  request: VerifierRequest["request"],
 ): AcceptedFields =>
   Object.entries(request).reduce(
     (acc, [docType, { isAuthenticated: _, ...namespaces }]) => ({
       ...acc,
       [docType]: acceptAllFields(namespaces),
     }),
-    {}
+    {},
   );

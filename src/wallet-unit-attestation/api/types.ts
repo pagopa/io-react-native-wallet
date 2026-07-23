@@ -1,6 +1,7 @@
 import * as z from "zod";
-import { UnixTime } from "../../utils/zod";
+
 import { JWK } from "../../utils/jwk";
+import { UnixTime } from "../../utils/zod";
 
 const Status = z.object({
   status_list: z.object({
@@ -18,21 +19,21 @@ export type DecodedWalletUnitAttestation = z.infer<
 >;
 export const DecodedWalletUnitAttestation = z.object({
   attested_keys: z.array(JWK),
-  user_authentication: z.array(z.string()),
+  exp: UnixTime,
+  iat: UnixTime,
+  iss: z.string(),
   key_storage: z.array(z.string()),
   status: Status,
-  iss: z.string(),
-  iat: UnixTime,
-  exp: UnixTime,
+  user_authentication: z.array(z.string()),
 });
 
-export type WalletAttestation = {
-  format: string;
+export interface WalletAttestation {
   attestation: string;
-};
+  format: string;
+}
 
-export type WalletAttestationRequestParams = {
+export interface WalletAttestationRequestParams {
   walletProviderBaseUrl: string;
   walletSolutionId: string;
   walletSolutionVersion: string;
-};
+}

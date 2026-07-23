@@ -1,6 +1,8 @@
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
+
 import type { ProblemJson } from "../client/generated/wallet-provider";
 import type { IssuerConfig } from "../credential/issuance/api";
+
 import {
   type IssuerResponseErrorCode,
   IssuerResponseErrorCodes,
@@ -12,12 +14,12 @@ import {
 
 export {
   IssuerResponseErrorCodes,
-  WalletProviderResponseErrorCodes,
   RelyingPartyResponseErrorCodes,
+  WalletProviderResponseErrorCodes,
 };
 
 // An error reason that supports both a string and a generic JSON object
-type GenericErrorReason = string | Record<string, unknown>;
+type GenericErrorReason = Record<string, unknown> | string;
 
 /**
  * utility to format a set of attributes into an error message string
@@ -30,7 +32,7 @@ type GenericErrorReason = string | Record<string, unknown>;
  * @returns a human-readable serialization of the set
  */
 export const serializeAttrs = (
-  attrs: Record<string, GenericErrorReason | number | Array<string> | undefined>
+  attrs: Record<string, GenericErrorReason | number | string[] | undefined>,
 ): string =>
   Object.entries(attrs)
     .filter(([, v]) => v !== undefined)
@@ -58,10 +60,10 @@ export const serializeAttrs = (
  *   (e) => new InvalidCredentialOfferError(e.message)
  * );
  */
-export const withMappedErrors = <T, E extends Error>(
+export const withMappedErrors = <T, E extends Error, Args extends unknown[]>(
   fn: () => T,
-  sourceError: new (...args: any[]) => E,
-  mapError: (error: E) => Error
+  sourceError: new (...args: Args) => E,
+  mapError: (error: E) => Error,
 ): T => {
   try {
     return fn();
@@ -72,6 +74,14 @@ export const withMappedErrors = <T, E extends Error>(
     throw e;
   }
 };
+
+type LocalizedIssuanceError = Record<
+  string,
+  {
+    description: string;
+    title: string;
+  }
+>;
 
 /**
  * A generic Error that all other io-wallet specific Error subclasses extend.
@@ -86,7 +96,7 @@ export const withMappedErrors = <T, E extends Error>(
  */
 export class IoWalletError extends Error {
   /** A unique error code for the particular error subclass. */
-  code: string = "ERR_IO_WALLET_GENERIC";
+  code = "ERR_IO_WALLET_GENERIC";
 
   constructor(message?: string) {
     super(message);
@@ -95,40 +105,12 @@ export class IoWalletError extends Error {
 }
 
 /**
- * An error subclass thrown when validation fail
- *
- */
-export class ValidationFailed extends IoWalletError {
-  code = "ERR_IO_WALLET_VALIDATION_FAILED";
-
-  /** The Claim for which the validation failed. */
-  claim: string;
-
-  /** Reason code for the validation failure. */
-  reason: string;
-
-  constructor({
-    message,
-    claim = "unspecified",
-    reason = "unspecified",
-  }: {
-    message: string;
-    claim?: string;
-    reason?: string;
-  }) {
-    super(serializeAttrs({ message, claim, reason }));
-    this.claim = claim;
-    this.reason = reason;
-  }
-}
-
-/**
  * An error subclass thrown when an HTTP request has a status code different from the one expected.
  */
 export class UnexpectedStatusCodeError extends IoWalletError {
-  code: string = "ERR_UNEXPECTED_STATUS_CODE";
-  statusCode: number;
+  code = "ERR_UNEXPECTED_STATUS_CODE";
   reason: GenericErrorReason;
+  statusCode: number;
 
   constructor({
     message,
@@ -164,6 +146,53 @@ export class IssuerResponseError extends UnexpectedStatusCodeError {
 }
 
 /**
+ * An error subclass thrown when a Relying Party HTTP request fails.
+ * The specific error can be found in the `code` property.
+ */
+export class RelyingPartyResponseError extends UnexpectedStatusCodeError {
+  code: RelyingPartyResponseErrorCode;
+
+  constructor(params: {
+    code?: RelyingPartyResponseErrorCode;
+    message: string;
+    reason: GenericErrorReason;
+    statusCode: number;
+  }) {
+    super(params);
+    this.code =
+      params.code ?? RelyingPartyResponseErrorCodes.RelyingPartyGenericError;
+  }
+}
+
+/**
+ * An error subclass thrown when validation fail
+ *
+ */
+export class ValidationFailed extends IoWalletError {
+  /** The Claim for which the validation failed. */
+  claim: string;
+
+  code = "ERR_IO_WALLET_VALIDATION_FAILED";
+
+  /** Reason code for the validation failure. */
+  reason: string;
+
+  constructor({
+    claim = "unspecified",
+    message,
+    reason = "unspecified",
+  }: {
+    claim?: string;
+    message: string;
+    reason?: string;
+  }) {
+    super(serializeAttrs({ claim, message, reason }));
+    this.claim = claim;
+    this.reason = reason;
+  }
+}
+
+/**
  * An error subclass thrown when a Wallet Provider HTTP request fails.
  * The specific error can be found in the `code` property.
  */
@@ -186,32 +215,6 @@ export class WalletProviderResponseError extends UnexpectedStatusCodeError {
 }
 
 /**
- * An error subclass thrown when a Relying Party HTTP request fails.
- * The specific error can be found in the `code` property.
- */
-export class RelyingPartyResponseError extends UnexpectedStatusCodeError {
-  code: RelyingPartyResponseErrorCode;
-
-  constructor(params: {
-    code?: RelyingPartyResponseErrorCode;
-    message: string;
-    reason: GenericErrorReason;
-    statusCode: number;
-  }) {
-    super(params);
-    this.code =
-      params.code ?? RelyingPartyResponseErrorCodes.RelyingPartyGenericError;
-  }
-}
-
-type LocalizedIssuanceError = {
-  [locale: string]: {
-    title: string;
-    description: string;
-  };
-};
-
-/**
  * Function to extract the error message from the Entity Configuration's supported error codes.
  * @param errorCode The error code to map to a meaningful message
  * @param issuerConf The entity configuration for credentials
@@ -222,33 +225,34 @@ type LocalizedIssuanceError = {
 export function extractErrorMessageFromIssuerConf(
   errorCode: string,
   {
-    issuerConf,
     credentialType,
+    issuerConf,
   }: {
-    issuerConf: IssuerConfig;
     credentialType: string;
-  }
+    issuerConf: IssuerConfig;
+  },
 ): LocalizedIssuanceError | undefined {
   const credentialConfiguration =
     issuerConf.credential_configurations_supported[credentialType];
 
   if (!credentialConfiguration) {
     throw new IoWalletError(
-      `No configuration found for ${credentialType} in the provided EC`
+      `No configuration found for ${credentialType} in the provided EC`,
     );
   }
 
   const { issuance_errors_supported } = credentialConfiguration;
 
-  if (!issuance_errors_supported?.[errorCode]) {
+  const errorConfig = issuance_errors_supported?.[errorCode];
+  if (!errorConfig) {
     return undefined;
   }
 
-  const localesList = issuance_errors_supported[errorCode]!.display;
+  const localesList = errorConfig.display;
 
   return localesList.reduce(
     (acc, { locale, ...rest }) => ({ ...acc, [locale]: rest }),
-    {} as LocalizedIssuanceError
+    {} as LocalizedIssuanceError,
   );
 }
 
@@ -265,34 +269,34 @@ const makeErrorTypeGuard =
 
 export const isIssuerResponseError = makeErrorTypeGuard(IssuerResponseError);
 export const isWalletProviderResponseError = makeErrorTypeGuard(
-  WalletProviderResponseError
+  WalletProviderResponseError,
 );
 export const isRelyingPartyResponseError = makeErrorTypeGuard(
-  RelyingPartyResponseError
+  RelyingPartyResponseError,
 );
+
+interface ErrorCase<T> {
+  code: ExtractErrorCode<T>;
+  message: string;
+  reason?: GenericErrorReason;
+}
 
 // Mapping type between error classes and their allowed codes
 type ErrorCodeMap =
   | {
-      type: typeof IssuerResponseError;
       code: IssuerResponseErrorCode;
+      type: typeof IssuerResponseError;
     }
   | {
-      type: typeof WalletProviderResponseError;
-      code: WalletProviderResponseErrorCode;
-    }
-  | {
-      type: typeof RelyingPartyResponseError;
       code: RelyingPartyResponseErrorCode;
+      type: typeof RelyingPartyResponseError;
+    }
+  | {
+      code: WalletProviderResponseErrorCode;
+      type: typeof WalletProviderResponseError;
     };
 
 type ExtractErrorCode<T> = Extract<ErrorCodeMap, { type: T }>["code"];
-
-type ErrorCase<T> = {
-  code: ExtractErrorCode<T>;
-  message: string;
-  reason?: GenericErrorReason;
-};
 
 /**
  * Builder class used to create specialized errors from type {@link UnexpectedStatusCodeError} that handles multiple status codes.
@@ -309,16 +313,9 @@ type ErrorCase<T> = {
  * ```
  */
 export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
-  private errorCases: {
-    [K in number | "*"]?: ErrorCase<T>;
-  } = {};
+  private errorCases: Partial<Record<"*" | number, ErrorCase<T>>> = {};
 
   constructor(private ErrorClass: T) {}
-
-  handle(status: number | "*", params: ErrorCase<T>) {
-    this.errorCases[status] = params;
-    return this;
-  }
 
   buildFrom(originalError: UnexpectedStatusCodeError) {
     const params =
@@ -329,6 +326,11 @@ export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
     }
 
     return originalError;
+  }
+
+  handle(status: "*" | number, params: ErrorCase<T>) {
+    this.errorCases[status] = params;
+    return this;
   }
 }
 

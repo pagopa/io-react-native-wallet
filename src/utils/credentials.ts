@@ -1,14 +1,16 @@
-import { decodeSdJwtSync } from "@sd-jwt/decode";
-import { digest } from "@sd-jwt/crypto-nodejs";
 import { thumbprint } from "@pagopa/io-react-native-jwt";
+import { digest } from "@sd-jwt/crypto-nodejs";
+import { decodeSdJwtSync } from "@sd-jwt/decode";
+
 import type { CredentialFormat } from "../credential/issuance";
 import type { JWK } from "./jwk";
-import { IoWalletError } from "./errors";
+
 import {
   LEGACY_SD_JWT,
   SdJwt4VCBase,
   type SupportedSdJwtLegacyFormat,
 } from "../sd-jwt/types";
+import { IoWalletError } from "./errors";
 
 const SD_JWT = ["dc+sd-jwt", LEGACY_SD_JWT];
 
@@ -20,13 +22,13 @@ const SD_JWT = ["dc+sd-jwt", LEGACY_SD_JWT];
  */
 export const extractJwkFromCredential = async (
   credential: string,
-  format: CredentialFormat | SupportedSdJwtLegacyFormat
+  format: CredentialFormat | SupportedSdJwtLegacyFormat,
 ): Promise<JWK> => {
   if (SD_JWT.includes(format)) {
     // 1. SD-JWT case
     const decoded = decodeSdJwtSync(
       fixLegacyCredentialSdJwt(credential),
-      digest
+      digest,
     );
     const { cnf } = decoded.jwt.payload as SdJwt4VCBase["payload"];
     if (cnf.jwk) {

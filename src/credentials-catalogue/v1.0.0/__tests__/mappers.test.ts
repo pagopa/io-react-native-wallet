@@ -1,64 +1,43 @@
 import type { DigitalCredentialsCatalogue } from "../../api/DigitalCredentialsCatalogue";
-import { mapToCredentialsCatalogue } from "../mappers";
 import type { DigitalCredentialsCatalogueJwt } from "../types";
+
+import { mapToCredentialsCatalogue } from "../mappers";
 
 describe("mapToCredentialsCatalogue", () => {
   const input: DigitalCredentialsCatalogueJwt = {
     header: {
-      typ: "JOSE",
       alg: "ES256",
       kid: "kid-1",
+      typ: "JOSE",
     },
     payload: {
       catalog_version: "1.0.0",
-      taxonomy_uri: "https://example.com/taxonomy.json",
-      iat: 1730000000,
-      exp: 1730003600,
       credentials: [
         {
-          version: "1.0.0",
-          credential_type: "education_attendance",
-          legal_type: "pub-eaa",
-          name: "Frequenza Scolastica",
-          description:
-            "Documento digitale attestante la frequenza scolastica dello studente",
-          validity_info: {
-            max_validity_days: 365,
-            status_methods: ["status_assertion"],
-            allowed_states: ["VALID", "INVALID"],
-          },
-          authentication: {
-            user_auth_required: true,
-            min_loa: "high",
-            supported_eid_schemes: ["it_wallet"],
-          },
-          purposes: [
-            {
-              id: "education_attendance",
-              description: "Frequenza scolastica",
-              category: "EDUCATION",
-              subcategory: "CERTIFICATE",
-              claims_required: ["institute_name"],
-              claim_recommended: [],
-            },
-          ],
-          issuers: [
-            {
-              id: "issuer-1",
-              organization_name: "Issuer Org",
-              organization_code: "ORG123",
-              organization_country: "IT",
-            },
-          ],
           authentic_sources: [
             {
               id: "source-1",
-              organization_name: "Source Org",
               organization_code: "SRC123",
               organization_country: "IT",
+              organization_name: "Source Org",
               source_type: "public",
             },
           ],
+          authentication: {
+            min_loa: "high",
+            supported_eid_schemes: ["it_wallet"],
+            user_auth_required: true,
+          },
+          claims: [
+            {
+              display_name: "Denominazione dell'Istituto scolastico",
+              name: "institute_name",
+              taxonomy_ref: "EDUCATION.CERTIFICATE.institute_name",
+            },
+          ],
+          credential_type: "education_attendance",
+          description:
+            "Documento digitale attestante la frequenza scolastica dello studente",
           formats: [
             {
               configuration_id: "dc_sd_jwt_education_attendance",
@@ -66,60 +45,55 @@ describe("mapToCredentialsCatalogue", () => {
               vct: "https://example.com/vct/education_attendance",
             },
           ],
-          claims: [
+          issuers: [
             {
-              name: "institute_name",
-              taxonomy_ref: "EDUCATION.CERTIFICATE.institute_name",
-              display_name: "Denominazione dell'Istituto scolastico",
+              id: "issuer-1",
+              organization_code: "ORG123",
+              organization_country: "IT",
+              organization_name: "Issuer Org",
             },
           ],
+          legal_type: "pub-eaa",
+          name: "Frequenza Scolastica",
+          purposes: [
+            {
+              category: "EDUCATION",
+              claim_recommended: [],
+              claims_required: ["institute_name"],
+              description: "Frequenza scolastica",
+              id: "education_attendance",
+              subcategory: "CERTIFICATE",
+            },
+          ],
+          validity_info: {
+            allowed_states: ["VALID", "INVALID"],
+            max_validity_days: 365,
+            status_methods: ["status_assertion"],
+          },
+          version: "1.0.0",
         },
       ],
+      exp: 1730003600,
+      iat: 1730000000,
+      taxonomy_uri: "https://example.com/taxonomy.json",
     },
   };
 
   const expected: DigitalCredentialsCatalogue = {
-    taxonomy_uri: "https://example.com/taxonomy.json",
-    iat: 1730000000,
-    exp: 1730003600,
     credentials: [
       {
-        version: "1.0.0",
-        credential_type: "education_attendance",
-        legal_type: "pub-eaa",
-        name: "Frequenza Scolastica",
-        description:
-          "Documento digitale attestante la frequenza scolastica dello studente",
-        validity_info: {
-          max_validity_days: 365,
-          status_methods: ["status_assertion"],
-          allowed_states: ["VALID", "INVALID"],
-        },
-        purposes: [
-          {
-            id: "education_attendance",
-            description: "Frequenza scolastica",
-            claims_required: ["institute_name"],
-            claim_recommended: [],
-          },
-        ],
-        issuers: [
-          {
-            id: "issuer-1",
-            organization_name: "Issuer Org",
-            organization_code: "ORG123",
-            organization_country: "IT",
-          },
-        ],
         authentic_sources: [
           {
             id: "source-1",
-            organization_name: "Source Org",
             organization_code: "SRC123",
             organization_country: "IT",
+            organization_name: "Source Org",
             organization_type: "public",
           },
         ],
+        credential_type: "education_attendance",
+        description:
+          "Documento digitale attestante la frequenza scolastica dello studente",
         formats: [
           {
             configuration_id: "dc_sd_jwt_education_attendance",
@@ -127,8 +101,35 @@ describe("mapToCredentialsCatalogue", () => {
             vct: "https://example.com/vct/education_attendance",
           },
         ],
+        issuers: [
+          {
+            id: "issuer-1",
+            organization_code: "ORG123",
+            organization_country: "IT",
+            organization_name: "Issuer Org",
+          },
+        ],
+        legal_type: "pub-eaa",
+        name: "Frequenza Scolastica",
+        purposes: [
+          {
+            claim_recommended: [],
+            claims_required: ["institute_name"],
+            description: "Frequenza scolastica",
+            id: "education_attendance",
+          },
+        ],
+        validity_info: {
+          allowed_states: ["VALID", "INVALID"],
+          max_validity_days: 365,
+          status_methods: ["status_assertion"],
+        },
+        version: "1.0.0",
       },
     ],
+    exp: 1730003600,
+    iat: 1730000000,
+    taxonomy_uri: "https://example.com/taxonomy.json",
   };
 
   it("maps types correctly", () => {

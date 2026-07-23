@@ -2,11 +2,12 @@ import {
   createAuthorizationResponse,
   fetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
-import { RemotePresentation } from "../../../presentation/v1.4.2";
-import { completeEaaUserAuthorizationWithQueryMode } from "../03-complete-user-authorization";
-import { AuthorizationError } from "../../common/errors";
-import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";
 import type { RequestObject } from "../../../presentation";
+import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";
+
+import { completeEaaUserAuthorizationWithQueryMode } from "../03-complete-user-authorization";
+import { RemotePresentation } from "../../../presentation/v1.4.2";
+import { AuthorizationError } from "../../common/errors";
 
 jest.mock("@pagopa/io-wallet-oid4vp", () => ({
   ...jest.requireActual("@pagopa/io-wallet-oid4vp"),
@@ -27,28 +28,28 @@ const mockPid: [string, string] = ["pid-key-tag", "mock-pid-credential"];
 const finalRedirectUri = `${CLIENT_REDIRECT_URI}?code=auth-code-123&state=mock-state&iss=https%3A%2F%2Fissuer.example.com`;
 const mockEvaluatedDcqlQuery = [
   {
-    id: "pid",
-    format: "dc+sd-jwt",
-    keyTag: mockPid[0],
     credential: mockPid[1],
-    requiredDisclosures: [],
+    format: "dc+sd-jwt",
+    id: "pid",
+    keyTag: mockPid[0],
     presentationFrame: {},
     purposes: [],
+    requiredDisclosures: [],
     vct: "",
   },
 ] satisfies EvaluatedDcqlQuery;
 
 jest.mocked(createAuthorizationResponse).mockResolvedValue({
-  jarm: { responseJwe: "mock-jwe", encryptionJwk: { kty: "" } },
   authorizationResponsePayload: { vp_token: {} },
+  jarm: { encryptionJwk: { kty: "" }, responseJwe: "mock-jwe" },
 });
 jest.mocked(RemotePresentation.prepareRemotePresentations).mockResolvedValue({
   presentations: [
     {
       credentialId: "pid",
       format: "dc+sd-jwt",
-      vpToken: "mock-vp-token",
       requestedClaims: [],
+      vpToken: "mock-vp-token",
     },
   ],
 });
@@ -56,17 +57,17 @@ const mockFetchAuthorizationResponse = jest.mocked(fetchAuthorizationResponse);
 
 const mockRequestObject = {
   client_id: "https://issuer.example.com",
-  nonce: "mock-nonce",
-  response_uri: "https://issuer.example.com/response",
-  state: "mock-state",
   dcql_query: {},
   iss: "https://issuer.example.com",
+  nonce: "mock-nonce",
   response_type: "vp_token",
+  response_uri: "https://issuer.example.com/response",
+  state: "mock-state",
 } as unknown as RequestObject;
 
 const mockIssuerConfig = {
-  keys: [{ use: "sig", kty: "EC", crv: "P-256", x: "x", y: "y" }],
   encrypted_response_enc_values_supported: ["A128GCM"],
+  keys: [{ crv: "P-256", kty: "EC", use: "sig", x: "x", y: "y" }],
 } as IssuerConfig;
 
 function mockFetchWithResponseUrl(url: string) {
@@ -94,13 +95,13 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       mockIssuerConfig,
       mockEvaluatedDcqlQuery,
       CLIENT_REDIRECT_URI,
-      { appFetch }
+      { appFetch },
     );
 
     expect(result).toMatchObject({
       code: "auth-code-123",
-      state: "mock-state",
       iss: "https://issuer.example.com",
+      state: "mock-state",
     });
     expect(RemotePresentation.evaluateDcqlQuery).not.toHaveBeenCalled();
     expect(RemotePresentation.prepareRemotePresentations).toHaveBeenCalledWith(
@@ -109,7 +110,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
         clientId: mockRequestObject.client_id,
         nonce: mockRequestObject.nonce,
         responseUri: mockRequestObject.response_uri,
-      }
+      },
     );
   });
 
@@ -126,8 +127,8 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
         mockIssuerConfig,
         mockEvaluatedDcqlQuery,
         CLIENT_REDIRECT_URI,
-        { appFetch }
-      )
+        { appFetch },
+      ),
     ).rejects.toBeInstanceOf(AuthorizationError);
   });
 
@@ -144,8 +145,8 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
         mockIssuerConfig,
         mockEvaluatedDcqlQuery,
         CLIENT_REDIRECT_URI,
-        { appFetch }
-      )
+        { appFetch },
+      ),
     ).rejects.toBeInstanceOf(AuthorizationError);
   });
 
@@ -155,7 +156,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
     });
 
     const appFetch = mockFetchWithResponseUrl(
-      "https://unexpected.example.com/callback?code=abc&state=123&iss=iss"
+      "https://unexpected.example.com/callback?code=abc&state=123&iss=iss",
     );
 
     await expect(
@@ -164,8 +165,8 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
         mockIssuerConfig,
         mockEvaluatedDcqlQuery,
         CLIENT_REDIRECT_URI,
-        { appFetch }
-      )
+        { appFetch },
+      ),
     ).rejects.toBeInstanceOf(AuthorizationError);
   });
 
@@ -183,7 +184,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       mockIssuerConfig,
       mockEvaluatedDcqlQuery,
       CLIENT_REDIRECT_URI,
-      { appFetch }
+      { appFetch },
     );
 
     expect(appFetch).toHaveBeenCalledWith(intermediateRedirectUri);

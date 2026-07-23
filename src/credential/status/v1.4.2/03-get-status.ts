@@ -1,6 +1,8 @@
 import { StatusList as JwtStatusList } from "@sd-jwt/jwt-status-list";
-import { IoWalletError } from "../../../utils/errors";
+
 import type { StatusListApi } from "../api/status-list";
+
+import { IoWalletError } from "../../../utils/errors";
 
 /**
  * Mapping of status bits to their corresponding meaning as defined in the specification.
@@ -22,19 +24,19 @@ const formatStatusBit = (statusBit: number) =>
 export const getStatus: StatusListApi["getStatus"] = (statusList, idx) => {
   const decodedStatusList = JwtStatusList.decompressStatusList(
     statusList.lst,
-    statusList.bits
+    statusList.bits,
   );
   const statusBit = decodedStatusList.getStatus(idx) as CredentialStatusBit;
   const status = CredentialStatusMap[statusBit];
 
   if (!status) {
     throw new IoWalletError(
-      `Unsupported credential status bit: ${formatStatusBit(statusBit)}`
+      `Unsupported credential status bit: ${formatStatusBit(statusBit)}`,
     );
   }
 
   return {
-    status,
     rawStatus: formatStatusBit(statusBit),
+    status,
   };
 };

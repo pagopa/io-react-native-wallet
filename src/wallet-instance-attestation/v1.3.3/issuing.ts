@@ -1,15 +1,17 @@
-import { Platform } from "react-native";
 import {
-  thumbprint,
   type CryptoContext,
   SignJWT,
+  thumbprint,
 } from "@pagopa/io-react-native-jwt";
+import { Platform } from "react-native";
+
 import type { IntegrityContext } from "../../utils/integrity";
-import { LogLevel, Logger } from "../../utils/logging";
-import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
-import { getWalletProviderClient } from "../../client";
-import type { WalletAttestationRequestParams } from "../api/types";
 import type { WalletInstanceAttestationApi } from "../api";
+import type { WalletAttestationRequestParams } from "../api/types";
+
+import { getWalletProviderClient } from "../../client";
+import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
+import { Logger, LogLevel } from "../../utils/logging";
 import { WalletInstanceAttestationResponse } from "./types";
 
 async function getAttestationRequest(
@@ -19,7 +21,7 @@ async function getAttestationRequest(
     walletSolutionVersion,
   }: WalletAttestationRequestParams & { challenge: string },
   wiaCryptoContext: CryptoContext,
-  integrityContext: IntegrityContext
+  integrityContext: IntegrityContext,
 ): Promise<string> {
   const jwk = await wiaCryptoContext.getPublicKey();
   const parsedJwk = JWK.parse(jwk);
@@ -32,24 +34,24 @@ async function getAttestationRequest(
   };
 
   const hardwareKeyTag = integrityContext.getHardwareKeyTag();
-  const { signature, authenticatorData } =
+  const { authenticatorData, signature } =
     await integrityContext.getHardwareSignatureWithAuthData(
-      JSON.stringify(clientData)
+      JSON.stringify(clientData),
     );
 
   return new SignJWT(wiaCryptoContext)
     .setPayload({
-      iss: hardwareKeyTag,
-      nonce: challenge,
-      platform: Platform.OS,
-      hardware_signature: signature,
-      integrity_assertion: authenticatorData,
-      hardware_key_tag: hardwareKeyTag,
-      wallet_solution_id: walletSolutionId,
-      wallet_solution_version: walletSolutionVersion,
       cnf: {
         jwk: fixBase64EncodingOnKey(publicKey),
       },
+      hardware_key_tag: hardwareKeyTag,
+      hardware_signature: signature,
+      integrity_assertion: authenticatorData,
+      iss: hardwareKeyTag,
+      nonce: challenge,
+      platform: Platform.OS,
+      wallet_solution_id: walletSolutionId,
+      wallet_solution_version: walletSolutionVersion,
     })
     .setProtectedHeader({
       kid: publicKey.kid,
@@ -63,11 +65,11 @@ async function getAttestationRequest(
 export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
   async (
     requestParams,
-    { wiaCryptoContext, integrityContext, appFetch = fetch }
+    { appFetch = fetch, integrityContext, wiaCryptoContext },
   ) => {
     const api = getWalletProviderClient({
-      walletProviderBaseUrl: requestParams.walletProviderBaseUrl,
       appFetch,
+      walletProviderBaseUrl: requestParams.walletProviderBaseUrl,
     });
 
     const challenge = await api
@@ -75,37 +77,37 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
       .then((response) => response.nonce);
     Logger.log(
       LogLevel.DEBUG,
-      `Challenge obtained from ${requestParams.walletProviderBaseUrl}: ${challenge} `
+      `Challenge obtained from ${requestParams.walletProviderBaseUrl}: ${challenge} `,
     );
 
     const signedAttestationRequest = await getAttestationRequest(
       { challenge, ...requestParams },
       wiaCryptoContext,
-      integrityContext
+      integrityContext,
     );
     Logger.log(
       LogLevel.DEBUG,
-      `Signed attestation request: ${signedAttestationRequest}`
+      `Signed attestation request: ${signedAttestationRequest}`,
     );
 
     const response = await api
       .post("/wallet-instance-attestations", {
+        body: signedAttestationRequest,
         header: {
           "Content-Type": "text/plain",
         },
-        body: signedAttestationRequest,
       })
       .then(WalletInstanceAttestationResponse.parse);
 
     Logger.log(
       LogLevel.DEBUG,
-      `Obtained Wallet Instance Attestation in jwt format: ${response.wallet_instance_attestation}`
+      `Obtained Wallet Instance Attestation in jwt format: ${response.wallet_instance_attestation}`,
     );
 
     return [
       {
-        format: "jwt",
         attestation: response.wallet_instance_attestation,
+        format: "jwt",
       },
     ];
   };

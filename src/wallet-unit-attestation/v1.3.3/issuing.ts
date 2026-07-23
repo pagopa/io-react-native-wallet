@@ -1,11 +1,13 @@
-import { Platform } from "react-native";
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
-import { Logger, LogLevel } from "../../utils/logging";
-import { getWalletProviderClient } from "../../client";
-import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
-import { IoWalletError } from "../../utils/errors";
+import { Platform } from "react-native";
+
 import type { KeyAttestationCryptoContext } from "../../utils/crypto";
 import type { WalletUnitAttestationSupportedApi } from "../api";
+
+import { getWalletProviderClient } from "../../client";
+import { IoWalletError } from "../../utils/errors";
+import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
+import { Logger, LogLevel } from "../../utils/logging";
 import { WalletUnitAttestationResponse } from "./types";
 
 /**
@@ -16,20 +18,20 @@ import { WalletUnitAttestationResponse } from "./types";
  */
 const createKeyAttestationRequest = async (
   challenge: string,
-  cryptoContext: KeyAttestationCryptoContext
+  cryptoContext: KeyAttestationCryptoContext,
 ) => {
-  const { success, attestation } =
+  const { attestation, success } =
     await cryptoContext.generateKeyWithAttestation(challenge);
 
   if (!success) {
     throw new IoWalletError(
-      "generateKeyWithAttestation failed to generate a cryptographic key for the Wallet Unit Attestation request"
+      "generateKeyWithAttestation failed to generate a cryptographic key for the Wallet Unit Attestation request",
     );
   }
 
   if (Platform.OS === "android" && !attestation) {
     throw new IoWalletError(
-      "Missing key attestation: on Android the generated key must have a key attestation to request a Wallet Unit Attestation"
+      "Missing key attestation: on Android the generated key must have a key attestation to request a Wallet Unit Attestation",
     );
   }
 
@@ -37,12 +39,12 @@ const createKeyAttestationRequest = async (
 
   const requestJwt = await new SignJWT(cryptoContext)
     .setPayload({
+      cnf: {
+        jwk: fixBase64EncodingOnKey(publicKey),
+      },
       wscd_key_attestation: {
         storage_type: "LOCAL_NATIVE",
         ...(attestation && { attestation }),
-      },
-      cnf: {
-        jwk: fixBase64EncodingOnKey(publicKey),
       },
     })
     .setProtectedHeader({
@@ -53,65 +55,71 @@ const createKeyAttestationRequest = async (
     .setExpirationTime("1h")
     .sign();
 
-  return { cryptoContext, publicKey, keyAttestationRequestJwt: requestJwt };
+  return { cryptoContext, keyAttestationRequestJwt: requestJwt, publicKey };
 };
 
 export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"] =
   async (
     { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
-    { keysToAttest: keysToAttestContexts, integrityContext, appFetch = fetch }
+    { appFetch = fetch, integrityContext, keysToAttest: keysToAttestContexts },
   ) => {
     if (keysToAttestContexts.length === 0) {
       throw new IoWalletError("At least one key to attest must be provided");
     }
 
-    const api = getWalletProviderClient({ walletProviderBaseUrl, appFetch });
+    const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
 
     const { nonce } = await api.get("/nonce");
     Logger.log(
       LogLevel.DEBUG,
-      `Challenge obtained from ${walletProviderBaseUrl}: ${nonce}`
+      `Challenge obtained from ${walletProviderBaseUrl}: ${nonce}`,
     );
 
     const keysToAttest = await Promise.all(
       keysToAttestContexts.map((cryptoContext) =>
-        createKeyAttestationRequest(nonce, cryptoContext)
-      )
+        createKeyAttestationRequest(nonce, cryptoContext),
+      ),
     );
 
     // Use the first key to attest to sign the WUA Request JWT
-    const signatureKey = keysToAttest.at(0)!;
+    const signatureKey = keysToAttest.at(0);
+
+    if (!signatureKey) {
+      throw new IoWalletError(
+        "No signature key available for signing the WUA request",
+      );
+    }
 
     const hardwareKeyTag = integrityContext.getHardwareKeyTag();
 
     const clientData = {
       challenge: nonce,
       jwk_thumbprints: await Promise.all(
-        keysToAttest.map((k) => thumbprint(k.publicKey))
+        keysToAttest.map((k) => thumbprint(k.publicKey)),
       ),
     };
 
-    const { signature, authenticatorData } =
+    const { authenticatorData, signature } =
       await integrityContext.getHardwareSignatureWithAuthData(
-        JSON.stringify(clientData)
+        JSON.stringify(clientData),
       );
 
     const signedAttestationRequest = await new SignJWT(
-      signatureKey.cryptoContext
+      signatureKey.cryptoContext,
     )
       .setPayload({
-        nonce,
-        hardware_key_tag: hardwareKeyTag,
-        iss: hardwareKeyTag,
-        keys_to_attest: keysToAttest.map((k) => k.keyAttestationRequestJwt),
-        hardware_signature: signature,
-        integrity_assertion: authenticatorData,
-        platform: Platform.OS,
-        wallet_solution_id: walletSolutionId,
-        wallet_solution_version: walletSolutionVersion,
         cnf: {
           jwk: fixBase64EncodingOnKey(signatureKey.publicKey),
         },
+        hardware_key_tag: hardwareKeyTag,
+        hardware_signature: signature,
+        integrity_assertion: authenticatorData,
+        iss: hardwareKeyTag,
+        keys_to_attest: keysToAttest.map((k) => k.keyAttestationRequestJwt),
+        nonce,
+        platform: Platform.OS,
+        wallet_solution_id: walletSolutionId,
+        wallet_solution_version: walletSolutionVersion,
       })
       .setProtectedHeader({
         kid: signatureKey.publicKey.kid,
@@ -123,25 +131,25 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
 
     Logger.log(
       LogLevel.DEBUG,
-      `Signed attestation request: ${signedAttestationRequest}`
+      `Signed attestation request: ${signedAttestationRequest}`,
     );
 
     const response = await api
-      .post("/wallet-unit-attestations", {
+      .post("/key-attestations", {
+        body: signedAttestationRequest,
         header: {
           "Content-Type": "text/plain",
         },
-        body: signedAttestationRequest,
       })
       .then(WalletUnitAttestationResponse.parse);
 
     Logger.log(
       LogLevel.DEBUG,
-      `Obtained Wallet Unit Attestation: ${response.wallet_unit_attestation}`
+      `Obtained Wallet Unit Attestation: ${response.key_attestation}`,
     );
 
     return {
+      attestation: response.key_attestation,
       format: "jwt",
-      attestation: response.wallet_unit_attestation,
     };
   };

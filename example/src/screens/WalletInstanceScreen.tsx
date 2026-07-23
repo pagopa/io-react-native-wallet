@@ -1,22 +1,14 @@
-import React, { useMemo } from "react";
-import { v4 as uuidv4 } from "uuid";
-import compact from "lodash/compact";
+import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import { IoWallet } from "@pagopa/io-react-native-wallet";
-import {
-  createWalletInstanceThunk,
-  revokeWalletInstanceThunk,
-} from "../thunks/instance";
-import { useAppDispatch, useAppSelector } from "../store/utils";
+import compact from "lodash/compact";
+import React, { useMemo } from "react";
+import { Alert, FlatList } from "react-native";
+import { v4 as uuidv4 } from "uuid";
+
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
-import {
-  instanceReset,
-  selectHasInstanceKeyTag,
-  selectInstanceAsyncStatus,
-  selectInstanceKeyTag,
-  selectInstanceRevocationAsyncStatus,
-} from "../store/reducers/instance";
+import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   selectWalletInstanceAttestationAsJwt,
   selectWalletInstanceAttestationAsSdJwt,
@@ -24,14 +16,23 @@ import {
   selectWalletUnitAttestation,
   selectWalletUnitAttestationAsyncState,
 } from "../store/reducers/attestation";
+import { selectItwVersion } from "../store/reducers/environment";
+import {
+  instanceReset,
+  selectHasInstanceKeyTag,
+  selectInstanceAsyncStatus,
+  selectInstanceKeyTag,
+  selectInstanceRevocationAsyncStatus,
+} from "../store/reducers/instance";
+import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   getWalletInstanceAttestationThunk,
   getWalletUnitAttestationThunk,
 } from "../thunks/attestation";
-import { useDebugInfo } from "../hooks/useDebugInfo";
-import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
-import { Alert, FlatList } from "react-native";
-import { selectItwVersion } from "../store/reducers/environment";
+import {
+  createWalletInstanceThunk,
+  revokeWalletInstanceThunk,
+} from "../thunks/instance";
 
 /**
  * Component (screen in a future PR) to test the wallet instance functionalities.
@@ -43,7 +44,7 @@ export const WalletInstanceScreen = () => {
   const wiaState = useAppSelector(selectWalletInstanceAttestationAsyncStatus);
   const wuaState = useAppSelector(selectWalletUnitAttestationAsyncState);
   const instanceRevocationState = useAppSelector(
-    selectInstanceRevocationAsyncStatus
+    selectInstanceRevocationAsyncStatus,
   );
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
 
@@ -55,24 +56,28 @@ export const WalletInstanceScreen = () => {
 
   const ioWallet = useMemo(
     () => new IoWallet({ version: itwVersion }),
-    [itwVersion]
+    [itwVersion],
   );
 
   const isWuaSupported = ioWallet.WalletUnitAttestation.isSupported;
 
   useDebugInfo({
-    instanceState,
     instanceKeyTag,
-    wiaState,
+    instanceState,
     wiaJwt,
     wiaSdJwt,
-    ...(isWuaSupported && { wuaState, wuaJwt }),
+    wiaState,
+    ...(isWuaSupported && { wuaJwt, wuaState }),
     instanceRevocationState,
   });
 
-  const scenarios: Array<TestScenarioProp> = compact<TestScenarioProp>([
+  const scenarios: TestScenarioProp[] = compact<TestScenarioProp>([
     {
-      title: "Create Wallet Instance",
+      hasError: instanceState.hasError,
+      icon: "device",
+      isDone: instanceState.isDone,
+      isLoading: instanceState.isLoading,
+      isPresent: hasIntegrityKeyTag,
       onPress: () => {
         if (hasIntegrityKeyTag) {
           Alert.alert(
@@ -80,59 +85,55 @@ export const WalletInstanceScreen = () => {
             "This will reset the whole app state except the session",
             [
               {
-                text: "Ok",
                 onPress: () => {
                   dispatch(instanceReset());
                   dispatch(createWalletInstanceThunk());
                 },
                 style: "destructive",
+                text: "Ok",
               },
               {
-                text: "Cancel",
                 style: "cancel",
+                text: "Cancel",
               },
-            ]
+            ],
           );
         } else {
           dispatch(createWalletInstanceThunk());
         }
       },
-      isLoading: instanceState.isLoading,
-      hasError: instanceState.hasError,
-      isDone: instanceState.isDone,
-      icon: "device",
-      isPresent: hasIntegrityKeyTag,
+      title: "Create Wallet Instance",
     },
     {
-      title: "Get Wallet Instance Attestation",
-      onPress: () => dispatch(getWalletInstanceAttestationThunk()),
-      isLoading: wiaState.isLoading,
       hasError: wiaState.hasError,
-      isDone: wiaState.isDone,
       icon: "bonus",
+      isDone: wiaState.isDone,
+      isLoading: wiaState.isLoading,
       isPresent: !!wiaJwt,
+      onPress: () => dispatch(getWalletInstanceAttestationThunk()),
+      title: "Get Wallet Instance Attestation",
     },
     isWuaSupported && {
-      title: "Get Wallet Unit Attestation (2 keys)",
+      hasError: wuaState.hasError,
+      icon: "bonus",
+      isDone: wuaState.isDone,
+      isLoading: wuaState.isLoading,
+      isPresent: !!wuaJwt,
       onPress: () =>
         dispatch(
           getWalletUnitAttestationThunk({
             keyTags: Array.from({ length: 2 }).map(() => uuidv4().toString()),
-          })
+          }),
         ),
-      isLoading: wuaState.isLoading,
-      hasError: wuaState.hasError,
-      isDone: wuaState.isDone,
-      icon: "bonus",
-      isPresent: !!wuaJwt,
+      title: "Get Wallet Unit Attestation (2 keys)",
     },
     {
-      title: "Revoke current Wallet Instance",
-      onPress: () => dispatch(revokeWalletInstanceThunk()),
-      isLoading: instanceRevocationState.isLoading,
       hasError: instanceRevocationState.hasError,
-      isDone: instanceRevocationState.isDone,
       icon: "trashcan",
+      isDone: instanceRevocationState.isDone,
+      isLoading: instanceRevocationState.isLoading,
+      onPress: () => dispatch(revokeWalletInstanceThunk()),
+      title: "Revoke current Wallet Instance",
     },
   ]);
 
@@ -146,13 +147,13 @@ export const WalletInstanceScreen = () => {
       renderItem={({ item }) => (
         <>
           <TestScenario
+            hasError={item.hasError}
+            icon={item.icon}
+            isDone={item.isDone}
+            isLoading={item.isLoading}
+            isPresent={item.isPresent}
             onPress={item.onPress}
             title={item.title}
-            isLoading={item.isLoading}
-            hasError={item.hasError}
-            isDone={item.isDone}
-            icon={item.icon}
-            isPresent={item.isPresent}
           />
           <VSpacer />
         </>

@@ -1,12 +1,15 @@
-import { useIOToast, VSpacer } from "@pagopa/io-app-design-system";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
+import { useIOToast, VSpacer } from "@pagopa/io-app-design-system";
 import React, { useCallback } from "react";
-import IdpsGrid from "../../components/IdpsGrid";
+
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
+import IdpsGrid from "../../components/IdpsGrid";
 import { selectEnv } from "../../store/reducers/environment";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import { preparePidFlowParamsThunk } from "../../thunks/pid";
-import { getSpidIdpHint, idps, testIdps, type Idp } from "../../utils/idps";
+import { getSpidIdpHint, type Idp, idps, testIdps } from "../../utils/idps";
 
 type Props = NativeStackScreenProps<
   MainStackNavParamList,
@@ -37,31 +40,31 @@ export default function PidSpidIdpSelectionScreen({
         try {
           const { authUrl, redirectUri } = await dispatch(
             preparePidFlowParamsThunk({
-              idpHint,
               authMethod: "spid",
+              idpHint,
               withMRTDPoP: withDocumentProof,
-            })
+            }),
           ).unwrap();
           navigation.navigate("PidSpidLogin", {
             authUrl,
             redirectUri,
             withDocumentProof,
           });
-        } catch (error) {
+        } catch {
           toast.error("Error during authentication");
         }
       }
     },
-    [navigation, dispatch, withDocumentProof, toast]
+    [navigation, dispatch, withDocumentProof, toast],
   );
 
   return (
     <IdpsGrid
-      testID="idps-grid"
+      footerComponent={<VSpacer size={40} />}
+      headerComponent={<VSpacer size={40} />}
       idps={idpsList}
       onIdpSelected={handleIdpSelection}
-      headerComponent={<VSpacer size={40} />}
-      footerComponent={<VSpacer size={40} />}
+      testID="idps-grid"
     />
   );
 }

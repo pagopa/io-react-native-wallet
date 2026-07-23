@@ -1,4 +1,5 @@
 import * as z from "zod";
+
 import { JWK } from "../../utils/jwk";
 import { FederationEntityMetadata } from "../common/types";
 
@@ -8,13 +9,13 @@ import { FederationEntityMetadata } from "../common/types";
  */
 export type TrustAnchorConfig = z.infer<typeof TrustAnchorConfig>;
 export const TrustAnchorConfig = z.object({
+  federation_entity: FederationEntityMetadata,
   jwt: z.object({
     header: z.object({
-      typ: z.literal("entity-statement+jwt"),
       alg: z.string(),
       kid: z.string(),
+      typ: z.literal("entity-statement+jwt"),
     }),
   }),
   keys: z.array(JWK),
-  federation_entity: FederationEntityMetadata,
 });

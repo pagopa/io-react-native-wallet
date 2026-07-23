@@ -15,8 +15,8 @@
  */
 export const obfuscateString = (
   value: string,
-  percentage: number = 60,
-  obfuscatedChar: string = "*"
+  percentage = 60,
+  obfuscatedChar = "*",
 ): string => {
   if (!value) {
     return "";

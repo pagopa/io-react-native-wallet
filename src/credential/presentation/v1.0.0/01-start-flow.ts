@@ -1,9 +1,10 @@
-import { InvalidQRCodeError } from "../common/errors";
 import type { RemotePresentationApi } from "../api";
+
 import { PresentationParams } from "../api/types";
+import { InvalidQRCodeError } from "../common/errors";
 
 export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (
-  params
+  params,
 ) => {
   const result = PresentationParams.safeParse({
     ...params,
@@ -14,7 +15,7 @@ export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (
 
   if (!result.data.request_uri) {
     throw new InvalidQRCodeError(
-      "Invalid QR code missing the required 'request_uri' parameter."
+      "Invalid QR code missing the required 'request_uri' parameter.",
     );
   }
 

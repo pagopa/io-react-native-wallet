@@ -1,5 +1,5 @@
-import { AllowedState } from "../api/DigitalCredentialsCatalogue";
 import { type CredentialsCatalogueApi } from "../api";
+import { AllowedState } from "../api/DigitalCredentialsCatalogue";
 
 /**
  * Given a statusBit (e.g. "0x00", "0x0B") and a DigitalCredential from the
@@ -9,17 +9,17 @@ import { type CredentialsCatalogueApi } from "../api";
  */
 export const getStatusL10nIds: CredentialsCatalogueApi["getStatusL10nIds"] = (
   statusBit,
-  credentialConfig
+  credentialConfig,
 ) => {
   const normalizedBit = statusBit.toLowerCase();
   const match = credentialConfig.validity_info.allowed_states.find(
     (s): s is AllowedState =>
       typeof s === "object" &&
-      Object.keys(s).some((k) => k.toLowerCase() === normalizedBit)
+      Object.keys(s).some((k) => k.toLowerCase() === normalizedBit),
   );
   if (!match) return undefined;
   return {
-    titleL10nId: match.title_l10n_id,
     descriptionL10nId: match.description_l10n_id,
+    titleL10nId: match.title_l10n_id,
   };
 };

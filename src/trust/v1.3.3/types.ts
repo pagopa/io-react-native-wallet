@@ -1,12 +1,13 @@
+import {
+  itWalletAuthorizationServerMetadataV1_3,
+  itWalletCredentialIssuerMetadataV1_3,
+  itWalletCredentialVerifierMetadataV1_3,
+  itWalletSolutionEntityMetadataV1_3,
+} from "@pagopa/io-wallet-oid-federation";
 import * as z from "zod";
+
 import { JWK } from "../../utils/jwk";
 import { BaseEntityConfiguration } from "../common/types";
-import {
-  itWalletCredentialIssuerMetadataV1_3,
-  itWalletAuthorizationServerMetadataV1_3,
-  itWalletSolutionEntityMetadataV1_3,
-  itWalletCredentialVerifierMetadataV1_3,
-} from "@pagopa/io-wallet-oid-federation";
 
 // Entity configuration for a Credential Issuer
 export type CredentialIssuerEntityConfiguration = z.infer<
@@ -17,13 +18,13 @@ export const CredentialIssuerEntityConfiguration = BaseEntityConfiguration.and(
     payload: z.object({
       jwks: z.object({ keys: z.array(JWK) }),
       metadata: z.object({
-        openid_credential_issuer: itWalletCredentialIssuerMetadataV1_3,
         oauth_authorization_server: itWalletAuthorizationServerMetadataV1_3,
+        openid_credential_issuer: itWalletCredentialIssuerMetadataV1_3,
         openid_credential_verifier:
           itWalletCredentialVerifierMetadataV1_3.optional(),
       }),
     }),
-  })
+  }),
 );
 
 // Entity configuration for a Relying Party
@@ -37,7 +38,7 @@ export const RelyingPartyEntityConfiguration = BaseEntityConfiguration.and(
         openid_credential_verifier: itWalletCredentialVerifierMetadataV1_3,
       }),
     }),
-  })
+  }),
 );
 
 // Entity configuration for a Wallet Provider
@@ -51,7 +52,7 @@ export const WalletProviderEntityConfiguration = BaseEntityConfiguration.and(
         wallet_solution: itWalletSolutionEntityMetadataV1_3,
       }),
     }),
-  })
+  }),
 );
 
 // Maps any entity configuration by the union of every possible shapes

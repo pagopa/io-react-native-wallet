@@ -1,5 +1,5 @@
-import Clipboard from "@react-native-clipboard/clipboard";
 import { IOToast } from "@pagopa/io-app-design-system";
+import Clipboard from "@react-native-clipboard/clipboard";
 
 /**
  * Copy a text to the device clipboard and give a feedback.

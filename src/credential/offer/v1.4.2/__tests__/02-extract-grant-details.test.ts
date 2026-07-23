@@ -1,24 +1,25 @@
 import type { CredentialOffer } from "@pagopa/io-wallet-oid4vci";
+
 import { extractGrantDetails } from "../02-extract-grant-details";
-import { InvalidCredentialOfferError } from "../../common/errors";
 import { sdkConfigV1_4 } from "../../../../utils/config";
+import { InvalidCredentialOfferError } from "../../common/errors";
 
 const mockExtractGrantDetails = jest.fn();
 
 jest.mock("@pagopa/io-wallet-oid4vci", () => ({
-  extractGrantDetails: (...args: unknown[]) => mockExtractGrantDetails(...args),
   CredentialOfferError: jest.requireActual("@pagopa/io-wallet-oid4vci")
     .CredentialOfferError,
+  extractGrantDetails: (...args: unknown[]) => mockExtractGrantDetails(...args),
 }));
 
 const validOffer: CredentialOffer = {
-  credential_issuer: "https://issuer.example.com",
   credential_configuration_ids: ["org.iso.18013.5.1.mDL"],
+  credential_issuer: "https://issuer.example.com",
   grants: {
     authorization_code: {
-      scope: "test-scope",
-      issuer_state: "some-issuer-state",
       authorization_server: "https://auth.example.com",
+      issuer_state: "some-issuer-state",
+      scope: "test-scope",
     },
   },
 };
@@ -30,12 +31,12 @@ describe("extractGrantDetails", () => {
 
   it("should return SDK result directly", () => {
     const sdkResult = {
-      grantType: "authorization_code" as const,
       authorizationCodeGrant: {
-        scope: "test-scope",
-        issuerState: "some-issuer-state",
         authorizationServer: "https://auth.example.com",
+        issuerState: "some-issuer-state",
+        scope: "test-scope",
       },
+      grantType: "authorization_code" as const,
     };
     mockExtractGrantDetails.mockReturnValue(sdkResult);
 
@@ -50,14 +51,14 @@ describe("extractGrantDetails", () => {
 
   it("should throw InvalidCredentialOfferError when SDK throws CredentialOfferError", () => {
     const { CredentialOfferError } = jest.requireActual(
-      "@pagopa/io-wallet-oid4vci"
+      "@pagopa/io-wallet-oid4vci",
     );
     mockExtractGrantDetails.mockImplementation(() => {
       throw new CredentialOfferError("No grants found in credential offer");
     });
 
     expect(() => extractGrantDetails(validOffer)).toThrow(
-      InvalidCredentialOfferError
+      InvalidCredentialOfferError,
     );
   });
 

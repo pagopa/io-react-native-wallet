@@ -1,12 +1,14 @@
-import * as z from "zod";
 import { decode as decodeJwt, verify } from "@pagopa/io-react-native-jwt";
-import { assert, hasStatusOrThrow } from "../../utils/misc";
-import { IoWalletError } from "../../utils/errors";
+import * as z from "zod";
+
 import type { JWK } from "../../utils/jwk";
 
+import { IoWalletError } from "../../utils/errors";
+import { assert, hasStatusOrThrow } from "../../utils/misc";
+
 type FetchRegistryParams<T> = {
-  schema: z.ZodType<T>;
   appFetch?: GlobalFetch["fetch"];
+  schema: z.ZodType<T>;
 } & ({ asJson: true } | { asJson?: false; jwks: JWK[] });
 
 /**
@@ -23,15 +25,15 @@ type FetchRegistryParams<T> = {
  */
 export const fetchRegistry = async <T>(
   url: string,
-  params: FetchRegistryParams<T>
+  params: FetchRegistryParams<T>,
 ): Promise<T> => {
-  const { schema, appFetch = fetch, asJson = false } = params;
+  const { appFetch = fetch, asJson = false, schema } = params;
 
   const response = await appFetch(url, {
-    method: "GET",
     headers: {
       Accept: asJson ? "application/json" : "application/jose, application/jwt",
     },
+    method: "GET",
   }).then(hasStatusOrThrow(200));
 
   const contentType = response.headers.get("Content-Type");
@@ -53,7 +55,7 @@ export const fetchRegistry = async <T>(
     const signatureJwk = params.jwks.find((jwk) => jwk.kid === headerKid);
     if (!signatureJwk) {
       throw new IoWalletError(
-        `Could not find JWK with kid ${headerKid} in Trust Anchor's Entity Configuration`
+        `Could not find JWK with kid ${headerKid} in Trust Anchor's Entity Configuration`,
       );
     }
     await verify(responseText, signatureJwk);
@@ -64,7 +66,7 @@ export const fetchRegistry = async <T>(
   }
 
   throw new IoWalletError(
-    `Unsupported content-type for ${url}: ${contentType}`
+    `Unsupported content-type for ${url}: ${contentType}`,
   );
 };
 
@@ -81,19 +83,19 @@ export const fetchRegistry = async <T>(
 export const fetchLocaleBundle = async (
   baseUri: string,
   locale: string,
-  appFetch: GlobalFetch["fetch"] = fetch
+  appFetch: GlobalFetch["fetch"] = fetch,
 ): Promise<Record<string, string>> => {
   const url = `${baseUri.replace(/\/$/, "")}/${locale}.json`;
 
   const response = await appFetch(url, {
-    method: "GET",
     headers: { Accept: "application/json" },
+    method: "GET",
   }).then(hasStatusOrThrow(200));
 
   const contentType = response.headers.get("Content-Type");
   if (!contentType?.includes("application/json")) {
     throw new IoWalletError(
-      `Locale bundle at ${url} returned unexpected Content-Type: ${contentType}`
+      `Locale bundle at ${url} returned unexpected Content-Type: ${contentType}`,
     );
   }
 

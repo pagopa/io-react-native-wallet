@@ -1,38 +1,36 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { asyncStatusInitial } from "../utils";
-import type { AsyncStatus, RootState } from "../types";
-import { sessionReset } from "./session";
 import type { Trust } from "@pagopa/io-react-native-wallet";
+
+import { createSlice } from "@reduxjs/toolkit";
+
+import type { AsyncStatus, RootState } from "../types";
+
 import { validateTrustChainThunk } from "../../thunks/trustValidation";
+import { asyncStatusInitial } from "../utils";
+import { sessionReset } from "./session";
+
+interface TrustValidationState {
+  asyncStatus: AsyncStatus;
+  isValid: boolean | undefined;
+  validatedChain: undefined | ValidatedChain;
+  validationError: string | undefined;
+}
 
 type ValidatedChain = Awaited<ReturnType<Trust.TrustApi["verifyTrustChain"]>>;
 
-type TrustValidationState = {
-  isValid: boolean | undefined;
-  validatedChain: ValidatedChain | undefined;
-  validationError: string | undefined;
-  asyncStatus: AsyncStatus;
-};
-
 const initialState: TrustValidationState = {
+  asyncStatus: asyncStatusInitial,
   isValid: undefined,
   validatedChain: undefined,
   validationError: undefined,
-  asyncStatus: asyncStatusInitial,
 };
 
 const trustValidationSlice = createSlice({
-  name: "trustValidation",
-  initialState,
-  reducers: {
-    trustValidationReset: () => initialState,
-  },
   extraReducers: (builder) => {
     builder
       .addCase(validateTrustChainThunk.pending, (state) => {
         state.asyncStatus.isLoading = true;
         state.asyncStatus.isDone = false;
-        state.asyncStatus.hasError = { status: false, error: undefined };
+        state.asyncStatus.hasError = { error: undefined, status: false };
         state.isValid = undefined;
         state.validatedChain = undefined;
         state.validationError = undefined;
@@ -48,8 +46,8 @@ const trustValidationSlice = createSlice({
         state.asyncStatus.isLoading = false;
         state.asyncStatus.isDone = false;
         state.asyncStatus.hasError = {
-          status: true,
           error: action.error,
+          status: true,
         };
         state.isValid = false;
         state.validatedChain = undefined;
@@ -57,6 +55,11 @@ const trustValidationSlice = createSlice({
           action.error.message || "Unknown validation error";
       })
       .addCase(sessionReset, () => initialState);
+  },
+  initialState,
+  name: "trustValidation",
+  reducers: {
+    trustValidationReset: () => initialState,
   },
 });
 

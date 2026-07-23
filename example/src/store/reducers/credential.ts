@@ -4,12 +4,7 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { type PersistConfig, persistReducer } from "redux-persist";
-import {
-  getCredentialStatusAssertionThunk,
-  type CredentialStatusResult,
-  getCredentialThunk,
-  getCredentialStatusListThunk,
-} from "../../thunks/credential";
+
 import type {
   AsyncStatus,
   CredentialResult,
@@ -17,22 +12,29 @@ import type {
   SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../types";
-import { asyncStatusInitial } from "../utils";
-import { sessionReset } from "./session";
-import { instanceReset } from "./instance";
-import { createSecureStorage } from "../storage";
+
+import {
+  type CredentialStatusResult,
+  getCredentialStatusAssertionThunk,
+  getCredentialStatusListThunk,
+  getCredentialThunk,
+} from "../../thunks/credential";
 import {
   getTrustmarkThunk,
   type GetTrustmarkThunkOutput,
 } from "../../thunks/trustmark";
+import { createSecureStorage } from "../storage";
+import { asyncStatusInitial } from "../utils";
+import { instanceReset } from "./instance";
+import { sessionReset } from "./session";
 
 /**
  * Supported tokens for the status list flow. They can be either SD-JWT credentials
  * or regular JWTs like the Wallet Unit Attestation.
  */
 export type StatusSupportedTokens =
-  | SupportedCredentials
-  | "walletUnitAttestation";
+  | "walletUnitAttestation"
+  | SupportedCredentials;
 
 /**
  * State type definition for the credential slice.
@@ -42,7 +44,7 @@ export type StatusSupportedTokens =
  * - status: the status result for each credential (either a status assertion or a status list entry)
  * - statusAsyncStatus: the state of the async operation to get each credential status
  */
-type CredentialState = {
+interface CredentialState {
   credentials: Record<
     SupportedCredentialsWithoutPid,
     CredentialResult | undefined
@@ -55,84 +57,84 @@ type CredentialState = {
     GetTrustmarkThunkOutput | undefined
   >;
   trustmarkAsyncStatus: Record<SupportedCredentialsWithoutPid, AsyncStatus>;
-};
+}
 
 // Initial state for the credential slice
 const initialState: CredentialState = {
   credentials: {
-    dc_sd_jwt_mDL: undefined,
-    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_education_attendance: undefined,
+    dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_diploma: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
-    dc_sd_jwt_education_degree: undefined,
-    dc_sd_jwt_education_enrollment: undefined,
+    dc_sd_jwt_mDL: undefined,
     dc_sd_jwt_residency: undefined,
-    dc_sd_jwt_education_diploma: undefined,
-    dc_sd_jwt_education_attendance: undefined,
+    mso_mdoc_mDL: undefined,
     mso_mdoc_proof_of_age: undefined,
   },
   credentialsAsyncStatus: {
-    dc_sd_jwt_mDL: asyncStatusInitial,
-    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_education_attendance: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_diploma: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
-    dc_sd_jwt_education_degree: asyncStatusInitial,
-    dc_sd_jwt_education_enrollment: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
-    dc_sd_jwt_education_diploma: asyncStatusInitial,
-    dc_sd_jwt_education_attendance: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
     mso_mdoc_proof_of_age: asyncStatusInitial,
   },
   status: {
-    walletUnitAttestation: undefined,
-    PersonIdentificationData: undefined,
-    dc_sd_jwt_mDL: undefined,
-    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_education_attendance: undefined,
+    dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_diploma: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
-    dc_sd_jwt_education_degree: undefined,
-    dc_sd_jwt_education_enrollment: undefined,
+    dc_sd_jwt_mDL: undefined,
     dc_sd_jwt_residency: undefined,
-    dc_sd_jwt_education_diploma: undefined,
-    dc_sd_jwt_education_attendance: undefined,
+    mso_mdoc_mDL: undefined,
     mso_mdoc_proof_of_age: undefined,
+    PersonIdentificationData: undefined,
+    walletUnitAttestation: undefined,
   },
   statusAsyncStatus: {
-    walletUnitAttestation: asyncStatusInitial,
-    PersonIdentificationData: asyncStatusInitial,
-    dc_sd_jwt_mDL: asyncStatusInitial,
-    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_education_attendance: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_diploma: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
-    dc_sd_jwt_education_degree: asyncStatusInitial,
-    dc_sd_jwt_education_enrollment: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
-    dc_sd_jwt_education_diploma: asyncStatusInitial,
-    dc_sd_jwt_education_attendance: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
     mso_mdoc_proof_of_age: asyncStatusInitial,
+    PersonIdentificationData: asyncStatusInitial,
+    walletUnitAttestation: asyncStatusInitial,
   },
   trustmark: {
-    dc_sd_jwt_mDL: undefined,
-    mso_mdoc_mDL: undefined,
+    dc_sd_jwt_education_attendance: undefined,
+    dc_sd_jwt_education_degree: undefined,
+    dc_sd_jwt_education_diploma: undefined,
+    dc_sd_jwt_education_enrollment: undefined,
     dc_sd_jwt_EuropeanDisabilityCard: undefined,
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
-    dc_sd_jwt_education_degree: undefined,
-    dc_sd_jwt_education_enrollment: undefined,
+    dc_sd_jwt_mDL: undefined,
     dc_sd_jwt_residency: undefined,
-    dc_sd_jwt_education_diploma: undefined,
-    dc_sd_jwt_education_attendance: undefined,
+    mso_mdoc_mDL: undefined,
     mso_mdoc_proof_of_age: undefined,
   },
   trustmarkAsyncStatus: {
-    dc_sd_jwt_mDL: asyncStatusInitial,
-    mso_mdoc_mDL: asyncStatusInitial,
+    dc_sd_jwt_education_attendance: asyncStatusInitial,
+    dc_sd_jwt_education_degree: asyncStatusInitial,
+    dc_sd_jwt_education_diploma: asyncStatusInitial,
+    dc_sd_jwt_education_enrollment: asyncStatusInitial,
     dc_sd_jwt_EuropeanDisabilityCard: asyncStatusInitial,
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
-    dc_sd_jwt_education_degree: asyncStatusInitial,
-    dc_sd_jwt_education_enrollment: asyncStatusInitial,
+    dc_sd_jwt_mDL: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
-    dc_sd_jwt_education_diploma: asyncStatusInitial,
-    dc_sd_jwt_education_attendance: asyncStatusInitial,
+    mso_mdoc_mDL: asyncStatusInitial,
     mso_mdoc_proof_of_age: asyncStatusInitial,
   },
 };
@@ -142,25 +144,6 @@ const initialState: CredentialState = {
  * the status assertions of the credentials and the status assertions async operation state.
  */
 const credentialSlice = createSlice({
-  name: "credential",
-  initialState,
-  reducers: {
-    credentialReset: () => initialState,
-
-    /**
-     * Removes a trustmark from the store given a credential type
-     */
-    trustmarkReset: (
-      state,
-      action: PayloadAction<SupportedCredentialsWithoutPid>
-    ) => ({
-      ...state,
-      trustmark: {
-        ...state.trustmark,
-        [action.payload]: undefined,
-      },
-    }),
-  },
   extraReducers: (builder) => {
     /**
      * Credential Thunk
@@ -204,7 +187,7 @@ const credentialSlice = createSlice({
       const credentialType = action.meta.arg.credentialType;
       state.credentialsAsyncStatus[credentialType] = {
         ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
+        hasError: { error: action.error, status: true },
       };
     });
 
@@ -224,7 +207,7 @@ const credentialSlice = createSlice({
           ...asyncStatusInitial,
           isDone: true,
         };
-      }
+      },
     );
 
     /* Dispatched when a getCredentialStatusAssertionThunk thunk is pending.
@@ -238,7 +221,7 @@ const credentialSlice = createSlice({
           ...asyncStatusInitial,
           isLoading: true,
         };
-      }
+      },
     );
 
     /* Dispatched when a getCredentialStatusAssertionThunk thunk rejected.
@@ -250,9 +233,9 @@ const credentialSlice = createSlice({
         const credentialType = action.meta.arg.credentialType;
         state.statusAsyncStatus[credentialType] = {
           ...asyncStatusInitial,
-          hasError: { status: true, error: action.error },
+          hasError: { error: action.error, status: true },
         };
-      }
+      },
     );
 
     /* Dispatched when a getStatusListThunk thunk resolves.
@@ -285,7 +268,7 @@ const credentialSlice = createSlice({
       const credentialType = action.meta.arg.credentialType;
       state.statusAsyncStatus[credentialType] = {
         ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
+        hasError: { error: action.error, status: true },
       };
     });
 
@@ -328,7 +311,7 @@ const credentialSlice = createSlice({
       const credentialType = action.meta.arg.credentialType;
       state.trustmarkAsyncStatus[credentialType] = {
         ...asyncStatusInitial,
-        hasError: { status: true, error: action.error },
+        hasError: { error: action.error, status: true },
       };
     });
 
@@ -337,6 +320,25 @@ const credentialSlice = createSlice({
 
     // Reset the credential state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
+  },
+  initialState,
+  name: "credential",
+  reducers: {
+    credentialReset: () => initialState,
+
+    /**
+     * Removes a trustmark from the store given a credential type
+     */
+    trustmarkReset: (
+      state,
+      action: PayloadAction<SupportedCredentialsWithoutPid>,
+    ) => ({
+      ...state,
+      trustmark: {
+        ...state.trustmark,
+        [action.payload]: undefined,
+      },
+    }),
   },
 });
 
@@ -360,7 +362,7 @@ const persistConfig: PersistConfig<CredentialState> = {
  */
 export const credentialReducer = persistReducer(
   persistConfig,
-  credentialSlice.reducer
+  credentialSlice.reducer,
 );
 
 /**
@@ -377,10 +379,10 @@ export const selectCredentials = (state: RootState) =>
 
 export const selectObtainedCredentials = createSelector(
   selectCredentials,
-  (credentials): Array<CredentialResult> =>
+  (credentials): CredentialResult[] =>
     Object.values(credentials).filter(
-      (cred) => cred !== undefined
-    ) as Array<CredentialResult>
+      (cred) => cred !== undefined,
+    ) as CredentialResult[],
 );
 
 /**

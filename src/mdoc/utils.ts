@@ -1,8 +1,10 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
-import { Verification } from "../sd-jwt/types";
+
 import type { IssuanceApi } from "../credential/issuance";
 import type { Out } from "../utils/misc";
-import { MDOC_DEFAULT_NAMESPACE } from "./const";
+
+import { Verification } from "../sd-jwt/types";
+import { MDOC_VERIFICATION_IDENTIFIER } from "./const";
 
 /**
  * @param namespace The mdoc credential `namespace`
@@ -23,13 +25,14 @@ export const getParsedCredentialClaimKey = (namespace: string, key: string) =>
 export const getVerificationFromParsedCredential = (
   parsedCredential: Out<
     IssuanceApi["verifyAndParseCredential"]
-  >["parsedCredential"]
+  >["parsedCredential"],
 ) => {
-  const verificationKey = getParsedCredentialClaimKey(
-    `${MDOC_DEFAULT_NAMESPACE}.IT`,
-    "verification"
+  const verificationKey = Object.keys(parsedCredential).find((key) =>
+    key.endsWith(MDOC_VERIFICATION_IDENTIFIER),
   );
-  const verification = parsedCredential[verificationKey]?.value;
+  const verification = verificationKey
+    ? parsedCredential[verificationKey]?.value
+    : undefined;
   return verification ? Verification.parse(verification) : undefined;
 };
 
@@ -43,9 +46,11 @@ export const getVerificationFromParsedCredential = (
  */
 export const getVerification = async (token: string) => {
   const issuerSigned = await CBOR.decodeIssuerSigned(token);
-  const namespace = issuerSigned.nameSpaces[`${MDOC_DEFAULT_NAMESPACE}.IT`];
-  const verification = namespace?.find(
-    (x) => x.elementIdentifier === "verification"
+
+  const flattenedClaims = Object.values(issuerSigned.nameSpaces).flat();
+
+  const verification = flattenedClaims?.find(
+    (x) => x.elementIdentifier === MDOC_VERIFICATION_IDENTIFIER,
   )?.elementValue;
 
   return verification ? Verification.parse(verification) : undefined;

@@ -4,8 +4,12 @@ import {
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
-import { hasStatusOrThrow } from "../../../utils/misc";
+
+import type { IssuanceApi } from "../api";
+
+import { createDPopToken } from "../../../utils/dpop";
 import {
+  IoWalletError,
   IssuerResponseError,
   IssuerResponseErrorCodes,
   ResponseErrorBuilder,
@@ -13,16 +17,15 @@ import {
   UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
-import { createDPopToken } from "../../../utils/dpop";
-import { LogLevel, Logger } from "../../../utils/logging";
-import type { IssuanceApi } from "../api";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import { CredentialResponse, NonceResponse } from "./types";
 
 export const createNonceProof = async (
   nonce: string,
   issuer: string,
   audience: string,
-  ctx: CryptoContext
+  ctx: CryptoContext,
 ): Promise<string> => {
   const jwk = await ctx.getPublicKey();
   return new SignJWT(ctx)
@@ -30,8 +33,8 @@ export const createNonceProof = async (
       nonce,
     })
     .setProtectedHeader({
-      typ: "openid4vci-proof+jwt",
       jwk,
+      typ: "openid4vci-proof+jwt",
     })
     .setAudience(audience)
     .setIssuer(issuer)
@@ -45,11 +48,11 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   accessToken,
   clientId,
   credentialDefinition,
-  context
+  context,
 ) => {
   const {
-    credentialCryptoContext,
     appFetch = fetch,
+    credentialCryptoContext,
     dPopCryptoContext,
   } = context;
   const { credential_configuration_id, credential_identifier } =
@@ -61,8 +64,8 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
   // Fetch the nonce from the Credential Issuer
   const { c_nonce } = await appFetch(nonceUrl, {
-    method: "POST",
     headers: { "Content-Type": "application/json" },
+    method: "POST",
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
@@ -77,7 +80,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     c_nonce,
     clientId,
     issuerUrl,
-    credentialCryptoContext
+    credentialCryptoContext,
   );
 
   Logger.log(LogLevel.DEBUG, `Signed nonce proof: ${signedNonceProof}`);
@@ -88,13 +91,13 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
       c.credential_configuration_id === credential_configuration_id &&
       (credential_identifier
         ? c.credential_identifiers.includes(credential_identifier)
-        : true)
+        : true),
   );
 
   if (!containsCredentialDefinition) {
     Logger.log(
       LogLevel.ERROR,
-      `Credential definition not found in the access token response ${accessToken.authorization_details}`
+      `Credential definition not found in the access token response ${accessToken.authorization_details}`,
     );
     throw new ValidationFailed({
       message:
@@ -120,29 +123,29 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
   Logger.log(
     LogLevel.DEBUG,
-    `Credential request body: ${JSON.stringify(credentialRequestFormBody)}`
+    `Credential request body: ${JSON.stringify(credentialRequestFormBody)}`,
   );
 
   const tokenRequestSignedDPop = await createDPopToken(
     {
+      ath: await sha256ToBase64(accessToken.access_token),
       htm: "POST",
       htu: credentialUrl,
       jti: `${uuidv4()}`,
-      ath: await sha256ToBase64(accessToken.access_token),
     },
-    dPopCryptoContext
+    dPopCryptoContext,
   );
 
   Logger.log(LogLevel.DEBUG, `Token request DPoP: ${tokenRequestSignedDPop}`);
 
   const credentialRes = await appFetch(credentialUrl, {
-    method: "POST",
+    body: JSON.stringify(credentialRequestFormBody),
     headers: {
+      Authorization: `${accessToken.token_type} ${accessToken.access_token}`,
       "Content-Type": "application/json",
       DPoP: tokenRequestSignedDPop,
-      Authorization: `${accessToken.token_type} ${accessToken.access_token}`,
     },
-    body: JSON.stringify(credentialRequestFormBody),
+    method: "POST",
   })
     .then(hasStatusOrThrow(200))
     .then((res) => res.json())
@@ -152,7 +155,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   if (!credentialRes.success) {
     Logger.log(
       LogLevel.ERROR,
-      `Credential Response validation failed: ${credentialRes.error.message}`
+      `Credential Response validation failed: ${credentialRes.error.message}`,
     );
     throw new ValidationFailed({
       message: "Credential Response validation failed",
@@ -162,17 +165,31 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
   Logger.log(
     LogLevel.DEBUG,
-    `Credential Response: ${JSON.stringify(credentialRes.data)}`
+    `Credential Response: ${JSON.stringify(credentialRes.data)}`,
   );
 
   // Extract the format corresponding to the credential_configuration_id used
   const issuerCredentialConfig =
     issuerConf.credential_configurations_supported[credential_configuration_id];
 
+  const credential = credentialRes.data.credentials[0]?.credential;
+  if (!credential) {
+    throw new IoWalletError(
+      `No credential found in the response for credential_configuration_id ${credential_configuration_id}`,
+    );
+  }
+
+  const format = issuerCredentialConfig?.format;
+  if (!format) {
+    throw new IoWalletError(
+      `No format found for credential_configuration_id ${credential_configuration_id} in the issuer configuration`,
+    );
+  }
+
   // TODO: [SIW-2264] Handle multiple credentials
   return {
-    credential: credentialRes.data.credentials.at(0)!.credential,
-    format: issuerCredentialConfig!.format,
+    credential,
+    format,
   };
 };
 

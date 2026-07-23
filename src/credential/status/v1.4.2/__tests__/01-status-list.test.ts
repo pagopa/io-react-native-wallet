@@ -2,16 +2,16 @@ import { getStatusList, getStatusListByUri } from "../01-status-list";
 
 describe("getStatusList", () => {
   const statusListJwt = makeJwt({
-    sub: "https://example/status-list",
-    iss: "https://example/issuer",
+    extra_claim: "kept",
     iat: 1778849463,
-    ttl: 3600,
+    iss: "https://example/issuer",
     status_list: {
+      aggregation_uri: "https://example/status-list-aggregation",
       bits: 4,
       lst: "H4sIAAAAAAAEExNQMNigAABBpDD9BQAAAA",
-      aggregation_uri: "https://example/status-list-aggregation",
     },
-    extra_claim: "kept",
+    sub: "https://example/status-list",
+    ttl: 3600,
   });
   const credential = makeJwt({
     status: {
@@ -30,10 +30,10 @@ describe("getStatusList", () => {
     });
 
     expect(result).toEqual({
-      statusList: statusListJwt,
       format: "jwt",
-      uri: "https://example/status-list",
       idx: 1,
+      statusList: statusListJwt,
+      uri: "https://example/status-list",
     });
     expect(appFetchMock).toHaveBeenCalledWith("https://example/status-list", {
       headers: {
@@ -53,21 +53,21 @@ describe("getStatusList", () => {
   });
 });
 
+function base64url(value: unknown) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
 function makeJwt(payload: unknown) {
   return [
-    base64url({ typ: "statuslist+jwt", alg: "ES256" }),
+    base64url({ alg: "ES256", typ: "statuslist+jwt" }),
     base64url(payload),
     "signature",
   ].join(".");
 }
 
-function base64url(value: unknown) {
-  return Buffer.from(JSON.stringify(value)).toString("base64url");
-}
-
 function response(body: string) {
   return new Response(body, {
-    status: 200,
     headers: { "Content-Type": "application/statuslist+jwt" },
+    status: 200,
   });
 }

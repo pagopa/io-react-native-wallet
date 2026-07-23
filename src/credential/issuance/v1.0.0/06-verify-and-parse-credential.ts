@@ -1,8 +1,9 @@
+import type { IssuanceApi } from "../api";
+
 import { IoWalletError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { verifyAndParseCredentialMDoc } from "../common/06-verify-and-parse-credential.mdoc";
 import { verifyAndParseCredentialSdJwt } from "../common/06-verify-and-parse-credential.sdjwt";
-import type { IssuanceApi } from "../api";
 
 export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
   async (
@@ -10,7 +11,7 @@ export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
     credential,
     credentialConfigurationId,
     context,
-    x509CertRoot
+    x509CertRoot,
   ) => {
     const format =
       issuerConf.credential_configurations_supported[credentialConfigurationId]
@@ -23,7 +24,7 @@ export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
           issuerConf,
           credential,
           credentialConfigurationId,
-          context
+          context,
         );
       }
       case "mso_mdoc": {
@@ -33,7 +34,7 @@ export const verifyAndParseCredential: IssuanceApi["verifyAndParseCredential"] =
           credential,
           credentialConfigurationId,
           context,
-          x509CertRoot
+          x509CertRoot,
         );
       }
 

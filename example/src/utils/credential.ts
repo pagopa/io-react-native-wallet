@@ -1,18 +1,18 @@
-import {
-  createCryptoContextFor,
-  IoWallet,
-  type RemotePresentation,
-  Trust,
-  type ItwVersion,
-  type CredentialIssuance,
-} from "@pagopa/io-react-native-wallet";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { getRedirects } from "@pagopa/io-react-native-login-utils";
-import { v4 as uuidv4 } from "uuid";
+import {
+  createCryptoContextFor,
+  type CredentialIssuance,
+  IoWallet,
+  type ItwVersion,
+  type RemotePresentation,
+  Trust,
+} from "@pagopa/io-react-native-wallet";
 import last from "lodash/last";
-import appFetch from "../utils/fetch";
-import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { v4 as uuidv4 } from "uuid";
+
 import type {
   CredentialResult,
   PidResult,
@@ -20,6 +20,9 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import type { Env } from "./environment";
+
+import appFetch from "../utils/fetch";
+import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -35,51 +38,52 @@ import type { Env } from "./environment";
  * @param issuerState - (optional) issuer state forwarded to the PAR, from a credential offer
  * @returns The obtained credential result
  */
+// eslint-disable-next-line max-lines-per-function
 export const getCredential = async ({
-  itwVersion,
-  issuerConf,
-  trustAnchorUrl,
-  redirectUri,
-  credentialId,
-  pid,
-  walletInstanceAttestation,
-  generateKeysWithAttestation,
-  wiaCryptoContext,
   batchSize = 1,
-  scope,
+  credentialId,
+  generateKeysWithAttestation,
+  issuerConf,
   issuerState,
+  itwVersion,
+  pid,
+  redirectUri,
+  scope,
+  trustAnchorUrl,
+  walletInstanceAttestation,
+  wiaCryptoContext,
 }: {
-  itwVersion: ItwVersion;
-  issuerConf: CredentialIssuance.IssuerConfig;
-  trustAnchorUrl: string;
-  redirectUri: string;
-  credentialId: SupportedCredentialsWithoutPid;
-  pid: PidResult;
-  walletInstanceAttestation: string;
-  generateKeysWithAttestation: (
-    keyTags: string[]
-  ) => Promise<string | undefined>;
-  wiaCryptoContext: CryptoContext;
   batchSize?: number;
-  scope?: string;
+  credentialId: SupportedCredentialsWithoutPid;
+  generateKeysWithAttestation: (
+    keyTags: string[],
+  ) => Promise<string | undefined>;
+  issuerConf: CredentialIssuance.IssuerConfig;
   issuerState?: string;
+  itwVersion: ItwVersion;
+  pid: PidResult;
+  redirectUri: string;
+  scope?: string;
+  trustAnchorUrl: string;
+  walletInstanceAttestation: string;
+  wiaCryptoContext: CryptoContext;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
 
   // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier, responseMode } =
+  const { clientId, codeVerifier, issuerRequestUri, responseMode } =
     await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
       [credentialId],
       { proofType: "none" },
       {
-        walletInstanceAttestation,
-        redirectUri,
-        wiaCryptoContext,
         appFetch,
-        scope,
         issuerState,
-      }
+        redirectUri,
+        scope,
+        walletInstanceAttestation,
+        wiaCryptoContext,
+      },
     );
 
   const requestObject =
@@ -87,12 +91,12 @@ export const getCredential = async ({
       issuerRequestUri,
       clientId,
       issuerConf,
-      appFetch
+      appFetch,
     );
 
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    [[pid.keyTag, pid.credential]]
+    [[pid.keyTag, pid.credential]],
   );
 
   let code: string;
@@ -103,7 +107,7 @@ export const getCredential = async ({
         requestObject,
         issuerConf,
         evaluatedDcqlQuery,
-        { wiaCryptoContext, appFetch }
+        { appFetch, wiaCryptoContext },
       ));
   } else {
     // Complete the user authorization via query mode
@@ -118,7 +122,7 @@ export const getCredential = async ({
           // Temporary workaround for a known bug affecting React Native 0.82-0.83. See https://github.com/facebook/react-native/issues/55248
           fetchFinalRedirectUri: (url) =>
             getRedirects(url, {}, "code").then(last),
-        }
+        },
       ));
   }
 
@@ -132,25 +136,39 @@ export const getCredential = async ({
     redirectUri,
     codeVerifier,
     {
+      appFetch,
+      dPopCryptoContext,
       walletInstanceAttestation,
       wiaCryptoContext,
-      dPopCryptoContext,
-      appFetch,
-    }
+    },
   );
 
   // For simplicity, in this example flow we work on a single credential.
+  const [firstAuthorizationDetail] = accessToken.authorization_details;
+  if (!firstAuthorizationDetail) {
+    throw new Error("No authorization details found in the access token");
+  }
   const { credential_configuration_id, credential_identifiers } =
-    accessToken.authorization_details[0]!;
+    firstAuthorizationDetail;
 
   // Create as many key tags as the batch size
   const keyTags = Array.from({ length: batchSize }, () => uuidv4().toString());
   const walletUnitAttestation = await generateKeysWithAttestation(keyTags);
   const credentialCryptoContexts = keyTags.map(createCryptoContextFor);
 
+  const [firstCredentialCryptoContext] = credentialCryptoContexts;
+  if (!firstCredentialCryptoContext) {
+    throw new Error("No crypto context generated for the credential batch");
+  }
+
+  const [firstCredentialIdentifier] = credential_identifiers;
+  if (!firstCredentialIdentifier) {
+    throw new Error("No credential identifiers found in the access token");
+  }
+
   const credentialDefinition = {
     credential_configuration_id,
-    credential_identifier: credential_identifiers[0]!,
+    credential_identifier: firstCredentialIdentifier,
   };
 
   const credentialResult =
@@ -161,11 +179,11 @@ export const getCredential = async ({
           clientId,
           credentialDefinition,
           {
+            appFetch,
             credentialCryptoContexts,
             dPopCryptoContext,
             walletUnitAttestation,
-            appFetch,
-          }
+          },
         )
       : await wallet.CredentialIssuance.obtainCredential(
           issuerConf,
@@ -173,27 +191,34 @@ export const getCredential = async ({
           clientId,
           credentialDefinition,
           {
-            credentialCryptoContext: credentialCryptoContexts[0]!,
+            appFetch,
+            credentialCryptoContext: firstCredentialCryptoContext,
             dPopCryptoContext,
             walletUnitAttestation,
-            appFetch,
-          }
+          },
         );
 
   // In the example app we are not interested in storing the entire batch: it is sufficient
   // that the batch size is respected, so we return only the first credential for simplicity.
   // For production use cases, you should properly handle the entire batch.
-  const { credential, format } = Array.isArray(credentialResult)
-    ? credentialResult[0]!
-    : credentialResult;
+  const [firstCredentialResult] = Array.isArray(credentialResult)
+    ? credentialResult
+    : [credentialResult];
+  if (!firstCredentialResult) {
+    throw new Error("No credential returned by the issuance flow");
+  }
+  const { credential, format } = firstCredentialResult;
 
   const x509CertRoot =
     format === "mso_mdoc" || itwVersion !== "1.0.0"
       ? await getTrustAnchorX509Certificate(itwVersion, trustAnchorUrl)
       : undefined;
 
-  const credentialKeyTag = keyTags[0]!;
-  const credentialCryptoContext = credentialCryptoContexts[0]!;
+  const credentialKeyTag = keyTags[0];
+  if (!credentialKeyTag) {
+    throw new Error("No key tag generated for the credential batch");
+  }
+  const credentialCryptoContext = firstCredentialCryptoContext;
 
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
   const { parsedCredential } =
@@ -202,17 +227,17 @@ export const getCredential = async ({
       credential,
       credential_configuration_id,
       { credentialCryptoContext, ignoreMissingAttributes: true },
-      x509CertRoot
+      x509CertRoot,
     );
 
   return {
-    parsedCredential,
     credential,
-    keyTag: credentialKeyTag,
+    credentialConfigurationId: credential_configuration_id,
     credentialType:
       credential_configuration_id as SupportedCredentialsWithoutPid,
-    credentialConfigurationId: credential_configuration_id,
     format,
+    keyTag: credentialKeyTag,
+    parsedCredential,
   };
 };
 
@@ -225,7 +250,7 @@ export const getCredential = async ({
  */
 export const getTrustAnchorX509Certificate = async (
   itwVersion: ItwVersion,
-  trustAnchorUrl: string
+  trustAnchorUrl: string,
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
   const trustAnchorEntityConfig =
@@ -234,13 +259,13 @@ export const getTrustAnchorX509Certificate = async (
     });
   const taHeaderKid = trustAnchorEntityConfig.jwt.header.kid;
   const taSigningJwk = trustAnchorEntityConfig.keys.find(
-    (key) => key.kid === taHeaderKid
+    (key) => key.kid === taHeaderKid,
   );
 
   if (!taSigningJwk) {
     throw new Trust.Errors.FederationError(
       `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' not found in Trust Anchor's JWKS.`,
-      { trustAnchorKid: taHeaderKid, reason: "JWK not found for header kid" }
+      { reason: "JWK not found for header kid", trustAnchorKid: taHeaderKid },
     );
   }
 
@@ -250,7 +275,7 @@ export const getTrustAnchorX509Certificate = async (
 
   throw new Trust.Errors.FederationError(
     `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' does not contain a valid 'x5c' certificate array.`,
-    { trustAnchorKid: taHeaderKid, reason: "Missing or empty x5c in JWK" }
+    { reason: "Missing or empty x5c in JWK", trustAnchorKid: taHeaderKid },
   );
 };
 
@@ -270,13 +295,13 @@ export const getCredentialStatusAssertion = async (
   format: CredentialIssuance.CredentialFormat,
   credentialCryptoContext: CryptoContext,
   wiaCryptoContext: CryptoContext,
-  credentialType: SupportedCredentials
+  credentialType: SupportedCredentials,
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
 
   if (!wallet.CredentialStatus.statusAssertion.isSupported) {
     throw new Error(
-      `Status assertion is not supported in version ${itwVersion}`
+      `Status assertion is not supported in version ${itwVersion}`,
     );
   }
 
@@ -288,7 +313,7 @@ export const getCredentialStatusAssertion = async (
     issuerConf,
     credential,
     format,
-    { credentialCryptoContext, wiaCryptoContext }
+    { credentialCryptoContext, wiaCryptoContext },
   );
 
   const parsedStatusAssertion =
@@ -296,7 +321,7 @@ export const getCredentialStatusAssertion = async (
       issuerConf,
       statusAssertion,
       credential,
-      format
+      format,
     );
 
   return {
@@ -320,7 +345,7 @@ export const getCredentialStatusFromStatusList = async (
   env: Env,
   credential: string,
   credentialType: string,
-  format: CredentialIssuance.CredentialFormat
+  format: CredentialIssuance.CredentialFormat,
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
 
@@ -332,21 +357,21 @@ export const getCredentialStatusFromStatusList = async (
     itwVersion,
     env,
     credential,
-    credentialType
+    credentialType,
   );
 
-  const { statusList: statusListJwt, idx } =
+  const { idx, statusList: statusListJwt } =
     await wallet.CredentialStatus.statusList.get(credential, format, {
       appFetch,
     });
   const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
     keys,
-    statusListJwt
+    statusListJwt,
   );
 
   const result = wallet.CredentialStatus.statusList.getStatus(
     statusList.status_list,
-    idx
+    idx,
   );
 
   return {
@@ -359,13 +384,13 @@ const getKeysForStatusListVerification = async (
   itwVersion: ItwVersion,
   env: Env,
   credential: string,
-  credentialType: string
+  credentialType: string,
 ) => {
   if (credentialType === "walletUnitAttestation") {
     const decodedWua = decodeJwt(credential);
 
     const { payload } = await fetch(
-      `${decodedWua.payload.iss}/.well-known/openid-federation`
+      `${decodedWua.payload.iss}/.well-known/openid-federation`,
     )
       .then((res) => res.text())
       .then(decodeJwt);
@@ -390,7 +415,7 @@ const getKeysForStatusListVerification = async (
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 
   const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
-    issuerUrl.value(itwVersion)
+    issuerUrl.value(itwVersion),
   );
   return issuerConf.keys;
 };

@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { UnixTime } from "../utils/zod";
+
 import { JWK } from "../utils/jwk";
+import { UnixTime } from "../utils/zod";
 
 /**
  * For backward compatibility reasons it is still necessary to support the legacy SD-JWT
@@ -14,7 +15,7 @@ const StatusAssertion = z.object({
 });
 
 const StatusList = z.object({
-  idx: z.string(),
+  idx: z.number(),
   uri: z.string(),
 });
 
@@ -25,23 +26,22 @@ const StatusList = z.object({
 export type SdJwt4VCBase = z.infer<typeof SdJwt4VCBase>;
 export const SdJwt4VCBase = z.object({
   header: z.object({
-    typ: z.enum(["dc+sd-jwt", LEGACY_SD_JWT]),
     alg: z.string(),
     kid: z.string(),
     trust_chain: z.array(z.string()).optional(),
-    x5c: z.array(z.string()).optional(),
+    typ: z.enum(["dc+sd-jwt", LEGACY_SD_JWT]),
     vctm: z.array(z.string()).optional(),
+    x5c: z.array(z.string()).optional(),
   }),
   payload: z.object({
     _sd: z.array(z.string()),
     _sd_alg: z.literal("sha-256"),
-    iss: z.string(),
-    sub: z.string(),
-    iat: UnixTime.optional(),
-    exp: UnixTime,
     cnf: z.object({
       jwk: JWK,
     }),
+    exp: UnixTime,
+    iat: UnixTime.optional(),
+    iss: z.string(),
     status: z.union([
       z.object({
         status_list: StatusList,
@@ -51,6 +51,7 @@ export const SdJwt4VCBase = z.object({
         status_assertion: StatusAssertion,
       }),
     ]),
+    sub: z.string(),
     vct: z.string(),
     "vct#integrity": z.string().optional(),
   }),
@@ -62,8 +63,8 @@ export const SdJwt4VCBase = z.object({
  */
 export type Verification = z.infer<typeof Verification>;
 export const Verification = z.object({
-  trust_framework: z.string(),
   assurance_level: z.string(),
+  trust_framework: z.string(),
 });
 
 /**
@@ -73,16 +74,16 @@ export const Verification = z.object({
  */
 export type TypeMetadata = z.infer<typeof TypeMetadata>;
 export const TypeMetadata = z.object({
-  name: z.string(),
-  description: z.string(),
   data_source: z.object({
-    trust_framework: z.string(),
     authentic_source: z.object({
-      organization_name: z.string(),
-      organization_code: z.string(),
       contacts: z.array(z.string()),
       homepage_uri: z.string().url(),
       logo_uri: z.string().url(),
+      organization_code: z.string(),
+      organization_name: z.string(),
     }),
+    trust_framework: z.string(),
   }),
+  description: z.string(),
+  name: z.string(),
 });

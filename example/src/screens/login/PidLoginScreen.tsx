@@ -1,9 +1,12 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import React from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
+
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
 import { useAppDispatch } from "../../store/utils";
 import { initPidMrtdChallengeThunk } from "../../thunks/mrtd";
 import { continuePidFlowThunk } from "../../thunks/pid";
@@ -30,7 +33,7 @@ export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
  * This screen uses a WebView to load the authentication URL and manage the
  * navigation state changes to intercept the redirect URL, completing the PID issuance flow.
  */
-export default function PidSpidLoginScreen({ route, navigation }: Props) {
+export default function PidSpidLoginScreen({ navigation, route }: Props) {
   const { authUrl, redirectUri, withDocumentProof } = route.params;
   const originSchemasWhiteList = [
     "https://*",
@@ -62,18 +65,18 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
           dispatch(
             initPidMrtdChallengeThunk({
               authRedirectUrl: url,
-            })
+            }),
           );
         } else {
           dispatch(
             continuePidFlowThunk({
               authRedirectUrl: url,
-            })
+            }),
           );
         }
 
         navigation.goBack();
-      } catch (error) {
+      } catch {
         //In case of error, return to the previous screen
         navigation.goBack();
       }
@@ -83,17 +86,17 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
   return (
     <View style={styles.container}>
       <WebView
-        source={{ uri: authUrl }}
-        style={styles.webview}
-        javaScriptEnabled={true}
+        allowsInlineMediaPlayback={true}
         androidCameraAccessDisabled={true}
         androidMicrophoneAccessDisabled={true}
-        allowsInlineMediaPlayback={true}
-        mediaPlaybackRequiresUserAction={true}
-        originWhitelist={[...originSchemasWhiteList, redirectUri]}
         cacheEnabled={false}
-        onShouldStartLoadWithRequest={handleShouldStartLoading}
+        javaScriptEnabled={true}
+        mediaPlaybackRequiresUserAction={true}
         onNavigationStateChange={handleNavigationStateChange}
+        onShouldStartLoadWithRequest={handleShouldStartLoading}
+        originWhitelist={[...originSchemasWhiteList, redirectUri]}
+        source={{ uri: authUrl }}
+        style={styles.webview}
         userAgent={defaultUserAgent}
       />
     </View>
@@ -102,19 +105,19 @@ export default function PidSpidLoginScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: {
+    alignItems: "center",
     flex: 1,
     flexGrow: 1,
-    alignItems: "center",
     justifyContent: "space-between",
   },
   item: {
     backgroundColor: "#5cfebe",
-    padding: 2,
-    marginVertical: 1,
     marginHorizontal: 1,
+    marginVertical: 1,
+    padding: 2,
   },
   title: {
     fontSize: 24,
   },
-  webview: { width: 400, height: 800 },
+  webview: { height: 800, width: 400 },
 });

@@ -1,9 +1,12 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import React, { useCallback } from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
+
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
 import { selectEnv } from "../../store/reducers/environment";
 import { sessionSet } from "../../store/reducers/session";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
@@ -54,43 +57,46 @@ export default function IdpLoginScreen({ route }: Props) {
   const getLoginUri = useCallback(
     () => (idp: string) => {
       const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
-      let url = new URL(WALLET_PROVIDER_BASE_URL);
+      const url = new URL(WALLET_PROVIDER_BASE_URL);
       url.pathname = "/api/auth/v1/login";
       url.searchParams.append("entityID", idp);
       url.searchParams.append("authLevel", "SpidL2");
       return url.href;
     },
-    [env]
+    [env],
   )();
 
   const handleNavigationStateChange = ({ url }: WebViewNavigation) => {
     if (!url.includes("profile.html")) return;
 
-    let { hash, searchParams } = new URL(url);
+    const { hash } = new URLParse(url);
+    let { searchParams } = new URL(url);
     if (hash) {
       const paramsString = hash.startsWith("#") ? hash.slice(1) : hash;
       searchParams = new URLSearchParams(paramsString);
     }
     const token = searchParams.get("token");
-    token && dispatch(sessionSet(token));
+    if (token) {
+      dispatch(sessionSet(token));
+    }
   };
 
   return (
     <View style={styles.container}>
       <WebView
+        allowsInlineMediaPlayback={true}
+        androidCameraAccessDisabled={true}
+        androidMicrophoneAccessDisabled={true}
+        cacheEnabled={false}
+        javaScriptEnabled={true}
+        mediaPlaybackRequiresUserAction={true}
+        onNavigationStateChange={handleNavigationStateChange}
+        onShouldStartLoadWithRequest={handleShouldStartLoading}
+        originWhitelist={originSchemasWhiteList}
         source={{
           uri: getLoginUri(idpParam),
         }}
         style={styles.webview}
-        onNavigationStateChange={handleNavigationStateChange}
-        javaScriptEnabled={true}
-        androidCameraAccessDisabled={true}
-        androidMicrophoneAccessDisabled={true}
-        allowsInlineMediaPlayback={true}
-        mediaPlaybackRequiresUserAction={true}
-        originWhitelist={originSchemasWhiteList}
-        cacheEnabled={false}
-        onShouldStartLoadWithRequest={handleShouldStartLoading}
       />
     </View>
   );
@@ -98,19 +104,19 @@ export default function IdpLoginScreen({ route }: Props) {
 
 const styles = StyleSheet.create({
   container: {
+    alignItems: "center",
     flex: 1,
     flexGrow: 1,
-    alignItems: "center",
     justifyContent: "space-between",
   },
   item: {
     backgroundColor: "#5cfebe",
-    padding: 2,
-    marginVertical: 1,
     marginHorizontal: 1,
+    marginVertical: 1,
+    padding: 2,
   },
   title: {
     fontSize: 24,
   },
-  webview: { width: 400, height: 800 },
+  webview: { height: 800, width: 400 },
 });

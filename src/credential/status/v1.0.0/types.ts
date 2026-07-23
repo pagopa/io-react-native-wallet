@@ -1,6 +1,7 @@
-import { UnixTime } from "../../../utils/zod";
-import { JWK } from "../../../utils/jwk";
 import * as z from "zod";
+
+import { JWK } from "../../../utils/jwk";
+import { UnixTime } from "../../../utils/zod";
 
 /**
  * Shape from parsing a status assertion response in case of 201.
@@ -9,39 +10,39 @@ export const StatusAssertionResponse = z.object({
   status_assertion_responses: z.array(z.string()),
 });
 
+export type ParsedStatusAssertionJwt = z.infer<typeof ParsedStatusAssertionJwt>;
+
 /**
  * Type from parsing a status assertion response in case of 201.
  * Inferred from {@link StatusAssertionResponse}.
  */
 export type StatusAssertionResponse = z.infer<typeof StatusAssertionResponse>;
 
-export type ParsedStatusAssertionJwt = z.infer<typeof ParsedStatusAssertionJwt>;
-
 /**
  * Shape for parsing a successful status assertion in a JWT.
  */
 export const ParsedStatusAssertionJwt = z.object({
   header: z.object({
-    typ: z.literal("status-assertion+jwt"),
     alg: z.string(),
     kid: z.string().optional(),
+    typ: z.literal("status-assertion+jwt"),
   }),
   payload: z.object({
-    iss: z.string(),
-    credential_status_type: z.string(),
-    credential_status_detail: z
-      .object({
-        state: z.string(),
-        description: z.string(),
-      })
-      .optional(),
-    credential_hash_alg: z.string(),
-    credential_hash: z.string(),
     cnf: z.object({
       jwk: JWK,
     }),
+    credential_hash: z.string(),
+    credential_hash_alg: z.string(),
+    credential_status_detail: z
+      .object({
+        description: z.string(),
+        state: z.string(),
+      })
+      .optional(),
+    credential_status_type: z.string(),
     exp: UnixTime,
     iat: UnixTime,
+    iss: z.string(),
   }),
 });
 
@@ -55,13 +56,13 @@ export type ParsedStatusAssertionErrorJwt = z.infer<
  */
 export const ParsedStatusAssertionErrorJwt = z.object({
   header: z.object({
-    typ: z.literal("status-assertion-error+jwt"),
     alg: z.string(),
     kid: z.string().optional(),
+    typ: z.literal("status-assertion-error+jwt"),
   }),
   payload: z.object({
-    credential_hash_alg: z.string(),
     credential_hash: z.string(),
+    credential_hash_alg: z.string(),
     error: z.string(),
     error_description: z.string(),
   }),
@@ -79,9 +80,9 @@ export const ParsedStatusAssertionResponse = z.union([
 ]);
 
 export enum StatusType {
-  VALID = "0x00",
   INVALID = "0x01",
   SUSPENDED = "0x02",
+  VALID = "0x00",
 }
 
 export type InvalidStatusErrorReason = {

@@ -19,6 +19,6 @@ export interface VerifyRequestObjectApi {
       clientId: string;
       rpConf?: RelyingPartyConfig;
       state?: string;
-    }
+    },
   ): Promise<{ requestObject: RequestObject }>;
 }

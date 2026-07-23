@@ -1,15 +1,16 @@
 import type { TrustApi } from "../api";
-import { getTrustAnchorEntityConfiguration } from "./entities";
+
 import { withMapperAsync } from "../../utils/mappers";
-import { mapToTrustAnchorConfig } from "./mappers";
 import { buildTrustChain } from "./build-chain";
+import { getTrustAnchorEntityConfiguration } from "./entities";
+import { mapToTrustAnchorConfig } from "./mappers";
 import { verifyTrustChain } from "./verify-chain";
 
 export const Trust: TrustApi = {
+  buildTrustChain,
   getTrustAnchorEntityConfiguration: withMapperAsync(
     mapToTrustAnchorConfig,
-    getTrustAnchorEntityConfiguration
+    getTrustAnchorEntityConfiguration,
   ),
-  buildTrustChain,
   verifyTrustChain,
 };

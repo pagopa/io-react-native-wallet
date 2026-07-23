@@ -1,7 +1,9 @@
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+
 import type { JWTDecodeResult } from "./jwk";
+
 import { ValidationFailed } from "./errors";
-import { LogLevel, Logger } from "./logging";
+import { Logger, LogLevel } from "./logging";
 
 /*
  * Decode a form_post.jwt and return the final JWT.
@@ -32,8 +34,8 @@ import { LogLevel, Logger } from "./logging";
     </html>
  */
 export const getJwtFromFormPost = async (
-  formData: string
-): Promise<{ jwt: string; decodedJwt: JWTDecodeResult }> => {
+  formData: string,
+): Promise<{ decodedJwt: JWTDecodeResult; jwt: string }> => {
   const formPostRegex = /<input[^>]*name="response"[^>]*value="([^"]*)"/i;
   const lineExpressionRegex = /\r\n|\n\r|\n|\r|\s+/g;
 
@@ -44,13 +46,13 @@ export const getJwtFromFormPost = async (
     if (responseJwt) {
       const jwt = responseJwt.replace(lineExpressionRegex, "");
       const decodedJwt = decodeJwt(jwt);
-      return { jwt, decodedJwt };
+      return { decodedJwt, jwt };
     }
   }
 
   Logger.log(
     LogLevel.ERROR,
-    `Unable to obtain JWT from form_post.jwt. Form data: ${formData}`
+    `Unable to obtain JWT from form_post.jwt. Form data: ${formData}`,
   );
   throw new ValidationFailed({
     message: `Unable to obtain JWT from form_post.jwt. Form data: ${formData}`,

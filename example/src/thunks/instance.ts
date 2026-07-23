@@ -1,18 +1,19 @@
 import { IoWallet } from "@pagopa/io-react-native-wallet";
-import appFetch from "../utils/fetch";
-import { createAppAsyncThunk } from "./utils";
-import {
-  ensureIntegrityServiceIsReady,
-  generateIntegrityHardwareKeyTag,
-  getIntegrityContext,
-} from "../utils/integrity";
+
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import {
   instanceReset,
   selectInstanceKeyTag,
 } from "../store/reducers/instance";
-import { getEnv } from "../utils/environment";
 import { isAndroid } from "../utils/device";
+import { getEnv } from "../utils/environment";
+import appFetch from "../utils/fetch";
+import {
+  ensureIntegrityServiceIsReady,
+  generateIntegrityHardwareKeyTag,
+  getIntegrityContext,
+} from "../utils/integrity";
+import { createAppAsyncThunk } from "./utils";
 
 /**
  * Thunk to create a new wallet instance.
@@ -37,18 +38,18 @@ export const createWalletInstanceThunk = createAppAsyncThunk(
     const integrityContext = getIntegrityContext(integrityKeyTag);
 
     await wallet.WalletInstance.createWalletInstance({
+      appFetch,
       integrityContext,
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-      appFetch,
     });
 
     return integrityKeyTag;
-  }
+  },
 );
 
 export const revokeWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/revoke",
-  async (_, { getState, dispatch }) => {
+  async (_, { dispatch, getState }) => {
     const env = selectEnv(getState());
     const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
     const integrityKeyTag = selectInstanceKeyTag(getState());
@@ -60,11 +61,11 @@ export const revokeWalletInstanceThunk = createAppAsyncThunk(
 
     const wallet = new IoWallet({ version: itwVersion });
     await wallet.WalletInstance.revokeWalletInstance({
+      appFetch,
       id: integrityKeyTag,
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
-      appFetch,
     });
 
     dispatch(instanceReset());
-  }
+  },
 );

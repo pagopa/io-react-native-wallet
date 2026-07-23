@@ -1,21 +1,11 @@
-// helper to assert type
-import { verifyTrustChain } from "../verify-chain";
-import {
-  CredentialIssuerEntityConfiguration,
-  EntityConfiguration,
-  RelyingPartyEntityConfiguration,
-  TrustAnchorEntityConfiguration,
-  WalletProviderEntityConfiguration,
-} from "../types";
+import * as mockEC from "../__fixtures__/entity-configurations";
 import {
   intermediateEntityStatement,
   leafEntityConfiguration,
   leafEntityStatement,
   signed,
   trustAnchorEntityConfiguration,
-} from "../__mocks__/entity-statements";
-
-import * as mockEC from "../__mocks__/entity-configurations";
+} from "../__fixtures__/entity-statements";
 import {
   getCredentialIssuerEntityConfiguration,
   getEntityConfiguration,
@@ -24,17 +14,26 @@ import {
   getWalletProviderEntityConfiguration,
 } from "../entities";
 import { mapToTrustAnchorConfig } from "../mappers";
+import {
+  CredentialIssuerEntityConfiguration,
+  EntityConfiguration,
+  RelyingPartyEntityConfiguration,
+  TrustAnchorEntityConfiguration,
+  WalletProviderEntityConfiguration,
+} from "../types";
+// helper to assert type
+import { verifyTrustChain } from "../verify-chain";
 
 const testType = <T>(_: T) => true;
 
 const mappedTrustAnchorEntityConfiguration = mapToTrustAnchorConfig(
-  trustAnchorEntityConfiguration
+  trustAnchorEntityConfiguration,
 );
 
 describe("verifyTrustChain", () => {
   it("should throw on empty trust chain", async () => {
     await expect(
-      verifyTrustChain(mappedTrustAnchorEntityConfiguration, [])
+      verifyTrustChain(mappedTrustAnchorEntityConfiguration, []),
     ).rejects.toThrow();
   });
 
@@ -45,7 +44,7 @@ describe("verifyTrustChain", () => {
         await signed(leafEntityConfiguration),
         await signed(leafEntityStatement),
         await signed(intermediateEntityStatement),
-      ]
+      ],
     );
     expect(result).toEqual([
       leafEntityConfiguration,
@@ -62,7 +61,7 @@ describe("verifyTrustChain", () => {
         await signed(leafEntityStatement),
         await signed(intermediateEntityStatement),
         await signed(trustAnchorEntityConfiguration),
-      ]
+      ],
     );
     expect(result).toEqual([
       leafEntityConfiguration,
@@ -78,7 +77,7 @@ describe("verifyTrustChain", () => {
         await signed(leafEntityConfiguration),
         await signed(leafEntityStatement),
         // missing required intermediate entity
-      ])
+      ]),
     ).rejects.toThrow();
   });
 
@@ -88,44 +87,44 @@ describe("verifyTrustChain", () => {
         await signed(leafEntityConfiguration),
         await signed(leafEntityStatement),
         "",
-      ])
+      ]),
     ).rejects.toThrow();
   });
 
   it("should throw on invalid trust chain (unresolved trust)", async () => {
     const anotherTrustAnchor = {
       header: {
-        typ: "entity-statement+jwt" as const,
         alg: "RS256",
         kid: "3vUQZOK8dViFClsFGd65Uc8gFWOLv74ylv0oU2tHIyQ",
+        typ: "entity-statement+jwt" as const,
       },
       payload: {
+        authority_hints: [],
+        exp: 1849623968, // 11/2/2028
+        iat: Date.now(),
         iss: "https://another.trustanchor.example",
-        sub: "https://another.trustanchor.example",
         jwks: {
           keys: [
             {
-              kty: "RSA" as const,
-              e: "AQAB",
-              use: "sig",
-              kid: "3vUQZOK8dViFClsFGd65Uc8gFWOLv74ylv0oU2tHIyQ",
               alg: "RS256",
+              e: "AQAB",
+              kid: "3vUQZOK8dViFClsFGd65Uc8gFWOLv74ylv0oU2tHIyQ",
+              kty: "RSA" as const,
               n: "6OtnC5VpTq_pYnQf--C2H1Je8s4QDymGZ4PIixt5R19WROkHksQExLYlSXU-NI7KvgjZvkSsoXVGslk9uZ_bY3kXCDe4Hb2zRMazwznCbjNbgz2kWrd32mj5s2KnLC9iUIuVuK6EPgMUSbVufUp3wYrNAbsAT2TUt5ZIkE9awVYaAR2nUVyIGucVag6kKu-Nd7mbMxeKFLO9glvaFWHBk6B1YtSXvY5d_bUxgLbu-cU9Zl5P4y0aiUw84bX0HraRl7R6WodIRnW7nzV4AOwU4GI2J3QUEodOMS-ZZQeCZSNs6lzBN2rMk0divgi2E4gIh0trwNciqSPcOc_qYbsubQ",
+              use: "sig",
             },
           ],
         },
         metadata: {
           federation_entity: {
-            organization_name: "another.trustanchor",
-            homepage_uri: "https://another.trustanchor.example",
-            policy_uri: "https://another.trustanchor.example",
-            logo_uri: "https://another.trustanchor.example",
             contacts: ["https://another.trustanchor.example"],
+            homepage_uri: "https://another.trustanchor.example",
+            logo_uri: "https://another.trustanchor.example",
+            organization_name: "another.trustanchor",
+            policy_uri: "https://another.trustanchor.example",
           },
         },
-        authority_hints: [],
-        iat: Date.now(),
-        exp: 1849623968, // 11/2/2028
+        sub: "https://another.trustanchor.example",
       },
     };
     await expect(
@@ -133,7 +132,7 @@ describe("verifyTrustChain", () => {
         await signed(leafEntityConfiguration),
         await signed(leafEntityStatement),
         await signed(intermediateEntityStatement),
-      ])
+      ]),
     ).rejects.toThrow();
   });
 });
@@ -154,7 +153,7 @@ describe("EntityConfiguration", () => {
     const parsed = EntityConfiguration.parse(withAdditionalField);
 
     expect(parsed.payload.metadata.additional_field).toEqual(
-      withAdditionalField.payload.metadata.additional_field
+      withAdditionalField.payload.metadata.additional_field,
     );
   });
 });
@@ -172,7 +171,7 @@ describe("getEntityConfiguration", () => {
       "https://example.com",
       {
         appFetch: fetchAlways(200, mockEC.trustAnchorSignedEntityConfiguration),
-      }
+      },
     );
 
     // ok
@@ -191,9 +190,9 @@ describe("getEntityConfiguration", () => {
       {
         appFetch: fetchAlways(
           200,
-          mockEC.walletProviderSignedEntityConfiguration
+          mockEC.walletProviderSignedEntityConfiguration,
         ),
-      }
+      },
     );
 
     // OK
@@ -212,9 +211,9 @@ describe("getEntityConfiguration", () => {
       {
         appFetch: fetchAlways(
           200,
-          mockEC.credentialProviderSignedEntityConfiguration
+          mockEC.credentialProviderSignedEntityConfiguration,
         ),
-      }
+      },
     );
 
     // OK
@@ -235,9 +234,9 @@ describe("getEntityConfiguration", () => {
       {
         appFetch: fetchAlways(
           200,
-          mockEC.relyingPartySignedEntityConfiguration
+          mockEC.relyingPartySignedEntityConfiguration,
         ),
-      }
+      },
     );
 
     // OK
@@ -256,7 +255,7 @@ describe("getEntityConfiguration", () => {
     const result = await getEntityConfiguration("https://example.com", {
       appFetch: fetchAlways(
         200,
-        /* any EC will do */ mockEC.relyingPartySignedEntityConfiguration
+        /* any EC will do */ mockEC.relyingPartySignedEntityConfiguration,
       ),
     });
 
@@ -286,12 +285,12 @@ describe("getEntityConfiguration", () => {
           appFetch: fetchAlways(
             200,
             // expecting to fetch a Wallet Provider EC, retrieving a Reying Party one
-            mockEC.relyingPartySignedEntityConfiguration
+            mockEC.relyingPartySignedEntityConfiguration,
           ),
-        }
+        },
       );
 
       expect(result).toBeDefined();
-    }
+    },
   );
 });

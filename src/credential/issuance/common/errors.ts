@@ -5,10 +5,6 @@ import { IoWalletError, serializeAttrs } from "../../../utils/errors";
  */
 export class AuthorizationError extends IoWalletError {
   code = "ERR_IO_WALLET_AUTHORIZATION_ERROR";
-
-  constructor(message?: string) {
-    super(message);
-  }
 }
 
 /**

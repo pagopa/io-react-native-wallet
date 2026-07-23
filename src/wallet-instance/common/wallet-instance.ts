@@ -1,11 +1,12 @@
+import type { WalletInstanceApi } from "../api";
+
 import { getWalletProviderClient } from "../../client";
 import {
   ResponseErrorBuilder,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../../utils/errors";
-import { LogLevel, Logger } from "../../utils/logging";
-import type { WalletInstanceApi } from "../api";
+import { Logger, LogLevel } from "../../utils/logging";
 
 export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
   async (context) => {
@@ -19,7 +20,7 @@ export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
 
     Logger.log(
       LogLevel.DEBUG,
-      `Challenge obtained from ${context.walletProviderBaseUrl}: ${challenge}`
+      `Challenge obtained from ${context.walletProviderBaseUrl}: ${challenge}`,
     );
 
     const keyAttestation = await integrityContext.getAttestation(challenge);
@@ -28,7 +29,7 @@ export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
 
     Logger.log(
       LogLevel.DEBUG,
-      `Key attestation: ${keyAttestation}\nAssociated hardware key tag: ${hardwareKeyTag}`
+      `Key attestation: ${keyAttestation}\nAssociated hardware key tag: ${hardwareKeyTag}`,
     );
 
     //2. Create Wallet Instance
@@ -36,9 +37,9 @@ export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
       .post("/wallet-instances", {
         body: {
           challenge,
-          key_attestation: keyAttestation,
           hardware_key_tag: hardwareKeyTag,
           is_renewal: isRenewal,
+          key_attestation: keyAttestation,
         },
       })
       .catch(handleCreateWalletInstanceError);
@@ -49,7 +50,7 @@ export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
 const handleCreateWalletInstanceError = (e: unknown) => {
   Logger.log(
     LogLevel.ERROR,
-    `An error occurred while calling /wallet-instances endpoint: ${e}`
+    `An error occurred while calling /wallet-instances endpoint: ${e}`,
   );
 
   if (!(e instanceof WalletProviderResponseError)) {
@@ -74,8 +75,8 @@ export const revokeWalletInstance: WalletInstanceApi["revokeWalletInstance"] =
     const api = getWalletProviderClient(context);
 
     await api.put("/wallet-instances/{id}/status", {
-      path: { id: context.id },
       body: { status: "REVOKED" },
+      path: { id: context.id },
     });
   };
 

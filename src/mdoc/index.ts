@@ -1,17 +1,19 @@
-import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
-import { b64utob64 } from "jsrsasign";
 import { type PublicKey } from "@pagopa/io-react-native-crypto";
-import { MissingX509CertsError } from "../trust/common/errors";
-import { IoWalletError } from "../utils/errors";
-import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
-import type { Presentation } from "../credential/presentation";
+import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
 import { removePadding } from "@pagopa/io-react-native-jwt";
+import { b64utob64 } from "jsrsasign";
+
+import type { Presentation } from "../credential/presentation";
+
+import { MissingX509CertsError } from "../trust/common/errors";
+import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
+import { IoWalletError } from "../utils/errors";
 import { verifyX509Chain } from "../utils/x509";
 export * from "./utils";
 
 export const verify = async (
   token: string,
-  x509CertRoot: string
+  x509CertRoot: string,
 ): Promise<{ issuerSigned: CBOR.IssuerSigned }> => {
   // get decoded data
   const issuerSigned = await CBOR.decodeIssuerSigned(token);
@@ -37,8 +39,15 @@ export const verify = async (
   if (!coseSign1) {
     throw new IoWalletError("Missing coseSign1");
   }
+
+  const firstCert = x5chain[0];
+
+  if (!firstCert) {
+    throw new IoWalletError("x5chain is empty, cannot verify signature");
+  }
+
   // Once the x5chain is verified, the signatures verification can be performed
-  await verifyMdocSignature(coseSign1, x5chain[0]!);
+  await verifyMdocSignature(coseSign1, firstCert);
 
   return { issuerSigned };
 };
@@ -54,8 +63,14 @@ const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   const pemcert = convertBase64DerToPem(cert);
   const jwk = getSigninJwkFromCert(pemcert);
 
-  jwk.x = b64utob64(jwk.x!);
-  jwk.y = b64utob64(jwk.y!);
+  if (!jwk.x || !jwk.y) {
+    throw new IoWalletError(
+      "Missing x or y coordinate in the certificate's public key",
+    );
+  }
+
+  jwk.x = b64utob64(jwk.x);
+  jwk.y = b64utob64(jwk.y);
 
   const signatureCorrect = await COSE.verify(coseSign1, jwk as PublicKey);
 
@@ -69,16 +84,16 @@ export const prepareVpTokenMdoc = async (
   responseUri: string,
   docType: string,
   keyTag: string,
-  [verifiableCredential, presentationFrame]: Presentation
+  [verifiableCredential, presentationFrame]: Presentation,
 ): Promise<{
   vp_token: string;
 }> => {
   /* verifiableCredential is a IssuerSigned structure */
   const documents = [
     {
-      issuerSignedContent: b64utob64(verifiableCredential),
       alias: keyTag,
       docType,
+      issuerSignedContent: b64utob64(verifiableCredential),
     },
   ];
 
@@ -90,7 +105,7 @@ export const prepareVpTokenMdoc = async (
     requestNonce,
     generatedNonce,
     documents,
-    presentationFrame as ISO18013_7.AcceptedFields
+    presentationFrame as ISO18013_7.AcceptedFields,
   );
 
   return {

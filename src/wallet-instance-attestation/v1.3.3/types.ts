@@ -1,4 +1,5 @@
 import * as z from "zod";
+
 import { Jwt } from "../common/types";
 
 export type WalletInstanceAttestationJwt = z.infer<
@@ -10,7 +11,7 @@ export const WalletInstanceAttestationJwt = z.object({
     z.object({
       typ: z.literal("oauth-client-attestation+jwt"),
       x5c: z.array(z.string()),
-    })
+    }),
   ),
   payload: z.intersection(
     Jwt.shape.payload,
@@ -18,7 +19,7 @@ export const WalletInstanceAttestationJwt = z.object({
       sub: z.string(),
       wallet_link: z.string().optional(),
       wallet_name: z.string().optional(),
-    })
+    }),
   ),
 });
 

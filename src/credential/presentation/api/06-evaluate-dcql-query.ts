@@ -8,22 +8,16 @@ import type {
 /**
  * The purpose for the credential request by the RP.
  */
-export type CredentialPurpose = {
-  required: boolean;
+export interface CredentialPurpose {
   description?: string;
-};
+  required: boolean;
+}
 
 export type Disclosure = [
   string /* salt */,
   string /* claim name */,
   unknown /* claim value */,
 ];
-
-export type EvaluatedDisclosure = {
-  namespace?: string;
-  name: string;
-  value: unknown;
-};
 
 export interface EvaluateDcqlQueryApi {
   /**
@@ -40,15 +34,21 @@ export interface EvaluateDcqlQueryApi {
   evaluateDcqlQuery(
     query: DcqlQuery,
     credentialsSdJwt: Credential4Dcql[],
-    credentialsMdoc?: Credential4Dcql[]
+    credentialsMdoc?: Credential4Dcql[],
   ): Promise<
-    ({
-      id: string;
+    (CredentialFormat & {
       credential: string;
+      id: string;
       keyTag: string;
-      requiredDisclosures: EvaluatedDisclosure[];
       presentationFrame: PresentationFrame;
       purposes: CredentialPurpose[];
-    } & CredentialFormat)[]
+      requiredDisclosures: EvaluatedDisclosure[];
+    })[]
   >;
+}
+
+export interface EvaluatedDisclosure {
+  name: string;
+  namespace?: string;
+  value: unknown;
 }

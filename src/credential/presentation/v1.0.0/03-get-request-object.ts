@@ -1,13 +1,14 @@
+import type { RemotePresentationApi } from "../api";
+
 import { RelyingPartyResponseError } from "../../../utils/errors";
 import { hasStatusOrThrow } from "../../../utils/misc";
-import type { RemotePresentationApi } from "../api";
 import { RequestObjectWalletCapabilities } from "../api/types";
 import { InvalidQRCodeError } from "../common/errors";
 
 export const getRequestObject: RemotePresentationApi["getRequestObject"] =
   async (
     authorizationRequestUrl,
-    { appFetch = fetch, walletCapabilities } = {}
+    { appFetch = fetch, walletCapabilities } = {},
   ) => {
     const authorizationUrl = new URL(authorizationRequestUrl);
 
@@ -20,7 +21,7 @@ export const getRequestObject: RemotePresentationApi["getRequestObject"] =
       authorizationUrl.searchParams.get("request_uri") ?? undefined;
     if (!requestUri) {
       throw new InvalidQRCodeError(
-        "The QR code is missing the required 'request_uri' parameter."
+        "The QR code is missing the required 'request_uri' parameter.",
       );
     }
 
@@ -35,11 +36,11 @@ export const getRequestObject: RemotePresentationApi["getRequestObject"] =
       });
 
       const requestObjectEncodedJwt = await appFetch(requestUri, {
-        method: "POST",
+        body: formUrlEncodedBody.toString(),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: formUrlEncodedBody.toString(),
+        method: "POST",
       })
         .then(hasStatusOrThrow(200, RelyingPartyResponseError))
         .then((res) => res.text());

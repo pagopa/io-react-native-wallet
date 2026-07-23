@@ -18,6 +18,6 @@ export interface ResolveCredentialOfferApi {
    */
   resolveCredentialOffer(
     credentialOffer: string,
-    callbacks?: { fetch?: GlobalFetch["fetch"] }
+    callbacks?: { fetch?: GlobalFetch["fetch"] },
   ): Promise<CredentialOffer>;
 }

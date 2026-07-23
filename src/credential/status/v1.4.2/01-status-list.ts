@@ -4,15 +4,16 @@ import {
   getStatusListFromJWT,
   type StatusListEntry,
 } from "@sd-jwt/jwt-status-list";
-import { IoWalletError } from "../../../utils/errors";
-import { hasStatusOrThrow } from "../../../utils/misc";
-import type { CredentialFormat } from "../../../credential/issuance/api";
+
 import type { StatusListApi } from "../api/status-list";
 
-const getStatusListEntry = async (
-  credential: string,
-  format: CredentialFormat
-): Promise<StatusListEntry> => {
+import { IoWalletError } from "../../../utils/errors";
+import { hasStatusOrThrow } from "../../../utils/misc";
+
+export const getStatusListEntry: StatusListApi["getStatusListEntry"] = async (
+  credential,
+  format,
+) => {
   let statusListEntry: StatusListEntry | undefined;
 
   if (format === "mso_mdoc") {
@@ -35,7 +36,7 @@ const getStatusListEntry = async (
 const fetchStatusList = (
   uri: string,
   appFetch: GlobalFetch["fetch"],
-  options: { cacheDisabled?: boolean } = {}
+  options: { cacheDisabled?: boolean } = {},
 ) =>
   appFetch(uri, {
     headers: {
@@ -48,7 +49,7 @@ const fetchStatusList = (
 
 export const getStatusListByUri: StatusListApi["getByUri"] = async (
   uri,
-  { appFetch = fetch } = {}
+  { appFetch = fetch } = {},
 ) => {
   // When the HTTP response includes cache headers, fetch will return a cached response and the JWT might be expired
   let statusList = await fetchStatusList(uri, appFetch);
@@ -68,9 +69,9 @@ export const getStatusListByUri: StatusListApi["getByUri"] = async (
 export const getStatusList: StatusListApi["get"] = async (
   credential,
   format,
-  context
+  context,
 ) => {
-  const { uri, idx } = await getStatusListEntry(credential, format);
+  const { idx, uri } = await getStatusListEntry(credential, format);
   const statusList = await getStatusListByUri(uri, context);
-  return { uri, idx, statusList, format: "jwt" };
+  return { format: "jwt", idx, statusList, uri };
 };

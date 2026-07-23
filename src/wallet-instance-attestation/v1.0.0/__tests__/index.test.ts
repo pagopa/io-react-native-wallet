@@ -24,22 +24,22 @@ describe("decode", () => {
 
     // check payload in deep
     expect(result.payload).toEqual({
-      iss: "https://io-d-wallet-it.azurewebsites.net",
-      sub: "4ohPgUXQIA-Lvlq4XxfFdI7VG5dSm1Yo74z4QkYyMCo",
       aal: "https://io-d-wallet-it.azurewebsites.net/LoA/basic",
       cnf: {
         jwk: {
           crv: "P-256",
+          kid: "4ohPgUXQIA-Lvlq4XxfFdI7VG5dSm1Yo74z4QkYyMCo",
           kty: "EC",
           x: "uCgKgG990X6BLANc8vJjWXGqoCgymN-IyE8nCpDqbnw",
           y: "TeHtcW_YvisEhlbzeI0fUExW63TfPVst6CcfXp4I7cI",
-          kid: "4ohPgUXQIA-Lvlq4XxfFdI7VG5dSm1Yo74z4QkYyMCo",
         },
       },
+      exp: 1719306981,
+      iat: 1719303381,
+      iss: "https://io-d-wallet-it.azurewebsites.net",
+      sub: "4ohPgUXQIA-Lvlq4XxfFdI7VG5dSm1Yo74z4QkYyMCo",
       wallet_link: "https://wallet.io.pagopa.it",
       wallet_name: "IT Wallet",
-      iat: 1719303381,
-      exp: 1719306981,
     });
   });
 });

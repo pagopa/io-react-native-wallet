@@ -4,6 +4,7 @@ import {
   type WebViewMessageEvent,
   type WebViewNavigation,
 } from "react-native-webview";
+
 import { CieWebView, type CieWebViewError } from "./CieWebView";
 
 // When authenticating with L3 directly, the injected JS does not work so `handleMessage` is never called
@@ -13,18 +14,18 @@ const isL3AuthUrl = (url: string) =>
     ? url.includes("authnRequestString")
     : url.includes("OpenApp");
 
-type CieAuthenticationWebviewProps = {
+interface CieAuthenticationWebviewProps {
   authenticationUrl: string;
-  onSuccess: (url: string) => void;
   onError: (error: CieWebViewError) => void;
-};
+  onSuccess: (url: string) => void;
+}
 
 /**
  * Webview used to fetch the authentication url to use a service provider for the CIE authentication
  * It displayes a loading spinner, with the webview working in the background
  */
 export const CieAuthenticationWebview = (
-  props: CieAuthenticationWebviewProps
+  props: CieAuthenticationWebviewProps,
 ) => {
   const handleMessage = async (event: WebViewMessageEvent) => {
     const url = event.nativeEvent.data;
@@ -32,7 +33,7 @@ export const CieAuthenticationWebview = (
   };
 
   const handleShouldStartLoadWithRequest = (
-    event: WebViewNavigation
+    event: WebViewNavigation,
   ): boolean => {
     if (isL3AuthUrl(event.url)) {
       props.onSuccess(event.url);
@@ -45,10 +46,10 @@ export const CieAuthenticationWebview = (
   return (
     <View style={styles.invisible}>
       <CieWebView
-        source={{ uri: props.authenticationUrl }}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
         onWebViewError={props.onError}
+        source={{ uri: props.authenticationUrl }}
       />
     </View>
   );
