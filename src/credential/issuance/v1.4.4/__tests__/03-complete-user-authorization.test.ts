@@ -6,7 +6,7 @@ import type { RequestObject } from "../../../presentation";
 import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";
 
 import { completeEaaUserAuthorizationWithQueryMode } from "../03-complete-user-authorization";
-import { RemotePresentation } from "../../../presentation/v1.4.2";
+import { RemotePresentation } from "../../../presentation/v1.4.4";
 import { AuthorizationError } from "../../common/errors";
 
 jest.mock("@pagopa/io-wallet-oid4vp", () => ({

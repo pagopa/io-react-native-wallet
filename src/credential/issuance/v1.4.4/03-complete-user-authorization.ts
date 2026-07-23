@@ -26,7 +26,7 @@ import { sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError, IssuerResponseError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
-import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.4.2";
+import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.4.4";
 import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
 import { mapToRequestObject } from "./mappers";
 

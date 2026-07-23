@@ -25,7 +25,7 @@ export interface IoWalletApi {
   WalletUnitAttestation: WUA.WalletUnitAttestationApi;
 }
 
-export type ItwVersion = "1.0.0" | "1.4.2";
+export type ItwVersion = "1.0.0" | "1.4.4";
 
 /**
  * The Wallet API implementations grouped by IT-Wallet specifications version.
@@ -43,16 +43,16 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     WalletInstanceAttestation: WIA.V1_0_0,
     WalletUnitAttestation: WUA.V1_0_0,
   },
-  "1.4.2": {
+  "1.4.4": {
+    CredentialIssuance: CredentialIssuance.V1_4_4,
+    CredentialsCatalogue: CredentialsCatalogue.V1_4_4,
+    CredentialsOffer: CredentialsOffer.V1_4_4,
+    CredentialStatus: CredentialStatus.V1_4_4,
+    RemotePresentation: RemotePresentation.V1_4_4,
+    Trust: Trust.V1_0_0,
+    Trustmark: Trustmark.V1_4_4,
     WalletInstance: WalletInstance.V1_3_3,
     WalletInstanceAttestation: WIA.V1_3_3,
     WalletUnitAttestation: WUA.V1_3_3,
-    Trust: Trust.V1_0_0,
-    CredentialIssuance: CredentialIssuance.V1_4_2,
-    CredentialStatus: CredentialStatus.V1_4_2,
-    RemotePresentation: RemotePresentation.V1_4_2,
-    CredentialsCatalogue: CredentialsCatalogue.V1_4_2,
-    Trustmark: Trustmark.V1_4_2,
-    CredentialsOffer: CredentialsOffer.V1_4_2,
   },
 };
