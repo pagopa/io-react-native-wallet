@@ -2,13 +2,13 @@ import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { Platform } from "react-native";
 
 import type { KeyAttestationCryptoContext } from "../../utils/crypto";
-import type { WalletUnitAttestationSupportedApi } from "../api";
+import type { KeyAttestationSupportedApi } from "../api";
 
 import { getWalletProviderClient } from "../../client";
 import { IoWalletError } from "../../utils/errors";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
-import { WalletUnitAttestationResponse } from "./types";
+import { KeyAttestationResponse } from "./types";
 
 /**
  * Create a Key Attestation Request in JWT format for the provided key.
@@ -25,13 +25,13 @@ const createKeyAttestationRequest = async (
 
   if (!success) {
     throw new IoWalletError(
-      "generateKeyWithAttestation failed to generate a cryptographic key for the Wallet Unit Attestation request",
+      "generateKeyWithAttestation failed to generate a cryptographic key for the Key Attestation request",
     );
   }
 
   if (Platform.OS === "android" && !attestation) {
     throw new IoWalletError(
-      "Missing key attestation: on Android the generated key must have a key attestation to request a Wallet Unit Attestation",
+      "Missing Android key attestation: the generated key pair must be hardware-backed",
     );
   }
 
@@ -58,7 +58,7 @@ const createKeyAttestationRequest = async (
   return { cryptoContext, keyAttestationRequestJwt: requestJwt, publicKey };
 };
 
-export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"] =
+export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
   async (
     { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
     { appFetch = fetch, integrityContext, keysToAttest: keysToAttestContexts },
@@ -141,11 +141,11 @@ export const getAttestation: WalletUnitAttestationSupportedApi["getAttestation"]
           "Content-Type": "text/plain",
         },
       })
-      .then(WalletUnitAttestationResponse.parse);
+      .then(KeyAttestationResponse.parse);
 
     Logger.log(
       LogLevel.DEBUG,
-      `Obtained Wallet Unit Attestation: ${response.key_attestation}`,
+      `Obtained Key Attestation: ${response.key_attestation}`,
     );
 
     return {

@@ -54,7 +54,7 @@ const createMockFetch = () => {
   return appFetch;
 };
 
-describe("WalletUnitAttestation | getAttestation", () => {
+describe("KeyAttestation | getAttestation", () => {
   afterEach(() => {
     jest.useRealTimers();
     jest.restoreAllMocks();

@@ -8,7 +8,7 @@ Credentials instead require a simpler authorization flow and they require other 
 
 The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step. Available credentials are identified with a unique `credential_configuration_id`, that must be used when requesting authorization. The Authorization Server returns an array of **credential identifiers** that map to the `credential_configuration_id` provided: to obtain the credential, one of the credential identifiers (or all of them) must be requested to the credential endpoint.
 
-In the newest versions of IT-Wallet specifications it is mandatory that the cryptographic keys bound to each credential are stored in a WSCD and attested in a **Wallet Unit Attestation**, that must be sent to the Issuer when requesting a credential.
+In the newest versions of IT-Wallet specifications it is mandatory that the cryptographic keys bound to each credential are stored in a WSCD and attested in a **Key Attestation**, that must be sent to the Issuer when requesting a credential.
 
 ## Sequence Diagram
 
@@ -22,7 +22,7 @@ graph TD;
     C4.1[completeEaaUserAuthorizationWithQueryMode]
     E4[completePidUserAuthorizationWithQueryMode]
     5[authorizeAccess]
-    6[WalletUnitAttestation.getAttestation]
+    6[KeyAttestation.getAttestation]
     7[obtainCredential]
     8[verifyAndParseCredential]
     credSel{Is credential an eID?}
@@ -102,7 +102,7 @@ The expected result from the authentication process is in `form_post.jwt` format
 
 ## Batch issuance
 
-To obtain a batch of credentials the Issuance module exposes a dedicated method—`obtainCredentialsBatch`—that returns a list of credentials of the same type with different cryptographic data. For this reason the caller must generate multiple keys and attest them in a single Wallet Unit Attestation.
+To obtain a batch of credentials the Issuance module exposes a dedicated method—`obtainCredentialsBatch`—that returns a list of credentials of the same type with different cryptographic data. For this reason the caller must generate multiple keys and attest them in a single Key Attestation.
 
 ## Examples
 
@@ -145,11 +145,11 @@ const walletInstanceAttestation =
   );
 
 const credentialKeyTag = uuidv4().toString();
-let walletUnitAttestation: string | undefined;
+let keyAttestation: string | undefined;
 
-// Obtains a Wallet Unit Attestation if supported
-if (wallet.WalletUnitAttestation.isSupported) {
-  walletUnitAttestation = await wallet.WalletUnitAttestation.getAttestation(); // See the Wallet Unit Attestation README for more details
+// Obtains a Key Attestation if supported
+if (wallet.KeyAttestation.isSupported) {
+  keyAttestation = await wallet.KeyAttestation.getAttestation(); // See the Key Attestation README for more details
 } else {
   await generate(credentialKeyTag); // Let's assume this function generates a new hardware-backed key pair
 }
@@ -248,7 +248,7 @@ const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
   {
     credentialCryptoContext,
     dPopCryptoContext,
-    walletUnitAttestation, // Required in issuance v1.3
+    keyAttestation, // Required in issuance v1.4
     appFetch,
   }
 );
@@ -410,7 +410,7 @@ const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
   {
     credentialCryptoContext,
     dPopCryptoContext,
-    walletUnitAttestation, // Required in issuance v1.3
+    keyAttestation, // Required in issuance v1.4
     appFetch,
   }
 );

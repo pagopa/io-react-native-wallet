@@ -161,12 +161,12 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     appFetch = fetch,
     credentialCryptoContext,
     dPopCryptoContext,
-    walletUnitAttestation,
+    keyAttestation,
   } = context;
-  if (!walletUnitAttestation) {
+  if (!keyAttestation) {
     throw new ValidationFailed({
       message:
-        "The Wallet Unit Attestation is required to obtain the credential",
+        "The Key Attestation is required to obtain the credential",
     });
   }
 
@@ -202,7 +202,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     credentialIdentifier: credential_identifier!,
     dPopCryptoContext,
     issuerConf,
-    keyAttestationJwt: walletUnitAttestation,
+    keyAttestationJwt: keyAttestation,
   });
 
   Logger.log(
@@ -233,12 +233,12 @@ export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
       appFetch = fetch,
       credentialCryptoContexts,
       dPopCryptoContext,
-      walletUnitAttestation,
+      keyAttestation,
     } = context;
-    if (!walletUnitAttestation) {
+    if (!keyAttestation) {
       throw new ValidationFailed({
         message:
-          "The Wallet Unit Attestation is required to obtain the credential",
+          "The Key Attestation is required to obtain the credential",
       });
     }
 
@@ -253,7 +253,7 @@ export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
       credentialIdentifier: credential_identifier,
       dPopCryptoContext,
       issuerConf,
-      keyAttestationJwt: walletUnitAttestation,
+      keyAttestationJwt: keyAttestation,
     });
 
     // Extract the format corresponding to the credential_configuration_id used
