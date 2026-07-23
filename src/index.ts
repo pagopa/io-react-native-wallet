@@ -23,7 +23,7 @@ import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import * as WalletInstance from "./wallet-instance";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
-import * as WalletUnitAttestation from "./wallet-unit-attestation";
+import * as KeyAttestation from "./key-attestation";
 
 export {
   AuthorizationDetail,
@@ -43,7 +43,7 @@ export {
   Trustmark,
   WalletInstance,
   WalletInstanceAttestation,
-  WalletUnitAttestation,
+  KeyAttestation,
 };
 
 export type {

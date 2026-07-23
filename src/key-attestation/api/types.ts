@@ -11,13 +11,13 @@ const Status = z.object({
 });
 
 /**
- * Common Wallet Unit Attestation shape. This object is
+ * Common Key Attestation shape. This object is
  * an abstraction over the version-specific JWTs.
  */
-export type DecodedWalletUnitAttestation = z.infer<
-  typeof DecodedWalletUnitAttestation
+export type DecodedKeyAttestation = z.infer<
+  typeof DecodedKeyAttestation
 >;
-export const DecodedWalletUnitAttestation = z.object({
+export const DecodedKeyAttestation = z.object({
   attested_keys: z.array(JWK),
   exp: UnixTime,
   iat: UnixTime,

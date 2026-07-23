@@ -7,7 +7,7 @@ import * as CredentialsCatalogue from "../credentials-catalogue";
 import * as Trust from "../trust";
 import * as WalletInstance from "../wallet-instance";
 import * as WIA from "../wallet-instance-attestation";
-import * as WUA from "../wallet-unit-attestation";
+import * as KA from "../key-attestation";
 
 /**
  * The Wallet public API.
@@ -22,7 +22,7 @@ export interface IoWalletApi {
   Trustmark: Trustmark.TrustmarkApi;
   WalletInstance: WalletInstance.WalletInstanceApi;
   WalletInstanceAttestation: WIA.WalletInstanceAttestationApi;
-  WalletUnitAttestation: WUA.WalletUnitAttestationApi;
+  KeyAttestation: KA.KeyAttestationApi;
 }
 
 export type ItwVersion = "1.0.0" | "1.4.4";
@@ -41,7 +41,7 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     Trustmark: Trustmark.V1_0_0,
     WalletInstance: WalletInstance.V1_0_0,
     WalletInstanceAttestation: WIA.V1_0_0,
-    WalletUnitAttestation: WUA.V1_0_0,
+    KeyAttestation: KA.V1_0_0,
   },
   "1.4.4": {
     CredentialIssuance: CredentialIssuance.V1_4_4,
@@ -53,6 +53,6 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     Trustmark: Trustmark.V1_4_4,
     WalletInstance: WalletInstance.V1_4_4,
     WalletInstanceAttestation: WIA.V1_4_4,
-    WalletUnitAttestation: WUA.V1_4_4,
+    KeyAttestation: KA.V1_4_4,
   },
 };
