@@ -7,19 +7,9 @@ interface AuthHeaders {
   Authorization?: string;
 }
 
-function addAuthHeaders(options: RequestInit, authHeaders: AuthHeaders) {
-  return {
-    ...options,
-    headers: {
-      ...options.headers,
-      ...authHeaders,
-    },
-  };
-}
-
 export default function appFetch(
   request: RequestInfo,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ) {
   const state = store.getState();
   const env = selectEnv(state);
@@ -40,4 +30,14 @@ export default function appFetch(
   })();
 
   return fetch(request, addAuthHeaders(options, authHeaders));
+}
+
+function addAuthHeaders(options: RequestInit, authHeaders: AuthHeaders) {
+  return {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...authHeaders,
+    },
+  };
 }

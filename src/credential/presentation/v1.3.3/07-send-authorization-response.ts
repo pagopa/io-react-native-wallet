@@ -2,23 +2,25 @@ import {
   createAuthorizationResponse as sdkCreateAuthorizationResponse,
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
+
 import type { RemotePresentationApi } from "../api";
+
+import { prepareVpTokenMdoc } from "../../../mdoc";
+import { prepareVpToken } from "../../../sd-jwt";
 import { partialCallbacks } from "../../../utils/callbacks";
-import { mapSdkAuthorizationResponseError } from "./sdkErrorMapper";
-import {
-  generateRandomAlphaNumericString,
-  hasStatusOrThrow,
-} from "../../../utils/misc";
+import { sdkConfigV1_3 } from "../../../utils/config";
+import { createCryptoContextFor } from "../../../utils/crypto";
 import {
   IoWalletError,
   RelyingPartyResponseError,
 } from "../../../utils/errors";
-import { AuthorizationResponse } from "./types";
+import {
+  generateRandomAlphaNumericString,
+  hasStatusOrThrow,
+} from "../../../utils/misc";
 import { buildDirectPostBody } from "../common/utils/http";
-import { prepareVpToken } from "../../../sd-jwt";
-import { createCryptoContextFor } from "../../../utils/crypto";
-import { sdkConfigV1_3 } from "../../../utils/config";
-import { prepareVpTokenMdoc } from "../../../mdoc";
+import { mapSdkAuthorizationResponseError } from "./sdkErrorMapper";
+import { AuthorizationResponse } from "./types";
 
 /**
  * Prepares remote presentations for a set of credentials.
@@ -50,14 +52,14 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
               item.credential,
               item.presentationFrame,
               createCryptoContextFor(item.keyTag),
-            ]
+            ],
           );
 
           return {
-            requestedClaims: item.requiredDisclosures.map(({ name }) => name),
             credentialId: item.id,
-            vpToken: vp_token,
             format,
+            requestedClaims: item.requiredDisclosures.map(({ name }) => name),
+            vpToken: vp_token,
           };
         }
 
@@ -73,24 +75,24 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
               item.credential,
               item.presentationFrame,
               createCryptoContextFor(item.keyTag),
-            ]
+            ],
           );
 
           return {
-            requestedClaims: item.requiredDisclosures.map(({ name }) => name),
             credentialId: item.id,
-            vpToken: vp_token,
             format: "mso_mdoc",
+            requestedClaims: item.requiredDisclosures.map(({ name }) => name),
+            vpToken: vp_token,
           };
         }
 
         throw new IoWalletError(`${format} format is not supported.`);
-      })
+      }),
     );
 
     return {
-      presentations,
       generatedNonce,
+      presentations,
     };
   };
 
@@ -99,23 +101,29 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
     requestObject,
     remotePresentation,
     rpConf,
-    { appFetch = fetch } = {}
+    { appFetch = fetch } = {},
   ) => {
     try {
       if (!rpConf && !requestObject.client_metadata) {
         throw new IoWalletError(
-          "At least one of rpConf or requestObject.client_metadata must be provided to send the authorization response"
+          "At least one of rpConf or requestObject.client_metadata must be provided to send the authorization response",
         );
       }
 
       // When the RP is not an OpenID Federation client, rpConf will be undefined
       // so the keys are taken from the Request Object's client_metadata.
+      const clientMetadata = requestObject.client_metadata;
+      const jwks = rpConf?.jwks ?? clientMetadata?.jwks;
+      if (!jwks) {
+        throw new IoWalletError(
+          "Missing jwks in both rpConf and requestObject.client_metadata",
+        );
+      }
       const rpJwks = {
-        jwks: rpConf?.jwks ?? requestObject.client_metadata!.jwks,
         encrypted_response_enc_values_supported:
           rpConf?.encrypted_response_enc_values_supported ??
-          requestObject.client_metadata!
-            .encrypted_response_enc_values_supported,
+          clientMetadata?.encrypted_response_enc_values_supported,
+        jwks,
       };
 
       const vp_token = remotePresentation.presentations.reduce(
@@ -123,24 +131,24 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
           (acc[p.credentialId] ??= []).push(p.vpToken);
           return acc;
         },
-        {} as Record<string, string[]>
+        {} as Record<string, string[]>,
       );
 
       const { jarm } = await sdkCreateAuthorizationResponse({
-        config: sdkConfigV1_3,
-        requestObject,
-        rpJwks,
-        vp_token,
         callbacks: {
           encryptJwe: partialCallbacks.encryptJwe,
           generateRandom: partialCallbacks.generateRandom,
         },
+        config: sdkConfigV1_3,
+        requestObject,
+        rpJwks,
+        vp_token,
       });
 
       return await sdkFetchAuthorizationResponse({
         authorizationResponseJarm: jarm.responseJwe,
-        presentationResponseUri: requestObject.response_uri,
         callbacks: { fetch: appFetch },
+        presentationResponseUri: requestObject.response_uri,
       });
     } catch (err) {
       throw mapSdkAuthorizationResponseError(err);
@@ -151,7 +159,7 @@ export const sendAuthorizationErrorResponse: RemotePresentationApi["sendAuthoriz
   async (
     requestObject,
     { error, errorDescription },
-    { appFetch = fetch } = {}
+    { appFetch = fetch } = {},
   ) => {
     const requestBody = await buildDirectPostBody(requestObject, {
       error,
@@ -159,11 +167,11 @@ export const sendAuthorizationErrorResponse: RemotePresentationApi["sendAuthoriz
     });
 
     return await appFetch(requestObject.response_uri, {
-      method: "POST",
+      body: requestBody,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: requestBody,
+      method: "POST",
     })
       .then(hasStatusOrThrow(200, RelyingPartyResponseError))
       .then((res) => res.json())

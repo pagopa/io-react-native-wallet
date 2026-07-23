@@ -1,74 +1,74 @@
+import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useMemo } from "react";
 import { Alert, FlatList, type ListRenderItemInfo } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useAppSelector } from "../store/utils";
+
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
+import { useDebugInfo } from "../hooks/useDebugInfo";
+import { selectCredential } from "../store/reducers/credential";
 import {
   selectPresentationAcceptanceState,
   selectPresentationRefusalState,
 } from "../store/reducers/presentation";
-import { selectCredential } from "../store/reducers/credential";
-
-import { useDebugInfo } from "../hooks/useDebugInfo";
-import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { useAppSelector } from "../store/utils";
 
 export const PresentationScreen = () => {
   const navigation = useNavigation();
   const { asyncStatus: acceptancePresentationState, ...presentationDetails } =
     useAppSelector(selectPresentationAcceptanceState);
   const { asyncStatus: refusalPresentationState } = useAppSelector(
-    selectPresentationRefusalState
+    selectPresentationRefusalState,
   );
   const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
 
   useDebugInfo({
     acceptancePresentationState,
-    refusalPresentationState,
     presentationDetails,
+    refusalPresentationState,
   });
 
-  const scenarios: Array<TestScenarioProp> = useMemo(
+  const scenarios: TestScenarioProp[] = useMemo(
     () => [
       {
-        title: "PID Remote Cross-Device",
+        hasError: acceptancePresentationState.hasError,
+        icon: "qrCode",
+        isDone: acceptancePresentationState.isDone,
+        isLoading: acceptancePresentationState.isLoading,
+        isPresent: acceptancePresentationState.isDone,
         onPress: () =>
           navigation.navigate("QrScanner", {
             mode: "presentation",
             presentationBehavior: "acceptanceState",
           }),
-        isLoading: acceptancePresentationState.isLoading,
-        hasError: acceptancePresentationState.hasError,
-        isDone: acceptancePresentationState.isDone,
-        icon: "qrCode",
-        isPresent: acceptancePresentationState.isDone,
         successMessage: "OK",
+        title: "PID Remote Cross-Device",
       },
       {
-        title: "PID Remote Cross-Device (Refuse)",
+        hasError: refusalPresentationState.hasError,
+        icon: "qrCode",
+        isDone: refusalPresentationState.isDone,
+        isLoading: refusalPresentationState.isLoading,
+        isPresent: refusalPresentationState.isDone,
         onPress: () =>
           navigation.navigate("QrScanner", {
             mode: "presentation",
             presentationBehavior: "refusalState",
           }),
-        isLoading: refusalPresentationState.isLoading,
-        hasError: refusalPresentationState.hasError,
-        isDone: refusalPresentationState.isDone,
-        icon: "qrCode",
-        isPresent: refusalPresentationState.isDone,
         successMessage: "OK",
+        title: "PID Remote Cross-Device (Refuse)",
       },
       {
-        title: "mDL Proximity",
+        hasError: refusalPresentationState.hasError,
+        icon: "qrCode",
+        isDone: refusalPresentationState.isDone,
+        isLoading: refusalPresentationState.isLoading,
         onPress: () =>
           mdoc_mDL
             ? navigation.navigate("Proximity")
             : Alert.alert("Obtain a mDL first"),
-        isLoading: refusalPresentationState.isLoading,
-        hasError: refusalPresentationState.hasError,
-        isDone: refusalPresentationState.isDone,
-        icon: "qrCode",
+        title: "mDL Proximity",
       },
     ],
     [
@@ -80,14 +80,14 @@ export const PresentationScreen = () => {
       refusalPresentationState.hasError,
       refusalPresentationState.isDone,
       refusalPresentationState.isLoading,
-    ]
+    ],
   );
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<TestScenarioProp>) => (
       <TestScenario {...item} />
     ),
-    []
+    [],
   );
 
   return (
@@ -96,9 +96,9 @@ export const PresentationScreen = () => {
         margin: IOVisualCostants.appMarginDefault,
       }}
       data={scenarios}
+      ItemSeparatorComponent={VSpacer}
       keyExtractor={(item, index) => `${item.title}-${index}`}
       renderItem={renderItem}
-      ItemSeparatorComponent={VSpacer}
     />
   );
 };

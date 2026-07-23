@@ -1,7 +1,11 @@
 import { EncryptJwe } from "@pagopa/io-react-native-jwt";
-import { NoSuitableKeysFoundInEntityConfiguration } from "../common/errors";
-import { hasStatusOrThrow } from "../../../utils/misc";
+
 import type { JWK } from "../../../utils/jwk";
+import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
+import type { RequestObject } from "../api/types";
+
+import { prepareVpToken } from "../../../sd-jwt";
+import { createCryptoContextFor } from "../../../utils/crypto";
 import {
   IoWalletError,
   RelyingPartyResponseError,
@@ -9,13 +13,11 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../../utils/errors";
-import { prepareVpToken } from "../../../sd-jwt";
-import type { RequestObject } from "../api/types";
-import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
+import { hasStatusOrThrow } from "../../../utils/misc";
+import { NoSuitableKeysFoundInEntityConfiguration } from "../common/errors";
+import { buildDirectPostBody } from "../common/utils/http";
 import { AuthorizationResponse, DirectAuthorizationBodyPayload } from "./types";
 import { getJwksFromRpConfig } from "./utils.jwks";
-import { buildDirectPostBody } from "../common/utils/http";
-import { createCryptoContextFor } from "../../../utils/crypto";
 
 /**
  * Selects a public key (with `use = enc`) from the set of JWK keys
@@ -34,7 +36,7 @@ export const choosePublicKeyToEncrypt = (rpJwkKeys: JWK[]): JWK => {
 
   // No suitable key found
   throw new NoSuitableKeysFoundInEntityConfiguration(
-    "No suitable public key found for encryption."
+    "No suitable public key found for encryption.",
   );
 };
 
@@ -49,7 +51,7 @@ export const choosePublicKeyToEncrypt = (rpJwkKeys: JWK[]): JWK => {
 export const buildDirectPostJwtBody = async (
   requestObject: RequestObject,
   rpConf: RelyingPartyConfig,
-  payload: DirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload,
 ): Promise<string> => {
   type Jwe = ConstructorParameters<typeof EncryptJwe>[1];
 
@@ -97,16 +99,16 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
             item.credential,
             item.presentationFrame,
             createCryptoContextFor(item.keyTag),
-          ]
+          ],
         );
 
         return {
-          requestedClaims: item.requiredDisclosures.map(({ name }) => name),
           credentialId: item.id,
-          vpToken: vp_token,
           format: item.format,
+          requestedClaims: item.requiredDisclosures.map(({ name }) => name),
+          vpToken: vp_token,
         };
-      })
+      }),
     );
 
     return { presentations };
@@ -117,11 +119,11 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
     requestObject,
     remotePresentation,
     rpConf,
-    { appFetch = fetch } = {}
+    { appFetch = fetch } = {},
   ) => {
     if (!rpConf) {
       throw new IoWalletError(
-        "Relying Party Configuration is required for OpenID Federation clients"
+        "Relying Party Configuration is required for OpenID Federation clients",
       );
     }
 
@@ -133,17 +135,17 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
           ...acc,
           [presentation.credentialId]: presentation.vpToken,
         }),
-        {} as Record<string, string>
+        {} as Record<string, string>,
       ),
     });
 
     // 2. Send the authorization response via HTTP POST and validate the response
     return await appFetch(requestObject.response_uri, {
-      method: "POST",
+      body: requestBody,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: requestBody,
+      method: "POST",
     })
       .then(hasStatusOrThrow(200))
       .then((res) => res.json())
@@ -155,7 +157,7 @@ export const sendAuthorizationErrorResponse: RemotePresentationApi["sendAuthoriz
   async (
     requestObject,
     { error, errorDescription },
-    { appFetch = fetch } = {}
+    { appFetch = fetch } = {},
   ) => {
     const requestBody = await buildDirectPostBody(requestObject, {
       error,
@@ -163,11 +165,11 @@ export const sendAuthorizationErrorResponse: RemotePresentationApi["sendAuthoriz
     });
 
     return await appFetch(requestObject.response_uri, {
-      method: "POST",
+      body: requestBody,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: requestBody,
+      method: "POST",
     })
       .then(hasStatusOrThrow(200, RelyingPartyResponseError))
       .then((res) => res.json())

@@ -4,16 +4,18 @@ import {
   getPublicKeyFixed,
   sign,
 } from "@pagopa/io-react-native-crypto";
-import { v4 as uuidv4 } from "uuid";
 import {
+  type CryptoContext,
   decode,
   thumbprint,
-  type CryptoContext,
 } from "@pagopa/io-react-native-jwt";
-import type { BaseEntityConfiguration } from "../trust/common/types";
-import { JWK, JWKS } from "./jwk";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
+import { v4 as uuidv4 } from "uuid";
+
+import type { BaseEntityConfiguration } from "../trust/common/types";
+
 import { IoWalletError } from "./errors";
+import { JWK, JWKS } from "./jwk";
 
 /**
  * Extension of the {@link CryptoContext} that adds key generation with optional key attestation.
@@ -29,8 +31,8 @@ export type KeyAttestationCryptoContext = CryptoContext & {
    * @returns An object with a success flag and a key attestation, if it was generated.
    */
   generateKeyWithAttestation(
-    challenge: string
-  ): Promise<{ success: boolean; attestation?: string }>;
+    challenge: string,
+  ): Promise<{ attestation?: string; success: boolean }>;
 };
 
 /**
@@ -40,29 +42,27 @@ export type KeyAttestationCryptoContext = CryptoContext & {
  *
  * @returns the crypto context
  */
-export const createCryptoContextFor = (keytag: string): CryptoContext => {
-  return {
-    async getPublicKey() {
-      return getPublicKeyFixed(keytag).then(async (jwk) => ({
-        ...jwk,
-        // Keys in the TEE are not stored with their KID, which is supposed to be assigned when they are included in JWK sets.
-        // (that is, KID is not a propoerty of the key itself, but it's property used to identify a key in a set).
-        // We assume the convention we use the thumbprint of the public key as KID, thus for easy development we decided to evaluate KID here
-        // However the values is an arbitrary string that might be anything
-        kid: await thumbprint(jwk),
-      }));
-    },
-    /**
-     * Get a signature for a provided value.
-     * If the key pair doesn't exist yet, an error is raised.
-     * @param value
-     * @returns The signature for the value
-     */
-    async getSignature(value: string) {
-      return sign(value, keytag);
-    },
-  };
-};
+export const createCryptoContextFor = (keytag: string): CryptoContext => ({
+  async getPublicKey() {
+    return getPublicKeyFixed(keytag).then(async (jwk) => ({
+      ...jwk,
+      // Keys in the TEE are not stored with their KID, which is supposed to be assigned when they are included in JWK sets.
+      // (that is, KID is not a propoerty of the key itself, but it's property used to identify a key in a set).
+      // We assume the convention we use the thumbprint of the public key as KID, thus for easy development we decided to evaluate KID here
+      // However the values is an arbitrary string that might be anything
+      kid: await thumbprint(jwk),
+    }));
+  },
+  /**
+   * Get a signature for a provided value.
+   * If the key pair doesn't exist yet, an error is raised.
+   * @param value
+   * @returns The signature for the value
+   */
+  async getSignature(value: string) {
+    return sign(value, keytag);
+  },
+});
 
 /**
  * Executes the input function injecting an ephemeral crypto context.
@@ -73,7 +73,7 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => {
  * @returns The returned value of the input procedure.
  */
 export const withEphemeralKey = async <R>(
-  fn: (ephemeralContext: CryptoContext) => Promise<R>
+  fn: (ephemeralContext: CryptoContext) => Promise<R>,
 ): Promise<R> => {
   // Use an ephemeral key to be destroyed after use
   const keytag = `ephemeral-${uuidv4()}`;
@@ -110,7 +110,7 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
   }
 
   throw new IoWalletError(
-    "Unable to find the signing key inside the PEM certificate"
+    "Unable to find the signing key inside the PEM certificate",
   );
 };
 
@@ -122,12 +122,12 @@ export const getSigninJwkFromCert = (pemCert: string): JWK => {
  * @throws Will throw an error if no suitable keys are found.
  */
 export const getJwkFromCertificateChain = async (
-  certChain: string[]
+  certChain: string[],
 ): Promise<JWK> => {
   const [leafCert] = certChain;
   if (!leafCert) {
     throw new IoWalletError(
-      "The provided certificate chain is invalid or malformed"
+      "The provided certificate chain is invalid or malformed",
     );
   }
   const pemCert = convertBase64DerToPem(leafCert);
@@ -144,7 +144,7 @@ export const getJwkFromCertificateChain = async (
  */
 export const getJwkFromTrustChain = (
   trustChain: string[],
-  signerKid: string
+  signerKid: string,
 ): JWK => {
   const [entityConfigurationJwt] = trustChain;
   if (!entityConfigurationJwt) {
@@ -164,7 +164,7 @@ export const getJwkFromTrustChain = (
   // Check metadata entries for additional JWKS like openid_credential_verifier
   if (baseEntityConfig.metadata) {
     for (const metadata of Object.values(
-      baseEntityConfig.metadata as Record<string, { jwks?: JWKS }>
+      baseEntityConfig.metadata as Record<string, { jwks?: JWKS }>,
     )) {
       if (metadata.jwks) {
         keys.push(...JWKS.parse(metadata.jwks).keys);
@@ -175,7 +175,7 @@ export const getJwkFromTrustChain = (
   const federationJwk = keys.find((key) => key.kid === signerKid);
   if (!federationJwk)
     throw new IoWalletError(
-      "No suitable key was found in the provided trust chain"
+      "No suitable key was found in the provided trust chain",
     );
   return federationJwk;
 };

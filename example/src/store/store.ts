@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { sessionReducer } from "./reducers/session";
 import {
   FLUSH,
   PAUSE,
@@ -9,42 +8,44 @@ import {
   REGISTER,
   REHYDRATE,
 } from "redux-persist";
-import { instanceReducer } from "./reducers/instance";
+
 import { attestationReducer } from "./reducers/attestation";
 import { credentialReducer } from "./reducers/credential";
+import { credentialsCatalogueSlice } from "./reducers/credentialsCatalogue";
 import { debugSlice } from "./reducers/debug";
 import { environmentReducer } from "./reducers/environment";
-import { pidReducer } from "./reducers/pid";
-import { presentationReducer } from "./reducers/presentation";
-import { trustValidationReducer } from "./reducers/trustValidation";
+import { instanceReducer } from "./reducers/instance";
 import { mrtdReducer } from "./reducers/mrtd";
 import { credentialOfferReducer } from "./reducers/offer";
-import { credentialsCatalogueSlice } from "./reducers/credentialsCatalogue";
+import { pidReducer } from "./reducers/pid";
+import { presentationReducer } from "./reducers/presentation";
+import { sessionReducer } from "./reducers/session";
+import { trustValidationReducer } from "./reducers/trustValidation";
 
 /**
  * Redux store configuration.
  */
 export const store = configureStore({
-  reducer: {
-    environment: environmentReducer,
-    debug: debugSlice.reducer,
-    session: sessionReducer,
-    instance: instanceReducer,
-    attestation: attestationReducer,
-    credential: credentialReducer,
-    pid: pidReducer,
-    mrtd: mrtdReducer,
-    presentation: presentationReducer,
-    trustValidation: trustValidationReducer,
-    offer: credentialOfferReducer,
-    credentialsCatalogue: credentialsCatalogueSlice.reducer,
-  },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER], // Ignore all the action types dispatched by Redux Persist
       },
     }),
+  reducer: {
+    attestation: attestationReducer,
+    credential: credentialReducer,
+    credentialsCatalogue: credentialsCatalogueSlice.reducer,
+    debug: debugSlice.reducer,
+    environment: environmentReducer,
+    instance: instanceReducer,
+    mrtd: mrtdReducer,
+    offer: credentialOfferReducer,
+    pid: pidReducer,
+    presentation: presentationReducer,
+    session: sessionReducer,
+    trustValidation: trustValidationReducer,
+  },
 });
 
 /**

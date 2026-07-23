@@ -3,8 +3,8 @@ import type { ExtractGrantDetailsApi } from "./02-extract-grant-details";
 import type { ValidateCredentialOfferApi } from "./03-validate-credential-offer";
 
 export interface OfferApi
-  extends ResolveCredentialOfferApi,
-    ExtractGrantDetailsApi,
+  extends ExtractGrantDetailsApi,
+    ResolveCredentialOfferApi,
     ValidateCredentialOfferApi {}
 
 export * from "./types";

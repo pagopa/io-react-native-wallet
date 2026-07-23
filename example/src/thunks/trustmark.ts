@@ -2,25 +2,27 @@ import {
   createCryptoContextFor,
   IoWallet,
 } from "@pagopa/io-react-native-wallet";
-import { selectWalletInstanceAttestationAsJwt } from "../store/reducers/attestation";
+
 import type { SupportedCredentialsWithoutPid } from "../store/types";
+
+import { selectWalletInstanceAttestationAsJwt } from "../store/reducers/attestation";
+import { selectItwVersion } from "../store/reducers/environment";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { createAppAsyncThunk } from "./utils";
-import { selectItwVersion } from "../store/reducers/environment";
+
+export interface GetTrustmarkThunkOutput {
+  credentialType: SupportedCredentialsWithoutPid;
+  expirationTime: number;
+  trustmarkJwt: string;
+}
 
 /**
  * Type definition for the input of the {@link getTrustmarkThunk}.
  */
-type GetTrustmarkThunkInput = {
+interface GetTrustmarkThunkInput {
   credentialType: SupportedCredentialsWithoutPid;
   documentNumber?: string;
-};
-
-export type GetTrustmarkThunkOutput = {
-  trustmarkJwt: string;
-  credentialType: SupportedCredentialsWithoutPid;
-  expirationTime: number;
-};
+}
 
 /**
  * Thunk to obtain a new trustmark for a credential.
@@ -42,18 +44,18 @@ export const getTrustmarkThunk = createAppAsyncThunk<
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   // Generate a trustmark for the credential
-  const { jwt, expirationTime } = await wallet.Trustmark.getCredentialTrustmark(
+  const { expirationTime, jwt } = await wallet.Trustmark.getCredentialTrustmark(
     {
-      walletInstanceAttestation,
-      wiaCryptoContext,
       credentialType: args.credentialType,
       docNumber: args.documentNumber,
-    }
+      walletInstanceAttestation,
+      wiaCryptoContext,
+    },
   );
 
   return {
-    trustmarkJwt: jwt,
     credentialType: args.credentialType,
     expirationTime,
+    trustmarkJwt: jwt,
   };
 });

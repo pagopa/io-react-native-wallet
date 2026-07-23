@@ -3,8 +3,6 @@ import type { JWK } from "../../../utils/jwk";
 import type { StatusList } from "./types";
 
 export interface StatusListApi {
-  isSupported: true;
-
   /**
    * Get the status list token referenced by a credential. This function fetches the list
    * from the uri found in the credential's `status` claim.
@@ -28,12 +26,12 @@ export interface StatusListApi {
     format: CredentialFormat,
     context?: {
       appFetch?: GlobalFetch["fetch"];
-    }
+    },
   ): Promise<{
-    statusList: string;
     format: "jwt";
-    uri: string;
     idx: number;
+    statusList: string;
+    uri: string;
   }>;
 
   /**
@@ -47,17 +45,8 @@ export interface StatusListApi {
     uri: string,
     context?: {
       appFetch?: GlobalFetch["fetch"];
-    }
+    },
   ): Promise<string>;
-
-  /**
-   * Verifies the signature of a status list token and parses its payload.
-   * @since 1.3.3
-   * @param keys The JSON Web Key Set to verify the status list signature
-   * @param statusList The encoded status list token
-   * @returns The decoded status list payload
-   */
-  verifyAndParse(keys: JWK[], statusList: string): Promise<StatusList>;
 
   /**
    * Extracts the status at the specified index from a decoded status list.
@@ -68,7 +57,7 @@ export interface StatusListApi {
    */
   getStatus(
     statusList: StatusList["status_list"],
-    idx: number
+    idx: number,
   ): {
     rawStatus: string;
     status: string;
@@ -85,6 +74,17 @@ export interface StatusListApi {
    */
   getStatusListEntry(
     credential: string,
-    format: CredentialFormat
+    format: CredentialFormat,
   ): Promise<{ idx: number; uri: string }>;
+
+  isSupported: true;
+
+  /**
+   * Verifies the signature of a status list token and parses its payload.
+   * @since 1.3.3
+   * @param keys The JSON Web Key Set to verify the status list signature
+   * @param statusList The encoded status list token
+   * @returns The decoded status list payload
+   */
+  verifyAndParse(keys: JWK[], statusList: string): Promise<StatusList>;
 }

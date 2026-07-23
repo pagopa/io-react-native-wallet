@@ -3,32 +3,33 @@ import {
   CredentialIssuance,
   IoWallet,
 } from "@pagopa/io-react-native-wallet";
-import { selectPidFlowParams } from "../store/reducers/pid";
-import { createAppAsyncThunk } from "./utils";
-import appFetch from "../utils/fetch";
-import { WIA_KEYTAG } from "../utils/crypto";
-import { selectMrtdFlowParams } from "../store/reducers/mrtd";
+
 import { selectItwVersion } from "../store/reducers/environment";
+import { selectMrtdFlowParams } from "../store/reducers/mrtd";
+import { selectPidFlowParams } from "../store/reducers/pid";
+import { WIA_KEYTAG } from "../utils/crypto";
+import appFetch from "../utils/fetch";
+import { createAppAsyncThunk } from "./utils";
 
-type InitPidMrtdChallengeInput = {
-  authRedirectUrl: string;
-};
-
-export type InitPidMrtdChallengeOutput = {
+export interface InitPidMrtdChallengeOutput {
   challenge: string;
   mrtd_auth_session: string;
   mrtd_pop_nonce: string;
   validationUrl: string;
-};
+}
 
-type VerifyPidMrtdChallengeInput = {
-  mrtd: CredentialIssuance.MRTDPoP.MrtdPayload;
-  ias: CredentialIssuance.MRTDPoP.IasPayload;
-};
-
-export type VerifyPidMrtdChallengeOutput = {
+export interface VerifyPidMrtdChallengeOutput {
   callbackUrl: string;
-};
+}
+
+interface InitPidMrtdChallengeInput {
+  authRedirectUrl: string;
+}
+
+interface VerifyPidMrtdChallengeInput {
+  ias: CredentialIssuance.MRTDPoP.IasPayload;
+  mrtd: CredentialIssuance.MRTDPoP.MrtdPayload;
+}
 
 export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   InitPidMrtdChallengeOutput,
@@ -49,7 +50,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
 
   const { challenge_info } =
     await wallet.CredentialIssuance.continueUserAuthorizationWithMRTDPoPChallenge(
-      authRedirectUrl
+      authRedirectUrl,
     );
 
   const {
@@ -59,20 +60,20 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   } = await wallet.CredentialIssuance.MRTDPoP.verifyAndParseChallengeInfo(
     issuerConf,
     challenge_info,
-    { wiaCryptoContext }
+    { wiaCryptoContext },
   );
 
-  const { pop_verify_endpoint, challenge, mrtd_pop_nonce } =
+  const { challenge, mrtd_pop_nonce, pop_verify_endpoint } =
     await wallet.CredentialIssuance.MRTDPoP.initChallenge(
       issuerConf,
       initUrl,
       mrtd_auth_session,
       mrtd_pop_jwt_nonce,
       {
+        appFetch,
         walletInstanceAttestation,
         wiaCryptoContext,
-        appFetch,
-      }
+      },
     );
 
   return {
@@ -103,7 +104,7 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
 
   const { ias, mrtd } = args;
   const { issuerConf, walletInstanceAttestation } = pidFlowParams;
-  const { validationUrl, mrtd_auth_session, mrtd_pop_nonce } = mrtdFlowParams;
+  const { mrtd_auth_session, mrtd_pop_nonce, validationUrl } = mrtdFlowParams;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
@@ -116,17 +117,17 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
       mrtd,
       ias,
       {
+        appFetch,
         walletInstanceAttestation,
         wiaCryptoContext,
-        appFetch,
-      }
+      },
     );
 
   const { callbackUrl } =
     await wallet.CredentialIssuance.MRTDPoP.buildChallengeCallbackUrl(
       redirect_uri,
       mrtd_val_pop_nonce,
-      mrtd_auth_session
+      mrtd_auth_session,
     );
 
   return {

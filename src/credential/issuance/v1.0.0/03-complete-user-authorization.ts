@@ -1,35 +1,37 @@
 import {
+  type CryptoContext,
+  decode,
+  SignJWT,
+} from "@pagopa/io-react-native-jwt";
+import parseUrl from "parse-url";
+
+import type { RemotePresentation } from "../../presentation";
+import type { IssuanceApi } from "../api";
+
+import {
   AuthorizationChallengeResultShape,
   AuthorizationErrorShape,
-  AuthorizationResultShape,
   type AuthorizationResult,
+  AuthorizationResultShape,
 } from "../../../utils/auth";
-import { hasStatusOrThrow } from "../../../utils/misc";
-import parseUrl from "parse-url";
+import { getJwtFromFormPost } from "../../../utils/decoder";
 import {
   IssuerResponseError,
   UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
-import {
-  decode,
-  SignJWT,
-  type CryptoContext,
-} from "@pagopa/io-react-native-jwt";
-import { ResponseUriResultShape } from "./types";
-import { getJwtFromFormPost } from "../../../utils/decoder";
-import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
-import { LogLevel, Logger } from "../../../utils/logging";
-import { RawRequestObject } from "../../presentation/v1.0.0/types";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.0.0";
-import type { IssuanceApi } from "../api";
-import type { RemotePresentation } from "../../presentation";
+import { RawRequestObject } from "../../presentation/v1.0.0/types";
+import { AuthorizationError, AuthorizationIdpError } from "../common/errors";
+import { ResponseUriResultShape } from "./types";
 
 export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continueUserAuthorizationWithMRTDPoPChallenge"] =
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`
+      `The requested credential is a PersonIdentificationData and requires MRTD PoP, starting MRTD PoP validation from auth redirect`,
     );
     const query = parseUrl(authRedirectUrl).query;
 
@@ -39,17 +41,17 @@ export const continueUserAuthorizationWithMRTDPoPChallenge: IssuanceApi["continu
       if (!authErr.success) {
         Logger.log(
           LogLevel.ERROR,
-          `Error while parsing the authorization response: ${authResParsed.error.message}`
+          `Error while parsing the authorization response: ${authResParsed.error.message}`,
         );
         throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
       }
       Logger.log(
         LogLevel.ERROR,
-        `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+        `Error while authorizating with the idp: ${JSON.stringify(authErr)}`,
       );
       throw new AuthorizationIdpError(
         authErr.data.error,
-        authErr.data.error_description
+        authErr.data.error_description,
       );
     }
     return authResParsed.data;
@@ -77,7 +79,7 @@ export const completePidUserAuthorizationWithQueryMode: IssuanceApi["completePid
   async (authRedirectUrl) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requested credential is a PersonIdentificationData, completing the user authorization with query mode`
+      `The requested credential is a PersonIdentificationData, completing the user authorization with query mode`,
     );
     const query = parseUrl(authRedirectUrl).query;
 
@@ -88,7 +90,7 @@ export const completeEaaUserAuthorizationWithQueryMode: IssuanceApi["completeEaa
   () => {
     throw new UnimplementedFeatureError(
       "completeEaaUserAuthorizationWithQueryMode",
-      "1.0.0"
+      "1.0.0",
     );
   };
 
@@ -96,7 +98,7 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
   async (issuerRequestUri, clientId, issuerConf, appFetch = fetch) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is not a PersonIdentificationData, requesting the credential to be presented`
+      `The requeste credential is not a PersonIdentificationData, requesting the credential to be presented`,
     );
     const authzRequestEndpoint = issuerConf.authorization_endpoint;
     const params = new URLSearchParams({
@@ -106,12 +108,12 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
 
     Logger.log(
       LogLevel.DEBUG,
-      `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`
+      `Requesting the request object to ${authzRequestEndpoint}?${params.toString()}`,
     );
 
     const requestObject = await appFetch(
       `${authzRequestEndpoint}?${params.toString()}`,
-      { method: "GET" }
+      { method: "GET" },
     )
       .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((res) => res.text())
@@ -120,13 +122,13 @@ export const getRequestedCredentialToBePresented: IssuanceApi["getRequestedCrede
         RawRequestObject.safeParse({
           header: reqObj.protectedHeader,
           payload: reqObj.payload,
-        })
+        }),
       );
 
     if (!requestObject.success) {
       Logger.log(
         LogLevel.ERROR,
-        `Error while validating the response object: ${requestObject.error.message}`
+        `Error while validating the response object: ${requestObject.error.message}`,
       );
       throw new ValidationFailed({
         message: "Request Object validation failed",
@@ -141,34 +143,34 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     requestObject,
     _issuerConfig,
     evaluatedDcqlQuery,
-    { wiaCryptoContext, appFetch = fetch }
+    { appFetch = fetch, wiaCryptoContext },
   ) => {
     Logger.log(
       LogLevel.DEBUG,
-      `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`
+      `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`,
     );
 
     const authRequestObject = {
-      nonce: requestObject.nonce,
       clientId: requestObject.client_id,
+      nonce: requestObject.nonce,
       responseUri: requestObject.response_uri,
     };
 
     const remotePresentation =
       await RemotePresentationFlow.prepareRemotePresentations(
         evaluatedDcqlQuery,
-        authRequestObject
+        authRequestObject,
       );
 
     const authzResponsePayload = await createAuthzResponsePayload({
-      state: requestObject.state,
       remotePresentation,
+      state: requestObject.state,
       wiaCryptoContext,
     });
 
     Logger.log(
       LogLevel.DEBUG,
-      `Authz response payload: ${authzResponsePayload}`
+      `Authz response payload: ${authzResponsePayload}`,
     );
 
     // Note: according to the spec, the response should be encrypted with the public key of the RP however this is not implemented yet
@@ -185,11 +187,11 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     }).toString();
 
     const resUriRes = await appFetch(requestObject.response_uri, {
-      method: "POST",
+      body,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body,
+      method: "POST",
     })
       .then(hasStatusOrThrow(200, IssuerResponseError))
       .then((reqUri) => reqUri.json());
@@ -198,7 +200,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     if (!responseUri.success) {
       Logger.log(
         LogLevel.ERROR,
-        `Error while validating the response uri: ${responseUri.error.message}`
+        `Error while validating the response uri: ${responseUri.error.message}`,
       );
       throw new ValidationFailed({
         message: "Response Uri validation failed",
@@ -221,7 +223,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
  * @returns the authorization result which contains code, state and iss
  */
 export const parseAuthorizationResponse = (
-  authRes: unknown
+  authRes: unknown,
 ): AuthorizationResult => {
   const authResParsed = AuthorizationResultShape.safeParse(authRes);
   if (!authResParsed.success) {
@@ -229,17 +231,17 @@ export const parseAuthorizationResponse = (
     if (!authErr.success) {
       Logger.log(
         LogLevel.ERROR,
-        `Error while parsing the authorization response: ${authResParsed.error.message}`
+        `Error while parsing the authorization response: ${authResParsed.error.message}`,
       );
       throw new AuthorizationError(authResParsed.error.message); // an error occured while parsing the result and the error
     }
     Logger.log(
       LogLevel.ERROR,
-      `Error while authorizating with the idp: ${JSON.stringify(authErr)}`
+      `Error while authorizating with the idp: ${JSON.stringify(authErr)}`,
     );
     throw new AuthorizationIdpError(
       authErr.data.error,
-      authErr.data.error_description
+      authErr.data.error_description,
     );
   }
   return authResParsed.data;
@@ -254,20 +256,20 @@ export const parseAuthorizationResponse = (
  * @returns The Base64 encoded authorization response payload.
  */
 const createAuthzResponsePayload = async ({
-  state,
   remotePresentation,
+  state,
   wiaCryptoContext,
 }: {
-  state?: string;
   remotePresentation: RemotePresentation;
+  state?: string;
   wiaCryptoContext: CryptoContext;
 }): Promise<string> => {
   const { kid } = await wiaCryptoContext.getPublicKey();
 
   return new SignJWT(wiaCryptoContext)
     .setProtectedHeader({
-      typ: "jwt",
       kid,
+      typ: "jwt",
     })
     .setPayload({
       /**
@@ -281,7 +283,7 @@ const createAuthzResponsePayload = async ({
           ...vp_token,
           [credentialId]: vpToken,
         }),
-        {}
+        {},
       ),
     })
     .setIssuedAt()

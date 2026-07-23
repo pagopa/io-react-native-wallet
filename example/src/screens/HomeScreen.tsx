@@ -1,18 +1,20 @@
+import type { ComponentProps } from "react";
+
 import {
   IOVisualCostants,
   ModuleSummary,
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
-import type { ComponentProps } from "react";
 import React, { useMemo } from "react";
 import { Alert, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import { useDebugInfo } from "../hooks/useDebugInfo";
+import { selectWalletUnitAttestation } from "../store/reducers/attestation";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectPid } from "../store/reducers/pid";
-import { selectWalletUnitAttestation } from "../store/reducers/attestation";
 import { selectIoAuthToken } from "../store/reducers/session";
 import { useAppSelector } from "../store/utils";
 
@@ -36,92 +38,92 @@ const HomeScreen = () => {
 
   const hasSomeCredential = React.useMemo(
     () => Object.values(credentials).filter((_) => !!_).length > 0,
-    [credentials]
+    [credentials],
   );
 
-  const sections: Array<ModuleSummaryProps> = useMemo(
+  const sections: ModuleSummaryProps[] = useMemo(
     () => [
       {
-        label: "Wallet Instance & Attestation",
         description: "Register a wallet instance and obtain an attestation",
         icon: "chevronRight",
+        label: "Wallet Instance & Attestation",
         onPress: () => navigation.navigate("WalletInstance"),
       },
       {
-        label: "PID",
         description: "Obtain a PID with SPID or CIE",
         icon: "chevronRight",
+        label: "PID",
         onPress: () =>
           hasIntegrityKeyTag
             ? navigation.navigate("Pid")
             : Alert.alert("Create a wallet instance first"),
       },
       {
-        label: "Credentials",
         description: "Obtain a credential with PID authentication",
         icon: "chevronRight",
+        label: "Credentials",
         onPress: () =>
           pid && hasIntegrityKeyTag
             ? navigation.navigate("Credentials")
             : Alert.alert("Register a wallet instance and obtain a PID first"),
       },
       {
-        label: "Presentations",
         description: "Present credentials to a verifier",
         icon: "chevronRight",
+        label: "Presentations",
         onPress: () =>
           pid
             ? navigation.navigate("Presentations")
             : Alert.alert("Obtain a PID first"),
       },
       {
-        label: "Trust Federation",
         description: "Verify the trust of an entity",
         icon: "chevronRight",
+        label: "Trust Federation",
         onPress: () => navigation.navigate("Trust"),
       },
       {
-        label: "Credential Status",
         description:
           "Obtain the status of a credential (Status Assertion/Status List)",
         icon: "chevronRight",
+        label: "Credential Status",
         onPress: () =>
           wua || pid
             ? navigation.navigate("CredentialStatus")
             : Alert.alert("Obtain a WUA or a PID first"),
       },
       {
-        label: "Trustmark",
         description: "Obtain the trustmark of a credential",
         icon: "chevronRight",
+        label: "Trustmark",
         onPress: () =>
           hasSomeCredential
             ? navigation.navigate("Trustmark")
             : Alert.alert("Obtain a credential first"),
       },
       {
-        label: "Credential Offer",
         description: "Obtain a credential offer from QR code",
         icon: "chevronRight",
+        label: "Credential Offer",
         onPress: () =>
           pid
             ? navigation.navigate("CredentialOffer")
             : Alert.alert("Obtain a PID first"),
       },
       {
-        label: "Credentials Catalogue",
         description: "Fetch the Credentials Catalogue",
         icon: "chevronRight",
+        label: "Credentials Catalogue",
         onPress: () => navigation.navigate("CredentialsCatalogue"),
       },
       {
-        label: "Settings",
         description: "Change the environment and logout",
         icon: "chevronRight",
+        label: "Settings",
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, wua, hasSomeCredential]
+    [hasIntegrityKeyTag, navigation, pid, wua, hasSomeCredential],
   );
 
   return (
@@ -136,9 +138,9 @@ const HomeScreen = () => {
         renderItem={({ item }) => (
           <>
             <ModuleSummary
-              label={item.label}
               description={item.description}
               icon={item.icon}
+              label={item.label}
               onPress={item.onPress}
             />
             <VSpacer />

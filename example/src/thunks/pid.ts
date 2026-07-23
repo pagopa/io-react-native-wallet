@@ -1,10 +1,11 @@
 import { generate } from "@pagopa/io-react-native-crypto";
 import {
-  IoWallet,
   createCryptoContextFor,
   CredentialIssuance,
+  IoWallet,
 } from "@pagopa/io-react-native-wallet";
 import { v4 as uuidv4 } from "uuid";
+
 import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
@@ -27,38 +28,38 @@ import { createAppAsyncThunk } from "./utils";
 export const CIE_L3_REDIRECT_URI = "https://cie.callback";
 
 /**
- * Type definition for the input of the {@link preparePidFlowParamsThunk}.
+ * Type definition for the output of the {@link preparePidFlowParamsThunk}.
  */
-type PreparePidFlowParamsThunkInput = {
-  idpHint: string;
+export interface PreparePidFlowParamsThunkOutput {
   authMethod: PidAuthMethods;
+  authUrl: string;
   ciePin?: string;
-  withMRTDPoP?: boolean;
-};
+  clientId: string;
+  codeVerifier: string;
+  credentialDefinition: Awaited<
+    ReturnType<CredentialIssuance.IssuanceApi["startUserAuthorization"]>
+  >["credentialDefinition"];
+  issuerConf: CredentialIssuance.IssuerConfig;
+  redirectUri: string;
+  walletInstanceAttestation: string;
+}
 
 /**
  * Type definition for the input of the {@link ContinuePidFlowThunkInput}.
  */
-type ContinuePidFlowThunkInput = {
+interface ContinuePidFlowThunkInput {
   authRedirectUrl: string;
-};
+}
 
 /**
- * Type definition for the output of the {@link preparePidFlowParamsThunk}.
+ * Type definition for the input of the {@link preparePidFlowParamsThunk}.
  */
-export type PreparePidFlowParamsThunkOutput = {
+interface PreparePidFlowParamsThunkInput {
   authMethod: PidAuthMethods;
-  authUrl: string;
-  issuerConf: CredentialIssuance.IssuerConfig;
-  clientId: string;
-  codeVerifier: string;
-  walletInstanceAttestation: string;
-  credentialDefinition: Awaited<
-    ReturnType<CredentialIssuance.IssuanceApi["startUserAuthorization"]>
-  >["credentialDefinition"];
-  redirectUri: string;
   ciePin?: string;
-};
+  idpHint: string;
+  withMRTDPoP?: boolean;
+}
 
 /**
  * Thunk to prepare the parameters for the PID issuance flow.
@@ -74,7 +75,7 @@ export type PreparePidFlowParamsThunkOutput = {
 export const preparePidFlowParamsThunk = createAppAsyncThunk<
   PreparePidFlowParamsThunkOutput,
   PreparePidFlowParamsThunkInput
->("pid/flowParamsPrepare", async (args, { getState, dispatch }) => {
+>("pid/flowParamsPrepare", async (args, { dispatch, getState }) => {
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
@@ -92,13 +93,13 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 
   // Reset the credential state before obtaining a new PID
   dispatch(credentialReset());
-  const { authMethod, idpHint, ciePin, withMRTDPoP } = args;
+  const { authMethod, ciePin, idpHint, withMRTDPoP } = args;
 
   const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
 
   // Get env
   const env = selectEnv(getState());
-  const { WALLET_PID_PROVIDER_BASE_URL, REDIRECT_URI } = getEnv(env);
+  const { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } = getEnv(env);
 
   const redirectUri =
     args.authMethod === "cieL3" ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
@@ -106,23 +107,23 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   // Evaluate issuer trust
   const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
     WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
-    { appFetch }
+    { appFetch },
   );
 
   // Start user authorization
-  const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
+  const { clientId, codeVerifier, credentialDefinition, issuerRequestUri } =
     await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
       [getPidSdJwtConfigurationId(issuerConf)],
       withMRTDPoP
-        ? { proofType: "mrtd-pop", idpHinting: idpHint }
+        ? { idpHinting: idpHint, proofType: "mrtd-pop" }
         : { proofType: "none" },
       {
-        walletInstanceAttestation,
-        redirectUri: redirectUri,
-        wiaCryptoContext,
         appFetch,
-      }
+        redirectUri: redirectUri,
+        walletInstanceAttestation,
+        wiaCryptoContext,
+      },
     );
 
   // Obtain the Authorization URL
@@ -130,19 +131,19 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
     issuerRequestUri,
     clientId,
     issuerConf,
-    idpHint
+    idpHint,
   );
 
   return {
     authMethod,
     authUrl,
-    issuerConf,
+    ciePin,
     clientId,
     codeVerifier,
-    walletInstanceAttestation,
     credentialDefinition,
+    issuerConf,
     redirectUri,
-    ciePin,
+    walletInstanceAttestation,
   };
 });
 
@@ -155,7 +156,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
 export const continuePidFlowThunk = createAppAsyncThunk<
   PidResult,
   ContinuePidFlowThunkInput
->("pid/flowContinue", async (args, { getState, dispatch }) => {
+>("pid/flowContinue", async (args, { dispatch, getState }) => {
   const { authRedirectUrl } = args;
 
   const env = selectEnv(getState());
@@ -170,17 +171,17 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   }
 
   const {
-    issuerConf,
     clientId,
     codeVerifier,
-    walletInstanceAttestation,
     credentialDefinition,
+    issuerConf,
     redirectUri,
+    walletInstanceAttestation,
   } = flowParams;
 
   const { code } =
     await wallet.CredentialIssuance.completePidUserAuthorizationWithQueryMode(
-      authRedirectUrl
+      authRedirectUrl,
     );
 
   /*
@@ -199,11 +200,11 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     redirectUri,
     codeVerifier,
     {
+      appFetch,
+      dPopCryptoContext,
       walletInstanceAttestation,
       wiaCryptoContext,
-      dPopCryptoContext,
-      appFetch,
-    }
+    },
   );
 
   const [pidCredentialDefinition] = credentialDefinition;
@@ -215,7 +216,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   const { credential_configuration_id, credential_identifiers } =
     accessToken.authorization_details.find(
       (authDetails) =>
-        authDetails.credential_configuration_id === pidCredentialConfigId
+        authDetails.credential_configuration_id === pidCredentialConfigId,
     ) ?? {};
 
   // Get the first credential_identifier from the access token's authorization details
@@ -231,7 +232,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
 
   if (wallet.WalletUnitAttestation.isSupported) {
     const wua = await dispatch(
-      getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] })
+      getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] }),
     ).unwrap();
     walletUnitAttestation = wua.attestation;
   } else {
@@ -251,11 +252,11 @@ export const continuePidFlowThunk = createAppAsyncThunk<
         credential_identifier,
       },
       {
+        appFetch,
         credentialCryptoContext,
         dPopCryptoContext,
         walletUnitAttestation,
-        appFetch,
-      }
+      },
     );
 
   const { parsedCredential } =
@@ -264,16 +265,16 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       credential,
       credential_configuration_id,
       { credentialCryptoContext, ignoreMissingAttributes: true },
-      X509_CERT_ROOT
+      X509_CERT_ROOT,
     );
 
   return {
-    parsedCredential,
     credential,
-    keyTag: credentialKeyTag,
-    credentialType: "PersonIdentificationData",
     credentialConfigurationId: credential_configuration_id,
+    credentialType: "PersonIdentificationData",
     format,
+    keyTag: credentialKeyTag,
+    parsedCredential,
   };
 });
 
@@ -284,13 +285,13 @@ export const continuePidFlowThunk = createAppAsyncThunk<
  * @returns The PID configuration ID to use for issuance
  */
 function getPidSdJwtConfigurationId(
-  issuerConf: CredentialIssuance.IssuerConfig
+  issuerConf: CredentialIssuance.IssuerConfig,
 ) {
   const result = Object.entries(
-    issuerConf.credential_configurations_supported
+    issuerConf.credential_configurations_supported,
   ).find(
     ([, c]) =>
-      c.format === "dc+sd-jwt" && /PersonIdentificationData|pid/i.test(c.scope)
+      c.format === "dc+sd-jwt" && /PersonIdentificationData|pid/i.test(c.scope),
   );
-  return result!.at(0) as string;
+  return result?.at(0) as string;
 }

@@ -1,10 +1,12 @@
 import type z from "zod";
+
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+
 import {
   type FetchOptions,
   getSignedEntityConfiguration,
 } from "../common/utils";
 import { EntityConfiguration, RelyingPartyEntityConfiguration } from "./types";
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
@@ -27,7 +29,7 @@ import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 async function fetchAndParseEntityConfiguration<T extends EntityConfiguration>(
   entityBaseUrl: string,
   schema: z.ZodType<T>,
-  { appFetch = fetch }: FetchOptions = {}
+  { appFetch = fetch }: FetchOptions = {},
 ): Promise<T> {
   const responseText = await getSignedEntityConfiguration(entityBaseUrl, {
     appFetch,
@@ -42,10 +44,10 @@ async function fetchAndParseEntityConfiguration<T extends EntityConfiguration>(
 
 export const getRelyingPartyEntityConfiguration = (
   entityBaseUrl: string,
-  options?: FetchOptions
+  options?: FetchOptions,
 ) =>
   fetchAndParseEntityConfiguration(
     entityBaseUrl,
     RelyingPartyEntityConfiguration,
-    options
+    options,
   );

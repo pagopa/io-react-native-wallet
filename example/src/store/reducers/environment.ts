@@ -1,30 +1,35 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { type ItwVersion } from "@pagopa/io-react-native-wallet";
-import { persistReducer, type PersistConfig } from "redux-persist";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { type PersistConfig, persistReducer } from "redux-persist";
+
 import type { EnvType, RootState } from "../types";
 
 // State type definition for the environment slice
-type EnvironmentState = {
+interface EnvironmentState {
   env: EnvType;
-  loggingAddress?: string;
   itwVersion: ItwVersion;
-};
+  loggingAddress?: string;
+}
 
 // Initial state for the environment slice
 const initialState: EnvironmentState = {
   env: "prod",
-  loggingAddress: undefined,
   itwVersion: "1.0.0",
+  loggingAddress: undefined,
 };
 
 /**
  * Redux slice for the environment state. It contains the selected environment which can be either "prod" or "pre".
  */
 export const environmentSlice = createSlice({
-  name: "environment",
   initialState,
+  name: "environment",
   reducers: {
+    // Resets the session state when logging out
+    envReset: (state) => {
+      state.env = initialState.env;
+    },
     // Sets the IO auth token
     envSet: (state, action: PayloadAction<EnvType>) => {
       state.env = action.payload;
@@ -32,10 +37,6 @@ export const environmentSlice = createSlice({
     // Sets the debug logging address
     loggingAddressSet: (state, action: PayloadAction<string>) => {
       state.loggingAddress = action.payload;
-    },
-    // Resets the session state when logging out
-    envReset: (state) => {
-      state.env = initialState.env;
     },
     setItwVersion: (state, action: PayloadAction<ItwVersion>) => {
       state.itwVersion = action.payload;
@@ -46,7 +47,7 @@ export const environmentSlice = createSlice({
 /**
  * Exports the actions for the session slice.
  */
-export const { envSet, envReset, loggingAddressSet, setItwVersion } =
+export const { envReset, envSet, loggingAddressSet, setItwVersion } =
   environmentSlice.actions;
 
 /**
@@ -63,7 +64,7 @@ const persistConfig: PersistConfig<EnvironmentState> = {
  */
 export const environmentReducer = persistReducer(
   persistConfig,
-  environmentSlice.reducer
+  environmentSlice.reducer,
 );
 
 /**

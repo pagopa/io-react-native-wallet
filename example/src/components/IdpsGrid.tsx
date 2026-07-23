@@ -1,3 +1,9 @@
+import {
+  IOSpacingScale,
+  IOVisualCostants,
+  ModuleIDP,
+  VSpacer,
+} from "@pagopa/io-app-design-system";
 /**
  * A component that show a Grid with every Identity Provider passed in the idps
  * array property. When an Identity Provider is selected a callback function is called.
@@ -5,35 +11,29 @@
 import * as React from "react";
 import {
   FlatList,
-  StyleSheet,
   type ListRenderItemInfo,
   type StyleProp,
+  StyleSheet,
   type ViewStyle,
 } from "react-native";
 
-import {
-  VSpacer,
-  IOSpacingScale,
-  ModuleIDP,
-  IOVisualCostants,
-} from "@pagopa/io-app-design-system";
 import type { Idp, IdpList } from "../utils/idps";
 
-type Props = {
+interface Props {
   contentContainerStyle?: StyleProp<ViewStyle>;
   footerComponent?: React.ComponentProps<
     typeof FlatList
   >["ListFooterComponent"];
-  headerComponentStyle?: StyleProp<ViewStyle>;
   headerComponent?: React.ComponentProps<
     typeof FlatList
   >["ListHeaderComponent"];
+  headerComponentStyle?: StyleProp<ViewStyle>;
   // Array of Identity Provider to show in the grid.
   idps: IdpList;
   // A callback function called when an Identity Provider is selected
   onIdpSelected: (_: Idp) => void;
   testID?: string;
-};
+}
 
 const GRID_GUTTER: IOSpacingScale = 8;
 
@@ -50,17 +50,17 @@ const renderItem =
   (info: ListRenderItemInfo<Idp>): React.ReactElement => {
     const { onIdpSelected } = props;
     const { item } = info;
-    const { id, name, localLogo } = item;
+    const { id, localLogo, name } = item;
 
     const onPress = () => onIdpSelected(item);
 
     return (
       <ModuleIDP
         key={id}
-        name={name}
         logo={{
           light: localLogo,
         }}
+        name={name}
         onPress={onPress}
         testID={`idp-${item.id}-button`}
       />
@@ -71,16 +71,16 @@ const Spacer = () => <VSpacer size={GRID_GUTTER} />;
 
 const IdpsGrid = (props: Props) => (
   <FlatList
-    testID={props.testID}
-    data={props.idps}
-    numColumns={1}
-    horizontal={false}
-    keyExtractor={keyExtractor}
-    renderItem={renderItem(props)}
-    ItemSeparatorComponent={Spacer}
     contentContainerStyle={styles.contentContainer}
-    ListHeaderComponent={props.headerComponent}
+    data={props.idps}
+    horizontal={false}
+    ItemSeparatorComponent={Spacer}
+    keyExtractor={keyExtractor}
     ListFooterComponent={props.footerComponent}
+    ListHeaderComponent={props.headerComponent}
+    numColumns={1}
+    renderItem={renderItem(props)}
+    testID={props.testID}
   />
 );
 

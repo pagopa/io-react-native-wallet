@@ -1,30 +1,30 @@
 import type { CredentialsCatalogue } from "@pagopa/io-react-native-wallet";
+
 import { createSlice } from "@reduxjs/toolkit";
+
+import type { AsyncStatus, RootState } from "../types";
+
 import {
   getCredentialsCatalogueThunk,
   getCredentialsCatalogueTranslationsThunk,
 } from "../../thunks/credentialsCatalogue";
 import { asyncStatusInitial } from "../utils";
-import type { AsyncStatus, RootState } from "../types";
 
-type CredentialsCatalogueState = {
+interface CredentialsCatalogueState {
+  asyncStatus: AsyncStatus;
   catalogue: CredentialsCatalogue.DigitalCredentialsCatalogue | undefined;
   translations: CredentialsCatalogue.CatalogueTranslations | undefined;
-  asyncStatus: AsyncStatus;
   translationsAsyncStatus: AsyncStatus;
-};
+}
 
 const initialState: CredentialsCatalogueState = {
+  asyncStatus: asyncStatusInitial,
   catalogue: undefined,
   translations: undefined,
-  asyncStatus: asyncStatusInitial,
   translationsAsyncStatus: asyncStatusInitial,
 };
 
 export const credentialsCatalogueSlice = createSlice({
-  name: "credentialsCatalogue",
-  initialState,
-  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(getCredentialsCatalogueThunk.fulfilled, (state, action) => {
       state.catalogue = action.payload;
@@ -43,7 +43,7 @@ export const credentialsCatalogueSlice = createSlice({
       state.catalogue = initialState.catalogue;
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
-      state.asyncStatus.hasError = { status: true, error: action.error };
+      state.asyncStatus.hasError = { error: action.error, status: true };
     });
 
     builder.addCase(
@@ -55,7 +55,7 @@ export const credentialsCatalogueSlice = createSlice({
           initialState.translationsAsyncStatus.isLoading;
         state.translationsAsyncStatus.hasError =
           initialState.translationsAsyncStatus.hasError;
-      }
+      },
     );
 
     builder.addCase(
@@ -66,7 +66,7 @@ export const credentialsCatalogueSlice = createSlice({
           initialState.translationsAsyncStatus.isDone;
         state.translationsAsyncStatus.hasError =
           initialState.translationsAsyncStatus.hasError;
-      }
+      },
     );
 
     builder.addCase(
@@ -78,12 +78,15 @@ export const credentialsCatalogueSlice = createSlice({
         state.translationsAsyncStatus.isLoading =
           initialState.translationsAsyncStatus.isLoading;
         state.translationsAsyncStatus.hasError = {
-          status: true,
           error: action.error,
+          status: true,
         };
-      }
+      },
     );
   },
+  initialState,
+  name: "credentialsCatalogue",
+  reducers: {},
 });
 
 export const selectCredentialsCatalogueAsyncStatus = (state: RootState) =>
@@ -96,5 +99,5 @@ export const selectCredentialsCatalogueTranslations = (state: RootState) =>
   state.credentialsCatalogue.translations;
 
 export const selectCredentialsCatalogueTranslationsAsyncStatus = (
-  state: RootState
+  state: RootState,
 ) => state.credentialsCatalogue.translationsAsyncStatus;

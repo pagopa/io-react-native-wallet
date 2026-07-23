@@ -5,12 +5,15 @@ for development purposes. for development purposes. Don't REMOVE it!
 import {
   BodySmall,
   HStack,
+  IconButton,
   IOColors,
   IOText,
-  IconButton,
 } from "@pagopa/io-app-design-system";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
+
+import type { TruncatableValue } from "../../utils/strings";
+
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
 import { truncateObjectStrings } from "../../utils/strings";
 
@@ -24,10 +27,10 @@ type ExpandableProps =
       isExpanded?: undefined;
     };
 
-type Props = {
+type Props = ExpandableProps & {
+  data: unknown;
   title: string;
-  data: any;
-} & ExpandableProps;
+};
 
 /**
  * This component allows to print the content of an object in an elegant and readable way.
@@ -35,10 +38,10 @@ type Props = {
  * The component it is rendered only if debug mode is enabled
  */
 export const DebugPrettyPrint = ({
-  title,
   data,
   expandable = true,
   isExpanded = false,
+  title,
 }: Props) => {
   const [expanded, setExpanded] = useState(isExpanded);
 
@@ -48,43 +51,47 @@ export const DebugPrettyPrint = ({
     }
 
     return (
-      <View style={styles.content} pointerEvents="box-only">
+      <View pointerEvents="box-only" style={styles.content}>
         <IOText
-          font="DMMono"
-          size={12}
-          lineHeight={18}
           color={"grey-700"}
+          font="DMMono"
+          lineHeight={18}
+          size={12}
           weight="Medium"
         >
-          {JSON.stringify(truncateObjectStrings(data), null, 2)}
+          {JSON.stringify(
+            truncateObjectStrings(data as TruncatableValue),
+            null,
+            2,
+          )}
         </IOText>
       </View>
     );
   }, [data, expandable, expanded]);
 
   return (
-    <View testID="DebugPrettyPrintTestID" style={styles.container}>
+    <View style={styles.container} testID="DebugPrettyPrintTestID">
       <View style={styles.header}>
-        <BodySmall weight="Semibold" color="white">
+        <BodySmall color="white" weight="Semibold">
           {title}
         </BodySmall>
         <HStack space={16}>
           <IconButton
-            icon={"copy"}
             accessibilityLabel="copy"
+            color="contrast"
+            icon={"copy"}
             iconSize={20}
             onPress={() =>
               clipboardSetStringWithFeedback(JSON.stringify(data, null, 2))
             }
-            color="contrast"
           />
           {expandable && (
             <IconButton
-              icon={expanded ? "eyeHide" : "eyeShow"}
               accessibilityLabel="show"
+              color="contrast"
+              icon={expanded ? "eyeHide" : "eyeShow"}
               iconSize={24}
               onPress={() => setExpanded((_) => !_)}
-              color="contrast"
             />
           )}
         </HStack>
@@ -97,18 +104,18 @@ export const DebugPrettyPrint = ({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 4,
-    overflow: "hidden",
     marginVertical: 4,
-  },
-  header: {
-    backgroundColor: IOColors["error-600"],
-    padding: 12,
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    overflow: "hidden",
   },
   content: {
     backgroundColor: IOColors["grey-50"],
     padding: 8,
+  },
+  header: {
+    backgroundColor: IOColors["error-600"],
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 12,
   },
 });

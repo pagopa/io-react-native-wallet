@@ -15,6 +15,6 @@ export interface EvaluateIssuerTrustApi {
    */
   evaluateIssuerTrust(
     issuerUrl: string,
-    ctx?: { appFetch?: GlobalFetch["fetch"]; authorizationServer?: string }
+    ctx?: { appFetch?: GlobalFetch["fetch"]; authorizationServer?: string },
   ): Promise<{ issuerConf: IssuerConfig }>;
 }

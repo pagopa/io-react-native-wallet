@@ -1,22 +1,23 @@
-import { createAppAsyncThunk } from "./utils";
-import appFetch from "../utils/fetch";
 import { IoWallet, type Trust } from "@pagopa/io-react-native-wallet";
-import { selectItwVersion } from "../store/reducers/environment";
 
-export type ValidateTrustChainThunkInput = {
+import { selectItwVersion } from "../store/reducers/environment";
+import appFetch from "../utils/fetch";
+import { createAppAsyncThunk } from "./utils";
+
+export interface ValidateTrustChainThunkInput {
   relyingPartyUrl: string;
   trustAnchorUrl: string;
-};
+}
 
-export type ValidateTrustChainThunkOutput = {
+export interface ValidateTrustChainThunkOutput {
   validatedChain: Awaited<ReturnType<Trust.TrustApi["verifyTrustChain"]>>;
-};
+}
 
 export const validateTrustChainThunk = createAppAsyncThunk<
   ValidateTrustChainThunkOutput,
   ValidateTrustChainThunkInput
 >("trustValidation/validate", async (args, { getState }) => {
-  const { trustAnchorUrl, relyingPartyUrl } = args;
+  const { relyingPartyUrl, trustAnchorUrl } = args;
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
@@ -32,7 +33,7 @@ export const validateTrustChainThunk = createAppAsyncThunk<
   const builtChainJwts = await wallet.Trust.buildTrustChain(
     relyingPartyUrl,
     trustAnchorEntityConfig,
-    appFetch
+    appFetch,
   );
 
   console.log("✅ Chain built successfully");
@@ -45,7 +46,7 @@ export const validateTrustChainThunk = createAppAsyncThunk<
       connectTimeout: 10000,
       readTimeout: 10000,
       requireCrl: true,
-    }
+    },
   );
 
   console.log("✅ Chain verified successfully");

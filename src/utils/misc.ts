@@ -1,6 +1,7 @@
-import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
 import { sha256 } from "js-sha256";
-import { LogLevel, Logger } from "./logging";
+
+import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
+import { Logger, LogLevel } from "./logging";
 
 /**
  * Check if a response is in the expected status, otherwise throw an error
@@ -16,12 +17,12 @@ export const hasStatusOrThrow =
       const ErrorClass = customError ?? UnexpectedStatusCodeError;
       Logger.log(
         LogLevel.ERROR,
-        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`
+        `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
       );
       throw new ErrorClass({
         message: `Http request failed. Expected ${status}, got ${res.status}, url: ${res.url}`,
-        statusCode: res.status,
         reason: await parseRawHttpResponse(res), // Pass the response body as reason so the original error can surface
+        statusCode: res.status,
       });
     }
     return res;
@@ -31,7 +32,7 @@ export const hasStatusOrThrow =
  * Utility function to parse a raw HTTP response as JSON if supported, otherwise as text.
  */
 export const parseRawHttpResponse = <T extends Record<string, unknown>>(
-  response: Response
+  response: Response,
 ) =>
   response.headers.get("content-type")?.includes("application/json")
     ? (response.json() as Promise<T>)
@@ -39,9 +40,11 @@ export const parseRawHttpResponse = <T extends Record<string, unknown>>(
 
 // extract a type from an async function output
 // helpful to bind the input of a function to the output of another
-export type Out<FN> = FN extends (...args: any[]) => Promise<any>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Out<FN> = FN extends (...args: any[]) => Promise<unknown>
   ? Awaited<ReturnType<FN>>
-  : FN extends (...args: any[]) => any
+  : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    FN extends (...args: any[]) => any
     ? ReturnType<FN>
     : never;
 
@@ -52,7 +55,7 @@ export type Out<FN> = FN extends (...args: any[]) => Promise<any>
  */
 export const generateRandomAlphaNumericString = (size: number) =>
   Array.from(Array(size), () =>
-    Math.floor(Math.random() * 36).toString(36)
+    Math.floor(Math.random() * 36).toString(36),
   ).join("");
 
 /**
@@ -70,7 +73,7 @@ export const generateRandomBytes = (size: number) =>
  * @returns The hash of the credential without discloures
  */
 export const getCredentialHashWithouDiscloures = async (
-  credential: string
+  credential: string,
 ): Promise<string> => {
   const tildeIndex = credential.indexOf("~");
   if (tildeIndex === -1) {
@@ -79,17 +82,17 @@ export const getCredentialHashWithouDiscloures = async (
   return sha256(credential.slice(0, tildeIndex));
 };
 
-export const safeJsonParse = <T>(text: string, withDefault?: T): T | null => {
+export const safeJsonParse = <T>(text: string, withDefault?: T): null | T => {
   try {
     return JSON.parse(text);
-  } catch (_) {
+  } catch {
     return withDefault ?? null;
   }
 };
 
 export function assert(
   condition: unknown,
-  msg: string = "Assertion failed"
+  msg = "Assertion failed",
 ): asserts condition {
   if (!condition) {
     throw new IoWalletError(msg);

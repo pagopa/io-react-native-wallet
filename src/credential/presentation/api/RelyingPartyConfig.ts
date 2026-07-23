@@ -1,5 +1,6 @@
-import * as z from "zod";
 import { jsonWebKeySchema } from "@pagopa/io-wallet-oid-federation";
+import * as z from "zod";
+
 import { FederationEntityMetadata } from "../../../trust/common/types";
 
 /**
@@ -7,12 +8,6 @@ import { FederationEntityMetadata } from "../../../trust/common/types";
  */
 export type RelyingPartyConfig = z.infer<typeof RelyingPartyConfig>;
 export const RelyingPartyConfig = z.object({
-  subject: z.string().optional(),
-  jwks: z.object({
-    keys: z.array(jsonWebKeySchema),
-  }),
-  // UI (from federation_entity)
-  federation_entity: FederationEntityMetadata,
   /** @deprecated JARM legacy (v1.0 only) */
   authorization_encrypted_response_alg: z.string().optional(),
   /** @deprecated JARM legacy (v1.0 only) */
@@ -22,4 +17,10 @@ export const RelyingPartyConfig = z.object({
     .array(z.string())
     .min(1)
     .optional(),
+  // UI (from federation_entity)
+  federation_entity: FederationEntityMetadata,
+  jwks: z.object({
+    keys: z.array(jsonWebKeySchema),
+  }),
+  subject: z.string().optional(),
 });

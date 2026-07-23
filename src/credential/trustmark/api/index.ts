@@ -2,14 +2,6 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 export type GetCredentialTrustmarkJwt = (params: {
   /**
-   * The Wallet Instance's attestation
-   */
-  walletInstanceAttestation: string;
-  /**
-   * The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
-   */
-  wiaCryptoContext: CryptoContext;
-  /**
    * The type of credential for which the trustmark is generated
    */
   credentialType: string;
@@ -23,15 +15,23 @@ export type GetCredentialTrustmarkJwt = (params: {
    * If a string is provided, it is interpreted as a time span and added to the current timestamp.
    */
   expirationTime?: number | string;
-}) => Promise<{
   /**
-   * The signed JWT
+   * The Wallet Instance's attestation
    */
-  jwt: string;
+  walletInstanceAttestation: string;
+  /**
+   * The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
+   */
+  wiaCryptoContext: CryptoContext;
+}) => Promise<{
   /**
    * The expiration time of the JWT in seconds
    */
   expirationTime: number;
+  /**
+   * The signed JWT
+   */
+  jwt: string;
 }>;
 
 export interface TrustmarkApi {

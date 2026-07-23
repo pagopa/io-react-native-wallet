@@ -1,8 +1,9 @@
-import { WalletInstanceAttestationJwt } from "./types";
 import {
   decode as decodeJwt,
   verify as verifyJwt,
 } from "@pagopa/io-react-native-jwt";
+
+import { WalletInstanceAttestationJwt } from "./types";
 
 /**
  * Decode a given JWT to get the parsed Wallet Instance Attestation object they define.
@@ -26,7 +27,7 @@ export function decode(token: string): WalletInstanceAttestationJwt {
  * Same as {@link decode} plus token signature verification
  */
 export async function verify(
-  token: string
+  token: string,
 ): Promise<WalletInstanceAttestationJwt> {
   const decoded = decode(token);
   const pubKey = decoded.payload.cnf.jwk;

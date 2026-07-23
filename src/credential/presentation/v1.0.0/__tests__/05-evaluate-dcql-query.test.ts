@@ -1,10 +1,11 @@
 import { DcqlError, type DcqlQuery } from "dcql";
+
+import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
+import { legacyPid, mdl, pid } from "../../../../sd-jwt/__fixtures__/sd-jwt";
 import {
   CredentialsNotFoundError,
   type NotFoundDetail,
 } from "../../common/errors";
-import { legacyPid, mdl, pid } from "../../../../sd-jwt/__mocks__/sd-jwt";
-import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
 
 const pidKeyTag = "pidkeytag";
 const mdlKeyTag = "mdlkeytag";
@@ -19,16 +20,16 @@ describe("evaluateDcqlQuery", () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
-          id: "PersonIdentificationData",
-          format: "dc+sd-jwt",
           // @ts-expect-error invalid query on purpose
           claims: [{ id: "tax_id_code", path: "tax_id_code" }],
+          format: "dc+sd-jwt",
+          id: "PersonIdentificationData",
         },
       ],
     };
 
     await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
-      DcqlError
+      DcqlError,
     );
   });
 
@@ -36,16 +37,16 @@ describe("evaluateDcqlQuery", () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
-          id: "PersonIdentificationData",
-          format: "dc+sd-jwt",
-          claims: [{ id: "tax_id_code", path: ["tax_id_code"] }],
           claim_sets: [["missing_claim", "tax_id_code"]],
+          claims: [{ id: "tax_id_code", path: ["tax_id_code"] }],
+          format: "dc+sd-jwt",
+          id: "PersonIdentificationData",
         },
       ],
     };
 
     await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
-      DcqlError
+      DcqlError,
     );
   });
 
@@ -54,8 +55,8 @@ describe("evaluateDcqlQuery", () => {
       {
         credentials: [
           {
-            id: "PersonIdentificationData",
             format: "dc+sd-jwt",
+            id: "PersonIdentificationData",
             meta: {
               vct_values: ["MissingPID"],
             },
@@ -64,24 +65,15 @@ describe("evaluateDcqlQuery", () => {
       },
       [
         {
+          format: "dc+sd-jwt",
           id: "PersonIdentificationData",
           issues: expect.any(Array),
-          format: "dc+sd-jwt",
           vctValues: ["MissingPID"],
         },
       ],
     ],
     [
       {
-        credentials: [
-          {
-            id: "PersonIdentificationData",
-            format: "dc+sd-jwt",
-            meta: {
-              vct_values: ["MissingPID"],
-            },
-          },
-        ],
         credential_sets: [
           {
             options: [["PersonIdentificationData"]],
@@ -89,36 +81,27 @@ describe("evaluateDcqlQuery", () => {
             required: true,
           },
         ],
+        credentials: [
+          {
+            format: "dc+sd-jwt",
+            id: "PersonIdentificationData",
+            meta: {
+              vct_values: ["MissingPID"],
+            },
+          },
+        ],
       },
       [
         {
+          format: "dc+sd-jwt",
           id: "PersonIdentificationData",
           issues: expect.any(Array),
-          format: "dc+sd-jwt",
           vctValues: ["MissingPID"],
         },
       ],
     ],
     [
       {
-        credentials: [
-          {
-            id: "IHaveThis",
-            format: "dc+sd-jwt",
-            meta: {
-              vct_values: [
-                "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-              ],
-            },
-          },
-          {
-            id: "IDontHaveThis",
-            format: "dc+sd-jwt",
-            meta: {
-              vct_values: ["MissingCredential"],
-            },
-          },
-        ],
         credential_sets: [
           {
             options: [["IHaveThis", "IDontHaveThis"]],
@@ -126,44 +109,60 @@ describe("evaluateDcqlQuery", () => {
             required: true,
           },
         ],
+        credentials: [
+          {
+            format: "dc+sd-jwt",
+            id: "IHaveThis",
+            meta: {
+              vct_values: [
+                "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+              ],
+            },
+          },
+          {
+            format: "dc+sd-jwt",
+            id: "IDontHaveThis",
+            meta: {
+              vct_values: ["MissingCredential"],
+            },
+          },
+        ],
       },
       [
         {
+          format: "dc+sd-jwt",
           id: "IDontHaveThis",
           issues: expect.any(Array),
-          format: "dc+sd-jwt",
           vctValues: ["MissingCredential"],
         },
       ],
     ],
-  ] as Array<[DcqlQuery.Input, Array<NotFoundDetail>]>)(
+  ] as [DcqlQuery.Input, NotFoundDetail[]][])(
     "should throw error when no credential satisfies the DCQL query /%#",
     async (dcqlQuery, expected) => {
-      try {
-        await evaluateDcqlQuery(dcqlQuery, credentials);
-      } catch (err) {
-        expect(err).toBeInstanceOf(CredentialsNotFoundError);
-        expect((err as CredentialsNotFoundError).details).toEqual(expected);
-      }
-    }
+      const promise = evaluateDcqlQuery(dcqlQuery, credentials);
+
+      await expect(promise).rejects.toBeInstanceOf(CredentialsNotFoundError);
+      await expect(promise).rejects.toMatchObject({ details: expected });
+    },
   );
 
   it("should work correctly with a simple query", async () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
-          id: "PID",
-          format: "dc+sd-jwt",
-          meta: {
-            vct_values: [
-              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-            ],
-          },
           claims: [
             { path: ["tax_id_code"] },
             { path: ["given_name"] },
             { path: ["family_name"] },
           ],
+          format: "dc+sd-jwt",
+          id: "PID",
+          meta: {
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
+          },
         },
       ],
     };
@@ -171,22 +170,22 @@ describe("evaluateDcqlQuery", () => {
     const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
-        id: "PID",
-        format: "dc+sd-jwt",
-        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-        keyTag: pidKeyTag,
         credential: pid,
-        purposes: [{ required: true }],
+        format: "dc+sd-jwt",
+        id: "PID",
+        keyTag: pidKeyTag,
         presentationFrame: {
-          tax_id_code: true,
-          given_name: true,
           family_name: true,
+          given_name: true,
+          tax_id_code: true,
         },
+        purposes: [{ required: true }],
         requiredDisclosures: [
           { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
     ];
 
@@ -197,26 +196,26 @@ describe("evaluateDcqlQuery", () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
-          id: "PID",
-          format: "dc+sd-jwt",
-          meta: {
-            vct_values: [
-              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-            ],
-          },
           claims: [
             { path: ["tax_id_code"] },
             { path: ["given_name"] },
             { path: ["family_name"] },
           ],
+          format: "dc+sd-jwt",
+          id: "PID",
+          meta: {
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
+          },
         },
         {
-          id: "DrivingLicense",
+          claims: [{ path: ["document_number"] }],
           format: "dc+sd-jwt",
+          id: "DrivingLicense",
           meta: {
             vct_values: ["MDL"],
           },
-          claims: [{ path: ["document_number"] }],
         },
       ],
     };
@@ -224,32 +223,32 @@ describe("evaluateDcqlQuery", () => {
     const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
-        id: "PID",
-        format: "dc+sd-jwt",
-        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-        keyTag: pidKeyTag,
         credential: pid,
-        purposes: [{ required: true }],
+        format: "dc+sd-jwt",
+        id: "PID",
+        keyTag: pidKeyTag,
         presentationFrame: {
-          tax_id_code: true,
-          given_name: true,
           family_name: true,
+          given_name: true,
+          tax_id_code: true,
         },
+        purposes: [{ required: true }],
         requiredDisclosures: [
           { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
-        id: "DrivingLicense",
-        format: "dc+sd-jwt",
-        vct: "MDL",
-        keyTag: mdlKeyTag,
         credential: mdl,
-        purposes: [{ required: true }],
+        format: "dc+sd-jwt",
+        id: "DrivingLicense",
+        keyTag: mdlKeyTag,
         presentationFrame: { document_number: true },
+        purposes: [{ required: true }],
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
+        vct: "MDL",
       },
     ];
 
@@ -258,46 +257,46 @@ describe("evaluateDcqlQuery", () => {
 
   it("should work correctly with missing optional credentials", async () => {
     const query: DcqlQuery.Input = {
+      credential_sets: [
+        { options: [["PID"]], purpose: "Identification", required: true },
+        { options: [["optional"]], purpose: "Extra services", required: false },
+      ],
       credentials: [
         {
-          id: "PID",
+          claims: [{ path: ["given_name"] }, { path: ["family_name"] }],
           format: "dc+sd-jwt",
+          id: "PID",
           meta: {
             vct_values: [
               "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
             ],
           },
-          claims: [{ path: ["given_name"] }, { path: ["family_name"] }],
         },
         {
-          id: "optional",
+          claims: [{ path: ["telephone"] }],
           format: "dc+sd-jwt",
+          id: "optional",
           meta: {
             vct_values: ["other_credential"],
           },
-          claims: [{ path: ["telephone"] }],
         },
-      ],
-      credential_sets: [
-        { options: [["PID"]], purpose: "Identification", required: true },
-        { options: [["optional"]], purpose: "Extra services", required: false },
       ],
     };
 
     const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
-        id: "PID",
-        format: "dc+sd-jwt",
-        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-        keyTag: pidKeyTag,
         credential: pid,
+        format: "dc+sd-jwt",
+        id: "PID",
+        keyTag: pidKeyTag,
+        presentationFrame: { family_name: true, given_name: true },
         purposes: [{ description: "Identification", required: true }],
-        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
     ];
 
@@ -306,56 +305,56 @@ describe("evaluateDcqlQuery", () => {
 
   it("should work correctly with available optional credentials", async () => {
     const query: DcqlQuery.Input = {
+      credential_sets: [
+        { options: [["PID"]], purpose: "Identification", required: true },
+        { options: [["MDL"]], purpose: "Extra services", required: false },
+      ],
       credentials: [
         {
-          id: "PID",
+          claims: [{ path: ["given_name"] }, { path: ["family_name"] }],
           format: "dc+sd-jwt",
+          id: "PID",
           meta: {
             vct_values: [
               "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
             ],
           },
-          claims: [{ path: ["given_name"] }, { path: ["family_name"] }],
         },
         {
-          id: "MDL",
+          claims: [{ id: "document_number", path: ["document_number"] }],
           format: "dc+sd-jwt",
+          id: "MDL",
           meta: {
             vct_values: ["MDL"],
           },
-          claims: [{ id: "document_number", path: ["document_number"] }],
         },
-      ],
-      credential_sets: [
-        { options: [["PID"]], purpose: "Identification", required: true },
-        { options: [["MDL"]], purpose: "Extra services", required: false },
       ],
     };
 
     const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
-        id: "PID",
-        format: "dc+sd-jwt",
-        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-        keyTag: pidKeyTag,
         credential: pid,
+        format: "dc+sd-jwt",
+        id: "PID",
+        keyTag: pidKeyTag,
+        presentationFrame: { family_name: true, given_name: true },
         purposes: [{ description: "Identification", required: true }],
-        presentationFrame: { given_name: true, family_name: true },
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
-        id: "MDL",
-        format: "dc+sd-jwt",
-        vct: "MDL",
-        keyTag: mdlKeyTag,
         credential: mdl,
-        purposes: [{ description: "Extra services", required: false }],
+        format: "dc+sd-jwt",
+        id: "MDL",
+        keyTag: mdlKeyTag,
         presentationFrame: { document_number: true },
+        purposes: [{ description: "Extra services", required: false }],
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
+        vct: "MDL",
       },
     ];
 
@@ -364,27 +363,34 @@ describe("evaluateDcqlQuery", () => {
 
   it("should work correctly with a complex query", async () => {
     const query: DcqlQuery.Input = {
+      credential_sets: [
+        {
+          options: [["PID", "MDL"]],
+          purpose: "Identification",
+          required: true,
+        },
+        { options: [["optional"]], purpose: "Extra services", required: false },
+      ],
       credentials: [
         {
-          id: "PID",
-          format: "dc+sd-jwt",
-          meta: {
-            vct_values: [
-              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-            ],
-          },
           claims: [
             { path: ["tax_id_code"] },
             { path: ["given_name"] },
             { path: ["family_name"] },
           ],
+          format: "dc+sd-jwt",
+          id: "PID",
+          meta: {
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
+          },
         },
         {
-          id: "MDL",
-          format: "dc+sd-jwt",
-          meta: {
-            vct_values: ["MDL"],
-          },
+          claim_sets: [
+            ["driving_privileges", "driving_privileges_details"],
+            ["birth_date", "document_number"],
+          ],
           claims: [
             { id: "document_number", path: ["document_number"] },
             { id: "birth_date", path: ["birth_date"] },
@@ -394,62 +400,55 @@ describe("evaluateDcqlQuery", () => {
               path: ["driving_privileges_details"],
             },
           ],
-          claim_sets: [
-            ["driving_privileges", "driving_privileges_details"],
-            ["birth_date", "document_number"],
-          ],
+          format: "dc+sd-jwt",
+          id: "MDL",
+          meta: {
+            vct_values: ["MDL"],
+          },
         },
         {
-          id: "optional",
+          claims: [{ path: ["telephone"] }],
           format: "dc+sd-jwt",
+          id: "optional",
           meta: {
             vct_values: ["other_credential"],
           },
-          claims: [{ path: ["telephone"] }],
         },
-      ],
-      credential_sets: [
-        {
-          options: [["PID", "MDL"]],
-          purpose: "Identification",
-          required: true,
-        },
-        { options: [["optional"]], purpose: "Extra services", required: false },
       ],
     };
 
     const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
-        id: "PID",
-        format: "dc+sd-jwt",
-        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-        keyTag: pidKeyTag,
         credential: pid,
-        purposes: [{ description: "Identification", required: true }],
+        format: "dc+sd-jwt",
+        id: "PID",
+        keyTag: pidKeyTag,
         presentationFrame: {
-          tax_id_code: true,
-          given_name: true,
           family_name: true,
+          given_name: true,
+          tax_id_code: true,
         },
+        purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
-        id: "MDL",
-        format: "dc+sd-jwt",
-        vct: "MDL",
-        keyTag: mdlKeyTag,
         credential: mdl,
-        purposes: [{ description: "Identification", required: true }],
+        format: "dc+sd-jwt",
+        id: "MDL",
+        keyTag: mdlKeyTag,
         presentationFrame: { birth_date: true, document_number: true },
+        purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           { name: "birth_date", value: "01-01-1990" },
           { name: "document_number", value: "123456789" },
         ],
+        vct: "MDL",
       },
     ];
 
@@ -458,42 +457,6 @@ describe("evaluateDcqlQuery", () => {
 
   it("should work correctly with multiple matching credential_sets", async () => {
     const query: DcqlQuery.Input = {
-      credentials: [
-        {
-          id: "PID",
-          format: "dc+sd-jwt",
-          meta: {
-            vct_values: [
-              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-            ],
-          },
-          claims: [
-            { path: ["tax_id_code"] },
-            { path: ["given_name"] },
-            { path: ["family_name"] },
-          ],
-        },
-        {
-          id: "MDL",
-          format: "dc+sd-jwt",
-          meta: {
-            vct_values: ["MDL"],
-          },
-          claims: [
-            { path: ["document_number"] },
-            { path: ["birth_date"] },
-            { path: ["driving_privileges"] },
-          ],
-        },
-        {
-          id: "optional",
-          format: "dc+sd-jwt",
-          meta: {
-            vct_values: ["other_credential"],
-          },
-          claims: [{ path: ["telephone"] }],
-        },
-      ],
       credential_sets: [
         {
           options: [["PID", "MDL"]],
@@ -501,43 +464,78 @@ describe("evaluateDcqlQuery", () => {
         },
         { options: [["MDL"]], purpose: "Extra services", required: false },
       ],
+      credentials: [
+        {
+          claims: [
+            { path: ["tax_id_code"] },
+            { path: ["given_name"] },
+            { path: ["family_name"] },
+          ],
+          format: "dc+sd-jwt",
+          id: "PID",
+          meta: {
+            vct_values: [
+              "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
+            ],
+          },
+        },
+        {
+          claims: [
+            { path: ["document_number"] },
+            { path: ["birth_date"] },
+            { path: ["driving_privileges"] },
+          ],
+          format: "dc+sd-jwt",
+          id: "MDL",
+          meta: {
+            vct_values: ["MDL"],
+          },
+        },
+        {
+          claims: [{ path: ["telephone"] }],
+          format: "dc+sd-jwt",
+          id: "optional",
+          meta: {
+            vct_values: ["other_credential"],
+          },
+        },
+      ],
     };
 
     const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
-        id: "PID",
-        format: "dc+sd-jwt",
-        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
-        keyTag: pidKeyTag,
         credential: pid,
-        purposes: [{ description: "Identification", required: true }],
+        format: "dc+sd-jwt",
+        id: "PID",
+        keyTag: pidKeyTag,
         presentationFrame: {
-          tax_id_code: true,
-          given_name: true,
           family_name: true,
+          given_name: true,
+          tax_id_code: true,
         },
+        purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           { name: "tax_id_code", value: "LVLDAA85T50G702B" },
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
-        id: "MDL",
-        format: "dc+sd-jwt",
-        vct: "MDL",
-        keyTag: mdlKeyTag,
         credential: mdl,
+        format: "dc+sd-jwt",
+        id: "MDL",
+        keyTag: mdlKeyTag,
+        presentationFrame: {
+          birth_date: true,
+          document_number: true,
+          driving_privileges: true,
+        },
         purposes: [
           { description: "Identification", required: true },
           { description: "Extra services", required: false },
         ],
-        presentationFrame: {
-          document_number: true,
-          birth_date: true,
-          driving_privileges: true,
-        },
         requiredDisclosures: [
           { name: "document_number", value: "123456789" },
           { name: "birth_date", value: "01-01-1990" },
@@ -545,19 +543,20 @@ describe("evaluateDcqlQuery", () => {
             name: "driving_privileges",
             value: [
               {
+                expiry_date: "2032-09-02",
                 issue_date: "2015-08-19",
                 vehicle_category_code: "AM",
-                expiry_date: "2032-09-02",
               },
               {
+                codes: [{ code: "01", sign: "02", value: "Guida con lenti" }],
+                expiry_date: "2033-04-17",
                 issue_date: "2015-07-11",
                 vehicle_category_code: "B",
-                expiry_date: "2033-04-17",
-                codes: [{ code: "01", sign: "02", value: "Guida con lenti" }],
               },
             ],
           },
         ],
+        vct: "MDL",
       },
     ];
 
@@ -568,12 +567,12 @@ describe("evaluateDcqlQuery", () => {
     const query: DcqlQuery.Input = {
       credentials: [
         {
-          id: "PID",
+          claims: [{ path: ["tax_id_code"] }],
           format: "vc+sd-jwt",
+          id: "PID",
           meta: {
             vct_values: ["PersonIdentificationData"],
           },
-          claims: [{ path: ["tax_id_code"] }],
         },
       ],
     };
@@ -583,16 +582,16 @@ describe("evaluateDcqlQuery", () => {
 
     const expected = [
       {
-        id: "PID",
-        format: "vc+sd-jwt",
-        vct: "PersonIdentificationData",
-        keyTag: pidKeyTag,
         credential: legacyPid,
-        purposes: [{ required: true }],
+        format: "vc+sd-jwt",
+        id: "PID",
+        keyTag: pidKeyTag,
         presentationFrame: { tax_id_code: true },
+        purposes: [{ required: true }],
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
         ],
+        vct: "PersonIdentificationData",
       },
     ];
 

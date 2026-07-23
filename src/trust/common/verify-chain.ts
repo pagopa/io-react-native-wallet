@@ -1,12 +1,14 @@
-import { BaseEntityConfiguration, EntityStatement } from "./types";
-import { JWK } from "../../utils/jwk";
-import * as z from "zod";
 import {
-  decode,
-  getTrustAnchorX509Certificate,
-  verify,
-  type ParsedToken,
-} from "./utils";
+  type CertificateValidationResult,
+  verifyCertificateChain,
+  type X509CertificateOptions,
+} from "@pagopa/io-react-native-crypto";
+import * as z from "zod";
+
+import type { TrustApi } from "../api";
+import type { TrustAnchorConfig } from "../api/TrustAnchorConfig";
+
+import { JWK } from "../../utils/jwk";
 import {
   FederationError,
   MissingFederationFetchEndpointError,
@@ -16,35 +18,141 @@ import {
   TrustChainTokenMissingError,
   X509ValidationError,
 } from "./errors";
+import { BaseEntityConfiguration, EntityStatement } from "./types";
 import {
-  type CertificateValidationResult,
-  verifyCertificateChain,
-  type X509CertificateOptions,
-} from "@pagopa/io-react-native-crypto";
+  decode,
+  getTrustAnchorX509Certificate,
+  type ParsedToken,
+  verify,
+} from "./utils";
 import {
   getSignedEntityConfiguration,
   getSignedEntityStatement,
 } from "./utils";
-import type { TrustApi } from "../api";
-import type { TrustAnchorConfig } from "../api/TrustAnchorConfig";
 
-export type BuilderConfig = {
-  EntityStatementShape: z.ZodType<EntityStatement>;
+export interface BuilderConfig {
   EntityConfigurationShape: z.ZodType<BaseEntityConfiguration>;
+  EntityStatementShape: z.ZodType<EntityStatement>;
   /**
    * The first element of the chain is supposed to be the Entity Configuration for the document issuer
    */
   FirstElementShape: z.ZodType<BaseEntityConfiguration>;
   /**
-   * Each element but the first is supposed to be an Entity Statement
-   */
-  MiddleElementShape: z.ZodType<EntityStatement>;
-  /**
    * The last element of the chain can either be an Entity Statement
    * or the Entity Configuration for the known Trust Anchor
    */
-  LastElementShape: z.ZodType<EntityStatement | BaseEntityConfiguration>;
-};
+  LastElementShape: z.ZodType<BaseEntityConfiguration | EntityStatement>;
+  /**
+   * Each element but the first is supposed to be an Entity Statement
+   */
+  MiddleElementShape: z.ZodType<EntityStatement>;
+}
+
+/**
+ * Factory function to create `verifyTrustChain`.
+ * @param config Version specific Entity shapes
+ * @returns `verifyTrustChain` function compliant with the public API
+ */
+export function createVerifyTrustChain(
+  config: BuilderConfig,
+): TrustApi["verifyTrustChain"] {
+  return async function verifyTrustChain(
+    trustAnchorEntity,
+    chain,
+    x509Options = {
+      connectTimeout: 10000,
+      readTimeout: 10000,
+      requireCrl: true,
+    },
+    { appFetch = fetch, renewOnFail = true } = {},
+  ) {
+    const validateTrustChain = createValidateTrustChain(config);
+    const renewTrustChain = createRenewTrustChain(config);
+
+    try {
+      return await validateTrustChain(trustAnchorEntity, chain, x509Options);
+    } catch (error) {
+      if (renewOnFail) {
+        const renewedChain = await renewTrustChain(chain, appFetch);
+        return validateTrustChain(trustAnchorEntity, renewedChain, x509Options);
+      } else {
+        throw error;
+      }
+    }
+  };
+}
+
+/**
+ * Factory function to create `renewTrustChain`.
+ * @param config Version specific Entity shapes
+ * @returns `renewTrustChain` function
+ */
+function createRenewTrustChain({
+  EntityConfigurationShape,
+  EntityStatementShape,
+}: BuilderConfig) {
+  /**
+   * Given a trust chain, obtain a new trust chain by fetching each element's fresh version
+   *
+   * @param chain The original chain
+   * @param appFetch (optional) fetch api implementation
+   * @returns A list of signed token that represent the trust chain, in the same order of the provided chain
+   * @throws {FederationError} If the chain is not valid
+   */
+  return async function renewTrustChain(
+    chain: string[],
+    appFetch: GlobalFetch["fetch"] = fetch,
+  ): Promise<string[]> {
+    return Promise.all(
+      chain.map(async (token, index) => {
+        const decoded = decode(token);
+
+        const entityStatementResult = EntityStatementShape.safeParse(decoded);
+        const entityConfigurationResult =
+          EntityConfigurationShape.safeParse(decoded);
+
+        if (entityConfigurationResult.success) {
+          return getSignedEntityConfiguration(
+            entityConfigurationResult.data.payload.iss,
+            { appFetch },
+          );
+        }
+        if (entityStatementResult.success) {
+          const entityStatement = entityStatementResult.data;
+
+          const parentBaseUrl = entityStatement.payload.iss;
+          const parentECJwt = await getSignedEntityConfiguration(
+            parentBaseUrl,
+            { appFetch },
+          );
+          const parentEC = EntityConfigurationShape.parse(decode(parentECJwt));
+
+          const federationFetchEndpoint =
+            parentEC.payload.metadata.federation_entity
+              .federation_fetch_endpoint;
+          if (!federationFetchEndpoint) {
+            throw new MissingFederationFetchEndpointError(
+              `Parent EC at ${parentBaseUrl} is missing federation_fetch_endpoint, cannot renew ES for ${entityStatement.payload.sub}.`,
+              {
+                entityBaseUrl: entityStatement.payload.sub,
+                missingInEntityUrl: parentBaseUrl,
+              },
+            );
+          }
+          return getSignedEntityStatement(
+            federationFetchEndpoint,
+            entityStatement.payload.sub,
+            { appFetch },
+          );
+        }
+        throw new TrustChainRenewalError(
+          `Failed to renew trust chain. Reason: element #${index} failed to parse.`,
+          { originalChain: chain },
+        );
+      }),
+    );
+  };
+}
 
 /**
  * Factory function to create `validateTrustChain`.
@@ -53,8 +161,8 @@ export type BuilderConfig = {
  */
 function createValidateTrustChain({
   FirstElementShape,
-  MiddleElementShape,
   LastElementShape,
+  MiddleElementShape,
 }: BuilderConfig) {
   /**
    * Validates a provided trust chain against a known trust anchor, including X.509 certificate checks.
@@ -68,7 +176,7 @@ function createValidateTrustChain({
   return async function validateTrustChain(
     trustAnchorEntity: TrustAnchorConfig,
     chain: string[],
-    x509Options: X509CertificateOptions
+    x509Options: X509CertificateOptions,
   ): Promise<ParsedToken[]> {
     // If the chain is empty, fail
     if (chain.length === 0) {
@@ -89,7 +197,7 @@ function createValidateTrustChain({
       if (!token) {
         throw new TrustChainTokenMissingError(
           `Token missing at index ${currentIndex} in trust chain.`,
-          { index: currentIndex }
+          { index: currentIndex },
         );
       }
       const shape = selectTokenShape(currentIndex);
@@ -108,7 +216,7 @@ function createValidateTrustChain({
       if (!nextToken) {
         throw new TrustChainTokenMissingError(
           `Next token missing at index ${nextIndex} (needed for keys for token at ${currentIndex}).`,
-          { index: nextIndex }
+          { index: nextIndex },
         );
       }
       const shape = selectTokenShape(nextIndex);
@@ -128,18 +236,18 @@ function createValidateTrustChain({
       const parsedToken = await verify(
         tokenString,
         kidFromTokenHeader,
-        signerJwks
+        signerJwks,
       );
 
       // Step 2: X.509 Certificate Chain Validation
       const jwkUsedForVerification = signerJwks.find(
-        (k) => k.kid === kidFromTokenHeader
+        (k) => k.kid === kidFromTokenHeader,
       );
 
       if (!jwkUsedForVerification) {
         throw new FederationError(
           `JWK with kid '${kidFromTokenHeader}' was not found in signer's JWKS for token at index ${i}, though JWT verification passed.`,
-          { tokenIndex: i, kid: kidFromTokenHeader }
+          { kid: kidFromTokenHeader, tokenIndex: i },
         );
       }
 
@@ -148,7 +256,7 @@ function createValidateTrustChain({
         jwkUsedForVerification.x5c.length === 0
       ) {
         throw new MissingX509CertsError(
-          `JWK with kid '${kidFromTokenHeader}' does not contain an X.509 certificate chain (x5c) for token at index ${i}.`
+          `JWK with kid '${kidFromTokenHeader}' does not contain an X.509 certificate chain (x5c) for token at index ${i}.`,
         );
       }
 
@@ -165,129 +273,23 @@ function createValidateTrustChain({
         await verifyCertificateChain(
           certChainBase64,
           x509TrustAnchorCertBase64,
-          x509Options
+          x509Options,
         );
 
       if (!x509ValidationResult.isValid) {
         throw new X509ValidationError(
           `X.509 certificate chain validation failed for token at index ${i} (kid: ${kidFromTokenHeader}). Status: ${x509ValidationResult.validationStatus}. Error: ${x509ValidationResult.errorMessage}`,
           {
-            tokenIndex: i,
             kid: kidFromTokenHeader,
-            x509ValidationStatus: x509ValidationResult.validationStatus,
+            tokenIndex: i,
             x509ErrorMessage: x509ValidationResult.errorMessage,
-          }
+            x509ValidationStatus: x509ValidationResult.validationStatus,
+          },
         );
       }
       return parsedToken;
     });
 
     return Promise.all(validationPromises);
-  };
-}
-
-/**
- * Factory function to create `renewTrustChain`.
- * @param config Version specific Entity shapes
- * @returns `renewTrustChain` function
- */
-function createRenewTrustChain({
-  EntityStatementShape,
-  EntityConfigurationShape,
-}: BuilderConfig) {
-  /**
-   * Given a trust chain, obtain a new trust chain by fetching each element's fresh version
-   *
-   * @param chain The original chain
-   * @param appFetch (optional) fetch api implementation
-   * @returns A list of signed token that represent the trust chain, in the same order of the provided chain
-   * @throws {FederationError} If the chain is not valid
-   */
-  return async function renewTrustChain(
-    chain: string[],
-    appFetch: GlobalFetch["fetch"] = fetch
-  ): Promise<string[]> {
-    return Promise.all(
-      chain.map(async (token, index) => {
-        const decoded = decode(token);
-
-        const entityStatementResult = EntityStatementShape.safeParse(decoded);
-        const entityConfigurationResult =
-          EntityConfigurationShape.safeParse(decoded);
-
-        if (entityConfigurationResult.success) {
-          return getSignedEntityConfiguration(
-            entityConfigurationResult.data.payload.iss,
-            { appFetch }
-          );
-        }
-        if (entityStatementResult.success) {
-          const entityStatement = entityStatementResult.data;
-
-          const parentBaseUrl = entityStatement.payload.iss;
-          const parentECJwt = await getSignedEntityConfiguration(
-            parentBaseUrl,
-            { appFetch }
-          );
-          const parentEC = EntityConfigurationShape.parse(decode(parentECJwt));
-
-          const federationFetchEndpoint =
-            parentEC.payload.metadata.federation_entity
-              .federation_fetch_endpoint;
-          if (!federationFetchEndpoint) {
-            throw new MissingFederationFetchEndpointError(
-              `Parent EC at ${parentBaseUrl} is missing federation_fetch_endpoint, cannot renew ES for ${entityStatement.payload.sub}.`,
-              {
-                entityBaseUrl: entityStatement.payload.sub,
-                missingInEntityUrl: parentBaseUrl,
-              }
-            );
-          }
-          return getSignedEntityStatement(
-            federationFetchEndpoint,
-            entityStatement.payload.sub,
-            { appFetch }
-          );
-        }
-        throw new TrustChainRenewalError(
-          `Failed to renew trust chain. Reason: element #${index} failed to parse.`,
-          { originalChain: chain }
-        );
-      })
-    );
-  };
-}
-
-/**
- * Factory function to create `verifyTrustChain`.
- * @param config Version specific Entity shapes
- * @returns `verifyTrustChain` function compliant with the public API
- */
-export function createVerifyTrustChain(
-  config: BuilderConfig
-): TrustApi["verifyTrustChain"] {
-  return async function verifyTrustChain(
-    trustAnchorEntity,
-    chain,
-    x509Options = {
-      connectTimeout: 10000,
-      readTimeout: 10000,
-      requireCrl: true,
-    },
-    { appFetch = fetch, renewOnFail = true } = {}
-  ) {
-    const validateTrustChain = createValidateTrustChain(config);
-    const renewTrustChain = createRenewTrustChain(config);
-
-    try {
-      return await validateTrustChain(trustAnchorEntity, chain, x509Options);
-    } catch (error) {
-      if (renewOnFail) {
-        const renewedChain = await renewTrustChain(chain, appFetch);
-        return validateTrustChain(trustAnchorEntity, renewedChain, x509Options);
-      } else {
-        throw error;
-      }
-    }
   };
 }

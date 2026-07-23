@@ -1,6 +1,7 @@
+import type { JWK } from "src/utils/jwk";
+
 import { Base64 as mockBase64 } from "js-base64";
 import { sha256 as mockSha256 } from "js-sha256";
-import type { JWK } from "src/utils/jwk";
 
 export { SignJWT } from "@pagopa/io-react-native-jwt";
 
@@ -17,7 +18,7 @@ function mockHexToBase64(hexstring: string) {
   return btoa(g);
 }
 
-export const thumbprint = (jwk: any) => {
+export const thumbprint = (jwk: JWK) => {
   const canonical = {
     crv: jwk.crv,
     kty: jwk.kty,
@@ -29,12 +30,11 @@ export const thumbprint = (jwk: any) => {
 };
 
 export function removePadding(encoded: string): string {
-  // eslint-disable-next-line no-div-regex
   return encoded.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
 export const decode = (jwt: string) => {
-  const [encodedHeader, encodedPayload, _signature] = jwt.split(".");
+  const [encodedHeader, encodedPayload] = jwt.split(".");
   const payload = JSON.parse(atob(encodedPayload as string));
   const protectedHeader = JSON.parse(atob(encodedHeader as string));
   return { payload, protectedHeader };
@@ -50,7 +50,7 @@ export const verify = (jwt: string, _: JWK | JWK[]) => {
     return decoded;
   }
   throw new Error(
-    `Mock: invalid signature for kid: '${decoded.protectedHeader.kid}'`
+    `Mock: invalid signature for kid: '${decoded.protectedHeader.kid}'`,
   );
 };
 

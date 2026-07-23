@@ -5,7 +5,7 @@ import {
   leafEntityStatement,
   signed,
   trustAnchorEntityConfiguration,
-} from "../__mocks__/entity-statements";
+} from "../__fixtures__/entity-statements";
 import { buildTrustChain } from "../build-chain";
 import { mapToTrustAnchorConfig } from "../mappers";
 import { verifyTrustChain } from "../verify-chain";
@@ -24,22 +24,22 @@ let mockSignedTrustAnchorECJwt: string;
 
 const mockResponses: Record<
   string,
-  string | string[] | (() => Promise<string>)
+  (() => Promise<string>) | string | string[]
 > = {
-  [`${taBaseUrl}/list`]: [leafBaseUrl, intermediateBaseUrl],
-  [`${leafBaseUrl}/.well-known/openid-federation`]: () =>
-    Promise.resolve(mockSignedLeafECJwt),
   [`${intermediateBaseUrl}/.well-known/openid-federation`]: () =>
     Promise.resolve(mockSignedIntermediateECJwt),
-  [`${taBaseUrl}/fetch?sub=${encodeURIComponent(intermediateBaseUrl)}`]: () =>
-    Promise.resolve(mockSignedIntermediateESJwt),
   [`${intermediateBaseUrl}/fetch?sub=${encodeURIComponent(leafBaseUrl)}`]: () =>
     Promise.resolve(mockSignedLeafESJwt),
+  [`${leafBaseUrl}/.well-known/openid-federation`]: () =>
+    Promise.resolve(mockSignedLeafECJwt),
   [`${taBaseUrl}/.well-known/openid-federation`]: () =>
     Promise.resolve(mockSignedTrustAnchorECJwt),
+  [`${taBaseUrl}/fetch?sub=${encodeURIComponent(intermediateBaseUrl)}`]: () =>
+    Promise.resolve(mockSignedIntermediateESJwt),
+  [`${taBaseUrl}/list`]: [leafBaseUrl, intermediateBaseUrl],
 };
 
-export const customFetch: GlobalFetch["fetch"] = async (requestInfo, _) => {
+const customFetch: GlobalFetch["fetch"] = async (requestInfo, _) => {
   const url = typeof requestInfo === "string" ? requestInfo : requestInfo.url;
 
   const mockResponse = mockResponses[url];
@@ -51,8 +51,8 @@ export const customFetch: GlobalFetch["fetch"] = async (requestInfo, _) => {
   if (Array.isArray(mockResponse)) {
     // Federation list (array response)
     return Promise.resolve({
-      status: 200,
       json: () => Promise.resolve(mockResponse),
+      status: 200,
     } as Response);
   }
 
@@ -69,7 +69,7 @@ export const customFetch: GlobalFetch["fetch"] = async (requestInfo, _) => {
 };
 
 const mappedTrustAnchorEntityConfiguration = mapToTrustAnchorConfig(
-  trustAnchorEntityConfiguration
+  trustAnchorEntityConfiguration,
 );
 
 // Before all tests, create real signed JWTs using `signed()` helper
@@ -86,7 +86,7 @@ describe("buildTrustChain", () => {
     const chain = await buildTrustChain(
       leafBaseUrl,
       mappedTrustAnchorEntityConfiguration,
-      customFetch
+      customFetch,
     );
 
     expect(chain).toEqual([
@@ -102,7 +102,7 @@ describe("buildTrustChain", () => {
     const chain = await buildTrustChain(
       leafBaseUrl,
       mappedTrustAnchorEntityConfiguration,
-      customFetch
+      customFetch,
     );
 
     expect(chain).toEqual([
@@ -115,7 +115,7 @@ describe("buildTrustChain", () => {
     // Verify the chain of trust
     const result = await verifyTrustChain(
       mappedTrustAnchorEntityConfiguration,
-      chain
+      chain,
     );
 
     expect(result).toEqual([

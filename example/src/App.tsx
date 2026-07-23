@@ -1,17 +1,18 @@
-import React from "react";
-import "react-native-url-polyfill/auto";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
-import { store, persistor } from "./store/store";
-import { MainStackNavigator } from "./navigator/MainStackNavigator";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   IODSExperimentalContextProvider,
   ToastProvider,
 } from "@pagopa/io-app-design-system";
-import { DebugDataOverlay } from "./components/debug/DebugDataOverlay";
+import "react-native-url-polyfill/auto";
+import React from "react";
 import { StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+
+import { DebugDataOverlay } from "./components/debug/DebugDataOverlay";
+import { MainStackNavigator } from "./navigator/MainStackNavigator";
+import { persistor, store } from "./store/store";
 
 export default function App() {
   return (

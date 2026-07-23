@@ -1,17 +1,19 @@
-import { pipe } from "fp-ts/lib/function";
-import React, { type ComponentProps, createRef } from "react";
-import WebView from "react-native-webview";
 import type {
   WebViewErrorEvent,
   WebViewHttpErrorEvent,
   WebViewNavigationEvent,
 } from "react-native-webview/lib/WebViewTypes";
+
+import { pipe } from "fp-ts/lib/function";
+import React, { type ComponentProps, createRef } from "react";
+import WebView from "react-native-webview";
+
 import { defaultUserAgent } from "../../utils/useragent";
 
-export type CieWebViewError = {
-  name: "WEB_VIEW_ERROR";
+export interface CieWebViewError {
   message: string;
-};
+  name: "WEB_VIEW_ERROR";
+}
 const AUTH_LINK_PATTERN = "lettura carta";
 
 /**
@@ -51,7 +53,7 @@ export const CieWebView = ({ onWebViewError, ...props }: CieWebViewProps) => {
   const webView = createRef<WebView>();
 
   const handleOnError = (
-    err: WebViewErrorEvent | WebViewHttpErrorEvent | Error
+    err: Error | WebViewErrorEvent | WebViewHttpErrorEvent,
   ): void =>
     pipe(
       err,
@@ -71,12 +73,12 @@ export const CieWebView = ({ onWebViewError, ...props }: CieWebViewProps) => {
       },
       (message) =>
         onWebViewError({
-          name: "WEB_VIEW_ERROR",
           message,
-        })
+          name: "WEB_VIEW_ERROR",
+        }),
     );
 
-  const handleOnLoadEnd = (e: WebViewNavigationEvent | WebViewErrorEvent) => {
+  const handleOnLoadEnd = (e: WebViewErrorEvent | WebViewNavigationEvent) => {
     const eventTitle = e.nativeEvent.title.toLowerCase();
     if (
       eventTitle === "pagina web non disponibile" ||
@@ -91,13 +93,13 @@ export const CieWebView = ({ onWebViewError, ...props }: CieWebViewProps) => {
   return (
     <WebView
       {...props}
-      ref={webView}
-      userAgent={defaultUserAgent}
-      javaScriptEnabled={true}
       injectedJavaScript={injectedJavaScript}
-      onLoadEnd={handleOnLoadEnd}
+      javaScriptEnabled={true}
       onError={handleOnError}
       onHttpError={handleOnError}
+      onLoadEnd={handleOnLoadEnd}
+      ref={webView}
+      userAgent={defaultUserAgent}
     />
   );
 };

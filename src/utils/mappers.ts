@@ -24,18 +24,21 @@ import * as z from "zod";
 export function createMapper<I, O>(mapper: (input: I) => O): (input: I) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
-  config: { inputSchema: z.ZodType<I>; outputSchema: z.ZodType<O> }
+  config: { inputSchema: z.ZodType<I>; outputSchema: z.ZodType<O> },
 ): (input: unknown) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
-  config: { outputSchema: z.ZodType<O> }
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
+  config: { outputSchema: z.ZodType<O> },
 ): (input: I) => O;
 export function createMapper<I, O>(
   mapper: (input: I) => O,
   config?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     inputSchema?: z.ZodType<I, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outputSchema: z.ZodType<O, any>;
-  }
+  },
 ) {
   if (!config) {
     return mapper;
@@ -58,14 +61,14 @@ export function createMapper<I, O>(
  * @fn The function to wrap
  * @return The original function with the mapper applied to its return value
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const withMapper = <A extends any[], I, O>(
   mapper: (input: I) => O,
-  fn: (...args: A) => I
-) => {
-  return function wrappedFunction(...args: A) {
+  fn: (...args: A) => I,
+) =>
+  function wrappedFunction(...args: A) {
     return mapper(fn(...args));
   };
-};
 
 /**
  * Higher order function to pipe an async function return value to the provided mapper.
@@ -74,11 +77,11 @@ export const withMapper = <A extends any[], I, O>(
  * @fn The function to wrap
  * @return The original function with the mapper applied to its return value
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const withMapperAsync = <A extends any[], I, O>(
   mapper: (input: I) => O,
-  fn: (...args: A) => Promise<I>
-) => {
-  return async function wrappedAsyncFunction(...args: A) {
+  fn: (...args: A) => Promise<I>,
+) =>
+  async function wrappedAsyncFunction(...args: A) {
     return mapper(await fn(...args));
   };
-};

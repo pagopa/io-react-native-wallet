@@ -6,14 +6,6 @@ import {
   type Taxonomy,
 } from "./DigitalCredentialsCatalogue";
 
-type FetchContext = { appFetch?: GlobalFetch["fetch"] };
-
-type FetchTranslationsLocalizations = {
-  catalogue?: LocalizationInfo;
-  authenticSources?: LocalizationInfo;
-  taxonomy?: LocalizationInfo;
-};
-
 export interface CredentialsCatalogueApi {
   /**
    * Fetch and parse the Digital Credential Catalogue from the Trust Anchor.
@@ -26,7 +18,7 @@ export interface CredentialsCatalogueApi {
    */
   fetchAndParseCatalogue(
     trustAnchorBaseUrl: string,
-    ctx?: FetchContext
+    ctx?: FetchContext,
   ): Promise<DigitalCredentialsCatalogue>;
 
   /**
@@ -47,7 +39,7 @@ export interface CredentialsCatalogueApi {
   fetchTranslations?(
     localizations: FetchTranslationsLocalizations,
     locales: string[],
-    ctx?: FetchContext
+    ctx?: FetchContext,
   ): Promise<CatalogueTranslations>;
 
   /**
@@ -60,8 +52,18 @@ export interface CredentialsCatalogueApi {
    */
   getStatusL10nIds(
     statusBit: string,
-    credentialConfig: DigitalCredential
-  ): { titleL10nId: string; descriptionL10nId: string } | undefined;
+    credentialConfig: DigitalCredential,
+  ): undefined | { descriptionL10nId: string; titleL10nId: string };
+}
+
+interface FetchContext {
+  appFetch?: GlobalFetch["fetch"];
+}
+
+interface FetchTranslationsLocalizations {
+  authenticSources?: LocalizationInfo;
+  catalogue?: LocalizationInfo;
+  taxonomy?: LocalizationInfo;
 }
 
 export {

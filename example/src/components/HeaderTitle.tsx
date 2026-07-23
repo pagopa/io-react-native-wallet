@@ -1,13 +1,14 @@
 import { Badge, IOText } from "@pagopa/io-app-design-system";
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { useAppSelector } from "../store/utils";
-import { selectItwVersion } from "../store/reducers/environment";
+import { StyleSheet, View } from "react-native";
 
-type Props = {
+import { selectItwVersion } from "../store/reducers/environment";
+import { useAppSelector } from "../store/utils";
+
+interface Props {
   children: string;
   tintColor?: string;
-};
+}
 
 /**
  * Custom navigation header that appends the active IT-Wallet version to the screen title.
@@ -17,22 +18,22 @@ export function HeaderTitle({ children }: Props) {
   return (
     <View style={styles.wrapper}>
       <IOText
-        weight="Bold"
-        size={20}
-        numberOfLines={1}
         accessibilityRole="header"
+        numberOfLines={1}
+        size={20}
+        weight="Bold"
       >
         {children}
       </IOText>
-      <Badge variant="default" text={itwVersion} />
+      <Badge text={itwVersion} variant="default" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    flexDirection: "row",
     alignItems: "center",
+    flexDirection: "row",
     gap: 8,
   },
 });

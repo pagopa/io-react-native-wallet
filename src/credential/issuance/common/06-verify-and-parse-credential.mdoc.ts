@@ -1,26 +1,28 @@
+import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { PublicKey } from "@pagopa/io-react-native-crypto";
+
+import type { Out } from "../../../utils/misc";
+import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
+
 import {
   getParsedCredentialClaimKey,
   verify as verifyMdoc,
 } from "../../../mdoc";
 import { IoWalletError } from "../../../utils/errors";
-import type { Out } from "../../../utils/misc";
 import { isSameThumbprint } from "../../../utils/jwk";
-import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
+
+type ClaimConfig = CredentialConf["claims"][number];
 
 type CredentialConf =
   IssuerConfig["credential_configurations_supported"][string];
 
-type ClaimConfig = CredentialConf["claims"][number];
+type DecodedMDocCredential = Out<typeof verifyMdoc> & {
+  issuerSigned: CBOR.IssuerSigned;
+};
 
 type DisplayableClaim = Omit<ClaimConfig, "display"> & {
   display: NonNullable<ClaimConfig["display"]>;
-};
-
-type DecodedMDocCredential = Out<typeof verifyMdoc> & {
-  issuerSigned: CBOR.IssuerSigned;
 };
 
 /**
@@ -40,7 +42,7 @@ type DecodedMDocCredential = Out<typeof verifyMdoc> & {
 async function verifyCredentialMDoc(
   rawCredential: string,
   x509CertRoot: string,
-  holderBindingContext: CryptoContext
+  holderBindingContext: CryptoContext,
 ): Promise<DecodedMDocCredential> {
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
@@ -58,7 +60,7 @@ async function verifyCredentialMDoc(
 
   if (!(await isSameThumbprint(key, holderBindingKey as PublicKey))) {
     throw new IoWalletError(
-      `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`
+      `Failed to verify holder binding, holder binding key and mDoc deviceKey don't match`,
     );
   }
 
@@ -70,8 +72,8 @@ const parseCredentialMDoc = (
   credentialConfig: CredentialConf,
   // credential_type: string,
   { issuerSigned }: DecodedMDocCredential,
-  ignoreMissingAttributes: boolean = false,
-  includeUndefinedAttributes: boolean = false
+  ignoreMissingAttributes = false,
+  includeUndefinedAttributes = false,
 ): ParsedCredential => {
   if (!credentialConfig) {
     throw new IoWalletError("Credential type not supported by the issuer");
@@ -84,12 +86,12 @@ const parseCredentialMDoc = (
   // Claims without display property (such as `iat`, `exp`, `iss`, etc.)
   // must be ignored as they are not meant to be displayed to the user.
   const displayableClaims = credentialConfig.claims.filter(
-    (c) => c.display !== undefined
+    (c) => c.display !== undefined,
   ) as DisplayableClaim[];
 
   const attrDefinitions = displayableClaims.map<
-    [string, string, { name: string; locale: string }[]]
-  >(({ path: [namespace, attribute], display }) => [
+    [string, string, { locale: string; name: string }[]]
+  >(({ display, path: [namespace, attribute] }) => [
     namespace as string,
     attribute as string,
     display,
@@ -105,7 +107,7 @@ const parseCredentialMDoc = (
         namespace,
         v.elementIdentifier,
         v.elementValue,
-      ])
+      ]),
   );
 
   // Check that all mandatory attributes defined in the issuer configuration are present in the disclosure set
@@ -114,8 +116,8 @@ const parseCredentialMDoc = (
     ([attrDefNamespace, attrKey]) =>
       !flatNamespaces.some(
         ([namespace, claim]) =>
-          attrDefNamespace === namespace && attrKey === claim
-      )
+          attrDefNamespace === namespace && attrKey === claim,
+      ),
   );
 
   if (attrsNotInDisclosures.length > 0) {
@@ -126,7 +128,7 @@ const parseCredentialMDoc = (
 
     if (!ignoreMissingAttributes) {
       throw new IoWalletError(
-        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`
+        `Some attributes are missing in the credential. Missing: [${missing}], received: [${received}]`,
       );
     }
   }
@@ -143,10 +145,10 @@ const parseCredentialMDoc = (
             display,
             value: flatNamespaces.find(
               ([namespace, name]) =>
-                attrDefNamespace === namespace && name === attrKey
+                attrDefNamespace === namespace && name === attrKey,
             )?.[2],
           },
-        ] as const
+        ] as const,
     )
     //filter the not found elements
     .filter(([_, __, definition]) => definition.value !== undefined)
@@ -156,17 +158,17 @@ const parseCredentialMDoc = (
       (acc, [attrDefNamespace, attrKey, { display, value }]) => ({
         ...acc,
         [getParsedCredentialClaimKey(attrDefNamespace, attrKey)]: {
-          value,
           name: display.reduce(
             (names, { locale, name }) => ({
               ...names,
               [locale]: name,
             }),
-            {}
+            {},
           ),
+          value,
         },
       }),
-      {}
+      {},
     );
 
   if (includeUndefinedAttributes) {
@@ -174,12 +176,12 @@ const parseCredentialMDoc = (
       Object.values(flatNamespaces)
         .filter(
           ([namespace, key]) =>
-            !definedValues[getParsedCredentialClaimKey(namespace, key)]
+            !definedValues[getParsedCredentialClaimKey(namespace, key)],
         )
         .map(([namespace, key, value]) => [
           getParsedCredentialClaimKey(namespace, key),
-          { value, name: key },
-        ])
+          { name: key, value },
+        ]),
     );
     return {
       ...definedValues,
@@ -200,7 +202,7 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
       ignoreMissingAttributes,
       includeUndefinedAttributes,
     },
-    x509CertRoot
+    x509CertRoot,
   ) => {
     if (!x509CertRoot) {
       throw new IoWalletError("Missing x509CertRoot");
@@ -209,28 +211,31 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     const decoded = await verifyCredentialMDoc(
       credential,
       x509CertRoot,
-      credentialCryptoContext
+      credentialCryptoContext,
     );
 
     const credentialConfig =
-      issuerConf.credential_configurations_supported[
-        credentialConfigurationId
-      ]!;
+      issuerConf.credential_configurations_supported[credentialConfigurationId];
+    if (!credentialConfig) {
+      throw new IoWalletError(
+        `Missing credential configuration for ${credentialConfigurationId}`,
+      );
+    }
     const parsedCredential = parseCredentialMDoc(
       credentialConfig,
       decoded,
       ignoreMissingAttributes,
-      includeUndefinedAttributes
+      includeUndefinedAttributes,
     );
 
     const { signed, validUntil } =
       decoded.issuerSigned.issuerAuth.payload.validityInfo;
 
     return {
-      parsedCredential,
       credential,
       credentialConfigurationId,
       expiration: validUntil,
       issuedAt: signed,
+      parsedCredential,
     };
   };

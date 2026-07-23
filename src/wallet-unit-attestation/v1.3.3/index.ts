@@ -1,11 +1,12 @@
-import { withMapper } from "../../utils/mappers";
 import type { WalletUnitAttestationApi } from "../api";
-import { decode } from "./utils";
-import { mapToDecodedWalletUnitAttestation } from "./mappers";
+
+import { withMapper } from "../../utils/mappers";
 import { getAttestation } from "./issuing";
+import { mapToDecodedWalletUnitAttestation } from "./mappers";
+import { decode } from "./utils";
 
 export const WalletUnitAttestation: WalletUnitAttestationApi = {
-  isSupported: true,
-  getAttestation,
   decode: withMapper(mapToDecodedWalletUnitAttestation, decode),
+  getAttestation,
+  isSupported: true,
 };

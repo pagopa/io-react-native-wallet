@@ -1,10 +1,10 @@
-import { parseRawHttpResponse } from "../utils/misc";
 import { WalletProviderResponseError } from "../utils/errors";
+import { parseRawHttpResponse } from "../utils/misc";
 import {
-  ProblemJson,
   createApiClient as createWalletProviderApiClient,
-  ApiClient as WalletProviderApiClient,
   type EndpointParameters,
+  ProblemJson,
+  ApiClient as WalletProviderApiClient,
 } from "./generated/wallet-provider";
 
 export type WalletProviderClient = WalletProviderApiClient;
@@ -32,24 +32,24 @@ const validateResponse = async (response: Response) => {
 };
 
 export const getWalletProviderClient = (context: {
-  walletProviderBaseUrl: string;
   appFetch?: GlobalFetch["fetch"];
+  walletProviderBaseUrl: string;
 }) => {
-  const { walletProviderBaseUrl, appFetch = fetch } = context;
+  const { appFetch = fetch, walletProviderBaseUrl } = context;
 
   return createWalletProviderApiClient(
     (method, url, params) =>
       appFetch(interpolateUrl(url, params), {
-        method,
         body: params?.body ? processBody(params.body) : undefined,
         headers: {
           "Content-Type": "application/json",
           ...params?.header,
         },
+        method,
       })
         .then(validateResponse)
         .then<RawHttpResponse>(parseRawHttpResponse),
-    walletProviderBaseUrl
+    walletProviderBaseUrl,
   );
 };
 
@@ -64,10 +64,11 @@ const processBody = (body: unknown): string =>
 export const interpolateUrl = (url: string, params?: EndpointParameters) => {
   if (!params?.path) return url;
 
-  for (const [key, value] of Object.entries(params.path)) {
-    if (typeof value === "string") {
-      url = url.replace(`{${key}}`, value);
-    }
-  }
-  return url;
+  return Object.entries(params.path).reduce(
+    (interpolatedUrl, [key, value]) =>
+      typeof value === "string"
+        ? interpolatedUrl.replace(`{${key}}`, value)
+        : interpolatedUrl,
+    url,
+  );
 };

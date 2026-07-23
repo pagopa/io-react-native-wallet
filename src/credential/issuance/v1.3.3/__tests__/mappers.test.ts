@@ -1,59 +1,60 @@
 import type { MetadataResponseV1_3 } from "@pagopa/io-wallet-oid4vci";
 import type { ParsedAuthorizeRequestResult } from "@pagopa/io-wallet-oid4vp";
+
 import { mapToIssuerConfig, mapToRequestObject } from "../mappers";
 
 describe("mapToIssuerConfig", () => {
   const issuerMetadataMock = {
     metadata: {
+      federation_entity: {
+        organization_name: "Issuer Example",
+      },
       oauth_authorization_server: {
         authorization_endpoint: "https://issuer.example/authorize",
+        jwks: {
+          keys: [{ kid: "sig-kid-1", kty: "EC", use: "sig" }],
+        },
         pushed_authorization_request_endpoint: "https://issuer.example/par",
         token_endpoint: "https://issuer.example/token",
-        jwks: {
-          keys: [{ kty: "EC", kid: "sig-kid-1", use: "sig" }],
-        },
       },
       openid_credential_issuer: {
-        credential_endpoint: "https://issuer.example/credential",
-        credential_issuer: "https://issuer.example",
-        status_attestation_endpoint: "https://issuer.example/status",
-        nonce_endpoint: "https://issuer.example/nonce",
-        jwks: {
-          keys: [{ kty: "EC", kid: "sig-kid-2", use: "sig" }],
-        },
         batch_credential_issuance: {
           batch_size: 10,
         },
         credential_configurations_supported: {
-          PersonIdentificationData: {
-            format: "dc+sd-jwt",
-            vct: "eu.europa.ec.eudiw.pid.1",
-            scope: "PID",
+          MobileDrivingLicence: {
             credential_metadata: {
-              display: [{ name: "Person Identification Data", locale: "en" }],
+              display: [{ locale: "en", name: "Mobile Driving Licence" }],
+            },
+            doctype: "org.iso.18013.5.1.mDL",
+            format: "mso_mdoc",
+            scope: "MDL",
+          },
+          PersonIdentificationData: {
+            credential_metadata: {
               claims: [
                 {
+                  display: [{ locale: "en", name: "Given name" }],
                   path: ["given_name"],
-                  display: [{ name: "Given name", locale: "en" }],
                 },
                 {
                   path: ["family_name"],
                 },
               ],
+              display: [{ locale: "en", name: "Person Identification Data" }],
             },
-          },
-          MobileDrivingLicence: {
-            format: "mso_mdoc",
-            doctype: "org.iso.18013.5.1.mDL",
-            scope: "MDL",
-            credential_metadata: {
-              display: [{ name: "Mobile Driving Licence", locale: "en" }],
-            },
+            format: "dc+sd-jwt",
+            scope: "PID",
+            vct: "eu.europa.ec.eudiw.pid.1",
           },
         },
-      },
-      federation_entity: {
-        organization_name: "Issuer Example",
+        credential_endpoint: "https://issuer.example/credential",
+        credential_issuer: "https://issuer.example",
+        jwks: {
+          keys: [{ kid: "sig-kid-2", kty: "EC", use: "sig" }],
+        },
+        nonce_endpoint: "https://issuer.example/nonce",
+        status_attestation_endpoint: "https://issuer.example/status",
       },
     },
   } as unknown as MetadataResponseV1_3;
@@ -61,43 +62,43 @@ describe("mapToIssuerConfig", () => {
   it("maps Issuer metadata to IssuerConfig and normalizes credential claims", () => {
     expect(mapToIssuerConfig(issuerMetadataMock)).toEqual({
       authorization_endpoint: "https://issuer.example/authorize",
-      credential_endpoint: "https://issuer.example/credential",
-      credential_issuer: "https://issuer.example",
       credential_configurations_supported: {
+        MobileDrivingLicence: {
+          claims: [],
+          display: [{ locale: "en", name: "Mobile Driving Licence" }],
+          doctype: "org.iso.18013.5.1.mDL",
+          format: "mso_mdoc",
+          scope: "MDL",
+        },
         PersonIdentificationData: {
-          format: "dc+sd-jwt",
-          vct: "eu.europa.ec.eudiw.pid.1",
-          scope: "PID",
-          display: [{ name: "Person Identification Data", locale: "en" }],
           claims: [
             {
+              display: [{ locale: "en", name: "Given name" }],
               path: ["given_name"],
-              display: [{ name: "Given name", locale: "en" }],
             },
             {
               path: ["family_name"],
             },
           ],
-        },
-        MobileDrivingLicence: {
-          format: "mso_mdoc",
-          doctype: "org.iso.18013.5.1.mDL",
-          scope: "MDL",
-          display: [{ name: "Mobile Driving Licence", locale: "en" }],
-          claims: [],
+          display: [{ locale: "en", name: "Person Identification Data" }],
+          format: "dc+sd-jwt",
+          scope: "PID",
+          vct: "eu.europa.ec.eudiw.pid.1",
         },
       },
-      keys: [
-        { kty: "EC", kid: "sig-kid-2", use: "sig" },
-        { kty: "EC", kid: "sig-kid-1", use: "sig" },
-      ],
-      pushed_authorization_request_endpoint: "https://issuer.example/par",
-      token_endpoint: "https://issuer.example/token",
-      nonce_endpoint: "https://issuer.example/nonce",
+      credential_endpoint: "https://issuer.example/credential",
+      credential_issuance_batch_size: 10,
+      credential_issuer: "https://issuer.example",
       federation_entity: {
         organization_name: "Issuer Example",
       },
-      credential_issuance_batch_size: 10,
+      keys: [
+        { kid: "sig-kid-2", kty: "EC", use: "sig" },
+        { kid: "sig-kid-1", kty: "EC", use: "sig" },
+      ],
+      nonce_endpoint: "https://issuer.example/nonce",
+      pushed_authorization_request_endpoint: "https://issuer.example/par",
+      token_endpoint: "https://issuer.example/token",
     });
   });
 
@@ -110,7 +111,7 @@ describe("mapToIssuerConfig", () => {
     } as unknown as MetadataResponseV1_3;
 
     expect(() => mapToIssuerConfig(input)).toThrow(
-      "oauth_authorization_server is required in Issuer metadata"
+      "oauth_authorization_server is required in Issuer metadata",
     );
   });
 
@@ -123,7 +124,7 @@ describe("mapToIssuerConfig", () => {
     } as unknown as MetadataResponseV1_3;
 
     expect(() => mapToIssuerConfig(input)).toThrow(
-      "openid_credential_issuer is required in Issuer metadata"
+      "openid_credential_issuer is required in Issuer metadata",
     );
   });
 });
@@ -132,42 +133,42 @@ describe("mapToRequestObject", () => {
   it("maps parsed authorize request payload to RequestObject", () => {
     const input: ParsedAuthorizeRequestResult = {
       header: {
-        kid: "123",
         alg: "alg",
+        kid: "123",
         typ: "oauth-authz-req+jwt",
         x5c: ["cert1"],
       },
       payload: {
-        response_mode: "direct_post.jwt",
-        response_type: "vp_token",
-        iss: "https://verifier.example",
         client_id: "wallet-client-id",
-        dcql_query: { credentials: [{ id: "pid" }] },
-        nonce: "nonce-123",
-        response_uri: "https://verifier.example/response",
-        state: "state-123",
         client_metadata: {
           jwks: {
-            keys: [{ kty: "EC", kid: "kid-1", use: "enc" }],
+            keys: [{ kid: "kid-1", kty: "EC", use: "enc" }],
           },
         } as ParsedAuthorizeRequestResult["payload"]["client_metadata"],
+        dcql_query: { credentials: [{ id: "pid" }] },
+        iss: "https://verifier.example",
+        nonce: "nonce-123",
+        response_mode: "direct_post.jwt",
+        response_type: "vp_token",
+        response_uri: "https://verifier.example/response",
+        state: "state-123",
       },
     };
 
-    expect(mapToRequestObject(input as any)).toEqual({
-      iss: "https://verifier.example",
+    expect(mapToRequestObject(input)).toEqual({
       client_id: "wallet-client-id",
-      dcql_query: { credentials: [{ id: "pid" }] },
-      nonce: "nonce-123",
-      response_uri: "https://verifier.example/response",
-      state: "state-123",
-      response_mode: "direct_post.jwt",
-      response_type: "vp_token",
       client_metadata: {
         jwks: {
-          keys: [{ kty: "EC", kid: "kid-1", use: "enc" }],
+          keys: [{ kid: "kid-1", kty: "EC", use: "enc" }],
         },
       },
+      dcql_query: { credentials: [{ id: "pid" }] },
+      iss: "https://verifier.example",
+      nonce: "nonce-123",
+      response_mode: "direct_post.jwt",
+      response_type: "vp_token",
+      response_uri: "https://verifier.example/response",
+      state: "state-123",
       x5c: ["cert1"],
     });
   });

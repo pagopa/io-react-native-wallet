@@ -1,35 +1,38 @@
+import type { ItwVersion } from "@pagopa/io-react-native-wallet";
+
 import {
+  BodySmall,
   ButtonSolid,
   H1,
   IOVisualCostants,
   ListItemAction,
+  RadioButtonLabel,
   RadioGroup,
+  type RadioItem,
   TextInput,
   useIOToast,
   VSpacer,
-  RadioButtonLabel,
-  type RadioItem,
-  BodySmall,
 } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import type { ItwVersion } from "@pagopa/io-react-native-wallet";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import type { EnvType } from "../store/types";
+
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
   envSet,
   loggingAddressSet,
   selectEnv,
+  selectItwVersion,
   selectLoggingAddress,
   setItwVersion,
-  selectItwVersion,
 } from "../store/reducers/environment";
 import { instanceReset } from "../store/reducers/instance";
 import { selectIoAuthToken, sessionReset } from "../store/reducers/session";
-import type { EnvType } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const itwVersions: ItwVersion[] = ["1.0.0", "1.3.3"];
 
@@ -44,7 +47,7 @@ const HomeScreen = () => {
   const itwVersion = useAppSelector(selectItwVersion);
   const [selectedEnv, setSelectedEnv] = useState<EnvType>(env);
   const [debugAddress, setDebugAddress] = useState<string>(
-    currentDebugAddress || ""
+    currentDebugAddress || "",
   );
   const toast = useIOToast();
 
@@ -60,29 +63,29 @@ const HomeScreen = () => {
       dispatch(loggingAddressSet(debugAddress));
       initLogging(debugAddress);
       toast.success("Logging server set correctly");
-    } catch (e) {
+    } catch {
       toast.error("Invalid logging server address");
     }
   };
 
-  const envRadioItems = (): ReadonlyArray<RadioItem<EnvType>> => [
+  const envRadioItems = (): readonly RadioItem<EnvType>[] => [
     {
-      value: "Set PRE environment",
       description:
         "Use the PRE environment for testing. A Proxy might be needed to access the services. This action will reset the app state beside the session.",
       id: "pre",
+      value: "Set PRE environment",
     },
     {
-      value: "Set PROD environment",
       description:
         "Use the PROD environment for testing. This action will reset the app state beside the session.",
       id: "prod",
+      value: "Set PROD environment",
     },
   ];
 
   useDebugInfo({
-    session,
     env,
+    session,
   });
 
   return (
@@ -91,11 +94,11 @@ const HomeScreen = () => {
         <VSpacer size={8} />
         <H1>Environment</H1>
         <RadioGroup
-          type="radioListItem"
-          key="check_income"
           items={envRadioItems()}
-          selectedItem={selectedEnv}
+          key="check_income"
           onPress={toggleEnvionment}
+          selectedItem={selectedEnv}
+          type="radioListItem"
         />
         <VSpacer />
         <H1>IT-Wallet version</H1>
@@ -105,9 +108,9 @@ const HomeScreen = () => {
         <View style={styles.itwVersion}>
           {itwVersions.map((version) => (
             <RadioButtonLabel
+              checked={version === itwVersion}
               key={version}
               label={`v${version}`}
-              checked={version === itwVersion}
               onValueChange={() =>
                 dispatch(setItwVersion(version as ItwVersion))
               }
@@ -117,9 +120,9 @@ const HomeScreen = () => {
         <H1>Logging Server</H1>
         <VSpacer size={8} />
         <TextInput
-          value={debugAddress}
           onChangeText={(test) => setDebugAddress(test)}
           placeholder={"http://example.com:8080/sendLogs"}
+          value={debugAddress}
         />
         <VSpacer size={8} />
         <ButtonSolid
@@ -129,10 +132,10 @@ const HomeScreen = () => {
         <VSpacer />
         <H1>Session</H1>
         <ListItemAction
-          variant="danger"
           icon="logout"
           label={"Logout from IO Backend"}
           onPress={() => dispatch(sessionReset())}
+          variant="danger"
         />
       </ScrollView>
     </SafeAreaView>
@@ -142,16 +145,16 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  itwVersion: {
+    flexDirection: "row",
+    gap: 24,
+    marginBottom: 24,
+    marginTop: 16,
+  },
   safeArea: {
     flex: 1,
   },
   scrollViewContent: {
     paddingHorizontal: IOVisualCostants.appMarginDefault,
-  },
-  itwVersion: {
-    flexDirection: "row",
-    gap: 24,
-    marginTop: 16,
-    marginBottom: 24,
   },
 });

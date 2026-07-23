@@ -1,28 +1,31 @@
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import { IOColors } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import {
   Camera,
+  type Code,
   useCameraDevice,
   useCodeScanner,
-  type Code,
 } from "react-native-vision-camera";
-import { styles } from "../App";
+
 import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
+
+import { styles } from "../App";
 import { useAppDispatch } from "../store/utils";
 import { getCredentialOfferThunk } from "../thunks/offer";
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
 
 export type QrScannerScreenParams =
   | {
-      mode: "presentation";
-      presentationBehavior: PresentationStateKeys;
+      mode: "offer";
     }
   | {
-      mode: "offer";
+      mode: "presentation";
+      presentationBehavior: PresentationStateKeys;
     };
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "QrScanner">;
@@ -65,26 +68,26 @@ export const QrScannerScreen = ({ route }: Props) => {
       }, 1000);
 
       switch (route.params.mode) {
-        case "presentation":
-          dispatch(
-            remoteCrossDevicePresentationThunk({
-              qrcode: codes[0]?.value || "",
-              allowed: route.params.presentationBehavior,
-            })
-          );
-          navigation.goBack();
-          break;
         case "offer":
           dispatch(
             getCredentialOfferThunk({
               qrcode: codes[0]?.value || "",
-            })
+            }),
+          );
+          navigation.goBack();
+          break;
+        case "presentation":
+          dispatch(
+            remoteCrossDevicePresentationThunk({
+              allowed: route.params.presentationBehavior,
+              qrcode: codes[0]?.value || "",
+            }),
           );
           navigation.goBack();
           break;
       }
     },
-    [isResting, dispatch, navigation, route.params]
+    [isResting, dispatch, navigation, route.params],
   );
 
   /**
@@ -94,7 +97,7 @@ export const QrScannerScreen = ({ route }: Props) => {
     () => () => {
       clearTimeout(scannerReactivateTimeoutHandler.current);
     },
-    [scannerReactivateTimeoutHandler]
+    [scannerReactivateTimeoutHandler],
   );
 
   const codeScanner = useCodeScanner({
@@ -114,11 +117,11 @@ export const QrScannerScreen = ({ route }: Props) => {
     <View style={styles.container}>
       {hasPermission ? (
         <Camera
-          style={style.camera}
+          audio={false}
+          codeScanner={codeScanner}
           device={backCameraDevice}
           isActive={!isResting}
-          codeScanner={codeScanner}
-          audio={false}
+          style={style.camera}
         />
       ) : (
         <Text>Camera permission not granted!</Text>
@@ -128,15 +131,15 @@ export const QrScannerScreen = ({ route }: Props) => {
 };
 
 const style = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignContent: "center",
-    justifyContent: "center",
-  },
   camera: {
+    backgroundColor: IOColors.black,
+    height: "100%",
     position: "relative",
     width: "100%",
-    height: "100%",
-    backgroundColor: IOColors.black,
+  },
+  container: {
+    alignContent: "center",
+    flex: 1,
+    justifyContent: "center",
   },
 });

@@ -1,16 +1,16 @@
-type Primitive = string | number | boolean | null | undefined;
-
-type TruncatableValue =
+export type TruncatableValue =
   | Primitive
-  | TruncatableObject
   | TruncatableArray
+  | TruncatableObject
   | TruncatableSet;
+
+type Primitive = boolean | null | number | string | undefined;
+
+type TruncatableArray = TruncatableValue[];
 
 interface TruncatableObject {
   [key: string]: TruncatableValue;
 }
-
-type TruncatableArray = Array<TruncatableValue>;
 type TruncatableSet = Set<TruncatableValue>;
 
 /**
@@ -29,7 +29,7 @@ type TruncatableSet = Set<TruncatableValue>;
  */
 export const truncateObjectStrings = <T extends TruncatableValue>(
   value: T,
-  maxLength: number = 250
+  maxLength = 250,
 ): T => {
   if (typeof value === "string") {
     return (
@@ -46,7 +46,7 @@ export const truncateObjectStrings = <T extends TruncatableValue>(
       // Set could not be serialized to JSON because values are not stored as properties
       // For display purposes, we convert it to an array
       return Array.from(value).map((item) =>
-        truncateObjectStrings(item, maxLength)
+        truncateObjectStrings(item, maxLength),
       ) as T;
     }
 
@@ -55,7 +55,7 @@ export const truncateObjectStrings = <T extends TruncatableValue>(
         ...acc,
         [key]: truncateObjectStrings(val, maxLength),
       }),
-      {}
+      {},
     ) as T;
   }
 
@@ -68,7 +68,7 @@ export const truncateObjectStrings = <T extends TruncatableValue>(
  * @param totalDots The total number of dots in the progress bar. Default is 12.
  * @returns A string representing the progress bar with emojis,
  */
-export const getProgressEmojis = (progress: number, totalDots: number = 12) => {
+export const getProgressEmojis = (progress: number, totalDots = 12) => {
   // Clamp progress between 0 and 1
   const clampedProgress = Math.max(0, Math.min(1, progress));
 

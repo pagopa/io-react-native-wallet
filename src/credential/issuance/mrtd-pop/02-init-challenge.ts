@@ -6,22 +6,24 @@ import {
   IoWalletSdkConfig,
   UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError,
 } from "@pagopa/io-wallet-utils";
-import { Logger, LogLevel } from "../../../utils/logging";
-import {
-  IssuerResponseError,
-  IssuerResponseErrorCodes,
-  ResponseErrorBuilder,
-} from "../../../utils/errors";
+
 import type { MRTDPoPApi } from "../api/mrtd-pop";
+
 import {
   createSignJwtFromCryptoContext,
   createVerifyJwtFromJwks,
   partialCallbacks,
 } from "../../../utils/callbacks";
+import {
+  IssuerResponseError,
+  IssuerResponseErrorCodes,
+  ResponseErrorBuilder,
+} from "../../../utils/errors";
+import { Logger, LogLevel } from "../../../utils/logging";
 
-type Config = {
+interface Config {
   sdkConfig: IoWalletSdkConfig;
-};
+}
 
 /**
  * Factory function to create `initChallenge` for MRTD PoP flow.
@@ -30,14 +32,14 @@ type Config = {
  * @returns `initChallenge` function compliant with the public API
  */
 export function createInitChallenge(
-  config: Config
+  config: Config,
 ): MRTDPoPApi["initChallenge"] {
   return async function initChallenge(
     issuerConf,
     initUrl,
     mrtd_auth_session,
     mrtd_pop_jwt_nonce,
-    context
+    context,
   ) {
     const {
       appFetch = fetch,
@@ -46,37 +48,37 @@ export function createInitChallenge(
     } = context;
 
     const clientAttestationDPoP = await createClientAttestationPopJwt({
-      config: config.sdkConfig,
+      authorizationServer: issuerConf.credential_issuer,
       callbacks: {
         generateRandom: partialCallbacks.generateRandom,
         signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
       },
       clientAttestation: walletInstanceAttestation,
-      authorizationServer: issuerConf.credential_issuer,
+      config: config.sdkConfig,
       signer: {
-        method: "jwk",
         alg: "ES256",
+        method: "jwk",
         publicJwk: await wiaCryptoContext.getPublicKey(),
       },
     });
 
     const initResult = await fetchMrtdPopInit({
-      popInitEndpoint: initUrl,
+      callbacks: {
+        fetch: appFetch,
+        verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
+      },
+      clientAttestationDPoP,
       mrtdAuthSession: mrtd_auth_session,
       mrtdPopJwtNonce: mrtd_pop_jwt_nonce,
+      popInitEndpoint: initUrl,
       walletAttestation: walletInstanceAttestation,
-      clientAttestationDPoP,
-      callbacks: {
-        verifyJwt: createVerifyJwtFromJwks(issuerConf.keys),
-        fetch: appFetch,
-      },
     }).catch(handleInitChallengeError);
 
     return {
       challenge: initResult.challenge,
       mrtd_pop_nonce: initResult.mrtdPopNonce,
-      pop_verify_endpoint: initResult.popVerifyEndpoint,
       mrz: initResult.mrz,
+      pop_verify_endpoint: initResult.popVerifyEndpoint,
     };
   };
 }

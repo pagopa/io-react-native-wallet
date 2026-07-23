@@ -10,7 +10,7 @@ import type { DirectAuthorizationBodyPayload } from "../../v1.0.0/types";
  */
 export const buildDirectPostBody = async (
   { state }: RequestObject,
-  payload: DirectAuthorizationBodyPayload
+  payload: DirectAuthorizationBodyPayload,
 ): Promise<string> => {
   const formUrlEncodedBody = new URLSearchParams({
     ...(state && { state }),
@@ -22,7 +22,7 @@ export const buildDirectPostBody = async (
             ? JSON.stringify(value)
             : value,
       }),
-      {} as Record<string, string>
+      {} as Record<string, string>,
     ),
   });
 

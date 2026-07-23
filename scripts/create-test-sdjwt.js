@@ -1,12 +1,12 @@
 #!/usr/bin/env node
+const { KEYUTIL, KJUR } = require("jsrsasign");
 const { Buffer } = require("node:buffer");
-const { KJUR, KEYUTIL } = require("jsrsasign");
 
 // cnf.jwk embedded in the SD-JWT
 const credentialCnfJwk = {
-  kty: "EC",
-  kid: "eede745a-4f47-44e7-8551-50c6a1fc0bd6",
   crv: "P-256",
+  kid: "eede745a-4f47-44e7-8551-50c6a1fc0bd6",
+  kty: "EC",
   x: "zHDlxhC3Z1kVF31K8haSKiVUaosZPSo5359SPYymrrk",
   y: "fJZ7J4VRJGLBAkiRJhuJX9X09ftDZbyRyrKbnjGo3ns",
   // d: "_Xp3T3zeNCnuGDme5iNXlh-3LTAN7XhZ1uMzte6QNs8",
@@ -14,13 +14,13 @@ const credentialCnfJwk = {
 
 // Fake Issuer key to sign the SD-JWT
 const issuerJwk = {
-  kty: "EC",
   alg: "ES256",
-  kid: "a38f4a2a-3b7a-49b1-96fe-44e6aced358b",
   crv: "P-256",
+  d: "kIyIliVMNZ62aCD3umuFos5wRQGQojVQCgBsOZfF7Wg",
+  kid: "a38f4a2a-3b7a-49b1-96fe-44e6aced358b",
+  kty: "EC",
   x: "W5cpFOUymIH2Ro2JIkmfiWqg89Y4doEdRnR-fNps7II",
   y: "NC1WrZ64MEi4CVWyXoRPnjxp3EEMT1sePgIwATZEfyc",
-  d: "kIyIliVMNZ62aCD3umuFos5wRQGQojVQCgBsOZfF7Wg",
 };
 
 const decodeBase64UrlUtf8 = (value) =>
@@ -37,7 +37,7 @@ const parseSdJwt = (credential) => {
     throw new Error("Invalid SD-JWT: missing issuer JWT part");
   }
 
-  return { issuerJwt, disclosures, hasTrailingSeparator };
+  return { disclosures, hasTrailingSeparator, issuerJwt };
 };
 
 const decodeJwtPart = (jwt) => {
@@ -70,7 +70,7 @@ const main = () => {
     return;
   }
 
-  const { issuerJwt, disclosures, hasTrailingSeparator } = parseSdJwt(rawSdJwt);
+  const { disclosures, hasTrailingSeparator, issuerJwt } = parseSdJwt(rawSdJwt);
   const { header, payload } = decodeJwtPart(issuerJwt);
 
   const updatedHeader = {
@@ -90,7 +90,7 @@ const main = () => {
     header.alg,
     JSON.stringify(updatedHeader),
     JSON.stringify(updatedPayload),
-    KEYUTIL.getKey(issuerJwk)
+    KEYUTIL.getKey(issuerJwk),
   );
 
   let output = [reSignedIssuerJwt, ...disclosures].join("~");

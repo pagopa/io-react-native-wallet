@@ -39,10 +39,12 @@ app.get("/logs", (req, res) => {
   sendLogs();
 
   // Set an interval to send the logs every 1 second
+  // eslint-disable-next-line no-undef
   const intervalId = setInterval(sendLogs, 1000);
 
   // Clean up the interval when the client disconnects
   req.on("close", () => {
+    // eslint-disable-next-line no-undef
     clearInterval(intervalId);
   });
 });
@@ -54,6 +56,7 @@ app.get("/", (req, res) => {
 
 // Start the server
 app.listen(port, () => {
+  // eslint-disable-next-line no-undef
   console.log(`Server running at http://localhost:${port}`);
 });
 

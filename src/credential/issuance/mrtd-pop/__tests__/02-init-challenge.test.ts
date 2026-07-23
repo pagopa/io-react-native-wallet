@@ -1,37 +1,40 @@
-import { IssuerResponseError } from "../../../../utils/errors";
-import { sdkConfigV1_0 } from "../../../../utils/config";
+import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+
 import type { IssuerConfig } from "../../api/IssuerConfig";
+
 import { createInitChallenge } from "../02-init-challenge";
+import { sdkConfigV1_0 } from "../../../../utils/config";
+import { IssuerResponseError } from "../../../../utils/errors";
 
 // Provide a deterministic uuid
 jest.mock("uuid", () => ({ v4: () => "fixed-jti" }));
 
 // Mock JWT decoder to return a structure compliant with MrtdPoPChallenge
 const mockDecodedJwt = {
-  protectedHeader: { typ: "mrtd-ias-pop+jwt", alg: "ES256", kid: "kid" },
   payload: {
-    iss: "https://issuer.example",
     aud: "https://issuer.example/credential_issuer",
-    iat: 1111111111,
-    exp: 2222222222,
     challenge: "challenge-value",
-    mrtd_pop_nonce: "nonce-value",
-    htu: "https://issuer.example/mrtd/init",
+    exp: 2222222222,
     htm: "POST",
+    htu: "https://issuer.example/mrtd/init",
+    iat: 1111111111,
+    iss: "https://issuer.example",
+    mrtd_pop_nonce: "nonce-value",
   },
+  protectedHeader: { alg: "ES256", kid: "kid", typ: "mrtd-ias-pop+jwt" },
 };
 
 const mockChallengeJwt =
   "eyJ0eXAiOiJtcnRkLWlhcy1wb3Arand0IiwiYWxnIjoiRVMyNTYiLCJraWQiOiJraWQifQ.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlIiwiYXVkIjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsX2lzc3VlciIsImlhdCI6MTExMTExMTExMSwiZXhwIjoyMjIyMjIyMjIyLCJjaGFsbGVuZ2UiOiJjaGFsbGVuZ2UtdmFsdWUiLCJtcnRkX3BvcF9ub25jZSI6Im5vbmNlLXZhbHVlIiwiaHR1IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9tcnRkL2luaXQiLCJodG0iOiJQT1NUIn0.8Gr0wvvmE3lF4sTUT8hj4csZe_tWpbVRqgf4-lwDStm325AtsqYRpgLLb43bKlgUrV4Z9H_mWciu7peW7UVhhg";
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
+  getJwkFromHeader: jest.fn(),
   SignJWT: jest.fn().mockImplementation(() => ({
-    setProtectedHeader: jest.fn().mockReturnThis(),
     setPayload: jest.fn().mockReturnThis(),
+    setProtectedHeader: jest.fn().mockReturnThis(),
     sign: jest.fn().mockResolvedValue("signed-wia-pop-token"),
   })),
   verify: jest.fn(),
-  getJwkFromHeader: jest.fn(),
 }));
 
 // Minimal issuer configuration used to compute aud inside the function
@@ -41,7 +44,8 @@ const issuerConf = {
 
 const wiaCryptoContext = {
   getPublicKey: jest.fn(),
-} as any;
+  getSignature: jest.fn(),
+} as CryptoContext;
 
 const initChallenge = createInitChallenge({ sdkConfig: sdkConfigV1_0 });
 
@@ -55,9 +59,9 @@ describe("initChallenge", () => {
   it("initializes the challenge and returns the decoded payload", async () => {
     const appFetch = jest.fn().mockResolvedValue(
       new Response(mockChallengeJwt, {
-        status: 202,
         headers: { "content-type": "text/plain" },
-      })
+        status: 202,
+      }),
     );
 
     const result = await initChallenge(
@@ -65,7 +69,7 @@ describe("initChallenge", () => {
       initUrl,
       mrtd_auth_session,
       mrtd_pop_jwt_nonce,
-      { wiaCryptoContext, walletInstanceAttestation, appFetch }
+      { appFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
     // Returned payload matches mocked decoded JWT payload
@@ -81,10 +85,10 @@ describe("initChallenge", () => {
     expect(calledUrl).toBe(initUrl);
     expect(options.method).toBe("POST");
     expect(options.headers["OAuth-Client-Attestation"]).toBe(
-      walletInstanceAttestation
+      walletInstanceAttestation,
     );
     expect(options.headers["OAuth-Client-Attestation-PoP"]).toBe(
-      "signed-wia-pop-token"
+      "signed-wia-pop-token",
     );
     expect(options.headers["Content-Type"]).toBe("application/json");
     expect(JSON.parse(options.body)).toEqual({
@@ -96,25 +100,21 @@ describe("initChallenge", () => {
   it("throws IssuerResponseError when status code is not 202", async () => {
     const appFetch = jest.fn().mockResolvedValue(
       new Response(JSON.stringify({ error: "bad_request" }), {
-        status: 400,
         headers: { "content-type": "application/json" },
-      })
+        status: 400,
+      }),
     );
 
-    try {
-      await initChallenge(
-        issuerConf,
-        initUrl,
-        mrtd_auth_session,
-        mrtd_pop_jwt_nonce,
-        { wiaCryptoContext, walletInstanceAttestation, appFetch }
-      );
-      fail("Should have thrown IssuerResponseError");
-    } catch (err) {
-      expect(err).toBeInstanceOf(IssuerResponseError);
-      const e = err as IssuerResponseError;
-      expect(e.statusCode).toBe(400);
-    }
+    const promise = initChallenge(
+      issuerConf,
+      initUrl,
+      mrtd_auth_session,
+      mrtd_pop_jwt_nonce,
+      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+    );
+
+    await expect(promise).rejects.toBeInstanceOf(IssuerResponseError);
+    await expect(promise).rejects.toMatchObject({ statusCode: 400 });
   });
 
   it("uses provided appFetch implementation", async () => {
@@ -127,9 +127,18 @@ describe("initChallenge", () => {
       initUrl,
       mrtd_auth_session,
       mrtd_pop_jwt_nonce,
-      { wiaCryptoContext, walletInstanceAttestation, appFetch: customFetch }
+      { appFetch: customFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
-    expect(customFetch).toHaveBeenCalled();
+    expect(customFetch).toHaveBeenCalledWith(
+      initUrl,
+      expect.objectContaining({
+        body: JSON.stringify({
+          mrtd_auth_session,
+          mrtd_pop_jwt_nonce,
+        }),
+        method: "POST",
+      }),
+    );
   });
 });

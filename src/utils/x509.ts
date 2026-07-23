@@ -1,8 +1,9 @@
 import {
-  verifyCertificateChain,
   type CertificateValidationResult,
+  verifyCertificateChain,
   type X509CertificateOptions,
 } from "@pagopa/io-react-native-crypto";
+
 import { X509ValidationError } from "../trust/common/errors";
 
 /**
@@ -19,7 +20,7 @@ export const verifyX509Chain = async (
     connectTimeout: 10000,
     readTimeout: 10000,
     requireCrl: true,
-  }
+  },
 ) => {
   // Strip the trust anchor from the chain if the issuer included it,
   // since verifyCertificateChain expects it passed separately.
@@ -35,9 +36,9 @@ export const verifyX509Chain = async (
     throw new X509ValidationError(
       `X.509 certificate chain validation failed. Status: ${x509ValidationResult.validationStatus}. Error: ${x509ValidationResult.errorMessage}`,
       {
-        x509ValidationStatus: x509ValidationResult.validationStatus,
         x509ErrorMessage: x509ValidationResult.errorMessage,
-      }
+        x509ValidationStatus: x509ValidationResult.validationStatus,
+      },
     );
   }
 };

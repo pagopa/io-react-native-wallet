@@ -1,6 +1,7 @@
 import * as z from "zod";
-import { UnixTime } from "../../utils/zod";
+
 import { JWK } from "../../utils/jwk";
+import { UnixTime } from "../../utils/zod";
 
 /**
  * Common Wallet Instance Attestation shape. This object is
@@ -10,26 +11,26 @@ export type DecodedWalletInstanceAttestation = z.infer<
   typeof DecodedWalletInstanceAttestation
 >;
 export const DecodedWalletInstanceAttestation = z.object({
-  iss: z.string(),
-  iat: UnixTime,
-  exp: UnixTime,
+  /** @deprecated */
+  aal: z.string().optional(),
   cnf: z.object({ jwk: JWK }),
+  exp: UnixTime,
+  iat: UnixTime,
+  iss: z.string(),
   sub: z.string(),
   /** @deprecated */
   wallet_link: z.string().optional(),
   /** @deprecated */
   wallet_name: z.string().optional(),
-  /** @deprecated */
-  aal: z.string().optional(),
 });
 
-export type WalletAttestation = {
-  format: string;
+export interface WalletAttestation {
   attestation: string;
-};
+  format: string;
+}
 
-export type WalletAttestationRequestParams = {
+export interface WalletAttestationRequestParams {
   walletProviderBaseUrl: string;
   walletSolutionId: string;
   walletSolutionVersion: string;
-};
+}

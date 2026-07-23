@@ -1,3 +1,4 @@
+import { generate } from "@pagopa/io-react-native-crypto";
 import {
   createCryptoContextFor,
   CredentialIssuance,
@@ -5,32 +6,33 @@ import {
   CredentialStatus,
   IoWallet,
 } from "@pagopa/io-react-native-wallet";
-import { generate } from "@pagopa/io-react-native-crypto";
-import {
-  selectWalletInstanceAttestationAsJwt,
-  shouldRequestWalletInstanceAttestationSelector,
-} from "../store/reducers/attestation";
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+
+import type { StatusSupportedTokens } from "../store/reducers/credential";
 import type {
   CredentialResult,
   SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
+
+import {
+  selectWalletInstanceAttestationAsJwt,
+  shouldRequestWalletInstanceAttestationSelector,
+} from "../store/reducers/attestation";
+import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectPid } from "../store/reducers/pid";
 import {
   getCredential,
   getCredentialStatusAssertion,
   getCredentialStatusFromStatusList,
 } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
-import appFetch from "../utils/fetch";
 import { getEnv } from "../utils/environment";
-import { selectPid } from "../store/reducers/pid";
-import { createAppAsyncThunk } from "./utils";
+import appFetch from "../utils/fetch";
 import {
   getWalletInstanceAttestationThunk,
   getWalletUnitAttestationThunk,
 } from "./attestation";
-import type { StatusSupportedTokens } from "../store/reducers/credential";
+import { createAppAsyncThunk } from "./utils";
 
 /**
  * Discriminated union representing the unified credential status result,
@@ -38,47 +40,47 @@ import type { StatusSupportedTokens } from "../store/reducers/credential";
  */
 export type CredentialStatusResult =
   | {
-      type: "status_assertion";
+      credentialType: StatusSupportedTokens;
+      rawStatus: string;
       status: string;
-      credentialType: SupportedCredentials;
-      statusAssertion: string;
-      parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
+      statusList: CredentialStatus.StatusList;
+      type: "status_list";
     }
   | {
-      type: "status_list";
+      credentialType: SupportedCredentials;
+      parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
       status: string;
-      credentialType: StatusSupportedTokens;
-      statusList: CredentialStatus.StatusList;
-      rawStatus: string;
+      statusAssertion: string;
+      type: "status_assertion";
     };
-
-/**
- * Type definition for the input of the {@link getCredentialThunk}.
- */
-type GetCredentialThunkInput = {
-  credentialType: SupportedCredentialsWithoutPid;
-  batchSize?: number;
-  credentialOffer?: CredentialOffer.CredentialOffer;
-};
 
 /**
  * Type definition for the input of the {@link getCredentialStatusAssertionThunk}.
  */
-type GetCredentialStatusAssertionThunkInput = {
-  credentialType: SupportedCredentials;
+interface GetCredentialStatusAssertionThunkInput {
   credential: string;
+  credentialType: SupportedCredentials;
   format: CredentialIssuance.CredentialFormat;
   keyTag: string;
-};
+}
 
 /**
  * Type definition for the input of the {@link getCredentialStatusListThunk}.
  */
-type GetCredentialStatusListThunkInput = {
+interface GetCredentialStatusListThunkInput {
   credential: string;
   credentialType: StatusSupportedTokens;
   format: CredentialIssuance.CredentialFormat;
-};
+}
+
+/**
+ * Type definition for the input of the {@link getCredentialThunk}.
+ */
+interface GetCredentialThunkInput {
+  batchSize?: number;
+  credentialOffer?: CredentialOffer.CredentialOffer;
+  credentialType: SupportedCredentialsWithoutPid;
+}
 
 /**
  * Thunk to obtain a new credential.
@@ -92,7 +94,7 @@ type GetCredentialStatusListThunkInput = {
 export const getCredentialThunk = createAppAsyncThunk<
   CredentialResult,
   GetCredentialThunkInput
->("credential/credentialGet", async (args, { getState, dispatch }) => {
+>("credential/credentialGet", async (args, { dispatch, getState }) => {
   // Checks if the wallet instance attestation needs to be reuqested
   if (shouldRequestWalletInstanceAttestationSelector(getState())) {
     await dispatch(getWalletInstanceAttestationThunk());
@@ -112,10 +114,10 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   // Get env URLs
   const env = selectEnv(getState());
-  const { WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI, WALLET_TA_BASE_URL } =
+  const { REDIRECT_URI, WALLET_EAA_PROVIDER_BASE_URL, WALLET_TA_BASE_URL } =
     getEnv(env);
 
-  const { credentialType, batchSize, credentialOffer } = args;
+  const { batchSize, credentialOffer, credentialType } = args;
 
   // Get the PID from the store
   const pid = selectPid(getState());
@@ -124,11 +126,11 @@ export const getCredentialThunk = createAppAsyncThunk<
   }
 
   const generateKeysWithAttestation = async (
-    credentialKeyTags: string[]
+    credentialKeyTags: string[],
   ): Promise<string | undefined> => {
     if (wallet.WalletUnitAttestation.isSupported) {
       const wua = await dispatch(
-        getWalletUnitAttestationThunk({ keyTags: credentialKeyTags })
+        getWalletUnitAttestationThunk({ keyTags: credentialKeyTags }),
       ).unwrap();
       return wua.attestation;
     }
@@ -157,35 +159,35 @@ export const getCredentialThunk = createAppAsyncThunk<
     {
       appFetch,
       authorizationServer: authorizationCodeGrant?.authorizationServer,
-    }
+    },
   );
 
   // Validate the credential offer against the resolved Issuer metadata. Only
   // performed when the issuance was started from a credential offer.
   if (credentialOffer) {
     await wallet.CredentialsOffer.validateCredentialOffer({
-      offer: credentialOffer,
       credentialIssuerMetadata: issuerConf.authorization_servers
         ? { authorization_servers: issuerConf.authorization_servers }
         : {},
+      offer: credentialOffer,
     });
   }
 
   return await getCredential({
-    itwVersion,
-    issuerConf,
-    trustAnchorUrl: WALLET_TA_BASE_URL,
-    redirectUri: REDIRECT_URI,
+    batchSize,
     // For simplicity, in the sample app, we assume that the `credentialType` corresponds to the `credentialId`,
     // and we restrict `getCredential` to issuing only one credential at a time.
     credentialId: credentialType,
-    pid: pid,
-    walletInstanceAttestation,
     generateKeysWithAttestation,
-    wiaCryptoContext,
-    batchSize,
-    scope: authorizationCodeGrant?.scope,
+    issuerConf,
     issuerState: authorizationCodeGrant?.issuerState,
+    itwVersion,
+    pid: pid,
+    redirectUri: REDIRECT_URI,
+    scope: authorizationCodeGrant?.scope,
+    trustAnchorUrl: WALLET_TA_BASE_URL,
+    walletInstanceAttestation,
+    wiaCryptoContext,
   });
 });
 
@@ -198,7 +200,7 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   CredentialStatusResult,
   GetCredentialStatusAssertionThunkInput
 >("credential/statusAssertionGet", async (args, { getState }) => {
-  const { credential, format, keyTag, credentialType } = args;
+  const { credential, credentialType, format, keyTag } = args;
 
   // Create credential crypto context
   const credentialCryptoContext = createCryptoContextFor(keyTag);
@@ -219,15 +221,15 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
     format,
     credentialCryptoContext,
     wiaCryptoContext,
-    credentialType
+    credentialType,
   );
 
   return {
-    type: "status_assertion",
-    status: result.parsedStatusAssertion.credential_status_type,
     credentialType: result.credentialType,
-    statusAssertion: result.statusAssertion,
     parsedStatusAssertion: result.parsedStatusAssertion,
+    status: result.parsedStatusAssertion.credential_status_type,
+    statusAssertion: result.statusAssertion,
+    type: "status_assertion",
   };
 });
 
@@ -245,14 +247,14 @@ export const getCredentialStatusListThunk = createAppAsyncThunk<
     getEnv(selectEnv(getState())),
     args.credential,
     args.credentialType,
-    args.format
+    args.format,
   );
 
   return {
-    type: "status_list",
-    status: result.status,
     credentialType: args.credentialType,
-    statusList: result.statusList,
     rawStatus: result.rawStatus,
+    status: result.status,
+    statusList: result.statusList,
+    type: "status_list",
   };
 });

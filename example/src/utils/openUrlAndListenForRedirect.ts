@@ -1,16 +1,17 @@
 import { CredentialIssuance } from "@pagopa/io-react-native-wallet";
 import { Linking } from "react-native";
-import { createAbortPromiseFromSignal, isDefined, until } from "./misc";
 
-export class OperationAbortedError extends Error {}
+import { createAbortPromiseFromSignal, isDefined, until } from "./misc";
 
 export type OpenUrlAndListenForAuthRedirect = (
   redirectUri: string,
   authUrl: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => Promise<{
   authRedirectUrl: string;
 }>;
+
+export class OperationAbortedError extends Error {}
 
 /**
  * Opens the authentication URL for CIE L2 and listens for the authentication redirect URL.
@@ -46,7 +47,7 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
        */
       const untilAuthRedirectIsNotUndefined = until(
         () => authRedirectUrl !== undefined,
-        120
+        120,
       );
 
       /**
@@ -56,8 +57,8 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
        */
       const winner = await Promise.race(
         [operationIsAborted?.listen(), untilAuthRedirectIsNotUndefined].filter(
-          isDefined
-        )
+          isDefined,
+        ),
       ).finally(() => {
         urlEventListener.remove();
         operationIsAborted?.remove();
@@ -70,7 +71,7 @@ export const openUrlAndListenForAuthRedirect: OpenUrlAndListenForAuthRedirect =
 
     if (authRedirectUrl === undefined) {
       throw new CredentialIssuance.Errors.AuthorizationError(
-        "Invalid authentication redirect url"
+        "Invalid authentication redirect url",
       );
     }
 

@@ -1,6 +1,7 @@
-import { sign, generate } from "@pagopa/io-react-native-crypto";
-import { createDPopToken, DPoPPayload } from "../dpop";
+import { generate, sign } from "@pagopa/io-react-native-crypto";
+
 import { createCryptoContextFor } from "../crypto";
+import { createDPopToken, DPoPPayload } from "../dpop";
 
 const mockPayload: DPoPPayload = {
   htm: "GET",
@@ -26,7 +27,7 @@ describe("createDPopToken", () => {
     await generate(ephemeralKeytag);
     const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
     await createDPopToken(mockPayload, ephemeralContext);
-    expect(sign).toBeCalledTimes(1);
+    expect(sign).toHaveBeenCalledTimes(1);
   });
 
   it("should create a dpop token using an existing key", async () => {

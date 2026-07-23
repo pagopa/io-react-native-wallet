@@ -28,7 +28,6 @@ export const JWK = z.object({
   /** JWK "use" (Public Key Use) Parameter. */
   use: z.string().optional(),
   x: z.string().optional(),
-  y: z.string().optional(),
   /** JWK "x5c" (X.509 Certificate Chain) Parameter. */
   x5c: z.array(z.string()).optional(),
   /** JWK "x5t" (X.509 Certificate SHA-1 Thumbprint) Parameter. */
@@ -37,7 +36,10 @@ export const JWK = z.object({
   "x5t#S256": z.string().optional(),
   /** JWK "x5u" (X.509 URL) Parameter. */
   x5u: z.string().optional(),
+  y: z.string().optional(),
 });
+
+export type JWKS = z.infer<typeof JWKS>;
 
 /**
  * Ensure key values are encoded using base64url and not just base64, as defined in https://datatracker.ietf.org/doc/html/rfc7517
@@ -48,7 +50,7 @@ export const JWK = z.object({
  * @returns THe same input key with fixed values
  */
 export function fixBase64EncodingOnKey(key: JWK): JWK {
-  const { x, y, e, n, ...pk } = key;
+  const { e, n, x, y, ...pk } = key;
 
   return {
     ...pk,
@@ -58,8 +60,6 @@ export function fixBase64EncodingOnKey(key: JWK): JWK {
     ...(n ? { n: removePadding(n) } : {}),
   };
 }
-
-export type JWKS = z.infer<typeof JWKS>;
 export const JWKS = z.object({
   keys: z.array(JWK),
 });

@@ -1,12 +1,11 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { CredentialFormat, IssuerConfig } from "../../issuance/api";
+
 import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
 import type { Out } from "../../../utils/misc";
+import type { CredentialFormat, IssuerConfig } from "../../issuance/api";
 import type { ParsedStatusAssertion } from "./types";
 
 export interface StatusAssertionApi {
-  isSupported: true;
-
   /**
    * Get the status assertion of a digital credential.
    * @since 1.0.0
@@ -26,11 +25,13 @@ export interface StatusAssertionApi {
     credential: string,
     format: CredentialFormat | SupportedSdJwtLegacyFormat,
     context: {
+      appFetch?: GlobalFetch["fetch"];
       credentialCryptoContext: CryptoContext;
       wiaCryptoContext: CryptoContext;
-      appFetch?: GlobalFetch["fetch"];
-    }
+    },
   ): Promise<{ statusAssertion: string }>;
+
+  isSupported: true;
 
   /**
    * Given a status assertion, verifies that:
@@ -52,6 +53,6 @@ export interface StatusAssertionApi {
     issuerConf: IssuerConfig,
     statusAssertion: Out<StatusAssertionApi["get"]>,
     credential: string,
-    format: CredentialFormat | SupportedSdJwtLegacyFormat
+    format: CredentialFormat | SupportedSdJwtLegacyFormat,
   ): Promise<{ parsedStatusAssertion: ParsedStatusAssertion }>;
 }

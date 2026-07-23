@@ -7,20 +7,20 @@ describe("Verification.time", () => {
     ["unix milliseconds", 1752122400000],
   ])("accepts %s", (_label, time) => {
     const value = {
-      trust_framework: "eidas",
       assurance_level: "high",
       evidence: [
         {
-          type: "vouch",
-          time,
           attestation: {
-            type: "digital_attestation",
-            reference_number: "abc",
             date_of_issuance: "2025-09-02",
+            reference_number: "abc",
+            type: "digital_attestation",
             voucher: { organization: "IPZS" },
           },
+          time,
+          type: "vouch",
         },
       ],
+      trust_framework: "eidas",
     };
 
     expect(Verification.safeParse(value).success).toBe(true);
@@ -28,8 +28,8 @@ describe("Verification.time", () => {
 
   it("rejects invalid type", () => {
     const value = {
-      trust_framework: ["eidas"],
       assurance_level: "high",
+      trust_framework: ["eidas"],
     };
 
     expect(Verification.safeParse(value).success).toBe(false);

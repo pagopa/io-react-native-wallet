@@ -1,36 +1,38 @@
-import { createSelector, createSlice } from "@reduxjs/toolkit";
-import { persistReducer, type PersistConfig } from "redux-persist";
 import {
   IoWallet,
   type WalletInstanceAttestation as Wia,
 } from "@pagopa/io-react-native-wallet";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
+import { type PersistConfig, persistReducer } from "redux-persist";
+
+import type { AsyncStatus, RootState } from "../types";
+
 import {
   getWalletInstanceAttestationThunk,
   getWalletUnitAttestationThunk,
 } from "../../thunks/attestation";
 import { createSecureStorage } from "../storage";
-import type { AsyncStatus, RootState } from "../types";
 import { asyncStatusInitial } from "../utils";
+import { selectItwVersion } from "./environment";
 import { instanceReset } from "./instance";
 import { sessionReset } from "./session";
-import { selectItwVersion } from "./environment";
+
+// State type definition for the attestion slice
+interface AttestationState {
+  wia: {
+    asyncStatus: AsyncStatus;
+    value?: Record<Format, string>;
+  };
+  wua: {
+    asyncStatus: AsyncStatus;
+    value?: string;
+  };
+}
 
 // Supported Wallet Attestation formats
 type Format = Awaited<
   ReturnType<Wia.WalletInstanceAttestationApi["getAttestation"]>
 >[number]["format"];
-
-// State type definition for the attestion slice
-type AttestationState = {
-  wia: {
-    value?: Record<Format, string>;
-    asyncStatus: AsyncStatus;
-  };
-  wua: {
-    value?: string;
-    asyncStatus: AsyncStatus;
-  };
-};
 
 // Initial state for the attestation slice
 const initialState: AttestationState = {
@@ -47,11 +49,6 @@ const initialState: AttestationState = {
  * Currently it is not persisted or reused since each operation requires a new attestation.
  */
 const attestationSlice = createSlice({
-  name: "attestation",
-  initialState,
-  reducers: {
-    attestationReset: () => initialState, // Reset the attestation state
-  },
   extraReducers: (builder) => {
     // Dispatched when a get attestion async thunk resolves. Sets the attestation and resets the state.
     builder.addCase(
@@ -59,13 +56,13 @@ const attestationSlice = createSlice({
       (state, action) => {
         state.wia.asyncStatus.isDone = true;
         state.wia.value = action.payload.reduce(
-          (acc, { format, attestation }) => ({ ...acc, [format]: attestation }),
-          {} as Record<Format, string>
+          (acc, { attestation, format }) => ({ ...acc, [format]: attestation }),
+          {} as Record<Format, string>,
         );
         state.wia.asyncStatus.isLoading =
           initialState.wia.asyncStatus.isLoading;
         state.wia.asyncStatus.hasError = initialState.wia.asyncStatus.hasError;
-      }
+      },
     );
 
     // Dispatched when a get attestion async thunk is pending. Sets the loading state to true and resets done and hasError.
@@ -84,8 +81,8 @@ const attestationSlice = createSlice({
         state.wia.asyncStatus.isDone = initialState.wia.asyncStatus.isDone;
         state.wia.asyncStatus.isLoading =
           initialState.wia.asyncStatus.isLoading;
-        state.wia.asyncStatus.hasError = { status: true, error: action.error };
-      }
+        state.wia.asyncStatus.hasError = { error: action.error, status: true };
+      },
     );
 
     builder.addCase(
@@ -96,7 +93,7 @@ const attestationSlice = createSlice({
         state.wua.asyncStatus.isLoading =
           initialState.wua.asyncStatus.isLoading;
         state.wua.asyncStatus.hasError = initialState.wua.asyncStatus.hasError;
-      }
+      },
     );
 
     builder.addCase(getWalletUnitAttestationThunk.pending, (state) => {
@@ -108,7 +105,7 @@ const attestationSlice = createSlice({
     builder.addCase(getWalletUnitAttestationThunk.rejected, (state, action) => {
       state.wua.asyncStatus.isDone = initialState.wua.asyncStatus.isDone;
       state.wua.asyncStatus.isLoading = initialState.wua.asyncStatus.isLoading;
-      state.wua.asyncStatus.hasError = { status: true, error: action.error };
+      state.wua.asyncStatus.hasError = { error: action.error, status: true };
     });
 
     // Reset the attestation state when the instance is reset.
@@ -116,6 +113,11 @@ const attestationSlice = createSlice({
 
     // Reset the attestation state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
+  },
+  initialState,
+  name: "attestation",
+  reducers: {
+    attestationReset: () => initialState, // Reset the attestation state
   },
 });
 
@@ -138,7 +140,7 @@ const persistConfig: PersistConfig<AttestationState> = {
  */
 export const attestationReducer = persistReducer(
   persistConfig,
-  attestationSlice.reducer
+  attestationSlice.reducer,
 );
 
 /**
@@ -189,5 +191,5 @@ export const shouldRequestWalletInstanceAttestationSelector = createSelector(
     const expiryDate = new Date(payload.exp * 1000);
     const now = new Date();
     return now > expiryDate;
-  }
+  },
 );

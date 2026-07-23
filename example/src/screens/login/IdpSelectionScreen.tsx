@@ -1,10 +1,13 @@
-import React from "react";
-import { idps, type Idp } from "../../utils/idps";
-import URLParse from "url-parse";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
-import IdpsGrid from "../../components/IdpsGrid";
+
 import { VSpacer } from "@pagopa/io-app-design-system";
+import React from "react";
+import URLParse from "url-parse";
+
+import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+
+import IdpsGrid from "../../components/IdpsGrid";
+import { type Idp, idps } from "../../utils/idps";
 
 export const getIntentFallbackUrl = (intentUrl: string): string | undefined => {
   const intentProtocol = URLParse.extractProtocol(intentUrl);
@@ -33,11 +36,11 @@ export default function IdpSelectionScreen({ navigation }: Props) {
 
   return (
     <IdpsGrid
-      testID="idps-grid"
+      footerComponent={<VSpacer size={40} />}
+      headerComponent={<VSpacer size={40} />}
       idps={idps}
       onIdpSelected={handleIdpSelection}
-      headerComponent={<VSpacer size={40} />}
-      footerComponent={<VSpacer size={40} />}
+      testID="idps-grid"
     />
   );
 }

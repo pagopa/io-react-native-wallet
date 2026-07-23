@@ -1,19 +1,23 @@
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import {
   H3,
   IOVisualCostants,
-  VSpacer,
   useIOToast,
+  VSpacer,
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useEffect, useMemo, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
+
+import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
+import type { CredentialResult } from "../store/types";
+
 import { QrCodeImage } from "../components/QrCodeImage";
 import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import {
   selectCredential,
   selectObtainedCredentials,
@@ -22,7 +26,6 @@ import {
   trustmarkReset,
 } from "../store/reducers/credential";
 import { selectEnv } from "../store/reducers/environment";
-import type { CredentialResult } from "../store/types";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { getTrustmarkThunk } from "../thunks/trustmark";
 import { getEnv } from "../utils/environment";
@@ -40,26 +43,25 @@ export const TrustmarkScreen = () => {
   const navigation = useNavigation();
   const credentials = useAppSelector(selectObtainedCredentials);
 
-  const scenarios: Array<TestScenarioProp | undefined> = useMemo(
+  const scenarios: (TestScenarioProp | undefined)[] = useMemo(
     () =>
       Object.values(credentials)
         .filter((_) => !!_)
         .map(({ credentialType }) => ({
-          title: `Get Trustmark (${labelByCredentialType[credentialType]})`,
+          hasError: { error: undefined, status: false },
+          icon: iconByCredentialType[credentialType],
+          isDone: false,
+          isLoading: false,
           onPress: () =>
             navigation.navigate("TrustmarkQrCode", { credentialType }),
-          isLoading: false,
-          hasError: { status: false, error: undefined },
-          isDone: false,
-          icon: iconByCredentialType[credentialType],
+          title: `Get Trustmark (${labelByCredentialType[credentialType]})`,
         })),
-    [navigation, credentials]
+    [navigation, credentials],
   );
 
   return (
     <View style={styles.container}>
       <FlatList
-        style={styles.list}
         contentContainerStyle={{
           margin: IOVisualCostants.appMarginDefault,
         }}
@@ -70,19 +72,20 @@ export const TrustmarkScreen = () => {
             {item && (
               <>
                 <TestScenario
+                  hasError={item.hasError}
+                  icon={item.icon}
+                  isDone={item.isDone}
+                  isLoading={item.isLoading}
+                  isPresent={item.isPresent}
                   onPress={item.onPress}
                   title={item.title}
-                  isLoading={item.isLoading}
-                  hasError={item.hasError}
-                  isDone={item.isDone}
-                  icon={item.icon}
-                  isPresent={item.isPresent}
                 />
                 <VSpacer />
               </>
             )}
           </>
         )}
+        style={styles.list}
       />
     </View>
   );
@@ -99,7 +102,7 @@ export const TrustmarkQrCodeScreen = ({
   const toast = useIOToast();
   const trustmark = useAppSelector(selectTrustmark(credentialType));
   const trustmarkAsyncStatus = useAppSelector(
-    selectTrustmarkAsyncStatus(credentialType)
+    selectTrustmarkAsyncStatus(credentialType),
   );
   const credential = useAppSelector(selectCredential(credentialType));
   const selectedEnv = useAppSelector(selectEnv);
@@ -107,9 +110,9 @@ export const TrustmarkQrCodeScreen = ({
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useDebugInfo({
-    trustmarkJwt: trustmark?.trustmarkJwt,
     expirationTime: trustmark?.expirationTime,
     trustmarkAsyncStatus,
+    trustmarkJwt: trustmark?.trustmarkJwt,
   });
 
   React.useEffect(() => {
@@ -138,12 +141,12 @@ export const TrustmarkQrCodeScreen = ({
     return null;
   }
 
-  const { trustmarkJwt, expirationTime } = trustmark;
+  const { expirationTime, trustmarkJwt } = trustmark;
   const trustmarkUrl = `${VERIFIER_BASE_URL}?tm=${trustmarkJwt}`;
 
   return (
     <View style={styles.trustmarkContainer}>
-      <QrCodeImage value={trustmarkUrl} size={"90%"} correctionLevel="L" />
+      <QrCodeImage correctionLevel="L" size={"90%"} value={trustmarkUrl} />
       <ExpirationTimer time={expirationTime} />
     </View>
   );
@@ -155,10 +158,9 @@ export const TrustmarkQrCodeScreen = ({
  * @returns a string representing the document number, undefined if not found
  */
 const getCredentialDocumentNumber = (
-  credential: CredentialResult | undefined
-): string | undefined => {
-  return credential?.parsedCredential.document_number?.value as string;
-};
+  credential: CredentialResult | undefined,
+): string | undefined =>
+  credential?.parsedCredential.document_number?.value as string;
 
 /**
  * Display a countdown timer for the QR Code expiration time
@@ -203,10 +205,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   trustmarkContainer: {
-    flex: 1,
-    flexGrow: 2,
     alignContent: "center",
     alignItems: "center",
+    flex: 1,
+    flexGrow: 2,
     justifyContent: "center",
     paddingBottom: IOVisualCostants.appMarginDefault,
   },

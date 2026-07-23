@@ -1,27 +1,29 @@
 import { CredentialOffer, IoWallet } from "@pagopa/io-react-native-wallet";
-import appFetch from "../utils/fetch";
-import { createAppAsyncThunk } from "./utils";
-import { selectItwVersion } from "../store/reducers/environment";
-import { getCredentialThunk } from "./credential";
+
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 
-export type GetCredentialOfferThunkInput = {
+import { selectItwVersion } from "../store/reducers/environment";
+import appFetch from "../utils/fetch";
+import { getCredentialThunk } from "./credential";
+import { createAppAsyncThunk } from "./utils";
+
+export interface GetCredentialOfferThunkInput {
   qrcode: string;
-};
+}
 
 export type GetCredentialOfferThunkOutput = CredentialOffer.CredentialOffer;
 
 export const getCredentialOfferThunk = createAppAsyncThunk<
   GetCredentialOfferThunkOutput,
   GetCredentialOfferThunkInput
->("credential/offerGet", async (args, { getState, dispatch }) => {
+>("credential/offerGet", async (args, { dispatch, getState }) => {
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
   // Resolve the credential offer (by value or by reference)
   const credentialOffer = await wallet.CredentialsOffer.resolveCredentialOffer(
     args.qrcode,
-    { fetch: appFetch }
+    { fetch: appFetch },
   );
 
   // For simplicity, the sample app drives the issuance with the first offered
@@ -30,7 +32,7 @@ export const getCredentialOfferThunk = createAppAsyncThunk<
     credentialOffer.credential_configuration_ids;
   if (!credentialConfigurationId) {
     throw new Error(
-      "The credential offer does not contain any credential configuration id"
+      "The credential offer does not contain any credential configuration id",
     );
   }
 
@@ -38,10 +40,10 @@ export const getCredentialOfferThunk = createAppAsyncThunk<
   // and validates the credential offer before obtaining the credential.
   await dispatch(
     getCredentialThunk({
+      credentialOffer,
       credentialType:
         credentialConfigurationId as SupportedCredentialsWithoutPid,
-      credentialOffer,
-    })
+    }),
   ).unwrap();
 
   return credentialOffer;

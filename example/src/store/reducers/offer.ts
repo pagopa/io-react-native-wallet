@@ -1,30 +1,27 @@
-import { createSlice } from "@reduxjs/toolkit";
-
-import { getCredentialOfferThunk } from "../../thunks/offer";
-import { sessionReset } from "./session";
-import type { AsyncStatus, RootState } from "../types";
-import { asyncStatusInitial } from "../utils";
 import type { CredentialOffer } from "@pagopa/io-react-native-wallet";
 
-type CredentialOfferState = {
-  offer?: CredentialOffer.CredentialOffer;
+import { createSlice } from "@reduxjs/toolkit";
+
+import type { AsyncStatus, RootState } from "../types";
+
+import { getCredentialOfferThunk } from "../../thunks/offer";
+import { asyncStatusInitial } from "../utils";
+import { sessionReset } from "./session";
+
+interface CredentialOfferState {
   asyncStatus: AsyncStatus;
-};
+  offer?: CredentialOffer.CredentialOffer;
+}
 
 const initialState: CredentialOfferState = {
-  offer: undefined,
   asyncStatus: asyncStatusInitial,
+  offer: undefined,
 };
 
 /**
  * Redux slice for the presentation state which contains the key tag used to register the wallet presentation.
  */
 const credentialOfferSlice = createSlice({
-  name: "offer",
-  initialState,
-  reducers: {
-    credentialOfferReset: () => initialState,
-  },
   extraReducers: (builder) => {
     // Dispatched when is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
     builder.addCase(getCredentialOfferThunk.fulfilled, (state, action) => {
@@ -45,11 +42,16 @@ const credentialOfferSlice = createSlice({
     builder.addCase(getCredentialOfferThunk.rejected, (state, action) => {
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
-      state.asyncStatus.hasError = { status: true, error: action.error };
+      state.asyncStatus.hasError = { error: action.error, status: true };
     });
 
     // Reset the attestation state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
+  },
+  initialState,
+  name: "offer",
+  reducers: {
+    credentialOfferReset: () => initialState,
   },
 });
 

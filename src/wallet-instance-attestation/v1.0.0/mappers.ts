@@ -20,7 +20,7 @@ export const mapToWalletAttestations = createMapper<
   WalletAttestation[]
 >((x) =>
   x.wallet_attestations.map((wa) => ({
-    format: wa.format,
     attestation: wa.wallet_attestation,
-  }))
+    format: wa.format,
+  })),
 );

@@ -1,9 +1,11 @@
 import { sha256ToBase64, SignJWT } from "@pagopa/io-react-native-jwt";
+import { digest } from "@sd-jwt/crypto-nodejs";
 import { decodeSdJwtSync } from "@sd-jwt/decode";
 import { present } from "@sd-jwt/present";
-import { digest } from "@sd-jwt/crypto-nodejs";
-import { fixLegacyCredentialSdJwt } from "../utils/credentials";
+
 import type { Presentation } from "../credential/presentation";
+
+import { fixLegacyCredentialSdJwt } from "../utils/credentials";
 import { SdJwt4VCBase } from "./types";
 
 export * from "./utils";
@@ -25,10 +27,10 @@ export const decode = (token: string) => {
     payload: decoded.jwt.payload,
   });
   const disclosures = decoded.disclosures.map((disclosure) => ({
-    encoded: disclosure._digest,
     decoded: [disclosure.salt, disclosure.key, disclosure.value],
+    encoded: disclosure._digest,
   }));
-  return { sdJwt, disclosures };
+  return { disclosures, sdJwt };
 };
 
 /**
@@ -49,7 +51,7 @@ export const decode = (token: string) => {
 export const prepareVpToken = async (
   nonce: string,
   client_id: string,
-  [verifiableCredential, presentationFrame, cryptoContext]: Presentation
+  [verifiableCredential, presentationFrame, cryptoContext]: Presentation,
 ): Promise<{
   vp_token: string;
 }> => {
@@ -57,7 +59,7 @@ export const prepareVpToken = async (
   const vp = await present(
     fixLegacyCredentialSdJwt(verifiableCredential),
     presentationFrame,
-    digest
+    digest,
   );
 
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
@@ -65,12 +67,12 @@ export const prepareVpToken = async (
 
   const kbJwt = await new SignJWT(cryptoContext)
     .setProtectedHeader({
-      typ: "kb+jwt",
       alg: "ES256",
+      typ: "kb+jwt",
     })
     .setPayload({
-      sd_hash,
       nonce: nonce,
+      sd_hash,
     })
     .setAudience(client_id)
     .setIssuedAt()

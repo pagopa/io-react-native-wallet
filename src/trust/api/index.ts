@@ -1,21 +1,9 @@
 import { type X509CertificateOptions } from "@pagopa/io-react-native-crypto";
-import type { TrustAnchorConfig } from "./TrustAnchorConfig";
-import type { ParsedToken } from "../common/utils";
 
-type FetchContext = { appFetch?: GlobalFetch["fetch"] };
+import type { ParsedToken } from "../common/utils";
+import type { TrustAnchorConfig } from "./TrustAnchorConfig";
 
 export interface TrustApi {
-  /**
-   * Get the common Trust Anchor Configuration, which is uniform across versions.
-   *
-   * @param trustAnchorBaseUrl The Trust Anchor base URL
-   * @returns The Trust Anchor Configuration object
-   */
-  getTrustAnchorEntityConfiguration(
-    trustAnchorBaseUrl: string,
-    ctx?: FetchContext
-  ): Promise<TrustAnchorConfig>;
-
   /**
    * Build a not-verified trust chain for a given Relying Party (RP) entity.
    *
@@ -28,8 +16,19 @@ export interface TrustApi {
   buildTrustChain(
     relyingPartyEntityBaseUrl: string,
     trustAnchorConfig: TrustAnchorConfig,
-    appFetch?: GlobalFetch["fetch"]
+    appFetch?: GlobalFetch["fetch"],
   ): Promise<string[]>;
+
+  /**
+   * Get the common Trust Anchor Configuration, which is uniform across versions.
+   *
+   * @param trustAnchorBaseUrl The Trust Anchor base URL
+   * @returns The Trust Anchor Configuration object
+   */
+  getTrustAnchorEntityConfiguration(
+    trustAnchorBaseUrl: string,
+    ctx?: FetchContext,
+  ): Promise<TrustAnchorConfig>;
 
   /**
    * Verify a given trust chain is actually valid.
@@ -50,8 +49,12 @@ export interface TrustApi {
     ctx?: {
       appFetch?: GlobalFetch["fetch"];
       renewOnFail?: boolean;
-    }
+    },
   ): Promise<ParsedToken[]>;
+}
+
+interface FetchContext {
+  appFetch?: GlobalFetch["fetch"];
 }
 
 export { type TrustAnchorConfig };

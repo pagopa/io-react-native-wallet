@@ -1,4 +1,5 @@
 import type { CredentialStatusApi } from "../api";
+
 import {
   getStatusList,
   getStatusListByUri,
@@ -12,11 +13,11 @@ export const CredentialStatus: CredentialStatusApi = {
     isSupported: false,
   },
   statusList: {
-    isSupported: true,
     get: getStatusList,
     getByUri: getStatusListByUri,
-    verifyAndParse: verifyAndParseStatusList,
     getStatus,
     getStatusListEntry,
+    isSupported: true,
+    verifyAndParse: verifyAndParseStatusList,
   },
 };

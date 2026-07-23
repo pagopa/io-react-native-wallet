@@ -1,10 +1,12 @@
 import {
-  resolveCredentialOffer as sdkResolveCredentialOffer,
   CredentialOfferError,
+  resolveCredentialOffer as sdkResolveCredentialOffer,
 } from "@pagopa/io-wallet-oid4vci";
-import { InvalidQRCodeError } from "../common/errors";
+
 import type { OfferApi } from "../api";
+
 import { sdkConfigV1_3 } from "../../../utils/config";
+import { InvalidQRCodeError } from "../common/errors";
 
 /**
  * v1.3.3 implementation — first step of the User Request Flow
@@ -28,9 +30,9 @@ export const resolveCredentialOffer: OfferApi["resolveCredentialOffer"] =
 
     // Parse the URI and fetch the offer when transmitted by reference
     const resolved = await sdkResolveCredentialOffer({
+      callbacks: { fetch: fetchFn },
       config: sdkConfigV1_3,
       credentialOffer,
-      callbacks: { fetch: fetchFn },
     }).catch((e: unknown) => {
       if (e instanceof CredentialOfferError) {
         throw new InvalidQRCodeError(e.message);

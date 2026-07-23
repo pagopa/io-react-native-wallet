@@ -1,13 +1,14 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createSlice } from "@reduxjs/toolkit";
+import { type PersistConfig, persistReducer } from "redux-persist";
+
+import type { AsyncStatus, RootState } from "../types";
 
 import {
   createWalletInstanceThunk,
   revokeWalletInstanceThunk,
 } from "../../thunks/instance";
-import { persistReducer, type PersistConfig } from "redux-persist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { asyncStatusInitial } from "../utils";
-import type { RootState, AsyncStatus } from "../types";
 import { sessionReset } from "./session";
 
 /**
@@ -16,16 +17,16 @@ import { sessionReset } from "./session";
  * - keyTag: the key tag used to register  the wallet instance
  * - async state: isLoading, isDone, hasError as defined in {@link AsyncStatus}
  */
-type InstanceState = {
+interface InstanceState {
   asyncStatus: AsyncStatus;
-  revocationAsyncStatus: AsyncStatus;
   keyTag: string | undefined;
-};
+  revocationAsyncStatus: AsyncStatus;
+}
 
 // Initial state for the instance slice
 const initialState: InstanceState = {
-  keyTag: undefined,
   asyncStatus: asyncStatusInitial,
+  keyTag: undefined,
   revocationAsyncStatus: asyncStatusInitial,
 };
 
@@ -33,11 +34,6 @@ const initialState: InstanceState = {
  * Redux slice for the instance state which contains the key tag used to register the wallet instance.
  */
 const instanceSlice = createSlice({
-  name: "instance",
-  initialState,
-  reducers: {
-    instanceReset: () => initialState,
-  },
   extraReducers: (builder) => {
     // Dispatched when a wallet istance is created. Sets the key tag in the state and its state to isDone while resetting isLoading and hasError.
     builder.addCase(createWalletInstanceThunk.fulfilled, (state, action) => {
@@ -72,7 +68,7 @@ const instanceSlice = createSlice({
     builder.addCase(createWalletInstanceThunk.rejected, (state, action) => {
       state.asyncStatus.isDone = initialState.asyncStatus.isDone;
       state.asyncStatus.isLoading = initialState.asyncStatus.isLoading;
-      state.asyncStatus.hasError = { status: true, error: action.error };
+      state.asyncStatus.hasError = { error: action.error, status: true };
     });
 
     // Dispatched when a wallet istance revocation request is rejected.
@@ -80,13 +76,18 @@ const instanceSlice = createSlice({
       state.revocationAsyncStatus.isDone = false;
       state.revocationAsyncStatus.isLoading = false;
       state.revocationAsyncStatus.hasError = {
-        status: true,
         error: action.error,
+        status: true,
       };
     });
 
     // Reset the attestation state when the session is reset.
     builder.addCase(sessionReset, () => initialState);
+  },
+  initialState,
+  name: "instance",
+  reducers: {
+    instanceReset: () => initialState,
   },
 });
 
@@ -110,7 +111,7 @@ const persistConfig: PersistConfig<InstanceState> = {
  */
 export const instanceReducer = persistReducer(
   persistConfig,
-  instanceSlice.reducer
+  instanceSlice.reducer,
 );
 
 /**

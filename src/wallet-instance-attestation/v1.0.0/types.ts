@@ -1,4 +1,5 @@
 import * as z from "zod";
+
 import { Jwt } from "../common/types";
 
 export type WalletInstanceAttestationRequestJwt = z.infer<
@@ -9,17 +10,17 @@ export const WalletInstanceAttestationRequestJwt = z.object({
     Jwt.shape.header,
     z.object({
       typ: z.literal("wp-war+jwt"),
-    })
+    }),
   ),
   payload: z.intersection(
     Jwt.shape.payload,
     z.object({
       aud: z.string(),
-      nonce: z.string(),
+      hardware_key_tag: z.string(),
       hardware_signature: z.string(),
       integrity_assertion: z.string(),
-      hardware_key_tag: z.string(),
-    })
+      nonce: z.string(),
+    }),
   ),
 });
 
@@ -33,16 +34,16 @@ export const WalletInstanceAttestationJwt = z.object({
     Jwt.shape.header,
     z.object({
       typ: z.literal("oauth-client-attestation+jwt"),
-    })
+    }),
   ),
   payload: z.intersection(
     Jwt.shape.payload,
     z.object({
-      sub: z.string(),
       aal: z.string(),
+      sub: z.string(),
       wallet_link: z.string().optional(),
       wallet_name: z.string().optional(),
-    })
+    }),
   ),
 });
 
@@ -52,8 +53,8 @@ export type WalletAttestationResponse = z.infer<
 export const WalletAttestationResponse = z.object({
   wallet_attestations: z.array(
     z.object({
-      wallet_attestation: z.string(),
       format: z.enum(["jwt", "dc+sd-jwt", "mso_mdoc"]),
-    })
+      wallet_attestation: z.string(),
+    }),
   ),
 });

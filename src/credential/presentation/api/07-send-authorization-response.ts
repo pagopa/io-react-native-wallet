@@ -1,14 +1,12 @@
+import type { Out } from "../../../../src/utils/misc";
+import type { EvaluateDcqlQueryApi } from "./06-evaluate-dcql-query";
+import type { RelyingPartyConfig } from "./RelyingPartyConfig";
 import type {
   AuthorizationResponse,
   ErrorResponse,
   RemotePresentation,
   RequestObject,
 } from "./types";
-import type { RelyingPartyConfig } from "./RelyingPartyConfig";
-import type { EvaluateDcqlQueryApi } from "./06-evaluate-dcql-query";
-import type { Out } from "../../../../src/utils/misc";
-type FetchContext = { appFetch?: GlobalFetch["fetch"] };
-
 export interface SendAuthorizationResponseApi {
   /**
    * Prepares remote presentations for a set of credentials.
@@ -25,11 +23,27 @@ export interface SendAuthorizationResponseApi {
   prepareRemotePresentations(
     credentials: Out<EvaluateDcqlQueryApi["evaluateDcqlQuery"]>,
     authRequestObject: {
-      nonce: string;
       clientId: string;
+      nonce: string;
       responseUri: string;
-    }
+    },
   ): Promise<RemotePresentation>;
+
+  /**
+   * Sends the authorization error response to the Relying Party (RP).
+   * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
+   * @since 1.0.0
+   *
+   * @param requestObject The request details, including presentation requirements.
+   * @param error The response error value, with description
+   * @param context Contains optional custom fetch implementation.
+   * @returns Parsed and validated authorization response from the Relying Party.
+   */
+  sendAuthorizationErrorResponse(
+    requestObject: RequestObject,
+    error: { error: ErrorResponse; errorDescription: string },
+    context?: FetchContext,
+  ): Promise<AuthorizationResponse>;
 
   /**
    * Sends the authorization response containing the VP Token to the Relying Party (RP).
@@ -46,22 +60,10 @@ export interface SendAuthorizationResponseApi {
     requestObject: RequestObject,
     remotePresentation: RemotePresentation,
     rpConf?: RelyingPartyConfig,
-    context?: FetchContext
+    context?: FetchContext,
   ): Promise<AuthorizationResponse>;
+}
 
-  /**
-   * Sends the authorization error response to the Relying Party (RP).
-   * This function completes the presentation flow in an OpenID 4 Verifiable Presentations scenario.
-   * @since 1.0.0
-   *
-   * @param requestObject The request details, including presentation requirements.
-   * @param error The response error value, with description
-   * @param context Contains optional custom fetch implementation.
-   * @returns Parsed and validated authorization response from the Relying Party.
-   */
-  sendAuthorizationErrorResponse(
-    requestObject: RequestObject,
-    error: { error: ErrorResponse; errorDescription: string },
-    context?: FetchContext
-  ): Promise<AuthorizationResponse>;
+interface FetchContext {
+  appFetch?: GlobalFetch["fetch"];
 }

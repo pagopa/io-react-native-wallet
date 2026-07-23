@@ -1,10 +1,11 @@
 import type { CredentialsCatalogueApi as Api } from "../api";
+
 import { fetchLocaleBundle } from "./utils";
 
 export const fetchTranslations: NonNullable<Api["fetchTranslations"]> = async (
-  { catalogue, authenticSources, taxonomy },
+  { authenticSources, catalogue, taxonomy },
   locales,
-  { appFetch = fetch } = {}
+  { appFetch = fetch } = {},
 ) => {
   const result: Record<string, Record<string, string>> = {};
 
@@ -28,7 +29,7 @@ export const fetchTranslations: NonNullable<Api["fetchTranslations"]> = async (
       if (Object.keys(merged).length > 0) {
         result[locale] = merged;
       }
-    })
+    }),
   );
 
   return result;

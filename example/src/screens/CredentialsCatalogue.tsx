@@ -1,26 +1,28 @@
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import React, { useCallback, useMemo } from "react";
-import { FlatList, View, type ListRenderItemInfo } from "react-native";
+import { FlatList, type ListRenderItemInfo, View } from "react-native";
+
 import type { TestScenarioProp } from "../components/TestScenario";
+
 import TestScenario from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { useAppDispatch, useAppSelector } from "../store/utils";
-import {
-  getCredentialsCatalogueThunk,
-  getCredentialsCatalogueTranslationsThunk,
-} from "../thunks/credentialsCatalogue";
 import {
   selectCredentialsCatalogue,
   selectCredentialsCatalogueAsyncStatus,
   selectCredentialsCatalogueTranslations,
   selectCredentialsCatalogueTranslationsAsyncStatus,
 } from "../store/reducers/credentialsCatalogue";
+import { useAppDispatch, useAppSelector } from "../store/utils";
+import {
+  getCredentialsCatalogueThunk,
+  getCredentialsCatalogueTranslationsThunk,
+} from "../thunks/credentialsCatalogue";
 
 export const CredentialsCatalogueScreen = () => {
   const asyncStatus = useAppSelector(selectCredentialsCatalogueAsyncStatus);
   const credentialsCatalogue = useAppSelector(selectCredentialsCatalogue);
   const translationsAsyncStatus = useAppSelector(
-    selectCredentialsCatalogueTranslationsAsyncStatus
+    selectCredentialsCatalogueTranslationsAsyncStatus,
   );
   const translations = useAppSelector(selectCredentialsCatalogueTranslations);
 
@@ -29,35 +31,35 @@ export const CredentialsCatalogueScreen = () => {
   useDebugInfo({
     asyncStatus,
     credentialsCatalogue,
-    translationsAsyncStatus,
     translations,
+    translationsAsyncStatus,
   });
 
-  const scenarios: Array<TestScenarioProp> = useMemo(
+  const scenarios: TestScenarioProp[] = useMemo(
     () => [
       {
-        title: "Fetch Credentials Catalogue",
+        hasError: asyncStatus.hasError,
+        icon: "instruction",
+        isDone: asyncStatus.isDone,
+        isLoading: asyncStatus.isLoading,
+        isPresent: !!credentialsCatalogue,
         onPress: () => {
           dispatch(getCredentialsCatalogueThunk());
         },
-        isLoading: asyncStatus.isLoading,
-        hasError: asyncStatus.hasError,
-        isDone: asyncStatus.isDone,
-        icon: "instruction",
-        isPresent: !!credentialsCatalogue,
         successMessage: "OK",
+        title: "Fetch Credentials Catalogue",
       },
       {
-        title: "Fetch Catalogue Translations (it)",
+        hasError: translationsAsyncStatus.hasError,
+        icon: "attachment",
+        isDone: translationsAsyncStatus.isDone,
+        isLoading: translationsAsyncStatus.isLoading,
+        isPresent: !!translations,
         onPress: () => {
           dispatch(getCredentialsCatalogueTranslationsThunk());
         },
-        isLoading: translationsAsyncStatus.isLoading,
-        hasError: translationsAsyncStatus.hasError,
-        isDone: translationsAsyncStatus.isDone,
-        icon: "attachment",
-        isPresent: !!translations,
         successMessage: `Fetched locales: ${Object.keys(translations ?? {}).join(", ") || "none"}`,
+        title: "Fetch Catalogue Translations (it)",
       },
     ],
     [
@@ -66,14 +68,14 @@ export const CredentialsCatalogueScreen = () => {
       credentialsCatalogue,
       translationsAsyncStatus,
       translations,
-    ]
+    ],
   );
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<TestScenarioProp>) => (
       <TestScenario {...item} />
     ),
-    []
+    [],
   );
   return (
     <View>
@@ -82,9 +84,9 @@ export const CredentialsCatalogueScreen = () => {
           margin: IOVisualCostants.appMarginDefault,
         }}
         data={scenarios}
+        ItemSeparatorComponent={VSpacer}
         keyExtractor={(item, index) => `${item.title}-${index}`}
         renderItem={renderItem}
-        ItemSeparatorComponent={VSpacer}
       />
     </View>
   );

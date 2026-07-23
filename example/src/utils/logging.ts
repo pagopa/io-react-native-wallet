@@ -6,14 +6,14 @@ import {
 } from "react-native-logs";
 
 const getRemoteServerTransport = (address: string) => {
-  const customTransport: transportFunctionType<{}> = async (props) => {
+  const customTransport: transportFunctionType<object> = async (props) => {
     await fetch(address, {
-      method: "POST",
+      body: JSON.stringify({ msg: props.msg, ...props.level }),
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ msg: props.msg, ...props.level }),
+      method: "POST",
     }).catch((e) => {
       console.log(e);
     });
@@ -36,27 +36,27 @@ export const initLogging = (address?: string) => {
     : [consoleTransport];
 
   const reactNativeLogger = logger.createLogger({
+    async: true,
+    dateFormat: "time",
+    enabled: true,
+    fixedExtLvlLength: false,
     levels: {
       debug: 0,
+      error: 3,
       info: 1,
       warn: 2,
-      error: 3,
     },
+    printDate: true,
+    printLevel: true,
     severity: "debug",
     transport,
     transportOptions: {
       colors: {
+        error: "redBright",
         info: "blueBright",
         warn: "yellowBright",
-        error: "redBright",
       },
     },
-    async: true,
-    dateFormat: "time",
-    printLevel: true,
-    printDate: true,
-    fixedExtLvlLength: false,
-    enabled: true,
   });
 
   /**
@@ -66,14 +66,14 @@ export const initLogging = (address?: string) => {
     logDebug(msg: string) {
       reactNativeLogger.debug(msg);
     },
+    logError(msg: string) {
+      reactNativeLogger.error(msg);
+    },
     logInfo(msg: string) {
       reactNativeLogger.info(msg);
     },
     logWarn(msg: string) {
       reactNativeLogger.warn(msg);
-    },
-    logError(msg: string) {
-      reactNativeLogger.error(msg);
     },
   };
 

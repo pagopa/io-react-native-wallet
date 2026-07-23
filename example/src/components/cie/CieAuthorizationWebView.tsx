@@ -1,22 +1,23 @@
 import React from "react";
 import { type WebViewNavigation } from "react-native-webview";
+
 import { CIE_L3_REDIRECT_URI } from "../../thunks/pid";
 import { CieWebView, type CieWebViewError } from "./CieWebView";
 
-type CieAuthorizationWebviewProps = {
+interface CieAuthorizationWebviewProps {
   authorizationUrl: string;
   onAuthComplete: (url: string) => void;
   onError: (error: CieWebViewError) => void;
-};
+}
 
 /**
  * Webview used to display to the user the authorization request after the CIE authentication
  */
 export const CieAuthorizationWebview = (
-  props: CieAuthorizationWebviewProps
+  props: CieAuthorizationWebviewProps,
 ) => {
   const handleShouldStartLoadWithRequest = (
-    event: WebViewNavigation
+    event: WebViewNavigation,
   ): boolean => {
     if (event.url.includes(CIE_L3_REDIRECT_URI)) {
       props.onAuthComplete(event.url);
@@ -28,9 +29,9 @@ export const CieAuthorizationWebview = (
 
   return (
     <CieWebView
-      source={{ uri: props.authorizationUrl }}
       onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
       onWebViewError={props.onError}
+      source={{ uri: props.authorizationUrl }}
     />
   );
 };

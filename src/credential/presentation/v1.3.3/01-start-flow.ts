@@ -1,10 +1,12 @@
-import { InvalidQRCodeError } from "../common/errors";
-import type { RemotePresentationApi } from "../api";
-import { PresentationParams } from "../api/types";
 import { validateAuthorizationRequestParams } from "@pagopa/io-wallet-oid4vp";
 
+import type { RemotePresentationApi } from "../api";
+
+import { PresentationParams } from "../api/types";
+import { InvalidQRCodeError } from "../common/errors";
+
 export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (
-  params
+  params,
 ) => {
   const parsed = PresentationParams.safeParse(params);
 
