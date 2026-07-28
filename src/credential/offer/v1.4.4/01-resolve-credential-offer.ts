@@ -9,7 +9,7 @@ import { sdkConfigV1_4 } from "../../../utils/config";
 import { InvalidQRCodeError } from "../common/errors";
 
 /**
- * v1.3.3 implementation — first step of the User Request Flow
+ * First step of the User Request Flow
  * (IT-Wallet spec, Section 12.1.2).
  *
  * Delegates to the SDK's {@link sdkResolveCredentialOffer} for URI parsing

@@ -293,8 +293,6 @@ const processPidPresentationAndCreateAuthzResponse = async ({
       encryptJwe: partialCallbacks.encryptJwe,
       generateRandom: partialCallbacks.generateRandom,
     },
-    // The SDK 1.4 config is used here in order to resolve the encryption data from the Request Object
-    // client_metadata, otherwise OpenID Federation clients always ignore client_metadata as per 1.3.3 specs.
     config: sdkConfigV1_4,
     requestObject,
     rpJwks: {

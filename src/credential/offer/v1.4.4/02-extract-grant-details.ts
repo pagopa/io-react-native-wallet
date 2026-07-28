@@ -10,7 +10,7 @@ import { withMappedErrors } from "../../../utils/errors";
 import { InvalidCredentialOfferError } from "../common/errors";
 
 /**
- * v1.3.3 implementation — second and final step of the User Request Flow
+ * Second and final step of the User Request Flow
  * (IT-Wallet spec, Section 12.1.2).
  *
  * IT-Wallet v1.3 only supports the `authorization_code` grant type;

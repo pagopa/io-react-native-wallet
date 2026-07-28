@@ -9,7 +9,7 @@ import { sdkConfigV1_4 } from "../../../utils/config";
 import { InvalidCredentialOfferError } from "../common/errors";
 
 /**
- * v1.3.3 implementation — validates a resolved Credential Offer against the
+ * Validates a resolved Credential Offer against the
  * Credential Issuer metadata (IT-Wallet spec, Section 12.1.2).
  *
  * Performs the IT-Wallet v1.3 structural checks on the offer and, when the

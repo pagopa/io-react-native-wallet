@@ -6,7 +6,7 @@ It is designed to **support multiple versions of IT-Wallet specifications** via 
 
 Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications:
 - Version [1.0.0](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.0.0)
-- Version [1.3.3](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.3.3)
+- Version [1.4.4](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.4.4)
 
 The following table highlights the relationship between `io-react-native-wallet` and IT-Wallet specifications.
 
@@ -14,7 +14,7 @@ The following table highlights the relationship between `io-react-native-wallet`
 |-----------------|-------------------|
 | `0.30.0`        | `0.7.1`           |
 | `2.x`           | `1.0.0`           |
-| `3.x`           | `1.0.0`, `1.3.3`  |
+| `3.x`           | `1.0.0`, `1.4.4`  |
 
 ## Installation
 

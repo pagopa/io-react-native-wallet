@@ -6,14 +6,14 @@ import { IoWalletError } from "../../../utils/errors";
 
 /**
  * Mapping of status bits to their corresponding meaning as defined in the specification.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/credential-revocation.html#token-status-lists
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/credential-revocation.html#token-status-lists
  */
 const CredentialStatusMap = {
   0x00: "VALID",
   0x01: "INVALID",
   0x02: "SUSPENDED",
   0x03: "UPDATE",
-  0x0b: "ATTRIBUTE_UPDATE",
+  0x0F: "ATTRIBUTE_UPDATE",
 } as const;
 
 type CredentialStatusBit = keyof typeof CredentialStatusMap;

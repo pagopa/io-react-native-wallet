@@ -14,14 +14,14 @@ wallet.WalletInstance.createWalletInstance(...)
 
 ## Versioning
 
-The library supports multiple IT-Wallet specification versions (`1.0.0`, `1.3.3`). Each feature module provides per-version implementations:
+The library supports multiple IT-Wallet specification versions (`1.0.0`, `1.4.4`). Each feature module provides per-version implementations:
 
 ```
 src/<feature>/
 ├── api/            # Shared API types and contracts
 ├── common/         # Shared logic across versions
 ├── v1.0.0/         # v1.0.0 implementation
-├── v1.3.3/         # v1.3.3 implementation
+├── v1.4.4/         # v1.4.4 implementation
 └── index.ts        # Exports V1_0_0 and V1_4_4 named implementations
 ```
 

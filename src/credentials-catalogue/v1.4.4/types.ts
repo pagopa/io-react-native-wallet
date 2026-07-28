@@ -148,7 +148,7 @@ const JwtHeader = z.object({
 
 /**
  * Schema registry, available at a dedicated endpoint.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#schema-registry
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/registry.html#schema-registry
  */
 export const SchemaRegistry = z.object({
   last_modified: z.string().optional(),
@@ -160,7 +160,7 @@ export type SchemaRegistry = z.infer<typeof SchemaRegistry>;
 
 /**
  * Authentic Source registry, available at a dedicated endpoint.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#authentic-source-registry
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/registry.html#authentic-source-registry
  */
 export const AuthenticSourceRegistry = z.object({
   authentic_sources: z.array(AuthenticSource),
@@ -180,7 +180,7 @@ export type AuthenticSourceRegistry = z.infer<typeof AuthenticSourceRegistry>;
 
 /**
  * The Digital Credentials Catalogue published by the Trust Anchor.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#digital-credentials-catalog
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/registry.html#digital-credentials-catalog
  */
 export const DigitalCredentialsCatalogueJwt = z.object({
   header: JwtHeader,
@@ -209,7 +209,7 @@ export type DigitalCredentialsCatalogueJwt = z.infer<
 /**
  * Registry discovery info, used to discover all the Registry Infrastructure endpoints.
  * This is the entrypoint to build the full catalogue.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#registry-discovery-endpoint
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/registry.html#registry-discovery-endpoint
  */
 const RegistryDiscoveryEndpoints = z.object({
   authentic_sources: z.string(),
@@ -263,7 +263,7 @@ const TaxonomyDomain = z.object({
 /**
  * Taxonomy registry, available at a dedicated endpoint.
  * Provides a hierarchical classification of domains, classes, and purposes.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/registry.html#taxonomy
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/registry.html#taxonomy
  */
 export const TaxonomyRegistry = z.object({
   description_l10n_id: z.string(),

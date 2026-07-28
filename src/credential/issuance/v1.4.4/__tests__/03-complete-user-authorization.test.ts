@@ -16,7 +16,7 @@ jest.mock("@pagopa/io-wallet-oid4vp", () => ({
   parseAuthorizeRequest: jest.fn(),
 }));
 
-jest.mock("../../../presentation/v1.3.3", () => ({
+jest.mock("../../../presentation/v1.4.4", () => ({
   RemotePresentation: {
     evaluateDcqlQuery: jest.fn(),
     prepareRemotePresentations: jest.fn(),
