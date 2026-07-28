@@ -1,3 +1,4 @@
-example: example/**/*
-docs: docs/**/*
+example: apps/example-app/**/*
+docs:
+  - "**/*.md"
 ci: .github/workflows/**/*

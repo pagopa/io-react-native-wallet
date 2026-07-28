@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "IoReactNativeWalletExample",
+    "slug": "@io-app-it-wallet/example-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": ["iowalletexample", "iowallelogincie"],
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.ioappitwalletexampleapp",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["http", "https", "CIEID"],
+        "NFCReaderUsageDescription": "Read CIE",
+        "NSBluetoothAlwaysUsageDescription": "$(PRODUCT_NAME) needs access BLE.",
+        "NSBluetoothPeripheralUsageDescription": "$(PRODUCT_NAME) needs access BLE.",
+        "NSBluetoothScanUsageDescription": "$(PRODUCT_NAME) needs access to scan for nearby Bluetooth devices.",
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) needs access your location.",
+        "NSLocationWhenInUseUsageDescription": ""
+      },
+      "entitlements": {
+        "com.apple.developer.nfc.readersession.formats": ["TAG"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.ioappitwalletexampleapp",
+      "permissions": [
+        "android.permission.NFC",
+        "android.permission.CAMERA",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_ADVERTISE",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      "./scripts/android-fix-bouncy-castle-dependency.js"
+    ]
+  }
+}
