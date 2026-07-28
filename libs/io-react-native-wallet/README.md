@@ -1,14 +1,256 @@
-# io-react-native-wallet
+# 🪪 @pagopa/io-react-native-wallet
 
-This React Native library is the main library of the IT-Wallet implementation.
+Library which provides a high level abstraction to interact with the IT-Wallet ecosystem via predefined flows, a set of utilities and helpers.
 
-## Prerequisites
+It is designed to **support multiple versions of IT-Wallet specifications** via a unified API interface that keeps consumers unaware of specific versions nuances.
 
-Run all commands from the monorepo root through Nx.
+Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications:
+- Version [1.0.0](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.0.0)
+- Version [1.3.3](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.3.3)
 
-## Regenerate the wallet-provider client from its OpenAPI specification:
+The following table highlights the relationship between `io-react-native-wallet` and IT-Wallet specifications.
+
+| Library version | IT-Wallet version |
+|-----------------|-------------------|
+| `0.30.0`        | `0.7.1`           |
+| `2.x`           | `1.0.0`           |
+| `3.x`           | `1.0.0`, `1.3.3`  |
+
+## Installation
+
+```sh
+# Install the required dependencies specified in the peerDependencies of the package.json
+
+# Library
+yarn install @pagopa/io-react-native-wallet
+```
+
+## Initialization
+
+To get started, create an instance of `IoWallet` specifying the desired IT-Wallet version.
+
+```ts
+import { IoWallet } from "@pagopa/io-react-native-wallet"
+
+const wallet = new IoWallet({ version: "1.0.0" })
+```
+
+After instantiation, the Wallet features are available under namespaces and are bound to the specified IT-Wallet version.
+```ts
+// An example that retrieves Entity Configurations
+const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust()
+const { rpConf } = await wallet.CredentialPresentation.evaluateRelyingPartyTrust()
+```
+
+It is possible to directly import errors and types without instantiating `IoWallet` if they are global and shared across versions.
+
+```ts
+import { CredentialIssuance } from "@pagopa/io-react-native-wallet"
+
+type IssuerConf = CredentialIssuance.IssuerConfig
+
+// catch(error) { ...
+if (error instanceof CredentialIssuance.Errors.AuthorizationError) {}
+```
+
+## Contexts
+
+The library makes use of contexts to delegate certain aspects of the implementation to the application. Some of these aspects might greatly vary depending on the consumer application. This allows the library to be more flexible by not forcing the application to use a specific implementation and also to focus on the core functionalities.
+
+Currently the library uses the following contexts:
+
+<details>
+  <summary>CryptoContext (cryptographic assets handling)</summary>
+
+User flows implementions make use of tokens signed using asymmetric key pairs. Such cryptographic keys are managed by the device according to its specifications. It's not the intention of this package to handle such cryptographic assets and their peculiarities; instead, an handy interface is used to provide the right abstraction to allow responsibilities segregation:
+
+- The application knows who to generate/store/delete keys;
+- The package knows when and where to use them.
+
+The interface is `CryptoContext` inherited from the `@pagopa/io-react-native-jwt` package:
+
+The suggested library to manage cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto).
+
+```ts
+export interface CryptoContext {
+  /**
+   * Retrieves the public key to be used in this context.
+   * MUST be the same key at every invocation.
+   * @returns The public key to be used
+   * @throws If no keys are found
+   */
+  getPublicKey: () => Promise<JWK>;
+  /**
+   * Produce a cryptographic signature for a given value.
+   * The signature MUST be produced using the private key paired with the public retrieved by getPublicKey()
+   * @param value The value to be signed
+   * @returns The signature
+   * @throws If no keys are found
+   */
+  getSignature: (value: string) => Promise<string>;
+}
+```
+
+This package provides an helper to build a `CryptoContext` object bound to a given key tag
+
+```ts
+import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+
+const ctx = createCryptoContextFor("my-tag");
+```
+
+The
+
+**Be sure the key for `my-tag` already exists.**
+
+</details>
+
+<details>
+  <summary>IntegrityToken (device integrity)</summary>
+
+In order to ensure the integrity of the device, the library asks the consumer application to provide a way to generate a token that can be used to verify the device integrity. This is done by providing an IntegrityToken object formed as follows:
+
+```ts
+/**
+ * Interface for the integrity context which provides the necessary functions to interact with the integrity service.
+ * The functions are platform specific and must be implemented in the platform specific code.
+ * getHardwareKeyTag: returns the hardware key tag in a url safe format (e.g. base64url).
+ * getAttestation: requests the attestation from the integrity service.
+ * getHardwareSignatureWithAuthData: signs the clientData and returns the signature with the authenticator data.
+ */
+export interface IntegrityContext {
+  getHardwareKeyTag: () => string;
+  getAttestation: (nonce: string) => Promise<string>;
+  getHardwareSignatureWithAuthData: (
+    clientData: string
+  ) => Promise<HardwareSignatureWithAuthData>;
+}
+```
+
+Usually this is achieved by using [Google Play Integrity API](https://developer.android.com/google/play/integrity/overview) and [Key Attestation](https://developer.android.com/privacy-and-security/security-key-attestation) on Android, [DCAppAttestService](https://developer.apple.com/documentation/devicecheck/establishing-your-app-s-integrity) on iOS.
+
+The suggested library to manage integrity is [io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity).
+
+</details>
+
+<details>
+  <summary>LoggingContext (logging)</summary>
+
+In order to log useful information while implementing the flows, the library supports custom logging logic by providing a `loggingContext` to the static `Logger` class:
+
+```ts
+export interface LoggingContext {
+  logDebug: (msg: string) => void;
+  logInfo: (msg: string) => void;
+  logWarn: (msg: string) => void;
+  logError: (msg: string) => void;
+}
+```
+
+An example of a custom logging context:
+
+```ts
+import { Logging } from "@pagopa/io-react-native-wallet";
+
+const loggingContext: Logging.LoggingContext = {
+  logDebug(msg: string) {
+    console.log("debug", msg);
+  },
+  logInfo(msg: string) {
+    console.log("info", msg);
+  },
+  logWarn(msg: string) {
+    console.log("warn", msg);
+  },
+  logError(msg: string) {
+    console.log("error", msg);
+  },
+};
+
+Logging.Logger.getInstance().initLogging(loggingContext);
+```
+
+</details>
+
+<details>
+  <summary>appFetch (making HTTP requests)</summary>
+
+This package is compatibile with any http client which implements [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Functions that makes http requests allow for an optional `appFetch` parameter to provide a custom http client implementation. If not provided, the built-in implementation on the runtime is used.
+
+</details>
+
+### Flows
+
+Different flows are provided to perform common operations. Each flow is a set of steps that must be executed in a given order. The documentation is provided inside the related folder:
+
+- Wallet Instance
+  - [Creation](./src/wallet-instance/README.md)
+  - [Attestation](./src/wallet-instance-attestation/README.md)
+- Credentail
+  - [Issuance](./src/credential/issuance/README.md)
+  - [Offer](./src/credential/offer/README.md)
+  - [Presentation](./src/credential/presentation/README.md)
+  - [Status](./src/credential/status/README.md)
+  - [Trustmark](./src/credential/trustmark/README.md)
+
+### Example
+
+An example app is provided in the [example-app](../../apps/example-app) folder which demostrates how to implemente these flows. To run it, follow the instructions in the [README](../../apps/example-app/README.md).
+
+### Ecosystem
+
+`io-react-native-wallet` is designed to be used in [io-app](https://github.com/pagopa/io-app) and its ecosystem. There are a few libraries that can be used to implement the context required to implement the flows defined by this package.
+Below there's a list of the libraries and a schema of how they interact with each other:
+
+- [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Used to manage cryptographic keys and signatures
+- [@pagopa/io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity) - Used to manage and verify the integrity of the device
+- [@pagopa/io-react-native-secure-storage](https://github.com/pagopa/io-react-native-secure-storage) - Used to store data securely on the device
+
+```mermaid
+graph TD;
+    ioa[io-app]
+    iornw[io-react-native-wallet]
+    iornc[io-react-native-crypto]
+    iorni[io-react-native-integrity]
+    iornss[io-react-native-secure-storage]
+    iornjwt[io-react-native-jwt]
+    iorncie[io-react-native-cie]
+    rnw(react-native-webview)
+
+    ioa --> iornw
+    iornw --> iornjwt
+    iornw --> iorncie
+    iornw --> rnw
+
+    subgraph IoApp Deps
+      direction TB
+      iornc
+      iorni
+      iornlu
+      iornss
+    end
+
+    subgraph IoRnWallet Deps
+      iornjwt
+      iorncie
+      rnw
+    end
+
+    ioa --> |dependency to implement CryptoContext| iornc
+    ioa --> |dependency to implement IntegrityContext| iorni
+    ioa --> |dependency to implement AuthorizationContext| iornlu
+    ioa --> |dependency to store credentials| iornss
+
+```
+
+## Development
+
+This library is part of an Nx monorepo. Run all commands from the monorepo root through Nx.
+
+### Regenerate the wallet-provider client from its OpenAPI specification
 
 This must be run every time the OpenAPI specification under `libs/io-react-native-wallet/openapi` is updated.
+
 ```sh
 pnpm nx run io-react-native-wallet:generate
 ```
