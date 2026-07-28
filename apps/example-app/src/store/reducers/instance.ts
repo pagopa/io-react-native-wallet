@@ -12,13 +12,13 @@ import { instanceReset } from "../instance";
 import { asyncStatusInitial } from "../utils";
 import { sessionReset } from "./session";
 
+export { instanceReset } from "../instance";
 export {
-  instanceReset,
   selectHasInstanceKeyTag,
   selectInstanceAsyncStatus,
   selectInstanceKeyTag,
   selectInstanceRevocationAsyncStatus,
-} from "../instance";
+} from "../selectors/instance";
 
 /**
  * State type definition for the wallet instance slice

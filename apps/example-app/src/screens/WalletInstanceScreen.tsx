@@ -9,13 +9,7 @@ import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import {
-  instanceReset,
-  selectHasInstanceKeyTag,
-  selectInstanceAsyncStatus,
-  selectInstanceKeyTag,
-  selectInstanceRevocationAsyncStatus,
-} from "../store/instance";
+import { instanceReset } from "../store/instance";
 import {
   selectWalletInstanceAttestationAsJwt,
   selectWalletInstanceAttestationAsSdJwt,
@@ -24,6 +18,12 @@ import {
   selectWalletUnitAttestationAsyncState,
 } from "../store/reducers/attestation";
 import { selectItwVersion } from "../store/reducers/environment";
+import {
+  selectHasInstanceKeyTag,
+  selectInstanceAsyncStatus,
+  selectInstanceKeyTag,
+  selectInstanceRevocationAsyncStatus,
+} from "../store/selectors/instance";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   getWalletInstanceAttestationThunk,

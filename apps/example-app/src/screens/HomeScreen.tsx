@@ -11,11 +11,11 @@ import { Alert, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { selectHasInstanceKeyTag } from "../store/instance";
 import { selectWalletUnitAttestation } from "../store/reducers/attestation";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectPid } from "../store/reducers/pid";
 import { selectIoAuthToken } from "../store/reducers/session";
+import { selectHasInstanceKeyTag } from "../store/selectors/instance";
 import { useAppSelector } from "../store/utils";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;

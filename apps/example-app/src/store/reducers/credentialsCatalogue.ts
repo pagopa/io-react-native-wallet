@@ -15,7 +15,7 @@ export {
   selectCredentialsCatalogueAsyncStatus,
   selectCredentialsCatalogueTranslations,
   selectCredentialsCatalogueTranslationsAsyncStatus,
-} from "../credentialsCatalogue";
+} from "../selectors/credentialsCatalogue";
 
 export interface CredentialsCatalogueState {
   asyncStatus: AsyncStatus;

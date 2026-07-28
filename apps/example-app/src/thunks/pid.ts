@@ -7,12 +7,12 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
 
 import { credentialReset } from "../store/credential";
-import { selectPidFlowParams } from "../store/pid";
 import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../store/reducers/attestation";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectPidFlowParams } from "../store/selectors/pid";
 import { type PidAuthMethods, type PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";

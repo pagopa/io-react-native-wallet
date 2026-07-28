@@ -3,8 +3,8 @@ import {
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
 
-import { selectCredentialsCatalogue } from "../store/credentialsCatalogue";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectCredentialsCatalogue } from "../store/selectors/credentialsCatalogue";
 import { getEnv } from "../utils/environment";
 import { createAppAsyncThunk } from "./utils";
 

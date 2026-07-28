@@ -1,7 +1,8 @@
 import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
 
-import { instanceReset, selectInstanceKeyTag } from "../store/instance";
+import { instanceReset } from "../store/instance";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectInstanceKeyTag } from "../store/selectors/instance";
 import { isAndroid } from "../utils/device";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";

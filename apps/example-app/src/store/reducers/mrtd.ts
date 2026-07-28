@@ -15,7 +15,7 @@ export {
   selectMrtdChallenge,
   selectMrtdChallengeCallbackUrl,
   selectMrtdFlowParams,
-} from "../mrtd";
+} from "../selectors/mrtd";
 
 export interface MrtdState {
   asyncStatus: AsyncStatus;

@@ -11,8 +11,8 @@ import { generate } from "@pagopa/io-react-native-crypto";
 import { getAttestation } from "@pagopa/io-react-native-integrity";
 import { Platform } from "react-native";
 
-import { selectInstanceKeyTag } from "../store/instance";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectInstanceKeyTag } from "../store/selectors/instance";
 import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { isAndroid } from "../utils/device";
 import { getEnv } from "../utils/environment";

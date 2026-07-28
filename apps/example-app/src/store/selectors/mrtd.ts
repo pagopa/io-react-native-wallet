@@ -1,4 +1,4 @@
-import type { RootState } from "./types";
+import type { RootState } from "../types";
 
 export const selectMrtdAsyncStatus = (state: RootState) =>
   state.mrtd.asyncStatus;

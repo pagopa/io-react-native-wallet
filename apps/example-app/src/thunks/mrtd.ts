@@ -4,9 +4,9 @@ import {
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
 
-import { selectMrtdFlowParams } from "../store/mrtd";
-import { selectPidFlowParams } from "../store/pid";
 import { selectItwVersion } from "../store/reducers/environment";
+import { selectMrtdFlowParams } from "../store/selectors/mrtd";
+import { selectPidFlowParams } from "../store/selectors/pid";
 import { WIA_KEYTAG } from "../utils/crypto";
 import appFetch from "../utils/fetch";
 import { createAppAsyncThunk } from "./utils";

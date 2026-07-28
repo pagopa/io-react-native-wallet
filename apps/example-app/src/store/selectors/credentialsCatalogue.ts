@@ -1,6 +1,6 @@
 import type { CredentialsCatalogue } from "@io-app-it-wallet/io-react-native-wallet";
 
-import type { AsyncStatus, RootState } from "./types";
+import type { AsyncStatus, RootState } from "../types";
 
 export const selectCredentialsCatalogueAsyncStatus = (
   state: RootState,

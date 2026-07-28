@@ -6,9 +6,9 @@ import { ClientIdPrefix } from "@pagopa/io-wallet-oid4vp";
 
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 
-import { selectPid } from "../store/pid";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectItwVersion } from "../store/reducers/environment";
+import { selectPid } from "../store/selectors/pid";
 import { isDefined } from "../utils/misc";
 import { createAppAsyncThunk } from "./utils";
 

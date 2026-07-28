@@ -14,12 +14,12 @@ import type {
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 
-import { selectPid } from "../store/pid";
 import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../store/reducers/attestation";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectPid } from "../store/selectors/pid";
 import {
   getCredential,
   getCredentialStatusAssertion,

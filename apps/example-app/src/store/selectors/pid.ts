@@ -1,4 +1,4 @@
-import type { PidAuthMethods, RootState } from "./types";
+import type { PidAuthMethods, RootState } from "../types";
 
 export const selectPid = (state: RootState) => state.pid.pid;
 
