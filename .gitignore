@@ -18,11 +18,7 @@ node_modules
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 
 # misc
 /.sass-cache
@@ -64,3 +60,7 @@ test-output
 
 # Legacy source used only as a migration reference
 /temp/
+
+# example-app native folders (generated via expo prebuild)
+/apps/example-app/android/
+/apps/example-app/ios/

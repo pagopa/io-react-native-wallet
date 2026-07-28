@@ -19,7 +19,6 @@ permissions:
 jobs:
   code-review:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
 
     steps:
       - name: Checkout
