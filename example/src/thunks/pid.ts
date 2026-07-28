@@ -230,7 +230,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   const credentialKeyTag = uuidv4().toString();
   let walletUnitAttestation: string | undefined;
 
-  if (wallet.WalletUnitAttestation.isSupported) {
+  if (wallet.KeyAttestation.isSupported) {
     const wua = await dispatch(
       getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] }),
     ).unwrap();
@@ -255,7 +255,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
         appFetch,
         credentialCryptoContext,
         dPopCryptoContext,
-        walletUnitAttestation,
+        keyAttestation: walletUnitAttestation,
       },
     );
 

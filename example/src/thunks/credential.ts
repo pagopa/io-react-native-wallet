@@ -128,7 +128,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   const generateKeysWithAttestation = async (
     credentialKeyTags: string[],
   ): Promise<string | undefined> => {
-    if (wallet.WalletUnitAttestation.isSupported) {
+    if (wallet.KeyAttestation.isSupported) {
       const wua = await dispatch(
         getWalletUnitAttestationThunk({ keyTags: credentialKeyTags }),
       ).unwrap();

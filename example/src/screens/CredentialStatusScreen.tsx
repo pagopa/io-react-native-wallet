@@ -66,7 +66,7 @@ export const CredentialStatusScreen = () => {
             format: "dc+sd-jwt",
           }),
         ),
-      title: "Get Status List (WUA)",
+      title: "Get Status List (KA)",
       ...asyncStatus.walletUnitAttestation,
       icon: "locked",
       isPresent: !!status.walletUnitAttestation,

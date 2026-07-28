@@ -34,7 +34,7 @@ import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
 
-const itwVersions: ItwVersion[] = ["1.0.0", "1.3.3"];
+const itwVersions: ItwVersion[] = ["1.0.0", "1.4.4"];
 
 /**
  * Settings screen component which allows to change the environment and manage the session.

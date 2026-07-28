@@ -59,7 +59,7 @@ export const WalletInstanceScreen = () => {
     [itwVersion],
   );
 
-  const isWuaSupported = ioWallet.WalletUnitAttestation.isSupported;
+  const isWuaSupported = ioWallet.KeyAttestation.isSupported;
 
   useDebugInfo({
     instanceKeyTag,
@@ -125,7 +125,7 @@ export const WalletInstanceScreen = () => {
             keyTags: Array.from({ length: 2 }).map(() => uuidv4().toString()),
           }),
         ),
-      title: "Get Wallet Unit Attestation (2 keys)",
+      title: "Get Key Attestation (2 keys)",
     },
     {
       hasError: instanceRevocationState.hasError,

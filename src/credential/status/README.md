@@ -100,7 +100,7 @@ return {
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.3.3" });
+const wallet = new IoWallet({ version: "1.4.4" });
 
 const credentialIssuerUrl = "https://issuer.example.com";
 

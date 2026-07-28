@@ -5,7 +5,7 @@ import {
   IoWallet,
   type KeyAttestationCryptoContext,
   type WalletInstanceAttestation as Wia,
-  type WalletUnitAttestation as Wua,
+  type KeyAttestation as Ka,
 } from "@pagopa/io-react-native-wallet";
 import { Platform } from "react-native";
 
@@ -77,7 +77,7 @@ interface GetWalletUnitAttestationThunkInput {
   keyTags: string[];
 }
 type GetWalletUnitAttestationThunkOutput = Awaited<
-  ReturnType<Wua.WalletUnitAttestationSupportedApi["getAttestation"]>
+  ReturnType<Ka.KeyAttestationSupportedApi["getAttestation"]>
 >;
 export const getWalletUnitAttestationThunk = createAppAsyncThunk<
   GetWalletUnitAttestationThunkOutput,
@@ -86,7 +86,7 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
-  if (!wallet.WalletUnitAttestation.isSupported) {
+  if (!wallet.KeyAttestation.isSupported) {
     throw new Error(
       `Wallet Unit Attestation is not supported in v${itwVersion}`,
     );
@@ -107,7 +107,7 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
     : undefined;
   await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
 
-  return await wallet.WalletUnitAttestation.getAttestation(
+  return await wallet.KeyAttestation.getAttestation(
     {
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
       walletSolutionId: "appio",

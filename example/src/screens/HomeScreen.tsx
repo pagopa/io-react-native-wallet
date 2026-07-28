@@ -90,7 +90,7 @@ const HomeScreen = () => {
         onPress: () =>
           wua || pid
             ? navigation.navigate("CredentialStatus")
-            : Alert.alert("Obtain a WUA or a PID first"),
+            : Alert.alert("Obtain a KA or a PID first"),
       },
       {
         description: "Obtain the trustmark of a credential",
