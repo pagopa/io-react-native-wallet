@@ -13,12 +13,14 @@ import { TypeMetadata, Verification } from "./types";
 
 /**
  * Retrieve the Type Metadata for a credential and verify its integrity.
- * @param vct The VCT as a valid HTTPS url
+ * @param issuerUrl The Credential Issuer base url
+ * @param vct The VCT as a URN
  * @param vctIntegrity The integrity hash
  * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
  * @returns The credential metadata {@link TypeMetadata}
  */
 export const fetchTypeMetadata = async (
+  issuerUrl: string,
   vct: string,
   vctIntegrity: string,
   context: {
@@ -26,9 +28,11 @@ export const fetchTypeMetadata = async (
   } = {},
 ): Promise<TypeMetadata> => {
   const { appFetch = fetch } = context;
-  const { origin, pathname } = new URL(vct);
 
-  const metadata = await appFetch(`${origin}/.well-known/vct${pathname}`, {
+  const url = new URL("/.well-known/type-metadata", issuerUrl)
+  url.searchParams.append("vct", vct)
+
+  const metadata = await appFetch(url.toString(), {
     headers: {
       "Content-Type": "application/json",
     },
