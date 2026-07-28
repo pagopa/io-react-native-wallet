@@ -222,6 +222,9 @@ importers:
       expo-build-properties:
         specifier: ~56.0.24
         version: 56.0.24(expo@56.0.17)
+      expo-font:
+        specifier: ~56.0.7
+        version: 56.0.7(expo@56.0.17)(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       expo-splash-screen:
         specifier: '*'
         version: 56.0.14(expo@56.0.17)(supports-color@8.1.1)(typescript@6.0.3)
@@ -13489,11 +13492,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(supports-color@7.2.0)(typescript@6.0.3))(supports-color@8.1.1)':
+  '@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@6.0.3))(supports-color@8.1.1)':
     dependencies:
       '@babel/core': 7.29.7(supports-color@8.1.1)
       '@svgr/babel-preset': 8.1.0(@babel/core@7.29.7(supports-color@8.1.1))
-      '@svgr/core': 8.1.0(supports-color@7.2.0)(typescript@6.0.3)
+      '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@6.0.3)
       '@svgr/hast-util-to-babel-ast': 8.0.0
       svg-parser: 2.0.4
     transitivePeerDependencies:
@@ -13502,6 +13505,15 @@ snapshots:
   '@svgr/plugin-svgo@8.1.0(@svgr/core@8.1.0(supports-color@7.2.0)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:
       '@svgr/core': 8.1.0(supports-color@7.2.0)(typescript@6.0.3)
+      cosmiconfig: 8.3.6(typescript@6.0.3)
+      deepmerge: 4.3.1
+      svgo: 3.3.4
+    transitivePeerDependencies:
+      - typescript
+
+  '@svgr/plugin-svgo@8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@6.0.3))(typescript@6.0.3)':
+    dependencies:
+      '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@6.0.3)
       cosmiconfig: 8.3.6(typescript@6.0.3)
       deepmerge: 4.3.1
       svgo: 3.3.4
@@ -15959,7 +15971,7 @@ snapshots:
 
   expo-keep-awake@56.0.3(expo@56.0.17)(react@19.2.3):
     dependencies:
-      expo: 56.0.17(9e379b53e6c16069d2fbb9c1164725e9)
+      expo: 56.0.17(040f95ae6559c073f771636236fa8dcb)
       react: 19.2.3
 
   expo-modules-autolinking@56.0.21(supports-color@7.2.0)(typescript@6.0.3):
@@ -19798,8 +19810,8 @@ snapshots:
   react-native-svg-transformer@1.5.3(react-native-svg@15.15.5(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3):
     dependencies:
       '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@6.0.3)
-      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(supports-color@7.2.0)(typescript@6.0.3))(supports-color@8.1.1)
-      '@svgr/plugin-svgo': 8.1.0(@svgr/core@8.1.0(supports-color@7.2.0)(typescript@6.0.3))(typescript@6.0.3)
+      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@6.0.3))(supports-color@8.1.1)
+      '@svgr/plugin-svgo': 8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@6.0.3))(typescript@6.0.3)
       path-dirname: 1.0.2
       react-native: 0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)
       react-native-svg: 15.15.5(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)

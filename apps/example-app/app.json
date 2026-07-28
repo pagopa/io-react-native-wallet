@@ -61,6 +61,42 @@
           }
         }
       ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/FiraCode/FiraCode-Medium.ttf",
+            "./assets/fonts/Titillio/Titillio-Black.otf",
+            "./assets/fonts/Titillio/Titillio-BlackItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Bold.otf",
+            "./assets/fonts/Titillio/Titillio-BoldItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Extrablack.otf",
+            "./assets/fonts/Titillio/Titillio-ExtrablackItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Extrabold.otf",
+            "./assets/fonts/Titillio/Titillio-ExtraboldItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Light.otf",
+            "./assets/fonts/Titillio/Titillio-LightItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Regular.otf",
+            "./assets/fonts/Titillio/Titillio-RegularItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Semibold.otf",
+            "./assets/fonts/Titillio/Titillio-SemiboldItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Thin.otf",
+            "./assets/fonts/Titillio/Titillio-ThinItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Black.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-BlackItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Bold.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-BoldItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Italic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Light.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-LightItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Regular.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Semibold.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-SemiboldItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Thin.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-ThinItalic.otf"
+          ]
+        }
+      ],
       "./scripts/android-fix-bouncy-castle-dependency.js"
     ]
   }

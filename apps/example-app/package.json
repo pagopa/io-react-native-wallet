@@ -28,6 +28,7 @@
     "@testing-library/react-native": "*",
     "expo": "*",
     "expo-build-properties": "~56.0.24",
+    "expo-font": "~56.0.7",
     "expo-splash-screen": "*",
     "expo-status-bar": "*",
     "expo-system-ui": "*",
