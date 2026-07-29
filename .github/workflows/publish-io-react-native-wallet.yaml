@@ -1,4 +1,5 @@
 name: Publish @pagopa/io-react-native-wallet to NPM
+description: This workflow will publish the @pagopa/io-react-native-wallet package to NPM when a new release is created.
 
 on:
   release:

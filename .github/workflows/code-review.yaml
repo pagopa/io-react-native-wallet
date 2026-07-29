@@ -1,7 +1,5 @@
-# This workflow will perform the code review on each code change.
-# It uses the shared setup action and Nx affected to run tasks only on changed projects.
-
 name: Code Review
+description: This workflow will perform the code review on each code change. It uses the shared setup action and Nx affected to run tasks only on changed projects.
 
 on:
   push:
