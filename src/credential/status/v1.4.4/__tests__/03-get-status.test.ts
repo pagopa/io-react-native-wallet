@@ -11,7 +11,7 @@ describe("getStatus", () => {
     [4] VALID             0x00
     [5] UPDATE            0x03
     [6] VALID             0x00
-    [7] ATTRIBUTE_UPDATE  0x0b
+    [7] ATTRIBUTE_UPDATE  0x0f
     [8] VALID             0x00
     [9] SUSPENDED         0x02
   */
@@ -19,8 +19,8 @@ describe("getStatus", () => {
     exp: 1778935863,
     iat: 1778849463,
     status_list: {
-      bits: 4,
-      lst: "H4sIAAAAAAAEExNQMNigAABBpDD9BQAAAA",
+      bits: 8,
+      lst: "H4sIAAAAAAAAE2NgZGBiYGbgZ2ACAN0xnMEKAAAA",
     },
     sub: "https://example/wp",
   } satisfies StatusList;
@@ -48,7 +48,7 @@ describe("getStatus", () => {
     },
     {
       expectedStatus: "ATTRIBUTE_UPDATE",
-      expectedStatusBit: "0x0B",
+      expectedStatusBit: "0x0F",
       idx: 7,
     },
   ])(
