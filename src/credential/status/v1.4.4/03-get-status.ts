@@ -13,7 +13,7 @@ const CredentialStatusMap = {
   0x01: "INVALID",
   0x02: "SUSPENDED",
   0x03: "UPDATE",
-  0x0F: "ATTRIBUTE_UPDATE",
+  0x0f: "ATTRIBUTE_UPDATE",
 } as const;
 
 type CredentialStatusBit = keyof typeof CredentialStatusMap;

@@ -3,9 +3,9 @@ import { getAttestation } from "@pagopa/io-react-native-integrity";
 import {
   createCryptoContextFor,
   IoWallet,
+  type KeyAttestation as Ka,
   type KeyAttestationCryptoContext,
   type WalletInstanceAttestation as Wia,
-  type KeyAttestation as Ka,
 } from "@pagopa/io-react-native-wallet";
 import { Platform } from "react-native";
 

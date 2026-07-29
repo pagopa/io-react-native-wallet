@@ -29,8 +29,8 @@ export const fetchTypeMetadata = async (
 ): Promise<TypeMetadata> => {
   const { appFetch = fetch } = context;
 
-  const url = new URL("/.well-known/type-metadata", issuerUrl)
-  url.searchParams.append("vct", vct)
+  const url = new URL("/.well-known/type-metadata", issuerUrl);
+  url.searchParams.append("vct", vct);
 
   const metadata = await appFetch(url.toString(), {
     headers: {

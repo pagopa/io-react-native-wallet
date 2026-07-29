@@ -2,6 +2,7 @@ import {
   fetchMetadata,
   type MetadataResponseV1_4,
 } from "@pagopa/io-wallet-oid4vci";
+
 import type { IssuanceApi } from "../api";
 
 import { sdkConfigV1_4 } from "../../../utils/config";

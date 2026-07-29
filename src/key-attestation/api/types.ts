@@ -14,9 +14,7 @@ const Status = z.object({
  * Common Key Attestation shape. This object is
  * an abstraction over the version-specific JWTs.
  */
-export type DecodedKeyAttestation = z.infer<
-  typeof DecodedKeyAttestation
->;
+export type DecodedKeyAttestation = z.infer<typeof DecodedKeyAttestation>;
 export const DecodedKeyAttestation = z.object({
   attested_keys: z.array(JWK),
   exp: UnixTime,

@@ -10,6 +10,7 @@ import * as RemotePresentation from "./credential/presentation";
 import * as CredentialStatus from "./credential/status";
 import * as Trustmark from "./credential/trustmark";
 import * as CredentialsCatalogue from "./credentials-catalogue";
+import * as KeyAttestation from "./key-attestation";
 import * as Mdoc from "./mdoc";
 import * as SdJwt from "./sd-jwt";
 import * as Trust from "./trust";
@@ -23,7 +24,6 @@ import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import * as WalletInstance from "./wallet-instance";
 import * as WalletInstanceAttestation from "./wallet-instance-attestation";
-import * as KeyAttestation from "./key-attestation";
 
 export {
   AuthorizationDetail,
@@ -35,6 +35,7 @@ export {
   CredentialStatus,
   Errors,
   fixBase64EncodingOnKey,
+  KeyAttestation,
   Logging,
   Mdoc,
   RemotePresentation,
@@ -43,7 +44,6 @@ export {
   Trustmark,
   WalletInstance,
   WalletInstanceAttestation,
-  KeyAttestation,
 };
 
 export type {

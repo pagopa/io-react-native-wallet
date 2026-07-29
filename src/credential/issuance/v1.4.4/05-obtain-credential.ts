@@ -165,8 +165,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   } = context;
   if (!keyAttestation) {
     throw new ValidationFailed({
-      message:
-        "The Key Attestation is required to obtain the credential",
+      message: "The Key Attestation is required to obtain the credential",
     });
   }
 
@@ -237,8 +236,7 @@ export const obtainCredentialsBatch: IssuanceApi["obtainCredentialsBatch"] =
     } = context;
     if (!keyAttestation) {
       throw new ValidationFailed({
-        message:
-          "The Key Attestation is required to obtain the credential",
+        message: "The Key Attestation is required to obtain the credential",
       });
     }
 

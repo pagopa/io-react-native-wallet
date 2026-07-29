@@ -4,10 +4,10 @@ import * as RemotePresentation from "../credential/presentation";
 import * as CredentialStatus from "../credential/status";
 import * as Trustmark from "../credential/trustmark";
 import * as CredentialsCatalogue from "../credentials-catalogue";
+import * as KA from "../key-attestation";
 import * as Trust from "../trust";
 import * as WalletInstance from "../wallet-instance";
 import * as WIA from "../wallet-instance-attestation";
-import * as KA from "../key-attestation";
 
 /**
  * The Wallet public API.
@@ -17,12 +17,12 @@ export interface IoWalletApi {
   CredentialsCatalogue: CredentialsCatalogue.CredentialsCatalogueApi;
   CredentialsOffer: CredentialsOffer.OfferApi;
   CredentialStatus: CredentialStatus.CredentialStatusApi;
+  KeyAttestation: KA.KeyAttestationApi;
   RemotePresentation: RemotePresentation.RemotePresentationApi;
   Trust: Trust.TrustApi;
   Trustmark: Trustmark.TrustmarkApi;
   WalletInstance: WalletInstance.WalletInstanceApi;
   WalletInstanceAttestation: WIA.WalletInstanceAttestationApi;
-  KeyAttestation: KA.KeyAttestationApi;
 }
 
 export type ItwVersion = "1.0.0" | "1.4.4";
@@ -36,23 +36,23 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     CredentialsCatalogue: CredentialsCatalogue.V1_0_0,
     CredentialsOffer: CredentialsOffer.V1_0_0,
     CredentialStatus: CredentialStatus.V1_0_0,
+    KeyAttestation: KA.V1_0_0,
     RemotePresentation: RemotePresentation.V1_0_0,
     Trust: Trust.V1_0_0,
     Trustmark: Trustmark.V1_0_0,
     WalletInstance: WalletInstance.V1_0_0,
     WalletInstanceAttestation: WIA.V1_0_0,
-    KeyAttestation: KA.V1_0_0,
   },
   "1.4.4": {
     CredentialIssuance: CredentialIssuance.V1_4_4,
     CredentialsCatalogue: CredentialsCatalogue.V1_4_4,
     CredentialsOffer: CredentialsOffer.V1_4_4,
     CredentialStatus: CredentialStatus.V1_4_4,
+    KeyAttestation: KA.V1_4_4,
     RemotePresentation: RemotePresentation.V1_4_4,
     Trust: Trust.V1_0_0,
     Trustmark: Trustmark.V1_4_4,
     WalletInstance: WalletInstance.V1_4_4,
     WalletInstanceAttestation: WIA.V1_4_4,
-    KeyAttestation: KA.V1_4_4,
   },
 };

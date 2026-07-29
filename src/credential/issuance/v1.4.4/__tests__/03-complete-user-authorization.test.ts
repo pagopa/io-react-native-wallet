@@ -2,6 +2,7 @@ import {
   createAuthorizationResponse,
   fetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
+
 import type { RequestObject } from "../../../presentation";
 import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";
 

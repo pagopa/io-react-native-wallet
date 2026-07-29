@@ -6,9 +6,7 @@ import type {
   WalletAttestationRequestParams,
 } from "./types";
 
-export type KeyAttestationApi =
-  | UnsupportedApi
-  | KeyAttestationSupportedApi;
+export type KeyAttestationApi = KeyAttestationSupportedApi | UnsupportedApi;
 
 export interface KeyAttestationSupportedApi {
   /**

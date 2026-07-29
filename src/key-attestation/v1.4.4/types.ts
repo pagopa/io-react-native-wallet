@@ -14,9 +14,7 @@ export const KeyAttestationJwt = z.object({
   payload: DecodedKeyAttestation, // The payload type matches the public API
 });
 
-export type KeyAttestationResponse = z.infer<
-  typeof KeyAttestationResponse
->;
+export type KeyAttestationResponse = z.infer<typeof KeyAttestationResponse>;
 export const KeyAttestationResponse = z.object({
   key_attestation: z.string(),
 });
