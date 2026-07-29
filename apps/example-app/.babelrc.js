@@ -20,7 +20,7 @@ module.exports = function (api) {
             crypto: resolvePackageRoot('react-native-quick-crypto'),
             [walletPackage.name]: path.resolve(
               walletPackageRoot,
-              walletPackage.main
+              walletPackage.source
             ),
             stream: resolvePackageRoot('readable-stream'),
           },

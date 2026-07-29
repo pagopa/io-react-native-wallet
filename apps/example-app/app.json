@@ -9,10 +9,21 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ioappitwalletexampleapp",
+      "bundleIdentifier": "it.pagopa.app.io.poc.itwallet",
       "infoPlist": {
         "LSApplicationQueriesSchemes": ["http", "https", "CIEID"],
         "NFCReaderUsageDescription": "Read CIE",
+        "com.apple.developer.nfc.readersession.iso7816.select-identifiers": [
+          "A0000002471001",
+          "A0000000308000000009816001",
+          "A00000000039",
+          "A0000002472001",
+          "00000000000000"
+        ],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSAllowsLocalNetworking": true
+        },
         "NSBluetoothAlwaysUsageDescription": "$(PRODUCT_NAME) needs access BLE.",
         "NSBluetoothPeripheralUsageDescription": "$(PRODUCT_NAME) needs access BLE.",
         "NSBluetoothScanUsageDescription": "$(PRODUCT_NAME) needs access to scan for nearby Bluetooth devices.",
@@ -29,13 +40,16 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.ioappitwalletexampleapp",
+      "allowBackup": false,
+      "package": "it.pagopa.app.io.poc.itwallet",
       "permissions": [
         "android.permission.NFC",
         "android.permission.CAMERA",
         "android.permission.BLUETOOTH_SCAN",
         "android.permission.BLUETOOTH_CONNECT",
         "android.permission.BLUETOOTH_ADVERTISE",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
         "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
@@ -57,7 +71,8 @@
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "usesCleartextTraffic": true
           }
         }
       ],
