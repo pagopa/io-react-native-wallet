@@ -1,0 +1,118 @@
+{
+  "expo": {
+    "name": "IoReactNativeWalletExample",
+    "slug": "@io-app-it-wallet/example-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": ["iowalletexample", "iowallelogincie"],
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "it.pagopa.app.io.poc.itwallet",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["http", "https", "CIEID"],
+        "NFCReaderUsageDescription": "Read CIE",
+        "com.apple.developer.nfc.readersession.iso7816.select-identifiers": [
+          "A0000002471001",
+          "A0000000308000000009816001",
+          "A00000000039",
+          "A0000002472001",
+          "00000000000000"
+        ],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSAllowsLocalNetworking": true
+        },
+        "NSBluetoothAlwaysUsageDescription": "$(PRODUCT_NAME) needs access BLE.",
+        "NSBluetoothPeripheralUsageDescription": "$(PRODUCT_NAME) needs access BLE.",
+        "NSBluetoothScanUsageDescription": "$(PRODUCT_NAME) needs access to scan for nearby Bluetooth devices.",
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) needs access your location.",
+        "NSLocationWhenInUseUsageDescription": ""
+      },
+      "entitlements": {
+        "com.apple.developer.nfc.readersession.formats": ["TAG"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "allowBackup": false,
+      "package": "it.pagopa.app.io.poc.itwallet",
+      "permissions": [
+        "android.permission.NFC",
+        "android.permission.CAMERA",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_ADVERTISE",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26,
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/FiraCode/FiraCode-Medium.ttf",
+            "./assets/fonts/Titillio/Titillio-Black.otf",
+            "./assets/fonts/Titillio/Titillio-BlackItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Bold.otf",
+            "./assets/fonts/Titillio/Titillio-BoldItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Extrablack.otf",
+            "./assets/fonts/Titillio/Titillio-ExtrablackItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Extrabold.otf",
+            "./assets/fonts/Titillio/Titillio-ExtraboldItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Light.otf",
+            "./assets/fonts/Titillio/Titillio-LightItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Regular.otf",
+            "./assets/fonts/Titillio/Titillio-RegularItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Semibold.otf",
+            "./assets/fonts/Titillio/Titillio-SemiboldItalic.otf",
+            "./assets/fonts/Titillio/Titillio-Thin.otf",
+            "./assets/fonts/Titillio/Titillio-ThinItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Black.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-BlackItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Bold.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-BoldItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Italic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Light.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-LightItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Regular.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Semibold.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-SemiboldItalic.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-Thin.otf",
+            "./assets/fonts/TitilliumSansPro/TitilliumSansPro-ThinItalic.otf"
+          ]
+        }
+      ],
+      "./scripts/android-fix-bouncy-castle-dependency.js"
+    ]
+  }
+}

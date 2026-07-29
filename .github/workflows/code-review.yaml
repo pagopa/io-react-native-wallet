@@ -1,35 +1,39 @@
-# This workflow will perform the code review on each code change.
-# It uses "actions/cache" and turborepo in order to perform tasks only on changed files.
-
-name: "Code Review"
+name: Code Review
+description: This workflow will perform the code review on each code change. It uses the shared setup action and Nx affected to run tasks only on changed projects.
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   pull_request:
-    types: [opened, synchronize]
-  workflow_dispatch: {}
+    types:
+      - opened
+      - synchronize
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  code_review:
-    timeout-minutes: 5
+  code-review:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          cache: "yarn"
-          registry-url: "https://registry.npmjs.org/"
-          node-version-file: ".node-version"
+      - name: Set up environment
+        uses: ./.github/actions/setup-composite
 
-      - name: Install dependencies
-        run: yarn
+      - name: Validate affected projects
+        run: pnpm validate
+        env:
+          NX_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          NX_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: "Code review"
-        run: yarn run code-review
+      - name: Check generated client
+        run: |
+          pnpm --filter @io-app-it-wallet/io-react-native-wallet generate
+          git diff --exit-code -- libs/io-react-native-wallet/src/client/generated/wallet-provider.ios.ts

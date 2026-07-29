@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "composite": false,
+    "incremental": false,
+    "declaration": true,
+    "emitDeclarationOnly": true
+  },
+  "include": ["src"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/test-setup.ts",
+    "**/__tests__/**",
+    "**/__test__/**",
+    "**/__fixtures__/**",
+    "**/__mocks__/**"
+  ]
+}

@@ -1,0 +1,196 @@
+import { createSlice } from "@reduxjs/toolkit";
+import { type PersistConfig, persistReducer } from "redux-persist";
+
+import type { PreparePidFlowParamsThunkOutput } from "../../thunks/pid";
+import type { AsyncStatus, PidAuthMethods, PidResult } from "../types";
+
+import {
+  initPidMrtdChallengeThunk,
+  validatePidMrtdChallengeThunk,
+} from "../../thunks/mrtd";
+import {
+  continuePidFlowThunk,
+  preparePidFlowParamsThunk,
+} from "../../thunks/pid";
+import { instanceReset } from "../instance";
+import { createSecureStorage } from "../storage";
+import { asyncStatusInitial } from "../utils";
+import { sessionReset } from "./session";
+
+export {
+  selectPid,
+  selectPidAsyncStatus,
+  selectPidFlowParams,
+} from "../selectors/pid";
+
+/**
+ * State type definition for the PID slice.
+ * It contains:
+ * - pid: the obtained PID which is persisted
+ * - pidAsyncStatus: the state of the async operation to get the PID for each supported authentication method, namely spid, CiE L2 and CiE L3
+ * - pidFlowParams: the parameters for the PID flow
+ */
+export interface PidState {
+  pid: PidResult | undefined;
+  pidAsyncStatus: Record<PidAuthMethods, AsyncStatus>;
+  pidFlowParams: PreparePidFlowParamsThunkOutput | undefined;
+}
+
+// Initial state for the pid slice
+const initialState: PidState = {
+  pid: undefined,
+  pidAsyncStatus: {
+    cieL2: asyncStatusInitial,
+    cieL3: asyncStatusInitial,
+    spid: asyncStatusInitial,
+  },
+  pidFlowParams: undefined,
+};
+
+/**
+ * Redux slice for the pid state. It contains the pid, the pid async operation state and the CiE L3 flow params.
+ */
+const pidSlice = createSlice({
+  extraReducers: (builder) => {
+    /**
+     * PID flow Params Thunk
+     */
+
+    /* Dispatched when a prepare PID flow params async thunk resolves.
+     *  Sets the obtained params and its state to isDone while resetting isLoading and hasError
+     * for the PID.
+     */
+    builder.addCase(preparePidFlowParamsThunk.fulfilled, (state, action) => {
+      state.pidFlowParams = action.payload;
+      // The flow must be continued after this so we do not set isLoading for the credential state to true yet.
+    });
+
+    /*
+     * Dispatched when a prepare PID flow params async thunk is pending.
+     * Sets the flow params and the credential state to isLoading
+     * for the PID.
+     */
+    builder.addCase(preparePidFlowParamsThunk.pending, (state, action) => {
+      const authMethod = action.meta.arg.authMethod;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        isLoading: true,
+      };
+    });
+
+    /* Dispatched when a prepare PID flow params async thunk is rejected.
+     * Resets the flow params and sets the credential state to hasError while resetting isLoading and hasError
+     * for the requested credential.
+     */
+    builder.addCase(preparePidFlowParamsThunk.rejected, (state, action) => {
+      const authMethod = action.meta.arg.authMethod;
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { error: action.error, status: true },
+      };
+    });
+
+    /* Dispatched when a continue PID flow async thunk resolves.
+     * Sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
+     * for the requested credential.
+     */
+    builder.addCase(continuePidFlowThunk.fulfilled, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pid = action.payload;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        isDone: true,
+      };
+    });
+
+    /* Dispatched when a continue PID flow async thunk resolves.
+     * Sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
+     * for the requested credential.
+     */
+    builder.addCase(continuePidFlowThunk.pending, (state) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
+      // Redundant as already set by preparePidFlowParams but we want to be explicit and set the loading state
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        isLoading: true,
+      };
+    });
+
+    /* Dispatched when a continue PID flow async thunk resolves.
+     * Sets the obtained credential and sets its state to isDone while resetting isLoading and hasError
+     * for the requested credential.
+     */
+    builder.addCase(continuePidFlowThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
+      // Reset the flow params if an error occurs, you must start from scratch
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { error: action.error, status: true },
+      };
+    });
+
+    // Reset the pid state when the instance is reset.
+    builder.addCase(instanceReset, () => initialState);
+
+    // Reset the pid state when the session is reset.
+    builder.addCase(sessionReset, () => initialState);
+
+    // Handle mrtd thunks rejections to reset pid state
+    builder.addCase(initPidMrtdChallengeThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
+      // Reset the flow params if an error occurs, you must start from scratch
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { error: action.error, status: true },
+      };
+    });
+    builder.addCase(validatePidMrtdChallengeThunk.rejected, (state, action) => {
+      const authMethod = state.pidFlowParams?.authMethod || "spid";
+
+      // Reset the flow params if an error occurs, you must start from scratch
+      state.pidFlowParams = initialState.pidFlowParams;
+      state.pidAsyncStatus[authMethod] = {
+        ...asyncStatusInitial,
+        hasError: { error: action.error, status: true },
+      };
+    });
+  },
+  initialState,
+  name: "pid",
+  reducers: {
+    pidFlowReset: (state) => ({
+      ...state,
+      pidAsyncStatus: initialState.pidAsyncStatus,
+      pidFlowParams: initialState.pidFlowParams,
+    }),
+    pidReset: () => initialState,
+  },
+});
+
+/**
+ * Exports the actions for the pid slice.
+ */
+export const { pidFlowReset } = pidSlice.actions;
+
+/**
+ * Persist configuration for the pid slice.
+ * We only persist the obtained pid.
+ */
+const persistConfig: PersistConfig<PidState> = {
+  key: "pid",
+  storage: createSecureStorage(),
+  whitelist: ["pid"],
+};
+
+/**
+ * Persisted reducer for the pid slice.
+ */
+export const pidReducer = persistReducer(persistConfig, pidSlice.reducer);

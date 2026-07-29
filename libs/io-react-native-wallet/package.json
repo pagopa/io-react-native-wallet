@@ -1,0 +1,132 @@
+{
+  "name": "@io-app-it-wallet/io-react-native-wallet",
+  "version": "3.6.3",
+  "description": "Provide data structures, helpers and API for IO Wallet",
+  "main": "./lib/commonjs/index.js",
+  "module": "./lib/module/index.js",
+  "types": "./lib/typescript/commonjs/index.d.ts",
+  "react-native": "./src/index.ts",
+  "source": "./src/index.ts",
+  "license": "MIT",
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "files": [
+    "src",
+    "lib",
+    "!**/__tests__",
+    "!**/__test__",
+    "!**/__mocks__",
+    "!**/__fixtures__",
+    "!**/*.test.*",
+    "!**/*.spec.*",
+    "!**/test-setup.*",
+    "!**/.*"
+  ],
+  "scripts": {
+    "generate": "pnpm run generate-wallet-provider-client",
+    "generate-wallet-provider-client": "typed-openapi openapi/wallet-provider.yaml -o src/client/generated/wallet-provider.ios.ts -r zod",
+    "tsc": "tsc -p tsconfig.lib.json --noEmit",
+    "prepack": "bob build",
+    "release": "release-it"
+  },
+  "exports": {
+    ".": {
+      "@io-app-it-wallet/source": "./src/index.ts",
+      "source": "./src/index.ts",
+      "react-native": "./src/index.ts",
+      "import": {
+        "types": "./lib/typescript/module/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "require": {
+        "types": "./lib/typescript/commonjs/index.d.ts",
+        "default": "./lib/commonjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@pagopa/io-react-native-crypto": "*",
+    "@pagopa/io-react-native-iso18013": "*",
+    "@pagopa/io-react-native-jwt": "*",
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-quick-crypto": "*"
+  },
+  "dependencies": {
+    "@openid4vc/utils": "0.4.3",
+    "@pagopa/io-wallet-oauth2": "1.5.4-alpha-20260717125503",
+    "@pagopa/io-wallet-oid-federation": "1.5.4-alpha-20260717125503",
+    "@pagopa/io-wallet-oid4vci": "1.5.4-alpha-20260717125503",
+    "@pagopa/io-wallet-oid4vp": "1.5.4-alpha-20260717125503",
+    "@pagopa/io-wallet-utils": "1.5.4-alpha-20260717125503",
+    "@sd-jwt/core": "^0.19.0",
+    "@sd-jwt/crypto-nodejs": "^0.19.0",
+    "@sd-jwt/decode": "0.19.0",
+    "@sd-jwt/jwt-status-list": "^0.19.0",
+    "@sd-jwt/present": "0.19.0",
+    "@sd-jwt/types": "^0.19.0",
+    "dcql": "^3.0.0",
+    "js-base64": "^3.7.8",
+    "js-sha256": "^0.11.1",
+    "jsrsasign": "^11.1.0",
+    "parse-url": "^10.0.3",
+    "react-native-url-polyfill": "^2.0.0",
+    "uuid": "^11.0.3",
+    "valibot": "1.2.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@pagopa/io-react-native-iso18013": "^0.7.0",
+    "@types/jsrsasign": "^10.5.15",
+    "auto-changelog": "^2.6.0",
+    "react-native-builder-bob": "^0.43.0",
+    "release-it": "^19.2.4",
+    "typed-openapi": "^0.4.1"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release version ${version}",
+      "tagName": "v${version}",
+      "changelog": "pnpm exec auto-changelog --stdout --commit-limit false -u --template https://raw.githubusercontent.com/release-it/release-it/master/templates/changelog-compact.hbs"
+    },
+    "hooks": {
+      "after:bump": "pnpm exec auto-changelog -p && git add ."
+    },
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {}
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "exclude": "**/{__tests__,__test__,__fixtures__,__mocks__}/**",
+    "targets": [
+      [
+        "commonjs",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}

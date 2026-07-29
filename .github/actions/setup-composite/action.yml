@@ -1,0 +1,26 @@
+name: Actions to setup environment for all workflows
+description: "This action collects the steps to setup any job"
+
+runs:
+  using: composite
+  steps:
+    - id: setup-node
+      uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      with:
+        node-version-file: .node-version
+
+    - name: Enable Corepack
+      run: corepack enable && corepack prepare --activate
+      shell: bash
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      shell: bash
+
+    - name: Cache Nx
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: .nx
+        key: ${{ runner.os }}-nx-cache-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-nx-cache-
