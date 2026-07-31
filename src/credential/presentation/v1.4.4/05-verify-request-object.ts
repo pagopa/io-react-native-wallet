@@ -1,9 +1,9 @@
 import {
   ClientIdPrefix,
   extractClientIdPrefix,
+  createX509HashClientId,
   parseAuthorizeRequest as sdkParseAuthorizeRequest,
 } from "@pagopa/io-wallet-oid4vp";
-import QuickCrypto from "react-native-quick-crypto";
 
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import type { RawRequestObject } from "./types";
@@ -30,7 +30,7 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
     const { clientId, prefix } = extractClientIdPrefix(fullClientId);
 
     if (prefix === ClientIdPrefix.X509_HASH) {
-      validateX509HashClient(rawRequestObject.header.x5c, clientId);
+      await validateX509HashClient(fullClientId, rawRequestObject.header.x5c);
     }
 
     if (
@@ -73,23 +73,16 @@ const validateOpenIDFederationClient = (
   }
 };
 
-const validateX509HashClient = (
-  certificateChain: string[],
-  x509Hash: string,
+const validateX509HashClient = async (
+  fullClientId: string,
+  certificateChain: string[] = [],
 ) => {
-  const cert = certificateChain[0];
+  const calculatedHash = await createX509HashClientId({
+    certificateChain,
+    hash: partialCallbacks.hash
+  })
 
-  if (!cert) {
-    throw new InvalidRequestObjectError(
-      "Certificate chain is empty, cannot validate x509_hash",
-    );
-  }
-
-  const calculatedHash = QuickCrypto.createHash("sha-256")
-    .update(cert, "base64")
-    .digest("base64url");
-
-  if (x509Hash !== calculatedHash) {
+  if (fullClientId !== calculatedHash) {
     throw new InvalidRequestObjectError(
       "x509_hash does not match the hash of the x5c leaf certificate",
     );
