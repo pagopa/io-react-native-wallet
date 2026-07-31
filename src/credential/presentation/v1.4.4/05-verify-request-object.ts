@@ -1,7 +1,7 @@
 import {
   ClientIdPrefix,
-  extractClientIdPrefix,
   createX509HashClientId,
+  extractClientIdPrefix,
   parseAuthorizeRequest as sdkParseAuthorizeRequest,
 } from "@pagopa/io-wallet-oid4vp";
 
@@ -79,8 +79,8 @@ const validateX509HashClient = async (
 ) => {
   const calculatedHash = await createX509HashClientId({
     certificateChain,
-    hash: partialCallbacks.hash
-  })
+    hash: partialCallbacks.hash,
+  });
 
   if (fullClientId !== calculatedHash) {
     throw new InvalidRequestObjectError(
