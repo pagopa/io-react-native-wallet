@@ -3037,58 +3037,58 @@
     js-base64 "^3.7.7"
     zod "^3.22.4"
 
-"@pagopa/io-wallet-oauth2@1.5.4-alpha-20260731074954":
-  version "1.5.4-alpha-20260731074954"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.5.4-alpha-20260731074954.tgz#fdeb4b851d1abc52980d7cb6375d722ce6441add"
-  integrity sha512-uf9L89Ut1qqNiB5qPcF95pHqWiO3uxh0xS98+yA6unVR33fhlWs6+aJpAOgwMFuE4oaN9Wvn/69mLjgeM2aoFw==
+"@pagopa/io-wallet-oauth2@1.5.4":
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oauth2/-/io-wallet-oauth2-1.5.4.tgz#9b4c78d6c13a6cfb41d4581276cbdb4d3d2fa3b7"
+  integrity sha512-LPNoZbrSc/Nj0ax5hAO6+r+lQnRPMDabmKPSFhS5bhc7685h5kW2KuC4QjS1Y6HyBvKgZeYohYW9BDcbbPfm1g==
   dependencies:
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/utils" "0.4.3"
-    "@pagopa/io-wallet-oid-federation" "1.5.4-alpha-20260731074954"
-    "@pagopa/io-wallet-utils" "1.5.4-alpha-20260731074954"
+    "@pagopa/io-wallet-oid-federation" "1.5.4"
+    "@pagopa/io-wallet-utils" "1.5.4"
     js-base64 "^3.7.8"
     zod "^4.3.6"
 
-"@pagopa/io-wallet-oid-federation@1.5.4-alpha-20260731074954":
-  version "1.5.4-alpha-20260731074954"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.5.4-alpha-20260731074954.tgz#01dab846cb6764d63c6f0d26b950d4a1ab9bd9b5"
-  integrity sha512-kdUXPuPspvhqnOfZZDgkRALIYvijd7W2id3aUKLVl+H+AfxKA3nlPFSE0bcmjO5rPgie2RCNqYbstAt7fel0vA==
+"@pagopa/io-wallet-oid-federation@1.5.4":
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid-federation/-/io-wallet-oid-federation-1.5.4.tgz#46e09204b2d8fcadcf95d0fb7269f895c0299341"
+  integrity sha512-G3HWvDBl1favjWuFDg+OAcLu99NFuf9ZNCmONejbWOVXbzhvzTCl4k6qCEY3GtwMaMdVP11lUdkfYbNowOoWCg==
   dependencies:
-    "@pagopa/io-wallet-utils" "1.5.4-alpha-20260731074954"
+    "@pagopa/io-wallet-utils" "1.5.4"
     buffer "^6.0.3"
     zod "^4.3.6"
 
-"@pagopa/io-wallet-oid4vci@1.5.4-alpha-20260731074954":
-  version "1.5.4-alpha-20260731074954"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.5.4-alpha-20260731074954.tgz#74af0caeae0a78f262f653910314b02adc78368b"
-  integrity sha512-fNQN8Y+zxhWtIZesUoeAIbCRkf/JdPBUNbYLxa9yMB4SDmiKDRzMAp7m8Vbh8Mbqs6FLiDaa9wRzlNA8N/C6Zg==
+"@pagopa/io-wallet-oid4vci@1.5.4":
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vci/-/io-wallet-oid4vci-1.5.4.tgz#db42fb98d8c2dc88b723e1f661085ecded93596c"
+  integrity sha512-dapcXkVpD0wqxHZwhQUrJtE1eST0fRTxAuqrHzgU5XQo4fiEPfpse39uPRu+rec7kKVZbx7gw0uhoqVFLgGdaw==
   dependencies:
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/openid4vci" "0.4.3"
     "@openid4vc/utils" "0.4.3"
-    "@pagopa/io-wallet-oauth2" "1.5.4-alpha-20260731074954"
-    "@pagopa/io-wallet-oid-federation" "1.5.4-alpha-20260731074954"
-    "@pagopa/io-wallet-oid4vp" "1.5.4-alpha-20260731074954"
-    "@pagopa/io-wallet-utils" "1.5.4-alpha-20260731074954"
+    "@pagopa/io-wallet-oauth2" "1.5.4"
+    "@pagopa/io-wallet-oid-federation" "1.5.4"
+    "@pagopa/io-wallet-oid4vp" "1.5.4"
+    "@pagopa/io-wallet-utils" "1.5.4"
     zod "^4.3.6"
 
-"@pagopa/io-wallet-oid4vp@1.5.4-alpha-20260731074954":
-  version "1.5.4-alpha-20260731074954"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.5.4-alpha-20260731074954.tgz#afc82b88719d7ece137d8f776d0cbecad88873f5"
-  integrity sha512-itUOpsSMh0KvrcFYGdHidjRfr4MFFOkYVl8fjUfcwhagNJSFmX+HmGcWTfB2NqTsx6LcqErLdIBJELMCN5pmzQ==
+"@pagopa/io-wallet-oid4vp@1.5.4":
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-oid4vp/-/io-wallet-oid4vp-1.5.4.tgz#f5888b273b1873449c3a40ed1be49bbf2d354d81"
+  integrity sha512-QnVkEHVNUHMQnUTxAaAVHkK06PjPTsF9g1EUNOxr/KsATjYa5exN5dz31lNdl7DupIBX/ponBS7pRxDsTMdxpw==
   dependencies:
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/openid4vp" "0.4.3"
     "@openid4vc/utils" "0.4.3"
-    "@pagopa/io-wallet-oauth2" "1.5.4-alpha-20260731074954"
-    "@pagopa/io-wallet-oid-federation" "1.5.4-alpha-20260731074954"
-    "@pagopa/io-wallet-utils" "1.5.4-alpha-20260731074954"
+    "@pagopa/io-wallet-oauth2" "1.5.4"
+    "@pagopa/io-wallet-oid-federation" "1.5.4"
+    "@pagopa/io-wallet-utils" "1.5.4"
     zod "^4.3.6"
 
-"@pagopa/io-wallet-utils@1.5.4-alpha-20260731074954":
-  version "1.5.4-alpha-20260731074954"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.5.4-alpha-20260731074954.tgz#6bc3926d7c25d8d1dbc1b2cafedaf24bdf177688"
-  integrity sha512-IYD3o7sc16Q5QwxtZpvNFrNZ25wLG0mJRvT0hJWgoZGyIqP47uJ1/MkUXwXhdqX/DnfxtgKB2FWx6FzW4cRy9w==
+"@pagopa/io-wallet-utils@1.5.4":
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-wallet-utils/-/io-wallet-utils-1.5.4.tgz#223fd419e2aeb5991a5766f5b7e6f5c40490e75f"
+  integrity sha512-wX1WGFQedLJutBGOcz7QdQqp7N710ii/MEITJypxfiaJQFsXTUZUsux4ZWH1FYPhZUC6WVBX+0s+APyRRsZCew==
   dependencies:
     "@openid4vc/oauth2" "0.4.3"
     "@openid4vc/utils" "0.4.3"
