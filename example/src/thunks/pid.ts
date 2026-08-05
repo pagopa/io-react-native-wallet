@@ -291,7 +291,7 @@ function getPidSdJwtConfigurationId(
     issuerConf.credential_configurations_supported,
   ).find(
     ([, c]) =>
-      c.format === "dc+sd-jwt" && /PersonIdentificationData|pid/i.test(c.scope),
+      c.format === "dc+sd-jwt" && /PersonIdentificationData|pid|eid/i.test(c.scope),
   );
   return result?.at(0) as string;
 }
