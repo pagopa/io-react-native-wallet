@@ -50,7 +50,7 @@ export interface Env {
  * Call `.value()` to get the value for the specified version.
  *
  * @example
- * myVar.value("1.4.4")
+ * myVar.value("1.4.6")
  */
 class ItwSpecsEnvVar {
   constructor(private values: Record<ItwVersion, string>) {}
@@ -78,11 +78,11 @@ export const getEnv = (env: EnvType): Env => {
         VERIFIER_BASE_URL: PRE_VERIFIER_BASE_URL,
         WALLET_EAA_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
           "1.0.0": PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_0,
-          "1.4.4": PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_4,
+          "1.4.6": PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_4,
         }),
         WALLET_PID_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
           "1.0.0": PRE_WALLET_PID_PROVIDER_BASE_URL_V1_0,
-          "1.4.4": PRE_WALLET_PID_PROVIDER_BASE_URL_V1_4,
+          "1.4.6": PRE_WALLET_PID_PROVIDER_BASE_URL_V1_4,
         }),
         WALLET_PROVIDER_BASE_URL: PRE_WALLET_PROVIDER_BASE_URL,
         WALLET_TA_BASE_URL: PRE_WALLET_TA_BASE_URL,
@@ -96,11 +96,11 @@ export const getEnv = (env: EnvType): Env => {
         VERIFIER_BASE_URL: PROD_VERIFIER_BASE_URL,
         WALLET_EAA_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
           "1.0.0": PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_0,
-          "1.4.4": PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_4,
+          "1.4.6": PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_4,
         }),
         WALLET_PID_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
           "1.0.0": PROD_WALLET_PID_PROVIDER_BASE_URL_V1_0,
-          "1.4.4": PROD_WALLET_PID_PROVIDER_BASE_URL_V1_4,
+          "1.4.6": PROD_WALLET_PID_PROVIDER_BASE_URL_V1_4,
         }),
         WALLET_PROVIDER_BASE_URL: PROD_WALLET_PROVIDER_BASE_URL,
         WALLET_TA_BASE_URL: PROD_WALLET_TA_BASE_URL,

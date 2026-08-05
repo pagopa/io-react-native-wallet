@@ -14,7 +14,7 @@ type FetchRegistryParams<T> = {
 /**
  * Utility to fetch an entity from the Registry Infrastructure.
  * The function supports `application/json` and signed JOSE/JWT responses.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/registry.html
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.6/en/registry.html
  *
  * @param url The url to fetch from
  * @param params.schema The Zod schema to validate the response
@@ -73,7 +73,7 @@ export const fetchRegistry = async <T>(
 /**
  * Fetch a locale bundle file from the Registry Infrastructure.
  * Bundle files are flat JSON objects mapping l10n_id keys to translated strings.
- * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/registry.html
+ * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.6/en/registry.html
  *
  * @param baseUri The base URI from a registry's localization object
  * @param locale The locale code (e.g. "it", "en")

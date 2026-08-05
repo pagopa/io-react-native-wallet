@@ -11,7 +11,7 @@ import { EntityConfiguration, RelyingPartyEntityConfiguration } from "./types";
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
  * This is an inner method to serve public interfaces.
- * @version 1.3.3
+ * @version 1.4.6
  *
  * To add another entity configuration type (example: Foo entity type):
  *  - create its zod schema and type by inherit from the base type (example: FooEntityConfiguration = BaseEntityConfiguration.and(...))

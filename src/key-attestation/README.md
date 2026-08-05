@@ -1,13 +1,13 @@
 # Key Attestation
 
-This flow is used to obtain a [**Key Attestation**](https://italia.github.io/eid-wallet-it-docs/releases/1.4.4/en/wallet-solution-requirements.html#key-attestation-requirements) (KA). The Key Attestation is bound to one or more cryptographic keys, that must be provided by the consumer application:
+This flow is used to obtain a [**Key Attestation**](https://italia.github.io/eid-wallet-it-docs/releases/1.4.6/en/wallet-solution-requirements.html#key-attestation-requirements) (KA). The Key Attestation is bound to one or more cryptographic keys, that must be provided by the consumer application:
 - `keyAttestationCryptoContext` one or more objects that extend the `CryptoContext` with a function to generate a WSCD-stored key with an optional [Android key attestation](https://developer.android.com/privacy-and-security/security-key-attestation); these are the keys that will be attested in the KA.
 - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance.
 
 #### Note
 Before invoking `KeyAttestation`'s functions, it is necessary to check whether the feature is supported by the current IoWallet instance.
 ```ts
-const wallet = new IoWallet({ version: "1.4.4" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 if (wallet.KeyAttestation.isSupported) {
   // Get the WUA
@@ -49,7 +49,7 @@ const keysToAttest: KeyAttestationCryptoContext[] = [
  * Obtain a new Key Attestation.
  * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
  */
-const wallet = new IoWallet({ version: "1.4.4" });
+const wallet = new IoWallet({ version: "1.4.6" });
 const issuedAttestation = await wallet.KeyAttestation.getAttestation(
   {
     walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,

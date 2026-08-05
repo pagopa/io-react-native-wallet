@@ -1,4 +1,4 @@
-import { getTrustAnchorEntityConfiguration } from "../../trust/v1.0.0/entities"; // TODO: use trust from v1.4.4
+import { getTrustAnchorEntityConfiguration } from "../../trust/v1.0.0/entities"; // TODO: use trust from v1.4.6
 import { type CredentialsCatalogueApi as Api } from "../api";
 import { mapToCredentialsCatalogue } from "./mappers";
 import {

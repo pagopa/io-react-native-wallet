@@ -3,5 +3,5 @@ import { type TrustmarkApi as Api } from "../api";
 
 export const getCredentialTrustmark: Api["getCredentialTrustmark"] =
   async () => {
-    throw new UnimplementedFeatureError("getCredentialTrustmark", "1.4.4");
+    throw new UnimplementedFeatureError("getCredentialTrustmark", "1.4.6");
   };

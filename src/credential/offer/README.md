@@ -121,7 +121,7 @@ The Credential Offer flow ends once `extractGrantDetails` returns. The Issuance 
 ```ts
 import { ioWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.4.4" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 const uri =
   "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
@@ -147,7 +147,7 @@ const grant = wallet.CredentialsOffer.extractGrantDetails(offer);
 ```ts
 import { ioWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.4.4" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 const uri =
   "openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example.com%22%2C%22credential_configuration_ids%22%3A%5B%22UniversityDegree%22%5D%2C%22grants%22%3A%7B%22authorization_code%22%3A%7B%22scope%22%3A%22UniversityDegree%22%7D%7D%7D";
