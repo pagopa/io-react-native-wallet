@@ -11,7 +11,7 @@ import { Alert, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { selectWalletUnitAttestation } from "../store/reducers/attestation";
+import { selectKeyAttestation } from "../store/reducers/attestation";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectPid } from "../store/reducers/pid";
@@ -28,7 +28,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
   const pid = useAppSelector(selectPid);
-  const wua = useAppSelector(selectWalletUnitAttestation);
+  const ka = useAppSelector(selectKeyAttestation);
   const session = useAppSelector(selectIoAuthToken);
   const credentials = useAppSelector(selectCredentials);
 
@@ -88,7 +88,7 @@ const HomeScreen = () => {
         icon: "chevronRight",
         label: "Credential Status",
         onPress: () =>
-          wua || pid
+          ka || pid
             ? navigation.navigate("CredentialStatus")
             : Alert.alert("Obtain a KA or a PID first"),
       },
@@ -123,7 +123,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, wua, hasSomeCredential],
+    [hasIntegrityKeyTag, navigation, pid, ka, hasSomeCredential],
   );
 
   return (

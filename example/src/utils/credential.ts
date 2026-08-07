@@ -386,7 +386,7 @@ const getKeysForStatusListVerification = async (
   credential: string,
   credentialType: string,
 ) => {
-  if (credentialType === "walletUnitAttestation") {
+  if (credentialType === "keyAttestation") {
     const decodedWua = decodeJwt(credential);
 
     const { payload } = await fetch(
