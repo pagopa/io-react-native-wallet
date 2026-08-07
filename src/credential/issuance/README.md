@@ -8,7 +8,7 @@ Credentials instead require a simpler authorization flow and they require other 
 
 The supported credentials are defined in the entity configuration of the issuer which is evaluted and parsed in the `evaluateIssuerTrust` step. Available credentials are identified with a unique `credential_configuration_id`, that must be used when requesting authorization. The Authorization Server returns an array of **credential identifiers** that map to the `credential_configuration_id` provided: to obtain the credential, one of the credential identifiers (or all of them) must be requested to the credential endpoint.
 
-In the newest versions of IT-Wallet specifications it is mandatory that the cryptographic keys bound to each credential are stored in a WSCD and attested in a **Key Attestation**, that must be sent to the Issuer when requesting a credential.
+The IT-Wallet specifications require that the cryptographic keys associated with each credential be stored in a WSCD and attested through a **Key Attestation**, which must be provided to the Issuer when requesting a credential.
 
 ## Sequence Diagram
 
