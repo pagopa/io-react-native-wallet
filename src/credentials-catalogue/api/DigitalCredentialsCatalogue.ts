@@ -55,6 +55,7 @@ const CredentialIssuer = z.object({
 
 const AuthenticSource = z.object({
   contacts: z.array(z.string()).optional(),
+  data_origin_l10n_id: z.string().optional(),
   homepage_uri: z.string().optional(),
   id: z.string(),
   logo_uri: z.string().optional(),

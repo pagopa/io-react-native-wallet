@@ -56,6 +56,7 @@ export const mapToCredentialsCatalogue = createMapper<
       );
       return {
         id,
+        data_origin_l10n_id: dataCapability?.data_origin_l10n_id,
         organization_code: ipa_code,
         organization_name_l10n_id,
         user_information_l10n_id: dataCapability?.user_information_l10n_id,
