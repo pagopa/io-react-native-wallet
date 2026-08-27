@@ -55,6 +55,7 @@ export const mapToCredentialsCatalogue = createMapper<
         (dc) => dc.dataset_id === dataset_id,
       );
       return {
+        data_origin_l10n_id: dataCapability?.data_origin_l10n_id,
         id,
         organization_code: ipa_code,
         organization_name_l10n_id,

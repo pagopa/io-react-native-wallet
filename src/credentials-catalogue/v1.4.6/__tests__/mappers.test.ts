@@ -240,6 +240,7 @@ describe("mapToCredentialsCatalogue", () => {
         authentic_sources: [
           {
             contacts: ["info@source-org.example.com"],
+            data_origin_l10n_id: "source_dataorigin.name",
             homepage_uri: "https://source-org.example.com",
             id: "source-1",
             organization_code: "SRC123",
