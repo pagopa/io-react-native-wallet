@@ -153,7 +153,7 @@ export const getCredential = async ({
 
   // Create as many key tags as the batch size
   const keyTags = Array.from({ length: batchSize }, () => uuidv4().toString());
-  const walletUnitAttestation = await generateKeysWithAttestation(keyTags);
+  const keyAttestation = await generateKeysWithAttestation(keyTags);
   const credentialCryptoContexts = keyTags.map(createCryptoContextFor);
 
   const [firstCredentialCryptoContext] = credentialCryptoContexts;
@@ -182,7 +182,7 @@ export const getCredential = async ({
             appFetch,
             credentialCryptoContexts,
             dPopCryptoContext,
-            walletUnitAttestation,
+            keyAttestation,
           },
         )
       : await wallet.CredentialIssuance.obtainCredential(
@@ -194,7 +194,7 @@ export const getCredential = async ({
             appFetch,
             credentialCryptoContext: firstCredentialCryptoContext,
             dPopCryptoContext,
-            walletUnitAttestation,
+            keyAttestation,
           },
         );
 
@@ -386,7 +386,7 @@ const getKeysForStatusListVerification = async (
   credential: string,
   credentialType: string,
 ) => {
-  if (credentialType === "walletUnitAttestation") {
+  if (credentialType === "keyAttestation") {
     const decodedWua = decodeJwt(credential);
 
     const { payload } = await fetch(

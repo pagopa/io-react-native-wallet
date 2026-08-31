@@ -29,8 +29,8 @@ import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import {
+  getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
-  getWalletUnitAttestationThunk,
 } from "./attestation";
 import { createAppAsyncThunk } from "./utils";
 
@@ -128,11 +128,11 @@ export const getCredentialThunk = createAppAsyncThunk<
   const generateKeysWithAttestation = async (
     credentialKeyTags: string[],
   ): Promise<string | undefined> => {
-    if (wallet.WalletUnitAttestation.isSupported) {
-      const wua = await dispatch(
-        getWalletUnitAttestationThunk({ keyTags: credentialKeyTags }),
+    if (wallet.KeyAttestation.isSupported) {
+      const ka = await dispatch(
+        getKeyAttestationThunk({ keyTags: credentialKeyTags }),
       ).unwrap();
-      return wua.attestation;
+      return ka.attestation;
     }
     await Promise.all(credentialKeyTags.map(generate));
     return undefined;

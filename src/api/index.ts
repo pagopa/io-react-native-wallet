@@ -4,10 +4,10 @@ import * as RemotePresentation from "../credential/presentation";
 import * as CredentialStatus from "../credential/status";
 import * as Trustmark from "../credential/trustmark";
 import * as CredentialsCatalogue from "../credentials-catalogue";
+import * as KA from "../key-attestation";
 import * as Trust from "../trust";
 import * as WalletInstance from "../wallet-instance";
 import * as WIA from "../wallet-instance-attestation";
-import * as WUA from "../wallet-unit-attestation";
 
 /**
  * The Wallet public API.
@@ -17,15 +17,15 @@ export interface IoWalletApi {
   CredentialsCatalogue: CredentialsCatalogue.CredentialsCatalogueApi;
   CredentialsOffer: CredentialsOffer.OfferApi;
   CredentialStatus: CredentialStatus.CredentialStatusApi;
+  KeyAttestation: KA.KeyAttestationApi;
   RemotePresentation: RemotePresentation.RemotePresentationApi;
   Trust: Trust.TrustApi;
   Trustmark: Trustmark.TrustmarkApi;
   WalletInstance: WalletInstance.WalletInstanceApi;
   WalletInstanceAttestation: WIA.WalletInstanceAttestationApi;
-  WalletUnitAttestation: WUA.WalletUnitAttestationApi;
 }
 
-export type ItwVersion = "1.0.0" | "1.3.3";
+export type ItwVersion = "1.0.0" | "1.4.6";
 
 /**
  * The Wallet API implementations grouped by IT-Wallet specifications version.
@@ -36,24 +36,23 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     CredentialsCatalogue: CredentialsCatalogue.V1_0_0,
     CredentialsOffer: CredentialsOffer.V1_0_0,
     CredentialStatus: CredentialStatus.V1_0_0,
+    KeyAttestation: KA.V1_0_0,
     RemotePresentation: RemotePresentation.V1_0_0,
     Trust: Trust.V1_0_0,
     Trustmark: Trustmark.V1_0_0,
     WalletInstance: WalletInstance.V1_0_0,
     WalletInstanceAttestation: WIA.V1_0_0,
-    WalletUnitAttestation: WUA.V1_0_0,
   },
-  // TODO: replace v1.0.0 with v1.3.3 implementations
-  "1.3.3": {
-    CredentialIssuance: CredentialIssuance.V1_3_3,
-    CredentialsCatalogue: CredentialsCatalogue.V1_3_3,
-    CredentialsOffer: CredentialsOffer.V1_3_3,
-    CredentialStatus: CredentialStatus.V1_3_3,
-    RemotePresentation: RemotePresentation.V1_3_3,
+  "1.4.6": {
+    CredentialIssuance: CredentialIssuance.V1_4_6,
+    CredentialsCatalogue: CredentialsCatalogue.V1_4_6,
+    CredentialsOffer: CredentialsOffer.V1_4_6,
+    CredentialStatus: CredentialStatus.V1_4_6,
+    KeyAttestation: KA.V1_4_6,
+    RemotePresentation: RemotePresentation.V1_4_6,
     Trust: Trust.V1_0_0,
-    Trustmark: Trustmark.V1_3_3,
-    WalletInstance: WalletInstance.V1_3_3,
-    WalletInstanceAttestation: WIA.V1_3_3,
-    WalletUnitAttestation: WUA.V1_3_3,
+    Trustmark: Trustmark.V1_4_6,
+    WalletInstance: WalletInstance.V1_4_6,
+    WalletInstanceAttestation: WIA.V1_4_6,
   },
 };

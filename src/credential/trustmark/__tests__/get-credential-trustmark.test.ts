@@ -124,8 +124,8 @@ describe("getCredentialTrustmarkJwt", () => {
     ).rejects.toThrow();
   });
 
-  it("throws UnimplementedFeatureError for version 1.3.3", async () => {
-    const wallet = new IoWallet({ version: "1.3.3" });
+  it("throws UnimplementedFeatureError for version 1.4.6", async () => {
+    const wallet = new IoWallet({ version: "1.4.6" });
 
     await expect(
       wallet.Trustmark.getCredentialTrustmark({
