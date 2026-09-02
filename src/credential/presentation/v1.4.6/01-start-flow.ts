@@ -8,16 +8,20 @@ import { InvalidQRCodeError } from "../common/errors";
 export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (
   params,
 ) => {
-  const parsed = PresentationParams.safeParse(params);
+  const nonNullParams = Object.fromEntries(
+    Object.entries(params).filter(([_, value]) => value !== null)
+  );
+  const parsed = PresentationParams.safeParse({
+    ...nonNullParams,
+    request_uri_method: nonNullParams.request_uri_method ?? "get",
+  });
 
   if (!parsed.success) {
     throw new InvalidQRCodeError(parsed.error.message);
   }
 
   try {
-    const validatedParams = validateAuthorizationRequestParams(parsed.data);
-
-    return validatedParams;
+    return validateAuthorizationRequestParams(parsed.data);
   } catch (e) {
     throw new InvalidQRCodeError(e instanceof Error ? e.message : String(e));
   }
