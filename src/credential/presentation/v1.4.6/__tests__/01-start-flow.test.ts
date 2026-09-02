@@ -37,18 +37,15 @@ describe("startFlowFromQR", () => {
     expect(() => startFlowFromQR(params)).toThrow(InvalidQRCodeError);
   });
 
-  it.each([null, undefined])(
-    "handles optional (%s) values",
-    (value) => {
-      expect(
-        startFlowFromQR({
-          client_id,
-          request_uri,
-          request_uri_method: value,
-          request: value,
-          state: value
-        })
-      ).toEqual({ client_id, request_uri, request_uri_method: "get" });
-    },
-  );
+  it.each([null, undefined])("handles optional (%s) values", (value) => {
+    expect(
+      startFlowFromQR({
+        client_id,
+        request: value,
+        request_uri,
+        request_uri_method: value,
+        state: value,
+      }),
+    ).toEqual({ client_id, request_uri, request_uri_method: "get" });
+  });
 });

@@ -9,7 +9,7 @@ export const startFlowFromQR: RemotePresentationApi["startFlowFromQR"] = (
   params,
 ) => {
   const nonNullParams = Object.fromEntries(
-    Object.entries(params).filter(([_, value]) => value !== null)
+    Object.entries(params).filter(([_, value]) => value !== null),
   );
   const parsed = PresentationParams.safeParse({
     ...nonNullParams,
