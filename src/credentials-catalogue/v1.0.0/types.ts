@@ -39,9 +39,9 @@ const CredentialFormat = z.object({
   configuration_id: z.string(),
   docType: z.string().optional(),
   format: z.enum(["dc+sd-jwt", "mso_mdoc"]),
-  schema_uri: z.string().url().optional(),
+  schema_uri: z.url().optional(),
   "schema_uri#integrity": z.string().optional(),
-  vct: z.string().url().optional(),
+  vct: z.url().optional(),
 });
 
 const Claim = z.object({
@@ -90,7 +90,7 @@ export const DigitalCredentialsCatalogueJwt = z.object({
     credentials: z.array(DigitalCredential),
     exp: UnixTime,
     iat: UnixTime,
-    taxonomy_uri: z.string().url(),
+    taxonomy_uri: z.url(),
   }),
 });
 export type DigitalCredentialsCatalogueJwt = z.infer<

@@ -10,14 +10,14 @@ export type PresentationParams = z.infer<typeof PresentationParams>;
 export const PresentationParams = z.object({
   client_id: z.string().nonempty(),
   request: z.string().optional(),
-  request_uri: z.string().url().optional(),
+  request_uri: z.url().optional(),
   request_uri_method: z.enum(["get", "post"]).optional(),
   state: z.string().optional(),
 });
 
 export type WalletMetadata = z.infer<typeof WalletMetadata>;
 export const WalletMetadata = z.object({
-  authorization_endpoint: z.string().url(),
+  authorization_endpoint: z.url(),
   client_id_prefixes_supported: z.array(z.string()).optional(),
   client_id_schemes_supported: z.array(z.string()).optional(),
   request_object_signing_alg_values_supported: z.array(z.string()).optional(),
