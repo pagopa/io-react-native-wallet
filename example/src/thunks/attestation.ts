@@ -3,9 +3,9 @@ import { getAttestation } from "@pagopa/io-react-native-integrity";
 import {
   createCryptoContextFor,
   IoWallet,
+  type KeyAttestation as Ka,
   type KeyAttestationCryptoContext,
   type WalletInstanceAttestation as Wia,
-  type WalletUnitAttestation as Wua,
 } from "@pagopa/io-react-native-wallet";
 import { Platform } from "react-native";
 
@@ -73,23 +73,21 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
   return issuingAttestation;
 });
 
-interface GetWalletUnitAttestationThunkInput {
+interface GetKeyAttestationThunkInput {
   keyTags: string[];
 }
-type GetWalletUnitAttestationThunkOutput = Awaited<
-  ReturnType<Wua.WalletUnitAttestationSupportedApi["getAttestation"]>
+type GetKeyAttestationThunkOutput = Awaited<
+  ReturnType<Ka.KeyAttestationSupportedApi["getAttestation"]>
 >;
-export const getWalletUnitAttestationThunk = createAppAsyncThunk<
-  GetWalletUnitAttestationThunkOutput,
-  GetWalletUnitAttestationThunkInput
->("walletinstance/walletunitattestation", async ({ keyTags }, { getState }) => {
+export const getKeyAttestationThunk = createAppAsyncThunk<
+  GetKeyAttestationThunkOutput,
+  GetKeyAttestationThunkInput
+>("walletinstance/keyattestation", async ({ keyTags }, { getState }) => {
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
-  if (!wallet.WalletUnitAttestation.isSupported) {
-    throw new Error(
-      `Wallet Unit Attestation is not supported in v${itwVersion}`,
-    );
+  if (!wallet.KeyAttestation.isSupported) {
+    throw new Error(`Key Attestation is not supported in v${itwVersion}`);
   }
 
   // Retrieve the integrity key tag from the store and create its context
@@ -107,7 +105,7 @@ export const getWalletUnitAttestationThunk = createAppAsyncThunk<
     : undefined;
   await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
 
-  return await wallet.WalletUnitAttestation.getAttestation(
+  return await wallet.KeyAttestation.getAttestation(
     {
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
       walletSolutionId: "appio",

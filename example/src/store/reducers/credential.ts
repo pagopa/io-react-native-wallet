@@ -30,11 +30,9 @@ import { sessionReset } from "./session";
 
 /**
  * Supported tokens for the status list flow. They can be either SD-JWT credentials
- * or regular JWTs like the Wallet Unit Attestation.
+ * or regular JWTs like the Key Attestation.
  */
-export type StatusSupportedTokens =
-  | "walletUnitAttestation"
-  | SupportedCredentials;
+export type StatusSupportedTokens = "keyAttestation" | SupportedCredentials;
 
 /**
  * State type definition for the credential slice.
@@ -94,10 +92,10 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanHealthInsuranceCard: undefined,
     dc_sd_jwt_mDL: undefined,
     dc_sd_jwt_residency: undefined,
+    keyAttestation: undefined,
     mso_mdoc_mDL: undefined,
     mso_mdoc_proof_of_age: undefined,
     PersonIdentificationData: undefined,
-    walletUnitAttestation: undefined,
   },
   statusAsyncStatus: {
     dc_sd_jwt_education_attendance: asyncStatusInitial,
@@ -108,10 +106,10 @@ const initialState: CredentialState = {
     dc_sd_jwt_EuropeanHealthInsuranceCard: asyncStatusInitial,
     dc_sd_jwt_mDL: asyncStatusInitial,
     dc_sd_jwt_residency: asyncStatusInitial,
+    keyAttestation: asyncStatusInitial,
     mso_mdoc_mDL: asyncStatusInitial,
     mso_mdoc_proof_of_age: asyncStatusInitial,
     PersonIdentificationData: asyncStatusInitial,
-    walletUnitAttestation: asyncStatusInitial,
   },
   trustmark: {
     dc_sd_jwt_education_attendance: undefined,

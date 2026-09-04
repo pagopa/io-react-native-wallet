@@ -8,7 +8,7 @@ import TestScenario, {
   type TestScenarioProp,
 } from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
-import { selectWalletUnitAttestation } from "../store/reducers/attestation";
+import { selectKeyAttestation } from "../store/reducers/attestation";
 import {
   selectCredential,
   selectStatusAsyncStatuses,
@@ -30,7 +30,7 @@ export const CredentialStatusScreen = () => {
 
   const status = useAppSelector(selectStatuses);
   const asyncStatus = useAppSelector(selectStatusAsyncStatuses);
-  const wua = useAppSelector(selectWalletUnitAttestation);
+  const ka = useAppSelector(selectKeyAttestation);
 
   const pid = useAppSelector(selectPid);
   const mDL = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
@@ -48,28 +48,28 @@ export const CredentialStatusScreen = () => {
   useDebugInfo({
     dcStatus: status.dc_sd_jwt_EuropeanDisabilityCard,
     dcStatusState: asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
+    kaStatus: status.keyAttestation,
+    kaStatusState: asyncStatus.keyAttestation,
     mdlStatus: status.dc_sd_jwt_mDL,
     mdlStatusState: asyncStatus.dc_sd_jwt_mDL,
     pidStatus: status.PersonIdentificationData,
     pidStatusState: asyncStatus.PersonIdentificationData,
-    wuaStatus: status.walletUnitAttestation,
-    wuaStatusState: asyncStatus.walletUnitAttestation,
   });
 
   const statusListScenarios = compact<TestScenarioProp>([
-    wua && {
+    ka && {
       onPress: () =>
         dispatch(
           getCredentialStatusListThunk({
-            credential: wua,
-            credentialType: "walletUnitAttestation",
+            credential: ka,
+            credentialType: "keyAttestation",
             format: "dc+sd-jwt",
           }),
         ),
-      title: "Get Status List (WUA)",
-      ...asyncStatus.walletUnitAttestation,
+      title: "Get Status List (KA)",
+      ...asyncStatus.keyAttestation,
       icon: "locked",
-      isPresent: !!status.walletUnitAttestation,
+      isPresent: !!status.keyAttestation,
     },
     pid && {
       onPress: () =>
