@@ -36,7 +36,7 @@ export {
   CredentialStatus,
   Errors,
   fixBase64EncodingOnKey,
-  getJwkFromCertificateChain,
+  getJwkFromCertificateChain, 
   KeyAttestation,
   Logging,
   Mdoc,
