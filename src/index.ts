@@ -16,6 +16,7 @@ import * as SdJwt from "./sd-jwt";
 import * as Trust from "./trust";
 import {
   createCryptoContextFor,
+  getJwkFromCertificateChain,
   type KeyAttestationCryptoContext,
 } from "./utils/crypto";
 import * as Errors from "./utils/errors";
@@ -35,6 +36,7 @@ export {
   CredentialStatus,
   Errors,
   fixBase64EncodingOnKey,
+  getJwkFromCertificateChain,
   KeyAttestation,
   Logging,
   Mdoc,
