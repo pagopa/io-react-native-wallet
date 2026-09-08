@@ -10,11 +10,11 @@ import TestScenario, {
 } from "../components/TestScenario";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import {
+  selectKeyAttestation,
+  selectKeyAttestationAsyncState,
   selectWalletInstanceAttestationAsJwt,
   selectWalletInstanceAttestationAsSdJwt,
   selectWalletInstanceAttestationAsyncStatus,
-  selectWalletUnitAttestation,
-  selectWalletUnitAttestationAsyncState,
 } from "../store/reducers/attestation";
 import { selectItwVersion } from "../store/reducers/environment";
 import {
@@ -26,8 +26,8 @@ import {
 } from "../store/reducers/instance";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
+  getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
-  getWalletUnitAttestationThunk,
 } from "../thunks/attestation";
 import {
   createWalletInstanceThunk,
@@ -42,7 +42,7 @@ export const WalletInstanceScreen = () => {
   const dispatch = useAppDispatch();
   const instanceState = useAppSelector(selectInstanceAsyncStatus);
   const wiaState = useAppSelector(selectWalletInstanceAttestationAsyncStatus);
-  const wuaState = useAppSelector(selectWalletUnitAttestationAsyncState);
+  const kaState = useAppSelector(selectKeyAttestationAsyncState);
   const instanceRevocationState = useAppSelector(
     selectInstanceRevocationAsyncStatus,
   );
@@ -51,7 +51,7 @@ export const WalletInstanceScreen = () => {
   const instanceKeyTag = useAppSelector(selectInstanceKeyTag);
   const wiaJwt = useAppSelector(selectWalletInstanceAttestationAsJwt);
   const wiaSdJwt = useAppSelector(selectWalletInstanceAttestationAsSdJwt);
-  const wuaJwt = useAppSelector(selectWalletUnitAttestation);
+  const kaJwt = useAppSelector(selectKeyAttestation);
   const itwVersion = useAppSelector(selectItwVersion);
 
   const ioWallet = useMemo(
@@ -59,7 +59,7 @@ export const WalletInstanceScreen = () => {
     [itwVersion],
   );
 
-  const isWuaSupported = ioWallet.WalletUnitAttestation.isSupported;
+  const isKaSupported = ioWallet.KeyAttestation.isSupported;
 
   useDebugInfo({
     instanceKeyTag,
@@ -67,7 +67,7 @@ export const WalletInstanceScreen = () => {
     wiaJwt,
     wiaSdJwt,
     wiaState,
-    ...(isWuaSupported && { wuaJwt, wuaState }),
+    ...(isKaSupported && { kaJwt, kaState }),
     instanceRevocationState,
   });
 
@@ -113,19 +113,19 @@ export const WalletInstanceScreen = () => {
       onPress: () => dispatch(getWalletInstanceAttestationThunk()),
       title: "Get Wallet Instance Attestation",
     },
-    isWuaSupported && {
-      hasError: wuaState.hasError,
+    isKaSupported && {
+      hasError: kaState.hasError,
       icon: "bonus",
-      isDone: wuaState.isDone,
-      isLoading: wuaState.isLoading,
-      isPresent: !!wuaJwt,
+      isDone: kaState.isDone,
+      isLoading: kaState.isLoading,
+      isPresent: !!kaJwt,
       onPress: () =>
         dispatch(
-          getWalletUnitAttestationThunk({
+          getKeyAttestationThunk({
             keyTags: Array.from({ length: 2 }).map(() => uuidv4().toString()),
           }),
         ),
-      title: "Get Wallet Unit Attestation (2 keys)",
+      title: "Get Key Attestation (2 keys)",
     },
     {
       hasError: instanceRevocationState.hasError,

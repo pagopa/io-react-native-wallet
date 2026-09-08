@@ -8,8 +8,8 @@ import { type PersistConfig, persistReducer } from "redux-persist";
 import type { AsyncStatus, RootState } from "../types";
 
 import {
+  getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
-  getWalletUnitAttestationThunk,
 } from "../../thunks/attestation";
 import { createSecureStorage } from "../storage";
 import { asyncStatusInitial } from "../utils";
@@ -19,13 +19,13 @@ import { sessionReset } from "./session";
 
 // State type definition for the attestion slice
 interface AttestationState {
+  ka: {
+    asyncStatus: AsyncStatus;
+    value?: string;
+  };
   wia: {
     asyncStatus: AsyncStatus;
     value?: Record<Format, string>;
-  };
-  wua: {
-    asyncStatus: AsyncStatus;
-    value?: string;
   };
 }
 
@@ -36,10 +36,10 @@ type Format = Awaited<
 
 // Initial state for the attestation slice
 const initialState: AttestationState = {
-  wia: {
+  ka: {
     asyncStatus: asyncStatusInitial,
   },
-  wua: {
+  wia: {
     asyncStatus: asyncStatusInitial,
   },
 };
@@ -85,27 +85,23 @@ const attestationSlice = createSlice({
       },
     );
 
-    builder.addCase(
-      getWalletUnitAttestationThunk.fulfilled,
-      (state, action) => {
-        state.wua.value = action.payload.attestation;
-        state.wua.asyncStatus.isDone = true;
-        state.wua.asyncStatus.isLoading =
-          initialState.wua.asyncStatus.isLoading;
-        state.wua.asyncStatus.hasError = initialState.wua.asyncStatus.hasError;
-      },
-    );
-
-    builder.addCase(getWalletUnitAttestationThunk.pending, (state) => {
-      state.wua.asyncStatus.isLoading = true;
-      state.wua.asyncStatus.isDone = initialState.wua.asyncStatus.isDone;
-      state.wua.asyncStatus.hasError = initialState.wua.asyncStatus.hasError;
+    builder.addCase(getKeyAttestationThunk.fulfilled, (state, action) => {
+      state.ka.value = action.payload.attestation;
+      state.ka.asyncStatus.isDone = true;
+      state.ka.asyncStatus.isLoading = initialState.ka.asyncStatus.isLoading;
+      state.ka.asyncStatus.hasError = initialState.ka.asyncStatus.hasError;
     });
 
-    builder.addCase(getWalletUnitAttestationThunk.rejected, (state, action) => {
-      state.wua.asyncStatus.isDone = initialState.wua.asyncStatus.isDone;
-      state.wua.asyncStatus.isLoading = initialState.wua.asyncStatus.isLoading;
-      state.wua.asyncStatus.hasError = { error: action.error, status: true };
+    builder.addCase(getKeyAttestationThunk.pending, (state) => {
+      state.ka.asyncStatus.isLoading = true;
+      state.ka.asyncStatus.isDone = initialState.ka.asyncStatus.isDone;
+      state.ka.asyncStatus.hasError = initialState.ka.asyncStatus.hasError;
+    });
+
+    builder.addCase(getKeyAttestationThunk.rejected, (state, action) => {
+      state.ka.asyncStatus.isDone = initialState.ka.asyncStatus.isDone;
+      state.ka.asyncStatus.isLoading = initialState.ka.asyncStatus.isLoading;
+      state.ka.asyncStatus.hasError = { error: action.error, status: true };
     });
 
     // Reset the attestation state when the instance is reset.
@@ -168,10 +164,10 @@ export const selectWalletInstanceAttestationAsSdJwt =
 export const selectWalletInstanceAttestationAsMdoc =
   makeSelectWalletInstanceAttestation("mso_mdoc");
 
-export const selectWalletUnitAttestationAsyncState = (state: RootState) =>
-  state.attestation.wua.asyncStatus;
-export const selectWalletUnitAttestation = (state: RootState) =>
-  state.attestation.wua.value;
+export const selectKeyAttestationAsyncState = (state: RootState) =>
+  state.attestation.ka.asyncStatus;
+export const selectKeyAttestation = (state: RootState) =>
+  state.attestation.ka.value;
 
 /**
  * Checks if the Wallet Instance Attestation needs to be requested by

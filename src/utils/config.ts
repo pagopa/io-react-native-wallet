@@ -11,13 +11,6 @@ export const sdkConfigV1_0 = new IoWalletSdkConfig({
 });
 
 /**
- * IO Wallet SDK configuration object for v1.3 specs.
- */
-export const sdkConfigV1_3 = new IoWalletSdkConfig({
-  itWalletSpecsVersion: ItWalletSpecsVersion.V1_3,
-});
-
-/**
  * IO Wallet SDK configuration object for v1.4 specs.
  */
 export const sdkConfigV1_4 = new IoWalletSdkConfig({
