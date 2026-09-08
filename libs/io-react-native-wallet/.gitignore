@@ -1,2 +1,4 @@
 # react-native-builder-bob output
 /lib/
+
+src/client/generated/*.ts
