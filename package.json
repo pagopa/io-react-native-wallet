@@ -56,7 +56,7 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@pagopa/eslint-config": "^6.2.0",
-    "@pagopa/io-react-native-crypto": "^1.2.3",
+    "@pagopa/io-react-native-crypto": "^1.2.5",
     "@pagopa/io-react-native-iso18013": "^0.7.0",
     "@pagopa/io-react-native-jwt": "^2.1.0",
     "@react-native/babel-preset": "0.78.3",
