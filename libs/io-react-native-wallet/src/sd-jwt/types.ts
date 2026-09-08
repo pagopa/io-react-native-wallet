@@ -77,8 +77,8 @@ export const TypeMetadata = z.object({
   data_source: z.object({
     authentic_source: z.object({
       contacts: z.array(z.string()),
-      homepage_uri: z.string().url(),
-      logo_uri: z.string().url(),
+      homepage_uri: z.url(),
+      logo_uri: z.url(),
       organization_code: z.string(),
       organization_name: z.string(),
     }),

@@ -22,8 +22,8 @@ import type {
 } from "../store/types";
 import type { Env } from "./environment";
 
+import appFetch from "../utils/fetch";
 import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
-import appFetch from "./fetch";
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -122,10 +122,7 @@ export const getCredential = async ({
           appFetch,
           // Temporary workaround for a known bug affecting React Native 0.82-0.83. See https://github.com/facebook/react-native/issues/55248
           fetchFinalRedirectUri: (url) =>
-            getRedirects(url, {}, "code").then((redirects) => {
-              const redirect = last(redirects);
-              return typeof redirect === "string" ? redirect : undefined;
-            }),
+            getRedirects(url, {}, "code").then((result) => last(result)),
         },
       ));
   }
@@ -157,7 +154,7 @@ export const getCredential = async ({
 
   // Create as many key tags as the batch size
   const keyTags = Array.from({ length: batchSize }, () => uuidv4().toString());
-  const walletUnitAttestation = await generateKeysWithAttestation(keyTags);
+  const keyAttestation = await generateKeysWithAttestation(keyTags);
   const credentialCryptoContexts = keyTags.map(createCryptoContextFor);
 
   const [firstCredentialCryptoContext] = credentialCryptoContexts;
@@ -186,7 +183,7 @@ export const getCredential = async ({
             appFetch,
             credentialCryptoContexts,
             dPopCryptoContext,
-            walletUnitAttestation,
+            keyAttestation,
           },
         )
       : await wallet.CredentialIssuance.obtainCredential(
@@ -198,7 +195,7 @@ export const getCredential = async ({
             appFetch,
             credentialCryptoContext: firstCredentialCryptoContext,
             dPopCryptoContext,
-            walletUnitAttestation,
+            keyAttestation,
           },
         );
 
@@ -292,6 +289,12 @@ export const getTrustAnchorX509Certificate = async (
  * @param credentialType - The type of the credential
  * @returns The credential status assertion
  */
+export interface CredentialStatusAssertionResult {
+  credentialType: SupportedCredentials;
+  parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
+  statusAssertion: string;
+}
+
 export const getCredentialStatusAssertion = async (
   itwVersion: ItwVersion,
   credentialIssuerUrl: string,
@@ -300,11 +303,7 @@ export const getCredentialStatusAssertion = async (
   credentialCryptoContext: CryptoContext,
   wiaCryptoContext: CryptoContext,
   credentialType: SupportedCredentials,
-): Promise<{
-  credentialType: SupportedCredentials;
-  parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
-  statusAssertion: string;
-}> => {
+): Promise<CredentialStatusAssertionResult> => {
   const wallet = new IoWallet({ version: itwVersion });
 
   if (!wallet.CredentialStatus.statusAssertion.isSupported) {
@@ -394,7 +393,7 @@ const getKeysForStatusListVerification = async (
   credential: string,
   credentialType: string,
 ) => {
-  if (credentialType === "walletUnitAttestation") {
+  if (credentialType === "keyAttestation") {
     const decodedWua = decodeJwt(credential);
 
     const { payload } = await fetch(

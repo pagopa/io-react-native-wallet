@@ -1,4 +1,4 @@
-import type { Out } from "../../../utils/misc";
+import type { Out } from "../../../../src/utils/misc";
 import type { EvaluateDcqlQueryApi } from "./06-evaluate-dcql-query";
 import type { RelyingPartyConfig } from "./RelyingPartyConfig";
 import type {

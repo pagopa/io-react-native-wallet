@@ -1,12 +1,12 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
+import type { RequestObject } from "../../../credential/presentation/api";
+import type { EvaluateDcqlQueryApi } from "../../../credential/presentation/api/06-evaluate-dcql-query";
 import type {
   AuthorizationChallengeResult,
   AuthorizationResult,
 } from "../../../utils/auth";
 import type { Out } from "../../../utils/misc";
-import type { RequestObject } from "../../presentation/api";
-import type { EvaluateDcqlQueryApi } from "../../presentation/api/06-evaluate-dcql-query";
 import type { IssuerConfig } from "./IssuerConfig";
 
 export interface CompleteUserAuthorizationApi {

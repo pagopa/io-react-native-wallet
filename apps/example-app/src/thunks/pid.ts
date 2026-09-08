@@ -6,20 +6,20 @@ import {
 import { generate } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
 
-import { credentialReset } from "../store/credential";
 import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../store/reducers/attestation";
+import { credentialReset } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
-import { selectPidFlowParams } from "../store/selectors/pid";
+import { selectPidFlowParams } from "../store/reducers/pid";
 import { type PidAuthMethods, type PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import {
+  getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
-  getWalletUnitAttestationThunk,
 } from "./attestation";
 import { createAppAsyncThunk } from "./utils";
 
@@ -228,13 +228,13 @@ export const continuePidFlowThunk = createAppAsyncThunk<
 
   // Create credential crypto context and get the WUA if supported
   const credentialKeyTag = uuidv4().toString();
-  let walletUnitAttestation: string | undefined;
+  let keyAttestation: string | undefined;
 
-  if (wallet.WalletUnitAttestation.isSupported) {
-    const wua = await dispatch(
-      getWalletUnitAttestationThunk({ keyTags: [credentialKeyTag] }),
+  if (wallet.KeyAttestation.isSupported) {
+    const ka = await dispatch(
+      getKeyAttestationThunk({ keyTags: [credentialKeyTag] }),
     ).unwrap();
-    walletUnitAttestation = wua.attestation;
+    keyAttestation = ka.attestation;
   } else {
     await generate(credentialKeyTag);
   }
@@ -255,7 +255,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
         appFetch,
         credentialCryptoContext,
         dPopCryptoContext,
-        walletUnitAttestation,
+        keyAttestation,
       },
     );
 
@@ -291,7 +291,8 @@ function getPidSdJwtConfigurationId(
     issuerConf.credential_configurations_supported,
   ).find(
     ([, c]) =>
-      c.format === "dc+sd-jwt" && /PersonIdentificationData|pid/i.test(c.scope),
+      c.format === "dc+sd-jwt" &&
+      /PersonIdentificationData|pid|eid/i.test(c.scope),
   );
   return result?.at(0) as string;
 }

@@ -5,7 +5,7 @@ import {
   type EndpointParameters,
   ProblemJson,
   ApiClient as WalletProviderApiClient,
-} from "./generated/wallet-provider.ios";
+} from "./generated/wallet-provider";
 
 export type WalletProviderClient = WalletProviderApiClient;
 

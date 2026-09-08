@@ -1,4 +1,4 @@
-import type { IssuerConfig } from "../../../issuance";
+import type { IssuerConfig } from "../../../../credential/issuance";
 
 import { verifyAndParseStatusAssertion } from "../02-verify-and-parse-status-assertion";
 import {

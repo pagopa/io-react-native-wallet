@@ -1,5 +1,5 @@
+import type { CredentialFormat } from "../../../credential/issuance/api";
 import type { JWK } from "../../../utils/jwk";
-import type { CredentialFormat } from "../../issuance/api";
 import type { StatusList } from "./types";
 
 export interface StatusListApi {

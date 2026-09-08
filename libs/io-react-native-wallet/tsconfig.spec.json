@@ -17,6 +17,7 @@
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx",
+    "src/**/__fixtures__/**/*.ts",
     "src/**/*.d.ts"
   ],
   "references": [{ "path": "./tsconfig.lib.json" }]

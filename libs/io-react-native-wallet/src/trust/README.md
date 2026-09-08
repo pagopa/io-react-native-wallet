@@ -38,7 +38,7 @@ sequenceDiagram
 ### Validate a trust chain
 
 ```ts
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { trustAnchorEntityConfiguration } from "./your-data";
 import { chain } from "./your-data"; // array of JWTs, starting from leaf
 
@@ -78,7 +78,7 @@ This will fetch updated JWTs from each authority in the chain.
 ### Build a trust chain
 
 ```ts
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 
 const wallet = new IoWallet({ version: "1.0.0" });
 
@@ -104,7 +104,7 @@ const chain = await wallet.Trust.buildTrustChain({
 ### Build and Validate Example
 
 ```ts
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { trustAnchorEntityConfiguration } from "./your-data";
 
 const wallet = new IoWallet({ version: "1.0.0" });

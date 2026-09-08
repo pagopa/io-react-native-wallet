@@ -1,6 +1,6 @@
 import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
 
-import type { ProblemJson } from "../client/generated/wallet-provider.ios";
+import type { ProblemJson } from "../client/generated/wallet-provider";
 import type { IssuerConfig } from "../credential/issuance/api";
 
 import {

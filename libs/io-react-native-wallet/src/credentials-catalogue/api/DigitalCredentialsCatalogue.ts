@@ -55,6 +55,7 @@ const CredentialIssuer = z.object({
 
 const AuthenticSource = z.object({
   contacts: z.array(z.string()).optional(),
+  data_origin_l10n_id: z.string().optional(),
   homepage_uri: z.string().optional(),
   id: z.string(),
   logo_uri: z.string().optional(),
@@ -72,9 +73,9 @@ export const CredentialFormat = z.object({
   configuration_id: z.string(),
   docType: z.string().optional(),
   format: z.enum(["dc+sd-jwt", "mso_mdoc"]),
-  schema_uri: z.string().url().optional(),
+  schema_uri: z.url().optional(),
   "schema_uri#integrity": z.string().optional(),
-  vct: z.string().url().optional(),
+  vct: z.url().optional(),
 });
 export type CredentialFormat = z.infer<typeof CredentialFormat>;
 
@@ -160,7 +161,7 @@ export const DigitalCredentialsCatalogue = z.object({
   iat: UnixTime,
   localization: LocalizationInfo.optional(),
   taxonomy: Taxonomy.optional(),
-  taxonomy_uri: z.string().url(),
+  taxonomy_uri: z.url(),
 });
 export type DigitalCredentialsCatalogue = z.infer<
   typeof DigitalCredentialsCatalogue

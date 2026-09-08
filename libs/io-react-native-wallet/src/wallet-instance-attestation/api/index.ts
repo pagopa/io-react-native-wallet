@@ -54,3 +54,9 @@ export interface WalletInstanceAttestationApi {
    */
   verify(token: string): Promise<DecodedWalletInstanceAttestation>;
 }
+
+export type {
+  DecodedWalletInstanceAttestation,
+  WalletAttestation,
+  WalletAttestationRequestParams,
+} from "./types";

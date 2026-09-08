@@ -1,4 +1,4 @@
-import type { EndpointParameters } from "../generated/wallet-provider.ios";
+import type { EndpointParameters } from "../generated/wallet-provider";
 
 import { interpolateUrl } from "..";
 

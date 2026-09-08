@@ -11,7 +11,7 @@ The wallet provider must implement its endpoints based on the OpenAPI specificat
 - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance;
 
 ```ts
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the same key used when creating the Wallet Instance

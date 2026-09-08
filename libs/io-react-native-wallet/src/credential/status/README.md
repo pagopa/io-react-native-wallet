@@ -2,7 +2,7 @@
 
 This flow is used to obtain the credential status from its credential issuer. The following methods are currently supported:
 - Status Assertion (v1.0.0)
-- Token Status List (v1.3.3)
+- Token Status List (v1.4.6)
 
 Each step in the flow is imported from the related file which is named with a sequential number.
 
@@ -61,7 +61,7 @@ if (CredentialStatus.statusList.isSupported) {
   <summary>Credential status assertion flow</summary>
 
 ```ts
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 
 const wallet = new IoWallet({ version: "1.0.0" });
 
@@ -98,9 +98,9 @@ return {
   <summary>Credential status list flow</summary>
 
 ```ts
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.3.3" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 const credentialIssuerUrl = "https://issuer.example.com";
 

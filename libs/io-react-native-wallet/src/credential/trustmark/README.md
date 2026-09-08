@@ -42,7 +42,7 @@ Returns a Promise that resolves to an object containing:
 ## Example
 
 ```typescript
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@pagopa/io-react-native-wallet";
 
 const wallet = new IoWallet({ version: "1.0.0" });
 

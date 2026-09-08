@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "generate": "pnpm run generate-wallet-provider-client",
-    "generate-wallet-provider-client": "typed-openapi openapi/wallet-provider.yaml -o src/client/generated/wallet-provider.ios.ts -r zod",
+    "generate-wallet-provider-client": "typed-openapi openapi/wallet-provider.yaml -o src/client/generated/wallet-provider.ts -r zod",
     "tsc": "tsc -p tsconfig.lib.json --noEmit",
     "prepack": "bob build",
     "release": "release-it"
