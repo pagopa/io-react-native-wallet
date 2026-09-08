@@ -12,7 +12,7 @@ import {
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
-import { selectPidFlowParams } from "../store/reducers/pid";
+import { selectPidFlowParams } from "../store/selectors/pid";
 import { type PidAuthMethods, type PidResult } from "../store/types";
 import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
