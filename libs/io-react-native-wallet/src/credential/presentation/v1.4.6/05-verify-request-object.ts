@@ -73,15 +73,9 @@ const validateOpenIDFederationClient = (
   }
 };
 
-<<<<<<<< HEAD:libs/io-react-native-wallet/src/credential/presentation/v1.4.6/05-verify-request-object.ts
-const validateX509HashClient = (
-  certificateChain: string[] = [],
-  x509Hash: string,
-========
 const validateX509HashClient = async (
   fullClientId: string,
   certificateChain: string[] = [],
->>>>>>>> master:src/credential/presentation/v1.4.6/05-verify-request-object.ts
 ) => {
   const calculatedHash = await createX509HashClientId({
     certificateChain,

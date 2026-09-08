@@ -77,6 +77,8 @@ export const initEnv = (): void => {
     return;
   }
 
+  console.log(JSON.stringify(rawEnv, null, 2));
+
   const parsed = envSchema.safeParse(rawEnv);
   if (!parsed.success) {
     const issues = parsed.error.issues
