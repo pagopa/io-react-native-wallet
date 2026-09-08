@@ -15,7 +15,7 @@ import {
   selectStatuses,
 } from "../store/reducers/credential";
 import { selectItwVersion } from "../store/reducers/environment";
-import { selectPid } from "../store/reducers/pid";
+import { selectPid } from "../store/selectors/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import {
   getCredentialStatusAssertionThunk,

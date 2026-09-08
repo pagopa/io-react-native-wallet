@@ -17,12 +17,6 @@ import { createSecureStorage } from "../storage";
 import { asyncStatusInitial } from "../utils";
 import { sessionReset } from "./session";
 
-export {
-  selectPid,
-  selectPidAsyncStatus,
-  selectPidFlowParams,
-} from "../selectors/pid";
-
 /**
  * State type definition for the PID slice.
  * It contains:

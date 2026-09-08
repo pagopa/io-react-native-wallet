@@ -5,20 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": [
-      "iowalletexample",
-      "iowallelogincie"
-    ],
+    "scheme": ["iowalletexample", "iowallelogincie"],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "it.pagopa.app.io.poc.itwallet",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "http",
-          "https",
-          "CIEID"
-        ],
+        "LSApplicationQueriesSchemes": ["http", "https", "CIEID"],
         "NFCReaderUsageDescription": "Read CIE",
         "com.apple.developer.nfc.readersession.iso7816.select-identifiers": [
           "A0000002471001",
@@ -39,9 +32,7 @@
         "NSLocationWhenInUseUsageDescription": ""
       },
       "entitlements": {
-        "com.apple.developer.nfc.readersession.formats": [
-          "TAG"
-        ]
+        "com.apple.developer.nfc.readersession.formats": ["TAG"]
       },
       "appleTeamId": "M2X5YQ4BJ7"
     },

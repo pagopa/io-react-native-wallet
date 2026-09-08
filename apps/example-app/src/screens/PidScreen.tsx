@@ -20,7 +20,7 @@ import {
   selectPid,
   selectPidAsyncStatus,
   selectPidFlowParams,
-} from "../store/reducers/pid";
+} from "../store/selectors/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { preparePidFlowParamsThunk } from "../thunks/pid";
 import { getCieIdpHint } from "../utils/environment";

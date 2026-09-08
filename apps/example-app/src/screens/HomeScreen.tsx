@@ -14,8 +14,8 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectKeyAttestation } from "../store/reducers/attestation";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectPid } from "../store/reducers/pid";
 import { selectIoAuthToken } from "../store/reducers/session";
+import { selectPid } from "../store/selectors/pid";
 import { useAppSelector } from "../store/utils";
 
 type ModuleSummaryProps = ComponentProps<typeof ModuleSummary>;

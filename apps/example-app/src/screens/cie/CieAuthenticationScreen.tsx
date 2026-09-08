@@ -13,7 +13,8 @@ import { CieAuthenticationWebview } from "../../components/cie/CieAuthentication
 import { CieAuthorizationWebview } from "../../components/cie/CieAuthorizationWebView";
 import { CiePinDialog } from "../../components/cie/CiePinDialog";
 import { selectEnv } from "../../store/reducers/environment";
-import { pidFlowReset, selectPidFlowParams } from "../../store/reducers/pid";
+import { pidFlowReset } from "../../store/reducers/pid";
+import { selectPidFlowParams } from "../../store/selectors/pid";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import {
   continuePidFlowThunk,
