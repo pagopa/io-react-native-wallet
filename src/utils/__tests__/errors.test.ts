@@ -84,6 +84,58 @@ describe("extractErrorMessageFromIssuerConf", () => {
   });
 });
 
+describe("UnexpectedStatusCodeError", () => {
+  const fiscalCode = "LVLDAA85T50G702B";
+  const fiscalCodeMask = "*".repeat(16);
+
+  it("anonymizes fiscal codes in a string reason", () => {
+    const error = new UnexpectedStatusCodeError({
+      message: "A message",
+      reason: `User ${fiscalCode} not found`,
+      statusCode: 404,
+    });
+
+    expect(error.reason).toBe(`User ${fiscalCodeMask} not found`);
+  });
+
+  it("leaves a string reason without fiscal codes unchanged", () => {
+    const error = new UnexpectedStatusCodeError({
+      message: "A message",
+      reason: "credential_not_found",
+      statusCode: 404,
+    });
+
+    expect(error.reason).toBe("credential_not_found");
+  });
+
+  it("anonymizes fiscal codes in an object reason", () => {
+    const error = new UnexpectedStatusCodeError({
+      message: "A message",
+      reason: {
+        error: "tax_id_code_mismatch",
+        error_description: `Mismatch for ${fiscalCode}`,
+      },
+      statusCode: 400,
+    });
+
+    expect(error.reason).toEqual({
+      error: "tax_id_code_mismatch",
+      error_description: `Mismatch for ${fiscalCodeMask}`,
+    });
+  });
+
+  it("is inherited by IssuerResponseError", () => {
+    const error = new IssuerResponseError({
+      code: IssuerResponseErrorCodes.IssuerGenericError,
+      message: "A message",
+      reason: `User ${fiscalCode} not found`,
+      statusCode: 404,
+    });
+
+    expect(error.reason).toBe(`User ${fiscalCodeMask} not found`);
+  });
+});
+
 describe("ResponseErrorBuilder", () => {
   const errorBuilderWithFallback = new ResponseErrorBuilder(IssuerResponseError)
     .handle(403, {

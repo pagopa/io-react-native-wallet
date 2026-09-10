@@ -11,6 +11,7 @@ import {
   type WalletProviderResponseErrorCode,
   WalletProviderResponseErrorCodes,
 } from "./error-codes";
+import { anonymizeString } from "./string";
 
 export {
   IssuerResponseErrorCodes,
@@ -106,11 +107,17 @@ export class IoWalletError extends Error {
 
 /**
  * An error subclass thrown when an HTTP request has a status code different from the one expected.
+ * `reason` values are returned with Italian fiscal codes anonymized.
  */
 export class UnexpectedStatusCodeError extends IoWalletError {
   code = "ERR_UNEXPECTED_STATUS_CODE";
-  reason: GenericErrorReason;
   statusCode: number;
+
+  get reason(): GenericErrorReason {
+    return anonymizeString(this._reason);
+  }
+
+  private _reason: GenericErrorReason;
 
   constructor({
     message,
@@ -122,7 +129,7 @@ export class UnexpectedStatusCodeError extends IoWalletError {
     statusCode: number;
   }) {
     super(serializeAttrs({ message, reason, statusCode }));
-    this.reason = reason;
+    this._reason = reason;
     this.statusCode = statusCode;
   }
 }
@@ -198,7 +205,10 @@ export class ValidationFailed extends IoWalletError {
  */
 export class WalletProviderResponseError extends UnexpectedStatusCodeError {
   code: WalletProviderResponseErrorCode;
-  reason: ProblemJson;
+
+  get reason(): ProblemJson {
+    return super.reason as ProblemJson;
+  }
 
   constructor(params: {
     code?: WalletProviderResponseErrorCode;
@@ -207,7 +217,6 @@ export class WalletProviderResponseError extends UnexpectedStatusCodeError {
     statusCode: number;
   }) {
     super(params);
-    this.reason = params.reason;
     this.code =
       params.code ??
       WalletProviderResponseErrorCodes.WalletProviderGenericError;
@@ -322,7 +331,11 @@ export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
       this.errorCases[originalError.statusCode] ?? this.errorCases["*"];
 
     if (params) {
-      return new this.ErrorClass({ ...originalError, ...params });
+      return new this.ErrorClass({
+        reason: originalError.reason,
+        statusCode: originalError.statusCode,
+        ...params,
+      });
     }
 
     return originalError;
