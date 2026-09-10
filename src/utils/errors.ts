@@ -11,6 +11,7 @@ import {
   type WalletProviderResponseErrorCode,
   WalletProviderResponseErrorCodes,
 } from "./error-codes";
+import { anonymizeString } from "./string";
 
 export {
   IssuerResponseErrorCodes,
@@ -130,6 +131,7 @@ export class UnexpectedStatusCodeError extends IoWalletError {
 /**
  * An error subclass thrown when an Issuer HTTP request fails.
  * The specific error can be found in the `code` property.
+ * `reason` values are returned with Italian fiscal codes anonymized.
  */
 export class IssuerResponseError extends UnexpectedStatusCodeError {
   code: IssuerResponseErrorCode;
@@ -140,7 +142,7 @@ export class IssuerResponseError extends UnexpectedStatusCodeError {
     reason: GenericErrorReason;
     statusCode: number;
   }) {
-    super(params);
+    super({ ...params, reason: anonymizeString(params.reason) });
     this.code = params.code ?? IssuerResponseErrorCodes.IssuerGenericError;
   }
 }
@@ -322,7 +324,11 @@ export class ResponseErrorBuilder<T extends typeof UnexpectedStatusCodeError> {
       this.errorCases[originalError.statusCode] ?? this.errorCases["*"];
 
     if (params) {
-      return new this.ErrorClass({ ...originalError, ...params });
+      return new this.ErrorClass({
+        reason: originalError.reason,
+        statusCode: originalError.statusCode,
+        ...params,
+      });
     }
 
     return originalError;
