@@ -107,17 +107,11 @@ export class IoWalletError extends Error {
 
 /**
  * An error subclass thrown when an HTTP request has a status code different from the one expected.
- * `reason` values are returned with Italian fiscal codes anonymized.
  */
 export class UnexpectedStatusCodeError extends IoWalletError {
   code = "ERR_UNEXPECTED_STATUS_CODE";
+  reason: GenericErrorReason;
   statusCode: number;
-
-  get reason(): GenericErrorReason {
-    return anonymizeString(this._reason);
-  }
-
-  private _reason: GenericErrorReason;
 
   constructor({
     message,
@@ -129,7 +123,7 @@ export class UnexpectedStatusCodeError extends IoWalletError {
     statusCode: number;
   }) {
     super(serializeAttrs({ message, reason, statusCode }));
-    this._reason = reason;
+    this.reason = reason;
     this.statusCode = statusCode;
   }
 }
@@ -137,6 +131,7 @@ export class UnexpectedStatusCodeError extends IoWalletError {
 /**
  * An error subclass thrown when an Issuer HTTP request fails.
  * The specific error can be found in the `code` property.
+ * `reason` values are returned with Italian fiscal codes anonymized.
  */
 export class IssuerResponseError extends UnexpectedStatusCodeError {
   code: IssuerResponseErrorCode;
@@ -147,7 +142,7 @@ export class IssuerResponseError extends UnexpectedStatusCodeError {
     reason: GenericErrorReason;
     statusCode: number;
   }) {
-    super(params);
+    super({ ...params, reason: anonymizeString(params.reason) });
     this.code = params.code ?? IssuerResponseErrorCodes.IssuerGenericError;
   }
 }
@@ -205,10 +200,7 @@ export class ValidationFailed extends IoWalletError {
  */
 export class WalletProviderResponseError extends UnexpectedStatusCodeError {
   code: WalletProviderResponseErrorCode;
-
-  get reason(): ProblemJson {
-    return super.reason as ProblemJson;
-  }
+  reason: ProblemJson;
 
   constructor(params: {
     code?: WalletProviderResponseErrorCode;
@@ -217,6 +209,7 @@ export class WalletProviderResponseError extends UnexpectedStatusCodeError {
     statusCode: number;
   }) {
     super(params);
+    this.reason = params.reason;
     this.code =
       params.code ??
       WalletProviderResponseErrorCodes.WalletProviderGenericError;
