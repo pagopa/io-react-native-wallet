@@ -49,12 +49,13 @@ export const mapToCredentialsCatalogue = createMapper<
     }): ApiAuthenticSource => {
       const as = authSourcesById.get(id);
       assert(as, `AS ${id} must be present in the Authentic Source Registry`);
-      const { ipa_code, organization_name_l10n_id, ...rest } =
+      const { contacts, ipa_code, organization_name_l10n_id, ...rest } =
         as.organization_info;
       const dataCapability = as.data_capabilities.find(
         (dc) => dc.dataset_id === dataset_id,
       );
       return {
+        contacts: dataCapability?.contacts,
         data_origin_l10n_id: dataCapability?.data_origin_l10n_id,
         id,
         organization_code: ipa_code,

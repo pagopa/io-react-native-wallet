@@ -16,6 +16,7 @@ describe("mapToCredentialsCatalogue", () => {
         {
           authentic_sources: [
             {
+              contacts: ["info@source-org.example.com"],
               id: "source-1",
               organization_code: "SRC123",
               organization_country: "IT",
@@ -84,6 +85,7 @@ describe("mapToCredentialsCatalogue", () => {
       {
         authentic_sources: [
           {
+            contacts: [{ type: "email", value: "info@source-org.example.com" }],
             id: "source-1",
             organization_code: "SRC123",
             organization_country: "IT",
