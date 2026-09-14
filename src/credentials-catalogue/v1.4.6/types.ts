@@ -13,7 +13,14 @@ const ASDataCapability = z.object({
     }),
   ),
   background_color: z.string().optional(),
-  contacts: z.array(z.string()).optional(),
+  contacts: z
+    .array(
+      z.object({
+        type: z.string(),
+        value: z.string(),
+      }),
+    )
+    .optional(),
   data_origin_l10n_id: z.string(),
   data_provision: z
     .object({
