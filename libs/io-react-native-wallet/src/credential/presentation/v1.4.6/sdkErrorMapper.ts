@@ -1,10 +1,9 @@
-import { ValidationError as SdkValidationError } from "@openid4vc/utils";
 import { Oauth2JwtParseError as SdkOauth2JwtParseError } from "@pagopa/io-wallet-oauth2";
 import {
   CreateAuthorizationResponseError as SdkCreateAuthorizationResponseError,
   FetchAuthorizationResponseError as SdkFetchAuthorizationResponseError,
 } from "@pagopa/io-wallet-oid4vp";
-import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
+import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError, ValidationError as SdkValidationError } from "@pagopa/io-wallet-utils";
 
 import type { RelyingPartyResponseErrorCode } from "../../../utils/error-codes";
 
