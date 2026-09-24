@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - libs/*
+
+allowBuilds:
+  arktype: true
+  nx: true
+  unrs-resolver: true

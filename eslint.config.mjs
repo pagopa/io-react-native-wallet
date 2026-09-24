@@ -1,32 +1,58 @@
+import nx from "@nx/eslint-plugin";
 import pagopa from "@pagopa/eslint-config/jest";
 
 export default [
   {
     ignores: [
-      "src/client/generated/**/*",
-      "lib/**/*",
+      "**/src/client/generated/**/*",
+      "**/lib/**/*",
       "**/*.js",
       "**/*.jsx",
       "**/babel.config.*",
       "**/jest.config.js",
       "**/metro.config.js",
       "**/react-native.config.js",
+      "**/dist",
+      "**/out-tsc",
     ],
   },
   ...pagopa,
   {
+    plugins: {
+      "@nx": nx,
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
     rules: {
-      // START: OVERWRITTEN RULES FROM PAGOPA/ESLINT-CONFIG
-      //
-      // Converting `type = {}` to `interface {}` breaks assignability to
-      // `Record<string, unknown>` — TypeScript requires an explicit index
-      // signature on interfaces, whereas type aliases satisfy it structurally.
-      // This affects analytics helpers, navigation param lists, and any other
-      // type used as a generic record argument throughout the codebase.
+      "@nx/enforce-module-boundaries": [
+        "error",
+        {
+          allow: ["^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$"],
+          depConstraints: [
+            {
+              onlyDependOnLibsWithTags: ["*"],
+              sourceTag: "*",
+            },
+          ],
+          enforceBuildableLibDependency: true,
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.cts",
+      "**/*.mts",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.cjs",
+      "**/*.mjs",
+    ],
+    rules: {
       "@typescript-eslint/consistent-type-definitions": "off",
-
-      // Allow `_`-prefixed throwaways and rest-sibling destructuring omits
-      // (`const { key, ...rest } = obj`), matching tsc's own noUnusedLocals.
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -38,18 +64,18 @@ export default [
     },
   },
   {
-    // Tests have long setup/assertion blocks thus the 200 line limit from @pagopa/eslint-config is too strict.
     files: ["**/__tests__/**/*", "**/*.test.ts", "**/*.test.tsx"],
     rules: {
       "max-lines-per-function": "off",
     },
   },
   {
-    // Static image assets must be loaded via `require()` for the React Native
     rules: {
       "@typescript-eslint/no-require-imports": [
         "error",
-        { allow: ["\\.(png|jpg|jpeg|gif|webp)$"] },
+        {
+          allow: ["\\.(png|jpg|jpeg|gif|webp)$"],
+        },
       ],
     },
   },
