@@ -84,6 +84,47 @@ describe("extractErrorMessageFromIssuerConf", () => {
   });
 });
 
+describe("IssuerResponseError", () => {
+  const fiscalCode = "LVLDAA85T50G702B";
+  const fiscalCodeMask = "*".repeat(16);
+
+  it("anonymizes fiscal codes in a string reason", () => {
+    const error = new IssuerResponseError({
+      message: "A message",
+      reason: `User ${fiscalCode} not found`,
+      statusCode: 404,
+    });
+
+    expect(error.reason).toBe(`User ${fiscalCodeMask} not found`);
+  });
+
+  it("leaves a string reason without fiscal codes unchanged", () => {
+    const error = new IssuerResponseError({
+      message: "A message",
+      reason: "credential_not_found",
+      statusCode: 404,
+    });
+
+    expect(error.reason).toBe("credential_not_found");
+  });
+
+  it("anonymizes fiscal codes in an object reason", () => {
+    const error = new IssuerResponseError({
+      message: "A message",
+      reason: {
+        error: "tax_id_code_mismatch",
+        error_description: `Mismatch for ${fiscalCode}`,
+      },
+      statusCode: 400,
+    });
+
+    expect(error.reason).toEqual({
+      error: "tax_id_code_mismatch",
+      error_description: `Mismatch for ${fiscalCodeMask}`,
+    });
+  });
+});
+
 describe("ResponseErrorBuilder", () => {
   const errorBuilderWithFallback = new ResponseErrorBuilder(IssuerResponseError)
     .handle(403, {

@@ -19,8 +19,12 @@ export const mapToCredentialsCatalogue = createMapper<
       credentials: payload.credentials.map((credential) => ({
         ...credential,
         authentic_sources: credential.authentic_sources.map(
-          ({ source_type, ...as }) => ({
+          ({ contacts, source_type, ...as }) => ({
             ...as,
+            contacts: contacts?.map((contact) => ({
+              type: "email", // v1.0 contacts are always emails
+              value: contact,
+            })),
             organization_type: source_type,
           }),
         ),
