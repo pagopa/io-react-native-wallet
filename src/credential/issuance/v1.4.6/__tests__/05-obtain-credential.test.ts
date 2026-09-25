@@ -34,6 +34,7 @@ describe("requestCredentials", () => {
 
   const mockIssuerConf = {
     credential_endpoint: "https://issuer-example/credential",
+    credential_issuer: "https://issuer-example",
     nonce_endpoint: "https://issuer-example/nonce",
   } as IssuerConfig;
 
@@ -71,8 +72,8 @@ describe("requestCredentials", () => {
           credential_identifier: "credid-123",
           proofs: {
             jwt: [
-              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoia2V5LTEiLCJrdHkiOiJFQyIsInVzZSI6InNpZyIsIngiOiIxIiwieSI6IjEifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlL2NyZWRlbnRpYWwiLCJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-1",
-              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoia2V5LTIiLCJrdHkiOiJFQyIsInVzZSI6InNpZyIsIngiOiIxIiwieSI6IjIifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlL2NyZWRlbnRpYWwiLCJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-2",
+              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoia2V5LTEiLCJrdHkiOiJFQyIsInVzZSI6InNpZyIsIngiOiIxIiwieSI6IjEifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlIiwiaWF0IjoxNzc0MjI0MDAwLCJpc3MiOiJjbGllbnQxMjMiLCJub25jZSI6Im1vY2stbm9uY2UifQ.mock-signature-key-1",
+              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoia2V5LTIiLCJrdHkiOiJFQyIsInVzZSI6InNpZyIsIngiOiIxIiwieSI6IjIifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlIiwiaWF0IjoxNzc0MjI0MDAwLCJpc3MiOiJjbGllbnQxMjMiLCJub25jZSI6Im1vY2stbm9uY2UifQ.mock-signature-key-2",
             ],
           },
         },
