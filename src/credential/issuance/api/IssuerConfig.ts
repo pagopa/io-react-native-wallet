@@ -14,7 +14,7 @@ const ClaimConfig = z.object({
 });
 
 /**
- * @deprecated Use `error_description` in the Issuer response: https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/credential-issuer-endpoint.html#credential-response
+ * @deprecated Use `error_description` in the Issuer response: https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-issuer-endpoint.html#credential-response
  */
 const LegacyIssuanceErrorSupported = z.object({
   display: z.array(
@@ -40,7 +40,7 @@ const CredentialConfig = z.intersection(
     claims: z.array(ClaimConfig),
     display: z.array(DisplayConfig),
     /**
-     * @deprecated Use `error_description` in the Issuer response: https://italia.github.io/eid-wallet-it-docs/releases/1.3.3/en/credential-issuer-endpoint.html#credential-response
+     * @deprecated Use `error_description` in the Issuer response: https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-issuer-endpoint.html#credential-response
      *
      * Kept for backward compatibility with v0.7.1
      */
