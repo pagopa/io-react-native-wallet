@@ -10,6 +10,12 @@ import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
 import { KeyAttestationResponse } from "./types";
 
+type KeyAttestationRequest = {
+  cryptoContext: KeyAttestationCryptoContext;
+  keyAttestationRequestJwt: string;
+  publicKey: JWK;
+};
+
 /**
  * Create a Key Attestation Request in JWT format for the provided key.
  * @param challenge The challenge for key attestation
@@ -19,7 +25,7 @@ import { KeyAttestationResponse } from "./types";
 const createKeyAttestationRequest = async (
   challenge: string,
   cryptoContext: KeyAttestationCryptoContext,
-) => {
+): Promise<KeyAttestationRequest> => {
   const { attestation, success } =
     await cryptoContext.generateKeyWithAttestation(challenge);
 
@@ -75,18 +81,22 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
       `Challenge obtained from ${walletProviderBaseUrl}: ${nonce}`,
     );
 
-    const keysToAttest = await Promise.all(
-      keysToAttestContexts.map((cryptoContext) =>
-        createKeyAttestationRequest(nonce, cryptoContext),
-      ),
-    );
+    const keysToAttest: KeyAttestationRequest[] = [];
 
-    // Use the first key to attest to sign the WUA Request JWT
+    // Key attestations are generated sequentially to reduce the impact of potential concurrency issues
+    // with the underlying hardware-backed secure environment (observed on some Android devices).
+    for (const cryptoContext of keysToAttestContexts) {
+      keysToAttest.push(
+        await createKeyAttestationRequest(nonce, cryptoContext),
+      );
+    }
+
+    // Use the first key to attest to sign the Key Attestation Request JWT
     const signatureKey = keysToAttest.at(0);
 
     if (!signatureKey) {
       throw new IoWalletError(
-        "No signature key available for signing the WUA request",
+        "No signature key available for signing the Key Attestation request",
       );
     }
 
