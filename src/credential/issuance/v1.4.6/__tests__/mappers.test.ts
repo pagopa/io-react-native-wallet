@@ -28,6 +28,18 @@ describe("mapToIssuerConfig", () => {
             },
             doctype: "org.iso.18013.5.1.mDL",
             format: "mso_mdoc",
+            issuance_errors_supported: {
+              credential_not_found: {
+                display: [
+                  {
+                    description: "Descrizione errore",
+                    locale: "it-IT",
+                    title: "Titolo errore",
+                  },
+                ],
+                status_code: 404,
+              },
+            },
             scope: "MDL",
           },
           PersonIdentificationData: {
@@ -68,6 +80,18 @@ describe("mapToIssuerConfig", () => {
           display: [{ locale: "en", name: "Mobile Driving Licence" }],
           doctype: "org.iso.18013.5.1.mDL",
           format: "mso_mdoc",
+          issuance_errors_supported: {
+            credential_not_found: {
+              display: [
+                {
+                  description: "Descrizione errore",
+                  locale: "it-IT",
+                  title: "Titolo errore",
+                },
+              ],
+              status_code: 404,
+            },
+          },
           scope: "MDL",
         },
         PersonIdentificationData: {
