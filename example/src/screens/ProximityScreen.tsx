@@ -2,7 +2,7 @@ import { ModuleSummary } from "@pagopa/io-app-design-system";
 import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
 import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { addPadding } from "@pagopa/io-react-native-jwt";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet } from "react-native";
 
 import type { CredentialResult, EnvType } from "../store/types";
@@ -30,13 +30,9 @@ const {
   close,
   ErrorCode,
   generateResponse,
-  getQrCodeString,
-  parseEventError,
   parseVerifierRequest,
-  removeListener,
   sendErrorResponse,
   sendResponse,
-  start,
 } = ISO18013_5;
 
 /**
@@ -91,6 +87,8 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
   const { WALLET_TA_BASE_URL } = getEnv(env);
   const itwVersion = useAppSelector(selectItwVersion);
+  // Use a ref to keep track of the active listener subscriptions
+  const listenerSubscriptions = useRef<ReturnType<typeof addListener>[]>([]);
 
   useDebugInfo({
     attestation,
@@ -165,11 +163,10 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         await sendErrorResponse(ErrorCode.SESSION_TERMINATED);
       }
       console.log("Cleaning up listeners and closing QR engagement");
-      removeListener("onDeviceConnected");
-      removeListener("onDeviceConnecting");
-      removeListener("onDeviceDisconnected");
-      removeListener("onDocumentRequestReceived");
-      removeListener("onError");
+      listenerSubscriptions.current.forEach((subscription) =>
+        subscription.remove(),
+      );
+      listenerSubscriptions.current = [];
       await close();
       setQrCode(null);
       setRequest(null);
@@ -199,7 +196,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         if (!data || !data.error) {
           throw new Error("No error data received");
         }
-        const parsedError = parseEventError(data.error);
+        const parsedError = ISO18013_5.ModuleErrorSchema.parse(data.error);
         console.error(`onError: ${parsedError}`);
       } catch (e) {
         console.error("Error parsing onError data:", e);
@@ -286,21 +283,34 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
       return;
     }
     try {
-      await start({
+      // QR code engagement only (BLE retrieval)
+      await ISO18013_5.startEngagement({
         certificates: [x5c],
-      }); // Peripheral mode
-      // Register listeners
-      addListener("onDeviceConnecting", handleOnDeviceConnecting);
-      addListener("onDeviceConnected", handleOnDeviceConnected);
-      addListener("onDocumentRequestReceived", onDocumentRequestReceived);
-      addListener("onDeviceDisconnected", onDeviceDisconnected);
-      addListener("onError", onError);
+        engagementModes: ["qrcode"],
+        retrievalMethods: ["ble"],
+      });
 
-      // Generate the QR code string
-      console.log("Generating QR code");
-      const qrString = await getQrCodeString();
-      console.log(`Generated QR code: ${qrString}`);
-      setQrCode(qrString);
+      // Register listeners
+      ISO18013_5.addListener(
+        "onQrCodeString",
+        (payload: ISO18013_5.EventsPayload["onQrCodeString"]) => {
+          setQrCode(payload.data);
+        },
+      );
+
+      listenerSubscriptions.current.push(
+        addListener("onDeviceConnecting", handleOnDeviceConnecting),
+      );
+      listenerSubscriptions.current.push(
+        addListener("onDeviceConnected", handleOnDeviceConnected),
+      );
+      listenerSubscriptions.current.push(
+        addListener("onDocumentRequestReceived", onDocumentRequestReceived),
+      );
+      listenerSubscriptions.current.push(
+        addListener("onDeviceDisconnected", onDeviceDisconnected),
+      );
+      listenerSubscriptions.current.push(addListener("onError", onError));
       setStatus(PROXIMITY_STATUS.STARTED);
     } catch (error) {
       console.log("Error starting the proximity flow", error);
