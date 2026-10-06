@@ -1,3 +1,0 @@
-export type * from "./api";
-export { KeyAttestation as V1_0_0 } from "./v1.0.0";
-export { KeyAttestation as V1_4_6 } from "./v1.4.6";
