@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - libs/*
+
+allowBuilds:
+  arktype: true
+  nx: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - '@pagopa/io-react-native-iso18013@0.8.5'
