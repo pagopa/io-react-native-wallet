@@ -2,7 +2,9 @@
 
 TypeScript library implementing the EUDI Wallet / IT-Wallet specifications for React Native. Provides data structures, helpers and API for credential issuance, presentation, and wallet lifecycle management.
 
-**Package manager:** `yarn` (not npm)
+Part of an Nx + pnpm monorepo: this library lives in `libs/io-react-native-wallet`, the example app in `apps/example-app`.
+
+**Package manager:** `pnpm` via Corepack (not npm/yarn). Node version from the root `.node-version`.
 
 ## Documentation
 

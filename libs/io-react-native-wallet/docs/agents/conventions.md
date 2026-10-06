@@ -5,7 +5,7 @@
 - Strict mode enabled (`tsconfig.json`)
 - Prefer string literal unions over `enum` for public-facing types
 - Use `zod` for runtime validation of external data
-- Never edit generated files in `src/client/generated/` — run `yarn generate`
+- Never edit generated files in `src/client/generated/` — run `pnpm nx run io-react-native-wallet:generate`
 
 ## Error Handling
 

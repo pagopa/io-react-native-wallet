@@ -69,4 +69,4 @@ Located in `src/utils/`:
 
 ## Generated Code
 
-`src/client/generated/wallet-provider.ts` is auto-generated from `openapi/wallet-provider.yaml` using `typed-openapi`. Never edit it manually; run `yarn generate` instead.
+`src/client/generated/wallet-provider.ts` is auto-generated (gitignored) from `openapi/wallet-provider.yaml` using `typed-openapi`. Never edit it manually; run `pnpm nx run io-react-native-wallet:generate` instead.
