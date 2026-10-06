@@ -127,5 +127,35 @@
         }
       ]
     ]
+  },
+  "nx": {
+    "targets": {
+      "generate": {
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/openapi/**/*",
+          {
+            "externalDependencies": [
+              "typed-openapi"
+            ]
+          }
+        ],
+        "outputs": [
+          "{projectRoot}/src/client/generated/*.ts"
+        ]
+      },
+      "test": {
+        "dependsOn": [
+          "generate",
+          "^build"
+        ]
+      },
+      "typecheck": {
+        "dependsOn": [
+          "generate",
+          "^typecheck"
+        ]
+      }
+    }
   }
 }

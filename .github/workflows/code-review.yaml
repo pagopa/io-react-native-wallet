@@ -32,8 +32,3 @@ jobs:
         env:
           NX_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           NX_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Check generated client
-        run: |
-          pnpm --filter @io-app-it-wallet/io-react-native-wallet generate
-          git diff --exit-code -- libs/io-react-native-wallet/src/client/generated/wallet-provider.ios.ts
