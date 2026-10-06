@@ -8,6 +8,10 @@
   "react-native": "./src/index.ts",
   "source": "./src/index.ts",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pagopa/io-react-native-wallet"
+  },
   "keywords": [
     "react-native",
     "ios",
