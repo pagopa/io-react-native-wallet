@@ -29,6 +29,7 @@ const mapCredentialConfigurationsSupported = (
           })) ?? [],
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- value validated as defined above
         display: config.credential_metadata.display!,
+        issuance_errors_supported: config.issuance_errors_supported,
         scope: config.scope,
       };
       return acc;

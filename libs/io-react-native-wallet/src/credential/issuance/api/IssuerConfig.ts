@@ -13,7 +13,10 @@ const ClaimConfig = z.object({
   path: z.array(z.union([z.string(), z.number(), z.null()])),
 });
 
-const IssuanceErrorSupported = z.object({
+/**
+ * @deprecated Use `error_description` in the Issuer response: https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-issuer-endpoint.html#credential-response
+ */
+const LegacyIssuanceErrorSupported = z.object({
   display: z.array(
     z.object({
       description: z.string(),
@@ -21,6 +24,7 @@ const IssuanceErrorSupported = z.object({
       title: z.string(),
     }),
   ),
+  status_code: z.number().optional(),
 });
 
 const CredentialConfig = z.intersection(
@@ -36,10 +40,12 @@ const CredentialConfig = z.intersection(
     claims: z.array(ClaimConfig),
     display: z.array(DisplayConfig),
     /**
-     * @deprecated Kept for backward compatibility with v0.7.1
+     * @deprecated Use `error_description` in the Issuer response: https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-issuer-endpoint.html#credential-response
+     *
+     * Kept for backward compatibility with v0.7.1
      */
     issuance_errors_supported: z
-      .record(z.string(), IssuanceErrorSupported)
+      .record(z.string(), LegacyIssuanceErrorSupported)
       .optional(),
     scope: z.string(),
   }),
