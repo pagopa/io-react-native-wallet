@@ -4,21 +4,36 @@ The example app is an Expo React Native application used to develop and test
 the libraries contained in this monorepo.
 
 ## Prerequisites
-Follow the [React Native environment setup guide for your OS](https://reactnative.dev/docs/environment-setup?guide=native) before proceeding.
-Run the following commands from the monorepo root through Nx.
+Follow the [React Native environment setup guide for your OS](https://reactnative.dev/docs/environment-setup?guide=native) before proceeding. Run the following commands from the monorepo root through Nx.
 
+## Generate the API definition
 
-## Generate the native projects via Expo CNG. 
-This must be run the first time the app is set up, or after changes to the [`app.json`](app.json) configuration file.
+Generate the wallet-provider API client before running the example app, and again
+whenever its OpenAPI specification changes:
+
+```sh
+pnpm nx run io-react-native-wallet:generate
+```
+
+## Generate the native projects via Expo CNG
+
+This must be run the first time the app is set up, or after changes to the
+[`app.json`](app.json) configuration file or native dependencies.
 
 ```sh
 pnpm nx run example-app:prebuild --clean
 ```
-
 
 ## Run the app
 
 ```sh
 pnpm nx run example-app:run-ios
 pnpm nx run example-app:run-android
+```
+
+To start Metro directly:
+
+```sh
+cd apps/example-app
+pnpm exec expo start --dev-client --host lan --port 8081
 ```
