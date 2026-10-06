@@ -1,6 +1,6 @@
 {
   "name": "@io-app-it-wallet/io-react-native-wallet",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "Provide data structures, helpers and API for IO Wallet",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
