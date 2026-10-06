@@ -2,8 +2,8 @@ import { ModuleSummary } from "@pagopa/io-app-design-system";
 import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
 import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { addPadding } from "@pagopa/io-react-native-jwt";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, type EmitterSubscription, StyleSheet } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { CredentialResult, EnvType } from "../store/types";
@@ -86,7 +86,6 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
     null,
   );
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
-  const listeners = useRef<EmitterSubscription[]>([]);
   const { WALLET_TA_BASE_URL } = getEnv(env);
   const itwVersion = useAppSelector(selectItwVersion);
   // Use a ref to keep track of the active listener subscriptions
