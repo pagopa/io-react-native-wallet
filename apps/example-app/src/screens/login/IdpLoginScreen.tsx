@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import React, { useCallback } from "react";
+import React from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
@@ -10,7 +10,7 @@ import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { selectEnv } from "../../store/reducers/environment";
 import { sessionSet } from "../../store/reducers/session";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
-import { getEnv } from "../../utils/environment";
+import { extractIoLoginToken, getIoLoginUri } from "../../utils/login";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "IdpLogin">;
 
@@ -54,29 +54,10 @@ export default function IdpLoginScreen({ route }: Props) {
     return true;
   };
 
-  const getLoginUri = useCallback(
-    () => (idp: string) => {
-      const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
-      const url = new URL("/api/auth/v1/login", WALLET_PROVIDER_BASE_URL);
-      url.searchParams.append("entityID", idp);
-      url.searchParams.append("authLevel", "SpidL2");
-      return url.href;
-    },
-    [env],
-  )();
-
   const handleNavigationStateChange = ({ url }: WebViewNavigation) => {
-    if (!url.includes("profile.html")) return;
-
-    const { hash } = new URLParse(url);
-    let { searchParams } = new URL(url);
-    if (hash) {
-      const paramsString = hash.startsWith("#") ? hash.slice(1) : hash;
-      searchParams = new URLSearchParams(paramsString);
-    }
-    const token = searchParams.get("token");
+    const token = extractIoLoginToken(url);
     if (token) {
-      dispatch(sessionSet(token));
+      dispatch(sessionSet({ loginMethod: "spid", token }));
     }
   };
 
@@ -93,7 +74,7 @@ export default function IdpLoginScreen({ route }: Props) {
         onShouldStartLoadWithRequest={handleShouldStartLoading}
         originWhitelist={originSchemasWhiteList}
         source={{
-          uri: getLoginUri(idpParam),
+          uri: getIoLoginUri(env, idpParam, "SpidL2"),
         }}
         style={styles.webview}
       />

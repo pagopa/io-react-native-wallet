@@ -1,7 +1,8 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import React from "react";
-import { Linking, StyleSheet, View } from "react-native";
+import { Linking, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 import URLParse from "url-parse";
 
@@ -84,7 +85,7 @@ export default function PidSpidLoginScreen({ navigation, route }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <WebView
         allowsInlineMediaPlayback={true}
         androidCameraAccessDisabled={true}
@@ -96,28 +97,14 @@ export default function PidSpidLoginScreen({ navigation, route }: Props) {
         onShouldStartLoadWithRequest={handleShouldStartLoading}
         originWhitelist={[...originSchemasWhiteList, redirectUri]}
         source={{ uri: authUrl }}
-        style={styles.webview}
         userAgent={defaultUserAgent}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
     flex: 1,
-    flexGrow: 1,
-    justifyContent: "space-between",
   },
-  item: {
-    backgroundColor: "#5cfebe",
-    marginHorizontal: 1,
-    marginVertical: 1,
-    padding: 2,
-  },
-  title: {
-    fontSize: 24,
-  },
-  webview: { height: 800, width: 400 },
 });

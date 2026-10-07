@@ -3,6 +3,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import { selectItwVersion } from "../store/reducers/environment";
+import { selectLoginMethod } from "../store/reducers/session";
 import { useAppSelector } from "../store/utils";
 
 interface Props {
@@ -11,10 +12,11 @@ interface Props {
 }
 
 /**
- * Custom navigation header that appends the active IT-Wallet version to the screen title.
+ * Custom navigation header that appends the active IT-Wallet version and the IO login method to the screen title.
  */
 export function HeaderTitle({ children }: Props) {
   const itwVersion = useAppSelector(selectItwVersion);
+  const loginMethod = useAppSelector(selectLoginMethod);
   return (
     <View style={styles.wrapper}>
       <IOText
@@ -26,6 +28,14 @@ export function HeaderTitle({ children }: Props) {
         {children}
       </IOText>
       <Badge text={itwVersion} variant="default" />
+      <IOText
+        color={loginMethod ? "success-700" : "warning-700"}
+        numberOfLines={1}
+        size={12}
+        weight="Semibold"
+      >
+        {loginMethod ? loginMethod.toUpperCase() : "No login"}
+      </IOText>
     </View>
   );
 }
