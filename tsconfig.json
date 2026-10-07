@@ -1,30 +1,13 @@
 {
-  "compilerOptions": {
-    "baseUrl": "./",
-    "paths": {
-      "@pagopa/io-react-native-wallet": ["./src/index"]
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/example-app"
     },
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": ["esnext"],
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noImplicitUseStrict": false,
-    "noStrictGenericChecks": false,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "esnext",
-    "types": ["jest", "node"],
-    "verbatimModuleSyntax": true,
-    "moduleSuffixes": [".ios", ".android", ".native", ""]
-  }
+    {
+      "path": "./libs/io-react-native-wallet"
+    }
+  ]
 }
