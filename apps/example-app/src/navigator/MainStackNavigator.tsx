@@ -10,6 +10,7 @@ import React, { useCallback, useEffect } from "react";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 
 import { HeaderTitle } from "../components/HeaderTitle";
+import { useIoSessionCheck } from "../hooks/useIoSessionCheck";
 import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
 import { CieIdAuthenticationScreen } from "../screens/cie/CieIdAuthenticationScreen";
 import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthenticationScreen";
@@ -17,8 +18,10 @@ import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
 import HomeScreen from "../screens/HomeScreen";
+import { CieLoginScreen } from "../screens/login/CieLoginScreen";
 import IdpLoginScreen from "../screens/login/IdpLoginScreen";
 import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
+import LoginScreen from "../screens/login/LoginScreen";
 import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
 import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScreen";
 import { OfferScreen } from "../screens/OfferScreen";
@@ -38,7 +41,7 @@ import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
-import { selectIoAuthToken } from "../store/reducers/session";
+import { selectHasSessionAccess } from "../store/reducers/session";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
@@ -54,6 +57,7 @@ export type MainStackNavParamList = {
     withDocumentProof?: boolean;
   };
   CieInternalAuthentication: { challenge: string; redirectUri: string };
+  CieLogin: undefined;
   CredentialOffer: undefined;
   Credentials: undefined;
   CredentialsCatalogue: undefined;
@@ -91,9 +95,11 @@ const lightTheme: Theme = {
 };
 
 export const MainStackNavigator = () => {
-  const ioAuthToken = useAppSelector(selectIoAuthToken);
+  const hasSessionAccess = useAppSelector(selectHasSessionAccess);
   const loggingServerAddr = useAppSelector(selectLoggingAddress);
   const dispatch = useAppDispatch();
+
+  useIoSessionCheck();
 
   /**
    * Sets the logging environment when the selected environment changes.
@@ -116,9 +122,9 @@ export const MainStackNavigator = () => {
   return (
     <NavigationContainer theme={lightTheme}>
       <Stack.Navigator>
-        {ioAuthToken ? (
+        {hasSessionAccess ? (
           /*
-           * Protected routes via the ioAuthToken
+           * Protected routes, accessible after login or when the login is skipped
            */
           <Stack.Group
             screenOptions={{
@@ -229,6 +235,11 @@ export const MainStackNavigator = () => {
         ) : (
           <Stack.Group>
             <Stack.Screen
+              component={LoginScreen}
+              name="Login"
+              options={{ title: "IO Login" }}
+            />
+            <Stack.Screen
               component={IdpSelectionScreen}
               name="IdpSelection"
               options={{ title: "IO Login" }}
@@ -237,6 +248,11 @@ export const MainStackNavigator = () => {
               component={IdpLoginScreen}
               name="IdpLogin"
               options={{ title: "IO Login" }}
+            />
+            <Stack.Screen
+              component={CieLoginScreen}
+              name="CieLogin"
+              options={{ title: "IO Login (CIE)" }}
             />
           </Stack.Group>
         )}

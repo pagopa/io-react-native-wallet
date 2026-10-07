@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
 import { CiePinDialog } from "../../components/cie/CiePinDialog";
+import { CieReadingProgress } from "../../components/cie/CieReadingProgress";
 import {
   CieWebView,
   type CieWebViewError,
@@ -25,7 +26,6 @@ import { pidFlowReset } from "../../store/reducers/pid";
 import { useAppDispatch } from "../../store/utils";
 import { validatePidMrtdChallengeThunk } from "../../thunks/mrtd";
 import { continuePidFlowThunk } from "../../thunks/pid";
-import { getProgressEmojis } from "../../utils/strings";
 
 type ScreenProps = NativeStackScreenProps<
   MainStackNavParamList,
@@ -42,6 +42,7 @@ export const CieInternalAuthenticationScreen = ({
   const [isCanInputVisible, setCanInputVisible] = useState(true);
   const [can, setCan] = useState("");
   const [text, setText] = useState<string>("Waiting for CAN input...");
+  const [readingProgress, setReadingProgress] = useState<number>();
 
   const callbackUrl = useSelector(selectMrtdChallengeCallbackUrl);
   const status = useSelector(selectMrtdAsyncStatus);
@@ -66,10 +67,8 @@ export const CieInternalAuthenticationScreen = ({
     const cleanup = [
       // Start listening for NFC events
       CieManager.addListener("onEvent", (event) => {
-        setText(
-          "I'm reading the CIE. Do not remove it from the device\n" +
-            getProgressEmojis(event.progress),
-        );
+        setText("I'm reading the CIE. Do not remove it from the device");
+        setReadingProgress(event.progress);
       }),
       // Start listening for errors
       CieManager.addListener("onError", (error) => {
@@ -102,7 +101,8 @@ export const CieInternalAuthenticationScreen = ({
       // Remove the event listener on exit
       cleanup.forEach((remove) => remove());
       // Ensure the reading is stopped when component unmounts
-      CieManager.stopReading();
+      // `stopReading` is not exposed by the iOS native module, ignore the rejection
+      CieManager.stopReading().catch(() => undefined);
     };
   }, [dispatch, navigation, handleOnError]);
 
@@ -149,6 +149,9 @@ export const CieInternalAuthenticationScreen = ({
       />
       <View style={styles.content}>
         {text && <H2 style={styles.text}>{text}</H2>}
+        {readingProgress !== undefined && (
+          <CieReadingProgress progress={readingProgress} />
+        )}
       </View>
       {callbackUrl && (
         <View style={StyleSheet.absoluteFill}>
