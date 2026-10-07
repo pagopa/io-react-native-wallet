@@ -2,7 +2,10 @@ import {
   IoWallet,
   type RemotePresentation,
 } from "@io-app-it-wallet/io-react-native-wallet";
-import { ClientIdPrefix } from "@pagopa/io-wallet-oid4vp";
+import {
+  ClientIdPrefix,
+  extractClientIdPrefix,
+} from "@pagopa/io-wallet-oid4vp";
 
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 
@@ -46,13 +49,13 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     state: url.searchParams.get("state"),
   });
 
-  const rpUrl = qrParams.client_id.replace(
-    `${ClientIdPrefix.OPENID_FEDERATION}:`,
-    "",
-  );
-
-  const { rpConf } =
-    await wallet.RemotePresentation.evaluateRelyingPartyTrust(rpUrl);
+  const { clientId, prefix } = extractClientIdPrefix(qrParams.client_id);
+  const rpConf =
+    prefix === ClientIdPrefix.OPENID_FEDERATION ||
+    prefix === ClientIdPrefix.NONE
+      ? (await wallet.RemotePresentation.evaluateRelyingPartyTrust(clientId))
+          .rpConf
+      : undefined;
 
   const { requestObjectEncodedJwt } =
     await wallet.RemotePresentation.getRequestObject(args.qrcode);
@@ -77,6 +80,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     [pid.keyTag, pid.credential],
     ...Object.values(credentials)
       .filter(isDefined)
+      .filter((c) => c.format === "dc+sd-jwt")
       .map((c) => [c.keyTag, c.credential]),
   ] as [string, string][];
 
@@ -91,7 +95,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 const processPresentation = async (
   wallet: IoWallet,
   requestObject: RequestObject,
-  rpConf: RemotePresentation.RelyingPartyConfig,
+  rpConf: RemotePresentation.RelyingPartyConfig | undefined,
   credentialsSdJwt: [string, string][],
 ) => {
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
