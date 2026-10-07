@@ -15,6 +15,7 @@ import { credentialReducer } from "./reducers/credential";
 import { credentialsCatalogueSlice } from "./reducers/credentialsCatalogue";
 import { debugSlice } from "./reducers/debug";
 import { environmentReducer } from "./reducers/environment";
+import { eudiCredentialsReducer } from "./reducers/eudi/credentials";
 import { eudiCredentialOfferReducer } from "./reducers/eudi/offer";
 import { instanceReducer } from "./reducers/instance";
 import { mrtdReducer } from "./reducers/mrtd";
@@ -40,6 +41,7 @@ export const store = configureStore({
     credentialsCatalogue: credentialsCatalogueSlice.reducer,
     debug: debugSlice.reducer,
     environment: environmentReducer,
+    eudiCredentials: eudiCredentialsReducer,
     eudiOffer: eudiCredentialOfferReducer,
     instance: instanceReducer,
     mrtd: mrtdReducer,

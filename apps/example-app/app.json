@@ -5,7 +5,12 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": ["iowalletexample", "iowallelogincie"],
+    "scheme": [
+      "iowalletexample",
+      "iowallelogincie",
+      "eu-eaa-offer",
+      "haip-vci"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,

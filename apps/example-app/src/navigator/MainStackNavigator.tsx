@@ -3,6 +3,7 @@ import {
   DefaultTheme,
   NavigationContainer,
   type Theme,
+  useNavigationContainerRef,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
@@ -10,6 +11,7 @@ import React, { useCallback, useEffect } from "react";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 
 import { HeaderTitle } from "../components/HeaderTitle";
+import { useEudiOfferDeepLink } from "../hooks/useEudiOfferDeepLink";
 import { useIoSessionCheck } from "../hooks/useIoSessionCheck";
 import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
 import { CieIdAuthenticationScreen } from "../screens/cie/CieIdAuthenticationScreen";
@@ -17,6 +19,7 @@ import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthe
 import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
+import { EudiCredentialDetailScreen } from "../screens/eudi/EudiCredentialDetailScreen";
 import { EudiCredentialRequestScreen } from "../screens/eudi/EudiCredentialRequestScreen";
 import { EudiCredentialsScreen } from "../screens/eudi/EudiCredentialsScreen";
 import { EudiPresentationScreen } from "../screens/eudi/EudiPresentationScreen";
@@ -66,7 +69,8 @@ export type MainStackNavParamList = {
   Credentials: undefined;
   CredentialsCatalogue: undefined;
   CredentialStatus: undefined;
-  EudiCredentialRequest: undefined;
+  EudiCredentialDetail: { keyTag: string };
+  EudiCredentialRequest: undefined | { offerUri?: string };
   EudiCredentials: undefined;
   EudiPresentation: undefined;
   EudiWallet: undefined;
@@ -93,6 +97,39 @@ export type MainStackNavParamList = {
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
 
+/**
+ * EUDI Wallet routes, with a plain title since the IT-Wallet version and IO login do not apply.
+ */
+const renderEudiScreens = (headerRight: () => React.ReactNode) => (
+  <Stack.Group screenOptions={{ headerRight }}>
+    <Stack.Screen
+      component={EudiWalletScreen}
+      name="EudiWallet"
+      options={{ title: "EUDI Wallet" }}
+    />
+    <Stack.Screen
+      component={EudiCredentialRequestScreen}
+      name="EudiCredentialRequest"
+      options={{ title: "Credential Request" }}
+    />
+    <Stack.Screen
+      component={EudiCredentialsScreen}
+      name="EudiCredentials"
+      options={{ title: "Credentials" }}
+    />
+    <Stack.Screen
+      component={EudiCredentialDetailScreen}
+      name="EudiCredentialDetail"
+      options={{ title: "Credential" }}
+    />
+    <Stack.Screen
+      component={EudiPresentationScreen}
+      name="EudiPresentation"
+      options={{ title: "Credential Presentation" }}
+    />
+  </Stack.Group>
+);
+
 const lightTheme: Theme = {
   ...DefaultTheme,
   colors: {
@@ -106,6 +143,12 @@ export const MainStackNavigator = () => {
   const hasSessionAccess = useAppSelector(selectHasSessionAccess);
   const loggingServerAddr = useAppSelector(selectLoggingAddress);
   const dispatch = useAppDispatch();
+
+  const navigationRef = useNavigationContainerRef<MainStackNavParamList>();
+  const onNavigationReady = useEudiOfferDeepLink(
+    navigationRef,
+    hasSessionAccess,
+  );
 
   useIoSessionCheck();
 
@@ -128,7 +171,11 @@ export const MainStackNavigator = () => {
   );
 
   return (
-    <NavigationContainer theme={lightTheme}>
+    <NavigationContainer
+      onReady={onNavigationReady}
+      ref={navigationRef}
+      theme={lightTheme}
+    >
       <Stack.Navigator>
         {hasSessionAccess ? (
           /*
@@ -241,29 +288,7 @@ export const MainStackNavigator = () => {
                 options={{ title: "Settings" }}
               />
             </Stack.Group>
-            {/* EUDI Wallet routes, with a plain title since the IT-Wallet version and IO login do not apply */}
-            <Stack.Group screenOptions={{ headerRight: headerRight }}>
-              <Stack.Screen
-                component={EudiWalletScreen}
-                name="EudiWallet"
-                options={{ title: "EUDI Wallet" }}
-              />
-              <Stack.Screen
-                component={EudiCredentialRequestScreen}
-                name="EudiCredentialRequest"
-                options={{ title: "Credential Request" }}
-              />
-              <Stack.Screen
-                component={EudiCredentialsScreen}
-                name="EudiCredentials"
-                options={{ title: "Credentials" }}
-              />
-              <Stack.Screen
-                component={EudiPresentationScreen}
-                name="EudiPresentation"
-                options={{ title: "Credential Presentation" }}
-              />
-            </Stack.Group>
+            {renderEudiScreens(headerRight)}
           </>
         ) : (
           <Stack.Group>

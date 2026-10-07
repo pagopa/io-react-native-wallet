@@ -1,25 +1,19 @@
-import {
-  Body,
-  IOVisualCostants,
-  ListItemNav,
-  VSpacer,
-} from "@pagopa/io-app-design-system";
+import { Body, IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { Alert, FlatList } from "react-native";
+import { FlatList, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type EudiCredentialItem = {
-  id: string;
-  issuer: string;
-  name: string;
-};
+import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
+import { selectEudiCredentials } from "../../store/reducers/eudi/credentials";
+import { useAppSelector } from "../../store/utils";
 
 /**
  * EUDI Wallet credentials screen, which lists every obtained credential to check its content.
  */
 export const EudiCredentialsScreen = () => {
-  // TODO: read the obtained credentials from the store
-  const credentials: EudiCredentialItem[] = [];
+  const navigation = useNavigation();
+  const credentials = useAppSelector(selectEudiCredentials);
 
   return (
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
@@ -28,16 +22,24 @@ export const EudiCredentialsScreen = () => {
           margin: IOVisualCostants.appMarginDefault,
         }}
         data={credentials}
-        keyExtractor={(item) => item.id}
+        ItemSeparatorComponent={VSpacer}
+        keyExtractor={(item) => item.keyTag}
         ListEmptyComponent={<Body>No credentials obtained yet</Body>}
         ListFooterComponent={<VSpacer size={32} />}
         renderItem={({ item }) => (
-          <ListItemNav
-            accessibilityLabel={item.name}
-            description={item.issuer}
-            onPress={() => Alert.alert("Not implemented yet")}
-            value={item.name}
-          />
+          <Pressable
+            accessibilityLabel={
+              item.display?.name ?? item.credentialConfigurationId
+            }
+            accessibilityRole="button"
+            onPress={() =>
+              navigation.navigate("EudiCredentialDetail", {
+                keyTag: item.keyTag,
+              })
+            }
+          >
+            <EudiCredentialCard credential={item} />
+          </Pressable>
         )}
       />
     </SafeAreaView>
