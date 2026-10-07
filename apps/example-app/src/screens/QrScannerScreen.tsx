@@ -15,10 +15,14 @@ import type { MainStackNavParamList } from "../navigator/MainStackNavigator";
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 
 import { useAppDispatch } from "../store/utils";
+import { resolveEudiCredentialOfferThunk } from "../thunks/eudi/offer";
 import { getCredentialOfferThunk } from "../thunks/offer";
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
 
 export type QrScannerScreenParams =
+  | {
+      mode: "eudiOffer";
+    }
   | {
       mode: "offer";
     }
@@ -67,6 +71,14 @@ export const QrScannerScreen = ({ route }: Props) => {
       }, 1000);
 
       switch (route.params.mode) {
+        case "eudiOffer":
+          dispatch(
+            resolveEudiCredentialOfferThunk({
+              uri: codes[0]?.value || "",
+            }),
+          );
+          navigation.goBack();
+          break;
         case "offer":
           dispatch(
             getCredentialOfferThunk({
@@ -115,13 +127,22 @@ export const QrScannerScreen = ({ route }: Props) => {
   return (
     <View style={style.container}>
       {hasPermission ? (
-        <Camera
-          audio={false}
-          codeScanner={codeScanner}
-          device={backCameraDevice}
-          isActive={!isResting}
-          style={style.camera}
-        />
+        <>
+          <Camera
+            audio={false}
+            codeScanner={codeScanner}
+            device={backCameraDevice}
+            isActive={!isResting}
+            style={style.camera}
+          />
+          {/* Frame that guides the user to place the QR code */}
+          <View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, style.frameContainer]}
+          >
+            <View style={style.frame} />
+          </View>
+        </>
       ) : (
         <Text>Camera permission not granted!</Text>
       )}
@@ -139,6 +160,17 @@ const style = StyleSheet.create({
   container: {
     alignContent: "center",
     flex: 1,
+    justifyContent: "center",
+  },
+  frame: {
+    aspectRatio: 1,
+    borderColor: IOColors.white,
+    borderRadius: 16,
+    borderWidth: 4,
+    width: "70%",
+  },
+  frameContainer: {
+    alignItems: "center",
     justifyContent: "center",
   },
 });

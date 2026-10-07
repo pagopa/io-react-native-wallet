@@ -10,6 +10,7 @@ import * as RemotePresentation from "./credential/presentation";
 import * as CredentialStatus from "./credential/status";
 import * as Trustmark from "./credential/trustmark";
 import * as CredentialsCatalogue from "./credentials-catalogue";
+import * as Eudi from "./eudi";
 import * as KeyAttestation from "./key-attestation";
 import * as Mdoc from "./mdoc";
 import * as SdJwt from "./sd-jwt";
@@ -35,6 +36,7 @@ export {
   CredentialsCatalogue,
   CredentialStatus,
   Errors,
+  Eudi,
   fixBase64EncodingOnKey,
   getJwkFromCertificateChain,
   KeyAttestation,
