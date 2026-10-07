@@ -1,4 +1,4 @@
-import { DcqlClaimsQuery, DcqlError, DcqlQuery, DcqlQueryResult } from "dcql";
+import { DcqlClaimsQuery, DcqlQuery, DcqlQueryResult } from "dcql";
 
 import type { EvaluatedDisclosure, PresentationFrame } from "../../api/types";
 import type { NotFoundDetail } from "../errors";
@@ -16,21 +16,6 @@ type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
   { success: true }
 >;
-
-/**
- * Normalize query parsing errors without depending on DCQL's Valibot version.
- */
-export const parseDcqlQuery = (query: DcqlQuery.Input): DcqlQuery => {
-  try {
-    return DcqlQuery.parse(query);
-  } catch (error) {
-    throw new DcqlError({
-      cause: error,
-      code: "PARSE_ERROR",
-      message: "Failed to parse the provided DCQL query",
-    });
-  }
-};
 
 /**
  * Extract only successful matches from the DCQL query result.
