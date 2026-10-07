@@ -1,4 +1,4 @@
-import { DcqlClaimsQuery, DcqlQuery, DcqlQueryResult } from "dcql";
+import { DcqlClaimsQuery, DcqlError, DcqlQuery, DcqlQueryResult } from "dcql";
 
 import type { EvaluatedDisclosure, PresentationFrame } from "../../api/types";
 import type { NotFoundDetail } from "../errors";
@@ -16,6 +16,21 @@ type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
   { success: true }
 >;
+
+/**
+ * Normalize query parsing errors without depending on DCQL's Valibot version.
+ */
+export const parseDcqlQuery = (query: DcqlQuery.Input): DcqlQuery => {
+  try {
+    return DcqlQuery.parse(query);
+  } catch (error) {
+    throw new DcqlError({
+      cause: error,
+      code: "PARSE_ERROR",
+      message: "Failed to parse the provided DCQL query",
+    });
+  }
+};
 
 /**
  * Extract only successful matches from the DCQL query result.
@@ -93,10 +108,10 @@ export const getClaimsFromDcqlMatch = (
   );
 
 /**
- * Recursively convert a claim path to a {@link PresentationFrame} for `@sd-jwt/present`
+ * Recursively convert a claim path to a {@link PresentationFrame} for `@sd-jwt/core`
  * @param path The claim path array
  * @param claim The decoded claim
- * @returns A presentation frame compatible with `@sd-jwt/present`
+ * @returns A presentation frame compatible with `@sd-jwt/core`
  */
 export const pathToPresentationFrame = (
   path: (null | number | string)[],
@@ -132,7 +147,7 @@ export const pathToPresentationFrame = (
  * Build a presentation frame from the `dcql` result to use for disclosing the requested claims.
  * @param match The DCQL query match
  * @param originalQuery The original DCQL query
- * @returns A presentation frame compatible with `@sd-jwt/present`
+ * @returns A presentation frame compatible with `@sd-jwt/core`
  */
 export const getPresentationFrameFromDcqlMatch = (
   match: DcqlQueryResult.CredentialMatch,

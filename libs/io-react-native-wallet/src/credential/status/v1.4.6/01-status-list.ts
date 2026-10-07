@@ -1,9 +1,9 @@
-import { CBOR } from "@pagopa/io-react-native-iso18013";
-import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import {
   getStatusListFromJWT,
   type StatusListEntry,
-} from "@sd-jwt/jwt-status-list";
+} from "@owf/token-status-list";
+import { CBOR } from "@pagopa/io-react-native-iso18013";
+import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 
 import type { StatusListApi } from "../api/status-list";
 

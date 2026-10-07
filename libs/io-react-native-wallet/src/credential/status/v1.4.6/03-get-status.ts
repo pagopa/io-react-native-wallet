@@ -1,4 +1,5 @@
-import { StatusList as JwtStatusList } from "@sd-jwt/jwt-status-list";
+import { StatusList as JwtStatusList } from "@owf/token-status-list";
+import { toUint8Array } from "js-base64";
 
 import type { StatusListApi } from "../api/status-list";
 
@@ -22,9 +23,10 @@ const formatStatusBit = (statusBit: number) =>
   `0x${statusBit.toString(16).padStart(2, "0").toUpperCase()}`;
 
 export const getStatus: StatusListApi["getStatus"] = (statusList, idx) => {
-  const decodedStatusList = JwtStatusList.decompressStatusList(
-    statusList.lst,
+  const decodedStatusList = JwtStatusList.decompressStatusListFromBytes(
+    toUint8Array(statusList.lst),
     statusList.bits,
+    statusList.aggregation_uri,
   );
   const statusBit = decodedStatusList.getStatus(idx) as CredentialStatusBit;
   const status = CredentialStatusMap[statusBit];
