@@ -15,6 +15,12 @@ import { getJwkFromCertificateChain, getJwkFromTrustChain } from "./crypto";
 import { IoWalletError } from "./errors";
 import { assert, generateRandomBytes } from "./misc";
 
+// The hasher accepts Uint8Array at runtime despite its narrower input types.
+type HasherFixed = (
+  data: ArrayBuffer | ArrayBufferView | string,
+  algorithm?: string,
+) => Uint8Array;
+
 type PartialCallbackContext = Omit<
   CallbackContext,
   "clientAuthentication" | "signJwt"
@@ -74,7 +80,7 @@ export const partialCallbacks: PartialCallbackContext = {
 
     return { sanDnsNames, sanUriNames };
   },
-  hash: (data, algorithm) => hasher(new Uint8Array(data).buffer, algorithm),
+  hash: hasher as HasherFixed,
   verifyJwt: async (jwtSigner, jwt) => {
     try {
       const signerJwk = await getJwkFromSigner(jwtSigner);
