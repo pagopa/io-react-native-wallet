@@ -42,15 +42,13 @@ export const completeUserAuthorization = (
     );
   }
 
-  // The issuer is checked whenever present, and required when the Authorization Server
-  // declares to send it (RFC 9207, Section 2.4)
+  // The issuer is checked only when the Authorization Server declares to send it (RFC 9207, Section 2.4).
+  // An undeclared `iss` is ignored: some issuers (e.g. the EU reference one) send an `iss` that differs
+  // from the `issuer` of their metadata. The response is still bound to the request by `state`.
   const iss = searchParams.get("iss");
   const { authorization_response_iss_parameter_supported, issuer } =
     authorizationServerMetadata;
-  if (
-    (iss !== null || authorization_response_iss_parameter_supported) &&
-    iss !== issuer
-  ) {
+  if (authorization_response_iss_parameter_supported && iss !== issuer) {
     throw new AuthorizationError(
       `The authorization response comes from a different Authorization Server: expected ${issuer}, got ${iss}`,
     );
