@@ -12,6 +12,7 @@ import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../../store/reducers/attestation";
+import { selectEudiClientAuthentication } from "../../store/reducers/environment";
 import { selectHasInstanceKeyTag } from "../../store/selectors/instance";
 import {
   deleteKeyIfExists,
@@ -36,8 +37,8 @@ export interface ObtainEudiCredentialThunkInput {
  * Thunk to obtain an EUDI Wallet credential with the Issuer-initiated Authorization Code Flow
  * (OpenID4VCI 1.0 with the HAIP profile), separate from the IT-Wallet issuance.
  *
- * The wallet authenticates with its Wallet Attestation when a wallet instance exists, as required by HAIP,
- * otherwise as a public client.
+ * The wallet authenticates as selected in the settings: with its Wallet Attestation, as required by HAIP,
+ * or as a public client, e.g. for issuers that do not trust the IT-Wallet Attestation.
  */
 export const obtainEudiCredentialThunk = createAppAsyncThunk<
   EudiCredential,
@@ -131,8 +132,13 @@ const getClientAuthentication = async (
   getState: () => RootState,
   dispatch: AppDispatch,
 ): Promise<Eudi.CredentialIssuance.ClientAuthentication> => {
-  if (!selectHasInstanceKeyTag(getState())) {
+  if (selectEudiClientAuthentication(getState()) === "public") {
     return { clientId: EUDI_CLIENT_ID, type: "public" };
+  }
+  if (!selectHasInstanceKeyTag(getState())) {
+    throw new Error(
+      "A wallet instance is required to authenticate with the Wallet Attestation",
+    );
   }
   if (shouldRequestWalletInstanceAttestationSelector(getState())) {
     await dispatch(getWalletInstanceAttestationThunk()).unwrap();

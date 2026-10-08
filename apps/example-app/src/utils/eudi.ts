@@ -2,8 +2,12 @@
  * Configuration of the EUDI Wallet flows, separate from the IT-Wallet one.
  */
 
-/** URI schemes of the EUDI Credential Offers: the EU EAA one and the HAIP one */
-export const EUDI_CREDENTIAL_OFFER_SCHEMES = ["eu-eaa-offer:", "haip-vci:"];
+/** URI schemes of the EUDI Credential Offers: the OpenID4VCI default one, the EU EAA one and the HAIP one */
+export const EUDI_CREDENTIAL_OFFER_SCHEMES = [
+  "openid-credential-offer:",
+  "eu-eaa-offer:",
+  "haip-vci:",
+];
 
 /** Client identifier used when the wallet authenticates as a public client */
 export const EUDI_CLIENT_ID = "io-wallet-example";

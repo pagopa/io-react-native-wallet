@@ -8,6 +8,7 @@
     "scheme": [
       "iowalletexample",
       "iowallelogincie",
+      "openid-credential-offer",
       "eu-eaa-offer",
       "haip-vci"
     ],

@@ -23,10 +23,13 @@ import { useDebugInfo } from "../hooks/useDebugInfo";
 import { instanceReset } from "../store/instance";
 import {
   envSet,
+  type EudiClientAuthentication,
   loggingAddressSet,
   selectEnv,
+  selectEudiClientAuthentication,
   selectItwVersion,
   selectLoggingAddress,
+  setEudiClientAuthentication,
   setItwVersion,
 } from "../store/reducers/environment";
 import {
@@ -40,6 +43,14 @@ import { initLogging } from "../utils/logging";
 
 const itwVersions: ItwVersion[] = ["1.0.0", "1.4.6"];
 
+const eudiClientAuthentications: {
+  label: string;
+  value: EudiClientAuthentication;
+}[] = [
+  { label: "Public client", value: "public" },
+  { label: "Wallet Attestation", value: "attestation" },
+];
+
 /**
  * Settings screen component which allows to change the environment and manage the session.
  */
@@ -49,6 +60,9 @@ const HomeScreen = () => {
   const session = useAppSelector(selectIoAuthToken);
   const currentDebugAddress = useAppSelector(selectLoggingAddress);
   const itwVersion = useAppSelector(selectItwVersion);
+  const eudiClientAuthentication = useAppSelector(
+    selectEudiClientAuthentication,
+  );
   const [selectedEnv, setSelectedEnv] = useState<EnvType>(env);
   const [debugAddress, setDebugAddress] = useState<string>(
     currentDebugAddress || "",
@@ -118,6 +132,21 @@ const HomeScreen = () => {
               onValueChange={() =>
                 dispatch(setItwVersion(version as ItwVersion))
               }
+            />
+          ))}
+        </View>
+        <H1>EUDI client authentication</H1>
+        <BodySmall>
+          How the wallet authenticates to the EUDI Authorization Servers. The EU
+          reference issuer does not trust the IT-Wallet Attestation.
+        </BodySmall>
+        <View style={styles.itwVersion}>
+          {eudiClientAuthentications.map(({ label, value }) => (
+            <RadioButtonLabel
+              checked={value === eudiClientAuthentication}
+              key={value}
+              label={label}
+              onValueChange={() => dispatch(setEudiClientAuthentication(value))}
             />
           ))}
         </View>
