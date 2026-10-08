@@ -15,7 +15,8 @@ import { getJwkFromCertificateChain, getJwkFromTrustChain } from "./crypto";
 import { IoWalletError } from "./errors";
 import { assert, generateRandomBytes } from "./misc";
 
-// The hasher accepts Uint8Array at runtime despite its narrower input types.
+// Fix incompatibility between ArrayBuffer types: the hasher accepts Uint8Array
+// from the `hash` callback despite its narrower input types.
 type HasherFixed = (
   data: ArrayBuffer | ArrayBufferView | string,
   algorithm?: string,
