@@ -7,11 +7,14 @@ import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 import { getFormatLabel } from "../../utils/eudi";
 
 type Props = {
-  credential: EudiCredential;
+  credential: Pick<
+    EudiCredential,
+    "credentialConfigurationId" | "display" | "format" | "issuer"
+  >;
 };
 
 /**
- * Card showing an EUDI Wallet credential with the colors and logo defined by its issuer.
+ * Card showing an EUDI Wallet credential, obtained or offered, with the colors and logo defined by its issuer.
  */
 export const EudiCredentialCard = ({ credential }: Props) => {
   const { display } = credential;

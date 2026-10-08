@@ -8,18 +8,13 @@ import type { EnvType, RootState } from "../types";
 // State type definition for the environment slice
 export interface EnvironmentState {
   env: EnvType;
-  eudiClientAuthentication: EudiClientAuthentication;
   itwVersion: ItwVersion;
   loggingAddress?: string;
 }
 
-/** How the wallet authenticates to the EUDI Authorization Servers */
-export type EudiClientAuthentication = "attestation" | "public";
-
 // Initial state for the environment slice
 const initialState: EnvironmentState = {
   env: "prod",
-  eudiClientAuthentication: "public",
   itwVersion: "1.0.0",
   loggingAddress: undefined,
 };
@@ -43,12 +38,6 @@ export const environmentSlice = createSlice({
     loggingAddressSet: (state, action: PayloadAction<string>) => {
       state.loggingAddress = action.payload;
     },
-    setEudiClientAuthentication: (
-      state,
-      action: PayloadAction<EudiClientAuthentication>,
-    ) => {
-      state.eudiClientAuthentication = action.payload;
-    },
     setItwVersion: (state, action: PayloadAction<ItwVersion>) => {
       state.itwVersion = action.payload;
     },
@@ -58,13 +47,8 @@ export const environmentSlice = createSlice({
 /**
  * Exports the actions for the session slice.
  */
-export const {
-  envReset,
-  envSet,
-  loggingAddressSet,
-  setEudiClientAuthentication,
-  setItwVersion,
-} = environmentSlice.actions;
+export const { envReset, envSet, loggingAddressSet, setItwVersion } =
+  environmentSlice.actions;
 
 /**
  * Redux persist configuration for the environment slice.
@@ -95,10 +79,3 @@ export const selectLoggingAddress = (state: RootState) =>
 
 export const selectItwVersion = (state: RootState) =>
   state.environment.itwVersion;
-
-/**
- * Selects how the wallet authenticates to the EUDI Authorization Servers.
- * Older persisted states have no value and fall back to the public client.
- */
-export const selectEudiClientAuthentication = (state: RootState) =>
-  state.environment.eudiClientAuthentication ?? "public";

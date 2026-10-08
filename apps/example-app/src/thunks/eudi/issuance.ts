@@ -12,7 +12,6 @@ import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../../store/reducers/attestation";
-import { selectEudiClientAuthentication } from "../../store/reducers/environment";
 import { selectHasInstanceKeyTag } from "../../store/selectors/instance";
 import {
   deleteKeyIfExists,
@@ -28,7 +27,11 @@ import { openUrlAndListenForAuthRedirect } from "../../utils/openUrlAndListenFor
 import { getWalletInstanceAttestationThunk } from "../attestation";
 import { createAppAsyncThunk } from "../utils";
 
+/** How the wallet authenticates to the EUDI Authorization Servers */
+export type EudiClientAuthentication = "attestation" | "public";
+
 export interface ObtainEudiCredentialThunkInput {
+  clientAuthentication: EudiClientAuthentication;
   credentialConfigurationId: string;
   offer: Eudi.CredentialOffer.CredentialOffer;
 }
@@ -37,14 +40,18 @@ export interface ObtainEudiCredentialThunkInput {
  * Thunk to obtain an EUDI Wallet credential with the Issuer-initiated Authorization Code Flow
  * (OpenID4VCI 1.0 with the HAIP profile), separate from the IT-Wallet issuance.
  *
- * The wallet authenticates as selected in the settings: with its Wallet Attestation, as required by HAIP,
- * or as a public client, e.g. for issuers that do not trust the IT-Wallet Attestation.
+ * The wallet authenticates as requested: with its Wallet Attestation, as required by HAIP,
+ * or as a public client.
  */
 export const obtainEudiCredentialThunk = createAppAsyncThunk<
   EudiCredential,
   ObtainEudiCredentialThunkInput
 >("eudi/credentialObtain", async (args, { dispatch, getState }) => {
-  const { credentialConfigurationId, offer } = args;
+  const {
+    clientAuthentication: clientAuthenticationType,
+    credentialConfigurationId,
+    offer,
+  } = args;
   const { CredentialIssuance, CredentialOffer } = Eudi;
 
   const { authorizationCodeGrant } = CredentialOffer.extractGrantDetails(offer);
@@ -55,6 +62,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   }
 
   const clientAuthentication = await getClientAuthentication(
+    clientAuthenticationType,
     getState,
     dispatch,
   );
@@ -129,10 +137,11 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
 });
 
 const getClientAuthentication = async (
+  type: EudiClientAuthentication,
   getState: () => RootState,
   dispatch: AppDispatch,
 ): Promise<Eudi.CredentialIssuance.ClientAuthentication> => {
-  if (selectEudiClientAuthentication(getState()) === "public") {
+  if (type === "public") {
     return { clientId: EUDI_CLIENT_ID, type: "public" };
   }
   if (!selectHasInstanceKeyTag(getState())) {

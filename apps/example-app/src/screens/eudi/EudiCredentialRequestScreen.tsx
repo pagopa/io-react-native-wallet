@@ -8,7 +8,7 @@ import {
   IOButton,
   IOVisualCostants,
   ListItemInfo,
-  TextInput,
+  ListItemSwitch,
   useIOToast,
   VSpacer,
 } from "@pagopa/io-app-design-system";
@@ -18,6 +18,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
+import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
+import { UriInput } from "../../components/eudi/UriInput";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
 import {
   eudiCredentialIssuanceReset,
@@ -30,6 +32,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import { obtainEudiCredentialThunk } from "../../thunks/eudi/issuance";
 import { resolveEudiCredentialOfferThunk } from "../../thunks/eudi/offer";
+import { EUDI_CREDENTIAL_OFFER_SCHEMES } from "../../utils/eudi";
 
 type Props = NativeStackScreenProps<
   MainStackNavParamList,
@@ -44,10 +47,13 @@ type Props = NativeStackScreenProps<
 export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
   const dispatch = useAppDispatch();
   const toast = useIOToast();
-  const { asyncStatus, offer } = useAppSelector(selectEudiCredentialOfferState);
+  const { asyncStatus, issuerMetadata, offer, uri } = useAppSelector(
+    selectEudiCredentialOfferState,
+  );
   const issuanceStatus = useAppSelector(selectEudiCredentialIssuanceStatus);
   const [offerUri, setOfferUri] = useState("");
   const [requestedCredential, setRequestedCredential] = useState<string>();
+  const [useWalletAttestation, setUseWalletAttestation] = useState(false);
   const deepLinkOfferUri = route.params?.offerUri;
 
   useDebugInfo({
@@ -67,10 +73,14 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
   // Resolves the offer received as deep link
   useEffect(() => {
     if (deepLinkOfferUri) {
-      setOfferUri(deepLinkOfferUri);
       dispatch(resolveEudiCredentialOfferThunk({ uri: deepLinkOfferUri }));
     }
   }, [deepLinkOfferUri, dispatch]);
+
+  // Shows the URI of the offer being resolved, also when scanned or received as deep link
+  useEffect(() => {
+    if (uri) setOfferUri(uri);
+  }, [uri]);
 
   useEffect(() => {
     if (issuanceStatus.hasError.status) {
@@ -97,12 +107,8 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
     }
   }, [asyncStatus.hasError, toast]);
 
-  const grantDetails = offer && Eudi.CredentialOffer.extractGrantDetails(offer);
-  const grants = [
-    grantDetails?.authorizationCodeGrant && "Authorization code",
-    grantDetails?.preAuthorizedCodeGrant &&
-      `Pre-authorized code${grantDetails.preAuthorizedCodeGrant.txCode ? " (transaction code required)" : ""}`,
-  ].filter((grant) => !!grant);
+  const summary =
+    offer && issuerMetadata && getOfferSummary(offer, issuerMetadata);
 
   return (
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
@@ -111,12 +117,9 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
           margin: IOVisualCostants.appMarginDefault,
         }}
       >
-        <H3>Credential offer</H3>
+        <H3>Scan a credential offer</H3>
         <VSpacer size={8} />
-        <Body>
-          Scan the QR code shown by the issuer or paste the credential offer
-          URI.
-        </Body>
+        <Body>Scan the QR code shown by the issuer.</Body>
         <VSpacer />
         <IOButton
           disabled={asyncStatus.isLoading}
@@ -128,13 +131,21 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
           }
           variant="solid"
         />
+        <VSpacer size={24} />
+        <H3>Paste a credential offer</H3>
+        <VSpacer size={8} />
+        <Body>
+          Paste the credential offer URI, or check the one scanned or received
+          as deep link.
+        </Body>
         <VSpacer />
-        <TextInput
+        <UriInput
+          hint={`Accepted schemes: ${EUDI_CREDENTIAL_OFFER_SCHEMES.map((scheme) => `${scheme}//`).join(", ")}`}
           onChangeText={setOfferUri}
-          placeholder="eu-eaa-offer://"
+          placeholder="Credential offer URI"
           value={offerUri}
         />
-        <VSpacer size={8} />
+        <VSpacer />
         <IOButton
           disabled={offerUri.length === 0}
           fullWidth
@@ -145,43 +156,146 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
           }
           variant="outline"
         />
-        {offer && (
+        {offer && issuerMetadata && summary && (
           <>
-            <VSpacer />
-            <ListItemInfo label="Issuer" value={offer.credential_issuer} />
+            <VSpacer size={24} />
+            <H3>Offer details</H3>
+            <VSpacer size={8} />
+            <ListItemInfo
+              label="Credential Issuer"
+              value={offer.credential_issuer}
+            />
             <Divider />
             <ListItemInfo
-              label="Grants"
-              value={grants.length > 0 ? grants.join("\n") : "Not specified"}
+              label="Authorization Server"
+              value={summary.authorizationServer}
+            />
+            <Divider />
+            <ListItemInfo label="Grants" value={summary.grants} />
+            <VSpacer />
+            <ListItemSwitch
+              description="Authenticate to the issuer with the Wallet Attestation. Turn off to authenticate as a public client."
+              disabled={issuanceStatus.isLoading}
+              label="Use Wallet Attestation"
+              onSwitchValueChange={setUseWalletAttestation}
+              value={useWalletAttestation}
             />
             <VSpacer />
             <H3>Offered credentials</H3>
             {offer.credential_configuration_ids.map((id) => (
-              <React.Fragment key={id}>
-                <VSpacer size={8} />
-                <IOButton
-                  disabled={issuanceStatus.isLoading}
-                  fullWidth
-                  label={`Obtain ${id}`}
-                  loading={
-                    issuanceStatus.isLoading && requestedCredential === id
-                  }
-                  onPress={() => {
-                    setRequestedCredential(id);
-                    dispatch(
-                      obtainEudiCredentialThunk({
-                        credentialConfigurationId: id,
-                        offer,
-                      }),
-                    );
-                  }}
-                  variant="solid"
-                />
-              </React.Fragment>
+              <OfferedCredential
+                credentialConfigurationId={id}
+                disabled={issuanceStatus.isLoading}
+                issuer={offer.credential_issuer}
+                issuerMetadata={issuerMetadata}
+                key={id}
+                loading={issuanceStatus.isLoading && requestedCredential === id}
+                onObtain={() => {
+                  setRequestedCredential(id);
+                  dispatch(
+                    obtainEudiCredentialThunk({
+                      clientAuthentication: useWalletAttestation
+                        ? "attestation"
+                        : "public",
+                      credentialConfigurationId: id,
+                      offer,
+                    }),
+                  );
+                }}
+              />
             ))}
           </>
         )}
       </ScrollView>
     </SafeAreaView>
+  );
+};
+
+/**
+ * Summarizes the grants and the Authorization Server of a credential offer.
+ */
+const getOfferSummary = (
+  offer: Eudi.CredentialOffer.CredentialOffer,
+  issuerMetadata: Eudi.CredentialIssuance.CredentialIssuerMetadata,
+) => {
+  const { authorizationCodeGrant, preAuthorizedCodeGrant } =
+    Eudi.CredentialOffer.extractGrantDetails(offer);
+  const txCode = preAuthorizedCodeGrant?.txCode;
+  const txCodeDetails =
+    txCode &&
+    [
+      txCode.inputMode ?? "numeric",
+      txCode.length && `${txCode.length} characters`,
+      txCode.description,
+    ]
+      .filter((detail) => !!detail)
+      .join(", ");
+
+  const grants = [
+    authorizationCodeGrant &&
+      `Authorization code${authorizationCodeGrant.issuerState ? ", with issuer state" : ""}`,
+    preAuthorizedCodeGrant &&
+      `Pre-authorized code${txCodeDetails ? `, transaction code required (${txCodeDetails})` : ""}`,
+  ].filter((grant) => !!grant);
+
+  return {
+    authorizationServer:
+      authorizationCodeGrant?.authorizationServer ??
+      preAuthorizedCodeGrant?.authorizationServer ??
+      issuerMetadata.authorization_servers?.[0] ??
+      offer.credential_issuer,
+    grants: grants.length > 0 ? grants.join("\n") : "Not specified",
+  };
+};
+
+type OfferedCredentialProps = {
+  credentialConfigurationId: string;
+  disabled: boolean;
+  issuer: string;
+  issuerMetadata: Eudi.CredentialIssuance.CredentialIssuerMetadata;
+  loading: boolean;
+  onObtain: () => void;
+};
+
+/**
+ * An offered credential, shown as defined by the Credential Issuer Metadata, with the button to obtain it.
+ */
+const OfferedCredential = ({
+  credentialConfigurationId,
+  disabled,
+  issuer,
+  issuerMetadata,
+  loading,
+  onObtain,
+}: OfferedCredentialProps) => {
+  const display = Eudi.CredentialIssuance.getCredentialDisplay(
+    issuerMetadata,
+    credentialConfigurationId,
+  );
+  const format =
+    issuerMetadata.credential_configurations_supported[
+      credentialConfigurationId
+    ]?.format;
+
+  return (
+    <>
+      <VSpacer />
+      {format ? (
+        <EudiCredentialCard
+          credential={{ credentialConfigurationId, display, format, issuer }}
+        />
+      ) : (
+        <Body>{`${credentialConfigurationId} is not supported by the issuer`}</Body>
+      )}
+      <VSpacer size={8} />
+      <IOButton
+        disabled={disabled || !format}
+        fullWidth
+        label={`Obtain ${display.name}`}
+        loading={loading}
+        onPress={onObtain}
+        variant="solid"
+      />
+    </>
   );
 };

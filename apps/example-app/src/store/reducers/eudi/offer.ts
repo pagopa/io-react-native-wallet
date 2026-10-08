@@ -9,12 +9,14 @@ import { asyncStatusInitial } from "../../utils";
 
 export interface EudiCredentialOfferState {
   asyncStatus: AsyncStatus;
+  issuerMetadata?: Eudi.CredentialIssuance.CredentialIssuerMetadata;
   offer?: Eudi.CredentialOffer.CredentialOffer;
+  /** The URI the offer was resolved from */
+  uri?: string;
 }
 
 const initialState: EudiCredentialOfferState = {
   asyncStatus: asyncStatusInitial,
-  offer: undefined,
 };
 
 /**
@@ -24,12 +26,12 @@ const eudiCredentialOfferSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(resolveEudiCredentialOfferThunk.fulfilled, (_, action) => ({
       asyncStatus: { ...asyncStatusInitial, isDone: true },
-      offer: action.payload,
+      ...action.payload,
     }));
 
-    builder.addCase(resolveEudiCredentialOfferThunk.pending, () => ({
+    builder.addCase(resolveEudiCredentialOfferThunk.pending, (_, action) => ({
       asyncStatus: { ...asyncStatusInitial, isLoading: true },
-      offer: undefined,
+      uri: action.meta.arg.uri,
     }));
 
     builder.addCase(resolveEudiCredentialOfferThunk.rejected, (_, action) => ({
@@ -37,7 +39,7 @@ const eudiCredentialOfferSlice = createSlice({
         ...asyncStatusInitial,
         hasError: { error: action.error, status: true },
       },
-      offer: undefined,
+      uri: action.meta.arg.uri,
     }));
   },
   initialState,

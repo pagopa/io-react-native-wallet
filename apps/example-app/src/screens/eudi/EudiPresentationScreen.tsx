@@ -3,12 +3,13 @@ import {
   H3,
   IOButton,
   IOVisualCostants,
-  TextInput,
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { UriInput } from "../../components/eudi/UriInput";
 
 /**
  * EUDI Wallet credential presentation screen.
@@ -27,12 +28,9 @@ export const EudiPresentationScreen = () => {
           margin: IOVisualCostants.appMarginDefault,
         }}
       >
-        <H3>Presentation request</H3>
+        <H3>Scan a presentation request</H3>
         <VSpacer size={8} />
-        <Body>
-          Scan the QR code shown by the verifier or paste the presentation
-          request URI.
-        </Body>
+        <Body>Scan the QR code shown by the verifier.</Body>
         <VSpacer />
         <IOButton
           fullWidth
@@ -41,13 +39,18 @@ export const EudiPresentationScreen = () => {
           onPress={presentCredential}
           variant="solid"
         />
+        <VSpacer size={24} />
+        <H3>Paste a presentation request</H3>
+        <VSpacer size={8} />
+        <Body>Paste the presentation request URI.</Body>
         <VSpacer />
-        <TextInput
+        <UriInput
+          hint="Accepted schemes: openid4vp://, haip-vp://"
           onChangeText={setRequestUri}
-          placeholder="openid4vp://"
+          placeholder="Presentation request URI"
           value={requestUri}
         />
-        <VSpacer size={8} />
+        <VSpacer />
         <IOButton
           disabled={requestUri.length === 0}
           fullWidth
