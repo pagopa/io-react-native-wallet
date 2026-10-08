@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "start": "expo start",
     "eas-build-post-install": "cd ../../ && node tools/scripts/eas-build-post-install.mjs . apps/example-app"
   },
   "dependencies": {
@@ -10,7 +11,7 @@
     "@expo/metro": "*",
     "@expo/vector-icons": "*",
     "@io-app-it-wallet/io-react-native-wallet": "workspace:*",
-    "@pagopa/io-app-design-system": "5.12.3",
+    "@pagopa/io-app-design-system": "8.1.0",
     "@pagopa/io-react-native-cie": "^1.3.6",
     "@pagopa/io-react-native-cieid": "^0.4.0",
     "@pagopa/io-react-native-crypto": "^1.2.5",

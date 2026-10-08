@@ -1,46 +1,36 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import { H2, LoadingSpinner } from "@pagopa/io-app-design-system";
-import { CieManager, type NfcError } from "@pagopa/io-react-native-cie";
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useCallback } from "react";
+import { Alert } from "react-native";
 
-import type { CieWebViewError } from "../../components/cie/CieWebView";
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
-import { CieAuthenticationWebview } from "../../components/cie/CieAuthenticationWebView";
-import { CieAuthorizationWebview } from "../../components/cie/CieAuthorizationWebView";
-import { CiePinDialog } from "../../components/cie/CiePinDialog";
+import { CiePinAuthentication } from "../../components/cie/CiePinAuthentication";
 import { selectEnv } from "../../store/reducers/environment";
 import { pidFlowReset } from "../../store/reducers/pid";
-import { selectPidFlowParams } from "../../store/selectors/pid";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import {
+  CIE_L3_REDIRECT_URI,
   continuePidFlowThunk,
   preparePidFlowParamsThunk,
 } from "../../thunks/pid";
 import { getCieIdpHint, getEnv } from "../../utils/environment";
-import { getProgressEmojis } from "../../utils/strings";
 
 type ScreenProps = NativeStackScreenProps<
   MainStackNavParamList,
   "CieAuthentication"
 >;
 
+/**
+ * PID issuance authentication with CIE + PIN.
+ * The PID flow continues with the redirect URL of the consent page.
+ */
 export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
   const dispatch = useAppDispatch();
   const env = useAppSelector(selectEnv);
 
-  const pidFlowParams = useAppSelector(selectPidFlowParams);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPinInputVisible, setPinInputVisible] = useState(true);
-  const [pin, setPin] = useState("");
-  const [text, setText] = useState<string>();
-  const [authorizationUrl, setAuthorizationUrl] = useState<string>();
-
-  const handleOnError = useCallback(
-    (error: CieWebViewError | NfcError) => {
+  const handleError = useCallback(
+    (error: unknown) => {
       navigation.goBack();
       dispatch(pidFlowReset());
       Alert.alert(`❌ Error`, `${JSON.stringify(error)}`);
@@ -48,125 +38,31 @@ export const CieAuthenticationScreen = ({ navigation }: ScreenProps) => {
     [navigation, dispatch],
   );
 
-  useEffect(() => {
-    const cleanup = [
-      // Start listening for NFC events
-      CieManager.addListener("onEvent", (event) => {
-        setText(
-          "I'm reading the CIE. Do not remove it from the device\n" +
-            getProgressEmojis(event.progress),
-        );
+  const getAuthenticationUrl = async (pin: string) => {
+    const { authUrl } = await dispatch(
+      preparePidFlowParamsThunk({
+        authMethod: "cieL3",
+        ciePin: pin,
+        idpHint: getCieIdpHint(env),
       }),
-      // Start listening for errors
-      CieManager.addListener("onError", (error) => {
-        handleOnError(error);
-      }),
-      // Start listening for success
-      CieManager.addListener("onSuccess", (url) => {
-        setText("Continue to the webview");
-        setAuthorizationUrl(url);
-      }),
-    ];
-
-    return () => {
-      // Remove the event listener on exit
-      cleanup.forEach((remove) => remove());
-      // Ensure the reading is stopped when component unmounts
-      CieManager.stopReading();
-    };
-  }, [handleOnError]);
-
-  const handlePinConfirm = () => {
-    if (pin && pin.length === 8 && /^\d+$/.test(pin)) {
-      setPinInputVisible(false);
-      setIsLoading(true);
-      dispatch(
-        preparePidFlowParamsThunk({
-          authMethod: "cieL3",
-          ciePin: pin,
-          idpHint: getCieIdpHint(env),
-        }),
-      );
-    } else {
-      Alert.alert(`❌ Invalid CIE PIN`);
-    }
+    ).unwrap();
+    return authUrl;
   };
 
-  const handleAuthUrl = (url: string) => {
-    if (pidFlowParams && pidFlowParams.ciePin) {
-      setIsLoading(false);
-      CieManager.setCustomIdpUrl(getEnv(env).CIE_CUSTOM_IDP_URL);
-      CieManager.startReading(pidFlowParams.ciePin, url);
-      setText("Waiting for CIE card. Bring it closer to the NFC reader.");
-    }
-  };
-
-  const handleAuthenticationComplete = (authRedirectUrl: string) => {
-    dispatch(continuePidFlowThunk({ authRedirectUrl }));
+  const handleConsentNavigation = (url: string) => {
+    if (!url.includes(CIE_L3_REDIRECT_URI)) return false;
+    dispatch(continuePidFlowThunk({ authRedirectUrl: url }));
     navigation.goBack();
-  };
-
-  const handlePinClose = () => {
-    navigation.goBack();
+    return true;
   };
 
   return (
-    <SafeAreaView>
-      <CiePinDialog
-        onCancel={handlePinClose}
-        onChangePin={setPin}
-        onConfirm={handlePinConfirm}
-        type="PIN"
-        visible={isPinInputVisible}
-      />
-      {isLoading && (
-        <View style={styles.progress}>
-          <LoadingSpinner size={48} />
-        </View>
-      )}
-      {pidFlowParams && pidFlowParams.ciePin && (
-        <CieAuthenticationWebview
-          authenticationUrl={pidFlowParams.authUrl}
-          onError={handleOnError}
-          onSuccess={handleAuthUrl}
-        />
-      )}
-      {authorizationUrl && (
-        <View style={StyleSheet.absoluteFill}>
-          <CieAuthorizationWebview
-            authorizationUrl={authorizationUrl}
-            onAuthComplete={handleAuthenticationComplete}
-            onError={handleOnError}
-          />
-        </View>
-      )}
-      <View style={styles.content}>
-        {text && <H2 style={styles.text}>{text}</H2>}
-      </View>
-    </SafeAreaView>
+    <CiePinAuthentication
+      customIdpUrl={getEnv(env).CIE_CUSTOM_IDP_URL}
+      getAuthenticationUrl={getAuthenticationUrl}
+      onCancel={() => navigation.goBack()}
+      onConsentNavigation={handleConsentNavigation}
+      onError={handleError}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  content: {
-    alignContent: "center",
-    alignItems: "center",
-    gap: 16,
-    height: "100%",
-  },
-  progress: {
-    alignItems: "center",
-    bottom: 0,
-    justifyContent: "center",
-    left: 0,
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
-  text: {
-    backgroundColor: "red",
-    marginHorizontal: 24,
-    marginTop: 64,
-    textAlign: "center",
-  },
-});
