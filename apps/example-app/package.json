@@ -77,5 +77,10 @@
     "@types/lodash": "^4.17.7",
     "@types/url-parse": "^1.4.11",
     "babel-plugin-module-resolver": "^5.0.2"
+  },
+  "reanimated": {
+    "staticFeatureFlags": {
+      "ENABLE_SHARED_ELEMENT_TRANSITIONS": true
+    }
   }
 }

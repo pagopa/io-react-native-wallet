@@ -11,20 +11,19 @@ import {
   ListItemInfo,
   VSpacer,
 } from "@pagopa/io-app-design-system";
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { ActivityIndicator, Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
+import { EudiSharedTransitionBoundary } from "../../components/eudi/EudiSharedTransitionBoundary";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
+import {
+  isPortraitClaim,
+  useEudiParsedCredential,
+} from "../../hooks/useEudiParsedCredential";
 import {
   eudiCredentialDisplaySet,
   selectEudiCredential,
@@ -32,15 +31,12 @@ import {
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import { deleteEudiCredentialThunk } from "../../thunks/eudi/issuance";
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
-import { getFormatLabel } from "../../utils/eudi";
+import { getCredentialTransitionTag, getFormatLabel } from "../../utils/eudi";
 
 type Props = NativeStackScreenProps<
   MainStackNavParamList,
   "EudiCredentialDetail"
 >;
-
-/** Claims holding the holder picture, in mdoc and SD-JWT VC credentials */
-const PORTRAIT_CLAIMS = ["portrait", "picture"];
 
 /**
  * EUDI Wallet credential detail screen, which shows the claims of an obtained credential
@@ -49,21 +45,10 @@ const PORTRAIT_CLAIMS = ["portrait", "picture"];
 export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   const dispatch = useAppDispatch();
   const credential = useAppSelector(selectEudiCredential(route.params.keyTag));
-  const [parsed, setParsed] =
-    useState<Eudi.CredentialIssuance.ParsedCredential>();
-  const [error, setError] = useState<string>();
+  const { claims, error, parsed, portrait } =
+    useEudiParsedCredential(credential);
 
   useDebugInfo({ eudiCredential: credential, eudiParsedCredential: parsed });
-
-  useEffect(() => {
-    if (!credential) return;
-    Eudi.CredentialIssuance.parseCredential(
-      credential.credential,
-      credential.format,
-    )
-      .then(setParsed)
-      .catch((e: unknown) => setError(String(e)));
-  }, [credential]);
 
   // Credentials obtained before the display was stored at issuance get it from the issuer metadata
   const hasDisplay = !!credential?.display;
@@ -97,167 +82,124 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
     [credential?.display],
   );
 
-  const claims = useMemo(
-    () =>
-      parsed && credential
-        ? Eudi.CredentialIssuance.getDisplayedClaims(
-            parsed.claims,
-            credential.format,
-            credential.display?.claims,
-          )
-        : [],
-    [credential, parsed],
-  );
+  const name = credential?.display?.name;
+  useEffect(() => {
+    if (name) navigation.setOptions({ title: name });
+  }, [name, navigation]);
 
   if (!credential) {
     return <Body>Credential not found</Body>;
   }
 
-  const isPortrait = (claim: Eudi.CredentialIssuance.DisplayedClaim) =>
-    PORTRAIT_CLAIMS.includes(String(claim.path[claim.path.length - 1]));
-  const portrait = claims.find(isPortrait);
-  const portraitUri = portrait && toImageUri(portrait.value);
+  // mdoc claims are grouped by namespace, SD-JWT VC claims have no grouping
+  const groups = new Map<string, Eudi.CredentialIssuance.DisplayedClaim[]>();
+  for (const claim of claims) {
+    // The holder picture is shown in the card
+    if (portrait && isPortraitClaim(claim)) continue;
+    const title =
+      credential.format === "mso_mdoc" ? String(claim.path[0]) : "Claims";
+    groups.set(title, [...(groups.get(title) ?? []), claim]);
+  }
 
   return (
-    <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
-      <ScrollView
-        contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
-        }}
-      >
-        <EudiCredentialCard credential={credential} />
-        {portraitUri && (
-          <>
-            <VSpacer size={24} />
-            <Image
-              accessibilityIgnoresInvertColors
-              accessibilityLabel={portrait.label}
-              resizeMode="cover"
-              source={{ uri: portraitUri }}
-              style={styles.portrait}
-            />
-          </>
-        )}
-        <VSpacer />
-        <ListItemHeader label="Claims" />
-        {error && <Body>{error}</Body>}
-        {!error && !parsed && <ActivityIndicator />}
-        {claims
-          .filter((claim) => !(portraitUri && isPortrait(claim)))
-          .map((claim) => (
-            <React.Fragment key={claim.path.join("/")}>
-              <ListItemInfo
-                label={
-                  labels.has(claim.path.join("/"))
-                    ? claim.label
-                    : humanize(claim.label)
-                }
-                value={formatClaim(claim.value, claim.path, labels)}
-              />
-              <Divider />
+    <EudiSharedTransitionBoundary>
+      <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{
+            margin: IOVisualCostants.appMarginDefault,
+          }}
+        >
+          <EudiCredentialCard
+            credential={credential}
+            portrait={portrait}
+            sharedTransitionTag={getCredentialTransitionTag(credential.keyTag)}
+          />
+          <VSpacer />
+          {error && <Body>{error}</Body>}
+          {!error && !parsed && <ActivityIndicator />}
+          {[...groups].map(([title, items]) => (
+            <React.Fragment key={title}>
+              <ListItemHeader label={title} />
+              {items.map((claim, index) => (
+                <React.Fragment key={claim.path.join("/")}>
+                  {index > 0 && <Divider />}
+                  <ListItemInfo
+                    label={
+                      labels.has(claim.path.join("/"))
+                        ? claim.label
+                        : humanize(claim.label)
+                    }
+                    value={formatClaim(claim.value, claim.path, labels)}
+                  />
+                </React.Fragment>
+              ))}
+              <VSpacer />
             </React.Fragment>
           ))}
-        <VSpacer />
-        <AccordionItem
-          body={
-            <>
-              <ListItemInfo
-                label="Credential configuration"
-                value={credential.credentialConfigurationId}
-              />
-              <ListItemInfo
-                label="Format"
-                value={getFormatLabel(credential.format)}
-              />
-              <ListItemInfo label="Issuer" value={credential.issuer} />
-              <ListItemInfo
-                label="Obtained at"
-                value={new Date(credential.obtainedAt).toLocaleString()}
-              />
-              <ListItemInfo label="Key tag" value={credential.keyTag} />
-              <ListItemAction
-                icon="copy"
-                label="Copy raw credential"
-                onPress={() =>
-                  clipboardSetStringWithFeedback(credential.credential)
-                }
-                variant="primary"
-              />
-            </>
-          }
-          title="Technical details"
-        />
-        <VSpacer />
-        <ListItemAction
-          icon="trashcan"
-          label="Delete credential"
-          onPress={() =>
-            Alert.alert(
-              "Delete credential",
-              "The credential and its key will be removed from the device.",
-              [
-                { style: "cancel", text: "Cancel" },
-                {
-                  onPress: () =>
-                    dispatch(deleteEudiCredentialThunk(credential.keyTag))
-                      .unwrap()
-                      .then(() => navigation.goBack())
-                      .catch((e: unknown) =>
-                        Alert.alert(
-                          "Unable to delete the credential",
-                          String(e),
+          <VSpacer />
+          <AccordionItem
+            body={
+              <>
+                <ListItemInfo
+                  label="Credential configuration"
+                  value={credential.credentialConfigurationId}
+                />
+                <ListItemInfo
+                  label="Format"
+                  value={getFormatLabel(credential.format)}
+                />
+                <ListItemInfo label="Issuer" value={credential.issuer} />
+                <ListItemInfo
+                  label="Obtained at"
+                  value={new Date(credential.obtainedAt).toLocaleString()}
+                />
+                <ListItemInfo label="Key tag" value={credential.keyTag} />
+                <ListItemAction
+                  icon="copy"
+                  label="Copy raw credential"
+                  onPress={() =>
+                    clipboardSetStringWithFeedback(credential.credential)
+                  }
+                  variant="primary"
+                />
+              </>
+            }
+            title="Technical details"
+          />
+          <VSpacer />
+          <ListItemAction
+            icon="trashcan"
+            label="Delete credential"
+            onPress={() =>
+              Alert.alert(
+                "Delete credential",
+                "The credential and its key will be removed from the device.",
+                [
+                  { style: "cancel", text: "Cancel" },
+                  {
+                    onPress: () =>
+                      dispatch(deleteEudiCredentialThunk(credential.keyTag))
+                        .unwrap()
+                        .then(() => navigation.goBack())
+                        .catch((e: unknown) =>
+                          Alert.alert(
+                            "Unable to delete the credential",
+                            String(e),
+                          ),
                         ),
-                      ),
-                  style: "destructive",
-                  text: "Delete",
-                },
-              ],
-            )
-          }
-          variant="danger"
-        />
-        <VSpacer size={32} />
-      </ScrollView>
-    </SafeAreaView>
+                    style: "destructive",
+                    text: "Delete",
+                  },
+                ],
+              )
+            }
+            variant="danger"
+          />
+          <VSpacer size={32} />
+        </ScrollView>
+      </SafeAreaView>
+    </EudiSharedTransitionBoundary>
   );
-};
-
-/** Encodes binary data, used by mdoc for pictures, as base64 */
-const toBase64 = (bytes: Uint8Array) => {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(binary);
-};
-
-/** Base64 prefixes of the supported image formats, in base64url (as returned for mdoc) and base64 */
-const IMAGE_BASE64_PREFIXES: Record<string, string> = {
-  "/9j/": "image/jpeg",
-  _9j_: "image/jpeg",
-  iVBOR: "image/png",
-};
-
-/** Returns a displayable image URI from binary data, a base64(url) string or a data URI */
-const toImageUri = (value: unknown) => {
-  if (value instanceof Uint8Array) {
-    return `data:image/jpeg;base64,${toBase64(value)}`;
-  }
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  if (value.startsWith("data:image")) {
-    return value;
-  }
-  const mimeType = Object.entries(IMAGE_BASE64_PREFIXES).find(([prefix]) =>
-    value.startsWith(prefix),
-  )?.[1];
-  if (!mimeType) {
-    return undefined;
-  }
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
-  return `data:${mimeType};base64,${base64}${padding}`;
 };
 
 /** Turns a claim name such as `expiry_date` into a label such as `Expiry date` */
@@ -323,12 +265,3 @@ const formatClaim = (
   }
   return String(value);
 };
-
-const styles = StyleSheet.create({
-  portrait: {
-    alignSelf: "center",
-    aspectRatio: 3 / 4,
-    borderRadius: 8,
-    width: 120,
-  },
-});
