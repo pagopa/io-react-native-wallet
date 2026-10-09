@@ -1,8 +1,7 @@
 import type { DcqlSdJwtVcCredential } from "dcql";
 
-import { type SDJwt, SDJwtInstance } from "@sd-jwt/core";
-import { digest } from "@sd-jwt/crypto-nodejs";
-import { getClaims } from "@sd-jwt/decode";
+import { hasher } from "@owf/crypto";
+import { getClaims, type SDJwt, SDJwtInstance } from "@sd-jwt/core";
 
 import type { Credential4Dcql } from "../../api";
 
@@ -30,7 +29,7 @@ const getClaimsFromDecodedSdJwt = async (decodedRawSdJwt: SDJwt) => {
   const claims = await getClaims<DcqlSdJwtVcCredential["claims"]>(
     decodedRawSdJwt.jwt.payload,
     decodedRawSdJwt.disclosures ?? [],
-    digest,
+    hasher,
   );
 
   return Object.fromEntries(
@@ -50,7 +49,7 @@ export const mapCredentialsToObj = async (
   credentials: Credential4Dcql[],
 ): Promise<CustomDcqlSdJwtVcCredential[]> => {
   const sdJwt = new SDJwtInstance({
-    hasher: digest,
+    hasher,
   });
 
   return Promise.all(

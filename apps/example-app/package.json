@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "expo start",
+    "sync": "pnpm install && nx run io-react-native-wallet:generate && expo prebuild --clean",
     "eas-build-post-install": "cd ../../ && node tools/scripts/eas-build-post-install.mjs . apps/example-app"
   },
   "dependencies": {
@@ -20,7 +21,7 @@
     "@pagopa/io-react-native-jwt": "^2.2.0",
     "@pagopa/io-react-native-login-utils": "^1.2.0",
     "@pagopa/io-react-native-secure-storage": "^0.2.1",
-    "@pagopa/io-wallet-oid4vp": "1.5.4",
+    "@pagopa/io-wallet-oid4vp": "1.5.8",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-navigation/native": "^7.0.15",
@@ -38,7 +39,7 @@
     "i18n-js": "^4.4.3",
     "io-ts": "^2.2.21",
     "jest-expo": "*",
-    "js-sha256": "^0.11.1",
+    "js-sha256": "^1.0.0",
     "lodash": "^4.17.21",
     "react": "19.2.3",
     "react-native": "*",
@@ -51,16 +52,16 @@
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-quick-base64": "^2.2.2",
     "react-native-quick-crypto": "^0.7.17",
-    "react-native-reanimated": "4.3.1",
+    "react-native-reanimated": "4.6.0",
     "react-native-safe-area-context": "^5.3.0",
     "react-native-screens": "^4.9.1",
     "react-native-svg": "*",
     "react-native-svg-transformer": "*",
-    "react-native-url-polyfill": "^2.0.0",
+    "react-native-url-polyfill": "^4.0.0",
     "react-native-vision-camera": "^4.6.4",
     "react-native-web": "*",
     "react-native-webview": "^13.15.0",
-    "react-native-worklets": "^0.8.3",
+    "react-native-worklets": "0.12.2",
     "react-native-worklets-core": "1.6.3",
     "react-redux": "^9.1.2",
     "readable-stream": "^4.5.2",
@@ -69,8 +70,8 @@
     "rn-placeholder": "1.3.3",
     "typesafe-actions": "^5.1.0",
     "url-parse": "^1.5.10",
-    "uuid": "^11.0.3",
-    "zod": "^4.3.6"
+    "uuid": "^14.0.2",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.7",

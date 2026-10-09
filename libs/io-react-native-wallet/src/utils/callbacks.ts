@@ -1,3 +1,4 @@
+import { hasher } from "@owf/crypto";
 import {
   type CryptoContext,
   EncryptJwe,
@@ -6,7 +7,6 @@ import {
 } from "@pagopa/io-react-native-jwt";
 import { verify } from "@pagopa/io-react-native-jwt";
 import { type CallbackContext, type JwtSigner } from "@pagopa/io-wallet-oauth2";
-import { digest } from "@sd-jwt/crypto-nodejs";
 import { X509 } from "jsrsasign";
 
 import type { JWK } from "./jwk";
@@ -15,8 +15,9 @@ import { getJwkFromCertificateChain, getJwkFromTrustChain } from "./crypto";
 import { IoWalletError } from "./errors";
 import { assert, generateRandomBytes } from "./misc";
 
-// Fix incompatibility between ArrayBuffer types
-type DigestFixed = (
+// Fix incompatibility between ArrayBuffer types: the hasher accepts Uint8Array
+// from the `hash` callback despite its narrower input types.
+type HasherFixed = (
   data: ArrayBuffer | ArrayBufferView | string,
   algorithm?: string,
 ) => Uint8Array;
@@ -80,7 +81,7 @@ export const partialCallbacks: PartialCallbackContext = {
 
     return { sanDnsNames, sanUriNames };
   },
-  hash: digest as DigestFixed,
+  hash: hasher as HasherFixed,
   verifyJwt: async (jwtSigner, jwt) => {
     try {
       const signerJwk = await getJwkFromSigner(jwtSigner);

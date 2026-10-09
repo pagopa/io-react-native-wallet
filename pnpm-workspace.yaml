@@ -4,8 +4,14 @@ packages:
 
 allowBuilds:
   arktype: true
+  cbor-extract: true
   nx: true
   unrs-resolver: true
 
 minimumReleaseAgeExclude:
   - '@pagopa/io-react-native-iso18013@0.8.5'
+  - '@owf/cose@0.4.2'
+  - '@owf/crypto@0.4.2'
+  - '@owf/identity-common@0.4.2'
+  - '@owf/token-status-list@0.4.2'
+  - '@sd-jwt/core@0.22.0'
