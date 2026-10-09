@@ -29,7 +29,11 @@ import {
   selectLoggingAddress,
   setItwVersion,
 } from "../store/reducers/environment";
-import { selectIoAuthToken, sessionReset } from "../store/reducers/session";
+import {
+  selectIoAuthToken,
+  sessionLoginRequest,
+  sessionReset,
+} from "../store/reducers/session";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
@@ -132,12 +136,21 @@ const HomeScreen = () => {
         />
         <VSpacer />
         <H1>Session</H1>
-        <ListItemAction
-          icon="logout"
-          label={"Logout from IO Backend"}
-          onPress={() => dispatch(sessionReset())}
-          variant="danger"
-        />
+        {session ? (
+          <ListItemAction
+            icon="logout"
+            label={"Logout from IO Backend"}
+            onPress={() => dispatch(sessionReset())}
+            variant="danger"
+          />
+        ) : (
+          <ListItemAction
+            icon="login"
+            label={"Login to IO Backend"}
+            onPress={() => dispatch(sessionLoginRequest())}
+            variant="primary"
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
