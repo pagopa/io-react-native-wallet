@@ -1,6 +1,6 @@
+import { hasher } from "@owf/crypto";
 import { CBOR } from "@pagopa/io-react-native-iso18013";
-import { digest } from "@sd-jwt/crypto-nodejs";
-import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/decode";
+import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/core";
 
 import type { ParsedCredential } from "./types";
 
@@ -24,11 +24,11 @@ export const parseCredential = async (
   switch (format) {
     case "dc+sd-jwt":
     case "vc+sd-jwt": {
-      const { disclosures, jwt } = decodeSdJwtSync(credential, digest);
+      const { disclosures, jwt } = decodeSdJwtSync(credential, hasher);
       const claims = getClaimsSync<Record<string, unknown>>(
         jwt.payload,
         disclosures,
-        digest,
+        hasher,
       );
       return { claims, format };
     }
