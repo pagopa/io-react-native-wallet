@@ -4,5 +4,6 @@
  */
 import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialOffer from "./credential/offer";
+import * as WalletAttestation from "./wallet-attestation";
 
-export { CredentialIssuance, CredentialOffer };
+export { CredentialIssuance, CredentialOffer, WalletAttestation };

@@ -9,23 +9,20 @@ import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 import type { AppDispatch, RootState } from "../../store/types";
 
 import {
-  selectWalletInstanceAttestationAsJwt,
-  shouldRequestWalletInstanceAttestationSelector,
-} from "../../store/reducers/attestation";
-import { selectHasInstanceKeyTag } from "../../store/selectors/instance";
-import {
-  deleteKeyIfExists,
-  regenerateCryptoKey,
-  WIA_KEYTAG,
-} from "../../utils/crypto";
+  selectEudiWalletAttestation,
+  selectEudiWalletInstanceOrThrow,
+  selectShouldRequestEudiWalletAttestation,
+} from "../../store/reducers/eudi/walletAttestation";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../../utils/crypto";
 import {
   EUDI_CLIENT_ID,
   EUDI_DPOP_KEYTAG,
   EUDI_REDIRECT_URI,
+  EUDI_WIA_KEYTAG,
 } from "../../utils/eudi";
 import { openUrlAndListenForAuthRedirect } from "../../utils/openUrlAndListenForRedirect";
-import { getWalletInstanceAttestationThunk } from "../attestation";
 import { createAppAsyncThunk } from "../utils";
+import { getEudiWalletAttestationThunk } from "./walletAttestation";
 
 /** How the wallet authenticates to the EUDI Authorization Servers */
 export type EudiClientAuthentication = "attestation" | "public";
@@ -144,20 +141,17 @@ const getClientAuthentication = async (
   if (type === "public") {
     return { clientId: EUDI_CLIENT_ID, type: "public" };
   }
-  if (!selectHasInstanceKeyTag(getState())) {
-    throw new Error(
-      "A wallet instance is required to authenticate with the Wallet Attestation",
-    );
+  // The EUDI Wallet Attestation, from the EUDI Wallet Provider
+  selectEudiWalletInstanceOrThrow(getState());
+  if (selectShouldRequestEudiWalletAttestation(getState())) {
+    await dispatch(getEudiWalletAttestationThunk()).unwrap();
   }
-  if (shouldRequestWalletInstanceAttestationSelector(getState())) {
-    await dispatch(getWalletInstanceAttestationThunk()).unwrap();
-  }
-  const walletAttestation = selectWalletInstanceAttestationAsJwt(getState());
+  const walletAttestation = selectEudiWalletAttestation(getState());
   if (!walletAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
+    throw new Error("Wallet Attestation not found");
   }
   return {
-    cryptoContext: createCryptoContextFor(WIA_KEYTAG),
+    cryptoContext: createCryptoContextFor(EUDI_WIA_KEYTAG),
     type: "attestation",
     walletAttestation,
   };

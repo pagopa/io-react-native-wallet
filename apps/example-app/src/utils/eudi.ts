@@ -20,6 +20,13 @@ export const EUDI_REDIRECT_URI = "iowalletexample://eudi/authorization";
 /** Key bound to the access tokens with DPoP */
 export const EUDI_DPOP_KEYTAG = "EUDI_DPOP_KEYTAG";
 
+/** Test EUDI Wallet Provider, called directly without the IO backend */
+export const EUDI_WALLET_PROVIDER_BASE_URL =
+  "https://io-d-itn-wallet-ap-func-01.azurewebsites.net";
+
+/** Key bound to the EUDI Wallet Attestation */
+export const EUDI_WIA_KEYTAG = "EUDI_WIA_KEYTAG";
+
 /** Human readable label of a credential format */
 export const getFormatLabel = (format: string) =>
   ({ "dc+sd-jwt": "SD-JWT VC", mso_mdoc: "mdoc", "vc+sd-jwt": "SD-JWT VC" })[

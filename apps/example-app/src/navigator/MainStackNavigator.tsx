@@ -23,6 +23,7 @@ import { EudiCredentialDetailScreen } from "../screens/eudi/EudiCredentialDetail
 import { EudiCredentialRequestScreen } from "../screens/eudi/EudiCredentialRequestScreen";
 import { EudiCredentialsScreen } from "../screens/eudi/EudiCredentialsScreen";
 import { EudiPresentationScreen } from "../screens/eudi/EudiPresentationScreen";
+import { EudiWalletAttestationScreen } from "../screens/eudi/EudiWalletAttestationScreen";
 import { EudiWalletScreen } from "../screens/eudi/EudiWalletScreen";
 import HomeScreen from "../screens/HomeScreen";
 import { CieLoginScreen } from "../screens/login/CieLoginScreen";
@@ -74,6 +75,7 @@ export type MainStackNavParamList = {
   EudiCredentials: undefined;
   EudiPresentation: undefined;
   EudiWallet: undefined;
+  EudiWalletAttestation: undefined;
   Home: undefined;
   IdpLogin: { idp: string };
   IdpSelection: undefined;
@@ -106,6 +108,11 @@ const renderEudiScreens = (headerRight: () => React.ReactNode) => (
       component={EudiWalletScreen}
       name="EudiWallet"
       options={{ title: "EUDI Wallet" }}
+    />
+    <Stack.Screen
+      component={EudiWalletAttestationScreen}
+      name="EudiWalletAttestation"
+      options={{ title: "Wallet Attestation" }}
     />
     <Stack.Screen
       component={EudiCredentialRequestScreen}

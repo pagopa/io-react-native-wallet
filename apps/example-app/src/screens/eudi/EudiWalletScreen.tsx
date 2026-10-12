@@ -23,6 +23,13 @@ export const EudiWalletScreen = () => {
   const sections: ModuleSummaryProps[] = useMemo(
     () => [
       {
+        description:
+          "Create a Wallet Instance and obtain its Wallet Attestation",
+        icon: "chevronRight",
+        label: "Wallet Attestation",
+        onPress: () => navigation.navigate("EudiWalletAttestation"),
+      },
+      {
         description: "Obtain a credential from a credential offer",
         icon: "chevronRight",
         label: "Credential Request",
