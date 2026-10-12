@@ -7,6 +7,7 @@ import {
   WalletProviderResponseErrorCodes,
 } from "../../utils/errors";
 import { Logger, LogLevel } from "../../utils/logging";
+import { postToWalletProvider } from "./utils";
 
 export interface CreateWalletInstanceContext {
   appFetch?: typeof fetch;
@@ -47,16 +48,17 @@ export const createWalletInstance = async (
     `Hardware attestation: ${keyAttestation}\nAssociated hardware key tag: ${hardwareKeyTag}`,
   );
 
-  await api
-    .post("/wallet-instances", {
-      body: {
-        challenge,
-        hardware_key_tag: hardwareKeyTag,
-        is_renewal: isRenewal,
-        key_attestation: keyAttestation,
-      },
-    })
-    .catch(handleCreateWalletInstanceError);
+  await postToWalletProvider(
+    context.walletProviderBaseUrl,
+    "/wia",
+    {
+      challenge,
+      hardware_key_tag: hardwareKeyTag,
+      is_renewal: isRenewal,
+      key_attestation: keyAttestation,
+    },
+    context.appFetch ?? fetch,
+  ).catch(handleCreateWalletInstanceError);
 
   return hardwareKeyTag;
 };
@@ -64,7 +66,7 @@ export const createWalletInstance = async (
 const handleCreateWalletInstanceError = (e: unknown) => {
   Logger.log(
     LogLevel.ERROR,
-    `An error occurred while calling /wallet-instances endpoint: ${e}`,
+    `An error occurred while creating the Wallet Instance with the /wia endpoint: ${e}`,
   );
 
   if (!(e instanceof WalletProviderResponseError)) {

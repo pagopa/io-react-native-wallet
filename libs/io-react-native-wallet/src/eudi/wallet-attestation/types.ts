@@ -4,7 +4,7 @@ import { JWK } from "../../utils/jwk";
 import { UnixTime } from "../../utils/zod";
 
 /**
- * Parameters of the Wallet Provider, the same of the IT-Wallet v1.4.6 Wallet Instance Attestation request.
+ * Parameters of the Wallet Provider, the same of the IT-Wallet v1.4.6 Wallet Instance and Key Attestation requests.
  */
 export interface WalletAttestationRequestParams {
   walletProviderBaseUrl: string;
@@ -17,6 +17,11 @@ export type WalletAttestationResponse = z.infer<
 >;
 export const WalletAttestationResponse = z.object({
   wallet_instance_attestation: z.string(),
+});
+
+export type KeyAttestationResponse = z.infer<typeof KeyAttestationResponse>;
+export const KeyAttestationResponse = z.object({
+  key_attestation: z.string(),
 });
 
 /**

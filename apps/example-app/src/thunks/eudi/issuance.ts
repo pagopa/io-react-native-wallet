@@ -22,7 +22,10 @@ import {
 } from "../../utils/eudi";
 import { openUrlAndListenForAuthRedirect } from "../../utils/openUrlAndListenForRedirect";
 import { createAppAsyncThunk } from "../utils";
-import { getEudiWalletAttestationThunk } from "./walletAttestation";
+import {
+  getEudiKeyAttestationThunk,
+  getEudiWalletAttestationThunk,
+} from "./walletAttestation";
 
 /** How the wallet authenticates to the EUDI Authorization Servers */
 export type EudiClientAuthentication = "attestation" | "public";
@@ -38,7 +41,7 @@ export interface ObtainEudiCredentialThunkInput {
  * (OpenID4VCI 1.0 with the HAIP profile), separate from the IT-Wallet issuance.
  *
  * The wallet authenticates as requested: with its Wallet Attestation, as required by HAIP,
- * or as a public client.
+ * or as a public client. With the Wallet Attestation, the credential key also has a Key Attestation.
  */
 export const obtainEudiCredentialThunk = createAppAsyncThunk<
   EudiCredential,
@@ -102,8 +105,12 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     redirectUri: EUDI_REDIRECT_URI,
   });
 
+  // With the Wallet Attestation, the credential key is attested by the Wallet Provider as required by HAIP
   const keyTag = uuidv4();
-  await generate(keyTag);
+  const keyAttestation =
+    clientAuthenticationType === "attestation"
+      ? await dispatch(getEudiKeyAttestationThunk(keyTag)).unwrap()
+      : await generate(keyTag).then(() => undefined);
 
   const { credentials, format } = await CredentialIssuance.obtainCredential({
     accessToken,
@@ -112,6 +119,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     credentialCryptoContext: createCryptoContextFor(keyTag),
     dPopCryptoContext,
     issuerMetadata,
+    keyAttestation,
   });
 
   const [credential] = credentials;

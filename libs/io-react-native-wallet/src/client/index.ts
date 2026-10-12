@@ -11,7 +11,7 @@ export type WalletProviderClient = WalletProviderApiClient;
 
 type RawHttpResponse = Awaited<ReturnType<typeof parseRawHttpResponse>>;
 
-const validateResponse = async (response: Response) => {
+export const validateWalletProviderResponse = async (response: Response) => {
   if (!response.ok) {
     let problemDetail: ProblemJson = {};
     try {
@@ -47,7 +47,7 @@ export const getWalletProviderClient = (context: {
         },
         method,
       })
-        .then(validateResponse)
+        .then(validateWalletProviderResponse)
         .then<RawHttpResponse>(parseRawHttpResponse),
     walletProviderBaseUrl,
   );

@@ -8,7 +8,7 @@ import {
   selectEudiWalletInstance,
   selectEudiWalletInstanceOrThrow,
 } from "../../store/reducers/eudi/walletAttestation";
-import { regenerateCryptoKey } from "../../utils/crypto";
+import { deleteKeyIfExists, regenerateCryptoKey } from "../../utils/crypto";
 import {
   EUDI_WALLET_PROVIDER_BASE_URL,
   EUDI_WIA_KEYTAG,
@@ -18,7 +18,14 @@ import {
   generateEudiIntegrityKeyTag,
   getEudiIntegrityContext,
 } from "../../utils/eudiWalletProvider";
+import { createKeyAttestationCryptoContextFor } from "../attestation";
 import { createAppAsyncThunk } from "../utils";
+
+const EUDI_WALLET_SOLUTION = {
+  walletProviderBaseUrl: EUDI_WALLET_PROVIDER_BASE_URL,
+  walletSolutionId: "appio",
+  walletSolutionVersion: "1.4.6",
+};
 
 export interface EudiWalletInstance {
   /** Tag of the hardware key, which identifies the Wallet Instance */
@@ -60,16 +67,30 @@ export const getEudiWalletAttestationThunk = createAppAsyncThunk<
 
   await regenerateCryptoKey(EUDI_WIA_KEYTAG);
 
-  return Eudi.WalletAttestation.getWalletAttestation(
-    {
-      walletProviderBaseUrl: EUDI_WALLET_PROVIDER_BASE_URL,
-      walletSolutionId: "appio",
-      walletSolutionVersion: "3.26.0",
-    },
-    {
+  return Eudi.WalletAttestation.getWalletAttestation(EUDI_WALLET_SOLUTION, {
+    appFetch: createEudiWalletProviderFetch(userId),
+    integrityContext: getEudiIntegrityContext(keyTag),
+    wiaCryptoContext: createCryptoContextFor(EUDI_WIA_KEYTAG),
+  });
+});
+
+/**
+ * Thunk to generate a credential key and obtain its Key Attestation from the test EUDI Wallet Provider.
+ * @param credentialKeyTag - Tag of the credential key to generate and attest
+ * @returns The Key Attestation in JWT format
+ */
+export const getEudiKeyAttestationThunk = createAppAsyncThunk<string, string>(
+  "eudi/keyAttestationGet",
+  async (credentialKeyTag, { getState }) => {
+    const { keyTag, userId } = selectEudiWalletInstanceOrThrow(getState());
+
+    // The key is generated with its attestation, so any previous key with the same tag is replaced
+    await deleteKeyIfExists(credentialKeyTag);
+
+    return Eudi.WalletAttestation.getKeyAttestation(EUDI_WALLET_SOLUTION, {
       appFetch: createEudiWalletProviderFetch(userId),
       integrityContext: getEudiIntegrityContext(keyTag),
-      wiaCryptoContext: createCryptoContextFor(EUDI_WIA_KEYTAG),
-    },
-  );
-});
+      keysToAttest: [createKeyAttestationCryptoContextFor(credentialKeyTag)],
+    });
+  },
+);

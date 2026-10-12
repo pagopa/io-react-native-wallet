@@ -16,6 +16,7 @@ import {
   type WalletAttestationRequestParams,
   WalletAttestationResponse,
 } from "./types";
+import { postToWalletProvider } from "./utils";
 
 /**
  * Build the Wallet Attestation request, signed with the key to bind to the attestation
@@ -114,14 +115,12 @@ export const getWalletAttestation = async (
     `Signed attestation request: ${signedAttestationRequest}`,
   );
 
-  const response = await api
-    .post("/wallet-instance-attestations", {
-      body: signedAttestationRequest,
-      header: {
-        "Content-Type": "text/plain",
-      },
-    })
-    .then(WalletAttestationResponse.parse);
+  const response = await postToWalletProvider(
+    requestParams.walletProviderBaseUrl,
+    "/wia",
+    signedAttestationRequest,
+    appFetch,
+  ).then(WalletAttestationResponse.parse);
 
   Logger.log(
     LogLevel.DEBUG,

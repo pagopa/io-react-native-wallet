@@ -24,7 +24,7 @@ export const EudiWalletScreen = () => {
     () => [
       {
         description:
-          "Create a Wallet Instance and obtain its Wallet Attestation",
+          "Create a Wallet Instance and obtain its Wallet and Key Attestations",
         icon: "chevronRight",
         label: "Wallet Attestation",
         onPress: () => navigation.navigate("EudiWalletAttestation"),

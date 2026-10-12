@@ -7,6 +7,8 @@ import TestScenario, {
 } from "../../components/TestScenario";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
 import {
+  selectEudiKeyAttestation,
+  selectEudiKeyAttestationStatus,
   selectEudiWalletAttestation,
   selectEudiWalletAttestationStatus,
   selectEudiWalletInstance,
@@ -15,12 +17,16 @@ import {
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import {
   createEudiWalletInstanceThunk,
+  getEudiKeyAttestationThunk,
   getEudiWalletAttestationThunk,
 } from "../../thunks/eudi/walletAttestation";
-import { EUDI_WALLET_PROVIDER_BASE_URL } from "../../utils/eudi";
+import {
+  EUDI_KA_KEYTAG,
+  EUDI_WALLET_PROVIDER_BASE_URL,
+} from "../../utils/eudi";
 
 /**
- * Screen to create an EUDI Wallet Instance and obtain its Wallet Attestation
+ * Screen to create an EUDI Wallet Instance and obtain its Wallet Attestation and a Key Attestation
  * from the test EUDI Wallet Provider, separate from the IT-Wallet ones.
  */
 export const EudiWalletAttestationScreen = () => {
@@ -31,10 +37,14 @@ export const EudiWalletAttestationScreen = () => {
   const walletAttestationStatus = useAppSelector(
     selectEudiWalletAttestationStatus,
   );
+  const keyAttestation = useAppSelector(selectEudiKeyAttestation);
+  const keyAttestationStatus = useAppSelector(selectEudiKeyAttestationStatus);
 
   useDebugInfo({
     instance,
     instanceStatus,
+    keyAttestation,
+    keyAttestationStatus,
     walletAttestation,
     walletAttestationStatus,
     walletProvider: EUDI_WALLET_PROVIDER_BASE_URL,
@@ -54,6 +64,13 @@ export const EudiWalletAttestationScreen = () => {
       isPresent: !!walletAttestation,
       onPress: () => dispatch(getEudiWalletAttestationThunk()),
       title: "Get Wallet Attestation",
+    },
+    {
+      ...keyAttestationStatus,
+      icon: "key",
+      isPresent: !!keyAttestation,
+      onPress: () => dispatch(getEudiKeyAttestationThunk(EUDI_KA_KEYTAG)),
+      title: "Get Key Attestation",
     },
   ];
 

@@ -20,6 +20,9 @@ export const EUDI_REDIRECT_URI = "iowalletexample://eudi/authorization";
 /** Key bound to the access tokens with DPoP */
 export const EUDI_DPOP_KEYTAG = "EUDI_DPOP_KEYTAG";
 
+/** Key attested by the standalone Key Attestation request of the Wallet Attestation screen */
+export const EUDI_KA_KEYTAG = "EUDI_KA_KEYTAG";
+
 /** Test EUDI Wallet Provider, called directly without the IO backend */
 export const EUDI_WALLET_PROVIDER_BASE_URL =
   "https://io-d-itn-wallet-ap-func-01.azurewebsites.net";

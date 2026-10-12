@@ -7,6 +7,7 @@ import type { AsyncStatus, RootState } from "../../types";
 import {
   createEudiWalletInstanceThunk,
   type EudiWalletInstance,
+  getEudiKeyAttestationThunk,
   getEudiWalletAttestationThunk,
 } from "../../../thunks/eudi/walletAttestation";
 import { createSecureStorage } from "../../storage";
@@ -15,6 +16,9 @@ import { asyncStatusInitial } from "../../utils";
 export interface EudiWalletAttestationState {
   instance?: EudiWalletInstance;
   instanceStatus: AsyncStatus;
+  /** Last Key Attestation in JWT format, also requested by each issuance with the Wallet Attestation */
+  keyAttestation?: string;
+  keyAttestationStatus: AsyncStatus;
   /** Wallet Attestation in JWT format, bound to the current instance */
   walletAttestation?: string;
   walletAttestationStatus: AsyncStatus;
@@ -22,6 +26,7 @@ export interface EudiWalletAttestationState {
 
 const initialState: EudiWalletAttestationState = {
   instanceStatus: asyncStatusInitial,
+  keyAttestationStatus: asyncStatusInitial,
   walletAttestationStatus: asyncStatusInitial,
 };
 
@@ -64,6 +69,22 @@ const eudiWalletAttestationSlice = createSlice({
 
     builder.addCase(getEudiWalletAttestationThunk.rejected, (state, action) => {
       state.walletAttestationStatus = {
+        ...asyncStatusInitial,
+        hasError: { error: action.error, status: true },
+      };
+    });
+
+    builder.addCase(getEudiKeyAttestationThunk.fulfilled, (state, action) => {
+      state.keyAttestation = action.payload;
+      state.keyAttestationStatus = { ...asyncStatusInitial, isDone: true };
+    });
+
+    builder.addCase(getEudiKeyAttestationThunk.pending, (state) => {
+      state.keyAttestationStatus = { ...asyncStatusInitial, isLoading: true };
+    });
+
+    builder.addCase(getEudiKeyAttestationThunk.rejected, (state, action) => {
+      state.keyAttestationStatus = {
         ...asyncStatusInitial,
         hasError: { error: action.error, status: true },
       };
@@ -112,6 +133,12 @@ export const selectEudiWalletAttestation = (state: RootState) =>
 
 export const selectEudiWalletAttestationStatus = (state: RootState) =>
   state.eudiWalletAttestation.walletAttestationStatus;
+
+export const selectEudiKeyAttestation = (state: RootState) =>
+  state.eudiWalletAttestation.keyAttestation;
+
+export const selectEudiKeyAttestationStatus = (state: RootState) =>
+  state.eudiWalletAttestation.keyAttestationStatus;
 
 /**
  * Whether the Wallet Attestation must be requested, because missing or expired
