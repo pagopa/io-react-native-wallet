@@ -40,7 +40,8 @@ export const WalletAttestationJwt = z.object({
     cnf: z.object({ jwk: JWK }),
     exp: UnixTime,
     iat: UnixTime,
-    iss: z.string(),
+    // Omitted by the EUDI Wallet Provider
+    iss: z.string().optional(),
     sub: z.string(),
     wallet_link: z.string().optional(),
     wallet_name: z.string().optional(),

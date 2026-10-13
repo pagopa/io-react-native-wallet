@@ -141,14 +141,22 @@ export const selectEudiKeyAttestationStatus = (state: RootState) =>
   state.eudiWalletAttestation.keyAttestationStatus;
 
 /**
- * Whether the Wallet Attestation must be requested, because missing or expired
+ * Maximum age of a Wallet Attestation to reuse it. The EU reference issuer rejects attestations
+ * issued more than 1 hour before, both at PAR and at the Token Endpoint, so a margin is left
+ * for the user authorization between the two.
+ */
+const WALLET_ATTESTATION_MAX_AGE_MS = 30 * 60 * 1000;
+
+/**
+ * Whether the Wallet Attestation must be requested, because missing, expired or too old
  */
 export const selectShouldRequestEudiWalletAttestation = (state: RootState) => {
   const walletAttestation = selectEudiWalletAttestation(state);
   if (!walletAttestation) {
     return true;
   }
-  const { exp } =
+  const { exp, iat } =
     Eudi.WalletAttestation.decodeWalletAttestation(walletAttestation).payload;
-  return Date.now() > exp * 1000;
+  const now = Date.now();
+  return now > exp * 1000 || now - iat * 1000 > WALLET_ATTESTATION_MAX_AGE_MS;
 };

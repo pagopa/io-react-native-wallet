@@ -113,10 +113,9 @@ export const getKeyAttestation = async (
     ),
   };
 
-  const { authenticatorData, signature } =
-    await integrityContext.getHardwareSignatureWithAuthData(
-      JSON.stringify(clientData),
-    );
+  const { signature } = await integrityContext.getHardwareSignatureWithAuthData(
+    JSON.stringify(clientData),
+  );
 
   const signedAttestationRequest = await new SignJWT(signatureKey.cryptoContext)
     .setPayload({
@@ -125,7 +124,6 @@ export const getKeyAttestation = async (
       },
       hardware_key_tag: hardwareKeyTag,
       hardware_signature: signature,
-      integrity_assertion: authenticatorData,
       iss: hardwareKeyTag,
       keys_to_attest: keysToAttest.map((k) => k.keyAttestationRequestJwt),
       nonce,
