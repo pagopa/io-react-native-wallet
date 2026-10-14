@@ -55,6 +55,7 @@ export const mapToCredentialsCatalogue = createMapper<
         (dc) => dc.dataset_id === dataset_id,
       );
       return {
+        background_color: dataCapability?.background_color,
         contacts: dataCapability?.contacts,
         data_origin_l10n_id: dataCapability?.data_origin_l10n_id,
         id,

@@ -54,6 +54,7 @@ const CredentialIssuer = z.object({
 });
 
 const AuthenticSource = z.object({
+  background_color: z.string().optional(),
   contacts: z
     .array(z.object({ type: z.string(), value: z.string() }))
     .optional(),

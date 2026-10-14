@@ -58,6 +58,7 @@ describe("mapToCredentialsCatalogue", () => {
         data_capabilities: [
           {
             available_claims: [],
+            background_color: "#79ECE8",
             contacts: [{ type: "email", value: "info@source-org.example.com" }],
             data_origin_l10n_id: "source_dataorigin.name",
             dataset_id: "dataset-1",
@@ -240,6 +241,7 @@ describe("mapToCredentialsCatalogue", () => {
       {
         authentic_sources: [
           {
+            background_color: "#79ECE8",
             contacts: [{ type: "email", value: "info@source-org.example.com" }],
             data_origin_l10n_id: "source_dataorigin.name",
             homepage_uri: "https://source-org.example.com",
