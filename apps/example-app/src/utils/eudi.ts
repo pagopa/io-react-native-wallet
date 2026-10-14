@@ -25,7 +25,7 @@ export const EUDI_KA_KEYTAG = "EUDI_KA_KEYTAG";
 
 /** Test EUDI Wallet Provider, called directly without the IO backend */
 export const EUDI_WALLET_PROVIDER_BASE_URL =
-  "https://io-d-itn-wallet-ap-func-01.azurewebsites.net";
+  "https://io-d-itn-wallet-lpad-ap-func-01.azurewebsites.net";
 
 /** Key bound to the EUDI Wallet Attestation */
 export const EUDI_WIA_KEYTAG = "EUDI_WIA_KEYTAG";
