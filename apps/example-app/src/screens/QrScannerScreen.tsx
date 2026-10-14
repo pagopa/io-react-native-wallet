@@ -16,12 +16,16 @@ import type { PresentationStateKeys } from "../store/reducers/presentation";
 
 import { useAppDispatch } from "../store/utils";
 import { resolveEudiCredentialOfferThunk } from "../thunks/eudi/offer";
+import { startEudiPresentationThunk } from "../thunks/eudi/presentation";
 import { getCredentialOfferThunk } from "../thunks/offer";
 import { remoteCrossDevicePresentationThunk } from "../thunks/presentation";
 
 export type QrScannerScreenParams =
   | {
       mode: "eudiOffer";
+    }
+  | {
+      mode: "eudiPresentation";
     }
   | {
       mode: "offer";
@@ -74,6 +78,14 @@ export const QrScannerScreen = ({ route }: Props) => {
         case "eudiOffer":
           dispatch(
             resolveEudiCredentialOfferThunk({
+              uri: codes[0]?.value || "",
+            }),
+          );
+          navigation.goBack();
+          break;
+        case "eudiPresentation":
+          dispatch(
+            startEudiPresentationThunk({
               uri: codes[0]?.value || "",
             }),
           );

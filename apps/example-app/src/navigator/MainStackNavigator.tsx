@@ -11,7 +11,7 @@ import React, { useCallback, useEffect } from "react";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 
 import { HeaderTitle } from "../components/HeaderTitle";
-import { useEudiOfferDeepLink } from "../hooks/useEudiOfferDeepLink";
+import { useEudiDeepLink } from "../hooks/useEudiDeepLink";
 import { useIoSessionCheck } from "../hooks/useIoSessionCheck";
 import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
 import { CieIdAuthenticationScreen } from "../screens/cie/CieIdAuthenticationScreen";
@@ -73,7 +73,7 @@ export type MainStackNavParamList = {
   EudiCredentialDetail: { keyTag: string };
   EudiCredentialRequest: undefined | { offerUri?: string };
   EudiCredentials: undefined;
-  EudiPresentation: undefined;
+  EudiPresentation: undefined | { requestUri?: string };
   EudiWallet: undefined;
   EudiWalletAttestation: undefined;
   Home: undefined;
@@ -152,10 +152,7 @@ export const MainStackNavigator = () => {
   const dispatch = useAppDispatch();
 
   const navigationRef = useNavigationContainerRef<MainStackNavParamList>();
-  const onNavigationReady = useEudiOfferDeepLink(
-    navigationRef,
-    hasSessionAccess,
-  );
+  const onNavigationReady = useEudiDeepLink(navigationRef, hasSessionAccess);
 
   useIoSessionCheck();
 

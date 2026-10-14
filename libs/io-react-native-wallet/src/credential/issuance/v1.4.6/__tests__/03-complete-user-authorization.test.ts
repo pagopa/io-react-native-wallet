@@ -112,6 +112,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
         nonce: mockRequestObject.nonce,
         responseUri: mockRequestObject.response_uri,
       },
+      { jwks: { keys: expect.any(Array) } },
     );
   });
 

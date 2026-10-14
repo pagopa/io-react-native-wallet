@@ -79,7 +79,7 @@ const verifyMdocSignature = async (coseSign1: string, cert: string) => {
 
 export const prepareVpTokenMdoc = async (
   requestNonce: string,
-  generatedNonce: string,
+  jwkThumbprint: string,
   clientId: string,
   responseUri: string,
   docType: string,
@@ -103,7 +103,7 @@ export const prepareVpTokenMdoc = async (
     clientId,
     responseUri,
     requestNonce,
-    generatedNonce,
+    jwkThumbprint,
     documents,
     presentationFrame as ISO18013_7.AcceptedFields,
   );

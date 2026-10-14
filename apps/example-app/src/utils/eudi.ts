@@ -11,6 +11,13 @@ export const EUDI_CREDENTIAL_OFFER_SCHEMES = [
   "haip-vci:",
 ];
 
+/** URI schemes of the EUDI presentation requests: the OpenID4VP default one, the EUDI reference verifier one and the HAIP one */
+export const EUDI_PRESENTATION_REQUEST_SCHEMES = [
+  "openid4vp:",
+  "eudi-openid4vp:",
+  "haip-vp:",
+];
+
 /** Client identifier used when the wallet authenticates as a public client */
 export const EUDI_CLIENT_ID = "io-wallet-example";
 

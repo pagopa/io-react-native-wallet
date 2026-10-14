@@ -10,7 +10,10 @@
       "iowallelogincie",
       "openid-credential-offer",
       "eu-eaa-offer",
-      "haip-vci"
+      "haip-vci",
+      "openid4vp",
+      "eudi-openid4vp",
+      "haip-vp"
     ],
     "userInterfaceStyle": "automatic",
     "ios": {
