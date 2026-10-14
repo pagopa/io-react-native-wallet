@@ -273,14 +273,17 @@ const processPidPresentationAndCreateAuthzResponse = async ({
   issuerConfig: IssuerConfig;
   requestObject: RequestObject;
 }): Promise<CreateAuthorizationResponseResult> => {
+  const jwks = { keys: issuerConfig.keys } as jsonWebKeySet;
   const remotePresentation =
     await RemotePresentationFlow.prepareRemotePresentations(
       evaluatedDcqlQuery,
       {
         clientId: requestObject.client_id,
+        clientMetadata: requestObject.client_metadata,
         nonce: requestObject.nonce,
         responseUri: requestObject.response_uri,
       },
+      { jwks },
     );
 
   const vp_token = remotePresentation.presentations.reduce(
@@ -298,7 +301,7 @@ const processPidPresentationAndCreateAuthzResponse = async ({
     rpJwks: {
       encrypted_response_enc_values_supported:
         issuerConfig.encrypted_response_enc_values_supported,
-      jwks: { keys: issuerConfig.keys } as jsonWebKeySet,
+      jwks,
     },
     vp_token,
   });

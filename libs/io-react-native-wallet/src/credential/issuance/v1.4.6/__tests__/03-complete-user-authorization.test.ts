@@ -109,9 +109,11 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
       mockEvaluatedDcqlQuery,
       {
         clientId: mockRequestObject.client_id,
+        clientMetadata: mockRequestObject.client_metadata,
         nonce: mockRequestObject.nonce,
         responseUri: mockRequestObject.response_uri,
       },
+      { jwks: { keys: expect.any(Array) } },
     );
   });
 

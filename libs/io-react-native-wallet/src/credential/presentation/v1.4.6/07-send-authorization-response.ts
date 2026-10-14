@@ -1,9 +1,12 @@
+import { thumbprint } from "@pagopa/io-react-native-jwt";
 import {
+  extractEncryptionJwkFromJwks,
   createAuthorizationResponse as sdkCreateAuthorizationResponse,
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
 
-import type { RemotePresentationApi } from "../api";
+import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
+import type { RequestObject } from "../api/types";
 
 import { prepareVpTokenMdoc } from "../../../mdoc";
 import { prepareVpToken } from "../../../sd-jwt";
@@ -14,13 +17,22 @@ import {
   IoWalletError,
   RelyingPartyResponseError,
 } from "../../../utils/errors";
-import {
-  generateRandomAlphaNumericString,
-  hasStatusOrThrow,
-} from "../../../utils/misc";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import { buildDirectPostBody } from "../common/utils/http";
 import { mapSdkAuthorizationResponseError } from "./sdkErrorMapper";
 import { AuthorizationResponse } from "./types";
+
+/**
+ * Returns the JWKS used to encrypt the authorization response.
+ * Same precedence as the SDK `createAuthorizationResponse`: the Request Object's
+ * client_metadata wins over the Relying Party configuration.
+ */
+const getResponseEncryptionJwks = (
+  clientMetadata:
+    | Pick<NonNullable<RequestObject["client_metadata"]>, "jwks">
+    | undefined,
+  rpConf: Pick<RelyingPartyConfig, "jwks"> | undefined,
+) => clientMetadata?.jwks ?? rpConf?.jwks;
 
 /**
  * Prepares remote presentations for a set of credentials.
@@ -28,17 +40,33 @@ import { AuthorizationResponse } from "./types";
  * For each credential, this function:
  * - Validates the credential format (currently supports 'mso_mdoc' or 'dc+sd-jwt').
  * - Generates a verifiable presentation token (vpToken) using the appropriate method.
- * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
+ * - For mso_mdoc, binds the SessionTranscript to the key that encrypts the response (OpenID4VP 1.0 handover).
  *
  * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
- * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
- * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
- * @throws {CredentialNotFoundError} When the credential format is unsupported.
+ * @param authRequestObject - The authentication request object containing nonce, clientId, responseUri and the Request Object's client_metadata, if any.
+ * @param rpConf - Optional Relying Party configuration (OpenID Federation clients only).
+ * @returns A promise that resolves to an object containing an array of presentations.
+ * @throws {IoWalletError} When the format is unsupported, or no encryption key is available for a mso_mdoc credential.
  */
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, authRequestObject) => {
-    // In case of ISO 18013-7 we need a nonce, it shall have a minimum entropy of 16
-    const generatedNonce = generateRandomAlphaNumericString(16);
+  async (credentials, authRequestObject, rpConf) => {
+    // The response is always encrypted, so the mdoc handover needs the thumbprint
+    // of the same key the SDK selects in `sendAuthorizationResponse`
+    const getEncryptionJwkThumbprint = async () => {
+      const jwks = getResponseEncryptionJwks(
+        authRequestObject.clientMetadata,
+        rpConf,
+      );
+      const encryptionJwk =
+        jwks &&
+        extractEncryptionJwkFromJwks(jwks, { supportedAlgValues: ["ECDH-ES"] });
+      if (!encryptionJwk) {
+        throw new IoWalletError(
+          "Missing Relying Party encryption key to present a mso_mdoc credential",
+        );
+      }
+      return thumbprint(encryptionJwk);
+    };
 
     const presentations = await Promise.all(
       credentials.map(async (item) => {
@@ -64,9 +92,10 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
         }
 
         if (format === "mso_mdoc") {
+          const jwkThumbprint = await getEncryptionJwkThumbprint();
           const { vp_token } = await prepareVpTokenMdoc(
             authRequestObject.nonce,
-            generatedNonce,
+            jwkThumbprint,
             authRequestObject.clientId,
             authRequestObject.responseUri,
             item.doctype,
@@ -90,10 +119,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
       }),
     );
 
-    return {
-      generatedNonce,
-      presentations,
-    };
+    return { presentations };
   };
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =
@@ -113,7 +139,7 @@ export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorization
       // When the RP is not an OpenID Federation client, rpConf will be undefined
       // so the keys are taken from the Request Object's client_metadata.
       const clientMetadata = requestObject.client_metadata;
-      const jwks = rpConf?.jwks ?? clientMetadata?.jwks;
+      const jwks = getResponseEncryptionJwks(clientMetadata, rpConf);
       if (!jwks) {
         throw new IoWalletError(
           "Missing jwks in both rpConf and requestObject.client_metadata",
