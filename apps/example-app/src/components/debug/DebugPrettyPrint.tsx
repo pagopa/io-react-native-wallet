@@ -10,7 +10,7 @@ import {
   IOText,
 } from "@pagopa/io-app-design-system";
 import React, { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import type { TruncatableValue } from "../../utils/strings";
 
@@ -29,18 +29,21 @@ type ExpandableProps =
 
 type Props = ExpandableProps & {
   data: unknown;
+  /** Whether long strings are shortened, `true` by default */
+  isTruncated?: boolean;
   title: string;
 };
 
 /**
- * This component allows to print the content of an object in an elegant and readable way.
- * and to copy its content to the clipboard by pressing on the title.
+ * This component allows to print the content of an object in an elegant and readable way,
+ * with selectable text, and to copy its full content to the clipboard.
  * The component it is rendered only if debug mode is enabled
  */
 export const DebugPrettyPrint = ({
   data,
   expandable = true,
   isExpanded = false,
+  isTruncated = true,
   title,
 }: Props) => {
   const [expanded, setExpanded] = useState(isExpanded);
@@ -51,23 +54,30 @@ export const DebugPrettyPrint = ({
     }
 
     return (
-      <View pointerEvents="box-only" style={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        horizontal
+        style={styles.content}
+      >
         <IOText
           color={"grey-700"}
           font="FiraCode"
           lineHeight={18}
+          selectable
           size={12}
           weight="Medium"
         >
           {JSON.stringify(
-            truncateObjectStrings(data as TruncatableValue),
+            isTruncated
+              ? truncateObjectStrings(data as TruncatableValue)
+              : data,
             null,
             2,
           )}
         </IOText>
-      </View>
+      </ScrollView>
     );
-  }, [data, expandable, expanded]);
+  }, [data, expandable, expanded, isTruncated]);
 
   return (
     <View style={styles.container} testID="DebugPrettyPrintTestID">
@@ -103,16 +113,19 @@ export const DebugPrettyPrint = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 4,
+    borderRadius: 8,
     marginVertical: 4,
     overflow: "hidden",
   },
   content: {
     backgroundColor: IOColors["grey-50"],
+  },
+  contentContainer: {
     padding: 8,
   },
   header: {
-    backgroundColor: IOColors["error-600"],
+    alignItems: "center",
+    backgroundColor: IOColors["grey-850"],
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
