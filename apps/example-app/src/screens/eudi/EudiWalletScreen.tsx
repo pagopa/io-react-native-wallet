@@ -47,6 +47,12 @@ export const EudiWalletScreen = () => {
         label: "Credential Presentation",
         onPress: () => navigation.navigate("EudiPresentation"),
       },
+      {
+        description: "Fetch and validate LoTEs, WRPAC and WRPRC",
+        icon: "chevronRight",
+        label: "Trust",
+        onPress: () => navigation.navigate("EudiTrust"),
+      },
     ],
     [navigation],
   );

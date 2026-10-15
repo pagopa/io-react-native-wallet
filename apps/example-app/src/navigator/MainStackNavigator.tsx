@@ -23,6 +23,7 @@ import { EudiCredentialDetailScreen } from "../screens/eudi/EudiCredentialDetail
 import { EudiCredentialRequestScreen } from "../screens/eudi/EudiCredentialRequestScreen";
 import { EudiCredentialsScreen } from "../screens/eudi/EudiCredentialsScreen";
 import { EudiPresentationScreen } from "../screens/eudi/EudiPresentationScreen";
+import { EudiTrustScreen } from "../screens/eudi/EudiTrustScreen";
 import { EudiWalletAttestationScreen } from "../screens/eudi/EudiWalletAttestationScreen";
 import { EudiWalletScreen } from "../screens/eudi/EudiWalletScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -74,6 +75,7 @@ export type MainStackNavParamList = {
   EudiCredentialRequest: undefined | { offerUri?: string };
   EudiCredentials: undefined;
   EudiPresentation: undefined;
+  EudiTrust: undefined;
   EudiWallet: undefined;
   EudiWalletAttestation: undefined;
   Home: undefined;
@@ -133,6 +135,11 @@ const renderEudiScreens = (headerRight: () => React.ReactNode) => (
       component={EudiPresentationScreen}
       name="EudiPresentation"
       options={{ title: "Credential Presentation" }}
+    />
+    <Stack.Screen
+      component={EudiTrustScreen}
+      name="EudiTrust"
+      options={{ title: "Trust" }}
     />
   </Stack.Group>
 );
