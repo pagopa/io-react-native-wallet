@@ -45,7 +45,7 @@ type Props = NativeStackScreenProps<
 export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   const dispatch = useAppDispatch();
   const credential = useAppSelector(selectEudiCredential(route.params.keyTag));
-  const { claims, error, parsed, portrait } =
+  const { claims, error, expiresAt, parsed, portrait } =
     useEudiParsedCredential(credential);
 
   useDebugInfo({ eudiCredential: credential, eudiParsedCredential: parsed });
@@ -111,6 +111,7 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
         >
           <EudiCredentialCard
             credential={credential}
+            expiresAt={expiresAt}
             portrait={portrait}
             sharedTransitionTag={getCredentialTransitionTag(credential.keyTag)}
           />

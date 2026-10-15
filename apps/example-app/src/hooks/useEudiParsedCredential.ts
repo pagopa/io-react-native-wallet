@@ -142,10 +142,7 @@ export const useEudiParsedCredential = (credential?: EudiCredential) => {
     return claim && uri ? { label: claim.label, uri } : undefined;
   }, [claims]);
 
-  const expiresAt = useMemo(
-    () => parsed && getExpiry(parsed.claims),
-    [parsed],
-  );
+  const expiresAt = useMemo(() => parsed && getExpiry(parsed.claims), [parsed]);
 
   return { claims, error, expiresAt, parsed, portrait };
 };
