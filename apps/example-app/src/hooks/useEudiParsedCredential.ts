@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { EudiCredential } from "../store/reducers/eudi/credentials";
 
+import { toImageUri } from "../utils/eudiClaims";
+
 /** Claims holding the holder picture, in mdoc and SD-JWT VC credentials */
 const PORTRAIT_CLAIMS = ["portrait", "picture"];
 
@@ -14,44 +16,6 @@ const parsedCredentials = new Map<
   string,
   Eudi.CredentialIssuance.ParsedCredential
 >();
-
-/** Encodes binary data, used by mdoc for pictures, as base64 */
-const toBase64 = (bytes: Uint8Array) => {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(binary);
-};
-
-/** Base64 prefixes of the supported image formats, in base64url (as returned for mdoc) and base64 */
-const IMAGE_BASE64_PREFIXES: Record<string, string> = {
-  "/9j/": "image/jpeg",
-  _9j_: "image/jpeg",
-  iVBOR: "image/png",
-};
-
-/** Returns a displayable image URI from binary data, a base64(url) string or a data URI */
-const toImageUri = (value: unknown) => {
-  if (value instanceof Uint8Array) {
-    return `data:image/jpeg;base64,${toBase64(value)}`;
-  }
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  if (value.startsWith("data:image")) {
-    return value;
-  }
-  const mimeType = Object.entries(IMAGE_BASE64_PREFIXES).find(([prefix]) =>
-    value.startsWith(prefix),
-  )?.[1];
-  if (!mimeType) {
-    return undefined;
-  }
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
-  return `data:${mimeType};base64,${base64}${padding}`;
-};
 
 /** Claims holding the document expiry date, in mdoc namespaces and SD-JWT VC PIDs */
 const EXPIRY_CLAIMS = ["expiry_date", "date_of_expiry"];
@@ -68,12 +32,15 @@ const toDate = (value: unknown) => {
 };
 
 /**
- * Returns when a credential expires: the `exp` of an SD-JWT VC, otherwise the document expiry date
+ * Returns when a credential expires: the end of its validity, otherwise the document expiry date
  * claim, at the top level or inside an mdoc namespace.
  */
-const getExpiry = (claims: Record<string, unknown>) => {
-  if (typeof claims.exp === "number") {
-    return new Date(claims.exp * 1000);
+const getExpiry = ({
+  claims,
+  validity,
+}: Eudi.CredentialIssuance.ParsedCredential) => {
+  if (validity.validUntil) {
+    return validity.validUntil;
   }
   const scopes = [
     claims,
@@ -142,7 +109,7 @@ export const useEudiParsedCredential = (credential?: EudiCredential) => {
     return claim && uri ? { label: claim.label, uri } : undefined;
   }, [claims]);
 
-  const expiresAt = useMemo(() => parsed && getExpiry(parsed.claims), [parsed]);
+  const expiresAt = useMemo(() => parsed && getExpiry(parsed), [parsed]);
 
   return { claims, error, expiresAt, parsed, portrait };
 };

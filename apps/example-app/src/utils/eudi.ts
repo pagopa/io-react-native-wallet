@@ -250,3 +250,23 @@ export const withOpacity = (color: string, opacity: number) => {
   const [r, g, b] = hex.slice(1).map((channel) => parseInt(channel, 16));
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
+
+/** Days before the expiry from which a credential is shown as expiring */
+const EXPIRING_SOON_DAYS = 30;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Validity status of a credential from its expiry, with the badge variant that shows it */
+export const getExpiryStatus = (expiresAt: Date) => {
+  const remaining = expiresAt.getTime() - Date.now();
+  if (remaining <= 0) {
+    return { label: "Expired", variant: "error" } as const;
+  }
+  if (remaining < EXPIRING_SOON_DAYS * DAY_MS) {
+    return {
+      label: `Expires ${expiresAt.toLocaleDateString()}`,
+      variant: "warning",
+    } as const;
+  }
+  return { label: "Valid", variant: "success" } as const;
+};

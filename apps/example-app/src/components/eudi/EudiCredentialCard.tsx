@@ -7,6 +7,7 @@ import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 
 import {
   getCredentialColors,
+  getExpiryStatus,
   getFormatLabel,
   withOpacity,
 } from "../../utils/eudi";
@@ -14,24 +15,11 @@ import {
 /** Width to height ratio of the card, as the ID-1 format of physical identity documents */
 const CARD_ASPECT_RATIO = 1.586;
 
-/** Days before the expiry from which a credential is shown as expiring */
-const EXPIRING_SOON_DAYS = 30;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Validity status shown on the card, from the credential expiry */
-const getExpiryStatus = (expiresAt: Date) => {
-  const remaining = expiresAt.getTime() - Date.now();
-  if (remaining <= 0) {
-    return { color: IOColors["error-500"], label: "Expired" };
-  }
-  if (remaining < EXPIRING_SOON_DAYS * DAY_MS) {
-    return {
-      color: IOColors["warning-500"],
-      label: `Expires ${expiresAt.toLocaleDateString()}`,
-    };
-  }
-  return { color: IOColors["success-500"], label: "Valid" };
+/** Colors of the validity status dot, by status badge variant */
+const STATUS_COLORS = {
+  error: IOColors["error-500"],
+  success: IOColors["success-500"],
+  warning: IOColors["warning-500"],
 };
 
 const CARD_BORDER_RADIUS = 16;
@@ -183,7 +171,7 @@ export const EudiCredentialCard = ({
                 sharedTransitionTag={tag("statusDot")}
                 style={[
                   styles.statusDot,
-                  { backgroundColor: expiryStatus.color },
+                  { backgroundColor: STATUS_COLORS[expiryStatus.variant] },
                 ]}
               />
               <AnimatedIOText

@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
+import { EudiClaimItem } from "../../components/eudi/EudiClaimItem";
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { EudiSharedTransitionBoundary } from "../../components/eudi/EudiSharedTransitionBoundary";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
@@ -25,13 +26,19 @@ import {
   useEudiParsedCredential,
 } from "../../hooks/useEudiParsedCredential";
 import {
+  type EudiCredential,
   eudiCredentialDisplaySet,
   selectEudiCredential,
 } from "../../store/reducers/eudi/credentials";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
 import { deleteEudiCredentialThunk } from "../../thunks/eudi/issuance";
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
-import { getCredentialTransitionTag, getFormatLabel } from "../../utils/eudi";
+import {
+  getCredentialTransitionTag,
+  getExpiryStatus,
+  getFormatLabel,
+} from "../../utils/eudi";
+import { humanize } from "../../utils/eudiClaims";
 
 type Props = NativeStackScreenProps<
   MainStackNavParamList,
@@ -124,47 +131,25 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
               {items.map((claim, index) => (
                 <React.Fragment key={claim.path.join("/")}>
                   {index > 0 && <Divider />}
-                  <ListItemInfo
+                  <EudiClaimItem
                     label={
                       labels.has(claim.path.join("/"))
                         ? claim.label
                         : humanize(claim.label)
                     }
-                    value={formatClaim(claim.value, claim.path, labels)}
+                    labels={labels}
+                    path={claim.path}
+                    value={claim.value}
                   />
                 </React.Fragment>
               ))}
               <VSpacer />
             </React.Fragment>
           ))}
+          {parsed && <ValiditySection expiresAt={expiresAt} parsed={parsed} />}
           <VSpacer />
           <AccordionItem
-            body={
-              <>
-                <ListItemInfo
-                  label="Credential configuration"
-                  value={credential.credentialConfigurationId}
-                />
-                <ListItemInfo
-                  label="Format"
-                  value={getFormatLabel(credential.format)}
-                />
-                <ListItemInfo label="Issuer" value={credential.issuer} />
-                <ListItemInfo
-                  label="Obtained at"
-                  value={new Date(credential.obtainedAt).toLocaleString()}
-                />
-                <ListItemInfo label="Key tag" value={credential.keyTag} />
-                <ListItemAction
-                  icon="copy"
-                  label="Copy raw credential"
-                  onPress={() =>
-                    clipboardSetStringWithFeedback(credential.credential)
-                  }
-                  variant="primary"
-                />
-              </>
-            }
+            body={<TechnicalDetails credential={credential} parsed={parsed} />}
             title="Technical details"
           />
           <VSpacer />
@@ -203,66 +188,108 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   );
 };
 
-/** Turns a claim name such as `expiry_date` into a label such as `Expiry date` */
-const humanize = (key: string) => {
-  const words = key.replace(/[_-]+/g, " ").trim();
-  return words.charAt(0).toUpperCase() + words.slice(1);
+/** Validity of the credential, with its status as shown on the card */
+const ValiditySection = ({
+  expiresAt,
+  parsed,
+}: {
+  expiresAt?: Date;
+  parsed: Eudi.CredentialIssuance.ParsedCredential;
+}) => {
+  const expiryStatus = expiresAt && getExpiryStatus(expiresAt);
+  const { issuedAt, validFrom } = parsed.validity;
+  return (
+    <>
+      <ListItemHeader label="Validity" />
+      <ListItemInfo
+        endElement={
+          expiryStatus && {
+            componentProps: {
+              text: expiryStatus.label,
+              variant: expiryStatus.variant,
+            },
+            type: "badge",
+          }
+        }
+        label="Valid until"
+        value={expiresAt ? expiresAt.toLocaleDateString() : "No expiry"}
+      />
+      {validFrom && (
+        <>
+          <Divider />
+          <ListItemInfo
+            label="Valid from"
+            value={validFrom.toLocaleDateString()}
+          />
+        </>
+      )}
+      {issuedAt && (
+        <>
+          <Divider />
+          <ListItemInfo label="Issued" value={issuedAt.toLocaleDateString()} />
+        </>
+      )}
+      <VSpacer />
+    </>
+  );
 };
 
-/** Formats a date, parsing date-only values in the local timezone to avoid a day shift */
-const formatDate = (value: string) => {
-  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  const date = dateOnly
-    ? new Date(
-        Number(dateOnly[1]),
-        Number(dateOnly[2]) - 1,
-        Number(dateOnly[3]),
-      )
-    : new Date(value);
-  return date.toLocaleDateString();
-};
-
-const isDateString = (value: string) =>
-  /^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:?\d{2})?)?$/.test(value);
-
-/**
- * Formats a claim value, using the display names of its nested claims when available.
- * @param path - The claim path, to look up the display names of the nested claims
- * @param labels - The display names by claim path
- */
-const formatClaim = (
-  value: unknown,
-  path: Eudi.CredentialIssuance.ClaimPath,
-  labels: Map<string, string>,
-): string => {
-  if (value === null || value === undefined) {
-    return "-";
-  }
-  if (value instanceof Uint8Array) {
-    return `Binary data, ${value.length} bytes`;
-  }
-  if (value instanceof Date) {
-    return value.toLocaleDateString();
-  }
-  if (typeof value === "boolean") {
-    return value ? "Yes" : "No";
-  }
-  if (typeof value === "string") {
-    return isDateString(value) ? formatDate(value) : value;
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => formatClaim(item, [...path, null], labels))
-      .join("\n\n");
-  }
-  if (typeof value === "object") {
-    return Object.entries(value)
-      .map(([key, item]) => {
-        const itemPath = [...path, key];
-        const label = labels.get(itemPath.join("/")) ?? humanize(key);
-        return `${label}: ${formatClaim(item, itemPath, labels)}`;
-      })
-      .join("\n");
-  }
-  return String(value);
+/** Content of the technical details: storage data, issuer signature and status list */
+const TechnicalDetails = ({
+  credential,
+  parsed,
+}: {
+  credential: EudiCredential;
+  parsed?: Eudi.CredentialIssuance.ParsedCredential;
+}) => {
+  const { algorithm, certificate } = parsed?.signature ?? {};
+  return (
+    <>
+      <ListItemInfo
+        label="Credential configuration"
+        value={credential.credentialConfigurationId}
+      />
+      <ListItemInfo label="Format" value={getFormatLabel(credential.format)} />
+      <ListItemInfo label="Issuer" value={credential.issuer} />
+      <ListItemInfo
+        label="Obtained at"
+        value={new Date(credential.obtainedAt).toLocaleString()}
+      />
+      <ListItemInfo label="Key tag" value={credential.keyTag} />
+      {algorithm && (
+        <ListItemInfo
+          label="Signature algorithm"
+          value={`${algorithm} (not verified)`}
+        />
+      )}
+      {certificate && (
+        <>
+          <ListItemInfo
+            label="Issuer certificate subject"
+            value={certificate.subject}
+          />
+          <ListItemInfo
+            label="Issuer certificate authority"
+            value={certificate.issuer}
+          />
+          <ListItemInfo
+            label="Issuer certificate validity"
+            value={`${certificate.notBefore.toLocaleDateString()} - ${certificate.notAfter.toLocaleDateString()}`}
+          />
+        </>
+      )}
+      {parsed?.status && (
+        <ListItemInfo
+          label="Status list"
+          value={`${parsed.status.uri}\nIndex ${parsed.status.idx}`}
+        />
+      )}
+      <ListItemAction
+        icon="copy"
+        label="Copy raw credential"
+        onPress={() => clipboardSetStringWithFeedback(credential.credential)}
+        variant="primary"
+      />
+    </>
+  );
 };

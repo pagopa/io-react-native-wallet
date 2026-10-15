@@ -22,6 +22,7 @@ export {
 export type {
   AuthorizationServerMetadata,
   ClaimPath,
+  CredentialCertificate,
   CredentialIssuerMetadata,
   ParsedCredential,
   TokenResponse,
