@@ -53,6 +53,44 @@ const toImageUri = (value: unknown) => {
   return `data:${mimeType};base64,${base64}${padding}`;
 };
 
+/** Claims holding the document expiry date, in mdoc namespaces and SD-JWT VC PIDs */
+const EXPIRY_CLAIMS = ["expiry_date", "date_of_expiry"];
+
+/** Returns a date from a claim value, either a date or an ISO date string */
+const toDate = (value: unknown) => {
+  const date =
+    value instanceof Date
+      ? value
+      : typeof value === "string"
+        ? new Date(value)
+        : undefined;
+  return date && !isNaN(date.getTime()) ? date : undefined;
+};
+
+/**
+ * Returns when a credential expires: the `exp` of an SD-JWT VC, otherwise the document expiry date
+ * claim, at the top level or inside an mdoc namespace.
+ */
+const getExpiry = (claims: Record<string, unknown>) => {
+  if (typeof claims.exp === "number") {
+    return new Date(claims.exp * 1000);
+  }
+  const scopes = [
+    claims,
+    ...Object.values(claims).filter(
+      (v): v is Record<string, unknown> =>
+        typeof v === "object" && v !== null && !(v instanceof Date),
+    ),
+  ];
+  for (const scope of scopes) {
+    for (const name of EXPIRY_CLAIMS) {
+      const date = toDate(scope[name]);
+      if (date) return date;
+    }
+  }
+  return undefined;
+};
+
 /** Whether a claim holds the holder picture */
 export const isPortraitClaim = (
   claim: Eudi.CredentialIssuance.DisplayedClaim,
@@ -60,7 +98,7 @@ export const isPortraitClaim = (
 
 /**
  * Parses an obtained EUDI credential and lists its claims with their display names.
- * @returns The parsed credential, its displayed claims, its holder picture when available and the parsing error
+ * @returns The parsed credential, its displayed claims, its holder picture and expiry when available and the parsing error
  */
 export const useEudiParsedCredential = (credential?: EudiCredential) => {
   const raw = credential?.credential;
@@ -104,5 +142,10 @@ export const useEudiParsedCredential = (credential?: EudiCredential) => {
     return claim && uri ? { label: claim.label, uri } : undefined;
   }, [claims]);
 
-  return { claims, error, parsed, portrait };
+  const expiresAt = useMemo(
+    () => parsed && getExpiry(parsed.claims),
+    [parsed],
+  );
+
+  return { claims, error, expiresAt, parsed, portrait };
 };
