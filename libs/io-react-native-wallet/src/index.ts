@@ -17,7 +17,6 @@ import * as Trust from "./trust";
 import {
   createSignerFor,
   getJwkFromCertificateChain,
-  type KeyAttestationSigner,
   type Signer,
 } from "./utils/crypto";
 import * as Errors from "./utils/errors";
@@ -49,12 +48,7 @@ export {
   WalletInstanceAttestation,
 };
 
-export type {
-  AuthorizationContext,
-  IntegrityContext,
-  KeyAttestationSigner,
-  Signer,
-};
+export type { AuthorizationContext, IntegrityContext, Signer };
 
 export type * from "./api";
 

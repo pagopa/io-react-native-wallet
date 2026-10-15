@@ -1,13 +1,13 @@
 import { Platform } from "react-native";
 
-import type { KeyAttestationSigner } from "../../../utils/crypto";
 import type { IntegrityContext } from "../../../utils/integrity";
+import type { KeyToAttest } from "../../api";
 
 import {
   IoWalletError,
   UnimplementedFeatureError,
 } from "../../../utils/errors";
-import { getAttestation } from "../issuing";
+import { getAttestation, getChallenge } from "../issuing";
 
 const integrityContextMock: jest.Mocked<IntegrityContext> = {
   getAttestation: jest.fn(),
@@ -18,35 +18,29 @@ const integrityContextMock: jest.Mocked<IntegrityContext> = {
   })),
 };
 
-const createMockKeyAttestationSigner = (
+const createMockKeyToAttest = (
   keyTag: string,
-): jest.Mocked<KeyAttestationSigner> => ({
-  generateKeyWithAttestation: jest.fn(async (_) => ({
-    attestation: `mock-key-attestation-${keyTag}`,
-    success: true,
-  })),
-  getPublicKey: jest.fn(async () => ({
-    alg: "ES256",
-    crv: "P-256",
-    kid: keyTag,
-    kty: "EC",
-    use: "sig",
-    x: "1",
-    y: "2",
-  })),
-  isRemote: false,
-  sign: jest.fn(async (_) => `mock-signature-${keyTag}`),
+  overrides: Partial<KeyToAttest> = {},
+): KeyToAttest => ({
+  attestation: `mock-key-attestation-${keyTag}`,
+  signer: {
+    getPublicKey: jest.fn(async () => ({
+      alg: "ES256",
+      crv: "P-256",
+      kid: keyTag,
+      kty: "EC" as const,
+      use: "sig",
+      x: "1",
+      y: "2",
+    })),
+    isRemote: false,
+    sign: jest.fn(async (_) => `mock-signature-${keyTag}`),
+  },
+  ...overrides,
 });
 
 const createMockFetch = () => {
   const appFetch = jest.fn();
-
-  appFetch.mockResolvedValueOnce(
-    new Response(JSON.stringify({ nonce: "mock-nonce" }), {
-      headers: { "content-type": "application/json" },
-      status: 200,
-    }),
-  );
 
   appFetch.mockResolvedValueOnce(
     new Response(JSON.stringify({ key_attestation: "wua" }), {
@@ -57,6 +51,24 @@ const createMockFetch = () => {
 
   return appFetch;
 };
+
+describe("KeyAttestation | getChallenge", () => {
+  it("should return the nonce from the Wallet Provider", async () => {
+    const appFetch = jest.fn().mockResolvedValueOnce(
+      new Response(JSON.stringify({ nonce: "mock-nonce" }), {
+        headers: { "content-type": "application/json" },
+        status: 200,
+      }),
+    );
+
+    await expect(
+      getChallenge(
+        { walletProviderBaseUrl: "https://example.wp" },
+        { appFetch },
+      ),
+    ).resolves.toEqual("mock-nonce");
+  });
+});
 
 describe("KeyAttestation | getAttestation", () => {
   afterEach(() => {
@@ -77,11 +89,12 @@ describe("KeyAttestation | getAttestation", () => {
       },
       {
         appFetch,
+        challenge: "mock-nonce",
         integrityContext: integrityContextMock,
         keysToAttest: [
-          createMockKeyAttestationSigner("key-1"),
-          createMockKeyAttestationSigner("key-2"),
-          createMockKeyAttestationSigner("key-3"),
+          createMockKeyToAttest("key-1"),
+          createMockKeyToAttest("key-2"),
+          createMockKeyToAttest("key-3"),
         ],
       },
     );
@@ -96,9 +109,8 @@ describe("KeyAttestation | getAttestation", () => {
 
     const appFetch = createMockFetch();
 
-    const keyToAttest = createMockKeyAttestationSigner("key-1");
-    keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
-      success: true,
+    const keyToAttest = createMockKeyToAttest("key-1", {
+      attestation: undefined,
     });
 
     await getAttestation(
@@ -109,6 +121,7 @@ describe("KeyAttestation | getAttestation", () => {
       },
       {
         appFetch,
+        challenge: "mock-nonce",
         integrityContext: integrityContextMock,
         keysToAttest: [keyToAttest],
       },
@@ -121,10 +134,8 @@ describe("KeyAttestation | getAttestation", () => {
 
   it("should throw when a key to attest is remote", async () => {
     const appFetch = createMockFetch();
-    const remoteKey = {
-      ...createMockKeyAttestationSigner("key-2"),
-      isRemote: true,
-    };
+    const remoteKey = createMockKeyToAttest("key-2");
+    remoteKey.signer = { ...remoteKey.signer, isRemote: true };
 
     await expect(
       getAttestation(
@@ -135,8 +146,9 @@ describe("KeyAttestation | getAttestation", () => {
         },
         {
           appFetch,
+          challenge: "mock-nonce",
           integrityContext: integrityContextMock,
-          keysToAttest: [createMockKeyAttestationSigner("key-1"), remoteKey],
+          keysToAttest: [createMockKeyToAttest("key-1"), remoteKey],
         },
       ),
     ).rejects.toThrow(UnimplementedFeatureError);
@@ -146,10 +158,8 @@ describe("KeyAttestation | getAttestation", () => {
   it("should throw on Android when the key is generated without a key attestation", async () => {
     jest.replaceProperty(Platform, "OS", "android");
 
-    const keyToAttest = createMockKeyAttestationSigner("key-1");
-    keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
+    const keyToAttest = createMockKeyToAttest("key-1", {
       attestation: undefined, // Test the missing key attestation
-      success: true,
     });
 
     await expect(() =>
@@ -161,28 +171,7 @@ describe("KeyAttestation | getAttestation", () => {
         },
         {
           appFetch: createMockFetch(),
-          integrityContext: integrityContextMock,
-          keysToAttest: [keyToAttest],
-        },
-      ),
-    ).rejects.toThrow(IoWalletError);
-  });
-
-  it("should throw when generateKeyWithAttestation returns { success: false }", async () => {
-    const keyToAttest = createMockKeyAttestationSigner("key-1");
-    keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
-      success: false,
-    });
-
-    await expect(() =>
-      getAttestation(
-        {
-          walletProviderBaseUrl: "https://example.wp",
-          walletSolutionId: "walletSol",
-          walletSolutionVersion: "1.0.0",
-        },
-        {
-          appFetch: createMockFetch(),
+          challenge: "mock-nonce",
           integrityContext: integrityContextMock,
           keysToAttest: [keyToAttest],
         },

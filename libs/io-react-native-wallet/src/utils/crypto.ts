@@ -14,24 +14,6 @@ import { IoWalletError, UnimplementedFeatureError } from "./errors";
 import { JWK, JWKS } from "./jwk";
 
 /**
- * Extension of the {@link Signer} that adds key generation with optional key attestation.
- *
- * This signer requires the consumer to provide an additional method for **key generation**;
- * on Android this method should also generate a key attestation as a certificate chain
- * to ensure the key pair is hardware-backed.
- */
-export interface KeyAttestationSigner extends Signer {
-  /**
-   * Generate a key pair with an **optional key attestation** (Android).
-   * @param challenge The challenge for the key attestation.
-   * @returns An object with a success flag and a key attestation, if it was generated.
-   */
-  generateKeyWithAttestation(
-    challenge: string,
-  ): Promise<{ attestation?: string; success: boolean }>;
-}
-
-/**
  * A signer bound to a single key pair, provided by the consumer.
  * The consumer owns the whole lifecycle of the key (generation, persistence, deletion)
  * and decides where it lives (device keystore or remote HSM).

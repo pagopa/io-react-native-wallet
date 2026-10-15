@@ -15,7 +15,7 @@ const createMockSigner = (keyTag: string, y: string): jest.Mocked<Signer> => ({
     alg: "ES256",
     crv: "P-256",
     kid: keyTag,
-    kty: "EC",
+    kty: "EC" as const,
     use: "sig",
     x: "1",
     y,

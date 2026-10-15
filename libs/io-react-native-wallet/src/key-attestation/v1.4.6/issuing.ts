@@ -1,13 +1,10 @@
 import { JWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { Platform } from "react-native";
 
-import type { KeyAttestationSupportedApi } from "../api";
+import type { KeyAttestationSupportedApi, KeyToAttest } from "../api";
 
 import { getWalletProviderClient } from "../../client";
-import {
-  assertLocalSigners,
-  type KeyAttestationSigner,
-} from "../../utils/crypto";
+import { assertLocalSigners } from "../../utils/crypto";
 import { IoWalletError } from "../../utils/errors";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
@@ -15,23 +12,13 @@ import { KeyAttestationResponse } from "./types";
 
 /**
  * Create a Key Attestation Request in JWT format for the provided key.
- * @param challenge The challenge for key attestation
- * @param signer The signer of the key to attest
+ * @param keyToAttest The key to attest, with its signer and optional Android key attestation
  * @returns The key attestation request JWT, the public key and the original signer
  */
-const createKeyAttestationRequest = async (
-  challenge: string,
-  signer: KeyAttestationSigner,
-) => {
-  const { attestation, success } =
-    await signer.generateKeyWithAttestation(challenge);
-
-  if (!success) {
-    throw new IoWalletError(
-      "generateKeyWithAttestation failed to generate a cryptographic key for the Key Attestation request",
-    );
-  }
-
+const createKeyAttestationRequest = async ({
+  attestation,
+  signer,
+}: KeyToAttest) => {
   if (Platform.OS === "android" && !attestation) {
     throw new IoWalletError(
       "Missing Android key attestation: the generated key pair must be hardware-backed",
@@ -61,29 +48,39 @@ const createKeyAttestationRequest = async (
   return { keyAttestationRequestJwt: requestJwt, publicKey, signer };
 };
 
+export const getChallenge: KeyAttestationSupportedApi["getChallenge"] = async (
+  { walletProviderBaseUrl },
+  { appFetch = fetch } = {},
+) => {
+  const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
+  const { nonce } = await api.get("/nonce");
+  Logger.log(
+    LogLevel.DEBUG,
+    `Challenge obtained from ${walletProviderBaseUrl}: ${nonce}`,
+  );
+  return nonce;
+};
+
 export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
   async (
     { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
-    { appFetch = fetch, integrityContext, keysToAttest: keysToAttestSigners },
+    {
+      appFetch = fetch,
+      challenge: nonce,
+      integrityContext,
+      keysToAttest: keys,
+    },
   ) => {
-    if (keysToAttestSigners.length === 0) {
+    if (keys.length === 0) {
       throw new IoWalletError("At least one key to attest must be provided");
     }
 
-    assertLocalSigners("1.4.6", ...keysToAttestSigners);
+    assertLocalSigners("1.4.6", ...keys.map((k) => k.signer));
 
     const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
 
-    const { nonce } = await api.get("/nonce");
-    Logger.log(
-      LogLevel.DEBUG,
-      `Challenge obtained from ${walletProviderBaseUrl}: ${nonce}`,
-    );
-
     const keysToAttest = await Promise.all(
-      keysToAttestSigners.map((signer) =>
-        createKeyAttestationRequest(nonce, signer),
-      ),
+      keys.map(createKeyAttestationRequest),
     );
 
     // Use the first key to attest to sign the WUA Request JWT
