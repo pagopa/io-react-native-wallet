@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 
 import {
   IOVisualCostants,
+  ListItemHeader,
   ModuleSummary,
   VSpacer,
 } from "@pagopa/io-app-design-system";
@@ -135,6 +136,19 @@ const HomeScreen = () => {
         data={sections}
         keyExtractor={(item, index) => `${item.label}-${index}`}
         ListFooterComponent={<VSpacer size={32} />}
+        ListHeaderComponent={
+          <>
+            <ListItemHeader label="EUDI Wallet" />
+            <ModuleSummary
+              description="Request, check and present credentials with issuers and verifiers from other member states"
+              icon="chevronRight"
+              label="EU Credentials"
+              onPress={() => navigation.navigate("EudiWallet")}
+            />
+            <VSpacer />
+            <ListItemHeader label="IT-Wallet" />
+          </>
+        }
         renderItem={({ item }) => (
           <>
             <ModuleSummary

@@ -31,4 +31,5 @@ export const DPoPPayload = z.object({
   htm: z.enum(["POST", "GET"]),
   htu: z.string(),
   jti: z.string(),
+  nonce: z.string().optional(),
 });

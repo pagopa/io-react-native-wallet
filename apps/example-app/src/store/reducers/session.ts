@@ -29,6 +29,10 @@ export const sessionSlice = createSlice({
   initialState,
   name: "session",
   reducers: {
+    // Brings back the login screen after a skipped login, keeping the wallet state
+    sessionLoginRequest: (state) => {
+      state.isLoginSkipped = false;
+    },
     // Resets the session state when logging out
     sessionReset: () => initialState,
     // Sets the IO auth token and the method used to obtain it
@@ -49,7 +53,8 @@ export const sessionSlice = createSlice({
 /**
  * Exports the actions for the session slice.
  */
-export const { sessionReset, sessionSet, sessionSkip } = sessionSlice.actions;
+export const { sessionLoginRequest, sessionReset, sessionSet, sessionSkip } =
+  sessionSlice.actions;
 
 /**
  * Redux persist configuration for the session slice.
