@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { Signer } from "../../../utils/crypto";
 import type { IssuerConfig } from "./IssuerConfig";
 import type { TokenResponse } from "./types";
 
@@ -16,8 +15,8 @@ export interface AuthorizeAccessApi {
    * @param redirectUri The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
    * @param codeVerifier The code verifier returned by {@link startUserAuthorization}
    * @param context.walletInstanceAttestation The Wallet Instance's attestation
-   * @param context.wiaCryptoContext The Wallet Instance's crypto context
-   * @param context.dPopCryptoContext The DPoP crypto context
+   * @param context.wiaSigner The Wallet Instance's signer
+   * @param context.dPopSigner The DPoP signer
    * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
    * @return The token response containing the access token along with the token request signed with DPoP which has to be used in the {@link obtainCredential} step.
    * @throws {ValidationFailed} if an error occurs while parsing the token response
@@ -30,9 +29,9 @@ export interface AuthorizeAccessApi {
     codeVerifier: string,
     context: {
       appFetch?: typeof fetch;
-      dPopCryptoContext: CryptoContext;
+      dPopSigner: Signer;
       walletInstanceAttestation: string;
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<{ accessToken: TokenResponse }>;
 }

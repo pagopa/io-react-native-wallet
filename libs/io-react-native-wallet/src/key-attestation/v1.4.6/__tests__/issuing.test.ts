@@ -1,9 +1,12 @@
 import { Platform } from "react-native";
 
-import type { KeyAttestationCryptoContext } from "../../../utils/crypto";
+import type { KeyAttestationSigner } from "../../../utils/crypto";
 import type { IntegrityContext } from "../../../utils/integrity";
 
-import { IoWalletError } from "../../../utils/errors";
+import {
+  IoWalletError,
+  UnimplementedFeatureError,
+} from "../../../utils/errors";
 import { getAttestation } from "../issuing";
 
 const integrityContextMock: jest.Mocked<IntegrityContext> = {
@@ -15,9 +18,9 @@ const integrityContextMock: jest.Mocked<IntegrityContext> = {
   })),
 };
 
-const createMockKeyAttestationCryptoContext = (
+const createMockKeyAttestationSigner = (
   keyTag: string,
-): jest.Mocked<KeyAttestationCryptoContext> => ({
+): jest.Mocked<KeyAttestationSigner> => ({
   generateKeyWithAttestation: jest.fn(async (_) => ({
     attestation: `mock-key-attestation-${keyTag}`,
     success: true,
@@ -31,7 +34,8 @@ const createMockKeyAttestationCryptoContext = (
     x: "1",
     y: "2",
   })),
-  getSignature: jest.fn(async (_) => `mock-signature-${keyTag}`),
+  isRemote: false,
+  sign: jest.fn(async (_) => `mock-signature-${keyTag}`),
 });
 
 const createMockFetch = () => {
@@ -75,9 +79,9 @@ describe("KeyAttestation | getAttestation", () => {
         appFetch,
         integrityContext: integrityContextMock,
         keysToAttest: [
-          createMockKeyAttestationCryptoContext("key-1"),
-          createMockKeyAttestationCryptoContext("key-2"),
-          createMockKeyAttestationCryptoContext("key-3"),
+          createMockKeyAttestationSigner("key-1"),
+          createMockKeyAttestationSigner("key-2"),
+          createMockKeyAttestationSigner("key-3"),
         ],
       },
     );
@@ -92,7 +96,7 @@ describe("KeyAttestation | getAttestation", () => {
 
     const appFetch = createMockFetch();
 
-    const keyToAttest = createMockKeyAttestationCryptoContext("key-1");
+    const keyToAttest = createMockKeyAttestationSigner("key-1");
     keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
       success: true,
     });
@@ -115,10 +119,34 @@ describe("KeyAttestation | getAttestation", () => {
     );
   });
 
+  it("should throw when a key to attest is remote", async () => {
+    const appFetch = createMockFetch();
+    const remoteKey = {
+      ...createMockKeyAttestationSigner("key-2"),
+      isRemote: true,
+    };
+
+    await expect(
+      getAttestation(
+        {
+          walletProviderBaseUrl: "https://example.wp",
+          walletSolutionId: "walletSol",
+          walletSolutionVersion: "1.0.0",
+        },
+        {
+          appFetch,
+          integrityContext: integrityContextMock,
+          keysToAttest: [createMockKeyAttestationSigner("key-1"), remoteKey],
+        },
+      ),
+    ).rejects.toThrow(UnimplementedFeatureError);
+    expect(appFetch).not.toHaveBeenCalled();
+  });
+
   it("should throw on Android when the key is generated without a key attestation", async () => {
     jest.replaceProperty(Platform, "OS", "android");
 
-    const keyToAttest = createMockKeyAttestationCryptoContext("key-1");
+    const keyToAttest = createMockKeyAttestationSigner("key-1");
     keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
       attestation: undefined, // Test the missing key attestation
       success: true,
@@ -141,7 +169,7 @@ describe("KeyAttestation | getAttestation", () => {
   });
 
   it("should throw when generateKeyWithAttestation returns { success: false }", async () => {
-    const keyToAttest = createMockKeyAttestationCryptoContext("key-1");
+    const keyToAttest = createMockKeyAttestationSigner("key-1");
     keyToAttest.generateKeyWithAttestation.mockResolvedValueOnce({
       success: false,
     });

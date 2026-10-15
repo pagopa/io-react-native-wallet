@@ -1,5 +1,6 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 
+import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api/IssuerConfig";
 import type { IasPayload, MrtdPayload } from "../../api/mrtd-pop";
 
@@ -10,23 +11,35 @@ import {
 import { sdkConfigV1_0 } from "../../../../utils/config";
 import { IssuerResponseError } from "../../../../utils/errors";
 
-// Mock SignJWT from @pagopa/io-react-native-jwt
-const mockSign = jest.fn();
-const mockSetExpirationTime = jest.fn().mockReturnValue({ sign: mockSign });
-const mockSetIssuedAt = jest
-  .fn()
-  .mockReturnValue({ setExpirationTime: mockSetExpirationTime });
-const mockSetPayload = jest
-  .fn()
-  .mockReturnValue({ setIssuedAt: mockSetIssuedAt, sign: mockSign });
-const mockSetProtectedHeader = jest
-  .fn()
-  .mockReturnValue({ setPayload: mockSetPayload });
+const mockJwtSign = jest.fn();
+const mockSetProtectedHeader = jest.fn();
+const mockSetPayload = jest.fn();
+const mockSetIssuedAt = jest.fn();
+const mockSetExpirationTime = jest.fn();
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
-  SignJWT: jest.fn().mockImplementation(() => ({
-    setProtectedHeader: mockSetProtectedHeader,
-  })),
+  JWT: jest.fn().mockImplementation(() => {
+    const builder = {
+      setExpirationTime: (...args: unknown[]) => {
+        mockSetExpirationTime(...args);
+        return builder;
+      },
+      setIssuedAt: (...args: unknown[]) => {
+        mockSetIssuedAt(...args);
+        return builder;
+      },
+      setPayload: (p: Record<string, unknown>) => {
+        mockSetPayload(p);
+        return builder;
+      },
+      setProtectedHeader: (...args: unknown[]) => {
+        mockSetProtectedHeader(...args);
+        return builder;
+      },
+      sign: (...args: unknown[]) => mockJwtSign(...args),
+    };
+    return builder;
+  }),
 }));
 
 // Minimal issuer configuration
@@ -47,13 +60,14 @@ const iasPayload: IasPayload = {
   sod_ias: "base64-encoded-sod-ias",
 };
 
-// Mock WIA crypto context with getPublicKey method
-const wiaCryptoContext = {
+// Mock WIA signer with getPublicKey method
+const wiaSigner = {
   getPublicKey: jest
     .fn()
     .mockResolvedValue({ kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo" }),
-  getSignature: jest.fn(),
-} as CryptoContext;
+  isRemote: false,
+  sign: jest.fn(),
+} as Signer;
 
 const validateChallenge = createValidateChallenge({ sdkConfig: sdkConfigV1_0 });
 
@@ -66,6 +80,7 @@ describe("validateChallenge", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockJwtSign.mockResolvedValue("signed-wia-pop-token");
   });
 
   it("validates the MRTD challenge and returns the verification result", async () => {
@@ -83,8 +98,10 @@ describe("validateChallenge", () => {
       }),
     );
 
-    mockSign.mockResolvedValueOnce("signed-wia-pop-token");
-    mockSign.mockResolvedValueOnce("signed-mrtd-validation-jwt");
+    // The WIA PoP is signed before the validation JWT
+    mockJwtSign
+      .mockResolvedValueOnce("signed-wia-pop-token")
+      .mockResolvedValueOnce("signed-mrtd-validation-jwt");
 
     const result = await validateChallenge(
       issuerConf,
@@ -93,7 +110,7 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch, walletInstanceAttestation, wiaSigner },
     );
 
     // Verify the result matches the expected verification result
@@ -144,10 +161,13 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch, walletInstanceAttestation, wiaSigner },
     );
 
-    // Verify SignJWT was called with correct parameters
+    // Verify the MRTD validation JWT was signed with correct parameters
+    expect(JWT).toHaveBeenCalledWith({
+      kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
+    });
     expect(mockSetProtectedHeader).toHaveBeenCalledWith({
       kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
       typ: "mrtd-ias+jwt",
@@ -162,7 +182,7 @@ describe("validateChallenge", () => {
 
     expect(mockSetIssuedAt).toHaveBeenCalledWith();
     expect(mockSetExpirationTime).toHaveBeenCalledWith("5m");
-    expect(mockSign).toHaveBeenCalledWith();
+    expect(mockJwtSign).toHaveBeenCalledWith(expect.any(Function));
   });
 
   it("throws IssuerResponseError when status code is not 202", async () => {
@@ -180,7 +200,7 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch, walletInstanceAttestation, wiaSigner },
     );
 
     await expect(execution).rejects.toThrow(IssuerResponseError);
@@ -208,7 +228,7 @@ describe("validateChallenge", () => {
         mrtd_pop_nonce,
         mrtdPayload,
         iasPayload,
-        { appFetch, walletInstanceAttestation, wiaCryptoContext },
+        { appFetch, walletInstanceAttestation, wiaSigner },
       ),
     ).rejects.toThrow();
   });
@@ -234,7 +254,7 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { appFetch: customFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch: customFetch, walletInstanceAttestation, wiaSigner },
     );
 
     expect(customFetch).toHaveBeenCalledWith(
@@ -243,6 +263,7 @@ describe("validateChallenge", () => {
         body: JSON.stringify({
           mrtd_auth_session,
           mrtd_pop_nonce,
+          mrtd_validation_jwt: "signed-wia-pop-token",
         }),
         method: "POST",
       }),
@@ -271,7 +292,7 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { walletInstanceAttestation, wiaCryptoContext },
+      { walletInstanceAttestation, wiaSigner },
     );
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -282,7 +303,7 @@ describe("validateChallenge", () => {
     );
   });
 
-  it("retrieves public key from crypto context", async () => {
+  it("retrieves public key from signer", async () => {
     const mockVerificationResult = {
       mrtd_val_pop_nonce: "validation-nonce",
       redirect_uri: "https://issuer.example/redirect",
@@ -303,10 +324,10 @@ describe("validateChallenge", () => {
       mrtd_pop_nonce,
       mrtdPayload,
       iasPayload,
-      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch, walletInstanceAttestation, wiaSigner },
     );
 
-    expect(wiaCryptoContext.getPublicKey).toHaveBeenCalledWith();
+    expect(wiaSigner.getPublicKey).toHaveBeenCalledWith();
   });
 });
 

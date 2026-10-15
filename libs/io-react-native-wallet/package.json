@@ -81,6 +81,7 @@
   },
   "devDependencies": {
     "@pagopa/io-react-native-iso18013": "^0.8.5",
+    "@pagopa/io-react-native-jwt": "3.0.0-remote-hsm",
     "@types/jsrsasign": "^10.5.15",
     "auto-changelog": "^2.6.0",
     "react-native-builder-bob": "^0.43.0",

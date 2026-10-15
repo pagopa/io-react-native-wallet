@@ -15,3 +15,4 @@ minimumReleaseAgeExclude:
   - '@owf/identity-common@0.4.2'
   - '@owf/token-status-list@0.4.2'
   - '@sd-jwt/core@0.22.0'
+  - '@pagopa/io-react-native-jwt@3.0.0-remote-hsm'

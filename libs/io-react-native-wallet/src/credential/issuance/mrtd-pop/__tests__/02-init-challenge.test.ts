@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api/IssuerConfig";
 
 import { createInitChallenge } from "../02-init-challenge";
@@ -29,11 +28,14 @@ const mockChallengeJwt =
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
   getJwkFromHeader: jest.fn(),
-  SignJWT: jest.fn().mockImplementation(() => ({
-    setPayload: jest.fn().mockReturnThis(),
-    setProtectedHeader: jest.fn().mockReturnThis(),
-    sign: jest.fn().mockResolvedValue("signed-wia-pop-token"),
-  })),
+  JWT: jest.fn().mockImplementation(() => {
+    const builder = {
+      setPayload: jest.fn(() => builder),
+      setProtectedHeader: jest.fn(() => builder),
+      sign: jest.fn().mockResolvedValue("signed-wia-pop-token"),
+    };
+    return builder;
+  }),
   verify: jest.fn(),
 }));
 
@@ -42,10 +44,11 @@ const issuerConf = {
   credential_issuer: mockDecodedJwt.payload.aud,
 } as unknown as IssuerConfig;
 
-const wiaCryptoContext = {
+const wiaSigner = {
   getPublicKey: jest.fn(),
-  getSignature: jest.fn(),
-} as CryptoContext;
+  isRemote: false,
+  sign: jest.fn(),
+} as Signer;
 
 const initChallenge = createInitChallenge({ sdkConfig: sdkConfigV1_0 });
 
@@ -69,7 +72,7 @@ describe("initChallenge", () => {
       initUrl,
       mrtd_auth_session,
       mrtd_pop_jwt_nonce,
-      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch, walletInstanceAttestation, wiaSigner },
     );
 
     // Returned payload matches mocked decoded JWT payload
@@ -110,7 +113,7 @@ describe("initChallenge", () => {
       initUrl,
       mrtd_auth_session,
       mrtd_pop_jwt_nonce,
-      { appFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch, walletInstanceAttestation, wiaSigner },
     );
 
     await expect(promise).rejects.toBeInstanceOf(IssuerResponseError);
@@ -127,7 +130,7 @@ describe("initChallenge", () => {
       initUrl,
       mrtd_auth_session,
       mrtd_pop_jwt_nonce,
-      { appFetch: customFetch, walletInstanceAttestation, wiaCryptoContext },
+      { appFetch: customFetch, walletInstanceAttestation, wiaSigner },
     );
 
     expect(customFetch).toHaveBeenCalledWith(

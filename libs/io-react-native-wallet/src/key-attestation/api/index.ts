@@ -1,4 +1,4 @@
-import type { KeyAttestationCryptoContext } from "../../utils/crypto";
+import type { KeyAttestationSigner } from "../../utils/crypto";
 import type { IntegrityContext } from "../../utils/integrity";
 import type {
   DecodedKeyAttestation,
@@ -24,10 +24,10 @@ export interface KeyAttestationSupportedApi {
 
   /**
    * Request a Key Attestation (KA) to the Wallet provider with one or more keys to attest.
-   * Each key must be provided as a {@link KeyAttestationCryptoContext}.
+   * Each key must be provided as a {@link KeyAttestationSigner}.
    *
    * @param requestParams Wallet Provider data for the Wallet Attestation request
-   * @param ctx.keysToAttest The list of KeyAttestationCryptoContext's of the keys to attest
+   * @param ctx.keysToAttest The list of KeyAttestationSigner's of the keys to attest
    * @param ctx.integrityContext The hardware key pair associated with the Wallet Instance
    * @param ctx.appFetch (optional) Http client
    * @returns The generated Key Attestation with the attested keys
@@ -37,7 +37,7 @@ export interface KeyAttestationSupportedApi {
     ctx: {
       appFetch?: typeof fetch;
       integrityContext: IntegrityContext;
-      keysToAttest: KeyAttestationCryptoContext[];
+      keysToAttest: KeyAttestationSigner[];
     },
   ): Promise<WalletAttestation>;
 

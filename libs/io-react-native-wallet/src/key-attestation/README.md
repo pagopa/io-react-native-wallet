@@ -1,7 +1,7 @@
 # Key Attestation
 
 This flow is used to obtain a [**Key Attestation**](https://italia.github.io/eid-wallet-it-docs/releases/1.4.6/en/wallet-solution-requirements.html#key-attestation-requirements) (KA). The Key Attestation is bound to one or more cryptographic keys, that must be provided by the consumer application:
-- `keyAttestationCryptoContext` one or more objects that extend the `CryptoContext` with a function to generate a WSCD-stored key with an optional [Android key attestation](https://developer.android.com/privacy-and-security/security-key-attestation); these are the keys that will be attested in the KA.
+- `keysToAttest` one or more `KeyAttestationSigner` objects, which extend the `Signer` with a function to generate a WSCD-stored key with an optional [Android key attestation](https://developer.android.com/privacy-and-security/security-key-attestation); these are the keys that will be attested in the KA. Remote signers (`isRemote: true`) are not supported yet and cause an `UnimplementedFeatureError`.
 - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance.
 
 #### Note
@@ -19,8 +19,8 @@ if (wallet.KeyAttestation.isSupported) {
 ```ts
 import {
   IoWallet,
-  createCryptoContextFor,
-  KeyAttestationCryptoContext
+  createSignerFor,
+  KeyAttestationSigner
 } from "@pagopa/io-react-native-wallet";
 
 // Retrieve the integrity key tag from the store and create its context
@@ -30,10 +30,10 @@ const integrityContext = getIntegrityContext(integrityKeyTag);
 // Get env URLs
 const { WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object containing the environment variables
 
-// The list of crypto contexts for each key to attest.
-const keysToAttest: KeyAttestationCryptoContext[] = [
+// The list of signers for each key to attest.
+const keysToAttest: KeyAttestationSigner[] = [
   {
-    ...createCryptoContextFor("example-keytag"),
+    ...createSignerFor("example-keytag"),
     generateKeyWithAttestation(challenge: string) {
       // Generate a key stored in a trustworthy WSCD.
       // On Android this function must return a key attestation.

@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api";
 
 import { verifyAndParseCredential } from "../06-verify-and-parse-credential";
@@ -19,9 +18,10 @@ jest.mock("@pagopa/io-react-native-jwt", () => ({
 }));
 
 describe("verifyAndParseCredential", () => {
-  const credentialCryptoContext: CryptoContext = {
+  const credentialSigner: Signer = {
     getPublicKey: async () => credentialCnfJwk,
-    getSignature: async () => "",
+    isRemote: false,
+    sign: async () => "",
   };
 
   const mockIssuerConf: IssuerConfig = {
@@ -112,7 +112,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConf,
       pid1_3,
       "dc_sd_jwt_pid",
-      { credentialCryptoContext, validateCertificateChain: false },
+      { credentialSigner, validateCertificateChain: false },
     );
     expect(result).toEqual({
       expiration: new Date(4105033200000),
@@ -160,7 +160,7 @@ describe("verifyAndParseCredential", () => {
         mockIssuerConf,
         pid1_3,
         "dc_sd_jwt_pid",
-        { credentialCryptoContext },
+        { credentialSigner },
         "mockCertRoot",
       ),
     ).rejects.toThrow("Missing x509 certificates");

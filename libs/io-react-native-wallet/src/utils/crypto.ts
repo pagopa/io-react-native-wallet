@@ -4,27 +4,23 @@ import {
   getPublicKeyFixed,
   sign,
 } from "@pagopa/io-react-native-crypto";
-import {
-  type CryptoContext,
-  decode,
-  thumbprint,
-} from "@pagopa/io-react-native-jwt";
+import { decode, thumbprint } from "@pagopa/io-react-native-jwt";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { v4 as uuidv4 } from "uuid";
 
 import type { BaseEntityConfiguration } from "../trust/common/types";
 
-import { IoWalletError } from "./errors";
+import { IoWalletError, UnimplementedFeatureError } from "./errors";
 import { JWK, JWKS } from "./jwk";
 
 /**
- * Extension of the {@link CryptoContext} that adds key generation with optional key attestation.
+ * Extension of the {@link Signer} that adds key generation with optional key attestation.
  *
- * This context requires the consumer to provide an additional method for **key generation**;
+ * This signer requires the consumer to provide an additional method for **key generation**;
  * on Android this method should also generate a key attestation as a certificate chain
  * to ensure the key pair is hardware-backed.
  */
-export type KeyAttestationCryptoContext = CryptoContext & {
+export interface KeyAttestationSigner extends Signer {
   /**
    * Generate a key pair with an **optional key attestation** (Android).
    * @param challenge The challenge for the key attestation.
@@ -33,16 +29,64 @@ export type KeyAttestationCryptoContext = CryptoContext & {
   generateKeyWithAttestation(
     challenge: string,
   ): Promise<{ attestation?: string; success: boolean }>;
+}
+
+/**
+ * A signer bound to a single key pair, provided by the consumer.
+ * The consumer owns the whole lifecycle of the key (generation, persistence, deletion)
+ * and decides where it lives (device keystore or remote HSM).
+ * The library only reads the public key and asks for signatures.
+ */
+export interface Signer {
+  /**
+   * Get the public key of the key pair.
+   * The returned JWK is expected to include the `kid`, conventionally the key thumbprint.
+   */
+  getPublicKey: () => Promise<JWK>;
+
+  /**
+   * Whether the key lives in a remote HSM.
+   * Flows that do not support remote keys throw an {@link UnimplementedFeatureError}.
+   */
+  isRemote: boolean;
+
+  /**
+   * Sign multiple values with the private key in a single operation (e.g. a single remote HSM call).
+   * When not implemented, the library signs each value with {@link Signer.sign}.
+   * @param values The values to sign, provided as is like in {@link Signer.sign}
+   * @returns The signatures, in the same order as the values
+   */
+  multisign?: (values: string[]) => Promise<string[]>;
+
+  /**
+   * Sign a value with the private key.
+   * The value is provided as is: any transformation (e.g. hashing) is up to the implementation.
+   * @param value The value to sign
+   * @returns The signature: DER encoded for EC keys, base64 for RSA keys.
+   */
+  sign: (value: string) => Promise<string>;
+}
+
+/**
+ * Ensure that none of the given signers is bound to a remote key.
+ * @param version The version of the flow that does not support remote keys
+ * @param signers The signers to check
+ * @throws {UnimplementedFeatureError} If any signer is remote
+ */
+export const assertLocalSigners = (version: string, ...signers: Signer[]) => {
+  if (signers.some((signer) => signer.isRemote)) {
+    throw new UnimplementedFeatureError("remote WSCD", version);
+  }
 };
 
 /**
- * Create a CryptoContext bound to a key pair.
+ * Create a local {@link Signer} bound to a key pair stored in the device's keystore.
  * Key pair is supposed to exist already in the device's keychain.
  * It's identified by its unique keytag.
  *
- * @returns the crypto context
+ * @returns the signer
  */
-export const createCryptoContextFor = (keytag: string): CryptoContext => ({
+export const createSignerFor = (keytag: string): Signer => ({
   async getPublicKey() {
     return getPublicKeyFixed(keytag).then(async (jwk) => ({
       ...jwk,
@@ -53,34 +97,35 @@ export const createCryptoContextFor = (keytag: string): CryptoContext => ({
       kid: await thumbprint(jwk),
     }));
   },
+  isRemote: false,
   /**
    * Get a signature for a provided value.
    * If the key pair doesn't exist yet, an error is raised.
    * @param value
    * @returns The signature for the value
    */
-  async getSignature(value: string) {
+  async sign(value: string) {
     return sign(value, keytag);
   },
 });
 
 /**
- * Executes the input function injecting an ephemeral crypto context.
- * An ephemeral crypto context is a context which is bound to a key
- * that is just created and is deleted after use.
+ * Executes the input function injecting an ephemeral local signer.
+ * An ephemeral signer is bound to a key that is just created and is deleted after use.
  *
  * @param fn The procedure to be executed
  * @returns The returned value of the input procedure.
  */
 export const withEphemeralKey = async <R>(
-  fn: (ephemeralContext: CryptoContext) => Promise<R>,
+  fn: (ephemeralSigner: Signer) => Promise<R>,
 ): Promise<R> => {
   // Use an ephemeral key to be destroyed after use
   const keytag = `ephemeral-${uuidv4()}`;
   await generate(keytag);
-  const ephemeralContext = createCryptoContextFor(keytag);
-  return fn(ephemeralContext).finally(() => deleteKey(keytag));
+  const ephemeralSigner = createSignerFor(keytag);
+  return fn(ephemeralSigner).finally(() => deleteKey(keytag));
 };
+
 /**
  * Converts a base64-encoded DER certificate to PEM format.
  *

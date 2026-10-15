@@ -1,9 +1,10 @@
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 
 import type { StatusAssertionApi } from "../api/status-assertion";
 
 import { extractJwkFromCredential } from "../../../utils/credentials";
+import { assertLocalSigners } from "../../../utils/crypto";
 import {
   IoWalletError,
   IssuerResponseError,
@@ -24,10 +25,11 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
   format,
   ctx,
 ) => {
-  const { appFetch = fetch, credentialCryptoContext, wiaCryptoContext } = ctx;
+  const { appFetch = fetch, credentialSigner, wiaSigner } = ctx;
+  assertLocalSigners("1.0.0", credentialSigner, wiaSigner);
 
   const jwk = await extractJwkFromCredential(credential, format);
-  const issuerJwk = await wiaCryptoContext.getPublicKey();
+  const issuerJwk = await wiaSigner.getPublicKey();
   const credentialHash = await getCredentialHashWithouDiscloures(credential);
   const statusAttUrl = issuerConf.status_assertion_endpoint;
 
@@ -37,7 +39,11 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
     );
   }
 
-  const credentialPop = await new SignJWT(credentialCryptoContext)
+  const credentialPop = await new JWT(await credentialSigner.getPublicKey())
+    .setProtectedHeader({
+      kid: jwk.kid,
+      typ: "status-assertion-request+jwt",
+    })
     .setPayload({
       aud: statusAttUrl,
       credential_hash: credentialHash,
@@ -45,14 +51,9 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
       iss: issuerJwk.kid,
       jti: uuidv4().toString(),
     })
-    .setProtectedHeader({
-      alg: "ES256",
-      kid: jwk.kid,
-      typ: "status-assertion-request+jwt",
-    })
     .setIssuedAt()
     .setExpirationTime("5m")
-    .sign();
+    .sign((v) => credentialSigner.sign(v));
 
   const body = {
     status_assertion_requests: [credentialPop],

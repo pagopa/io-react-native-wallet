@@ -1,6 +1,6 @@
 import type { IoWalletSdkConfig } from "@pagopa/io-wallet-utils";
 
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import {
   createClientAttestationPopJwt,
   fetchMrtdPopVerify,
@@ -9,7 +9,7 @@ import {
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 
 import {
-  createSignJwtFromCryptoContext,
+  createSignJwtFromSigner,
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
@@ -36,21 +36,17 @@ export function createValidateChallenge(
     ias,
     context,
   ) {
-    const {
-      appFetch = fetch,
-      walletInstanceAttestation,
-      wiaCryptoContext,
-    } = context;
+    const { appFetch = fetch, walletInstanceAttestation, wiaSigner } = context;
 
     const aud = issuerConf.credential_issuer;
 
-    const wiaPublicJwk = await wiaCryptoContext.getPublicKey();
+    const wiaPublicJwk = await wiaSigner.getPublicKey();
 
     const clientAttestationDPoP = await createClientAttestationPopJwt({
       authorizationServer: aud,
       callbacks: {
         generateRandom: partialCallbacks.generateRandom,
-        signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
+        signJwt: createSignJwtFromSigner(wiaSigner),
       },
       clientAttestation: walletInstanceAttestation,
       config: config.sdkConfig,
@@ -61,7 +57,7 @@ export function createValidateChallenge(
       },
     });
 
-    const mrtdValidationJwt = await new SignJWT(wiaCryptoContext)
+    const mrtdValidationJwt = await new JWT(wiaPublicJwk)
       .setProtectedHeader({
         kid: wiaPublicJwk.kid,
         typ: "mrtd-ias+jwt",
@@ -75,7 +71,7 @@ export function createValidateChallenge(
       })
       .setIssuedAt()
       .setExpirationTime("5m")
-      .sign();
+      .sign((v) => wiaSigner.sign(v));
 
     const verifyResult = await fetchMrtdPopVerify({
       callbacks: {

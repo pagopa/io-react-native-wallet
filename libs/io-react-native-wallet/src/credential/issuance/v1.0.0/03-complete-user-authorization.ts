@@ -1,8 +1,5 @@
-import {
-  type CryptoContext,
-  decode,
-  SignJWT,
-} from "@pagopa/io-react-native-jwt";
+import { decode } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
 
 import type { RemotePresentation } from "../../presentation";
@@ -14,6 +11,7 @@ import {
   type AuthorizationResult,
   AuthorizationResultShape,
 } from "../../../utils/auth";
+import { assertLocalSigners, type Signer } from "../../../utils/crypto";
 import { getJwtFromFormPost } from "../../../utils/decoder";
 import {
   IssuerResponseError,
@@ -143,8 +141,10 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     requestObject,
     _issuerConfig,
     evaluatedDcqlQuery,
-    { appFetch = fetch, wiaCryptoContext },
+    { appFetch = fetch, wiaSigner },
   ) => {
+    assertLocalSigners("1.0.0", wiaSigner);
+
     Logger.log(
       LogLevel.DEBUG,
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`,
@@ -165,7 +165,7 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
     const authzResponsePayload = await createAuthzResponsePayload({
       remotePresentation,
       state: requestObject.state,
-      wiaCryptoContext,
+      wiaSigner,
     });
 
     Logger.log(
@@ -258,17 +258,17 @@ export const parseAuthorizationResponse = (
 const createAuthzResponsePayload = async ({
   remotePresentation,
   state,
-  wiaCryptoContext,
+  wiaSigner,
 }: {
   remotePresentation: RemotePresentation;
   state?: string;
-  wiaCryptoContext: CryptoContext;
+  wiaSigner: Signer;
 }): Promise<string> => {
-  const { kid } = await wiaCryptoContext.getPublicKey();
+  const publicKey = await wiaSigner.getPublicKey();
 
-  return new SignJWT(wiaCryptoContext)
+  return new JWT(publicKey)
     .setProtectedHeader({
-      kid,
+      kid: publicKey.kid,
       typ: "jwt",
     })
     .setPayload({
@@ -288,5 +288,5 @@ const createAuthzResponsePayload = async ({
     })
     .setIssuedAt()
     .setExpirationTime("1h")
-    .sign();
+    .sign((v) => wiaSigner.sign(v));
 };
