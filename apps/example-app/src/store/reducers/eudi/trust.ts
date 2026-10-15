@@ -4,7 +4,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 import type { AsyncStatus, RootState } from "../../types";
 
-import { bootstrapLoTEsThunk } from "../../../thunks/eudi/trust";
+import {
+  bootstrapLoTEsThunk,
+  validateCredentialIssuerMetadataWRPACThunk,
+} from "../../../thunks/eudi/trust";
 import { asyncStatusInitial } from "../../utils";
 
 export interface EudiTrustState {
@@ -15,6 +18,9 @@ export interface EudiTrustState {
   lotesStatus: AsyncStatus;
   /** Number of LoTEs requested by the last bootstrap */
   lotesTotal: number;
+  /** WRPAC of the EUDIW Dev Issuer metadata */
+  wrpac?: Record<string, unknown>;
+  wrpacStatus: AsyncStatus;
 }
 
 const initialState: EudiTrustState = {
@@ -22,6 +28,7 @@ const initialState: EudiTrustState = {
   lotesFailures: [],
   lotesStatus: asyncStatusInitial,
   lotesTotal: 0,
+  wrpacStatus: asyncStatusInitial,
 };
 
 /**
@@ -48,6 +55,32 @@ const eudiTrustSlice = createSlice({
         hasError: { error: action.error, status: true },
       };
     });
+
+    builder.addCase(
+      validateCredentialIssuerMetadataWRPACThunk.fulfilled,
+      (state, action) => {
+        state.wrpac = action.payload;
+        state.wrpacStatus = { ...asyncStatusInitial, isDone: true };
+      },
+    );
+
+    builder.addCase(
+      validateCredentialIssuerMetadataWRPACThunk.pending,
+      (state) => {
+        state.wrpac = undefined;
+        state.wrpacStatus = { ...asyncStatusInitial, isLoading: true };
+      },
+    );
+
+    builder.addCase(
+      validateCredentialIssuerMetadataWRPACThunk.rejected,
+      (state, action) => {
+        state.wrpacStatus = {
+          ...asyncStatusInitial,
+          hasError: { error: action.error, status: true },
+        };
+      },
+    );
   },
   initialState,
   name: "eudiTrust",
@@ -71,5 +104,11 @@ export const selectEudiLotesTotal = (state: RootState) =>
 
 export const selectEudiLotes = (state: RootState) => state.eudiTrust.lotes;
 
-export const selectEudiLoteByProfile = (profile: Eudi.Trust.LoTEProfile) => (state: RootState) =>
-  state.eudiTrust.lotes[profile]
+export const selectEudiLoteByProfile =
+  (profile: Eudi.Trust.LoTEProfile) => (state: RootState) =>
+    state.eudiTrust.lotes[profile];
+
+export const selectEudiWrpac = (state: RootState) => state.eudiTrust.wrpac;
+
+export const selectEudiWrpacStatus = (state: RootState) =>
+  state.eudiTrust.wrpacStatus;

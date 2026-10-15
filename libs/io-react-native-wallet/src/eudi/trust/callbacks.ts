@@ -4,7 +4,6 @@ import type {
   X509CertificateMetadata,
 } from "@pagopa/io-wallet-eudi-trust";
 
-import { type CallbackContext } from "@pagopa/io-wallet-oauth2";
 import { X509, zulutodate } from "jsrsasign";
 
 import { partialCallbacks } from "../../utils/callbacks";
@@ -98,15 +97,10 @@ export const verifyX509CertificateChain: VerifyX509CertificateChainCallback =
     }
   };
 
-export const getTrustCallbacks = (): Pick<
-  CallbackContext,
-  "hash" | "verifyJwt"
-> & {
-  getX509CertificateMetadata: GetX509CertificateMetadataCallback;
-  verifyX509CertificateChain: VerifyX509CertificateChainCallback;
-} => ({
+// TODO: use proper type exported from @pagopa/io-wallet-eudi-trust
+export const trustCallbacks = {
   getX509CertificateMetadata,
   hash: partialCallbacks.hash,
   verifyJwt: partialCallbacks.verifyJwt,
   verifyX509CertificateChain,
-});
+};

@@ -11,9 +11,14 @@ import {
   selectEudiLotesFailures,
   selectEudiLotesStatus,
   selectEudiLotesTotal,
+  selectEudiWrpac,
+  selectEudiWrpacStatus,
 } from "../../store/reducers/eudi/trust";
 import { useAppDispatch, useAppSelector } from "../../store/utils";
-import { bootstrapLoTEsThunk } from "../../thunks/eudi/trust";
+import {
+  bootstrapLoTEsThunk,
+  validateCredentialIssuerMetadataWRPACThunk,
+} from "../../thunks/eudi/trust";
 
 /**
  * Screen to test the EUDI trust model: fetches and validates the Lists of Trusted Entities (LoTE).
@@ -26,18 +31,22 @@ export const EudiTrustScreen = () => {
   const lotesFailures = useAppSelector(selectEudiLotesFailures);
 
   const lotesTotal = useAppSelector(selectEudiLotesTotal);
+  const wrpac = useAppSelector(selectEudiWrpac);
+  const wrpacStatus = useAppSelector(selectEudiWrpacStatus);
 
   useDebugInfo({
     ...Object.fromEntries(
       Object.entries(lotes).map(([profile, lote]) => [profile, lote.document]),
     ),
     lotesFailures,
+    wrpac,
+    wrpacStatus,
   });
 
   const getBadge = (): TestScenarioProp["badge"] => {
     if (!lotesStatus.isDone || lotesFailures.length === 0) {
-      return undefined
-    };
+      return undefined;
+    }
     return lotesFailures.length >= lotesTotal
       ? { text: "ERROR", variant: "error" }
       : { text: "PARTIAL", variant: "warning" };
@@ -52,6 +61,14 @@ export const EudiTrustScreen = () => {
       onPress: () => dispatch(bootstrapLoTEsThunk()),
       successMessage: "VALID",
       title: "Fetch and validate LoTEs",
+    },
+    {
+      ...wrpacStatus,
+      icon: "locked",
+      isPresent: wrpacStatus.isDone,
+      onPress: () => dispatch(validateCredentialIssuerMetadataWRPACThunk()),
+      successMessage: "VALID",
+      title: "Validate EUDIW Dev Issuer WRPAC",
     },
   ];
 

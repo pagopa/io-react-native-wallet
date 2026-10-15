@@ -2,12 +2,13 @@ import {
   fetchAndValidateLoTE,
   type LoTEProfile,
   type ParsedLoTE,
+  validateWRPAC,
 } from "@pagopa/io-wallet-eudi-trust";
 
-import { getTrustCallbacks } from "./callbacks";
+import { trustCallbacks } from "./callbacks";
 
 export interface BootstrapLoTEsOptions {
-  fetch?: typeof fetch;
+  appFetch?: typeof fetch;
   /** URL of the LoTE of each profile to fetch */
   loteUrls: Partial<Record<LoTEProfile, string>>;
   /** DER certificates, encoded in base64, published in the OJEU */
@@ -33,11 +34,11 @@ export type LoTEs = Partial<Record<LoTEProfile, ParsedLoTE>>;
  * A LoTE that fails does not prevent the others from being loaded.
  */
 export const bootstrapLoTEs = async ({
-  fetch: fetchFn = fetch,
+  appFetch = fetch,
   loteUrls,
   trustedCertificates,
 }: BootstrapLoTEsOptions): Promise<BootstrapLoTEsResult> => {
-  const callbacks = { ...getTrustCallbacks(), fetch: fetchFn };
+  const callbacks = { ...trustCallbacks, fetch: appFetch };
   const entries = Object.entries(loteUrls) as [LoTEProfile, string][];
 
   const results = await Promise.allSettled(
@@ -64,3 +65,18 @@ export const bootstrapLoTEs = async ({
 
   return result;
 };
+
+export interface ValidateAndParseWRPACOptions {
+  wrpacChain: string[];
+  wrpacLote: ParsedLoTE;
+}
+
+export const validateAndParseWRPAC = async ({
+  wrpacChain,
+  wrpacLote,
+}: ValidateAndParseWRPACOptions) =>
+  validateWRPAC({
+    callbacks: trustCallbacks,
+    lote: wrpacLote,
+    wrpacChain: wrpacChain as [string, ...string[]],
+  });
