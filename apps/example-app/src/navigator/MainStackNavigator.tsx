@@ -103,7 +103,9 @@ const Stack = createNativeStackNavigator<MainStackNavParamList>();
  * EUDI Wallet routes, with a plain title since the IT-Wallet version and IO login do not apply.
  */
 const renderEudiScreens = (headerRight: () => React.ReactNode) => (
-  <Stack.Group screenOptions={{ headerRight }}>
+  <Stack.Group
+    screenOptions={{ headerBackButtonDisplayMode: "minimal", headerRight }}
+  >
     <Stack.Screen
       component={EudiWalletScreen}
       name="EudiWallet"
