@@ -10,7 +10,7 @@ import {
   IOText,
 } from "@pagopa/io-app-design-system";
 import React, { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import type { TruncatableValue } from "../../utils/strings";
 
@@ -35,6 +35,32 @@ type Props = ExpandableProps & {
 };
 
 /**
+ * Maximum length of a text block. iOS renders nothing for a text taller than its maximum
+ * drawable size, as happens with full strings such as raw credentials or base64 pictures.
+ */
+const MAX_BLOCK_LENGTH = 2000;
+
+/**
+ * Splits a text into blocks of whole lines, cutting only the lines longer than a block.
+ * @returns The blocks, each to be rendered by its own text element
+ */
+const splitIntoBlocks = (text: string) => {
+  const blocks: string[] = [];
+  let block = "";
+  for (const line of text.split("\n")) {
+    for (let i = 0; i < Math.max(line.length, 1); i += MAX_BLOCK_LENGTH) {
+      const piece = line.slice(i, i + MAX_BLOCK_LENGTH);
+      if (block && block.length + piece.length >= MAX_BLOCK_LENGTH) {
+        blocks.push(block);
+        block = "";
+      }
+      block = block ? `${block}\n${piece}` : piece;
+    }
+  }
+  return [...blocks, block];
+};
+
+/**
  * This component allows to print the content of an object in an elegant and readable way,
  * with selectable text, and to copy its full content to the clipboard.
  * The component it is rendered only if debug mode is enabled
@@ -53,29 +79,28 @@ export const DebugPrettyPrint = ({
       return null;
     }
 
+    const json = JSON.stringify(
+      isTruncated ? truncateObjectStrings(data as TruncatableValue) : data,
+      null,
+      2,
+    );
+
     return (
-      <ScrollView
-        contentContainerStyle={styles.contentContainer}
-        horizontal
-        style={styles.content}
-      >
-        <IOText
-          color={"grey-700"}
-          font="FiraCode"
-          lineHeight={18}
-          selectable
-          size={12}
-          weight="Medium"
-        >
-          {JSON.stringify(
-            isTruncated
-              ? truncateObjectStrings(data as TruncatableValue)
-              : data,
-            null,
-            2,
-          )}
-        </IOText>
-      </ScrollView>
+      <View style={styles.content}>
+        {splitIntoBlocks(json).map((block, index) => (
+          <IOText
+            color={"grey-700"}
+            font="FiraCode"
+            key={index}
+            lineHeight={18}
+            selectable
+            size={12}
+            weight="Medium"
+          >
+            {block}
+          </IOText>
+        ))}
+      </View>
     );
   }, [data, expandable, expanded, isTruncated]);
 
@@ -119,8 +144,6 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: IOColors["grey-50"],
-  },
-  contentContainer: {
     padding: 8,
   },
   header: {
