@@ -1,8 +1,5 @@
 import { IoWalletError } from "./errors";
 
-/**
- * JWS protected header. `alg` is not accepted: it is inferred from the signer's key.
- */
 export interface JwtHeader {
   [propName: string]: unknown;
   alg?: never;

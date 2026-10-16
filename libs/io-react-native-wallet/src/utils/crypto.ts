@@ -4,7 +4,11 @@ import {
   getPublicKeyFixed,
   sign,
 } from "@pagopa/io-react-native-crypto";
-import { decode, thumbprint } from "@pagopa/io-react-native-jwt";
+import {
+  type CryptoContext,
+  decode,
+  thumbprint,
+} from "@pagopa/io-react-native-jwt";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { v4 as uuidv4 } from "uuid";
 
@@ -55,6 +59,14 @@ export interface Signer {
  * @param signers The signers to check
  * @throws {UnimplementedFeatureError} If any signer is remote
  */
+/**
+ * Adapt a {@link Signer} to the {@link CryptoContext} expected by `SignJWT`.
+ */
+export const toCryptoContext = (signer: Signer): CryptoContext => ({
+  getPublicKey: () => signer.getPublicKey(),
+  getSignature: (value) => signer.sign(value),
+});
+
 export const assertLocalSigners = (version: string, ...signers: Signer[]) => {
   if (signers.some((signer) => signer.isRemote)) {
     throw new UnimplementedFeatureError("remote WSCD", version);

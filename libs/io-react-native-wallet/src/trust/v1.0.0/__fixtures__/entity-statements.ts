@@ -1,7 +1,7 @@
 import { generate } from "@pagopa/io-react-native-crypto";
-import { JWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT } from "@pagopa/io-react-native-jwt";
 
-import { createSignerFor } from "../../../utils/crypto";
+import { createSignerFor, toCryptoContext } from "../../../utils/crypto";
 import { type JwtHeader, type JwtPayload } from "../../../utils/jwt";
 
 const timestamp = (future = 0) =>
@@ -192,8 +192,8 @@ export const signed = async (jwt: {
   // `alg` is inferred from the signer's key
   const { alg: _alg, ...header } = jwt.header;
   const signer = createSignerFor(keytag);
-  return new JWT(await signer.getPublicKey())
+  return new SignJWT(toCryptoContext(signer))
     .setProtectedHeader(header)
     .setPayload(jwt.payload)
-    .sign((v) => signer.sign(v));
+    .sign();
 };

@@ -4,6 +4,7 @@ import type { IntegrityContext } from "./utils/integrity";
 // https://github.com/facebook/react-native/issues/24428
 import "react-native-url-polyfill/auto";
 
+import { getWalletProviderClient } from "./client";
 import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialOffer from "./credential/offer";
 import * as RemotePresentation from "./credential/presentation";
@@ -37,6 +38,7 @@ export {
   Errors,
   fixBase64EncodingOnKey,
   getJwkFromCertificateChain,
+  getWalletProviderClient,
   KeyAttestation,
   Logging,
   Mdoc,
@@ -48,9 +50,10 @@ export {
   WalletInstanceAttestation,
 };
 
+export type * from "./api";
 export type { AuthorizationContext, IntegrityContext, Signer };
 
-export type * from "./api";
+export type { WalletProviderClient } from "./client";
 
 // Export SDK entrypoint
 export { IoWallet } from "./IoWallet";

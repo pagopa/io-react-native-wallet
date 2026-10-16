@@ -1,10 +1,13 @@
-import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-import { JWT } from "@pagopa/io-react-native-jwt";
+import { sha256ToBase64, SignJWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi } from "../api";
 
-import { assertLocalSigners, type Signer } from "../../../utils/crypto";
+import {
+  assertLocalSigners,
+  type Signer,
+  toCryptoContext,
+} from "../../../utils/crypto";
 import { createDPopToken } from "../../../utils/dpop";
 import {
   IoWalletError,
@@ -25,7 +28,7 @@ export const createNonceProof = async (
   audience: string,
   signer: Signer,
 ): Promise<string> =>
-  new JWT(await signer.getPublicKey())
+  new SignJWT(toCryptoContext(signer))
     .setProtectedHeader({
       jwk: await signer.getPublicKey(),
       typ: "openid4vci-proof+jwt",
@@ -37,7 +40,7 @@ export const createNonceProof = async (
     })
     .setIssuedAt()
     .setExpirationTime("5min")
-    .sign((v) => signer.sign(v));
+    .sign();
 
 export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   issuerConf,

@@ -1,5 +1,9 @@
 import { hasher } from "@owf/crypto";
-import { EncryptJwe, getJwkFromHeader, JWT } from "@pagopa/io-react-native-jwt";
+import {
+  EncryptJwe,
+  getJwkFromHeader,
+  SignJWT,
+} from "@pagopa/io-react-native-jwt";
 import { verify } from "@pagopa/io-react-native-jwt";
 import { type CallbackContext, type JwtSigner } from "@pagopa/io-wallet-oauth2";
 import { X509 } from "jsrsasign";
@@ -10,6 +14,7 @@ import {
   getJwkFromCertificateChain,
   getJwkFromTrustChain,
   type Signer,
+  toCryptoContext,
 } from "./crypto";
 import { IoWalletError } from "./errors";
 import { assert, generateRandomBytes } from "./misc";
@@ -128,10 +133,10 @@ export const createSignJwtFromSigner = (
   async function signJwt(jwtSigner, { header, payload }) {
     const { alg: _alg, ...rest } = header;
     return {
-      jwt: await new JWT(await signer.getPublicKey())
+      jwt: await new SignJWT(toCryptoContext(signer))
         .setProtectedHeader(rest)
         .setPayload(payload)
-        .sign((v) => signer.sign(v)),
+        .sign(),
       signerJwk:
         jwtSigner.method === "jwk"
           ? jwtSigner.publicJwk

@@ -285,6 +285,288 @@ paths:
           $ref: "#/components/responses/InternalServerError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
+  /auth/token-exchanges:
+    post:
+      operationId: createAuthTokenExchange
+      summary: Exchange the Wallet session for a short-lived NSSAM access token
+      description: |
+        Mini-IdP endpoint. Returns an RS256 JWT access token for NSSAM whose
+        `nameid` is the caller's only active (non-revoked) Wallet Instance,
+        resolved server-side from `x-user-id`. If more than one active Wallet
+        Instance exists for the user, 409 is returned. No request body is
+        read: client-provided identifiers never influence the token.
+      responses:
+        "200":
+          description: NSSAM access token
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+            Pragma:
+              schema:
+                type: string
+                example: no-cache
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NssamAccessTokenResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /remote-wscd/sessions:
+    post:
+      operationId: createRemoteWscdSession
+      summary: Open an NSSAM session
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/startsession`.
+        The Backend neither decrypts `encryptionKey` nor verifies `signature`:
+        the App does.
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend.
+        Each NSSAM session serves exactly one operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteWscdStartSessionRequest"
+      responses:
+        "200":
+          description: NSSAM session opened
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteWscdStartSessionResponse"
+        "400":
+          $ref: "#/components/responses/RemoteWscdError"
+        "401":
+          $ref: "#/components/responses/RemoteWscdError"
+        "403":
+          $ref: "#/components/responses/RemoteWscdError"
+        "409":
+          $ref: "#/components/responses/RemoteWscdError"
+        "422":
+          $ref: "#/components/responses/RemoteWscdError"
+        "423":
+          $ref: "#/components/responses/RemoteWscdError"
+        "429":
+          $ref: "#/components/responses/RemoteWscdError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/RemoteWscdError"
+        "503":
+          $ref: "#/components/responses/RemoteWscdError"
+        "504":
+          $ref: "#/components/responses/RemoteWscdError"
+
+  /remote-wscd/session-cancellations:
+    post:
+      operationId: createRemoteWscdSessionCancellation
+      summary: Cancel an unused NSSAM session
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/cancelsession`.
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend.
+        Each NSSAM session serves exactly one operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteWscdCancelSessionRequest"
+      responses:
+        "204":
+          description: NSSAM session cancelled
+        "400":
+          $ref: "#/components/responses/RemoteWscdError"
+        "401":
+          $ref: "#/components/responses/RemoteWscdError"
+        "403":
+          $ref: "#/components/responses/RemoteWscdError"
+        "409":
+          $ref: "#/components/responses/RemoteWscdError"
+        "422":
+          $ref: "#/components/responses/RemoteWscdError"
+        "423":
+          $ref: "#/components/responses/RemoteWscdError"
+        "429":
+          $ref: "#/components/responses/RemoteWscdError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/RemoteWscdError"
+        "503":
+          $ref: "#/components/responses/RemoteWscdError"
+        "504":
+          $ref: "#/components/responses/RemoteWscdError"
+
+  /remote-wscd/keys:
+    post:
+      operationId: createRemoteWscdKey
+      summary: Enroll a new key in the Remote WSCD
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/enroll`.
+        The `kec` field of the response is added by WLEO-1427.
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend.
+        Each NSSAM session serves exactly one operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteWscdEnrollRequest"
+      responses:
+        "200":
+          description: Enrolled key
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteWscdEnrollResponse"
+        "400":
+          $ref: "#/components/responses/RemoteWscdError"
+        "401":
+          $ref: "#/components/responses/RemoteWscdError"
+        "403":
+          $ref: "#/components/responses/RemoteWscdError"
+        "409":
+          $ref: "#/components/responses/RemoteWscdError"
+        "422":
+          $ref: "#/components/responses/RemoteWscdError"
+        "423":
+          $ref: "#/components/responses/RemoteWscdError"
+        "429":
+          $ref: "#/components/responses/RemoteWscdError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/RemoteWscdError"
+        "503":
+          $ref: "#/components/responses/RemoteWscdError"
+        "504":
+          $ref: "#/components/responses/RemoteWscdError"
+
+  /remote-wscd/pin-changes:
+    post:
+      operationId: createRemoteWscdPinChange
+      summary: Change the PIN of a Remote WSCD key
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/changepin`.
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend.
+        Each NSSAM session serves exactly one operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteWscdKeyOperationRequest"
+      responses:
+        "200":
+          description: New KeyBlob
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteWscdChangePinResponse"
+        "400":
+          $ref: "#/components/responses/RemoteWscdError"
+        "401":
+          $ref: "#/components/responses/RemoteWscdError"
+        "403":
+          $ref: "#/components/responses/RemoteWscdError"
+        "409":
+          $ref: "#/components/responses/RemoteWscdError"
+        "422":
+          $ref: "#/components/responses/RemoteWscdError"
+        "423":
+          $ref: "#/components/responses/RemoteWscdError"
+        "429":
+          $ref: "#/components/responses/RemoteWscdError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/RemoteWscdError"
+        "503":
+          $ref: "#/components/responses/RemoteWscdError"
+        "504":
+          $ref: "#/components/responses/RemoteWscdError"
+
+  /remote-wscd/signatures:
+    post:
+      operationId: createRemoteWscdSignature
+      summary: Sign a hash with a Remote WSCD key
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/hashsign`.
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend.
+        Each NSSAM session serves exactly one operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteWscdKeyOperationRequest"
+      responses:
+        "200":
+          description: Signature
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteWscdHashSignResponse"
+        "400":
+          $ref: "#/components/responses/RemoteWscdError"
+        "401":
+          $ref: "#/components/responses/RemoteWscdError"
+        "403":
+          $ref: "#/components/responses/RemoteWscdError"
+        "409":
+          $ref: "#/components/responses/RemoteWscdError"
+        "422":
+          $ref: "#/components/responses/RemoteWscdError"
+        "423":
+          $ref: "#/components/responses/RemoteWscdError"
+        "429":
+          $ref: "#/components/responses/RemoteWscdError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/RemoteWscdError"
+        "503":
+          $ref: "#/components/responses/RemoteWscdError"
+        "504":
+          $ref: "#/components/responses/RemoteWscdError"
 components:
   schemas:
     SetWalletInstanceStatusData:
@@ -425,6 +707,208 @@ components:
         - WALLET_INSTANCE_RENEWAL
         - REVOKED_BY_USER
       type: string
+    NssamAccessTokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      properties:
+        access_token:
+          type: string
+          format: jwt
+          description: |
+            RS256 JWT with claims `iss`, `iat`, `nbf`, `exp` and `nameid`
+            (Wallet Instance identifier).
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          description: Lifetime in seconds (`exp` - `iat`).
+
+    RemoteWscdRsaPublicKey:
+      type: object
+      description: Ephemeral RSA 3072 public key of the App, base64 (RFC 4648 §4, padded).
+      required: [modulus, exponent]
+      properties:
+        modulus:
+          type: string
+          format: byte
+          minLength: 1
+          description: Big-endian modulus of a 3072-bit RSA key.
+        exponent:
+          type: string
+          format: byte
+          minLength: 1
+          description: Big-endian odd public exponent, at most 8 bytes.
+
+    RemoteWscdStartSessionRequest:
+      type: object
+      description: Body of `POST /remote-wscd/sessions`.
+      required: [clientPubKey, jwtToken]
+      properties:
+        clientPubKey:
+          $ref: "#/components/schemas/RemoteWscdRsaPublicKey"
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+
+    RemoteWscdStartSessionResponse:
+      type: object
+      description: Opened NSSAM session.
+      required: [sessionId, encryptionKey, signature]
+      properties:
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+        encryptionKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: Session key encrypted for `clientPubKey`; decrypted by the App only.
+        signature:
+          type: string
+          format: byte
+          minLength: 1
+          description: NSSAM signature over the session data; verified by the App only.
+
+    RemoteWscdCancelSessionRequest:
+      type: object
+      description: Body of `POST /remote-wscd/session-cancellations`.
+      required: [jwtToken, sessionId]
+      properties:
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+
+    RemoteWscdEnrollRequest:
+      type: object
+      description: Body of `POST /remote-wscd/keys`.
+      required: [jwtToken, sessionId, data]
+      properties:
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+        data:
+          type: string
+          format: byte
+          minLength: 1
+          description: Encrypted enrollment payload, forwarded verbatim.
+
+    RemoteWscdEnrollResponse:
+      type: object
+      description: Enrolled key.
+      required: [encryptedKey, publicKey]
+      properties:
+        encryptedKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: KeyBlob of the new key, to be stored by the App.
+        publicKey:
+          type: object
+          description: |
+            Public key of the enrolled key. For EC keys `modulus` carries the X
+            coordinate and `exponent` the Y coordinate.
+          required: [keyType, modulus, exponent]
+          properties:
+            keyType:
+              type: string
+              enum: [RSA, EC]
+            modulus:
+              type: string
+              format: byte
+              minLength: 1
+            exponent:
+              type: string
+              format: byte
+              minLength: 1
+
+    RemoteWscdKeyOperationRequest:
+      type: object
+      description: Body of `POST /remote-wscd/pin-changes` and `POST /remote-wscd/signatures`.
+      required: [jwtToken, sessionId, encryptedKey, data]
+      properties:
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+        encryptedKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: KeyBlob of the key, forwarded verbatim.
+        data:
+          type: string
+          format: byte
+          minLength: 1
+          description: Encrypted operation payload, forwarded verbatim.
+
+    RemoteWscdHashSignResponse:
+      type: object
+      description: Hash signature.
+      required: [signature]
+      properties:
+        signature:
+          type: string
+          format: byte
+          minLength: 1
+          description: Signature computed by NSSAM.
+
+    RemoteWscdChangePinResponse:
+      type: object
+      description: Result of a PIN change.
+      required: [encryptedKey]
+      properties:
+        encryptedKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: New KeyBlob that replaces the old one.
+
+    RemoteWscdProblem:
+      allOf:
+        - $ref: "#/components/schemas/ProblemJson"
+        - type: object
+          required: [code, retryable]
+          properties:
+            code:
+              type: string
+              enum:
+                - INVALID_REQUEST
+                - INVALID_TOKEN
+                - KEY_INVALID
+                - KEY_LOCKED
+                - NSSAM_INVALID_RESPONSE
+                - NSSAM_REJECTED
+                - NSSAM_TIMEOUT
+                - NSSAM_UNAVAILABLE
+                - PIN_INCORRECT
+                - SESSION_INVALID
+                - TOO_MANY_SESSIONS
+                - WEAK_PIN
+            retryable:
+              type: boolean
+              description: |
+                Repeating the whole flow with a fresh token and session may
+                succeed without user action. The Backend never retries.
     ProblemJson:
       type: object
       properties:
@@ -486,6 +970,12 @@ components:
         whitelistedAt: string
         fiscalCode: string
   responses:
+    Unauthorized:
+      description: The request is not bound to an authenticated Wallet session
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProblemJson"
     Forbidden:
       description: The server understands the request but refuses to authorize it
       content:
@@ -528,3 +1018,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ProblemJson"
+    RemoteWscdError:
+      description: NSSAM proxy failure; see code
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/RemoteWscdProblem"

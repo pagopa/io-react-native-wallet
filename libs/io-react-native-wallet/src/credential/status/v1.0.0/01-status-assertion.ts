@@ -1,10 +1,10 @@
-import { JWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 
 import type { StatusAssertionApi } from "../api/status-assertion";
 
 import { extractJwkFromCredential } from "../../../utils/credentials";
-import { assertLocalSigners } from "../../../utils/crypto";
+import { assertLocalSigners, toCryptoContext } from "../../../utils/crypto";
 import {
   IoWalletError,
   IssuerResponseError,
@@ -39,7 +39,7 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
     );
   }
 
-  const credentialPop = await new JWT(await credentialSigner.getPublicKey())
+  const credentialPop = await new SignJWT(toCryptoContext(credentialSigner))
     .setProtectedHeader({
       kid: jwk.kid,
       typ: "status-assertion-request+jwt",
@@ -53,7 +53,7 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
     })
     .setIssuedAt()
     .setExpirationTime("5m")
-    .sign((v) => credentialSigner.sign(v));
+    .sign();
 
   const body = {
     status_assertion_requests: [credentialPop],
