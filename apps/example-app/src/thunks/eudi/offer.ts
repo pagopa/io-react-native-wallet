@@ -23,10 +23,12 @@ export const resolveEudiCredentialOfferThunk = createAppAsyncThunk<
   ResolveEudiCredentialOfferThunkOutput,
   ResolveEudiCredentialOfferThunkInput
 >("eudi/offerResolve", async ({ uri }, { getState }) => {
-  const { EUWRPACProvidersList } = selectEudiLotes(getState())
+  const { EUWRPACProvidersList } = selectEudiLotes(getState());
 
   if (!EUWRPACProvidersList) {
-    throw new Error("A WRPAC providers LoTE is necessary to authenticate the Issuer")
+    throw new Error(
+      "A WRPAC providers LoTE is necessary to authenticate the Issuer",
+    );
   }
 
   const offer = await Eudi.CredentialOffer.resolveCredentialOffer(uri);

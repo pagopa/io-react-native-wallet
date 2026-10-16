@@ -43,11 +43,11 @@ export const EudiTrustScreen = () => {
     wrpacStatus,
   });
 
-  const getBadge = (): TestScenarioProp["badge"] => {
-    if (!lotesStatus.isDone || lotesFailures.length === 0) {
-      return undefined;
+  const getBadge: TestScenarioProp["getBadge"] = () => {
+    if (Object.keys(lotes).length === lotesTotal) {
+      return { text: "OK", variant: "success" };
     }
-    return lotesFailures.length >= lotesTotal
+    return lotesFailures.length === lotesTotal
       ? { text: "ERROR", variant: "error" }
       : { text: "PARTIAL", variant: "warning" };
   };
@@ -55,11 +55,11 @@ export const EudiTrustScreen = () => {
   const scenarios: TestScenarioProp[] = [
     {
       ...lotesStatus,
-      badge: getBadge(),
+      getBadge,
       icon: "docAttach",
       isPresent: lotesStatus.isDone,
       onPress: () => dispatch(bootstrapLoTEsThunk()),
-      successMessage: "VALID",
+      successMessage: "OK",
       title: "Fetch and validate LoTEs",
     },
     {

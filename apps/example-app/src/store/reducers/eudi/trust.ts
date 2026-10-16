@@ -1,6 +1,8 @@
 import type { Eudi } from "@io-app-it-wallet/io-react-native-wallet";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createSlice } from "@reduxjs/toolkit";
+import { PersistConfig, persistReducer } from "redux-persist";
 
 import type { AsyncStatus, RootState } from "../../types";
 
@@ -91,7 +93,19 @@ const eudiTrustSlice = createSlice({
 
 export const { eudiTrustReset } = eudiTrustSlice.actions;
 
-export const eudiTrustReducer = eudiTrustSlice.reducer;
+/**
+ * The List of Trusted Entities are persisted so they can be reused
+ */
+const persistConfig: PersistConfig<EudiTrustState> = {
+  key: "eudiTrust",
+  storage: AsyncStorage,
+  whitelist: ["lotes", "lotesFailures", "lotesTotal"],
+};
+
+export const eudiTrustReducer = persistReducer(
+  persistConfig,
+  eudiTrustSlice.reducer,
+);
 
 export const selectEudiLotesStatus = (state: RootState) =>
   state.eudiTrust.lotesStatus;

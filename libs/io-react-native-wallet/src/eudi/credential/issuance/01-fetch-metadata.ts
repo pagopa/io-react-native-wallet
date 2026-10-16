@@ -1,11 +1,10 @@
-import { decode } from "@pagopa/io-react-native-jwt"
+import { decode } from "@pagopa/io-react-native-jwt";
 import { ParsedLoTE } from "@pagopa/io-wallet-eudi-trust";
 
 import { ValidationFailed } from "../../../utils/errors";
 import { verifyJwtWithWRPAC } from "../../trust/utils";
 import { AuthorizationServerMetadata, CredentialIssuerMetadata } from "./types";
 import { getJson, getJwt, getWellKnownUrl, parseOrThrow } from "./utils";
-import { JWTDecodeResult } from "../../../utils/jwk";
 
 /**
  * Fetches the Credential Issuer Metadata and the metadata of the Authorization Server
@@ -31,25 +30,25 @@ export const fetchMetadata = async (
   }: {
     authorizationServer?: string;
     fetch?: typeof fetch;
-    wrpacLote?: ParsedLoTE
+    wrpacLote?: ParsedLoTE;
   } = {},
 ) => {
   const issuerMetadataJwt = await getJwt(
     getWellKnownUrl(credentialIssuer, "openid-credential-issuer"),
     fetchFn,
-  )
+  );
 
-  const decodedIssuerMetadataJwt = decode(issuerMetadataJwt)
+  const decodedIssuerMetadataJwt = decode(issuerMetadataJwt);
 
   // EUDI Trust Issuer authentication
   if (wrpacLote) {
     await verifyJwtWithWRPAC({
-      wrpacLote,
       jwt: {
         compact: issuerMetadataJwt,
-        decoded: decodedIssuerMetadataJwt
+        decoded: decodedIssuerMetadataJwt,
       },
-    })
+      wrpacLote,
+    });
   }
 
   const issuerMetadata = parseOrThrow(

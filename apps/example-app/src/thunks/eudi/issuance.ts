@@ -55,9 +55,11 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   } = args;
   const { CredentialIssuance, CredentialOffer } = Eudi;
 
-  const { EUWRPACProvidersList } = selectEudiLotes(getState())
+  const { EUWRPACProvidersList } = selectEudiLotes(getState());
   if (!EUWRPACProvidersList) {
-    throw new Error("A WRPAC providers LoTE is necessary to authenticate the Issuer")
+    throw new Error(
+      "A WRPAC providers LoTE is necessary to authenticate the Issuer",
+    );
   }
 
   const { authorizationCodeGrant } = CredentialOffer.extractGrantDetails(offer);
