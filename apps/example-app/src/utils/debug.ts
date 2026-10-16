@@ -94,11 +94,40 @@ const decodeMdoc = (value: string) =>
     }))
     .catch(() => undefined);
 
+/**
+ * Decodes a JSON embedded in a text, as in an error message carrying the response body.
+ * @returns The parsed JSON, or `{ text, json, rest }` with the text around it, if there is any
+ */
+const decodeEmbeddedJson = (value: string) => {
+  const start = value.search(/[{[]/);
+  if (start < 0) {
+    return undefined;
+  }
+  const ends = Array.from(value.matchAll(/[}\]]/g), ({ index }) => index + 1)
+    .filter((end) => end > start)
+    .reverse()
+    .slice(0, 10);
+  for (const end of ends) {
+    try {
+      const json: unknown = JSON.parse(value.slice(start, end));
+      if (typeof json === "object" && json !== null) {
+        const text = value.slice(0, start).trim();
+        const rest = value.slice(end).trim();
+        return text || rest ? { json, text, ...(rest && { rest }) } : json;
+      }
+    } catch {
+      // Not a JSON, try a shorter one
+    }
+  }
+  return undefined;
+};
+
 const decodeString = async (value: string) =>
-  decodeToken(value) ?? (isMdoc(value) ? await decodeMdoc(value) : undefined);
+  decodeToken(value) ??
+  (isMdoc(value) ? await decodeMdoc(value) : decodeEmbeddedJson(value));
 
 /**
- * Replaces every JWT, SD-JWT and mdoc in debug data with its decoded content,
+ * Replaces every JWT, SD-JWT, mdoc and embedded JSON in debug data with its decoded content,
  * so that credentials can be read without an external decoder.
  */
 export const decodeDebugTokens = async (value: unknown): Promise<unknown> => {
@@ -142,4 +171,34 @@ export const filterDebugData = (
     return matches.length > 0 ? Object.fromEntries(matches) : undefined;
   }
   return String(value).toLowerCase().includes(query) ? value : undefined;
+};
+
+/** Text of an error message, which may have been decoded into an object with its text */
+const errorText = (message: unknown) => {
+  if (typeof message === "string") {
+    return message;
+  }
+  const { text } = (message ?? {}) as { text?: unknown };
+  return typeof text === "string" ? text : undefined;
+};
+
+/**
+ * Looks for a non-empty `error` key anywhere in a value.
+ * @returns Its message, or `"error"` if it has none, or `undefined` if there is no error
+ */
+export const findDebugError = (value: unknown): string | undefined => {
+  if (typeof value !== "object" || value === null) {
+    return undefined;
+  }
+  for (const [key, child] of Object.entries(value)) {
+    if (key.toLowerCase() === "error" && child) {
+      const { message } = (child ?? {}) as { message?: unknown };
+      return errorText(typeof child === "string" ? child : message) || "error";
+    }
+    const nested = findDebugError(child);
+    if (nested !== undefined) {
+      return nested;
+    }
+  }
+  return undefined;
 };

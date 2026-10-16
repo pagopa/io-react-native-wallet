@@ -20,6 +20,8 @@ type TruncatableSet = Set<TruncatableValue>;
  * @template T - The type of the input value, must extend TruncatableValue
  * @param {T} value - The value to process. Can be a string, number, boolean, null, undefined, array, or object
  * @param {number} [maxLength=250] - The maximum length for string values. Defaults to 250
+ * @param {number} [maxTextLength=maxLength] - The maximum length for strings containing whitespace, such as
+ * messages and stack traces, which are worth reading in full unlike blobs such as tokens and base64 data
  * @returns {T} A new value of the same type as the input, with all strings truncated to the specified length
  *
  * @example
@@ -30,15 +32,17 @@ type TruncatableSet = Set<TruncatableValue>;
 export const truncateObjectStrings = <T extends TruncatableValue>(
   value: T,
   maxLength = 250,
+  maxTextLength = maxLength,
 ): T => {
   if (typeof value === "string") {
-    return (
-      value.length > maxLength ? value.slice(0, maxLength) + "..." : value
-    ) as T;
+    const limit = /\s/.test(value) ? maxTextLength : maxLength;
+    return (value.length > limit ? value.slice(0, limit) + "..." : value) as T;
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => truncateObjectStrings(item, maxLength)) as T;
+    return value.map((item) =>
+      truncateObjectStrings(item, maxLength, maxTextLength),
+    ) as T;
   }
 
   if (typeof value === "object" && value !== null) {
@@ -46,14 +50,14 @@ export const truncateObjectStrings = <T extends TruncatableValue>(
       // Set could not be serialized to JSON because values are not stored as properties
       // For display purposes, we convert it to an array
       return Array.from(value).map((item) =>
-        truncateObjectStrings(item, maxLength),
+        truncateObjectStrings(item, maxLength, maxTextLength),
       ) as T;
     }
 
     return Object.entries(value).reduce(
       (acc, [key, val]) => ({
         ...acc,
-        [key]: truncateObjectStrings(val, maxLength),
+        [key]: truncateObjectStrings(val, maxLength, maxTextLength),
       }),
       {},
     ) as T;

@@ -11,6 +11,7 @@ import { Platform, StyleSheet, Text, View } from "react-native";
 import type { TruncatableValue } from "../../utils/strings";
 
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
+import { findDebugError } from "../../utils/debug";
 import { shareJson } from "../../utils/share";
 import { truncateObjectStrings } from "../../utils/strings";
 
@@ -23,8 +24,11 @@ type Props = {
   title: string;
 };
 
-/** Length above which a string is shortened, when truncation is enabled */
+/** Length above which a string without whitespace, such as a token, is shortened */
 const MAX_STRING_LENGTH = 80;
+
+/** Length above which a text, such as an error message, is shortened */
+const MAX_TEXT_LENGTH = 1000;
 
 const formatSize = (length: number) => {
   if (length < 1024) {
@@ -62,6 +66,23 @@ const MAX_CHUNK_LENGTH = 2000;
 const LINE_REGEX = /^(?:("(?:[^"\\]|\\.)*")(: ))?(.*)$/;
 
 /**
+ * Shows a JSON string value as plain text, with real line breaks and no escaped quotes,
+ * as stack traces and messages embedding JSON are unreadable otherwise.
+ */
+const unescapeString = (value: string) => {
+  if (!value.startsWith('"')) {
+    return value;
+  }
+  const comma = value.endsWith(",") ? "," : "";
+  try {
+    const parsed: unknown = JSON.parse(comma ? value.slice(0, -1) : value);
+    return typeof parsed === "string" ? `"${parsed}"${comma}` : value;
+  } catch {
+    return value;
+  }
+};
+
+/**
  * Renders a line of pretty-printed JSON with values colored by type. The line is indented
  * with padding, so that a wrapped value stays aligned with its own level.
  */
@@ -70,9 +91,10 @@ const JsonLine = ({ line }: { line: string }) => {
   const depth = (line.length - text.length) / 2;
   const [, key = "", separator = "", value = ""] = LINE_REGEX.exec(text) ?? [];
   const color = valueColor(value);
+  const display = unescapeString(value);
   const chunks: string[] = [];
-  for (let i = 0; i < Math.max(value.length, 1); i += MAX_CHUNK_LENGTH) {
-    chunks.push(value.slice(i, i + MAX_CHUNK_LENGTH));
+  for (let i = 0; i < Math.max(display.length, 1); i += MAX_CHUNK_LENGTH) {
+    chunks.push(display.slice(i, i + MAX_CHUNK_LENGTH));
   }
 
   return (
@@ -115,7 +137,11 @@ export const DebugPrettyPrint = ({
 
     const json = JSON.stringify(
       isTruncated
-        ? truncateObjectStrings(data as TruncatableValue, MAX_STRING_LENGTH)
+        ? truncateObjectStrings(
+            data as TruncatableValue,
+            MAX_STRING_LENGTH,
+            MAX_TEXT_LENGTH,
+          )
         : data,
       null,
       2,
@@ -130,6 +156,8 @@ export const DebugPrettyPrint = ({
     );
   }, [data, expanded, isTruncated]);
 
+  const error = useMemo(() => findDebugError(data), [data]);
+
   const summary = useMemo(() => {
     const size = formatSize(JSON.stringify(data)?.length ?? 0);
     if (typeof data !== "object" || data === null) {
@@ -141,12 +169,17 @@ export const DebugPrettyPrint = ({
 
   return (
     <View style={styles.container} testID="DebugPrettyPrintTestID">
-      <View style={styles.header}>
+      <View style={[styles.header, error !== undefined && styles.headerError]}>
         <View style={styles.title}>
           <BodySmall color="white" weight="Semibold">
             {title}
           </BodySmall>
           <BodySmall color="grey-300">{summary}</BodySmall>
+          {error !== undefined && (
+            <BodySmall color="error-400" numberOfLines={1}>
+              {`Error: ${error}`}
+            </BodySmall>
+          )}
         </View>
         <HStack space={16}>
           <IconButton
@@ -196,6 +229,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 12,
+  },
+  headerError: {
+    backgroundColor: IOColors["error-850"],
   },
   title: {
     flex: 1,

@@ -113,7 +113,7 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
       <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={{
-            margin: IOVisualCostants.appMarginDefault,
+            padding: IOVisualCostants.appMarginDefault,
           }}
         >
           <EudiCredentialCard

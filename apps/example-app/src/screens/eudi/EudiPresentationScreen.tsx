@@ -112,7 +112,7 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
+          padding: IOVisualCostants.appMarginDefault,
         }}
       >
         <H3>Scan a presentation request</H3>

@@ -81,7 +81,7 @@ export const CredentialsCatalogueScreen = () => {
     <View>
       <FlatList
         contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
+          padding: IOVisualCostants.appMarginDefault,
         }}
         data={scenarios}
         ItemSeparatorComponent={VSpacer}
