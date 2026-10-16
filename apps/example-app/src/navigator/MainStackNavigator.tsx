@@ -19,6 +19,7 @@ import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthe
 import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
+import { DebugDataScreen } from "../screens/DebugDataScreen";
 import { EudiCredentialDetailScreen } from "../screens/eudi/EudiCredentialDetailScreen";
 import { EudiCredentialRequestScreen } from "../screens/eudi/EudiCredentialRequestScreen";
 import { EudiCredentialsScreen } from "../screens/eudi/EudiCredentialsScreen";
@@ -47,10 +48,9 @@ import {
 } from "../screens/TrustmarkScreen";
 import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
-import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
 import { selectHasSessionAccess } from "../store/reducers/session";
-import { useAppDispatch, useAppSelector } from "../store/utils";
+import { useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
 
@@ -70,6 +70,7 @@ export type MainStackNavParamList = {
   Credentials: undefined;
   CredentialsCatalogue: undefined;
   CredentialStatus: undefined;
+  DebugData: undefined;
   EudiCredentialDetail: { keyTag: string };
   EudiCredentialRequest: undefined | { offerUri?: string };
   EudiCredentials: undefined;
@@ -151,7 +152,6 @@ const lightTheme: Theme = {
 export const MainStackNavigator = () => {
   const hasSessionAccess = useAppSelector(selectHasSessionAccess);
   const loggingServerAddr = useAppSelector(selectLoggingAddress);
-  const dispatch = useAppDispatch();
 
   const navigationRef = useNavigationContainerRef<MainStackNavParamList>();
   const onNavigationReady = useEudiDeepLink(navigationRef, hasSessionAccess);
@@ -170,10 +170,10 @@ export const MainStackNavigator = () => {
       <IconButton
         accessibilityLabel={"debug"}
         icon="ladybug"
-        onPress={() => dispatch(setDebugVisibility(true))}
+        onPress={() => navigationRef.navigate("DebugData")}
       />
     ),
-    [dispatch],
+    [navigationRef],
   );
 
   return (
@@ -295,6 +295,17 @@ export const MainStackNavigator = () => {
               />
             </Stack.Group>
             {renderEudiScreens(headerRight)}
+            <Stack.Group
+              screenOptions={{
+                headerShown: false,
+                presentation: "formSheet",
+                sheetAllowedDetents: [0.5, 1],
+                sheetGrabberVisible: true,
+                sheetInitialDetentIndex: "last",
+              }}
+            >
+              <Stack.Screen component={DebugDataScreen} name="DebugData" />
+            </Stack.Group>
           </>
         ) : (
           <Stack.Group>

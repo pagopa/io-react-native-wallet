@@ -1,7 +1,3 @@
-/*
-WARNING: This component is not referenced anywhere, but is used
-for development purposes. for development purposes. Don't REMOVE it!
-*/
 import {
   BodySmall,
   HStack,
@@ -10,54 +6,93 @@ import {
   IOText,
 } from "@pagopa/io-app-design-system";
 import React, { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 
 import type { TruncatableValue } from "../../utils/strings";
 
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
+import { shareJson } from "../../utils/share";
 import { truncateObjectStrings } from "../../utils/strings";
 
-type ExpandableProps =
-  | {
-      expandable: true;
-      isExpanded?: boolean;
-    }
-  | {
-      expandable?: false;
-      isExpanded?: undefined;
-    };
-
-type Props = ExpandableProps & {
+type Props = {
   data: unknown;
+  /** Whether the entry is initially expanded, `false` by default */
+  isExpanded?: boolean;
   /** Whether long strings are shortened, `true` by default */
   isTruncated?: boolean;
   title: string;
 };
 
-/**
- * Maximum length of a text block. iOS renders nothing for a text taller than its maximum
- * drawable size, as happens with full strings such as raw credentials or base64 pictures.
- */
-const MAX_BLOCK_LENGTH = 2000;
+/** Length above which a string is shortened, when truncation is enabled */
+const MAX_STRING_LENGTH = 80;
+
+const formatSize = (length: number) => {
+  if (length < 1024) {
+    return `${length} B`;
+  }
+  return length < 1024 * 1024
+    ? `${(length / 1024).toFixed(1)} KB`
+    : `${(length / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+/** Color of a JSON value by its type, so that types are recognizable at a glance */
+const valueColor = (value: string) => {
+  if (value.startsWith('"')) {
+    return IOColors["success-700"];
+  }
+  if (/^-?\d/.test(value)) {
+    return IOColors["blueIO-500"];
+  }
+  if (value.startsWith("true") || value.startsWith("false")) {
+    return IOColors["error-500"];
+  }
+  return value.startsWith("null") ? IOColors["grey-450"] : undefined;
+};
+
+/** Width in pixels of one indentation level */
+const INDENT_WIDTH = 6;
 
 /**
- * Splits a text into blocks of whole lines, cutting only the lines longer than a block.
- * @returns The blocks, each to be rendered by its own text element
+ * Maximum length of a text chunk. iOS renders nothing for a text taller than its maximum
+ * drawable size, as happens with full strings such as raw credentials or base64 pictures.
  */
-const splitIntoBlocks = (text: string) => {
-  const blocks: string[] = [];
-  let block = "";
-  for (const line of text.split("\n")) {
-    for (let i = 0; i < Math.max(line.length, 1); i += MAX_BLOCK_LENGTH) {
-      const piece = line.slice(i, i + MAX_BLOCK_LENGTH);
-      if (block && block.length + piece.length >= MAX_BLOCK_LENGTH) {
-        blocks.push(block);
-        block = "";
-      }
-      block = block ? `${block}\n${piece}` : piece;
-    }
+const MAX_CHUNK_LENGTH = 2000;
+
+/** Matches a line of pretty-printed JSON: optional key, then value or bracket */
+const LINE_REGEX = /^(?:("(?:[^"\\]|\\.)*")(: ))?(.*)$/;
+
+/**
+ * Renders a line of pretty-printed JSON with values colored by type. The line is indented
+ * with padding, so that a wrapped value stays aligned with its own level.
+ */
+const JsonLine = ({ line }: { line: string }) => {
+  const text = line.trimStart();
+  const depth = (line.length - text.length) / 2;
+  const [, key = "", separator = "", value = ""] = LINE_REGEX.exec(text) ?? [];
+  const color = valueColor(value);
+  const chunks: string[] = [];
+  for (let i = 0; i < Math.max(value.length, 1); i += MAX_CHUNK_LENGTH) {
+    chunks.push(value.slice(i, i + MAX_CHUNK_LENGTH));
   }
-  return [...blocks, block];
+
+  return (
+    <View style={{ paddingLeft: depth * INDENT_WIDTH }}>
+      {chunks.map((chunk, index) => (
+        <IOText
+          color="grey-700"
+          font="FiraCode"
+          key={index}
+          lineHeight={18}
+          selectable
+          size={12}
+          weight="Medium"
+        >
+          {index === 0 ? `${key}${separator}` : ""}
+          <Text style={{ color }}>{chunk}</Text>
+        </IOText>
+      ))}
+    </View>
+  );
 };
 
 /**
@@ -67,7 +102,6 @@ const splitIntoBlocks = (text: string) => {
  */
 export const DebugPrettyPrint = ({
   data,
-  expandable = true,
   isExpanded = false,
   isTruncated = true,
   title,
@@ -75,41 +109,45 @@ export const DebugPrettyPrint = ({
   const [expanded, setExpanded] = useState(isExpanded);
 
   const content = useMemo(() => {
-    if ((expandable && !expanded) || !expandable) {
+    if (!expanded) {
       return null;
     }
 
     const json = JSON.stringify(
-      isTruncated ? truncateObjectStrings(data as TruncatableValue) : data,
+      isTruncated
+        ? truncateObjectStrings(data as TruncatableValue, MAX_STRING_LENGTH)
+        : data,
       null,
       2,
     );
 
     return (
       <View style={styles.content}>
-        {splitIntoBlocks(json).map((block, index) => (
-          <IOText
-            color={"grey-700"}
-            font="FiraCode"
-            key={index}
-            lineHeight={18}
-            selectable
-            size={12}
-            weight="Medium"
-          >
-            {block}
-          </IOText>
+        {json.split("\n").map((line, index) => (
+          <JsonLine key={index} line={line} />
         ))}
       </View>
     );
-  }, [data, expandable, expanded, isTruncated]);
+  }, [data, expanded, isTruncated]);
+
+  const summary = useMemo(() => {
+    const size = formatSize(JSON.stringify(data)?.length ?? 0);
+    if (typeof data !== "object" || data === null) {
+      return size;
+    }
+    const count = Object.keys(data).length;
+    return `${count} ${count === 1 ? "key" : "keys"} · ${size}`;
+  }, [data]);
 
   return (
     <View style={styles.container} testID="DebugPrettyPrintTestID">
       <View style={styles.header}>
-        <BodySmall color="white" weight="Semibold">
-          {title}
-        </BodySmall>
+        <View style={styles.title}>
+          <BodySmall color="white" weight="Semibold">
+            {title}
+          </BodySmall>
+          <BodySmall color="grey-300">{summary}</BodySmall>
+        </View>
         <HStack space={16}>
           <IconButton
             accessibilityLabel="copy"
@@ -120,15 +158,20 @@ export const DebugPrettyPrint = ({
               clipboardSetStringWithFeedback(JSON.stringify(data, null, 2))
             }
           />
-          {expandable && (
-            <IconButton
-              accessibilityLabel="show"
-              color="contrast"
-              icon={expanded ? "eyeHide" : "eyeShow"}
-              iconSize={24}
-              onPress={() => setExpanded((_) => !_)}
-            />
-          )}
+          <IconButton
+            accessibilityLabel="share"
+            color="contrast"
+            icon={Platform.OS === "ios" ? "shareiOs" : "shareAndroid"}
+            iconSize={20}
+            onPress={() => shareJson(title, JSON.stringify(data, null, 2))}
+          />
+          <IconButton
+            accessibilityLabel="show"
+            color="contrast"
+            icon={expanded ? "eyeHide" : "eyeShow"}
+            iconSize={24}
+            onPress={() => setExpanded((_) => !_)}
+          />
         </HStack>
       </View>
       {content}
@@ -153,5 +196,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 12,
+  },
+  title: {
+    flex: 1,
   },
 });

@@ -1,3 +1,4 @@
+import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 
 /** A compact JWS, made of three base64url parts, such as a JWT or the issuer-signed part of an SD-JWT */
@@ -48,23 +49,97 @@ const decodeToken = (value: string) => {
 };
 
 /**
- * Replaces every JWT and SD-JWT in debug data with its decoded header, payload and disclosures,
- * so that tokens can be read without an external decoder.
+ * Whether a value looks like a base64url mdoc `IssuerSigned`: a CBOR map of two text keys,
+ * the first being `issuerAuth` or `nameSpaces`.
  */
-export const decodeDebugTokens = (value: unknown): unknown => {
+const isMdoc = (value: string) => {
+  if (value.length < 100 || !/^[\w-]+$/.test(value)) {
+    return false;
+  }
+  try {
+    const head = atob(value.slice(0, 16).replace(/-/g, "+").replace(/_/g, "/"));
+    return (
+      head.charCodeAt(0) === 0xa2 &&
+      head.charCodeAt(1) === 0x6a &&
+      /^(issuerAu|nameSpac)/.test(head.slice(2))
+    );
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Turns the list of issuer-signed items of each namespace into a `{ claim: value }` object,
+ * dropping the digest IDs and salts, which only make the claims harder to read.
+ */
+const compactNameSpaces = (nameSpaces: CBOR.IssuerSigned["nameSpaces"]) =>
+  Object.fromEntries(
+    Object.entries(nameSpaces).map(([nameSpace, items]) => [
+      nameSpace,
+      Object.fromEntries(
+        items.map(({ elementIdentifier, elementValue }) => [
+          elementIdentifier,
+          elementValue,
+        ]),
+      ),
+    ]),
+  );
+
+/** Decodes an mdoc `IssuerSigned` with the native decoder */
+const decodeMdoc = (value: string) =>
+  CBOR.decodeIssuerSigned(value)
+    .then((issuerSigned) => ({
+      ...issuerSigned,
+      nameSpaces: compactNameSpaces(issuerSigned.nameSpaces),
+    }))
+    .catch(() => undefined);
+
+const decodeString = async (value: string) =>
+  decodeToken(value) ?? (isMdoc(value) ? await decodeMdoc(value) : undefined);
+
+/**
+ * Replaces every JWT, SD-JWT and mdoc in debug data with its decoded content,
+ * so that credentials can be read without an external decoder.
+ */
+export const decodeDebugTokens = async (value: unknown): Promise<unknown> => {
   if (typeof value === "string") {
-    return decodeToken(value) ?? value;
+    return (await decodeString(value)) ?? value;
   }
   if (Array.isArray(value)) {
-    return value.map(decodeDebugTokens);
+    return Promise.all(value.map(decodeDebugTokens));
   }
   if (typeof value === "object" && value !== null) {
     return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [
-        key,
-        decodeDebugTokens(item),
-      ]),
+      await Promise.all(
+        Object.entries(value).map(
+          async ([key, item]) => [key, await decodeDebugTokens(item)] as const,
+        ),
+      ),
     );
   }
   return value;
+};
+
+/**
+ * Keeps only the parts of a value matching a search, case-insensitively: the keys and the
+ * primitive values containing the query, with their ancestors. A matching key keeps its whole
+ * subtree. Arrays become objects keyed by the original index, so that indexes stay meaningful.
+ * @returns The pruned value, or `undefined` if nothing matches
+ */
+export const filterDebugData = (
+  value: unknown,
+  query: string,
+  key = "",
+): unknown => {
+  if (key.toLowerCase().includes(query)) {
+    return value;
+  }
+  if (typeof value === "object" && value !== null) {
+    const matches = Object.entries(value).flatMap(([childKey, child]) => {
+      const filtered = filterDebugData(child, query, childKey);
+      return filtered === undefined ? [] : [[childKey, filtered] as const];
+    });
+    return matches.length > 0 ? Object.fromEntries(matches) : undefined;
+  }
+  return String(value).toLowerCase().includes(query) ? value : undefined;
 };

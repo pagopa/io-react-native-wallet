@@ -1,4 +1,4 @@
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React from "react";
 
 import { resetDebugData, setDebugData } from "../store/reducers/debug";
@@ -19,19 +19,24 @@ const toSerializable = (
   );
 
 /**
- * Sets debug data for the mounted component. Removes it when the component is unmounted
+ * Sets debug data for the focused screen. Removes it when the screen loses focus,
+ * unless the debug sheet itself is opened on top of it, as the sheet displays that data.
  * @param data Data to be displayes in debug mode
  */
 export const useDebugInfo = (data: Record<string, unknown>) => {
   const dispatch = useAppDispatch();
+  const navigation = useNavigation();
 
   useFocusEffect(
     React.useCallback(() => {
       dispatch(setDebugData(toSerializable(data)));
 
       return () => {
-        dispatch(resetDebugData(Object.keys(data)));
+        const { index, routes } = navigation.getState() ?? {};
+        if (routes?.[index ?? -1]?.name !== "DebugData") {
+          dispatch(resetDebugData(Object.keys(data)));
+        }
       };
-    }, [dispatch, data]),
+    }, [dispatch, data, navigation]),
   );
 };

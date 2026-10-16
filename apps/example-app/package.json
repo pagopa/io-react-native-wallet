@@ -31,6 +31,7 @@
     "expo": "*",
     "expo-build-properties": "~56.0.24",
     "expo-dev-client": "~56.0.27",
+    "expo-file-system": "~56.0.11",
     "expo-font": "~56.0.7",
     "expo-splash-screen": "*",
     "expo-status-bar": "*",
