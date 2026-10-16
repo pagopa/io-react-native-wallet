@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { IssuanceApi, TokenResponse } from "../api";
 
 import {
-  createSignJwtFromCryptoContext,
+  createSignJwtFromSigner,
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { sdkConfigV1_4 } from "../../../utils/config";
@@ -23,21 +23,21 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
 ) => {
   const {
     appFetch = fetch,
-    dPopCryptoContext,
+    dPopSigner,
     walletInstanceAttestation,
-    wiaCryptoContext,
+    wiaSigner,
   } = context;
 
   const tokenDPoP = await createTokenDPoP({
     callbacks: {
       ...partialCallbacks,
-      signJwt: createSignJwtFromCryptoContext(dPopCryptoContext),
+      signJwt: createSignJwtFromSigner(dPopSigner),
     },
     jti: uuidv4(),
     signer: {
       alg: "ES256",
       method: "jwk",
-      publicJwk: await dPopCryptoContext.getPublicKey(),
+      publicJwk: await dPopSigner.getPublicKey(),
     },
     tokenRequest: {
       method: "POST",
@@ -49,14 +49,14 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
     authorizationServer: issuerConf.credential_issuer,
     callbacks: {
       generateRandom: partialCallbacks.generateRandom,
-      signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
+      signJwt: createSignJwtFromSigner(wiaSigner),
     },
     clientAttestation: walletInstanceAttestation,
     config: sdkConfigV1_4,
     signer: {
       alg: "ES256",
       method: "jwk",
-      publicJwk: await wiaCryptoContext.getPublicKey(),
+      publicJwk: await wiaSigner.getPublicKey(),
     },
   });
 

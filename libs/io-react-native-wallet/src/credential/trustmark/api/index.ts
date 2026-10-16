@@ -1,4 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { Signer } from "../../../utils/crypto";
 
 export type GetCredentialTrustmarkJwt = (params: {
   /**
@@ -20,9 +20,9 @@ export type GetCredentialTrustmarkJwt = (params: {
    */
   walletInstanceAttestation: string;
   /**
-   * The Wallet Instance's crypto context associated with the walletInstanceAttestation parameter
+   * The Wallet Instance's signer associated with the walletInstanceAttestation parameter
    */
-  wiaCryptoContext: CryptoContext;
+  wiaSigner: Signer;
 }) => Promise<{
   /**
    * The expiration time of the JWT in seconds
@@ -42,7 +42,7 @@ export interface TrustmarkApi {
    * @since 1.0.0
    *
    * @throws {IoWalletError} If the WIA is expired
-   * @throws {IoWalletError} If the public key associated to the WIA is not the same for the CryptoContext
+   * @throws {IoWalletError} If the public key associated to the WIA is not the same for the Signer
    * @throws {JWSSignatureVerificationFailed} If the WIA signature is not valid
    * @returns A promise containing the signed JWT and its expiration time in seconds
    */

@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { Signer } from "../../utils/crypto";
 import type { IntegrityContext } from "../../utils/integrity";
 import type {
   DecodedWalletInstanceAttestation,
@@ -27,7 +26,7 @@ export interface WalletInstanceAttestationApi {
    * The Wallet Instance Attestation may be issued in different formats.
    *
    * @param requestParams Wallet Provider data for the Wallet Attestation request
-   * @param ctx.wiaCryptoContext The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
+   * @param ctx.wiaSigner The key pair associated with the WIA. Will be use to prove the ownership of the attestation.
    * @param ctx.integrityContext The hardware key pair associated with the Wallet Instance
    * @param ctx.appFetch (optional) Http client
    * @returns The retrieved Wallet Instance Attestation tokens
@@ -38,7 +37,7 @@ export interface WalletInstanceAttestationApi {
     ctx: {
       appFetch?: typeof fetch;
       integrityContext: IntegrityContext;
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<WalletAttestation[]>;
 

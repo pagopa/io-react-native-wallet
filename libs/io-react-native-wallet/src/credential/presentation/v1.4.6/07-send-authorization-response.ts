@@ -9,7 +9,7 @@ import { prepareVpTokenMdoc } from "../../../mdoc";
 import { prepareVpToken } from "../../../sd-jwt";
 import { partialCallbacks } from "../../../utils/callbacks";
 import { sdkConfigV1_4 } from "../../../utils/config";
-import { createCryptoContextFor } from "../../../utils/crypto";
+import { createSignerFor } from "../../../utils/crypto";
 import {
   IoWalletError,
   RelyingPartyResponseError,
@@ -51,7 +51,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
             [
               item.credential,
               item.presentationFrame,
-              createCryptoContextFor(item.keyTag),
+              createSignerFor(item.keyTag),
             ],
           );
 
@@ -74,7 +74,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
             [
               item.credential,
               item.presentationFrame,
-              createCryptoContextFor(item.keyTag),
+              createSignerFor(item.keyTag),
             ],
           );
 

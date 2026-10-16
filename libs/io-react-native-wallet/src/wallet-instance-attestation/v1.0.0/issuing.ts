@@ -1,13 +1,15 @@
-import {
-  type CryptoContext,
-  SignJWT,
-  thumbprint,
-} from "@pagopa/io-react-native-jwt";
+import { thumbprint } from "@pagopa/io-react-native-jwt";
+import { SignJWT } from "@pagopa/io-react-native-jwt";
 
 import type { IntegrityContext } from "../../utils/integrity";
 import type { WalletInstanceAttestationApi } from "../api";
 
 import { getWalletProviderClient } from "../../client";
+import {
+  assertLocalSigners,
+  type Signer,
+  toCryptoContext,
+} from "../../utils/crypto";
 import {
   ResponseErrorBuilder,
   WalletProviderResponseError,
@@ -22,18 +24,18 @@ import { WalletAttestationResponse } from "./types";
  * Getter for an attestation request. The attestation request is a JWT that will be sent to the Wallet Provider to request a Wallet Instance Attestation.
  *
  * @param challenge - The nonce received from the Wallet Provider which is part of the signed clientData
- * @param wiaCryptoContext - The key pair associated with the WIA. Will be use to prove the ownership of the attestation
+ * @param wiaSigner - The key pair associated with the WIA. Will be use to prove the ownership of the attestation
  * @param integrityContext - The integrity context which exposes a set of functions to interact with the device integrity service
  * @param walletProviderBaseUrl - Base url for the Wallet Provider
  * @returns A JWT containing the attestation request
  */
 async function getAttestationRequest(
   challenge: string,
-  wiaCryptoContext: CryptoContext,
+  wiaSigner: Signer,
   integrityContext: IntegrityContext,
   walletProviderBaseUrl: string,
 ): Promise<string> {
-  const jwk = await wiaCryptoContext.getPublicKey();
+  const jwk = await wiaSigner.getPublicKey();
   const parsedJwk = JWK.parse(jwk);
   const keyThumbprint = await thumbprint(parsedJwk);
   const publicKey = { ...parsedJwk, kid: keyThumbprint };
@@ -49,7 +51,11 @@ async function getAttestationRequest(
       JSON.stringify(clientData),
     );
 
-  return new SignJWT(wiaCryptoContext)
+  return new SignJWT(toCryptoContext(wiaSigner))
+    .setProtectedHeader({
+      kid: publicKey.kid,
+      typ: "wp-war+jwt",
+    })
     .setPayload({
       aud: walletProviderBaseUrl,
       cnf: {
@@ -61,20 +67,15 @@ async function getAttestationRequest(
       iss: keyThumbprint,
       nonce: challenge,
     })
-    .setProtectedHeader({
-      kid: publicKey.kid,
-      typ: "wp-war+jwt",
-    })
     .setIssuedAt()
     .setExpirationTime("1h")
     .sign();
 }
 
 export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
-  async (
-    requestParams,
-    { appFetch = fetch, integrityContext, wiaCryptoContext },
-  ) => {
+  async (requestParams, { appFetch = fetch, integrityContext, wiaSigner }) => {
+    assertLocalSigners("1.0.0", wiaSigner);
+
     const api = getWalletProviderClient({
       appFetch,
       walletProviderBaseUrl: requestParams.walletProviderBaseUrl,
@@ -92,7 +93,7 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
     // 2. Get a signed attestation request
     const signedAttestationRequest = await getAttestationRequest(
       challenge,
-      wiaCryptoContext,
+      wiaSigner,
       integrityContext,
       requestParams.walletProviderBaseUrl,
     );

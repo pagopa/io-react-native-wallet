@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../IssuerConfig";
 import type {
   IasPayload,
@@ -32,7 +31,7 @@ export interface MRTDPoPApi {
    * @param initUrl - The endpoint to call to initialize the challenge.
    * @param mrtd_auth_session - Session identifier for session binding obtained from the MRTD Proof JWT.
    * @param mrtd_pop_jwt_nonce - Nonce value obtained from the MRTD Proof JWT.
-   * @param context - The context containing the WIA crypto context used to retrieve the client public key,
+   * @param context - The context containing the WIA signer used to retrieve the client public key,
    * the wallet instance attestation and an optional fetch implementation.
    * @returns The payload of the MRTD PoP Challenge JWT.
    */
@@ -44,7 +43,7 @@ export interface MRTDPoPApi {
     context: {
       appFetch?: typeof fetch;
       walletInstanceAttestation: string;
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<MrtdPoPChallenge>;
 
@@ -59,7 +58,7 @@ export interface MRTDPoPApi {
    * @param mrtd_pop_nonce - Nonce value obtained from the MRTD Proof JWT.
    * @param mrtd - MRTD validation data containing Data Groups and SOD.
    * @param ias - IAS validation data containing Anti-Cloning Public Key, and SOD.
-   * @param context - The context containing the WIA crypto context used to retrieve the client public key,
+   * @param context - The context containing the WIA signer used to retrieve the client public key,
    * the wallet instance attestation and an optional fetch implementation.
    * @returns The MRTD PoP Verification Result containing the validation nonce and redirect URI to complete the flow.
    */
@@ -73,7 +72,7 @@ export interface MRTDPoPApi {
     context: {
       appFetch?: typeof fetch;
       walletInstanceAttestation: string;
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<MrtdPopVerificationResult>;
 
@@ -88,7 +87,7 @@ export interface MRTDPoPApi {
    *
    * @param issuerConf - The issuer configuration containing the JWKS for signature verification.
    * @param challengeInfoJwt - The JWT string representing the MRTD Proof Challenge Info.
-   * @param context - The context containing the WIA crypto context used to retrieve the client public key.
+   * @param context - The context containing the WIA signer used to retrieve the client public key.
    * @returns The parsed payload of the MRTD Proof Challenge Info JWT.
    * @throws {Error} If the JWT signature is invalid, the structure is malformed, the `aud` claim does not match,
    * or the JWT is expired/not yet valid.
@@ -97,7 +96,7 @@ export interface MRTDPoPApi {
     issuerConf: IssuerConfig,
     challengeInfoJwt: string,
     context: {
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<MrtdProofChallengeInfo>;
 }

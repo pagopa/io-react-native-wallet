@@ -5,6 +5,7 @@ import { decodeSdJwtSync, present } from "@sd-jwt/core";
 import type { Presentation } from "../credential/presentation";
 
 import { fixLegacyCredentialSdJwt } from "../utils/credentials";
+import { toCryptoContext } from "../utils/crypto";
 import { SdJwt4VCBase } from "./types";
 
 export * from "./utils";
@@ -50,7 +51,7 @@ export const decode = (token: string) => {
 export const prepareVpToken = async (
   nonce: string,
   client_id: string,
-  [verifiableCredential, presentationFrame, cryptoContext]: Presentation,
+  [verifiableCredential, presentationFrame, signer]: Presentation,
 ): Promise<{
   vp_token: string;
 }> => {
@@ -64,16 +65,9 @@ export const prepareVpToken = async (
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
   const sd_hash = await sha256ToBase64(vp);
 
-  const kbJwt = await new SignJWT(cryptoContext)
-    .setProtectedHeader({
-      alg: "ES256",
-      typ: "kb+jwt",
-    })
-    .setPayload({
-      nonce: nonce,
-      sd_hash,
-    })
-    .setAudience(client_id)
+  const kbJwt = await new SignJWT(toCryptoContext(signer))
+    .setProtectedHeader({ typ: "kb+jwt" })
+    .setPayload({ aud: client_id, nonce, sd_hash })
     .setIssuedAt()
     .sign();
   // <Issuer-signed JWT>~<Disclosure 1>~...~<Disclosure N>~<KB-JWT>

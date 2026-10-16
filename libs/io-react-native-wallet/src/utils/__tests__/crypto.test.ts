@@ -1,10 +1,14 @@
 import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
 
 import {
+  assertLocalSigners,
+  createSignerFor,
   getJwkFromCertificateChain,
   getJwkFromTrustChain,
+  type Signer,
   withEphemeralKey,
 } from "../crypto";
+import { UnimplementedFeatureError } from "../errors";
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -103,5 +107,40 @@ describe("getJwkFromTrustChain", () => {
       x: "9LfC1UPlW-Z_LhG2Uhxjf-jWh62O_h1mpxC-OXOMMMA",
       y: "71qfW-Ajh4RC_eG3__Vmc0bIV61WuMgAw9wqQVQv9g0",
     });
+  });
+});
+
+describe("createSignerFor", () => {
+  it("creates a local signer bound to the keytag", async () => {
+    const keytag = `test-${Math.random()}`;
+    await generate(keytag);
+
+    const signer = createSignerFor(keytag);
+
+    expect(signer.isRemote).toBe(false);
+    await expect(signer.getPublicKey()).resolves.toEqual(
+      expect.objectContaining({ kid: expect.any(String), kty: "RSA" }),
+    );
+    await expect(signer.sign("value")).resolves.toEqual("mock-signature");
+  });
+});
+
+describe("assertLocalSigners", () => {
+  const signer = (isRemote: boolean): Signer => ({
+    getPublicKey: jest.fn(),
+    isRemote,
+    sign: jest.fn(),
+  });
+
+  it("does not throw when all signers are local", () => {
+    expect(() =>
+      assertLocalSigners("1.0.0", signer(false), signer(false)),
+    ).not.toThrow();
+  });
+
+  it("throws when any signer is remote", () => {
+    expect(() =>
+      assertLocalSigners("1.0.0", signer(false), signer(true)),
+    ).toThrow(UnimplementedFeatureError);
   });
 });

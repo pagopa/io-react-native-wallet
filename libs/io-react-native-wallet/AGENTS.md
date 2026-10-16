@@ -10,7 +10,7 @@ Part of an Nx + pnpm monorepo: this library lives in `libs/io-react-native-walle
 
 - [Commands](docs/agents/commands.md) - Build, test, lint, generate
 - [Architecture](docs/agents/architecture.md) - SDK structure, versioning, module layout
-- [Conventions](docs/agents/conventions.md) - TypeScript patterns, error handling, crypto contexts
+- [Conventions](docs/agents/conventions.md) - TypeScript patterns, error handling, signers
 - [Testing](docs/agents/testing.md) - Test commands and structure
 
 ## Plan Mode
