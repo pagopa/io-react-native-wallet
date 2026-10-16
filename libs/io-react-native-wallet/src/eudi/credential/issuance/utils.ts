@@ -76,6 +76,11 @@ export const getJson = (url: string, fetchFn: typeof fetch) =>
     .then(hasStatusOrThrow(200, IssuerResponseError))
     .then((res) => res.json() as Promise<unknown>);
 
+export const getJwt = (url: string, fetchFn: typeof fetch) =>
+  fetchFn(url, { headers: { Accept: "application/jwt" }, method: "GET" })
+    .then(hasStatusOrThrow(200, IssuerResponseError))
+    .then((res) => res.text());
+
 export const parseOrThrow = <T extends z.ZodType>(
   schema: T,
   value: unknown,

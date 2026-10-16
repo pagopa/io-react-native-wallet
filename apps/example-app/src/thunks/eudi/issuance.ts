@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 import type { AppDispatch, RootState } from "../../store/types";
 
+import { selectEudiLotes } from "../../store/reducers/eudi/trust";
 import {
   selectEudiWalletAttestation,
   selectEudiWalletInstanceOrThrow,
@@ -54,6 +55,11 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   } = args;
   const { CredentialIssuance, CredentialOffer } = Eudi;
 
+  const { EUWRPACProvidersList } = selectEudiLotes(getState())
+  if (!EUWRPACProvidersList) {
+    throw new Error("A WRPAC providers LoTE is necessary to authenticate the Issuer")
+  }
+
   const { authorizationCodeGrant } = CredentialOffer.extractGrantDetails(offer);
   if (!authorizationCodeGrant) {
     throw new Error(
@@ -70,6 +76,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   const { authorizationServerMetadata, issuerMetadata } =
     await CredentialIssuance.fetchMetadata(offer.credential_issuer, {
       authorizationServer: authorizationCodeGrant.authorizationServer,
+      wrpacLote: EUWRPACProvidersList,
     });
 
   const { authUrl, codeVerifier, state } =

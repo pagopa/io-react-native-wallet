@@ -1,5 +1,6 @@
 import { Eudi } from "@io-app-it-wallet/io-react-native-wallet";
 
+import { selectEudiLotes } from "../../store/reducers/eudi/trust";
 import { createAppAsyncThunk } from "../utils";
 
 export interface ResolveEudiCredentialOfferThunkInput {
@@ -21,16 +22,25 @@ export interface ResolveEudiCredentialOfferThunkOutput {
 export const resolveEudiCredentialOfferThunk = createAppAsyncThunk<
   ResolveEudiCredentialOfferThunkOutput,
   ResolveEudiCredentialOfferThunkInput
->("eudi/offerResolve", async ({ uri }) => {
+>("eudi/offerResolve", async ({ uri }, { getState }) => {
+  const { EUWRPACProvidersList } = selectEudiLotes(getState())
+
+  if (!EUWRPACProvidersList) {
+    throw new Error("A WRPAC providers LoTE is necessary to authenticate the Issuer")
+  }
+
   const offer = await Eudi.CredentialOffer.resolveCredentialOffer(uri);
+
   const { authorizationCodeGrant, preAuthorizedCodeGrant } =
     Eudi.CredentialOffer.extractGrantDetails(offer);
+
   const { issuerMetadata } = await Eudi.CredentialIssuance.fetchMetadata(
     offer.credential_issuer,
     {
       authorizationServer:
         authorizationCodeGrant?.authorizationServer ??
         preAuthorizedCodeGrant?.authorizationServer,
+      wrpacLote: EUWRPACProvidersList,
     },
   );
   return { issuerMetadata, offer, uri };

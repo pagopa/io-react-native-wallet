@@ -77,6 +77,6 @@ export const validateAndParseWRPAC = async ({
 }: ValidateAndParseWRPACOptions) =>
   validateWRPAC({
     callbacks: trustCallbacks,
-    lote: wrpacLote,
+    wrpacLote,
     wrpacChain: wrpacChain as [string, ...string[]],
   });

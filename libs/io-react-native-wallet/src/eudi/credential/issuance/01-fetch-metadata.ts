@@ -1,6 +1,11 @@
+import { decode } from "@pagopa/io-react-native-jwt"
+import { ParsedLoTE } from "@pagopa/io-wallet-eudi-trust";
+
 import { ValidationFailed } from "../../../utils/errors";
+import { verifyJwtWithWRPAC } from "../../trust/utils";
 import { AuthorizationServerMetadata, CredentialIssuerMetadata } from "./types";
-import { getJson, getWellKnownUrl, parseOrThrow } from "./utils";
+import { getJson, getJwt, getWellKnownUrl, parseOrThrow } from "./utils";
+import { JWTDecodeResult } from "../../../utils/jwk";
 
 /**
  * Fetches the Credential Issuer Metadata and the metadata of the Authorization Server
@@ -11,6 +16,7 @@ import { getJson, getWellKnownUrl, parseOrThrow } from "./utils";
  *
  * @param credentialIssuer - The Credential Issuer identifier, from the Credential Offer
  * @param options.authorizationServer - (optional) The Authorization Server indicated in the Credential Offer grant
+ * @param options.wrpacLote - The WRPAC provider LotE to authenticate the Issuer
  * @param options.fetch - (optional) The fetch implementation, defaults to the global one
  * @returns The Credential Issuer and Authorization Server metadata
  * @throws {IssuerResponseError} If the metadata cannot be fetched
@@ -21,16 +27,38 @@ export const fetchMetadata = async (
   {
     authorizationServer,
     fetch: fetchFn = fetch,
-  }: { authorizationServer?: string; fetch?: typeof fetch } = {},
+    wrpacLote,
+  }: {
+    authorizationServer?: string;
+    fetch?: typeof fetch;
+    wrpacLote?: ParsedLoTE
+  } = {},
 ) => {
+  const issuerMetadataJwt = await getJwt(
+    getWellKnownUrl(credentialIssuer, "openid-credential-issuer"),
+    fetchFn,
+  )
+
+  const decodedIssuerMetadataJwt = decode(issuerMetadataJwt)
+
+  // EUDI Trust Issuer authentication
+  if (wrpacLote) {
+    await verifyJwtWithWRPAC({
+      wrpacLote,
+      jwt: {
+        compact: issuerMetadataJwt,
+        decoded: decodedIssuerMetadataJwt
+      },
+    })
+  }
+
   const issuerMetadata = parseOrThrow(
     CredentialIssuerMetadata,
-    await getJson(
-      getWellKnownUrl(credentialIssuer, "openid-credential-issuer"),
-      fetchFn,
-    ),
+    decodedIssuerMetadataJwt.payload,
     "Credential Issuer metadata",
   );
+
+  // TODO: verify the WRPRC as well (here or later...)
 
   if (issuerMetadata.credential_issuer !== credentialIssuer) {
     throw new ValidationFailed({
