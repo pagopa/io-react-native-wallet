@@ -18,7 +18,7 @@ export interface ObtainCredentialApi {
    * @param clientId The client id returned by {@link startUserAuthorization}
    * @param credentialDefinition The credential definition of the credential to be obtained returned by {@link authorizeAccess}
    * @param context.credentialSigner The signer used to obtain the credential
-   * @param context.dPopSigner The DPoP signer
+   * @param context.dPopSigner The DPoP signer. It must always be bound to a local key (not remote)
    * @param context.keyAttestation (optional) The Key Attestation JWT bound to the provided credentialSigner
    * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
    * @returns The credential response containing the credential

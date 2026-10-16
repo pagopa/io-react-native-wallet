@@ -16,7 +16,7 @@ export interface AuthorizeAccessApi {
    * @param codeVerifier The code verifier returned by {@link startUserAuthorization}
    * @param context.walletInstanceAttestation The Wallet Instance's attestation
    * @param context.wiaSigner The Wallet Instance's signer
-   * @param context.dPopSigner The DPoP signer
+   * @param context.dPopSigner The DPoP signer. It must always be bound to a local key (not remote)
    * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
    * @return The token response containing the access token along with the token request signed with DPoP which has to be used in the {@link obtainCredential} step.
    * @throws {ValidationFailed} if an error occurs while parsing the token response
