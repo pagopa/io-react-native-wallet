@@ -55,8 +55,8 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   } = args;
   const { CredentialIssuance, CredentialOffer } = Eudi;
 
-  const { EUWRPACProvidersList } = selectEudiLotes(getState());
-  if (!EUWRPACProvidersList) {
+  const lotes = selectEudiLotes(getState());
+  if (!lotes.EUWRPACProvidersList) {
     throw new Error(
       "A WRPAC providers LoTE is necessary to authenticate the Issuer",
     );
@@ -78,7 +78,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   const { authorizationServerMetadata, issuerMetadata } =
     await CredentialIssuance.fetchMetadata(offer.credential_issuer, {
       authorizationServer: authorizationCodeGrant.authorizationServer,
-      wrpacLote: EUWRPACProvidersList,
+      wrpacLote: lotes.EUWRPACProvidersList,
     });
 
   const { authUrl, codeVerifier, state } =
@@ -135,6 +135,11 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   if (!format) {
     throw new Error(`Unknown format for ${credentialConfigurationId}`);
   }
+
+  await CredentialIssuance.verifyJwtWithLoTE({
+    jwt: { compact: credential },
+    lotes
+  })
 
   return {
     credential,
