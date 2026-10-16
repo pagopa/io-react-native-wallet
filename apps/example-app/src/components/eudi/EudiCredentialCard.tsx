@@ -1,4 +1,4 @@
-import { AnimatedIOText } from "@pagopa/io-app-design-system";
+import { AnimatedIOText, IOColors } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated from "react-native-reanimated";
@@ -7,12 +7,20 @@ import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 
 import {
   getCredentialColors,
+  getExpiryStatus,
   getFormatLabel,
   withOpacity,
 } from "../../utils/eudi";
 
-/** Width to height ratio of the card */
-const CARD_ASPECT_RATIO = 1.75;
+/** Width to height ratio of the card, as the ID-1 format of physical identity documents */
+const CARD_ASPECT_RATIO = 1.586;
+
+/** Colors of the validity status dot, by status badge variant */
+const STATUS_COLORS = {
+  error: IOColors["error-500"],
+  success: IOColors["success-500"],
+  warning: IOColors["warning-500"],
+};
 
 const CARD_BORDER_RADIUS = 16;
 
@@ -30,6 +38,8 @@ type Props = {
       EudiCredential,
       "credentialConfigurationId" | "display" | "format" | "issuer"
     >;
+  /** Expiry of the credential, shown as a validity status */
+  expiresAt?: Date;
   /** Holder picture, shown as on the physical documents */
   portrait?: { label: string; uri: string };
   /** Tag of the shared element transition between the screens showing the same credential */
@@ -48,6 +58,7 @@ type Props = {
  */
 export const EudiCredentialCard = ({
   credential,
+  expiresAt,
   portrait,
   sharedTransitionTag,
 }: Props) => {
@@ -67,6 +78,14 @@ export const EudiCredentialCard = ({
   const { backgroundColor, textColor } = getCredentialColors(credential);
   // IOText applies a custom color only through the style prop
   const textStyle = { color: textColor };
+  const pillStyle = [
+    styles.pill,
+    {
+      backgroundColor: withOpacity(textColor, 0.1),
+      borderColor: withOpacity(textColor, 0.18),
+    },
+  ];
+  const expiryStatus = expiresAt && getExpiryStatus(expiresAt);
 
   return (
     <Animated.View
@@ -128,26 +147,44 @@ export const EudiCredentialCard = ({
         )}
       </View>
       <View style={styles.footer}>
-        <Animated.View
-          sharedTransitionTag={tag("format")}
-          // A background color rather than a translucent layer, since the copy has no children
-          style={[
-            styles.pill,
-            {
-              backgroundColor: withOpacity(textColor, 0.1),
-              borderColor: withOpacity(textColor, 0.18),
-            },
-          ]}
-        >
-          <AnimatedIOText
-            sharedTransitionTag={tag("formatLabel")}
-            size={12}
-            style={textStyle}
-            weight="Semibold"
+        <View style={styles.pills}>
+          <Animated.View
+            sharedTransitionTag={tag("format")}
+            // A background color rather than a translucent layer, since the copy has no children
+            style={pillStyle}
           >
-            {getFormatLabel(credential.format)}
-          </AnimatedIOText>
-        </Animated.View>
+            <AnimatedIOText
+              sharedTransitionTag={tag("formatLabel")}
+              size={12}
+              style={textStyle}
+              weight="Semibold"
+            >
+              {getFormatLabel(credential.format)}
+            </AnimatedIOText>
+          </Animated.View>
+          {expiryStatus && (
+            <Animated.View
+              sharedTransitionTag={tag("status")}
+              style={[pillStyle, styles.statusPill]}
+            >
+              <Animated.View
+                sharedTransitionTag={tag("statusDot")}
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: STATUS_COLORS[expiryStatus.variant] },
+                ]}
+              />
+              <AnimatedIOText
+                sharedTransitionTag={tag("statusLabel")}
+                size={12}
+                style={textStyle}
+                weight="Semibold"
+              >
+                {expiryStatus.label}
+              </AnimatedIOText>
+            </Animated.View>
+          )}
+        </View>
         {obtainedAt && (
           <View style={styles.date}>
             <AnimatedIOText
@@ -195,6 +232,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "flex-end",
     flexDirection: "row",
+    gap: 12,
     justifyContent: "space-between",
   },
   header: {
@@ -226,10 +264,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
+  pills: {
+    flexDirection: "row",
+    flexShrink: 1,
+    flexWrap: "wrap",
+    gap: 6,
+  },
   portrait: {
     aspectRatio: 3 / 4,
     borderRadius: 8,
     width: 60,
+  },
+  statusDot: {
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  statusPill: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6,
   },
   title: {
     flex: 1,

@@ -10,7 +10,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
-import { DebugDataOverlay } from "./components/debug/DebugDataOverlay";
 import { MainStackNavigator } from "./navigator/MainStackNavigator";
 import { persistor, store } from "./store/store";
 
@@ -22,7 +21,6 @@ export default function App() {
           <IODSExperimentalContextProvider isExperimentaEnabled={true}>
             <SafeAreaProvider>
               <ToastProvider>
-                <DebugDataOverlay />
                 <MainStackNavigator />
               </ToastProvider>
             </SafeAreaProvider>

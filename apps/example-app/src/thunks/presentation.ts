@@ -112,7 +112,11 @@ const processPresentation = async (
   const remotePresentations =
     await wallet.RemotePresentation.prepareRemotePresentations(
       evaluatedDcqlQuery,
-      authRequestObject,
+      {
+        ...authRequestObject,
+        client_metadata: requestObject.client_metadata,
+      },
+      rpConf,
     );
 
   const authResponse =

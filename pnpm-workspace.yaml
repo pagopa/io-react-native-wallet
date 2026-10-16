@@ -9,7 +9,7 @@ allowBuilds:
   unrs-resolver: true
 
 minimumReleaseAgeExclude:
-  - '@pagopa/io-react-native-iso18013@0.8.5'
+  - '@pagopa/io-react-native-iso18013@0.8.6'
   - '@owf/cose@0.4.2'
   - '@owf/crypto@0.4.2'
   - '@owf/identity-common@0.4.2'

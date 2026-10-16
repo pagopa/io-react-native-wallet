@@ -129,8 +129,28 @@ export const CredentialResponse = z.looseObject({
   transaction_id: z.string().optional(),
 });
 
+/** Issuer certificate of a credential, the leaf of its `x5c` (SD-JWT VC) or `x5chain` (mdoc) */
+export type CredentialCertificate = {
+  /** Distinguished name of the certificate authority, such as `CN=PID Issuer CA, C=EU` */
+  issuer: string;
+  notAfter: Date;
+  notBefore: Date;
+  /** Distinguished name of the credential issuer */
+  subject: string;
+};
+
 export type ParsedCredential = {
   /** Disclosed claims for `dc+sd-jwt`, claims grouped by namespace for `mso_mdoc` */
   claims: Record<string, unknown>;
   format: string;
+  /** Issuer signature, NOT verified */
+  signature: {
+    /** JOSE name of the signing algorithm, such as `ES256` */
+    algorithm?: string;
+    certificate?: CredentialCertificate;
+  };
+  /** Token Status List entry of the credential, to check its revocation (SD-JWT VC only) */
+  status?: { idx: number; uri: string };
+  /** Credential validity, from `iat`, `nbf` and `exp` (SD-JWT VC) or the MSO `validityInfo` (mdoc) */
+  validity: { issuedAt?: Date; validFrom?: Date; validUntil?: Date };
 };

@@ -11,7 +11,7 @@ import React, { useCallback, useEffect } from "react";
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 
 import { HeaderTitle } from "../components/HeaderTitle";
-import { useEudiOfferDeepLink } from "../hooks/useEudiOfferDeepLink";
+import { useEudiDeepLink } from "../hooks/useEudiDeepLink";
 import { useIoSessionCheck } from "../hooks/useIoSessionCheck";
 import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
 import { CieIdAuthenticationScreen } from "../screens/cie/CieIdAuthenticationScreen";
@@ -19,6 +19,7 @@ import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthe
 import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
+import { DebugDataScreen } from "../screens/DebugDataScreen";
 import { EudiCredentialDetailScreen } from "../screens/eudi/EudiCredentialDetailScreen";
 import { EudiCredentialRequestScreen } from "../screens/eudi/EudiCredentialRequestScreen";
 import { EudiCredentialsScreen } from "../screens/eudi/EudiCredentialsScreen";
@@ -47,10 +48,9 @@ import {
 } from "../screens/TrustmarkScreen";
 import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
-import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
 import { selectHasSessionAccess } from "../store/reducers/session";
-import { useAppDispatch, useAppSelector } from "../store/utils";
+import { useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 import { labelByCredentialType } from "../utils/ui";
 
@@ -70,10 +70,11 @@ export type MainStackNavParamList = {
   Credentials: undefined;
   CredentialsCatalogue: undefined;
   CredentialStatus: undefined;
+  DebugData: undefined;
   EudiCredentialDetail: { keyTag: string };
   EudiCredentialRequest: undefined | { offerUri?: string };
   EudiCredentials: undefined;
-  EudiPresentation: undefined;
+  EudiPresentation: undefined | { requestUri?: string };
   EudiWallet: undefined;
   EudiWalletAttestation: undefined;
   Home: undefined;
@@ -103,7 +104,9 @@ const Stack = createNativeStackNavigator<MainStackNavParamList>();
  * EUDI Wallet routes, with a plain title since the IT-Wallet version and IO login do not apply.
  */
 const renderEudiScreens = (headerRight: () => React.ReactNode) => (
-  <Stack.Group screenOptions={{ headerRight }}>
+  <Stack.Group
+    screenOptions={{ headerBackButtonDisplayMode: "minimal", headerRight }}
+  >
     <Stack.Screen
       component={EudiWalletScreen}
       name="EudiWallet"
@@ -149,13 +152,9 @@ const lightTheme: Theme = {
 export const MainStackNavigator = () => {
   const hasSessionAccess = useAppSelector(selectHasSessionAccess);
   const loggingServerAddr = useAppSelector(selectLoggingAddress);
-  const dispatch = useAppDispatch();
 
   const navigationRef = useNavigationContainerRef<MainStackNavParamList>();
-  const onNavigationReady = useEudiOfferDeepLink(
-    navigationRef,
-    hasSessionAccess,
-  );
+  const onNavigationReady = useEudiDeepLink(navigationRef, hasSessionAccess);
 
   useIoSessionCheck();
 
@@ -171,10 +170,10 @@ export const MainStackNavigator = () => {
       <IconButton
         accessibilityLabel={"debug"}
         icon="ladybug"
-        onPress={() => dispatch(setDebugVisibility(true))}
+        onPress={() => navigationRef.navigate("DebugData")}
       />
     ),
-    [dispatch],
+    [navigationRef],
   );
 
   return (
@@ -296,6 +295,17 @@ export const MainStackNavigator = () => {
               />
             </Stack.Group>
             {renderEudiScreens(headerRight)}
+            <Stack.Group
+              screenOptions={{
+                headerShown: false,
+                presentation: "formSheet",
+                sheetAllowedDetents: [0.5, 1],
+                sheetGrabberVisible: true,
+                sheetInitialDetentIndex: "last",
+              }}
+            >
+              <Stack.Screen component={DebugDataScreen} name="DebugData" />
+            </Stack.Group>
           </>
         ) : (
           <Stack.Group>
