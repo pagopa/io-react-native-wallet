@@ -57,7 +57,6 @@ export interface Signer {
  * Ensure that none of the given signers is bound to a remote key.
  * @param version The version of the flow that does not support remote keys
  * @param signers The signers to check
- * @throws {UnimplementedFeatureError} If any signer is remote
  */
 /**
  * Adapt a {@link Signer} to the {@link CryptoContext} expected by `SignJWT`.
