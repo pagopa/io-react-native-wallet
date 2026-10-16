@@ -46,7 +46,7 @@ import { createSignerFor } from "@pagopa/io-react-native-wallet";
 const signer = createSignerFor(keytag);
 ```
 
-Build and sign JWTs directly with the `JWT` class from `@pagopa/io-react-native-jwt`: `new JWT(await signer.getPublicKey()).setProtectedHeader(header).setPayload(payload).sign((v) => signer.sign(v))`. The `alg` header is inferred from the public key. Add time claims with the `JWT` fluent setters (`setIssuedAt()`, `setExpirationTime("1h")`) only where the flow requires them; do not add a `jti` unless the payload already has one. The value passed to `signer.sign` is the raw JWS signing input. Flows that don't support remote keys must call `assertLocalSigners(version, ...signers)`.
+Build and sign JWTs with `SignJWT` from `@pagopa/io-react-native-jwt`, adapting the signer with `toCryptoContext(signer)`: `new SignJWT(toCryptoContext(signer)).setProtectedHeader(header).setPayload(payload).sign()`. The `alg` header is inferred from the public key. Add time claims with the `SignJWT` fluent setters (`setIssuedAt()`, `setExpirationTime("1h")`) only where the flow requires them; do not add a `jti` unless the payload already has one. Flows that don't support remote keys must call `assertLocalSigners(version, ...signers)`.
 
 For short-lived keys use `withEphemeralKey`:
 

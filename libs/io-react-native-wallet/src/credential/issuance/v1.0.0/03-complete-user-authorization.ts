@@ -1,5 +1,5 @@
 import { decode } from "@pagopa/io-react-native-jwt";
-import { JWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
 
 import type { RemotePresentation } from "../../presentation";
@@ -11,7 +11,11 @@ import {
   type AuthorizationResult,
   AuthorizationResultShape,
 } from "../../../utils/auth";
-import { assertLocalSigners, type Signer } from "../../../utils/crypto";
+import {
+  assertLocalSigners,
+  type Signer,
+  toCryptoContext,
+} from "../../../utils/crypto";
 import { getJwtFromFormPost } from "../../../utils/decoder";
 import {
   IssuerResponseError,
@@ -266,7 +270,7 @@ const createAuthzResponsePayload = async ({
 }): Promise<string> => {
   const publicKey = await wiaSigner.getPublicKey();
 
-  return new JWT(publicKey)
+  return new SignJWT(toCryptoContext(wiaSigner))
     .setProtectedHeader({
       kid: publicKey.kid,
       typ: "jwt",
@@ -288,5 +292,5 @@ const createAuthzResponsePayload = async ({
     })
     .setIssuedAt()
     .setExpirationTime("1h")
-    .sign((v) => wiaSigner.sign(v));
+    .sign();
 };

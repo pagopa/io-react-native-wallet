@@ -68,8 +68,8 @@ describe("requestCredentials", () => {
           credential_identifier: "credid-123",
           proofs: {
             jwt: [
-              "eyJqd2siOnsiYWxnIjoiRVMyNTYiLCJjcnYiOiJQLTI1NiIsImtpZCI6ImtleS0xIiwia3R5IjoiRUMiLCJ1c2UiOiJzaWciLCJ4IjoiMSIsInkiOiIxIn0sImtleV9hdHRlc3RhdGlvbiI6Im1vY2sta2V5LWF0dGVzdGF0aW9uIiwidHlwIjoib3BlbmlkNHZjaS1wcm9vZitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlL2NyZWRlbnRpYWwiLCJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-1",
-              "eyJqd2siOnsiYWxnIjoiRVMyNTYiLCJjcnYiOiJQLTI1NiIsImtpZCI6ImtleS0yIiwia3R5IjoiRUMiLCJ1c2UiOiJzaWciLCJ4IjoiMSIsInkiOiIyIn0sImtleV9hdHRlc3RhdGlvbiI6Im1vY2sta2V5LWF0dGVzdGF0aW9uIiwidHlwIjoib3BlbmlkNHZjaS1wcm9vZitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlL2NyZWRlbnRpYWwiLCJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-2",
+              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoia2V5LTEiLCJrdHkiOiJFQyIsInVzZSI6InNpZyIsIngiOiIxIiwieSI6IjEifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlL2NyZWRlbnRpYWwiLCJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-1",
+              "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoia2V5LTIiLCJrdHkiOiJFQyIsInVzZSI6InNpZyIsIngiOiIxIiwieSI6IjIifSwia2V5X2F0dGVzdGF0aW9uIjoibW9jay1rZXktYXR0ZXN0YXRpb24iLCJ0eXAiOiJvcGVuaWQ0dmNpLXByb29mK2p3dCJ9.eyJhdWQiOiJodHRwczovL2lzc3Vlci1leGFtcGxlL2NyZWRlbnRpYWwiLCJpYXQiOjE3NzQyMjQwMDAsImlzcyI6ImNsaWVudDEyMyIsIm5vbmNlIjoibW9jay1ub25jZSJ9.mock-signature-key-2",
             ],
           },
         },

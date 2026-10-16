@@ -28,7 +28,7 @@ const mockChallengeJwt =
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
   getJwkFromHeader: jest.fn(),
-  JWT: jest.fn().mockImplementation(() => {
+  SignJWT: jest.fn().mockImplementation(() => {
     const builder: Record<string, jest.Mock> = {
       setPayload: jest.fn(() => builder),
       setProtectedHeader: jest.fn(() => builder),

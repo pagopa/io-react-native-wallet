@@ -1,5 +1,5 @@
 import { thumbprint } from "@pagopa/io-react-native-jwt";
-import { JWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT } from "@pagopa/io-react-native-jwt";
 import { Platform } from "react-native";
 
 import type { IntegrityContext } from "../../utils/integrity";
@@ -7,7 +7,7 @@ import type { WalletInstanceAttestationApi } from "../api";
 import type { WalletAttestationRequestParams } from "../api/types";
 
 import { getWalletProviderClient } from "../../client";
-import { type Signer } from "../../utils/crypto";
+import { type Signer, toCryptoContext } from "../../utils/crypto";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
 import { WalletInstanceAttestationResponse } from "./types";
@@ -37,7 +37,7 @@ async function getAttestationRequest(
       JSON.stringify(clientData),
     );
 
-  return new JWT(publicKey)
+  return new SignJWT(toCryptoContext(wiaSigner))
     .setProtectedHeader({
       kid: publicKey.kid,
       typ: "wia-request+jwt",
@@ -57,7 +57,7 @@ async function getAttestationRequest(
     })
     .setIssuedAt()
     .setExpirationTime("1h")
-    .sign((v) => wiaSigner.sign(v));
+    .sign();
 }
 
 export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =

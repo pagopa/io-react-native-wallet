@@ -60,8 +60,7 @@ See `src/credential/issuance/README.md` for full sequence diagram.
 
 Located in `src/utils/`:
 
-- `crypto.ts` — `Signer` interface, `createSignerFor(keytag)`, `assertLocalSigners()`, `withEphemeralKey()`
-- `jwt.ts` — `getExpirationTime()`
+- `crypto.ts` — `Signer` interface, `createSignerFor(keytag)`, `toCryptoContext()`, `assertLocalSigners()`, `withEphemeralKey()`
 - `errors.ts` — Error class hierarchy (`IoWalletError`, `UnexpectedStatusCodeError`, etc.)
 - `logging.ts` — `Logger` singleton with pluggable `LoggingContext`
 - `dpop.ts` — DPoP proof generation

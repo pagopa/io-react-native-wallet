@@ -1,4 +1,4 @@
-import { JWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT } from "@pagopa/io-react-native-jwt";
 
 import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api/IssuerConfig";
@@ -18,7 +18,7 @@ const mockSetIssuedAt = jest.fn();
 const mockSetExpirationTime = jest.fn();
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
-  JWT: jest.fn().mockImplementation(() => {
+  SignJWT: jest.fn().mockImplementation(() => {
     const builder = {
       setExpirationTime: (...args: unknown[]) => {
         mockSetExpirationTime(...args);
@@ -165,8 +165,9 @@ describe("validateChallenge", () => {
     );
 
     // Verify the MRTD validation JWT was signed with correct parameters
-    expect(JWT).toHaveBeenCalledWith({
-      kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
+    expect(SignJWT).toHaveBeenCalledWith({
+      getPublicKey: expect.any(Function),
+      getSignature: expect.any(Function),
     });
     expect(mockSetProtectedHeader).toHaveBeenCalledWith({
       kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
@@ -182,7 +183,7 @@ describe("validateChallenge", () => {
 
     expect(mockSetIssuedAt).toHaveBeenCalledWith();
     expect(mockSetExpirationTime).toHaveBeenCalledWith("5m");
-    expect(mockJwtSign).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockJwtSign).toHaveBeenCalledWith();
   });
 
   it("throws IssuerResponseError when status code is not 202", async () => {

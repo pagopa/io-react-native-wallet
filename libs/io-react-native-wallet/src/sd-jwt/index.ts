@@ -1,10 +1,11 @@
 import { hasher } from "@owf/crypto";
-import { JWT, sha256ToBase64 } from "@pagopa/io-react-native-jwt";
+import { sha256ToBase64, SignJWT } from "@pagopa/io-react-native-jwt";
 import { decodeSdJwtSync, present } from "@sd-jwt/core";
 
 import type { Presentation } from "../credential/presentation";
 
 import { fixLegacyCredentialSdJwt } from "../utils/credentials";
+import { toCryptoContext } from "../utils/crypto";
 import { SdJwt4VCBase } from "./types";
 
 export * from "./utils";
@@ -64,11 +65,11 @@ export const prepareVpToken = async (
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
   const sd_hash = await sha256ToBase64(vp);
 
-  const kbJwt = await new JWT(await signer.getPublicKey())
+  const kbJwt = await new SignJWT(toCryptoContext(signer))
     .setProtectedHeader({ typ: "kb+jwt" })
     .setPayload({ aud: client_id, nonce, sd_hash })
     .setIssuedAt()
-    .sign((v) => signer.sign(v));
+    .sign();
   // <Issuer-signed JWT>~<Disclosure 1>~...~<Disclosure N>~<KB-JWT>
   const vp_token = [vp, kbJwt].join("");
 

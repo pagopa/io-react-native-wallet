@@ -1,9 +1,8 @@
-import { JWT, sha256ToBase64 } from "@pagopa/io-react-native-jwt";
+import { sha256ToBase64, SignJWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import * as z from "zod";
 
-import type { Signer } from "./crypto";
-
+import { type Signer, toCryptoContext } from "./crypto";
 import { IssuerResponseError } from "./errors";
 import { Logger, LogLevel } from "./logging";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
@@ -85,7 +84,7 @@ export const makeParRequest =
         The signature can be verified by reading the public key from the key set shippet
         with the it will ship the Wallet Instance Attestation.
         The key is matched by its kid */
-    const signedJwtForPar = await new JWT(wiaPublicKey)
+    const signedJwtForPar = await new SignJWT(toCryptoContext(wiaSigner))
       .setProtectedHeader({
         kid: wiaPublicKey.kid,
         typ: "jwt",
@@ -108,7 +107,7 @@ export const makeParRequest =
       })
       .setIssuedAt()
       .setExpirationTime("5min")
-      .sign((v) => wiaSigner.sign(v));
+      .sign();
 
     /** The request body for the Pushed Authorization Request */
     const formBody = new URLSearchParams({

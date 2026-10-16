@@ -4,7 +4,11 @@ import {
   getPublicKeyFixed,
   sign,
 } from "@pagopa/io-react-native-crypto";
-import { decode, thumbprint } from "@pagopa/io-react-native-jwt";
+import {
+  type CryptoContext,
+  decode,
+  thumbprint,
+} from "@pagopa/io-react-native-jwt";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { v4 as uuidv4 } from "uuid";
 
@@ -48,6 +52,16 @@ export interface Signer {
    */
   sign: (value: string) => Promise<string>;
 }
+
+/**
+ * Adapt a {@link Signer} to the {@link CryptoContext} expected by `SignJWT`.
+ * @param signer The signer to adapt
+ * @returns The crypto context
+ */
+export const toCryptoContext = (signer: Signer): CryptoContext => ({
+  getPublicKey: () => signer.getPublicKey(),
+  getSignature: (value: string) => signer.sign(value),
+});
 
 /**
  * Ensure that none of the given signers is bound to a remote key.

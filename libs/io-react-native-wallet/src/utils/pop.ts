@@ -1,7 +1,7 @@
-import { JWT } from "@pagopa/io-react-native-jwt";
+import { SignJWT } from "@pagopa/io-react-native-jwt";
 import * as z from "zod";
 
-import type { Signer } from "./crypto";
+import { type Signer, toCryptoContext } from "./crypto";
 
 /**
  * Create a signed PoP token
@@ -16,7 +16,7 @@ export const createPopToken = async (
   signer: Signer,
 ): Promise<string> => {
   const publicKey = await signer.getPublicKey();
-  return new JWT(publicKey)
+  return new SignJWT(toCryptoContext(signer))
     .setProtectedHeader({
       kid: publicKey.kid,
       typ: "oauth-client-attestation-pop+jwt",
@@ -24,7 +24,7 @@ export const createPopToken = async (
     .setPayload(payload)
     .setIssuedAt()
     .setExpirationTime("5min")
-    .sign((v) => signer.sign(v));
+    .sign();
 };
 
 export type PoPPayload = z.infer<typeof PoPPayload>;
