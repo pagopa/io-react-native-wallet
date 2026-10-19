@@ -18,11 +18,6 @@ import { IoWalletError, UnimplementedFeatureError } from "./errors";
 import { JWK, JWKS } from "./jwk";
 
 /**
- * Where the key of a {@link Signer} lives.
- */
-export type SignerKind = "LOCAL" | "REMOTE";
-
-/**
  * A signer bound to a single key pair, provided by the consumer.
  * The consumer owns the whole lifecycle of the key (generation, persistence, deletion)
  * and decides where it lives (device keystore or remote HSM).
@@ -57,6 +52,11 @@ export interface Signer {
    */
   sign: (value: string) => Promise<string>;
 }
+
+/**
+ * Where the key of a {@link Signer} lives.
+ */
+export type SignerKind = "LOCAL" | "REMOTE";
 
 /**
  * Adapt a {@link Signer} to the {@link CryptoContext} expected by `SignJWT`.
