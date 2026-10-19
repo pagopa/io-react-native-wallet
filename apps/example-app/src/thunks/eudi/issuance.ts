@@ -136,8 +136,9 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     throw new Error(`Unknown format for ${credentialConfigurationId}`);
   }
 
-  await CredentialIssuance.verifyJwtWithLoTE({
-    jwt: { compact: credential },
+  await CredentialIssuance.verifyCredential({
+    credential,
+    format,
     lotes
   })
 
