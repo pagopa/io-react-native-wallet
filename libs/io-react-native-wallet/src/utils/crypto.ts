@@ -1,16 +1,5 @@
-import {
-  deleteKey,
-  generate,
-  getPublicKeyFixed,
-  sign,
-} from "@pagopa/io-react-native-crypto";
-import {
-  type CryptoContext,
-  decode,
-  thumbprint,
-} from "@pagopa/io-react-native-jwt";
+import { type CryptoContext, decode } from "@pagopa/io-react-native-jwt";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
-import { v4 as uuidv4 } from "uuid";
 
 import type { BaseEntityConfiguration } from "../trust/common/types";
 
@@ -18,9 +7,29 @@ import { IoWalletError, UnimplementedFeatureError } from "./errors";
 import { JWK, JWKS } from "./jwk";
 
 /**
- * Where the key of a {@link Signer} lives.
+ * The JWK of an EC public key
  */
-export type SignerKind = "LOCAL" | "REMOTE";
+export interface ECPublicKey {
+  crv: string;
+  kty: "EC";
+  x: string;
+  y: string;
+}
+
+/**
+ * The public key type. It could be either an EC or an RSA key.
+ */
+export type PublicKey = ECPublicKey | RSAPublicKey;
+
+/**
+ * The JWK of an RSA public key
+ */
+export interface RSAPublicKey {
+  alg: string;
+  e: string;
+  kty: "RSA";
+  n: string;
+}
 
 /**
  * A signer bound to a single key pair, provided by the consumer.
@@ -59,6 +68,11 @@ export interface Signer {
 }
 
 /**
+ * Where the key of a {@link Signer} lives.
+ */
+export type SignerKind = "LOCAL" | "REMOTE";
+
+/**
  * Adapt a {@link Signer} to the {@link CryptoContext} expected by `SignJWT`.
  * @param signer The signer to adapt
  * @returns The crypto context
@@ -78,53 +92,6 @@ export const assertLocalSigners = (version: string, ...signers: Signer[]) => {
   if (signers.some((signer) => signer.kind === "REMOTE")) {
     throw new UnimplementedFeatureError("remote WSCD", version);
   }
-};
-
-/**
- * Create a local {@link Signer} bound to a key pair stored in the device's keystore.
- * Key pair is supposed to exist already in the device's keychain.
- * It's identified by its unique keytag.
- *
- * @returns the signer
- */
-export const createSignerFor = (keytag: string): Signer => ({
-  async getPublicKey() {
-    return getPublicKeyFixed(keytag).then(async (jwk) => ({
-      ...jwk,
-      // Keys in the TEE are not stored with their KID, which is supposed to be assigned when they are included in JWK sets.
-      // (that is, KID is not a propoerty of the key itself, but it's property used to identify a key in a set).
-      // We assume the convention we use the thumbprint of the public key as KID, thus for easy development we decided to evaluate KID here
-      // However the values is an arbitrary string that might be anything
-      kid: await thumbprint(jwk),
-    }));
-  },
-  kind: "LOCAL",
-  /**
-   * Get a signature for a provided value.
-   * If the key pair doesn't exist yet, an error is raised.
-   * @param value
-   * @returns The signature for the value
-   */
-  async sign(value: string) {
-    return sign(value, keytag);
-  },
-});
-
-/**
- * Executes the input function injecting an ephemeral local signer.
- * An ephemeral signer is bound to a key that is just created and is deleted after use.
- *
- * @param fn The procedure to be executed
- * @returns The returned value of the input procedure.
- */
-export const withEphemeralKey = async <R>(
-  fn: (ephemeralSigner: Signer) => Promise<R>,
-): Promise<R> => {
-  // Use an ephemeral key to be destroyed after use
-  const keytag = `ephemeral-${uuidv4()}`;
-  await generate(keytag);
-  const ephemeralSigner = createSignerFor(keytag);
-  return fn(ephemeralSigner).finally(() => deleteKey(keytag));
 };
 
 /**

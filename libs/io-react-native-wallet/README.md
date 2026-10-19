@@ -105,15 +105,19 @@ export interface Signer {
 
 Remote signers are not supported by the flows of version `1.0.0` and by the Key Attestation flow: passing one throws an `UnimplementedFeatureError`.
 
-The suggested library to manage local cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto). This package provides an helper to build a local `Signer` object bound to a given key tag:
+The suggested library to manage local cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto). The library does not depend on it: the consumer app implements the `Signer` (see `createLocalSignerFor` in the [example app](../../apps/example-app/src/utils/localCrypto.ts)), e.g. a local `Signer` bound to a given key tag:
 
 ```ts
-import { createSignerFor } from "@pagopa/io-react-native-wallet";
-
-const signer = createSignerFor("my-tag");
+const signer: Signer = {
+  kind: "LOCAL",
+  getPublicKey: async () => ({ ...(await getPublicKeyFixed("my-tag")), kid }),
+  sign: (value) => sign(value, "my-tag"),
+};
 ```
 
 **Be sure the key for `my-tag` already exists.**
+
+X.509 chain validation is also delegated to the consumer, which provides a `certificateChainVerifier` callback (see `CertificateChainVerifier`) to the flows that need it (credential verification, trust chain validation, presentation). The native `verifyCertificateChain` from io-react-native-crypto fits this signature.
 
 </details>
 
@@ -214,7 +218,7 @@ An example app is provided in the [example-app](../../apps/example-app) folder w
 `io-react-native-wallet` is designed to be used in [io-app](https://github.com/pagopa/io-app) and its ecosystem. There are a few libraries that can be used to implement the context required to implement the flows defined by this package.
 Below there's a list of the libraries and a schema of how they interact with each other:
 
-- [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Used to manage cryptographic keys and signatures
+- [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Not a dependency of this library; the consumer app can use it to implement `Signer` and `certificateChainVerifier`. Used to manage cryptographic keys and signatures
 - [@pagopa/io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity) - Used to manage and verify the integrity of the device
 - [@pagopa/io-react-native-secure-storage](https://github.com/pagopa/io-react-native-secure-storage) - Used to store data securely on the device
 

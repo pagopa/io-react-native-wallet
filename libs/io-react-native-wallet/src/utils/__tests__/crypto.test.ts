@@ -1,60 +1,14 @@
-import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
-
 import {
   assertLocalSigners,
-  createSignerFor,
   getJwkFromCertificateChain,
   getJwkFromTrustChain,
   type Signer,
   type SignerKind,
-  withEphemeralKey,
 } from "../crypto";
 import { UnimplementedFeatureError } from "../errors";
 
 beforeEach(() => {
   jest.clearAllMocks();
-});
-
-describe("useEphemeralKey", () => {
-  it("should delete key on failure", async () => {
-    const failingFn = () => Promise.reject("fail");
-
-    const p = withEphemeralKey(failingFn);
-
-    await expect(p).rejects.toEqual("fail");
-
-    expect(generate).toHaveBeenCalledTimes(1);
-    expect(deleteKey).toHaveBeenCalledTimes(1);
-  });
-
-  it("should delete key on success", async () => {
-    const fn = () => Promise.resolve("ok");
-
-    const result = await withEphemeralKey(fn);
-
-    expect(result).toBe("ok");
-
-    expect(generate).toHaveBeenCalledTimes(1);
-    expect(deleteKey).toHaveBeenCalledTimes(1);
-  });
-
-  it("should delete only after the procedure has ended", async () => {
-    let a = 0,
-      b = -1;
-    const fn = () =>
-      new Promise((ok) => setTimeout(() => ok((a = Date.now())), 1000));
-
-    (deleteKey as jest.Mock).mockImplementationOnce(
-      (_) => new Promise((ok) => setTimeout(() => ok((b = Date.now())), 100)),
-    );
-
-    await withEphemeralKey(fn);
-
-    expect(generate).toHaveBeenCalledTimes(1);
-    expect(deleteKey).toHaveBeenCalledTimes(1);
-
-    expect(a).toBeLessThan(b);
-  });
 });
 
 describe("getJwkFromCertificateChain", () => {
@@ -108,21 +62,6 @@ describe("getJwkFromTrustChain", () => {
       x: "9LfC1UPlW-Z_LhG2Uhxjf-jWh62O_h1mpxC-OXOMMMA",
       y: "71qfW-Ajh4RC_eG3__Vmc0bIV61WuMgAw9wqQVQv9g0",
     });
-  });
-});
-
-describe("createSignerFor", () => {
-  it("creates a local signer bound to the keytag", async () => {
-    const keytag = `test-${Math.random()}`;
-    await generate(keytag);
-
-    const signer = createSignerFor(keytag);
-
-    expect(signer.kind).toBe("LOCAL");
-    await expect(signer.getPublicKey()).resolves.toEqual(
-      expect.objectContaining({ kid: expect.any(String), kty: "RSA" }),
-    );
-    await expect(signer.sign("value")).resolves.toEqual("mock-signature");
   });
 });
 

@@ -1,3 +1,5 @@
+// helper to assert type
+import { createMockCertificateChainVerifier } from "../../../utils/__fixtures__/x509";
 import * as mockEC from "../__fixtures__/entity-configurations";
 import {
   intermediateEntityStatement,
@@ -21,8 +23,15 @@ import {
   TrustAnchorEntityConfiguration,
   WalletProviderEntityConfiguration,
 } from "../types";
-// helper to assert type
-import { verifyTrustChain } from "../verify-chain";
+import { verifyTrustChain as verifyTrustChainWithContext } from "../verify-chain";
+
+const verifyTrustChain = (
+  trustAnchor: Parameters<typeof verifyTrustChainWithContext>[0],
+  chain: string[],
+) =>
+  verifyTrustChainWithContext(trustAnchor, chain, undefined, {
+    certificateChainVerifier: createMockCertificateChainVerifier(),
+  });
 
 const testType = <T>(_: T) => true;
 

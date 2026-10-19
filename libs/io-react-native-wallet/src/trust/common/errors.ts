@@ -1,4 +1,4 @@
-import type { CertificateValidationStatus } from "@pagopa/io-react-native-crypto"; // Ensure this path is correct
+import type { CertificateValidationStatus } from "../../utils/x509";
 
 import { IoWalletError, serializeAttrs } from "../../utils/errors";
 

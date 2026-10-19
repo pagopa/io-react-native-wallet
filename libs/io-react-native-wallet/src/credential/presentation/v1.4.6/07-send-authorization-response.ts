@@ -1,15 +1,15 @@
+import { removePadding } from "@pagopa/io-react-native-jwt";
 import {
   createAuthorizationResponse as sdkCreateAuthorizationResponse,
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
+import { b64utob64 } from "jsrsasign";
 
 import type { RemotePresentationApi } from "../api";
 
-import { prepareVpTokenMdoc } from "../../../mdoc";
 import { prepareVpToken } from "../../../sd-jwt";
 import { partialCallbacks } from "../../../utils/callbacks";
 import { sdkConfigV1_4 } from "../../../utils/config";
-import { createSignerFor } from "../../../utils/crypto";
 import {
   IoWalletError,
   RelyingPartyResponseError,
@@ -32,11 +32,12 @@ import { AuthorizationResponse } from "./types";
  *
  * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
  * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
+ * @param context.mdocDeviceResponseGenerator - Consumer-provided callback that generates and signs the mdoc DeviceResponse. Required for mdoc credentials.
  * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
  * @throws {CredentialNotFoundError} When the credential format is unsupported.
  */
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, authRequestObject) => {
+  async (credentials, authRequestObject, context = {}) => {
     // In case of ISO 18013-7 we need a nonce, it shall have a minimum entropy of 16
     const generatedNonce = generateRandomAlphaNumericString(16);
 
@@ -48,11 +49,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
           const { vp_token } = await prepareVpToken(
             authRequestObject.nonce,
             authRequestObject.clientId,
-            [
-              item.credential,
-              item.presentationFrame,
-              createSignerFor(item.keyTag),
-            ],
+            [item.credential, item.presentationFrame, item.signer],
           );
 
           return {
@@ -64,25 +61,26 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
         }
 
         if (format === "mso_mdoc") {
-          const { vp_token } = await prepareVpTokenMdoc(
-            authRequestObject.nonce,
+          if (!context.mdocDeviceResponseGenerator) {
+            throw new IoWalletError("Missing mdocDeviceResponseGenerator");
+          }
+
+          const deviceResponse = await context.mdocDeviceResponseGenerator({
+            clientId: authRequestObject.clientId,
+            docType: item.doctype,
             generatedNonce,
-            authRequestObject.clientId,
-            authRequestObject.responseUri,
-            item.doctype,
-            item.keyTag,
-            [
-              item.credential,
-              item.presentationFrame,
-              createSignerFor(item.keyTag),
-            ],
-          );
+            issuerSignedContent: b64utob64(item.credential),
+            presentationFrame: item.presentationFrame,
+            requestNonce: authRequestObject.nonce,
+            responseUri: authRequestObject.responseUri,
+            signer: item.signer,
+          });
 
           return {
             credentialId: item.id,
             format: "mso_mdoc",
             requestedClaims: item.requiredDisclosures.map(({ name }) => name),
-            vpToken: vp_token,
+            vpToken: removePadding(deviceResponse),
           };
         }
 

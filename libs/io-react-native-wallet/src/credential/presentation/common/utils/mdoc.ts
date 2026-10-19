@@ -27,7 +27,7 @@ export const mapCredentialsToObj = async (
   await Promise.all(
     credentialsMdoc.map(async (credential) => {
       const issuerSigned = await CBOR.decodeIssuerSigned(
-        b64utob64(credential[1]),
+        b64utob64(credential[0]),
       );
 
       const namespaces = Object.entries(issuerSigned.nameSpaces).reduce(

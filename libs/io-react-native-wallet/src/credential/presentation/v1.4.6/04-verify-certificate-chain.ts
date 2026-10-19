@@ -1,9 +1,6 @@
-import {
-  verifyCertificateChain,
-  type X509CertificateOptions,
-} from "@pagopa/io-react-native-crypto";
 import { decode } from "@pagopa/io-react-native-jwt";
 
+import type { X509CertificateOptions } from "../../../utils/x509";
 import type { RemotePresentationApi } from "../api";
 
 import {
@@ -13,7 +10,7 @@ import {
 import { Logger, LogLevel } from "../../../utils/logging";
 
 export const verifyAuthRequestCertificateChain: RemotePresentationApi["verifyAuthRequestCertificateChain"] =
-  async (requestObjectJwt, { caRootCert }) => {
+  async (requestObjectJwt, { caRootCert, certificateChainVerifier }) => {
     const x509Options: X509CertificateOptions = {
       connectTimeout: 10_000,
       readTimeout: 10_000,
@@ -38,7 +35,7 @@ export const verifyAuthRequestCertificateChain: RemotePresentationApi["verifyAut
     const certChain =
       x5c.length > 1 && x5c.at(-1) === caRootCert ? x5c.slice(0, -1) : x5c;
 
-    const validationResult = await verifyCertificateChain(
+    const validationResult = await certificateChainVerifier(
       certChain,
       caRootCert,
       x509Options,

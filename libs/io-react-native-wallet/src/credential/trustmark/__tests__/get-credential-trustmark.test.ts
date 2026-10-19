@@ -1,4 +1,3 @@
-import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
 import { decode } from "@pagopa/io-react-native-jwt";
 
 import type { Signer } from "../../../utils/crypto";
@@ -23,16 +22,10 @@ const wiaSigner: Signer = {
 };
 
 describe("getCredentialTrustmarkJwt", () => {
-  beforeEach(async () => {
-    // Generate a fresh key before each test
-    await generate("WIA_KEYTAG");
-  });
-
-  afterEach(async () => {
+  afterEach(() => {
     jest.resetAllMocks();
     jest.clearAllMocks();
     jest.useRealTimers(); // Reset timers after each test
-    await deleteKey("WIA_KEYTAG");
   });
 
   it("should generate a JWT with the correct payload", async () => {
@@ -124,9 +117,6 @@ describe("getCredentialTrustmarkJwt", () => {
   });
 
   it("should throw error if thumbprints do not match", async () => {
-    const ephemeralKeytag = `ephemeral-${Math.random()}`;
-    await generate(ephemeralKeytag);
-
     const wallet = new IoWallet({ version: "1.0.0" });
 
     await expect(() =>

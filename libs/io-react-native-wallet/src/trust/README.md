@@ -4,9 +4,9 @@ This module implements **Trust Chain validation** for Entity Configurations and 
 
 The validation covers:
 
-* JWT signature verification (using the next entity's JWKS)
-* Trust chain ordering (leaf → parent → Trust Anchor)
-* Optional X.509 CRL-based certificate validation
+- JWT signature verification (using the next entity's JWKS)
+- Trust chain ordering (leaf → parent → Trust Anchor)
+- Optional X.509 CRL-based certificate validation
 
 ## Sequence Diagram
 
@@ -45,26 +45,27 @@ import { chain } from "./your-data"; // array of JWTs, starting from leaf
 const wallet = new IoWallet({ version: "1.0.0" });
 
 const result = await wallet.Trust.verifyTrustChain(
-  trustAnchorEntityConfiguration, 
-  chain, 
+  trustAnchorEntityConfiguration,
+  chain,
   {
     connectTimeout: 3000,
     readTimeout: 3000,
     requireCrl: false,
   },
   {
-    renewOnFail: true // Optional trust chain renewal
-  }
+    renewOnFail: true, // Optional trust chain renewal
+  },
 );
 ```
 
-* The `chain` must be an array of signed JWT strings.
-* The first JWT must be a self-issued `EntityConfiguration`.
-* The last JWT must be an `EntityStatement` or a self-issued Trust Anchor `EntityConfiguration`.
+- The `chain` must be an array of signed JWT strings.
+- The first JWT must be a self-issued `EntityConfiguration`.
+- The last JWT must be an `EntityStatement` or a self-issued Trust Anchor `EntityConfiguration`.
 
 ### Renew a trust chain
 
 [>!NOTE]
+
 > Internal only
 
 ```ts
@@ -88,15 +89,14 @@ const chain = await wallet.Trust.buildTrustChain({
 });
 ```
 
-* **leaf**: the entity URL of the subject to be trusted.
-* **trustAnchor**: the known trust anchor configuration.
-* Returns a list of JWT strings ordered from leaf to trust anchor.
-
+- **leaf**: the entity URL of the subject to be trusted.
+- **trustAnchor**: the known trust anchor configuration.
+- Returns a list of JWT strings ordered from leaf to trust anchor.
 
 ## Trust Chain Structure
 
 | Position | JWT Type                            | Requirements                  |
-| -------- | ----------------------------------- |-------------------------------|
+| -------- | ----------------------------------- | ----------------------------- |
 | First    | Entity Configuration                | `iss === sub` (self-issued)   |
 | Middle   | Entity Statement                    | `iss ≠ sub`, signed by parent |
 | Last     | Entity Statement or Trust Anchor EC | Trust Anchor must be known    |
@@ -121,7 +121,7 @@ const result = await wallet.Trust.verifyTrustChain(trustAnchorEntityConfiguratio
 });
 ```
 
-* This example fetches and builds the full trust chain dynamically, then validates it end-to-end.
+- This example fetches and builds the full trust chain dynamically, then validates it end-to-end.
 
 ## Example Trust Chain
 
@@ -144,17 +144,15 @@ const result = await wallet.Trust.verifyTrustChain(trustAnchorEntityConfiguratio
 
 ## Mocking in Tests
 
-If you're testing in Node (not in React Native), you need to mock X.509 and crypto-native dependencies:
+The library has no native dependency: pass a mocked `certificateChainVerifier` callback to `verifyTrustChain`:
 
 ```ts
-jest.mock("@pagopa/io-react-native-crypto", () => ({
-    verifyCertificateChain: jest.fn().mockResolvedValue({
-        isValid: true,
-        validationStatus: "VALID",
-        errorMessage: undefined,
-    }),
-    generate: jest.fn().mockResolvedValue({ ... }),
-}));
+const certificateChainVerifier = jest.fn().mockResolvedValue({
+  isValid: true,
+  validationStatus: "VALID",
+  errorMessage: undefined,
+});
+await wallet.Trust.verifyTrustChain(anchor, chain, undefined, { certificateChainVerifier });
 ```
 
 Ensure mocked `JWK`s contain an `x5c` array to trigger certificate validation logic during tests.

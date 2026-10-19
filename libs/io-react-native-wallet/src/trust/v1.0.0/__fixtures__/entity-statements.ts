@@ -1,7 +1,7 @@
-import { generate } from "@pagopa/io-react-native-crypto";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 
-import { createSignerFor, toCryptoContext } from "../../../utils/crypto";
+import { createMockSigner } from "../../../utils/__fixtures__/signer";
+import { toCryptoContext } from "../../../utils/crypto";
 
 type JwtHeader = Parameters<
   InstanceType<typeof SignJWT>["setProtectedHeader"]
@@ -187,14 +187,8 @@ export const leafEntityConfiguration = {
 };
 
 // Encodes a jwt object and append a stub signature
-export const signed = async (jwt: {
-  header: JwtHeader;
-  payload: JwtPayload;
-}) => {
-  const keytag = `${Math.random()}`;
-  await generate(keytag);
-  return new SignJWT(toCryptoContext(createSignerFor(keytag)))
+export const signed = async (jwt: { header: JwtHeader; payload: JwtPayload }) =>
+  new SignJWT(toCryptoContext(createMockSigner()))
     .setPayload(jwt.payload)
     .setProtectedHeader(jwt.header)
     .sign();
-};

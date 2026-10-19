@@ -1,19 +1,20 @@
-import { type PublicKey } from "@pagopa/io-react-native-crypto";
-import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
-import { removePadding } from "@pagopa/io-react-native-jwt";
+import { CBOR, COSE } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 
-import type { Presentation } from "../credential/presentation";
-
 import { MissingX509CertsError } from "../trust/common/errors";
-import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
+import {
+  convertBase64DerToPem,
+  getSigninJwkFromCert,
+  type PublicKey,
+} from "../utils/crypto";
 import { IoWalletError } from "../utils/errors";
-import { verifyX509Chain } from "../utils/x509";
+import { type CertificateChainVerifier, verifyX509Chain } from "../utils/x509";
 export * from "./utils";
 
 export const verify = async (
   token: string,
   x509CertRoot: string,
+  certificateChainVerifier: CertificateChainVerifier,
 ): Promise<{ issuerSigned: CBOR.IssuerSigned }> => {
   // get decoded data
   const issuerSigned = await CBOR.decodeIssuerSigned(token);
@@ -32,7 +33,7 @@ export const verify = async (
   const x5chain =
     issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
   // Verify the x5chain
-  await verifyX509Chain(x5chain, x509CertRoot);
+  await verifyX509Chain(x5chain, x509CertRoot, certificateChainVerifier);
 
   const coseSign1 = issuerSigned.issuerAuth.rawValue;
 
@@ -75,40 +76,4 @@ const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   const signatureCorrect = await COSE.verify(coseSign1, jwk as PublicKey);
 
   if (!signatureCorrect) throw new Error("Invalid mDoc signature");
-};
-
-export const prepareVpTokenMdoc = async (
-  requestNonce: string,
-  generatedNonce: string,
-  clientId: string,
-  responseUri: string,
-  docType: string,
-  keyTag: string,
-  [verifiableCredential, presentationFrame]: Presentation,
-): Promise<{
-  vp_token: string;
-}> => {
-  /* verifiableCredential is a IssuerSigned structure */
-  const documents = [
-    {
-      alias: keyTag,
-      docType,
-      issuerSignedContent: b64utob64(verifiableCredential),
-    },
-  ];
-
-  /* clientId,responseUri,requestNonce are retrieved by Auth Request Object */
-  /* create DeviceResponse as { documents: { docType, issuerSigned, deviceSigned }, version, status } */
-  const vp_token = await ISO18013_7.generateOID4VPDeviceResponse(
-    clientId,
-    responseUri,
-    requestNonce,
-    generatedNonce,
-    documents,
-    presentationFrame as ISO18013_7.AcceptedFields,
-  );
-
-  return {
-    vp_token: removePadding(vp_token),
-  };
 };

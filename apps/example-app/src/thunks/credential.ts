@@ -1,5 +1,4 @@
 import {
-  createSignerFor,
   CredentialIssuance,
   CredentialOffer,
   CredentialStatus,
@@ -25,9 +24,9 @@ import {
   getCredentialStatusAssertion,
   getCredentialStatusFromStatusList,
 } from "../utils/credential";
-import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
+import { createLocalSignerFor, WIA_KEYTAG } from "../utils/localCrypto";
 import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
@@ -107,7 +106,7 @@ export const getCredentialThunk = createAppAsyncThunk<
     throw new Error("Wallet Instance Attestation not found");
   }
 
-  const wiaSigner = createSignerFor(WIA_KEYTAG);
+  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
@@ -203,8 +202,8 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
   const { credential, credentialType, format, keyTag } = args;
 
   // Create credential signer
-  const credentialSigner = createSignerFor(keyTag);
-  const wiaSigner = createSignerFor(WIA_KEYTAG);
+  const credentialSigner = createLocalSignerFor(keyTag);
+  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   const env = getEnv(selectEnv(getState()));
   const itwVersion = selectItwVersion(getState());

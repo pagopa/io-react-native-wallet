@@ -1,8 +1,8 @@
-import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 
-import type { Signer } from "../../../utils/crypto";
+import type { PublicKey, Signer } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
+import type { CertificateChainVerifier } from "../../../utils/x509";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 
 import {
@@ -33,6 +33,7 @@ type DisplayableClaim = Omit<ClaimConfig, "display"> & {
  * @param rawCredential The received credential
  * @param x509CertRoot The root certificate of the issuer, which will be used to verify the signature
  * @param holderBindingSigner The access to the holder's key
+ * @param certificateChainVerifier The X.509 certificate chain validator provided by the consumer
  *
  * @throws If the signature verification fails
  * @throws If the credential is not in the SdJwt4VC format
@@ -43,11 +44,12 @@ async function verifyCredentialMDoc(
   rawCredential: string,
   x509CertRoot: string,
   holderBindingSigner: Signer,
+  certificateChainVerifier: CertificateChainVerifier,
 ): Promise<DecodedMDocCredential> {
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
-      verifyMdoc(rawCredential, x509CertRoot),
+      verifyMdoc(rawCredential, x509CertRoot, certificateChainVerifier),
       holderBindingSigner.getPublicKey(),
     ]);
 
@@ -197,17 +199,27 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     issuerConf,
     credential,
     credentialConfigurationId,
-    { credentialSigner, ignoreMissingAttributes, includeUndefinedAttributes },
+    {
+      certificateChainVerifier,
+      credentialSigner,
+      ignoreMissingAttributes,
+      includeUndefinedAttributes,
+    },
     x509CertRoot,
   ) => {
     if (!x509CertRoot) {
       throw new IoWalletError("Missing x509CertRoot");
     }
 
+    if (!certificateChainVerifier) {
+      throw new IoWalletError("Missing certificateChainVerifier");
+    }
+
     const decoded = await verifyCredentialMDoc(
       credential,
       x509CertRoot,
       credentialSigner,
+      certificateChainVerifier,
     );
 
     const credentialConfig =
