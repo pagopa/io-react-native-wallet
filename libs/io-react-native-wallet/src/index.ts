@@ -18,6 +18,7 @@ import {
   createSignerFor,
   getJwkFromCertificateChain,
   type Signer,
+  type SignerKind,
 } from "./utils/crypto";
 import * as Errors from "./utils/errors";
 import { fixBase64EncodingOnKey } from "./utils/jwk";
@@ -48,7 +49,7 @@ export {
   WalletInstanceAttestation,
 };
 
-export type { AuthorizationContext, IntegrityContext, Signer };
+export type { AuthorizationContext, IntegrityContext, Signer, SignerKind };
 
 export type * from "./api";
 

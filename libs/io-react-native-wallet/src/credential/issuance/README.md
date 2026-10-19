@@ -10,7 +10,7 @@ The supported credentials are defined in the entity configuration of the issuer 
 
 The IT-Wallet specifications require that the cryptographic keys associated with each credential be stored in a WSCD and attested through a **Key Attestation**, which must be provided to the Issuer when requesting a credential.
 
-Every key used by the flow is provided as a `Signer` (see the [library README](../../../README.md)). In version `1.0.0` only local signers (`isRemote: false`) are supported and passing a remote signer throws an `UnimplementedFeatureError`.
+Every key used by the flow is provided as a `Signer` (see the [library README](../../../README.md)). In version `1.0.0` only local signers (`kind: "LOCAL"`) are supported and passing a remote signer throws an `UnimplementedFeatureError`.
 
 ## Sequence Diagram
 

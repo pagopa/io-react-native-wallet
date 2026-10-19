@@ -18,7 +18,7 @@ const wiaSigner: Signer = {
     x: "doI4arl7NML-PYtubUU_xZwTVqfAPZeDc-a1JLtHvdw",
     y: "PAucTD2j1Sd9u87eaobFlMRao_ORZpBaBakbeKa5R78",
   }),
-  isRemote: false,
+  kind: "LOCAL",
   sign: async () => "",
 };
 
@@ -100,7 +100,7 @@ describe("getCredentialTrustmarkJwt", () => {
       wallet.Trustmark.getCredentialTrustmark({
         credentialType: "MDL",
         walletInstanceAttestation,
-        wiaSigner: { ...wiaSigner, isRemote: true },
+        wiaSigner: { ...wiaSigner, kind: "REMOTE" },
       }),
     ).rejects.toThrow(UnimplementedFeatureError);
   });

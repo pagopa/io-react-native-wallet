@@ -46,7 +46,7 @@ const issuerConf = {
 
 const wiaSigner = {
   getPublicKey: jest.fn(),
-  isRemote: false,
+  kind: "LOCAL",
   sign: jest.fn(),
 } as Signer;
 

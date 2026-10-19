@@ -18,6 +18,11 @@ import { IoWalletError, UnimplementedFeatureError } from "./errors";
 import { JWK, JWKS } from "./jwk";
 
 /**
+ * Where the key of a {@link Signer} lives.
+ */
+export type SignerKind = "LOCAL" | "REMOTE";
+
+/**
  * A signer bound to a single key pair, provided by the consumer.
  * The consumer owns the whole lifecycle of the key (generation, persistence, deletion)
  * and decides where it lives (device keystore or remote HSM).
@@ -31,10 +36,10 @@ export interface Signer {
   getPublicKey: () => Promise<JWK>;
 
   /**
-   * Whether the key lives in a remote HSM.
+   * Where the key lives: the device keystore (`LOCAL`) or a remote HSM (`REMOTE`).
    * Flows that do not support remote keys throw an {@link UnimplementedFeatureError}.
    */
-  isRemote: boolean;
+  kind: SignerKind;
 
   /**
    * Sign multiple values with the private key in a single operation (e.g. a single remote HSM call).
@@ -70,7 +75,7 @@ export const toCryptoContext = (signer: Signer): CryptoContext => ({
  * @throws {UnimplementedFeatureError} If any signer is remote
  */
 export const assertLocalSigners = (version: string, ...signers: Signer[]) => {
-  if (signers.some((signer) => signer.isRemote)) {
+  if (signers.some((signer) => signer.kind === "REMOTE")) {
     throw new UnimplementedFeatureError("remote WSCD", version);
   }
 };
@@ -93,7 +98,7 @@ export const createSignerFor = (keytag: string): Signer => ({
       kid: await thumbprint(jwk),
     }));
   },
-  isRemote: false,
+  kind: "LOCAL",
   /**
    * Get a signature for a provided value.
    * If the key pair doesn't exist yet, an error is raised.

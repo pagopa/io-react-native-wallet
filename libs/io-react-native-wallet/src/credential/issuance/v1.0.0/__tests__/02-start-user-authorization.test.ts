@@ -51,7 +51,7 @@ describe("startUserAuthorization", () => {
           walletInstanceAttestation: mockWia,
           wiaSigner: {
             getPublicKey: jest.fn(),
-            isRemote: true,
+            kind: "REMOTE",
             sign: jest.fn(),
           },
         },

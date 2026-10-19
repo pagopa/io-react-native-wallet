@@ -26,7 +26,7 @@ jest.mock("@pagopa/io-react-native-jwt", () => ({
 describe("verifyAndParseCredential", () => {
   const credentialSigner: Signer = {
     getPublicKey: async () => credentialCnfJwk,
-    isRemote: false,
+    kind: "LOCAL",
     sign: async () => "",
   };
 
@@ -129,7 +129,7 @@ describe("verifyAndParseCredential", () => {
         x: "vjlLSDAhin4DA9MccvMGLwcgoSqlSYe7J5uKU2FIRIU",
         y: "mxYLuZa8J4Jj5vYfjAJ18oKg_r4axFVMcPmhMdm1Kic",
       }),
-      isRemote: false,
+      kind: "LOCAL",
       sign: async () => "",
     };
 

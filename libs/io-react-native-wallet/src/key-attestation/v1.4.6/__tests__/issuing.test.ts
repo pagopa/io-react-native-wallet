@@ -33,7 +33,7 @@ const createMockKeyToAttest = (
       x: "1",
       y: "2",
     })),
-    isRemote: false,
+    kind: "LOCAL",
     sign: jest.fn(async (_) => `mock-signature-${keyTag}`),
   },
   ...overrides,
@@ -135,7 +135,7 @@ describe("KeyAttestation | getAttestation", () => {
   it("should throw when a key to attest is remote", async () => {
     const appFetch = createMockFetch();
     const remoteKey = createMockKeyToAttest("key-2");
-    remoteKey.signer = { ...remoteKey.signer, isRemote: true };
+    remoteKey.signer = { ...remoteKey.signer, kind: "REMOTE" };
 
     await expect(
       getAttestation(

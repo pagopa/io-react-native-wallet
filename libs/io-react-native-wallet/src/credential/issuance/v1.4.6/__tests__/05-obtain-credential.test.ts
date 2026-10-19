@@ -20,7 +20,7 @@ const createMockSigner = (keyTag: string, y: string): jest.Mocked<Signer> => ({
     x: "1",
     y,
   })),
-  isRemote: false,
+  kind: "LOCAL",
   sign: jest.fn(async (_) => `mock-signature-${keyTag}`),
 });
 

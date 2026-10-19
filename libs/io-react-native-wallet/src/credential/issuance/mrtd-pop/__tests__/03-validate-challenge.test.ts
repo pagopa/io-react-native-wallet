@@ -65,7 +65,7 @@ const wiaSigner = {
   getPublicKey: jest
     .fn()
     .mockResolvedValue({ kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo" }),
-  isRemote: false,
+  kind: "LOCAL",
   sign: jest.fn(),
 } as Signer;
 

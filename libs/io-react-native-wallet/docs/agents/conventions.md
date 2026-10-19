@@ -38,7 +38,7 @@ new ResponseErrorBuilder(IssuerResponseError)
 
 ## Signers
 
-Key operations go through the `Signer` interface (`src/utils/crypto.ts`), provided by the consumer app, which owns the whole key lifecycle. A signer exposes `getPublicKey()`, `sign(value)` and `isRemote` (local device key vs remote HSM key). Create a local one from a keytag:
+Key operations go through the `Signer` interface (`src/utils/crypto.ts`), provided by the consumer app, which owns the whole key lifecycle. A signer exposes `getPublicKey()`, `sign(value)` and `kind` (`LOCAL` device key vs `REMOTE` HSM key). Create a local one from a keytag:
 
 ```ts
 import { createSignerFor } from "@pagopa/io-react-native-wallet";

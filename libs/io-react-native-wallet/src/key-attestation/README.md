@@ -4,7 +4,7 @@ This flow is used to obtain a [**Key Attestation**](https://italia.github.io/eid
 1. `getChallenge` obtains a challenge from the Wallet Provider. The consumer uses it to generate each key to attest in a trustworthy WSCD, along with an [Android key attestation](https://developer.android.com/privacy-and-security/security-key-attestation) on Android.
 2. `getAttestation` requests the KA, with:
    - `challenge` the challenge obtained in the previous step;
-   - `keysToAttest` one or more `KeyToAttest` objects, each made of the `Signer` bound to the generated key and its `attestation` (required on Android). Remote signers (`isRemote: true`) are not supported yet and cause an `UnimplementedFeatureError`;
+   - `keysToAttest` one or more `KeyToAttest` objects, each made of the `Signer` bound to the generated key and its `attestation` (required on Android). Remote signers (`kind: "REMOTE"`) are not supported yet and cause an `UnimplementedFeatureError`;
    - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance.
 
 #### Note

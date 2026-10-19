@@ -79,9 +79,9 @@ export interface Signer {
    */
   getPublicKey: () => Promise<JWK>;
   /**
-   * Whether the key is stored in a remote HSM (remote WSCD) or on the device.
+   * Where the key is stored: on the device (`LOCAL`) or in a remote HSM (`REMOTE`, remote WSCD).
    */
-  isRemote: boolean;
+  kind: "LOCAL" | "REMOTE";
   /**
    * Optional. Produce the signatures of multiple values in a single operation (e.g. a single remote HSM call),
    * with the same requirements of sign().

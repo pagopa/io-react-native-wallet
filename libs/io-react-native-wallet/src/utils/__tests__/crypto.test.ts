@@ -6,6 +6,7 @@ import {
   getJwkFromCertificateChain,
   getJwkFromTrustChain,
   type Signer,
+  type SignerKind,
   withEphemeralKey,
 } from "../crypto";
 import { UnimplementedFeatureError } from "../errors";
@@ -117,7 +118,7 @@ describe("createSignerFor", () => {
 
     const signer = createSignerFor(keytag);
 
-    expect(signer.isRemote).toBe(false);
+    expect(signer.kind).toBe("LOCAL");
     await expect(signer.getPublicKey()).resolves.toEqual(
       expect.objectContaining({ kid: expect.any(String), kty: "RSA" }),
     );
@@ -126,21 +127,21 @@ describe("createSignerFor", () => {
 });
 
 describe("assertLocalSigners", () => {
-  const signer = (isRemote: boolean): Signer => ({
+  const signer = (kind: SignerKind): Signer => ({
     getPublicKey: jest.fn(),
-    isRemote,
+    kind,
     sign: jest.fn(),
   });
 
   it("does not throw when all signers are local", () => {
     expect(() =>
-      assertLocalSigners("1.0.0", signer(false), signer(false)),
+      assertLocalSigners("1.0.0", signer("LOCAL"), signer("LOCAL")),
     ).not.toThrow();
   });
 
   it("throws when any signer is remote", () => {
     expect(() =>
-      assertLocalSigners("1.0.0", signer(false), signer(true)),
+      assertLocalSigners("1.0.0", signer("LOCAL"), signer("REMOTE")),
     ).toThrow(UnimplementedFeatureError);
   });
 });
