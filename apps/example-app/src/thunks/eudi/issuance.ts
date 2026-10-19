@@ -75,11 +75,15 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     dispatch,
   );
 
-  const { authorizationServerMetadata, issuerMetadata } =
+  const { authorizationServerMetadata, issuerMetadata, issuerMetadataJwt } =
     await CredentialIssuance.fetchMetadata(offer.credential_issuer, {
       authorizationServer: authorizationCodeGrant.authorizationServer,
-      wrpacLote: lotes.EUWRPACProvidersList,
     });
+
+  await CredentialIssuance.verifyIssuerAuthentication({
+    jwt: issuerMetadataJwt,
+    wrpacLote: lotes.EUWRPACProvidersList,
+  });
 
   const { authUrl, codeVerifier, state } =
     await CredentialIssuance.startUserAuthorization({
@@ -139,8 +143,8 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   await CredentialIssuance.verifyCredential({
     credential,
     format,
-    lotes
-  })
+    lotes,
+  });
 
   return {
     credential,

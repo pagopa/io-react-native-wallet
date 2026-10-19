@@ -15,7 +15,6 @@ import { getJson, getJwt, getWellKnownUrl, parseOrThrow } from "./utils";
  *
  * @param credentialIssuer - The Credential Issuer identifier, from the Credential Offer
  * @param options.authorizationServer - (optional) The Authorization Server indicated in the Credential Offer grant
- * @param options.wrpacLote - The WRPAC provider LotE to authenticate the Issuer
  * @param options.fetch - (optional) The fetch implementation, defaults to the global one
  * @returns The Credential Issuer and Authorization Server metadata
  * @throws {IssuerResponseError} If the metadata cannot be fetched
@@ -26,11 +25,9 @@ export const fetchMetadata = async (
   {
     authorizationServer,
     fetch: fetchFn = fetch,
-    wrpacLote,
   }: {
     authorizationServer?: string;
     fetch?: typeof fetch;
-    wrpacLote?: ParsedLoTE;
   } = {},
 ) => {
   const issuerMetadataJwt = await getJwt(
@@ -38,22 +35,9 @@ export const fetchMetadata = async (
     fetchFn,
   );
 
-  const decodedIssuerMetadataJwt = decode(issuerMetadataJwt);
-
-  // EUDI Trust Issuer authentication
-  if (wrpacLote) {
-    await verifyJwtWithWRPAC({
-      jwt: {
-        compact: issuerMetadataJwt,
-        decoded: decodedIssuerMetadataJwt,
-      },
-      wrpacLote,
-    });
-  }
-
   const issuerMetadata = parseOrThrow(
     CredentialIssuerMetadata,
-    decodedIssuerMetadataJwt.payload,
+    decode(issuerMetadataJwt).payload,
     "Credential Issuer metadata",
   );
 
@@ -107,5 +91,44 @@ export const fetchMetadata = async (
     });
   }
 
-  return { authorizationServerMetadata, issuerMetadata };
+  return {
+    authorizationServerMetadata,
+    issuerMetadata,
+    issuerMetadataJwt, // Return the raw JWT for subsequent validation
+  };
+};
+
+/**
+ * Verify whether the Issuer is authenticated: validate the WRPAC against the WRPAC Providers LoTE
+ * and verify the metadata signature with the validated WRPAC.
+ *
+ * @param params.jwt The JWT to validate
+ * @param options.wrpacLote - The WRPAC provider LotE to authenticate the Issuer
+ */
+export const verifyIssuerAuthentication = async ({
+  jwt,
+  wrpacLote,
+}: {
+  allowUnauthenticatedIssuer?: boolean;
+  jwt: string;
+  wrpacLote: ParsedLoTE;
+}) => {
+  try {
+    await verifyJwtWithWRPAC({ jwt, wrpacLote });
+    return { isWRPACValid: true };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              name: error.name,
+            }
+          : {
+              message: "Unexpected error during Issuer authentication",
+              name: "IssuerAuthenticationFailure",
+            },
+      isWRPACValid: false,
+    };
+  }
 };

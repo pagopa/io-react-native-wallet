@@ -8,6 +8,11 @@ export interface ResolveEudiCredentialOfferThunkInput {
 }
 
 export interface ResolveEudiCredentialOfferThunkOutput {
+  /** The outcome of the Issuer authentication with its WRPAC */
+  issuerAuthentication: {
+    error?: { message: string; name: string };
+    isWRPACValid: boolean;
+  };
   /** The Credential Issuer Metadata, to show what is offered before the issuance */
   issuerMetadata: Eudi.CredentialIssuance.CredentialIssuerMetadata;
   offer: Eudi.CredentialOffer.CredentialOffer;
@@ -36,14 +41,18 @@ export const resolveEudiCredentialOfferThunk = createAppAsyncThunk<
   const { authorizationCodeGrant, preAuthorizedCodeGrant } =
     Eudi.CredentialOffer.extractGrantDetails(offer);
 
-  const { issuerMetadata } = await Eudi.CredentialIssuance.fetchMetadata(
-    offer.credential_issuer,
-    {
+  const { issuerMetadata, issuerMetadataJwt } =
+    await Eudi.CredentialIssuance.fetchMetadata(offer.credential_issuer, {
       authorizationServer:
         authorizationCodeGrant?.authorizationServer ??
         preAuthorizedCodeGrant?.authorizationServer,
+    });
+
+  const issuerAuthentication =
+    await Eudi.CredentialIssuance.verifyIssuerAuthentication({
+      jwt: issuerMetadataJwt,
       wrpacLote: EUWRPACProvidersList,
-    },
-  );
-  return { issuerMetadata, offer, uri };
+    });
+
+  return { issuerAuthentication, issuerMetadata, offer, uri };
 });

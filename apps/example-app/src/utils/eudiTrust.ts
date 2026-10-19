@@ -1,3 +1,7 @@
+import { Eudi } from "@io-app-it-wallet/io-react-native-wallet";
+
+const { LoTEProfile } = Eudi.Trust;
+
 /**
  * DER certificates, encoded in base64, published in the Official Journal of the
  * European Union (OJEU) to authenticate the signers of the Lists of Trusted Entities.
@@ -15,3 +19,20 @@ export const EUDI_TRUSTED_CERTIFICATES: {
     x509: "MIIGPjCCBCagAwIBAgIBFTANBgkqhkiG9w0BAQsFADAqMSgwJgYDVQQDDB9FdXJvcGVhbiBDb21taXNzaW9uIFJvb3QgQ0EgLSAyMB4XDTI0MTIwNDA5MDkwMFoXDTM0MTIwNDA5MDkwMFowNzEcMBoGA1UECgwTRXVyb3BlYW4gQ29tbWlzc2lvbjEXMBUGA1UEAwwOQ29tbWlzU2lnbiAtIDIwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQC63JdWSgQu/EiB4a3nb4RXzijt9HIDYh/ukpPa4PAVVlQS2myTIhaRa8N7YObYnK6f41Wi+52TlsO5iwt5JN9V1QVWK/lb8jU/u4z37zqgzvTAcNuajGk6MQtuRp+06q0iJNZ8xIqNTkthN6RSM1Lmdx6CKR/EcPkyO1J+thlMtASSI3bztQUz/grkQ1gKD0CyxbA0J95Yu/EYdslfnqNM9ZkF04rLvfqQ6Z2V5EDyM5zta9gUxJ5bAaD56IaM9wsHDhD5UvGupGHnLhEued2WbSX6WcLVe0KHRL0WHdPcNccnmlFk7FNDwBI/pT9NiZSYZ4S3pxmb+ctuHo19Q48scqywLFihea04Kiu85q8rrxEngNOwoT5z4Vp6b4b4rr84a6FzOlXgr72BCs1FuaTyMxBL0vQ46vFGf0BoNWO3SdV6dbMaUUwVF9mWZ3sgwYDge/05YiBGLZNbceVGhRMxYqTLnfCPvXNRbYOTz7/XbvjTaMsWI3kTqlqSn3v155hx7QX4EFHHPHiuQmeUyLj106Xt0f35PXmnyqDkjocxNo5jSijaq23M5fnN23GxWZMYz9QxOMRpXwX4MazTt1ow/C3HUiZH+khva+rc5/nChN9lBF8LC28E8K4eYSyJo/h0Hy84znBMiluJPRaEi5mypKfzOztkQU3gHuShtnfB1wIDAQABo4IBYDCCAVwwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUmvuPdmaY3Kws13c2cW2642dHkfYwHwYDVR0jBBgwFoAUL6SVuRCW5brbhS8X01SMXNus01cwWQYDVR0gBFIwUDAIBgYEAI96AQEwRAYGK4ECAgEBMDowOAYIKwYBBQUHAgEWLGh0dHBzOi8vY29tbWlzc2lnbi5wa2kuZWMuZXVyb3BhLmV1L2luZm8vY3AvMA4GA1UdDwEB/wQEAwIBBjBHBgNVHR8EQDA+MDygOqA4hjZodHRwOi8vY29tbWlzc2lnbi5wa2kuZWMuZXVyb3BhLmV1L2luZm8vY3JsL1Jvb3RDQS5hcmwwUgYIKwYBBQUHAQEERjBEMEIGCCsGAQUFBzAChjZodHRwOi8vY29tbWlzc2lnbi5wa2kuZWMuZXVyb3BhLmV1L2luZm8vYWlhL1Jvb3RDQS5jcnQwDQYJKoZIhvcNAQELBQADggIBACnco1rtSqcQCeZ8MwXA7HBiCq0aLNx0pp1LSYzWlfbC5/qewSGVQCl9YNsR/40DTN0SYDipJRcTeluAefrv7TrMiH8uWeIOQsfSFIPTmrnsxtworfwuL7nZCrKTWdiBFUyacikb1xxuhZl0rN/S43K6jF4OurHcFQPA4cyOv48uvrGUWwfPS38XClZJU5D/1xcTTrWmDA4YFFXAtnfJLVW67DQ6dWN37ydPmRSAFLNAvJQlD3KmU8fYnacMblONvDSUEXt3L0nbDL8NGpKSh4e5U8UJ+MXZ/+juWHyXww2r4b7uplMuC3JuU2e/nNTEN+7ehggJAc28sktSoUtz+DfneVfx4irhjhe/uCjShCI1FRSgRyezio14haSiGCHnANYqWIYLLC9FRzmruR8wxfNFckdgTHFFD+8CesbbTZwSB7I5FHVsJg/v9NU9r7ovx8N4M8fFezP/nIG4m4NlqnFSxQ+owbIF90UjuWEmrGTeVE7YLKPqioGxGpE25m1JAgQGlDdzr/NMEYDyJGIYOdPzcGImPEC22fEcCEuLu/XT3EI3OKq6n01MMEafUY+z2ID+8zUfoN6TXGLCc/VkWPPSNCjEgXZo3epRdEr6PMvu9KTkCZ+9h+4NFkLs+ED/cOOM0bfvm3hIvg4za+gdMYJ6nvR294XNQUqAfC9iI0AM",
   },
 ];
+
+/**
+ * List of Trusted Entities URLs for each profile. They are used to bootstrap
+ * all the LoTEs for subsequent trust evaluations.
+ */
+export const EUDI_LOTE_URLS = {
+  [LoTEProfile.EUPIDProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json",
+  [LoTEProfile.EUWalletProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers.json",
+  [LoTEProfile.EUWRPACProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/wrpac-providers.json",
+  [LoTEProfile.EUWRPRCProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/wrprc-providers.json",
+  [LoTEProfile.mDLProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/mdl-providers.json",
+};

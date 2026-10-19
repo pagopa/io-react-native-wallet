@@ -1,20 +1,23 @@
 import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { decode, verify } from "@pagopa/io-react-native-jwt";
+import {
+  LoTEProfile,
+  validateCertificateChainAgainstLoTE,
+} from "@pagopa/io-wallet-eudi-trust";
 import { b64utob64 } from "jsrsasign";
 
 import { verifyMdocSignature } from "../../../mdoc";
 import { MissingX509CertsError } from "../../../trust/common/errors";
-import { IoWalletError, ValidationFailed } from "../../../utils/errors";
-import { LoTEs } from "../../trust";
 import { getJwkFromCertificateChain } from "../../../utils/crypto";
-import { LoTEProfile, validateLoTECertificateChain } from "@pagopa/io-wallet-eudi-trust";
+import { IoWalletError, ValidationFailed } from "../../../utils/errors";
+import { Logger, LogLevel } from "../../../utils/logging";
+import { LoTEs } from "../../trust";
 import { trustCallbacks } from "../../trust/callbacks";
 import { EUDI_MDL_DOCTYPE, EUDI_PID_DOCTYPE, EUDI_PID_VCT } from "../const";
-import { Logger, LogLevel } from "../../../utils/logging";
 
 type VerifyCredential = (params: {
-  format: string;
   credential: string;
+  format: string;
   lotes: LoTEs;
 }) => Promise<{
   trustAnchor: string;
@@ -56,8 +59,9 @@ const verifyCredentialSdJwt = async (sdJwt: string, lotes: LoTEs) => {
     });
   }
 
-  const { profile, serviceTypeIdentifier } =
-    getCandidateLoTEIssuanceProfile(payload.vct as string);
+  const { profile, serviceTypeIdentifier } = getCandidateLoTEIssuanceProfile(
+    payload.vct as string,
+  );
   const lote = lotes[profile];
 
   Logger.log(
@@ -69,7 +73,7 @@ const verifyCredentialSdJwt = async (sdJwt: string, lotes: LoTEs) => {
     throw new IoWalletError(`No LoTE found that matches profile ${profile}`);
   }
 
-  const trustAnchor = await validateLoTECertificateChain({
+  const trustAnchor = await validateCertificateChainAgainstLoTE({
     callbacks: trustCallbacks,
     chain: protectedHeader.x5c as [string, ...string[]],
     lote,
@@ -110,7 +114,7 @@ const verifyCredentialMdoc = async (mdoc: string, lotes: LoTEs) => {
     throw new IoWalletError(`No LoTE found that matches profile ${profile}`);
   }
 
-  const trustAnchor = await validateLoTECertificateChain({
+  const trustAnchor = await validateCertificateChainAgainstLoTE({
     callbacks: trustCallbacks,
     chain: x5chain as [string, ...string[]],
     lote,
@@ -138,18 +142,18 @@ export const getCandidateLoTEIssuanceProfile = (credentialType: string) => {
     return {
       profile: LoTEProfile.EUPIDProvidersList,
       serviceTypeIdentifier: "http://uri.etsi.org/19602/SvcType/PID/Issuance",
-    }
+    };
   }
 
   if (credentialType === EUDI_MDL_DOCTYPE) {
     return {
       profile: LoTEProfile.mDLProvidersList,
-      serviceTypeIdentifier: "???"
-    }
+      serviceTypeIdentifier: "???",
+    };
   }
 
   return {
     profile: LoTEProfile.EUPubEAAProvidersList,
-    serviceTypeIdentifier: "???"
-  }
-}
+    serviceTypeIdentifier: "???",
+  };
+};

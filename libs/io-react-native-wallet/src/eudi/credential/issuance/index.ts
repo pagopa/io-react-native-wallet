@@ -1,4 +1,4 @@
-export { fetchMetadata } from "./01-fetch-metadata";
+export { fetchMetadata, verifyIssuerAuthentication } from "./01-fetch-metadata";
 export {
   startUserAuthorization,
   type StartUserAuthorizationParams,
@@ -13,7 +13,7 @@ export {
   type ObtainCredentialParams,
 } from "./05-obtain-credential";
 export { parseCredential } from "./06-parse-credential";
-export { verifyCredential } from "./07-verify-credential"
+export { verifyCredential } from "./07-verify-credential";
 export {
   type CredentialDisplay,
   type DisplayedClaim,

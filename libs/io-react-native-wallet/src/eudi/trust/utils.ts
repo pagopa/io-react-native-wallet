@@ -6,7 +6,7 @@ import { JWTDecodeResult } from "../../utils/jwk";
 import { trustCallbacks } from "./callbacks";
 
 type VerifyJwtWithWRPAC = (params: {
-  jwt: { compact: string; decoded?: JWTDecodeResult };
+  jwt: string;
   wrpacLote: ParsedLoTE;
 }) => Promise<{
   header: JWTDecodeResult["protectedHeader"];
@@ -24,7 +24,6 @@ type VerifyJwtWithWRPAC = (params: {
  * **Note:** this function DOES NOT perform LoTE validation.
  *
  * @param params.jwt.compact The JWT to verify (must include the WRPAC in `x5c`)
- * @param params.jwt.decoded (optional) The decoded JWT; if not provided, the JWT is decoded in the function
  * @param params.wrpacLote The WRPAC providers LoTE
  * @returns The verified JWT and WRPAC
  */
@@ -32,7 +31,7 @@ export const verifyJwtWithWRPAC: VerifyJwtWithWRPAC = async ({
   jwt,
   wrpacLote,
 }) => {
-  const { payload, protectedHeader } = jwt.decoded ?? decode(jwt.compact);
+  const { payload, protectedHeader } = decode(jwt);
 
   if (!protectedHeader.x5c) {
     throw new ValidationFailed({
@@ -46,7 +45,7 @@ export const verifyJwtWithWRPAC: VerifyJwtWithWRPAC = async ({
     wrpacLote,
   });
 
-  await verify(jwt.compact, wrpac.publicJwk);
+  await verify(jwt, wrpac.publicJwk);
 
   return { header: protectedHeader, payload, wrpac };
 };

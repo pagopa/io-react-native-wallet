@@ -9,6 +9,11 @@ import { asyncStatusInitial } from "../../utils";
 
 export interface EudiCredentialOfferState {
   asyncStatus: AsyncStatus;
+  /** The outcome of the last Issuer's WRPAC validation */
+  issuerAuthentication?: {
+    error?: { message: string; name: string };
+    isWRPACValid: boolean;
+  };
   issuerMetadata?: Eudi.CredentialIssuance.CredentialIssuerMetadata;
   offer?: Eudi.CredentialOffer.CredentialOffer;
   /** The URI the offer was resolved from */

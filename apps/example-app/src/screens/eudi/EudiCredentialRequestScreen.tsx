@@ -47,9 +47,8 @@ type Props = NativeStackScreenProps<
 export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
   const dispatch = useAppDispatch();
   const toast = useIOToast();
-  const { asyncStatus, issuerMetadata, offer, uri } = useAppSelector(
-    selectEudiCredentialOfferState,
-  );
+  const { asyncStatus, issuerAuthentication, issuerMetadata, offer, uri } =
+    useAppSelector(selectEudiCredentialOfferState);
   const issuanceStatus = useAppSelector(selectEudiCredentialIssuanceStatus);
   const [offerUri, setOfferUri] = useState("");
   const [requestedCredential, setRequestedCredential] = useState<string>();
@@ -60,6 +59,7 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
     eudiCredentialIssuanceStatus: issuanceStatus,
     eudiCredentialOffer: offer,
     eudiCredentialOfferAsyncStatus: asyncStatus,
+    eudiIssuerAuthentication: issuerAuthentication,
   });
 
   useEffect(
@@ -172,7 +172,21 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
             />
             <Divider />
             <ListItemInfo label="Grants" value={summary.grants} />
-            <VSpacer />
+            <Divider />
+            <ListItemInfo
+              endElement={{
+                componentProps: issuerAuthentication?.isWRPACValid
+                  ? { text: "Trusted", variant: "success" }
+                  : { text: "Not trusted", variant: "error" },
+                type: "badge",
+              }}
+              label="Issuer WRPAC"
+              value={
+                issuerAuthentication?.isWRPACValid
+                  ? "Valid"
+                  : "Validation failed"
+              }
+            />
             <ListItemSwitch
               description="Authenticate to the issuer with the Wallet Attestation. Turn off to authenticate as a public client."
               disabled={issuanceStatus.isLoading}
