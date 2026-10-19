@@ -10,7 +10,7 @@ import {
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 
 import {
-  createSignJwtFromCryptoContext,
+  createSignJwtFromSigner,
   createVerifyJwtFromJwks,
   partialCallbacks,
 } from "../../../utils/callbacks";
@@ -41,24 +41,20 @@ export function createInitChallenge(
     mrtd_pop_jwt_nonce,
     context,
   ) {
-    const {
-      appFetch = fetch,
-      walletInstanceAttestation,
-      wiaCryptoContext,
-    } = context;
+    const { appFetch = fetch, walletInstanceAttestation, wiaSigner } = context;
 
     const clientAttestationDPoP = await createClientAttestationPopJwt({
       authorizationServer: issuerConf.credential_issuer,
       callbacks: {
         generateRandom: partialCallbacks.generateRandom,
-        signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
+        signJwt: createSignJwtFromSigner(wiaSigner),
       },
       clientAttestation: walletInstanceAttestation,
       config: config.sdkConfig,
       signer: {
         alg: "ES256",
         method: "jwk",
-        publicJwk: await wiaCryptoContext.getPublicKey(),
+        publicJwk: await wiaSigner.getPublicKey(),
       },
     });
 

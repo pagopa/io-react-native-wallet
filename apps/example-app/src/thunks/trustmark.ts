@@ -1,5 +1,5 @@
 import {
-  createCryptoContextFor,
+  createSignerFor,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
 
@@ -41,7 +41,7 @@ export const getTrustmarkThunk = createAppAsyncThunk<
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   // Generate a trustmark for the credential
   const { expirationTime, jwt } = await wallet.Trustmark.getCredentialTrustmark(
@@ -49,7 +49,7 @@ export const getTrustmarkThunk = createAppAsyncThunk<
       credentialType: args.credentialType,
       docNumber: args.documentNumber,
       walletInstanceAttestation,
-      wiaCryptoContext,
+      wiaSigner,
     },
   );
 

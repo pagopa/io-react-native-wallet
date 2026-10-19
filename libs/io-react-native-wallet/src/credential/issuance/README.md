@@ -10,6 +10,8 @@ The supported credentials are defined in the entity configuration of the issuer 
 
 The IT-Wallet specifications require that the cryptographic keys associated with each credential be stored in a WSCD and attested through a **Key Attestation**, which must be provided to the Issuer when requesting a credential.
 
+Every key used by the flow is provided as a `Signer` (see the [library README](../../../README.md)). In version `1.0.0` only local signers (`kind: "LOCAL"`) are supported and passing a remote signer throws an `UnimplementedFeatureError`.
+
 ## Sequence Diagram
 
 ```mermaid
@@ -121,7 +123,7 @@ const integrityContext = getIntegrityContext(integrityKeyTag);
 // generate Key for Wallet Instance Attestation
 // ensure the key esists befor starting the issuing process
 await regenerateCryptoKey(WIA_KEYTAG); // Let's assume this function regenerates this ephemeral key
-const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+const wiaSigner = createSignerFor(WIA_KEYTAG);
 
 const { WALLET_PROVIDER_BASE_URL, WALLET_EAA_PROVIDER_BASE_URL, REDIRECT_URI } =
   env; // Let's assume these are the environment variables
@@ -138,7 +140,7 @@ const walletInstanceAttestation =
       walletSolutionVersion: "1.2.3",
     },
     {
-      wiaCryptoContext,
+      wiaSigner,
       integrityContext,
       appFetch,
     }
@@ -161,7 +163,7 @@ const pid = {
   credentialType: "PersonIdentificationData";
 };
 
-const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+const credentialSigner = createSignerFor(credentialKeyTag);
 
 // Evaluate issuer trust
 const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(WALLET_EAA_PROVIDER_BASE_URL);
@@ -175,7 +177,7 @@ const { issuerRequestUri, clientId, codeVerifier, responseMode } =
     {
       walletInstanceAttestation,
       redirectUri: REDIRECT_URI,
-      wiaCryptoContext,
+      wiaSigner,
       appFetch,
     }
   );
@@ -201,7 +203,7 @@ if (responseMode === "form_post.jwt") {
       requestObject,
       issuerConf,
       evaluatedDcqlQuery,
-      { wiaCryptoContext, appFetch }
+      { wiaSigner, appFetch }
     ));
 } else {
   // Complete the user authorization via query mode
@@ -217,7 +219,7 @@ if (responseMode === "form_post.jwt") {
 
 // Generate the DPoP context which will be used for the whole issuance flow
 await regenerateCryptoKey(DPOP_KEYTAG); // Let's assume this function regenerates this ephemeral key for the DPoP
-const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+const dPopSigner = createSignerFor(DPOP_KEYTAG);
 
 const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
@@ -226,8 +228,8 @@ const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   codeVerifier,
   {
     walletInstanceAttestation,
-    wiaCryptoContext,
-    dPopCryptoContext,
+    wiaSigner,
+    dPopSigner,
     appFetch,
   }
 );
@@ -246,8 +248,8 @@ const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
     credential_identifier: credential_identifiers[0],
   },
   {
-    credentialCryptoContext,
-    dPopCryptoContext,
+    credentialSigner,
+    dPopSigner,
     keyAttestation, // Required in issuance v1.4
     appFetch,
   }
@@ -267,7 +269,7 @@ const { parsedCredential } =
     credential,
     credential_configuration_id,
     {
-      credentialCryptoContext,
+      credentialSigner,
       ignoreMissingAttributes: true,
       includeUndefinedAttributes: false
     },
@@ -305,7 +307,7 @@ const integrityContext = getIntegrityContext(integrityKeyTag);
 // generate Key for Wallet Instance Attestation
 // ensure the key esists befor starting the issuing process
 await regenerateCryptoKey(WIA_KEYTAG); // Let's assume this function regenerates this ephemeral key
-const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+const wiaSigner = createSignerFor(WIA_KEYTAG);
 
 const { WALLET_PROVIDER_BASE_URL, WALLET_EID_PROVIDER_BASE_URL, REDIRECT_URI } =
   env; // Let's assume these are the environment variables
@@ -322,7 +324,7 @@ const walletInstanceAttestation =
       walletSolutionVersion: "1.2.3",
     },
     {
-      wiaCryptoContext,
+      wiaSigner,
       integrityContext,
       appFetch,
     }
@@ -336,12 +338,12 @@ const authorizationContext = idpHint.includes("servizicie")
       authorize: openAuthenticationSession, // Let's assume this function opens the browser for the user to authenticate
     };
 /*
- * Create credential crypto context for the PID
+ * Create credential signer for the PID
  * WARNING: The eID keytag must be persisted and later used when requesting a credential which requires a eID presentation
  */
 const credentialKeyTag = uuidv4().toString();
 await generate(credentialKeyTag);
-const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+const credentialSigner = createSignerFor(credentialKeyTag);
 
 // Evaluate issuer trust
 const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
@@ -358,7 +360,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     {
       walletInstanceAttestation,
       redirectUri,
-      wiaCryptoContext,
+      wiaSigner,
       appFetch,
     }
   );
@@ -371,7 +373,7 @@ const { code } =
 
 // Create DPoP context which will be used for the whole issuance flow
 await regenerateCryptoKey(DPOP_KEYTAG);
-const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+const dPopSigner = createSignerFor(DPOP_KEYTAG);
 
 const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
@@ -380,8 +382,8 @@ const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   codeVerifier,
   {
     walletInstanceAttestation,
-    wiaCryptoContext,
-    dPopCryptoContext,
+    wiaSigner,
+    dPopSigner,
     appFetch,
   }
 );
@@ -408,8 +410,8 @@ const { credential, format } = await wallet.CredentialIssuance.obtainCredential(
     credential_identifier: credential_identifiers.at(0),
   },
   {
-    credentialCryptoContext,
-    dPopCryptoContext,
+    credentialSigner,
+    dPopSigner,
     keyAttestation, // Required in issuance v1.4
     appFetch,
   }
@@ -420,7 +422,7 @@ const { parsedCredential, issuedAt, expiration } = await wallet.CredentialIssuan
   issuerConf,
   credential,
   credential_configuration_id,
-  { credentialCryptoContext }
+  { credentialSigner }
 );
 
 return {
@@ -462,7 +464,7 @@ const { issuerRequestUri, clientId, codeVerifier, credentialDefinition } =
     {
       walletInstanceAttestation,
       redirectUri: redirectUri,
-      wiaCryptoContext,
+      wiaSigner,
       appFetch,
     }
   );
@@ -489,7 +491,7 @@ const {
 } = await wallet.CredentialIssuance.MRTDPoP.verifyAndParseChallengeInfo(
   issuerConf,
   challenge_info,
-  { wiaCryptoContext }
+  { wiaSigner }
 );
 
 // Initialize challenge and obtain the challenge text to sign the CIE PACE protocol and validation url
@@ -504,7 +506,7 @@ const {
   mrtd_pop_jwt_nonce,
   {
     walletInstanceAttestation,
-    wiaCryptoContext,
+    wiaSigner,
     appFetch,
   }
 );
@@ -523,7 +525,7 @@ const { mrtd_val_pop_nonce, redirect_uri } =
     ias,
     {
       walletInstanceAttestation,
-      wiaCryptoContext,
+      wiaSigner,
       appFetch,
     }
   );

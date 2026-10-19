@@ -36,22 +36,22 @@ new ResponseErrorBuilder(IssuerResponseError)
   .buildFrom(baseError)
 ```
 
-## Crypto Contexts
+## Signers
 
-Hardware-backed key operations go through `CryptoContext` from `@pagopa/io-react-native-jwt`. Create one from a keytag:
+Key operations go through the `Signer` interface (`src/utils/crypto.ts`), provided by the consumer app, which owns the whole key lifecycle. A signer exposes `getPublicKey()`, `sign(value)` and `kind` (`LOCAL` device key vs `REMOTE` HSM key). Create a local one from a keytag:
 
 ```ts
-import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+import { createSignerFor } from "@pagopa/io-react-native-wallet";
 
-const cryptoContext = createCryptoContextFor(keytag);
+const signer = createSignerFor(keytag);
 ```
+
+Build and sign JWTs with `SignJWT` from `@pagopa/io-react-native-jwt`, adapting the signer with `toCryptoContext(signer)`: `new SignJWT(toCryptoContext(signer)).setProtectedHeader(header).setPayload(payload).sign()`. The `alg` header is inferred from the public key. Add time claims with the `SignJWT` fluent setters (`setIssuedAt()`, `setExpirationTime("1h")`) only where the flow requires them; do not add a `jti` unless the payload already has one. Flows that don't support remote keys must call `assertLocalSigners(version, ...signers)`.
 
 For short-lived keys use `withEphemeralKey`:
 
 ```ts
-import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
-
-const result = await withEphemeralKey(async (ephemeralContext) => {
+const result = await withEphemeralKey(async (ephemeralSigner) => {
   // key is automatically deleted after this block
 });
 ```

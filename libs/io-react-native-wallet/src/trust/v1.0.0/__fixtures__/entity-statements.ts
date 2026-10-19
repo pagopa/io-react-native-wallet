@@ -1,7 +1,7 @@
 import { generate } from "@pagopa/io-react-native-crypto";
 import { SignJWT } from "@pagopa/io-react-native-jwt";
 
-import { createCryptoContextFor } from "../../../utils/crypto";
+import { createSignerFor, toCryptoContext } from "../../../utils/crypto";
 
 type JwtHeader = Parameters<
   InstanceType<typeof SignJWT>["setProtectedHeader"]
@@ -193,7 +193,7 @@ export const signed = async (jwt: {
 }) => {
   const keytag = `${Math.random()}`;
   await generate(keytag);
-  return new SignJWT(createCryptoContextFor(keytag))
+  return new SignJWT(toCryptoContext(createSignerFor(keytag)))
     .setPayload(jwt.payload)
     .setProtectedHeader(jwt.header)
     .sign();

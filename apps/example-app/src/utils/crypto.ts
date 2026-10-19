@@ -5,14 +5,14 @@ import {
 } from "@pagopa/io-react-native-crypto";
 
 /**
- * Key which is used to generate a wallet instance attestation crypto context.
- * This key is used in combination with {@link regenerateCryptoKey} and {@link createCryptoContextFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
+ * Key which is used to generate a wallet instance attestation signer.
+ * This key is used in combination with {@link regenerateCryptoKey} and {@link createSignerFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
  */
 export const WIA_KEYTAG = "WIA_KEYTAG";
 
 /**
- * Key which is used to generate a DPoP crypto context.
- * This key is used in combination with {@link regenerateCryptoKey} and {@link createCryptoContextFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
+ * Key which is used to generate a DPoP signer.
+ * This key is used in combination with {@link regenerateCryptoKey} and {@link createSignerFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
  */
 export const DPOP_KEYTAG = "DPOP_KEYTAG";
 

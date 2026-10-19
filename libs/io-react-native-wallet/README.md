@@ -60,19 +60,17 @@ The library makes use of contexts to delegate certain aspects of the implementat
 Currently the library uses the following contexts:
 
 <details>
-  <summary>CryptoContext (cryptographic assets handling)</summary>
+  <summary>Signer (cryptographic assets handling)</summary>
 
-User flows implementions make use of tokens signed using asymmetric key pairs. Such cryptographic keys are managed by the device according to its specifications. It's not the intention of this package to handle such cryptographic assets and their peculiarities; instead, an handy interface is used to provide the right abstraction to allow responsibilities segregation:
+User flows implementions make use of tokens signed using asymmetric key pairs. Such cryptographic keys can be stored on the device or in a remote HSM (remote WSCD). It's not the intention of this package to handle such cryptographic assets and their peculiarities; instead, an handy interface is used to provide the right abstraction to allow responsibilities segregation:
 
-- The application knows who to generate/store/delete keys;
+- The application owns the whole key lifecycle: it knows how to generate/store/delete keys and how to sign with them, either locally or remotely;
 - The package knows when and where to use them.
 
-The interface is `CryptoContext` inherited from the `@pagopa/io-react-native-jwt` package:
-
-The suggested library to manage cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto).
+The interface is `Signer`:
 
 ```ts
-export interface CryptoContext {
+export interface Signer {
   /**
    * Retrieves the public key to be used in this context.
    * MUST be the same key at every invocation.
@@ -81,25 +79,39 @@ export interface CryptoContext {
    */
   getPublicKey: () => Promise<JWK>;
   /**
+   * Where the key is stored: on the device (`LOCAL`) or in a remote HSM (`REMOTE`, remote WSCD).
+   */
+  kind: "LOCAL" | "REMOTE";
+  /**
+   * Optional. Produce the signatures of multiple values in a single operation (e.g. a single remote HSM call),
+   * with the same requirements of sign().
+   * When not implemented, the library calls sign() for each value.
+   * @param values The values to be signed
+   * @returns The signatures, in the same order as the values
+   */
+  multisign?: (values: string[]) => Promise<string[]>;
+  /**
    * Produce a cryptographic signature for a given value.
-   * The signature MUST be produced using the private key paired with the public retrieved by getPublicKey()
+   * The signature MUST be produced using the private key paired with the public retrieved by getPublicKey().
+   * The value is the JWS signing input and is not transformed by the library.
+   * For EC keys the signature MUST be DER encoded, for RSA keys it MUST be base64 encoded.
    * @param value The value to be signed
    * @returns The signature
    * @throws If no keys are found
    */
-  getSignature: (value: string) => Promise<string>;
+  sign: (value: string) => Promise<string>;
 }
 ```
 
-This package provides an helper to build a `CryptoContext` object bound to a given key tag
+Remote signers are not supported by the flows of version `1.0.0` and by the Key Attestation flow: passing one throws an `UnimplementedFeatureError`.
+
+The suggested library to manage local cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto). This package provides an helper to build a local `Signer` object bound to a given key tag:
 
 ```ts
-import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";
+import { createSignerFor } from "@pagopa/io-react-native-wallet";
 
-const ctx = createCryptoContextFor("my-tag");
+const signer = createSignerFor("my-tag");
 ```
-
-The
 
 **Be sure the key for `my-tag` already exists.**
 
@@ -236,7 +248,7 @@ graph TD;
       rnw
     end
 
-    ioa --> |dependency to implement CryptoContext| iornc
+    ioa --> |dependency to implement Signer| iornc
     ioa --> |dependency to implement IntegrityContext| iorni
     ioa --> |dependency to implement AuthorizationContext| iornlu
     ioa --> |dependency to store credentials| iornss
