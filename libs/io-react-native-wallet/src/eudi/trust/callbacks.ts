@@ -40,6 +40,7 @@ export const getX509CertificateMetadata: GetX509CertificateMetadataCallback = (
 
   const subject = parseDistinguishedName(x509.getSubjectString());
   const issuer = parseDistinguishedName(x509.getIssuerString());
+  const authorityKeyIdentifier = x509.getExtAuthorityKeyIdentifier()?.kid?.hex;
   const keyUsage = x509.getExtKeyUsageString();
   const san = x509.getExtSubjectAltName2() as [string, string][] | undefined;
   const policies = x509.getExtCertificatePolicies()?.array as
@@ -47,6 +48,7 @@ export const getX509CertificateMetadata: GetX509CertificateMetadataCallback = (
     | { array?: { cps?: string }[]; policyoid: string }[];
 
   return {
+    authorityKeyIdentifier,
     country: subject.C,
     isCA: x509.getExtBasicConstraints()?.cA === true,
     issuerOrganizationIdentifier: getOrganizationIdentifier(issuer),
