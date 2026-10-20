@@ -148,7 +148,8 @@ export const getCandidateLoTEIssuanceProfile = (credentialType: string) => {
   if (credentialType === EUDI_MDL_DOCTYPE) {
     return {
       profile: LoTEProfile.mDLProvidersList,
-      serviceTypeIdentifier: "http://trust.ec.europa.eu/lists/mDL/SvcType/Issuance",
+      serviceTypeIdentifier:
+        "http://trust.ec.europa.eu/lists/mDL/SvcType/Issuance",
     };
   }
 

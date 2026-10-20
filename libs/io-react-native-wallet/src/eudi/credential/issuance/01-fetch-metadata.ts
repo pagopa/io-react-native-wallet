@@ -2,8 +2,11 @@ import { decode } from "@pagopa/io-react-native-jwt";
 import { ParsedLoTE } from "@pagopa/io-wallet-eudi-trust";
 
 import { ValidationFailed } from "../../../utils/errors";
-import { verifyJwtWithWRPAC } from "../../trust/utils";
-import { AuthorizationServerMetadata, CredentialIssuerMetadata } from "./types";
+import { verifyJwtWithWRPAC, verifyWRPRC } from "../../trust/utils";
+import {
+  AuthorizationServerMetadata,
+  CredentialIssuerMetadata,
+} from "./types";
 import { getJson, getJwt, getWellKnownUrl, parseOrThrow } from "./utils";
 
 /**
@@ -40,8 +43,6 @@ export const fetchMetadata = async (
     decode(issuerMetadataJwt).payload,
     "Credential Issuer metadata",
   );
-
-  // TODO: verify the WRPRC as well (here or later...)
 
   if (issuerMetadata.credential_issuer !== credentialIssuer) {
     throw new ValidationFailed({
@@ -129,6 +130,56 @@ export const verifyIssuerAuthentication = async ({
               name: "IssuerAuthenticationFailure",
             },
       isWRPACValid: false,
+    };
+  }
+};
+
+const REGISTRATION_CERTIFICATE_FORMAT = "registration_cert";
+
+/**
+ * Verify whether the Issuer is authorized: validate the Registration Certificate (WRPRC)
+ * found in the `issuer_info` of the metadata against the WRPRC Providers LoTE.
+ *
+ * @param params.issuerMetadata The decoded Credential Issuer metadata
+ * @param params.wrprcLote The WRPRC provider LoTE to validate the Issuer Registration Certificate
+ */
+export const verifyIssuerAuthorization = async ({
+  issuerMetadata,
+  wrprcLote,
+}: {
+  issuerMetadata: CredentialIssuerMetadata,
+  wrprcLote: ParsedLoTE;
+}) => {
+  try {
+    const registrationCertificate = issuerMetadata.issuer_info?.find(
+      ({ format }) => format === REGISTRATION_CERTIFICATE_FORMAT,
+    );
+
+    if (!registrationCertificate) {
+      throw new ValidationFailed({
+        claim: "issuer_info",
+        message:
+          "The Credential Issuer metadata has no registration certificate",
+      });
+    }
+
+    await verifyWRPRC({ wrprcJwt: registrationCertificate.data, wrprcLote });
+
+    // TODO: verify the WRPRC entitlements and their consistency with the issuance
+    return { isWRPRCValid: true };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              name: error.name,
+            }
+          : {
+              message: "Unexpected error during Issuer authorization",
+              name: "IssuerAuthorizationFailure",
+            },
+      isWRPRCValid: false,
     };
   }
 };

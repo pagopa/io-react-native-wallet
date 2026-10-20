@@ -1,4 +1,8 @@
-export { fetchMetadata, verifyIssuerAuthentication } from "./01-fetch-metadata";
+export {
+  fetchMetadata,
+  verifyIssuerAuthentication,
+  verifyIssuerAuthorization,
+} from "./01-fetch-metadata";
 export {
   startUserAuthorization,
   type StartUserAuthorizationParams,

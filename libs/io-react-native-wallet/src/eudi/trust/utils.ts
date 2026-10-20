@@ -1,5 +1,10 @@
 import { decode, verify } from "@pagopa/io-react-native-jwt";
-import { ParsedLoTE, validateWRPAC, WRPAC } from "@pagopa/io-wallet-eudi-trust";
+import {
+  ParsedLoTE,
+  validateWRPAC,
+  validateWRPRC,
+  WRPAC,
+} from "@pagopa/io-wallet-eudi-trust";
 
 import { ValidationFailed } from "../../utils/errors";
 import { JWTDecodeResult } from "../../utils/jwk";
@@ -49,3 +54,21 @@ export const verifyJwtWithWRPAC: VerifyJwtWithWRPAC = async ({
 
   return { header: protectedHeader, payload, wrpac };
 };
+
+/**
+ * Validates a Registration Certificate (WRPRC): verifies its signature and
+ * validates its certificate chain against the Providers of WRPRC LoTE.
+ *
+ * **Note:** this function DOES NOT perform LoTE validation, nor check the WRPRC entitlements.
+ *
+ * @param params.wrprcJwt The compact WRPRC JWT
+ * @param params.wrprcLote The WRPRC providers LoTE
+ * @returns The validated WRPRC
+ */
+export const verifyWRPRC = ({
+  wrprcJwt,
+  wrprcLote,
+}: {
+  wrprcJwt: string;
+  wrprcLote: ParsedLoTE;
+}) => validateWRPRC({ callbacks: trustCallbacks, wrprcJwt, wrprcLote });
