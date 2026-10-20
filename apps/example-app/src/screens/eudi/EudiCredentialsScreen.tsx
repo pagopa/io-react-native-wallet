@@ -8,6 +8,11 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
@@ -76,7 +81,10 @@ export const EudiCredentialsScreen = () => {
   );
 };
 
-/** Credential card of the list, with the holder picture when the credential has one */
+/** Scale of a pressed card, which sinks slightly under the finger */
+const PRESSED_SCALE = 0.97;
+
+/** Credential card of the list, with the holder picture and expiry when the credential has them */
 const CredentialItem = ({
   credential,
   onPress,
@@ -84,7 +92,11 @@ const CredentialItem = ({
   credential: EudiCredential;
   onPress: () => void;
 }) => {
-  const { portrait } = useEudiParsedCredential(credential);
+  const { expiresAt, portrait } = useEudiParsedCredential(credential);
+  const scale = useSharedValue(1);
+  const pressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
   return (
     <Pressable
       accessibilityLabel={
@@ -92,12 +104,21 @@ const CredentialItem = ({
       }
       accessibilityRole="button"
       onPress={onPress}
+      onPressIn={() => {
+        scale.value = withTiming(PRESSED_SCALE, { duration: 100 });
+      }}
+      onPressOut={() => {
+        scale.value = withTiming(1, { duration: 150 });
+      }}
     >
-      <EudiCredentialCard
-        credential={credential}
-        portrait={portrait}
-        sharedTransitionTag={getCredentialTransitionTag(credential.keyTag)}
-      />
+      <Animated.View style={pressStyle}>
+        <EudiCredentialCard
+          credential={credential}
+          expiresAt={expiresAt}
+          portrait={portrait}
+          sharedTransitionTag={getCredentialTransitionTag(credential.keyTag)}
+        />
+      </Animated.View>
     </Pressable>
   );
 };

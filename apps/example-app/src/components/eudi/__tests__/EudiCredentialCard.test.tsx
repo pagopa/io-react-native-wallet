@@ -6,6 +6,7 @@ import { EudiCredentialCard } from "../EudiCredentialCard";
 
 jest.mock("@pagopa/io-app-design-system", () => ({
   AnimatedIOText: jest.requireActual("react-native").Text,
+  IOColors: {},
 }));
 
 jest.mock("../../../utils/eudi", () => ({

@@ -281,6 +281,7 @@ const processPidPresentationAndCreateAuthzResponse = async ({
         nonce: requestObject.nonce,
         responseUri: requestObject.response_uri,
       },
+      { jwks: { keys: issuerConfig.keys } as jsonWebKeySet },
     );
 
   const vp_token = remotePresentation.presentations.reduce(

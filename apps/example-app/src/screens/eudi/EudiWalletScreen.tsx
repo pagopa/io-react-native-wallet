@@ -55,7 +55,7 @@ export const EudiWalletScreen = () => {
     <SafeAreaView edges={["bottom"]}>
       <FlatList
         contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
+          padding: IOVisualCostants.appMarginDefault,
         }}
         data={sections}
         keyExtractor={(item, index) => `${item.label}-${index}`}

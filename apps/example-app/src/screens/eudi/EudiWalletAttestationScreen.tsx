@@ -77,7 +77,7 @@ export const EudiWalletAttestationScreen = () => {
   return (
     <FlatList
       contentContainerStyle={{
-        margin: IOVisualCostants.appMarginDefault,
+        padding: IOVisualCostants.appMarginDefault,
       }}
       data={scenarios}
       keyExtractor={(item) => item.title}

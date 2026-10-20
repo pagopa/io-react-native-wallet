@@ -14,19 +14,25 @@ export interface SendAuthorizationResponseApi {
    * For each credential, this function:
    * - Validates the credential format (currently supports 'mso_mdoc' or 'dc+sd-jwt').
    * - Generates a verifiable presentation token (vpToken) using the appropriate method.
-   * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
+   * - For mso_mdoc, binds the SessionTranscript to the thumbprint of the Relying Party key that will encrypt the response.
    *
    * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
-   * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
-   * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
+   * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri. Its `client_metadata`, if any, takes precedence over `rpConf` to select the encryption key.
+   * @param rpConf - The Relying Party keys used to encrypt the response. Required to present mso_mdoc credentials, unless `authRequestObject.client_metadata` has them.
+   * @returns A promise that resolves to an object containing an array of presentations.
    */
   prepareRemotePresentations(
     credentials: Out<EvaluateDcqlQueryApi["evaluateDcqlQuery"]>,
     authRequestObject: {
+      client_metadata?: Pick<
+        NonNullable<RequestObject["client_metadata"]>,
+        "jwks"
+      >;
       clientId: string;
       nonce: string;
       responseUri: string;
     },
+    rpConf?: Pick<RelyingPartyConfig, "jwks">,
   ): Promise<RemotePresentation>;
 
   /**

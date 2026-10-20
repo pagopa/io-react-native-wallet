@@ -97,7 +97,8 @@ const credentialsToPresent = result.map(
 const remotePresentations =
   await wallet.RemotePresentation.prepareRemotePresentations(
     credentialsToPresent,
-    requestObject
+    requestObject,
+    rpConf
   );
 
 const authResponse = await wallet.RemotePresentation.sendAuthorizationResponse(
