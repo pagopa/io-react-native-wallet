@@ -1,5 +1,7 @@
-import { type X509CertificateOptions } from "@pagopa/io-react-native-crypto";
-
+import type {
+  CertificateChainVerifier,
+  X509CertificateOptions,
+} from "../../utils/x509";
 import type { ParsedToken } from "../common/utils";
 import type { TrustAnchorConfig } from "./TrustAnchorConfig";
 
@@ -37,17 +39,19 @@ export interface TrustApi {
    * @param trustAnchorEntity The entity configuration of the known trust anchor
    * @param chain The chain of statements to be validated
    * @param x509Options Options for the verification process
-   * @param appFetch (optional) fetch api implementation
-   * @param renewOnFail Whether to attempt to renew the trust chain if the initial validation fails
+   * @param ctx.certificateChainVerifier The X.509 certificate chain validator, provided by the consumer
+   * @param ctx.appFetch (optional) fetch api implementation
+   * @param ctx.renewOnFail Whether to attempt to renew the trust chain if the initial validation fails
    * @returns The result of the chain validation
    * @throws {FederationError} If the chain is not valid
    */
   verifyTrustChain(
     trustAnchorEntity: TrustAnchorConfig,
     chain: string[],
-    x509Options?: X509CertificateOptions,
-    ctx?: {
+    x509Options: undefined | X509CertificateOptions,
+    ctx: {
       appFetch?: typeof fetch;
+      certificateChainVerifier: CertificateChainVerifier;
       renewOnFail?: boolean;
     },
   ): Promise<ParsedToken[]>;

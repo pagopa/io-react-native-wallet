@@ -1,3 +1,5 @@
+import type { CborDecoder } from "../../../mdoc/types";
+import type { Signer } from "../../../utils/crypto";
 import type {
   Credential4Dcql,
   CredentialFormat,
@@ -26,26 +28,48 @@ export interface EvaluateDcqlQueryApi {
    * @since 1.0.0
    *
    * @param query The DCQL query
-   * @param credentialsSdJwt The list of SD-JWT credentials
-   * @param credentialsMdoc The list of mdoc credentials
+   * @param credentials.credentialsSdJwt The list of SD-JWT credentials
+   * @param credentials.credentialsMdoc The mdoc credentials, with the CBOR decoder needed to parse them
    * @returns Credentials that satisfy the query, with disclosure metadata.
    * @throws {DcqlError} if the provided DCQL query is not valid
    */
   evaluateDcqlQuery(
     query: DcqlQuery,
-    credentialsSdJwt: Credential4Dcql[],
-    credentialsMdoc?: Credential4Dcql[],
-  ): Promise<
-    (CredentialFormat & {
-      credential: string;
-      id: string;
-      keyTag: string;
-      presentationFrame: PresentationFrame;
-      purposes: CredentialPurpose[];
-      requiredDisclosures: EvaluatedDisclosure[];
-    })[]
-  >;
+    credentials: EvaluateDcqlQueryCredentials,
+  ): Promise<EvaluatedCredential[]>;
 }
+
+/**
+ * The credentials to evaluate against a DCQL query. At least one of SD-JWT and mdoc credentials is required.
+ */
+export type EvaluateDcqlQueryCredentials =
+  | {
+      credentialsMdoc: EvaluateDcqlQueryMdocCredentials;
+      credentialsSdJwt?: Credential4Dcql[];
+    }
+  | {
+      credentialsMdoc?: EvaluateDcqlQueryMdocCredentials;
+      credentialsSdJwt: Credential4Dcql[];
+    };
+
+/**
+ * mdoc credentials to evaluate against a DCQL query, with the CBOR decoder needed to parse them.
+ */
+export interface EvaluateDcqlQueryMdocCredentials {
+  /** The CBOR decoder provided by the consumer */
+  cborDecoder: CborDecoder;
+  /** The list of mdoc credentials */
+  credentials: Credential4Dcql[];
+}
+
+export type EvaluatedCredential = CredentialFormat & {
+  credential: string;
+  id: string;
+  presentationFrame: PresentationFrame;
+  purposes: CredentialPurpose[];
+  requiredDisclosures: EvaluatedDisclosure[];
+  signer: Signer;
+};
 
 export interface EvaluatedDisclosure {
   name: string;

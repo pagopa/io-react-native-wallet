@@ -53,8 +53,6 @@
     "./package.json": "./package.json"
   },
   "peerDependencies": {
-    "@pagopa/io-react-native-crypto": "*",
-    "@pagopa/io-react-native-iso18013": "*",
     "@pagopa/io-react-native-jwt": "*",
     "react": "19.2.3",
     "react-native": "0.85.3",
@@ -80,7 +78,6 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "@pagopa/io-react-native-iso18013": "^0.8.5",
     "@types/jsrsasign": "^10.5.15",
     "auto-changelog": "^2.6.0",
     "react-native-builder-bob": "^0.43.0",

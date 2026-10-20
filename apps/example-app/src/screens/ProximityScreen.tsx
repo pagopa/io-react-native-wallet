@@ -15,8 +15,8 @@ import { selectCredential } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { useAppSelector } from "../store/utils";
 import { getTrustAnchorX509Certificate } from "../utils/credential";
-import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
+import { WIA_KEYTAG } from "../utils/localCrypto";
 import {
   type EventsPayload,
   generateAcceptedFields,

@@ -1,19 +1,19 @@
 import { DcqlError, type DcqlQuery } from "dcql";
 
+import type { Credential4Dcql } from "../../api";
+
 import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
 import { legacyPid, mdl, pid } from "../../../../sd-jwt/__fixtures__/sd-jwt";
+import { createMockSigner } from "../../../../utils/__fixtures__/signer";
 import {
   CredentialsNotFoundError,
   type NotFoundDetail,
 } from "../../common/errors";
 
-const pidKeyTag = "pidkeytag";
-const mdlKeyTag = "mdlkeytag";
-
 const credentials = [
-  [pidKeyTag, pid],
-  [mdlKeyTag, mdl],
-] as [string, string][];
+  [pid, createMockSigner()],
+  [mdl, createMockSigner()],
+] satisfies Credential4Dcql[];
 
 describe("evaluateDcqlQuery", () => {
   it("should throw error when the DCQL query structure is invalid", async () => {
@@ -28,9 +28,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
-      DcqlError,
-    );
+    await expect(() =>
+      evaluateDcqlQuery(query, { credentialsSdJwt: credentials }),
+    ).rejects.toThrow(DcqlError);
   });
 
   it("should throw error when the DCQL is invalid", async () => {
@@ -45,9 +45,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
-      DcqlError,
-    );
+    await expect(() =>
+      evaluateDcqlQuery(query, { credentialsSdJwt: credentials }),
+    ).rejects.toThrow(DcqlError);
   });
 
   test.each([
@@ -140,7 +140,9 @@ describe("evaluateDcqlQuery", () => {
   ] as [DcqlQuery.Input, NotFoundDetail[]][])(
     "should throw error when no credential satisfies the DCQL query /%#",
     async (dcqlQuery, expected) => {
-      const promise = evaluateDcqlQuery(dcqlQuery, credentials);
+      const promise = evaluateDcqlQuery(dcqlQuery, {
+        credentialsSdJwt: credentials,
+      });
 
       await expect(promise).rejects.toBeInstanceOf(CredentialsNotFoundError);
       await expect(promise).rejects.toMatchObject({ details: expected });
@@ -167,13 +169,14 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
+    });
     const expected = [
       {
         credential: pid,
         format: "dc+sd-jwt",
         id: "PID",
-        keyTag: pidKeyTag,
         presentationFrame: {
           family_name: true,
           given_name: true,
@@ -185,6 +188,7 @@ describe("evaluateDcqlQuery", () => {
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        signer: expect.anything(),
         vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
     ];
@@ -220,13 +224,14 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
+    });
     const expected = [
       {
         credential: pid,
         format: "dc+sd-jwt",
         id: "PID",
-        keyTag: pidKeyTag,
         presentationFrame: {
           family_name: true,
           given_name: true,
@@ -238,16 +243,17 @@ describe("evaluateDcqlQuery", () => {
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        signer: expect.anything(),
         vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
         credential: mdl,
         format: "dc+sd-jwt",
         id: "DrivingLicense",
-        keyTag: mdlKeyTag,
         presentationFrame: { document_number: true },
         purposes: [{ required: true }],
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
+        signer: expect.anything(),
         vct: "MDL",
       },
     ];
@@ -283,19 +289,21 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
+    });
     const expected = [
       {
         credential: pid,
         format: "dc+sd-jwt",
         id: "PID",
-        keyTag: pidKeyTag,
         presentationFrame: { family_name: true, given_name: true },
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        signer: expect.anything(),
         vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
     ];
@@ -331,29 +339,31 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
+    });
     const expected = [
       {
         credential: pid,
         format: "dc+sd-jwt",
         id: "PID",
-        keyTag: pidKeyTag,
         presentationFrame: { family_name: true, given_name: true },
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        signer: expect.anything(),
         vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
         credential: mdl,
         format: "dc+sd-jwt",
         id: "MDL",
-        keyTag: mdlKeyTag,
         presentationFrame: { document_number: true },
         purposes: [{ description: "Extra services", required: false }],
         requiredDisclosures: [{ name: "document_number", value: "123456789" }],
+        signer: expect.anything(),
         vct: "MDL",
       },
     ];
@@ -417,13 +427,14 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
+    });
     const expected = [
       {
         credential: pid,
         format: "dc+sd-jwt",
         id: "PID",
-        keyTag: pidKeyTag,
         presentationFrame: {
           family_name: true,
           given_name: true,
@@ -435,19 +446,20 @@ describe("evaluateDcqlQuery", () => {
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        signer: expect.anything(),
         vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
         credential: mdl,
         format: "dc+sd-jwt",
         id: "MDL",
-        keyTag: mdlKeyTag,
         presentationFrame: { birth_date: true, document_number: true },
         purposes: [{ description: "Identification", required: true }],
         requiredDisclosures: [
           { name: "birth_date", value: "01-01-1990" },
           { name: "document_number", value: "123456789" },
         ],
+        signer: expect.anything(),
         vct: "MDL",
       },
     ];
@@ -502,13 +514,14 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
+    });
     const expected = [
       {
         credential: pid,
         format: "dc+sd-jwt",
         id: "PID",
-        keyTag: pidKeyTag,
         presentationFrame: {
           family_name: true,
           given_name: true,
@@ -520,13 +533,13 @@ describe("evaluateDcqlQuery", () => {
           { name: "given_name", value: "Ada" },
           { name: "family_name", value: "Lovelace" },
         ],
+        signer: expect.anything(),
         vct: "https://pre.ta.wallet.ipzs.it/vct/v1.0.0/personidentificationdata",
       },
       {
         credential: mdl,
         format: "dc+sd-jwt",
         id: "MDL",
-        keyTag: mdlKeyTag,
         presentationFrame: {
           birth_date: true,
           document_number: true,
@@ -556,6 +569,7 @@ describe("evaluateDcqlQuery", () => {
             ],
           },
         ],
+        signer: expect.anything(),
         vct: "MDL",
       },
     ];
@@ -577,20 +591,24 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const legacyCredentials = [[pidKeyTag, legacyPid]] as [string, string][];
-    const result = await evaluateDcqlQuery(query, legacyCredentials);
+    const legacyCredentials = [
+      [legacyPid, createMockSigner()],
+    ] satisfies Credential4Dcql[];
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: legacyCredentials,
+    });
 
     const expected = [
       {
         credential: legacyPid,
         format: "vc+sd-jwt",
         id: "PID",
-        keyTag: pidKeyTag,
         presentationFrame: { tax_id_code: true },
         purposes: [{ required: true }],
         requiredDisclosures: [
           { name: "tax_id_code", value: "TINIT-LVLDAA85T50G702B" },
         ],
+        signer: expect.anything(),
         vct: "PersonIdentificationData",
       },
     ];

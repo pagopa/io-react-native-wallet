@@ -1,10 +1,9 @@
-import { generate } from "@pagopa/io-react-native-crypto";
 import { decode } from "@pagopa/io-react-native-jwt";
 
 import type { IssuerConfig } from "../../api";
 
 import { startUserAuthorization } from "../02-start-user-authorization";
-import { createSignerFor } from "../../../../utils/crypto";
+import { createMockSigner } from "../../../../utils/__fixtures__/signer";
 import { UnimplementedFeatureError } from "../../../../utils/errors";
 
 const mockIssuerConf = {
@@ -61,9 +60,7 @@ describe("startUserAuthorization", () => {
   });
 
   it("works with a single credential (PID)", async () => {
-    const ephemeralKeytag = `ephemeral-${Math.random()}`;
-    await generate(ephemeralKeytag);
-    const ephemeralContext = createSignerFor(ephemeralKeytag);
+    const ephemeralContext = createMockSigner();
 
     const mockFetch = createMockFetch();
 
@@ -91,9 +88,7 @@ describe("startUserAuthorization", () => {
   });
 
   it("works with multiple credentials (MDL, TS)", async () => {
-    const ephemeralKeytag = `ephemeral-${Math.random()}`;
-    await generate(ephemeralKeytag);
-    const ephemeralContext = createSignerFor(ephemeralKeytag);
+    const ephemeralContext = createMockSigner();
 
     const mockFetch = createMockFetch();
 
@@ -127,9 +122,7 @@ describe("startUserAuthorization", () => {
   });
 
   it("should throw when multiple credentials have incompatible response_mode", async () => {
-    const ephemeralKeytag = `ephemeral-${Math.random()}`;
-    await generate(ephemeralKeytag);
-    const ephemeralContext = createSignerFor(ephemeralKeytag);
+    const ephemeralContext = createMockSigner();
 
     await expect(() =>
       startUserAuthorization(

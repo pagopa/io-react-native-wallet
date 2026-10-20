@@ -1,7 +1,6 @@
-import { CBOR } from "@pagopa/io-react-native-iso18013";
-
 import type { IssuanceApi } from "../credential/issuance";
 import type { Out } from "../utils/misc";
+import type { CborDecoder } from "./types";
 
 import { Verification } from "../sd-jwt/types";
 import { MDOC_VERIFICATION_IDENTIFIER } from "./const";
@@ -42,10 +41,14 @@ export const getVerificationFromParsedCredential = (
  * This method is **asynchronous**. See {@link getVerificationFromParsedCredential} for the synchronous version.
  *
  * @param token The raw MDOC credential
+ * @param cborDecoder The CBOR decoder provided by the consumer
  * @returns The verification claim or undefined if it wasn't found
  */
-export const getVerification = async (token: string) => {
-  const issuerSigned = await CBOR.decodeIssuerSigned(token);
+export const getVerification = async (
+  token: string,
+  cborDecoder: CborDecoder,
+) => {
+  const issuerSigned = await cborDecoder.decodeIssuerSigned(token);
 
   const flattenedClaims = Object.values(issuerSigned.nameSpaces).flat();
 

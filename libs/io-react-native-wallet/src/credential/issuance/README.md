@@ -192,7 +192,7 @@ const requestObject =
 
 const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
   requestObject.dcql_query,
-  [[pid.keyTag, pid.credential]]
+  { credentialsSdJwt: [[pid.credential, signer]] }
 );
 
 let code: string;

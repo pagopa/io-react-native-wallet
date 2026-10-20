@@ -1,4 +1,6 @@
+import type { CborDecoder, CborVerifier } from "../../../mdoc/types";
 import type { Signer } from "../../../utils/crypto";
+import type { CertificateChainVerifier } from "../../../utils/x509";
 import type { IssuerConfig } from "./IssuerConfig";
 import type { ParsedCredential } from "./types";
 
@@ -13,6 +15,10 @@ export interface VerifyAndParseCredentialApi {
    * @param context.credentialSigner The signer used to obtain the credential in {@link obtainCredential}
    * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
    * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
+   * @param context.validateCertificateChain Validate the certificate chain of the credential against the provided `x509CertRoot`. Always performed for mdoc credentials
+   * @param context.cborDecoder The CBOR decoder
+   * @param context.cborVerifier The COSE-Sign1 verifier
+   * @param context.certificateChainVerifier The X.509 certificate chain validator, provided by the consumer. Required when the certificate chain is validated
    * @returns A parsed credential with attributes in plain value, the expiration and issuance date of the credential
    * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
    * @throws {IoWalletError} If the credential is not bound to the provided user key
@@ -23,6 +29,18 @@ export interface VerifyAndParseCredentialApi {
     credential: string,
     credentialConfigurationId: string,
     context: {
+      /**
+       * Decoder of CBOR data.
+       */
+      cborDecoder: CborDecoder;
+      /**
+       * Verifier of COSE-Sign1 objects.
+       */
+      cborVerifier: CborVerifier;
+      /**
+       * Validator of the X.509 certificate chain, required when the chain is validated (always for mdoc).
+       */
+      certificateChainVerifier?: CertificateChainVerifier;
       credentialSigner: Signer;
       /**
        * Do not throw an error when an attribute is not found within disclosures.

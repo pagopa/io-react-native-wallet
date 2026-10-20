@@ -1,6 +1,7 @@
 import {
   IoWallet,
   type RemotePresentation,
+  type Signer,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import {
   ClientIdPrefix,
@@ -12,6 +13,10 @@ import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectItwVersion } from "../store/reducers/environment";
 import { selectPid } from "../store/selectors/pid";
+import {
+  createLocalSignerFor,
+  localMdocDeviceResponseGenerator,
+} from "../utils/localCrypto";
 import { isDefined } from "../utils/misc";
 import { createAppAsyncThunk } from "./utils";
 
@@ -77,12 +82,14 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   const credentials = selectCredentials(getState());
 
   const credentialsSdJwt = [
-    [pid.keyTag, pid.credential],
+    pid,
     ...Object.values(credentials)
       .filter(isDefined)
-      .filter((c) => c.format === "dc+sd-jwt")
-      .map((c) => [c.keyTag, c.credential]),
-  ] as [string, string][];
+      .filter((c) => c.format === "dc+sd-jwt"),
+  ].map((c): [string, Signer] => [
+    c.credential,
+    createLocalSignerFor(c.keyTag),
+  ]);
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
     return processRefusedPresentation(wallet, requestObject);
@@ -96,11 +103,11 @@ const processPresentation = async (
   wallet: IoWallet,
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig | undefined,
-  credentialsSdJwt: [string, string][],
+  credentialsSdJwt: [string, Signer][],
 ) => {
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    credentialsSdJwt,
+    { credentialsSdJwt },
   );
 
   const authRequestObject = {
@@ -113,6 +120,7 @@ const processPresentation = async (
     await wallet.RemotePresentation.prepareRemotePresentations(
       evaluatedDcqlQuery,
       authRequestObject,
+      { mdocDeviceResponseGenerator: localMdocDeviceResponseGenerator },
     );
 
   const authResponse =

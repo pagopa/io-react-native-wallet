@@ -63,9 +63,12 @@ export interface AuthorizationResponse {
 }
 
 /**
- * A pair that associate a key tag with a credential, used in DCQL queries
+ * A tuple that associates a credential with the signer bound to its key, used in DCQL queries
  */
-export type Credential4Dcql = [string /* keyTag */, string /* credential */];
+export type Credential4Dcql = [
+  string /* credential */,
+  Signer /* signer bound to the credential key */,
+];
 
 export type CredentialFormat =
   | { doctype: string; format: "mso_mdoc" }
@@ -79,6 +82,24 @@ export interface EvaluatedDisclosure {
   namespace?: string;
   value: unknown;
 }
+
+/**
+ * Callback provided by the consumer that generates the ISO 18013-7 DeviceResponse of an mdoc.
+ * The consumer owns the signing of the device authentication, which can be local or remote depending on the signer.
+ *
+ * @returns The base64-encoded DeviceResponse
+ */
+export type MdocDeviceResponseGenerator = (params: {
+  clientId: string;
+  docType: string;
+  generatedNonce: string;
+  /** The mdoc credential (IssuerSigned) in base64 or base64url */
+  issuerSignedContent: string;
+  presentationFrame: PresentationFrame;
+  requestNonce: string;
+  responseUri: string;
+  signer: Signer;
+}) => Promise<string>;
 
 /**
  * A pair that associate a tokenized Verified Credential with the claims presented or requested to present.

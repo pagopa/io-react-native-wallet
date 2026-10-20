@@ -1,8 +1,8 @@
 import type { DcqlMdocCredential, DcqlQueryResult } from "dcql";
 
-import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 
+import type { CborDecoder } from "../../../../mdoc/types";
 import type {
   Credential4Dcql,
   EvaluatedDisclosure,
@@ -19,15 +19,17 @@ type CustomDcqlMdocCredential = DcqlMdocCredential & {
  * Convert a list of credential in mdoc format to a list of objects
  * with namespaces for correct parsing by the `dcql` library.
  * @param credentials The raw mdoc credentials
+ * @param cborDecoder The CBOR decoder provided by the consumer
  * @returns List of `dcql` compatible objects
  */
 export const mapCredentialsToObj = async (
   credentialsMdoc: Credential4Dcql[],
+  cborDecoder: CborDecoder,
 ): Promise<CustomDcqlMdocCredential[]> =>
   await Promise.all(
     credentialsMdoc.map(async (credential) => {
-      const issuerSigned = await CBOR.decodeIssuerSigned(
-        b64utob64(credential[1]),
+      const issuerSigned = await cborDecoder.decodeIssuerSigned(
+        b64utob64(credential[0]),
       );
 
       const namespaces = Object.entries(issuerSigned.nameSpaces).reduce(
