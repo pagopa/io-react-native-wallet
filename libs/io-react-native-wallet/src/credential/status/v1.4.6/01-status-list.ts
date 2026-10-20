@@ -2,7 +2,6 @@ import {
   getStatusListFromJWT,
   type StatusListEntry,
 } from "@owf/token-status-list";
-import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 
 import type { StatusListApi } from "../api/status-list";
@@ -13,12 +12,13 @@ import { hasStatusOrThrow } from "../../../utils/misc";
 export const getStatusListEntry: StatusListApi["getStatusListEntry"] = async (
   credential,
   format,
+  context,
 ) => {
   let statusListEntry: StatusListEntry | undefined;
 
   if (format === "mso_mdoc") {
     // TODO: improve typing
-    const decoded = await CBOR.decode(credential);
+    const decoded = await context.cborDecoder.decode(credential);
     statusListEntry = decoded.issuerAuth?.payload?.status?.status_list;
   }
 
@@ -71,7 +71,7 @@ export const getStatusList: StatusListApi["get"] = async (
   format,
   context,
 ) => {
-  const { idx, uri } = await getStatusListEntry(credential, format);
+  const { idx, uri } = await getStatusListEntry(credential, format, context);
   const statusList = await getStatusListByUri(uri, context);
   return { format: "jwt", idx, statusList, uri };
 };

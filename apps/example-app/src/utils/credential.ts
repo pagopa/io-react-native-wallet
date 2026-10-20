@@ -19,6 +19,7 @@ import type {
 import type { Env } from "./environment";
 
 import appFetch from "../utils/fetch";
+import { cborDecoder, cborVerifier } from "./cbor";
 import {
   createLocalSignerFor,
   DPOP_KEYTAG,
@@ -41,6 +42,7 @@ import {
  * @returns The obtained credential result
  */
 
+// eslint-disable-next-line max-lines-per-function
 export const getCredential = async ({
   batchSize = 1,
   credentialId,
@@ -99,6 +101,8 @@ export const getCredential = async ({
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
     [[pid.credential, createLocalSignerFor(pid.keyTag)]],
+    [],
+    { cborDecoder },
   );
 
   let code: string;
@@ -224,6 +228,8 @@ export const getCredential = async ({
       credential,
       credential_configuration_id,
       {
+        cborDecoder,
+        cborVerifier,
         certificateChainVerifier: localCertificateChainVerifier,
         credentialSigner,
         ignoreMissingAttributes: true,
@@ -370,6 +376,7 @@ export const getCredentialStatusFromStatusList = async (
   const { idx, statusList: statusListJwt } =
     await wallet.CredentialStatus.statusList.get(credential, format, {
       appFetch,
+      cborDecoder,
     });
   const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
     keys,

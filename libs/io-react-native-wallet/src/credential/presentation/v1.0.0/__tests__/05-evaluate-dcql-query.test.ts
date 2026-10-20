@@ -4,6 +4,7 @@ import type { Credential4Dcql } from "../../api";
 
 import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
 import { legacyPid, mdl, pid } from "../../../../sd-jwt/__fixtures__/sd-jwt";
+import { createMockCborDecoder } from "../../../../utils/__fixtures__/cbor";
 import { createMockSigner } from "../../../../utils/__fixtures__/signer";
 import {
   CredentialsNotFoundError,
@@ -28,9 +29,11 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
-      DcqlError,
-    );
+    await expect(() =>
+      evaluateDcqlQuery(query, credentials, [], {
+        cborDecoder: createMockCborDecoder(),
+      }),
+    ).rejects.toThrow(DcqlError);
   });
 
   it("should throw error when the DCQL is invalid", async () => {
@@ -45,9 +48,11 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
-      DcqlError,
-    );
+    await expect(() =>
+      evaluateDcqlQuery(query, credentials, [], {
+        cborDecoder: createMockCborDecoder(),
+      }),
+    ).rejects.toThrow(DcqlError);
   });
 
   test.each([
@@ -140,7 +145,9 @@ describe("evaluateDcqlQuery", () => {
   ] as [DcqlQuery.Input, NotFoundDetail[]][])(
     "should throw error when no credential satisfies the DCQL query /%#",
     async (dcqlQuery, expected) => {
-      const promise = evaluateDcqlQuery(dcqlQuery, credentials);
+      const promise = evaluateDcqlQuery(dcqlQuery, credentials, [], {
+        cborDecoder: createMockCborDecoder(),
+      });
 
       await expect(promise).rejects.toBeInstanceOf(CredentialsNotFoundError);
       await expect(promise).rejects.toMatchObject({ details: expected });
@@ -167,7 +174,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials, [], {
+      cborDecoder: createMockCborDecoder(),
+    });
     const expected = [
       {
         credential: pid,
@@ -220,7 +229,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials, [], {
+      cborDecoder: createMockCborDecoder(),
+    });
     const expected = [
       {
         credential: pid,
@@ -283,7 +294,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials, [], {
+      cborDecoder: createMockCborDecoder(),
+    });
     const expected = [
       {
         credential: pid,
@@ -331,7 +344,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials, [], {
+      cborDecoder: createMockCborDecoder(),
+    });
     const expected = [
       {
         credential: pid,
@@ -417,7 +432,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials, [], {
+      cborDecoder: createMockCborDecoder(),
+    });
     const expected = [
       {
         credential: pid,
@@ -502,7 +519,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials);
+    const result = await evaluateDcqlQuery(query, credentials, [], {
+      cborDecoder: createMockCborDecoder(),
+    });
     const expected = [
       {
         credential: pid,
@@ -580,7 +599,9 @@ describe("evaluateDcqlQuery", () => {
     const legacyCredentials = [
       [legacyPid, createMockSigner()],
     ] satisfies Credential4Dcql[];
-    const result = await evaluateDcqlQuery(query, legacyCredentials);
+    const result = await evaluateDcqlQuery(query, legacyCredentials, [], {
+      cborDecoder: createMockCborDecoder(),
+    });
 
     const expected = [
       {

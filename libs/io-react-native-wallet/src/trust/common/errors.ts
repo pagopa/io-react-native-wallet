@@ -1,5 +1,3 @@
-import type { CertificateValidationStatus } from "../../utils/x509";
-
 import { IoWalletError, serializeAttrs } from "../../utils/errors";
 
 /**
@@ -138,7 +136,7 @@ export class X509ValidationError extends FederationError {
       kid?: string;
       tokenIndex?: number;
       x509ErrorMessage?: string;
-      x509ValidationStatus?: CertificateValidationStatus;
+      x509ValidationStatus?: string;
     },
   ) {
     super(message, details);

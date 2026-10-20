@@ -23,26 +23,9 @@ export interface CertificateValidationResult {
   errorMessage: string;
   /** Whether the certificate chain is valid */
   isValid: boolean;
-  /** The specific validation status */
-  validationStatus: CertificateValidationStatus;
+  /** The implementation-specific validation status, e.g. a code describing the failure reason */
+  validationStatus: string;
 }
-
-/**
- * The status of an X.509 certificate chain validation
- */
-export type CertificateValidationStatus =
-  | "CERTIFICATE_EXPIRED"
-  | "CERTIFICATE_NOT_YET_VALID"
-  | "CERTIFICATE_REVOKED"
-  | "CRL_EXPIRED"
-  | "CRL_FETCH_FAILED"
-  | "CRL_PARSE_FAILED"
-  | "CRL_REQUIRED_BUT_MISSING_CDP"
-  | "CRL_SIGNATURE_INVALID"
-  | "INVALID_CHAIN_PATH"
-  | "INVALID_TRUST_ANCHOR"
-  | "VALID"
-  | "VALIDATION_ERROR";
 
 /**
  * Options for X.509 certificate validation

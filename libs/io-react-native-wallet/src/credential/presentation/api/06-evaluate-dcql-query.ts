@@ -1,3 +1,4 @@
+import type { CborDecoder } from "../../../mdoc/types";
 import type { Signer } from "../../../utils/crypto";
 import type {
   Credential4Dcql,
@@ -29,13 +30,15 @@ export interface EvaluateDcqlQueryApi {
    * @param query The DCQL query
    * @param credentialsSdJwt The list of SD-JWT credentials
    * @param credentialsMdoc The list of mdoc credentials
+   * @param context.cborDecoder The CBOR decoder provided by the consumer.
    * @returns Credentials that satisfy the query, with disclosure metadata.
    * @throws {DcqlError} if the provided DCQL query is not valid
    */
   evaluateDcqlQuery(
     query: DcqlQuery,
     credentialsSdJwt: Credential4Dcql[],
-    credentialsMdoc?: Credential4Dcql[],
+    credentialsMdoc: Credential4Dcql[],
+    context: { cborDecoder: CborDecoder },
   ): Promise<
     (CredentialFormat & {
       credential: string;

@@ -13,6 +13,10 @@ import {
   pid,
   residency,
 } from "../../../../sd-jwt/__fixtures__/sd-jwt";
+import {
+  createMockCborDecoder,
+  createMockCborVerifier,
+} from "../../../../utils/__fixtures__/cbor";
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
   decode: jest.fn().mockReturnValue({}),
@@ -24,6 +28,10 @@ jest.mock("@pagopa/io-react-native-jwt", () => ({
 }));
 
 describe("verifyAndParseCredential", () => {
+  const cborMocks = {
+    cborDecoder: createMockCborDecoder(),
+    cborVerifier: createMockCborVerifier(),
+  };
   const credentialSigner: Signer = {
     getPublicKey: async () => credentialCnfJwk,
     kind: "LOCAL",
@@ -83,7 +91,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConf,
       pid,
       "mock_valid_sd_jwt_cred",
-      { credentialSigner },
+      { ...cborMocks, credentialSigner },
     );
 
     expect(result).toEqual({
@@ -113,6 +121,8 @@ describe("verifyAndParseCredential", () => {
   it("throws in case of unsupported format", async () => {
     await expect(() =>
       verifyAndParseCredential(mockIssuerConf, pid, "mock_invalid_cred", {
+        cborDecoder: createMockCborDecoder(),
+        cborVerifier: createMockCborVerifier(),
         credentialSigner,
       }),
     ).rejects.toThrow("Unsupported credential format: unknown");
@@ -135,6 +145,8 @@ describe("verifyAndParseCredential", () => {
 
     await expect(() =>
       verifyAndParseCredential(mockIssuerConf, pid, "mock_valid_sd_jwt_cred", {
+        cborDecoder: createMockCborDecoder(),
+        cborVerifier: createMockCborVerifier(),
         credentialSigner: altCredentialSigner,
       }),
     ).rejects.toThrow(
@@ -243,6 +255,8 @@ describe("verifyAndParseCredential", () => {
       education_degree,
       "dc_sd_jwt_education_degree",
       {
+        cborDecoder: createMockCborDecoder(),
+        cborVerifier: createMockCborVerifier(),
         credentialSigner,
       },
     );
@@ -478,6 +492,8 @@ describe("verifyAndParseCredential", () => {
       education_degree_with_missing_keys,
       "dc_sd_jwt_education_degree",
       {
+        cborDecoder: createMockCborDecoder(),
+        cborVerifier: createMockCborVerifier(),
         credentialSigner,
       },
     );
@@ -654,7 +670,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithDeepNested,
       mdl,
       "dc_sd_jwt_mDL",
-      { credentialSigner },
+      { ...cborMocks, credentialSigner },
     );
 
     expect(result.parsedCredential).toEqual({
@@ -821,6 +837,8 @@ describe("verifyAndParseCredential", () => {
       residency,
       "dc_sd_jwt_residency",
       {
+        cborDecoder: createMockCborDecoder(),
+        cborVerifier: createMockCborVerifier(),
         credentialSigner,
       },
     );
@@ -1001,7 +1019,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_diploma,
       "dc_sd_jwt_education_diploma",
-      { credentialSigner },
+      { ...cborMocks, credentialSigner },
     );
 
     expect(result.parsedCredential).toEqual({
@@ -1174,7 +1192,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_attendance,
       "dc_sd_jwt_education_attendance",
-      { credentialSigner },
+      { ...cborMocks, credentialSigner },
     );
 
     expect(result.parsedCredential).toEqual({

@@ -7,6 +7,10 @@ import {
   issuerJwk,
   pid1_3,
 } from "../../../../sd-jwt/__fixtures__/sd-jwt";
+import {
+  createMockCborDecoder,
+  createMockCborVerifier,
+} from "../../../../utils/__fixtures__/cbor";
 import { createMockCertificateChainVerifier } from "../../../../utils/__fixtures__/x509";
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
@@ -113,7 +117,12 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConf,
       pid1_3,
       "dc_sd_jwt_pid",
-      { credentialSigner, validateCertificateChain: false },
+      {
+        cborDecoder: createMockCborDecoder(),
+        cborVerifier: createMockCborVerifier(),
+        credentialSigner,
+        validateCertificateChain: false,
+      },
     );
     expect(result).toEqual({
       expiration: new Date(4105033200000),
@@ -162,6 +171,8 @@ describe("verifyAndParseCredential", () => {
         pid1_3,
         "dc_sd_jwt_pid",
         {
+          cborDecoder: createMockCborDecoder(),
+          cborVerifier: createMockCborVerifier(),
           certificateChainVerifier: createMockCertificateChainVerifier(),
           credentialSigner,
         },

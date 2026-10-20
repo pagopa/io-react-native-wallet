@@ -13,6 +13,7 @@ import type { PresentationStateKeys } from "../store/reducers/presentation";
 import { selectCredentials } from "../store/reducers/credential";
 import { selectItwVersion } from "../store/reducers/environment";
 import { selectPid } from "../store/selectors/pid";
+import { cborDecoder } from "../utils/cbor";
 import {
   createLocalSignerFor,
   localMdocDeviceResponseGenerator,
@@ -108,6 +109,8 @@ const processPresentation = async (
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
     credentialsSdJwt,
+    [],
+    { cborDecoder },
   );
 
   const authRequestObject = {

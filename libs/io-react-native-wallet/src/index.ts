@@ -1,13 +1,13 @@
+import type { CborDecoder, CborVerifier, IssuerSigned } from "./mdoc/types";
 import type { AuthorizationContext } from "./utils/auth";
-import type { IntegrityContext } from "./utils/integrity";
 // polyfill due to known bugs on URL implementation for react native
 // https://github.com/facebook/react-native/issues/24428
 import "react-native-url-polyfill/auto";
 
+import type { IntegrityContext } from "./utils/integrity";
 import type {
   CertificateChainVerifier,
   CertificateValidationResult,
-  CertificateValidationStatus,
   X509CertificateOptions,
 } from "./utils/x509";
 
@@ -57,10 +57,12 @@ export {
 
 export type {
   AuthorizationContext,
+  CborDecoder,
+  CborVerifier,
   CertificateChainVerifier,
   CertificateValidationResult,
-  CertificateValidationStatus,
   IntegrityContext,
+  IssuerSigned,
   PublicKey,
   Signer,
   SignerKind,

@@ -1,5 +1,4 @@
-import type { CBOR } from "@pagopa/io-react-native-iso18013";
-
+import type { CborDecoder, CborVerifier, IssuerSigned } from "../../../mdoc";
 import type { PublicKey, Signer } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
 import type { CertificateChainVerifier } from "../../../utils/x509";
@@ -18,7 +17,7 @@ type CredentialConf =
   IssuerConfig["credential_configurations_supported"][string];
 
 type DecodedMDocCredential = Out<typeof verifyMdoc> & {
-  issuerSigned: CBOR.IssuerSigned;
+  issuerSigned: IssuerSigned;
 };
 
 type DisplayableClaim = Omit<ClaimConfig, "display"> & {
@@ -33,7 +32,9 @@ type DisplayableClaim = Omit<ClaimConfig, "display"> & {
  * @param rawCredential The received credential
  * @param x509CertRoot The root certificate of the issuer, which will be used to verify the signature
  * @param holderBindingSigner The access to the holder's key
- * @param certificateChainVerifier The X.509 certificate chain validator provided by the consumer
+ * @param context.cborDecoder The CBOR decoder provided by the consumer
+ * @param context.cborVerifier The COSE-Sign1 verifier provided by the consumer
+ * @param context.certificateChainVerifier The X.509 certificate chain validator provided by the consumer
  *
  * @throws If the signature verification fails
  * @throws If the credential is not in the SdJwt4VC format
@@ -44,12 +45,16 @@ async function verifyCredentialMDoc(
   rawCredential: string,
   x509CertRoot: string,
   holderBindingSigner: Signer,
-  certificateChainVerifier: CertificateChainVerifier,
+  context: {
+    cborDecoder: CborDecoder;
+    cborVerifier: CborVerifier;
+    certificateChainVerifier: CertificateChainVerifier;
+  },
 ): Promise<DecodedMDocCredential> {
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
-      verifyMdoc(rawCredential, x509CertRoot, certificateChainVerifier),
+      verifyMdoc(rawCredential, x509CertRoot, context),
       holderBindingSigner.getPublicKey(),
     ]);
 
@@ -200,6 +205,8 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     credential,
     credentialConfigurationId,
     {
+      cborDecoder,
+      cborVerifier,
       certificateChainVerifier,
       credentialSigner,
       ignoreMissingAttributes,
@@ -219,7 +226,7 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
       credential,
       x509CertRoot,
       credentialSigner,
-      certificateChainVerifier,
+      { cborDecoder, cborVerifier, certificateChainVerifier },
     );
 
     const credentialConfig =

@@ -15,11 +15,11 @@ import * as mdocUtils from "../common/utils/mdoc";
 import * as sdJwtUtils from "../common/utils/sd-jwt";
 
 export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
-  async (query, credentialsSdJwt, credentialsMdoc = []) => {
+  async (query, credentialsSdJwt, credentialsMdoc, context) => {
     const credentials = (
       await Promise.all([
         sdJwtUtils.mapCredentialsToObj(credentialsSdJwt),
-        mdocUtils.mapCredentialsToObj(credentialsMdoc),
+        mdocUtils.mapCredentialsToObj(credentialsMdoc, context.cborDecoder),
       ])
     ).flat();
 

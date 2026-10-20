@@ -1,17 +1,21 @@
 # Credential Status
 
 This flow is used to obtain the credential status from its credential issuer. The following methods are currently supported:
+
 - Status Assertion (v1.0.0)
 - Token Status List (v1.4.6)
 
 Each step in the flow is imported from the related file which is named with a sequential number.
 
 #### Status assertion
+
 The credential status assertion is a JWT which contains the credential status which indicates if the credential is valid or not (see [OAuth Status Assertions](https://italia.github.io/eid-wallet-it-docs/versione-corrente/en/credential-revocation.html#oauth-status-assertions)).
 The status assertion is supposed to be stored securely along with the credential. It has a limited lifetime and should be refreshed periodically according to the `exp` field in the JWT payload.
 
 #### Status list
+
 The status list is a byte array embedded in a JWT/CWT, where a sequence of bits is used to represent the status of a digital credential. Each credential references the status list it is part of and the index to access its status. The following is an example for a SD-JWT credential:
+
 ```json
 {
   "status": {
@@ -41,13 +45,14 @@ graph TD;
 
 The following errors are mapped to a `IssuerResponseError` with specific codes.
 
-|Error Code|Description|
-|----------|-----------|
-|`ERR_CREDENTIAL_INVALID_STATUS`|This error is thrown when the status assertion for a given credential is invalid. It might contain more details in the `reason` property.|
+| Error Code                      | Description                                                                                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `ERR_CREDENTIAL_INVALID_STATUS` | This error is thrown when the status assertion for a given credential is invalid. It might contain more details in the `reason` property. |
 
 ## Example
 
 The status assertion and list APIs are exposed under the namespaces `statusAssertion` and `statusList` respectively, and before using them it necessary to ensure they are supported:
+
 ```ts
 if (CredentialStatus.statusAssertion.isSupported) {
   // Safely invoke status assertion APIs...
@@ -70,21 +75,10 @@ const credentialIssuerUrl = "https://issuer.example.com";
 const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
 // Get the credential assertion
-const res = await wallet.CredentialStatus.statusAssertion.get(
-  issuerConf,
-  credential,
-  format,
-  { credentialSigner, wiaSigner }
-);
+const res = await wallet.CredentialStatus.statusAssertion.get(issuerConf, credential, format, { credentialSigner, wiaSigner });
 
 // Verify and parse the status assertion
-const { parsedStatusAssertion } =
-  await wallet.CredentialStatus.statusAssertion.verifyAndParse(
-    issuerConf,
-    res.statusAssertion,
-    credential,
-    format
-  );
+const { parsedStatusAssertion } = await wallet.CredentialStatus.statusAssertion.verifyAndParse(issuerConf, res.statusAssertion, credential, format);
 
 return {
   statusAssertion: res.statusAssertion,
@@ -107,14 +101,10 @@ const credentialIssuerUrl = "https://issuer.example.com";
 const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
 
 // Get the status list token and credential reference index
-const { statusList: statusListJwt, idx } =
-  await wallet.CredentialStatus.statusList.get(credential, format);
+const { statusList: statusListJwt, idx } = await wallet.CredentialStatus.statusList.get(credential, format, { cborDecoder });
 
 // Verify and parse the status list token
-const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(
-  issuerConf.keys,
-  statusListJwt,
-);
+const statusList = await wallet.CredentialStatus.statusList.verifyAndParse(issuerConf.keys, statusListJwt);
 
 // Read the credential status from the decoded status list
 const { status, rawStatus } = wallet.CredentialStatus.statusList.getStatus(statusList, idx);

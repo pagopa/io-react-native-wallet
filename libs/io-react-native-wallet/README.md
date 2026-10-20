@@ -119,6 +119,8 @@ const signer: Signer = {
 
 X.509 chain validation is also delegated to the consumer, which provides a `certificateChainVerifier` callback (see `CertificateChainVerifier`) to the flows that need it (credential verification, trust chain validation, presentation). The native `verifyCertificateChain` from io-react-native-crypto fits this signature.
 
+Similarly, mdoc handling is delegated to the consumer through `CborDecoder` (decode `IssuerSigned`/CBOR data), `CborVerifier` (verify COSE-Sign1 signatures) and the `mdocDeviceResponseGenerator` callback of `prepareRemotePresentations` (builds and signs the ISO 18013-7 DeviceResponse). The example app implements them on top of `@pagopa/io-react-native-iso18013` in [`cbor.ts`](../../apps/example-app/src/utils/cbor.ts) and [`localCrypto.ts`](../../apps/example-app/src/utils/localCrypto.ts).
+
 </details>
 
 <details>
