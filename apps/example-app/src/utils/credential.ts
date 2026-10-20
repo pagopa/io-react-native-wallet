@@ -100,9 +100,7 @@ export const getCredential = async ({
 
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    [[pid.credential, createLocalSignerFor(pid.keyTag)]],
-    [],
-    { cborDecoder },
+    { credentialsSdJwt: [[pid.credential, createLocalSignerFor(pid.keyTag)]] },
   );
 
   let code: string;

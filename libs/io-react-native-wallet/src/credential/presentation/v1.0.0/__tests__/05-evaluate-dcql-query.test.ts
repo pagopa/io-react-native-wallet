@@ -4,7 +4,6 @@ import type { Credential4Dcql } from "../../api";
 
 import { evaluateDcqlQuery } from "../06-evaluate-dcql-query";
 import { legacyPid, mdl, pid } from "../../../../sd-jwt/__fixtures__/sd-jwt";
-import { createMockCborDecoder } from "../../../../utils/__fixtures__/cbor";
 import { createMockSigner } from "../../../../utils/__fixtures__/signer";
 import {
   CredentialsNotFoundError,
@@ -30,9 +29,7 @@ describe("evaluateDcqlQuery", () => {
     };
 
     await expect(() =>
-      evaluateDcqlQuery(query, credentials, [], {
-        cborDecoder: createMockCborDecoder(),
-      }),
+      evaluateDcqlQuery(query, { credentialsSdJwt: credentials }),
     ).rejects.toThrow(DcqlError);
   });
 
@@ -49,9 +46,7 @@ describe("evaluateDcqlQuery", () => {
     };
 
     await expect(() =>
-      evaluateDcqlQuery(query, credentials, [], {
-        cborDecoder: createMockCborDecoder(),
-      }),
+      evaluateDcqlQuery(query, { credentialsSdJwt: credentials }),
     ).rejects.toThrow(DcqlError);
   });
 
@@ -145,8 +140,8 @@ describe("evaluateDcqlQuery", () => {
   ] as [DcqlQuery.Input, NotFoundDetail[]][])(
     "should throw error when no credential satisfies the DCQL query /%#",
     async (dcqlQuery, expected) => {
-      const promise = evaluateDcqlQuery(dcqlQuery, credentials, [], {
-        cborDecoder: createMockCborDecoder(),
+      const promise = evaluateDcqlQuery(dcqlQuery, {
+        credentialsSdJwt: credentials,
       });
 
       await expect(promise).rejects.toBeInstanceOf(CredentialsNotFoundError);
@@ -174,8 +169,8 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials, [], {
-      cborDecoder: createMockCborDecoder(),
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
     });
     const expected = [
       {
@@ -229,8 +224,8 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials, [], {
-      cborDecoder: createMockCborDecoder(),
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
     });
     const expected = [
       {
@@ -294,8 +289,8 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials, [], {
-      cborDecoder: createMockCborDecoder(),
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
     });
     const expected = [
       {
@@ -344,8 +339,8 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials, [], {
-      cborDecoder: createMockCborDecoder(),
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
     });
     const expected = [
       {
@@ -432,8 +427,8 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials, [], {
-      cborDecoder: createMockCborDecoder(),
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
     });
     const expected = [
       {
@@ -519,8 +514,8 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, credentials, [], {
-      cborDecoder: createMockCborDecoder(),
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: credentials,
     });
     const expected = [
       {
@@ -599,8 +594,8 @@ describe("evaluateDcqlQuery", () => {
     const legacyCredentials = [
       [legacyPid, createMockSigner()],
     ] satisfies Credential4Dcql[];
-    const result = await evaluateDcqlQuery(query, legacyCredentials, [], {
-      cborDecoder: createMockCborDecoder(),
+    const result = await evaluateDcqlQuery(query, {
+      credentialsSdJwt: legacyCredentials,
     });
 
     const expected = [

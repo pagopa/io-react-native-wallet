@@ -28,12 +28,12 @@ describe("evaluateDcqlQuery - mdoc", () => {
     } as never);
     const signer = createMockSigner();
 
-    const result = await evaluateDcqlQuery(
-      mdocQuery,
-      [],
-      [["mdoc-credential", signer]],
-      { cborDecoder },
-    );
+    const result = await evaluateDcqlQuery(mdocQuery, {
+      credentialsMdoc: {
+        cborDecoder,
+        credentials: [["mdoc-credential", signer]],
+      },
+    });
 
     expect(cborDecoder.decodeIssuerSigned).toHaveBeenCalledWith(
       expect.any(String),
@@ -55,17 +55,39 @@ describe("evaluateDcqlQuery - mdoc", () => {
     ]);
   });
 
+  it("requires the decoder together with the mdoc credentials", async () => {
+    const signer = createMockSigner();
+
+    await expect(
+      evaluateDcqlQuery(mdocQuery, {
+        // @ts-expect-error mdoc credentials without a decoder
+        credentialsMdoc: { credentials: [["mdoc-credential", signer]] },
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("requires at least one list of credentials", async () => {
+    // @ts-expect-error neither SD-JWT nor mdoc credentials
+    await expect(evaluateDcqlQuery(mdocQuery, {})).rejects.toThrow();
+  });
+
+  it("does not require a decoder when only SD-JWT credentials are provided", async () => {
+    await expect(
+      evaluateDcqlQuery(mdocQuery, { credentialsSdJwt: [] }),
+    ).rejects.toThrow();
+  });
+
   it("propagates decoder failures", async () => {
     const cborDecoder = createMockCborDecoder();
     cborDecoder.decodeIssuerSigned.mockRejectedValue(new Error("bad cbor"));
 
     await expect(
-      evaluateDcqlQuery(
-        mdocQuery,
-        [],
-        [["mdoc-credential", createMockSigner()]],
-        { cborDecoder },
-      ),
+      evaluateDcqlQuery(mdocQuery, {
+        credentialsMdoc: {
+          cborDecoder,
+          credentials: [["mdoc-credential", createMockSigner()]],
+        },
+      }),
     ).rejects.toThrow("bad cbor");
   });
 });

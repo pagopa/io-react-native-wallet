@@ -73,7 +73,10 @@ const credentialsSdJwt = [
   ["credential2_keytag", "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KIC"],
 ];
 
-const result = wallet.RemotePresentation.evaluateDcqlQuery(requestObject.dcql_query as DcqlQuery, credentialsSdJwt, credentialsMdoc, { cborDecoder });
+const result = wallet.RemotePresentation.evaluateDcqlQuery(requestObject.dcql_query as DcqlQuery, {
+  credentialsSdJwt, // optional if credentialsMdoc is provided
+  credentialsMdoc: { credentials, cborDecoder }, // optional if credentialsSdJwt is provided
+});
 
 const credentialsToPresent = result.map(({ requiredDisclosures, ...rest }) => ({
   ...rest,

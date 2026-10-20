@@ -16,7 +16,7 @@ import {
 import * as sdJwtUtils from "../common/utils/sd-jwt";
 
 export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
-  async (query, credentialsSdJwt) => {
+  async (query, { credentialsSdJwt = [] }) => {
     const credentials = await sdJwtUtils.mapCredentialsToObj(credentialsSdJwt);
 
     const credentialsByVct = credentials.reduce(
