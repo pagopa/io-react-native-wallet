@@ -16,6 +16,12 @@ export interface VerifyRequestObjectParams {
   clientId: string;
   /** The nonce sent to the Verifier when the Request Object was fetched with POST */
   walletNonce?: string;
+  /** If true, the Request Object is only parsed and no signature validation is performed.
+   * This can be useful to avoid verifying the signature twice when the trust evaluation
+   * (see `evaluateVerifierTrust`) follows this function.
+   * @default false 
+   */
+  parsingOnly?: boolean
 }
 
 /**
@@ -23,20 +29,20 @@ export interface VerifyRequestObjectParams {
  * with its Client Identifier Prefix (Section 5.9.3), as required by HAIP:
  * - `x509_san_dns`: the leaf certificate has the Client Identifier as a DNS name SAN;
  * - `x509_hash`: the Client Identifier is the hash of the leaf certificate.
- *
+ * 
  * The Request Object must be signed with the leaf certificate key, have the same `client_id`
  * of the Authorization Request URI and, when fetched with POST, the same `wallet_nonce`.
- *
- * The Verifier certificate chain is NOT verified against a trust anchor yet.
- * TODO: verify the Verifier certificate chain against the EU List of Trusted Lists (LoTL).
- *
+ * 
+ * **Note:** when `parsingOnly` is true, signature verification is skipped and `evaluateVerifierTrust`
+ * must be invoked to determine whether the Request Object and the Verifier can be trusted.
+ * 
  * @param requestObjectJwt - The signed Request Object
  * @returns The verified Request Object and the Verifier certificate chain
  * @throws {InvalidRequestObjectError} If the Request Object or the Verifier are not valid
  */
 export const verifyRequestObject = async (
   requestObjectJwt: string,
-  { clientId, walletNonce }: VerifyRequestObjectParams,
+  { clientId, walletNonce, parsingOnly = false }: VerifyRequestObjectParams,
 ): Promise<VerifiedRequestObject> => {
   const { payload, protectedHeader } = (() => {
     try {
@@ -86,14 +92,16 @@ export const verifyRequestObject = async (
   }
   verifyClientIdentifier(client_id, x5c[0]);
 
-  await verify(requestObjectJwt, await getJwkFromCertificateChain(x5c)).catch(
-    (e) => {
-      throw new InvalidRequestObjectError(
-        "The Request Object verification failed",
-        e instanceof Error ? e.message : String(e),
-      );
-    },
-  );
+  if (parsingOnly === false) {
+    await verify(requestObjectJwt, await getJwkFromCertificateChain(x5c)).catch(
+      (e) => {
+        throw new InvalidRequestObjectError(
+          "The Request Object verification failed",
+          e instanceof Error ? e.message : String(e),
+        );
+      },
+    );
+  }
 
   return { certificateChain: x5c, requestObject: requestObject.data };
 };

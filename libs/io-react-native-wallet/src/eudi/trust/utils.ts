@@ -10,6 +10,8 @@ import { ValidationFailed } from "../../utils/errors";
 import { JWTDecodeResult } from "../../utils/jwk";
 import { trustCallbacks } from "./callbacks";
 
+export const REGISTRATION_CERTIFICATE_FORMAT = "registration_cert";
+
 type VerifyJwtWithWRPAC = (params: {
   jwt: string;
   wrpacLote: ParsedLoTE;

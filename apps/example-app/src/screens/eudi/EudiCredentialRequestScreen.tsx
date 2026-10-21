@@ -209,13 +209,6 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
             />
             <Divider />
             <ListItemInfo
-              label="Authorization Server"
-              value={summary.authorizationServer}
-            />
-            <Divider />
-            <ListItemInfo label="Grants" value={summary.grants} />
-            <Divider />
-            <ListItemInfo
               endElement={{
                 componentProps: issuerAuthentication?.isWRPACValid
                   ? { text: "Trusted", variant: "success" }

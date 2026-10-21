@@ -54,6 +54,7 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
     eudiPresentationRequest: request,
     eudiPresentationResponse: response,
     eudiPresentationStartStatus: startStatus,
+    eudiVerifierTrust: request?.verifierTrust,
   });
 
   useEffect(
@@ -175,6 +176,21 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
             <ListItemInfo
               label="Response URI"
               value={request.requestObject.response_uri}
+            />
+            <Divider />
+            <ListItemInfo
+              endElement={{
+                componentProps: request.verifierTrust.isTrusted
+                  ? { text: "Trusted", variant: "success" }
+                  : { text: "Not trusted", variant: "error" },
+                type: "badge",
+              }}
+              label="Verifier WRPAC/WRPRC"
+              value={
+                request.verifierTrust.isTrusted
+                  ? "Valid"
+                  : "Validation failed"
+              }
             />
             <VSpacer size={24} />
             <H3>Requested credentials</H3>
