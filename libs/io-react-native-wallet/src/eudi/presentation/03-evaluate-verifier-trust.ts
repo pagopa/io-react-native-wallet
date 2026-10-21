@@ -1,16 +1,21 @@
 import { ParsedLoTE } from "@pagopa/io-wallet-eudi-trust";
-import { REGISTRATION_CERTIFICATE_FORMAT, verifyJwtWithWRPAC, verifyWRPRC } from "../trust/utils";
-import { RequestObject } from "./types";
+
 import { ValidationFailed } from "../../utils/errors";
+import {
+  REGISTRATION_CERTIFICATE_FORMAT,
+  verifyJwtWithWRPAC,
+  verifyWRPRC,
+} from "../trust/utils";
+import { RequestObject } from "./types";
 
 type EvaluateVerifierTrust = (params: {
-  requestObjectJwt: string,
-  wrpacLote: ParsedLoTE,
-  wrprcLote: ParsedLoTE,
+  requestObjectJwt: string;
+  wrpacLote: ParsedLoTE;
+  wrprcLote: ParsedLoTE;
 }) => Promise<{
-  isTrusted: boolean
-  error?: { message: string; name: string }
-}>
+  error?: { message: string; name: string };
+  isTrusted: boolean;
+}>;
 
 /**
  * Perform trust evaluation based on the access and registration certificates included in the Request Object:
@@ -18,12 +23,24 @@ type EvaluateVerifierTrust = (params: {
  * - The Request Object's signature is verified with the validated WRPAC
  * - The WRPRC is validated against the provided WRPRC Providers LoTE
  *  - (TODO) The Verifier's entitlements are verified
+ *
+ * @param requestObjectJwt The Request Object in JWT format (must include the WRPAC in `x5c`)
+ * @param wrpacLote The WRPAC Providers List of Trusted Entities
+ * @param wrprcLote The WRPRC Providers List of Trusted Entities
+ * @returns Whether the Verifier is a trusted entity
  */
-export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({ requestObjectJwt, wrpacLote, wrprcLote }) => {
+export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({
+  requestObjectJwt,
+  wrpacLote,
+  wrprcLote,
+}) => {
   try {
-    const { payload } = await verifyJwtWithWRPAC({ jwt: requestObjectJwt, wrpacLote })
+    const { payload } = await verifyJwtWithWRPAC({
+      jwt: requestObjectJwt,
+      wrpacLote,
+    });
 
-    const decodedRequestObject = payload as RequestObject // TODO: remove casting
+    const decodedRequestObject = payload as RequestObject; // TODO: remove casting
 
     const registrationCertificate = decodedRequestObject.verifier_info?.find(
       ({ format }) => format === REGISTRATION_CERTIFICATE_FORMAT,
@@ -38,20 +55,21 @@ export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({ requestObje
     }
 
     // TODO: check whether WRPAC and WRPRC are linked
+    // TODO: check Issuer entitlements
+    // Both of these checks should be implemented in IO Wallet SDK
     await verifyWRPRC({ wrprcJwt: registrationCertificate.data, wrprcLote });
 
-    // TODO: check Verifier entitlements
-    return { isTrusted: true }
+    return { isTrusted: true };
   } catch (error) {
     return {
-      isTrusted: false,
       error:
         error instanceof Error
           ? { message: error.message, name: error.name }
           : {
-            message: "Unexpected error during Verifier trust evaluation",
-            name: "VerifierTrustEvaluationFailure",
-          },
-    }
+              message: "Unexpected error during Verifier trust evaluation",
+              name: "VerifierTrustEvaluationFailure",
+            },
+      isTrusted: false,
+    };
   }
-}
+};

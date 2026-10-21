@@ -30,14 +30,14 @@ export const RequestObject = z.looseObject({
   response_uri: z.url(),
   state: z.string().optional(),
   transaction_data: z.array(z.string()).optional(),
-  wallet_nonce: z.string().optional(),
   /**
    * Attestations about the Verifier, e.g. its
    * Registration Certificate (WRPRC) with format `registration_cert`.
    */
-  verifier_info: z.array(
-    z.looseObject({ data: z.string(), format: z.string() }),
-  ).optional(),
+  verifier_info: z
+    .array(z.looseObject({ data: z.string(), format: z.string() }))
+    .optional(),
+  wallet_nonce: z.string().optional(),
 });
 export type RequestObject = z.infer<typeof RequestObject>;
 

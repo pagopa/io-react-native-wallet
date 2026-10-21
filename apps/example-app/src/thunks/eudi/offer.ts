@@ -8,13 +8,13 @@ export interface ResolveEudiCredentialOfferThunkInput {
 }
 
 export interface ResolveEudiCredentialOfferThunkOutput {
-  /** The outcome of the Issuer authentication with its WRPAC */
-  issuerAuthentication: {
-    error?: { message: string; name: string };
-    isWRPACValid: boolean;
-  };
   /** The Credential Issuer Metadata, to show what is offered before the issuance */
   issuerMetadata: Eudi.CredentialIssuance.CredentialIssuerMetadata;
+  /** The outcome of the Issuer trust evaluation with its WRPAC and WRPRC */
+  issuerTrust: {
+    error?: { message: string; name: string };
+    isTrusted: boolean;
+  };
   offer: Eudi.CredentialOffer.CredentialOffer;
   uri: string;
 }
@@ -28,12 +28,10 @@ export const resolveEudiCredentialOfferThunk = createAppAsyncThunk<
   ResolveEudiCredentialOfferThunkOutput,
   ResolveEudiCredentialOfferThunkInput
 >("eudi/offerResolve", async ({ uri }, { getState }) => {
-  const { EUWRPACProvidersList } = selectEudiLotes(getState());
+  const lotes = selectEudiLotes(getState());
 
-  if (!EUWRPACProvidersList) {
-    throw new Error(
-      "A WRPAC providers LoTE is necessary to authenticate the Issuer",
-    );
+  if (!lotes.EUWRPACProvidersList || !lotes.EUWRPRCProvidersList) {
+    throw new Error("Missing WRPAC and WRPRC providers lists");
   }
 
   const offer = await Eudi.CredentialOffer.resolveCredentialOffer(uri);
@@ -48,11 +46,11 @@ export const resolveEudiCredentialOfferThunk = createAppAsyncThunk<
         preAuthorizedCodeGrant?.authorizationServer,
     });
 
-  const issuerAuthentication =
-    await Eudi.CredentialIssuance.verifyIssuerAuthentication({
-      jwt: issuerMetadataJwt,
-      wrpacLote: EUWRPACProvidersList,
-    });
+  const issuerTrust = await Eudi.CredentialIssuance.evaluateIssuerTrust({
+    issuerMetadataJwt,
+    wrpacLote: lotes.EUWRPACProvidersList,
+    wrprcLote: lotes.EUWRPRCProvidersList,
+  });
 
-  return { issuerAuthentication, issuerMetadata, offer, uri };
+  return { issuerMetadata, issuerTrust, offer, uri };
 });

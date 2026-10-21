@@ -74,9 +74,9 @@ export const CredentialIssuerMetadata = z.looseObject({
    * Attestations about the Credential Issuer, e.g. its
    * Registration Certificate (WRPRC) with format `registration_cert`.
    */
-  issuer_info: z.array(
-    z.looseObject({ data: z.string(), format: z.string() }),
-  ).optional(),
+  issuer_info: z
+    .array(z.looseObject({ data: z.string(), format: z.string() }))
+    .optional(),
   nonce_endpoint: z.url().optional(),
 });
 export type CredentialIssuerMetadata = z.infer<typeof CredentialIssuerMetadata>;

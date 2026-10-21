@@ -75,15 +75,17 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     dispatch,
   );
 
-  const { authorizationServerMetadata, issuerMetadata, issuerMetadataJwt } =
+  const { authorizationServerMetadata, issuerMetadata } =
     await CredentialIssuance.fetchMetadata(offer.credential_issuer, {
       authorizationServer: authorizationCodeGrant.authorizationServer,
     });
 
-  await CredentialIssuance.verifyIssuerAuthentication({
-    jwt: issuerMetadataJwt,
+  // This is already enforced at the start of the credential offer flow
+  /*   await CredentialIssuance.evaluateIssuerTrust({
+    issuerMetadataJwt,
     wrpacLote: lotes.EUWRPACProvidersList,
-  });
+    wrprcLote: lotes.EUWRPRCProvidersList
+  }); */
 
   const { authUrl, codeVerifier, state } =
     await CredentialIssuance.startUserAuthorization({

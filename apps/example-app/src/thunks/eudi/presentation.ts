@@ -35,9 +35,7 @@ export const startEudiPresentationThunk = createAppAsyncThunk<
   const lotes = selectEudiLotes(getState());
 
   if (!lotes.EUWRPACProvidersList || !lotes.EUWRPRCProvidersList) {
-    throw new Error(
-      "A WRPAC providers LoTE is necessary to authenticate the Verifier",
-    );
+    throw new Error("Missing WRPAC and WRPRC providers lists");
   }
 
   const { clientId, requestObjectJwt, walletNonce } =
@@ -45,14 +43,14 @@ export const startEudiPresentationThunk = createAppAsyncThunk<
 
   const { requestObject } = await RemotePresentation.verifyRequestObject(
     requestObjectJwt,
-    { clientId, walletNonce, parsingOnly: true },
+    { clientId, parsingOnly: true, walletNonce },
   );
 
   const verifierTrust = await RemotePresentation.evaluateVerifierTrust({
     requestObjectJwt,
     wrpacLote: lotes.EUWRPACProvidersList,
-    wrprcLote: lotes.EUWRPRCProvidersList
-  })
+    wrprcLote: lotes.EUWRPRCProvidersList,
+  });
 
   const credentials = await RemotePresentation.evaluateDcqlQuery(
     requestObject,

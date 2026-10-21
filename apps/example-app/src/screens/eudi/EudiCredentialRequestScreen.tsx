@@ -62,7 +62,7 @@ const useErrorToast = (status: AsyncStatus, fallbackMessage: string) => {
 export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
   const dispatch = useAppDispatch();
   const toast = useIOToast();
-  const { asyncStatus, issuerAuthentication, issuerMetadata, offer, uri } =
+  const { asyncStatus, issuerMetadata, issuerTrust, offer, uri } =
     useAppSelector(selectEudiCredentialOfferState);
   const issuanceStatus = useAppSelector(selectEudiCredentialIssuanceStatus);
   const [offerUri, setOfferUri] = useState("");
@@ -76,7 +76,7 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
     eudiCredentialIssuanceStatus: issuanceStatus,
     eudiCredentialOffer: offer,
     eudiCredentialOfferAsyncStatus: asyncStatus,
-    eudiIssuerAuthentication: issuerAuthentication,
+    eudiIssuerTrust: issuerTrust,
   });
 
   useEffect(
@@ -210,17 +210,13 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
             <Divider />
             <ListItemInfo
               endElement={{
-                componentProps: issuerAuthentication?.isWRPACValid
+                componentProps: issuerTrust?.isTrusted
                   ? { text: "Trusted", variant: "success" }
                   : { text: "Not trusted", variant: "error" },
                 type: "badge",
               }}
-              label="Issuer WRPAC"
-              value={
-                issuerAuthentication?.isWRPACValid
-                  ? "Valid"
-                  : "Validation failed"
-              }
+              label="Issuer WRPAC/WRPRC"
+              value={issuerTrust?.isTrusted ? "Valid" : "Validation failed"}
             />
             <ListItemSwitch
               description="Authenticate to the issuer with the Wallet Attestation. Turn off to authenticate as a public client."

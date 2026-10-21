@@ -1,8 +1,5 @@
-export {
-  fetchMetadata,
-  verifyIssuerAuthentication,
-  verifyIssuerAuthorization,
-} from "./01-fetch-metadata";
+export { fetchMetadata } from "./01-fetch-metadata";
+export { evaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 export {
   startUserAuthorization,
   type StartUserAuthorizationParams,

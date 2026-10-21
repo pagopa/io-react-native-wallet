@@ -9,7 +9,7 @@ export {
   verifyRequestObject,
   type VerifyRequestObjectParams,
 } from "./02-verify-request-object";
-export { evaluateVerifierTrust } from "./03-evaluate-verifier-trust"
+export { evaluateVerifierTrust } from "./03-evaluate-verifier-trust";
 export {
   evaluateDcqlQuery,
   type EvaluatedCredential,
