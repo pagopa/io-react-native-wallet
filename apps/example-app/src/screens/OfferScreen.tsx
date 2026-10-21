@@ -67,7 +67,7 @@ export const OfferScreen = () => {
     <View>
       <FlatList
         contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
+          padding: IOVisualCostants.appMarginDefault,
         }}
         data={scenarios}
         ItemSeparatorComponent={VSpacer}

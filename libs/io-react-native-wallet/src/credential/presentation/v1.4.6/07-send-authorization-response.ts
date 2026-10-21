@@ -1,4 +1,6 @@
+import { thumbprint } from "@pagopa/io-react-native-jwt";
 import {
+  extractEncryptionJwkFromJwks,
   createAuthorizationResponse as sdkCreateAuthorizationResponse,
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
@@ -14,10 +16,7 @@ import {
   IoWalletError,
   RelyingPartyResponseError,
 } from "../../../utils/errors";
-import {
-  generateRandomAlphaNumericString,
-  hasStatusOrThrow,
-} from "../../../utils/misc";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import { buildDirectPostBody } from "../common/utils/http";
 import { mapSdkAuthorizationResponseError } from "./sdkErrorMapper";
 import { AuthorizationResponse } from "./types";
@@ -28,17 +27,29 @@ import { AuthorizationResponse } from "./types";
  * For each credential, this function:
  * - Validates the credential format (currently supports 'mso_mdoc' or 'dc+sd-jwt').
  * - Generates a verifiable presentation token (vpToken) using the appropriate method.
- * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
+ * - For mso_mdoc, binds the SessionTranscript to the thumbprint of the Relying Party key that will encrypt the response.
  *
  * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
- * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
- * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
- * @throws {CredentialNotFoundError} When the credential format is unsupported.
+ * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri. Its `client_metadata`, if any, takes precedence over `rpConf` to select the encryption key.
+ * @param rpConf - The Relying Party keys used to encrypt the response. Required to present mso_mdoc credentials, unless `authRequestObject.client_metadata` has them.
+ * @returns A promise that resolves to an object containing an array of presentations.
+ * @throws {IoWalletError} When the format is unsupported or no encryption key is available for mso_mdoc.
  */
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, authRequestObject) => {
-    // In case of ISO 18013-7 we need a nonce, it shall have a minimum entropy of 16
-    const generatedNonce = generateRandomAlphaNumericString(16);
+  async (credentials, authRequestObject, rpConf) => {
+    // Same key selection as the SDK when it encrypts the response in `sendAuthorizationResponse`
+    const getEncryptionJwkThumbprint = async () => {
+      const jwks = authRequestObject.client_metadata?.jwks ?? rpConf?.jwks;
+      const encryptionJwk =
+        jwks &&
+        extractEncryptionJwkFromJwks(jwks, { supportedAlgValues: ["ECDH-ES"] });
+      if (!encryptionJwk) {
+        throw new IoWalletError(
+          "Missing Relying Party encryption key to present a mso_mdoc credential",
+        );
+      }
+      return thumbprint(encryptionJwk);
+    };
 
     const presentations = await Promise.all(
       credentials.map(async (item) => {
@@ -66,7 +77,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
         if (format === "mso_mdoc") {
           const { vp_token } = await prepareVpTokenMdoc(
             authRequestObject.nonce,
-            generatedNonce,
+            await getEncryptionJwkThumbprint(),
             authRequestObject.clientId,
             authRequestObject.responseUri,
             item.doctype,
@@ -90,10 +101,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
       }),
     );
 
-    return {
-      generatedNonce,
-      presentations,
-    };
+    return { presentations };
   };
 
 export const sendAuthorizationResponse: RemotePresentationApi["sendAuthorizationResponse"] =

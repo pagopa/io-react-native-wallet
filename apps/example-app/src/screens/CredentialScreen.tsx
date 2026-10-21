@@ -241,7 +241,7 @@ export const CredentialScreen = () => {
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
       <FlatList
         contentContainerStyle={{
-          margin: IOVisualCostants.appMarginDefault,
+          padding: IOVisualCostants.appMarginDefault,
         }}
         data={scenarios}
         keyExtractor={(item, index) => `${item.title}-${index}`}

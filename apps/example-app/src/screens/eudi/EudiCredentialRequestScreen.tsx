@@ -3,8 +3,10 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Eudi } from "@io-app-it-wallet/io-react-native-wallet";
 import {
   Body,
+  BodySmall,
   Divider,
   H3,
+  H6,
   IOButton,
   IOVisualCostants,
   ListItemInfo,
@@ -12,13 +14,13 @@ import {
   useIOToast,
   VSpacer,
 } from "@pagopa/io-app-design-system";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
+import type { AsyncStatus } from "../../store/types";
 
-import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { UriInput } from "../../components/eudi/UriInput";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
 import {
@@ -40,6 +42,19 @@ type Props = NativeStackScreenProps<
 >;
 
 /**
+ * Shows a toast with the error of an async status, when it has one.
+ */
+const useErrorToast = (status: AsyncStatus, fallbackMessage: string) => {
+  const toast = useIOToast();
+
+  useEffect(() => {
+    if (status.hasError.status) {
+      toast.error(status.hasError.error.message ?? fallbackMessage);
+    }
+  }, [fallbackMessage, status.hasError, toast]);
+};
+
+/**
  * EUDI Wallet credential request screen.
  * Every credential is requested through a credential offer, either scanned from a QR code, pasted as URI
  * or received as deep link, and obtained with the Issuer-initiated Authorization Code Flow.
@@ -53,6 +68,8 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
   const [offerUri, setOfferUri] = useState("");
   const [requestedCredential, setRequestedCredential] = useState<string>();
   const [useWalletAttestation, setUseWalletAttestation] = useState(false);
+  const [isObtainingAll, setIsObtainingAll] = useState(false);
+  const isUnmounted = useRef(false);
   const deepLinkOfferUri = route.params?.offerUri;
 
   useDebugInfo({
@@ -64,6 +81,7 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
 
   useEffect(
     () => () => {
+      isUnmounted.current = true;
       dispatch(eudiCredentialOfferReset());
       dispatch(eudiCredentialIssuanceReset());
     },
@@ -82,33 +100,58 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
     if (uri) setOfferUri(uri);
   }, [uri]);
 
-  useEffect(() => {
-    if (issuanceStatus.hasError.status) {
-      toast.error(
-        issuanceStatus.hasError.error.message ??
-          "Unable to obtain the credential",
-      );
-    }
-  }, [issuanceStatus.hasError, toast]);
+  useErrorToast(issuanceStatus, "Unable to obtain the credential");
 
+  // When obtaining all the credentials, waits for the last one
   useEffect(() => {
-    if (issuanceStatus.isDone) {
+    if (issuanceStatus.isDone && !isObtainingAll) {
       toast.success("Credential obtained");
       navigation.navigate("EudiCredentials");
     }
-  }, [issuanceStatus.isDone, navigation, toast]);
+  }, [isObtainingAll, issuanceStatus.isDone, navigation, toast]);
 
-  useEffect(() => {
-    if (asyncStatus.hasError.status) {
-      toast.error(
-        asyncStatus.hasError.error.message ??
-          "Unable to resolve the credential offer",
-      );
-    }
-  }, [asyncStatus.hasError, toast]);
+  useErrorToast(asyncStatus, "Unable to resolve the credential offer");
 
   const summary =
     offer && issuerMetadata && getOfferSummary(offer, issuerMetadata);
+
+  const obtainable = offer?.credential_configuration_ids.filter(
+    (id) => issuerMetadata?.credential_configurations_supported[id]?.format,
+  );
+
+  const obtain = useCallback(
+    (credentialConfigurationId: string) => {
+      if (!offer) {
+        return Promise.resolve(undefined);
+      }
+      setRequestedCredential(credentialConfigurationId);
+      return dispatch(
+        obtainEudiCredentialThunk({
+          clientAuthentication: useWalletAttestation ? "attestation" : "public",
+          credentialConfigurationId,
+          offer,
+        }),
+      );
+    },
+    [dispatch, offer, useWalletAttestation],
+  );
+
+  // Each credential needs its own user authorization, so they are obtained one after the other
+  const obtainAll = async () => {
+    setIsObtainingAll(true);
+    for (const id of obtainable ?? []) {
+      const result = await obtain(id);
+      if (
+        isUnmounted.current ||
+        (result && obtainEudiCredentialThunk.rejected.match(result))
+      ) {
+        break;
+      }
+    }
+    setIsObtainingAll(false);
+  };
+
+  const isBusy = issuanceStatus.isLoading || isObtainingAll;
 
   return (
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
@@ -159,11 +202,10 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
         {offer && issuerMetadata && summary && (
           <>
             <VSpacer size={24} />
-            <H3>Offer details</H3>
-            <VSpacer size={8} />
-            <ListItemInfo
-              label="Credential Issuer"
-              value={offer.credential_issuer}
+            <OfferDetails
+              authorizationServer={summary.authorizationServer}
+              credentialIssuer={offer.credential_issuer}
+              grants={summary.grants}
             />
             <Divider />
             <ListItemInfo
@@ -189,33 +231,35 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
             />
             <ListItemSwitch
               description="Authenticate to the issuer with the Wallet Attestation. Turn off to authenticate as a public client."
-              disabled={issuanceStatus.isLoading}
+              disabled={isBusy}
               label="Use Wallet Attestation"
               onSwitchValueChange={setUseWalletAttestation}
               value={useWalletAttestation}
             />
             <VSpacer />
             <H3>Offered credentials</H3>
-            {offer.credential_configuration_ids.map((id) => (
+            {obtainable && obtainable.length > 1 && (
+              <>
+                <VSpacer size={8} />
+                <IOButton
+                  disabled={isBusy}
+                  fullWidth
+                  label={`Obtain all (${obtainable.length})`}
+                  loading={isObtainingAll}
+                  onPress={obtainAll}
+                  variant="outline"
+                />
+              </>
+            )}
+            {offer.credential_configuration_ids.map((id, index) => (
               <OfferedCredential
                 credentialConfigurationId={id}
-                disabled={issuanceStatus.isLoading}
-                issuer={offer.credential_issuer}
+                disabled={isBusy}
+                isFirst={index === 0}
                 issuerMetadata={issuerMetadata}
                 key={id}
                 loading={issuanceStatus.isLoading && requestedCredential === id}
-                onObtain={() => {
-                  setRequestedCredential(id);
-                  dispatch(
-                    obtainEudiCredentialThunk({
-                      clientAuthentication: useWalletAttestation
-                        ? "attestation"
-                        : "public",
-                      credentialConfigurationId: id,
-                      offer,
-                    }),
-                  );
-                }}
+                onObtain={() => obtain(id)}
               />
             ))}
           </>
@@ -224,6 +268,31 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
     </SafeAreaView>
   );
 };
+
+type OfferDetailsProps = {
+  authorizationServer: string;
+  credentialIssuer: string;
+  grants: string;
+};
+
+/**
+ * The Credential Issuer, Authorization Server and grants of a credential offer.
+ */
+const OfferDetails = ({
+  authorizationServer,
+  credentialIssuer,
+  grants,
+}: OfferDetailsProps) => (
+  <>
+    <H3>Offer details</H3>
+    <VSpacer size={8} />
+    <ListItemInfo label="Credential Issuer" value={credentialIssuer} />
+    <Divider />
+    <ListItemInfo label="Authorization Server" value={authorizationServer} />
+    <Divider />
+    <ListItemInfo label="Grants" value={grants} />
+  </>
+);
 
 /**
  * Summarizes the grants and the Authorization Server of a credential offer.
@@ -265,19 +334,19 @@ const getOfferSummary = (
 type OfferedCredentialProps = {
   credentialConfigurationId: string;
   disabled: boolean;
-  issuer: string;
+  isFirst: boolean;
   issuerMetadata: Eudi.CredentialIssuance.CredentialIssuerMetadata;
   loading: boolean;
   onObtain: () => void;
 };
 
 /**
- * An offered credential, shown as defined by the Credential Issuer Metadata, with the button to obtain it.
+ * An offered credential, named as defined by the Credential Issuer Metadata, with its configuration ID and the button to obtain it.
  */
 const OfferedCredential = ({
   credentialConfigurationId,
   disabled,
-  issuer,
+  isFirst,
   issuerMetadata,
   loading,
   onObtain,
@@ -293,23 +362,24 @@ const OfferedCredential = ({
 
   return (
     <>
-      <VSpacer />
-      {format ? (
-        <EudiCredentialCard
-          credential={{ credentialConfigurationId, display, format, issuer }}
-        />
-      ) : (
-        <Body>{`${credentialConfigurationId} is not supported by the issuer`}</Body>
-      )}
+      {isFirst ? <VSpacer size={8} /> : <Divider />}
+      <VSpacer size={8} />
+      <H6>{display.name}</H6>
+      <BodySmall color="grey-700">
+        {format
+          ? `${credentialConfigurationId} · ${format}`
+          : `${credentialConfigurationId} is not supported by the issuer`}
+      </BodySmall>
       <VSpacer size={8} />
       <IOButton
         disabled={disabled || !format}
         fullWidth
-        label={`Obtain ${display.name}`}
+        label="Obtain"
         loading={loading}
         onPress={onObtain}
         variant="solid"
       />
+      <VSpacer size={8} />
     </>
   );
 };

@@ -176,7 +176,7 @@ export const CredentialStatusScreen = () => {
   return (
     <FlatList
       contentContainerStyle={{
-        margin: IOVisualCostants.appMarginDefault,
+        padding: IOVisualCostants.appMarginDefault,
       }}
       data={getScenarios()}
       keyExtractor={(item, index) => `${item?.title}-${index}`}
