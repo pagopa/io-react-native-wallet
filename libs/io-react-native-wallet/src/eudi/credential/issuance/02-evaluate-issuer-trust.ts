@@ -1,15 +1,15 @@
+import { decode, verify } from "@pagopa/io-react-native-jwt";
 import {
   ParsedLoTE,
+  validateWRPAC,
+  validateWRPRC,
   verifyWRPAuthorization,
   WRP_ENTITLEMENTS,
 } from "@pagopa/io-wallet-eudi-trust";
 
 import { ValidationFailed } from "../../../utils/errors";
-import {
-  REGISTRATION_CERTIFICATE_FORMAT,
-  verifyJwtWithWRPAC,
-  verifyWRPRC,
-} from "../../trust/utils";
+import { trustCallbacks } from "../../trust/callbacks";
+import { REGISTRATION_CERTIFICATE_FORMAT } from "../../trust/const";
 import { CredentialIssuerMetadata } from "./types";
 
 type EvaluateIssuerTrust = (params: {
@@ -26,7 +26,9 @@ type EvaluateIssuerTrust = (params: {
  * - The WRPAC is validated against the provided WRPAC Providers LoTE
  * - The Issuer metadata's signature is verified with the validated WRPAC
  * - The WRPRC is validated against the provided WRPRC Providers LoTE
- *  - (TODO) The Issuer's entitlements are verified
+ * - The Issuer's entitlements are verified
+ *
+ * **Note:** this function DOES NOT perform WRPAC and WRPRC providers LoTE validation.
  *
  * @param issuerMetadataJwt The Issuer metadata in JWT format (must include the WRPAC in `x5c`)
  * @param wrpacLote The WRPAC Providers List of Trusted Entities
@@ -39,13 +41,23 @@ export const evaluateIssuerTrust: EvaluateIssuerTrust = async ({
   wrprcLote,
 }) => {
   try {
-    const { payload, wrpac } = await verifyJwtWithWRPAC({
-      jwt: issuerMetadataJwt,
+    const { payload, protectedHeader } = decode(issuerMetadataJwt);
+
+    if (!protectedHeader.x5c) {
+      throw new ValidationFailed({
+        message: "JWT header is missing x5c with WRPAC",
+      });
+    }
+
+    const { wrpac } = await validateWRPAC({
+      callbacks: trustCallbacks,
+      wrpacChain: protectedHeader.x5c as [string, ...string[]],
       wrpacLote,
     });
+    // Ensure the Issuer metadata JWT has been signed by a trusted WRPAC
+    await verify(issuerMetadataJwt, wrpac.publicJwk);
 
-    const decodedIssuerMetadata = payload as CredentialIssuerMetadata; // TODO: remove casting
-
+    const decodedIssuerMetadata = payload as CredentialIssuerMetadata;
     const registrationCertificate = decodedIssuerMetadata.issuer_info?.find(
       ({ format }) => format === REGISTRATION_CERTIFICATE_FORMAT,
     );
@@ -58,7 +70,8 @@ export const evaluateIssuerTrust: EvaluateIssuerTrust = async ({
       });
     }
 
-    const { wrprc } = await verifyWRPRC({
+    const { wrprc } = await validateWRPRC({
+      callbacks: trustCallbacks,
       wrprcJwt: registrationCertificate.data,
       wrprcLote,
     });
