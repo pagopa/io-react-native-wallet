@@ -1,4 +1,8 @@
-import { ParsedLoTE } from "@pagopa/io-wallet-eudi-trust";
+import {
+  ParsedLoTE,
+  verifyWRPAuthorization,
+  WRP_ENTITLEMENTS,
+} from "@pagopa/io-wallet-eudi-trust";
 
 import { ValidationFailed } from "../../utils/errors";
 import {
@@ -35,7 +39,7 @@ export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({
   wrprcLote,
 }) => {
   try {
-    const { payload } = await verifyJwtWithWRPAC({
+    const { payload, wrpac } = await verifyJwtWithWRPAC({
       jwt: requestObjectJwt,
       wrpacLote,
     });
@@ -54,10 +58,15 @@ export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({
       });
     }
 
-    // TODO: check whether WRPAC and WRPRC are linked
-    // TODO: check Issuer entitlements
-    // Both of these checks should be implemented in IO Wallet SDK
-    await verifyWRPRC({ wrprcJwt: registrationCertificate.data, wrprcLote });
+    const { wrprc } = await verifyWRPRC({
+      wrprcJwt: registrationCertificate.data,
+      wrprcLote,
+    });
+    verifyWRPAuthorization({
+      entitlements: [WRP_ENTITLEMENTS.SERVICE_PROVIDER],
+      wrpac,
+      wrprc,
+    });
 
     return { isTrusted: true };
   } catch (error) {
