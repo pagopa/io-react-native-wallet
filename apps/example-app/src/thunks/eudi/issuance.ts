@@ -54,13 +54,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     offer,
   } = args;
   const { CredentialIssuance, CredentialOffer } = Eudi;
-
   const lotes = selectEudiLotes(getState());
-  if (!lotes.EUWRPACProvidersList) {
-    throw new Error(
-      "A WRPAC providers LoTE is necessary to authenticate the Issuer",
-    );
-  }
 
   const { authorizationCodeGrant } = CredentialOffer.extractGrantDetails(offer);
   if (!authorizationCodeGrant) {
@@ -156,6 +150,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
       credentialConfigurationId,
     ),
     format,
+    isSignatureVerified: true, // verifyCredential throws, so here the signature is valid
     issuer: offer.credential_issuer,
     keyTag,
     obtainedAt: new Date().toISOString(),
