@@ -2,7 +2,6 @@ import {
   fetchAndValidateLoTE,
   type LoTEProfile,
   type ParsedLoTE,
-  validateWRPAC,
 } from "@pagopa/io-wallet-eudi-trust";
 
 import { trustCallbacks } from "./callbacks";
@@ -65,18 +64,3 @@ export const bootstrapLoTEs = async ({
 
   return result;
 };
-
-export interface ValidateAndParseWRPACOptions {
-  wrpacChain: string[];
-  wrpacLote: ParsedLoTE;
-}
-
-export const validateAndParseWRPAC = async ({
-  wrpacChain,
-  wrpacLote,
-}: ValidateAndParseWRPACOptions) =>
-  validateWRPAC({
-    callbacks: trustCallbacks,
-    wrpacChain: wrpacChain as [string, ...string[]],
-    wrpacLote,
-  });
