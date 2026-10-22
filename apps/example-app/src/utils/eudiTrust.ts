@@ -36,3 +36,19 @@ export const EUDI_LOTE_URLS = {
   [LoTEProfile.mDLProvidersList]:
     "https://development.trust.tech.ec.europa.eu/lists/eudiw/mdl-providers.json",
 };
+
+/**
+ * LoTEs for negative tests.
+ */
+export const EUDI_NEGATIVE_LOTE_URLS = {
+  [LoTEProfile.EUPIDProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers_empty.json",
+  [LoTEProfile.EUWalletProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers_empty.json",
+  [LoTEProfile.EUWRPACProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/wrpac-providers_empty.json",
+  [LoTEProfile.EUWRPRCProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/wrprc-providers_empty.json",
+  [LoTEProfile.mDLProvidersList]:
+    "https://development.trust.tech.ec.europa.eu/lists/eudiw/mdl-providers_empty.json",
+};

@@ -6,13 +6,12 @@ import { PersistConfig, persistReducer } from "redux-persist";
 
 import type { AsyncStatus, RootState } from "../../types";
 
-import {
-  bootstrapLoTEsThunk,
-  validateCredentialIssuerMetadataWRPACThunk,
-} from "../../../thunks/eudi/trust";
+import { bootstrapLoTEsThunk } from "../../../thunks/eudi/trust";
 import { asyncStatusInitial } from "../../utils";
 
 export interface EudiTrustState {
+  /** Whether the LoTEs of the last bootstrap are the ones for negative tests */
+  isNegativeLotes: boolean;
   /** LoTEs successfully fetched and validated by the last bootstrap, by profile */
   lotes: Eudi.Trust.LoTEs;
   /** LoTEs that could not be fetched or validated by the last bootstrap */
@@ -20,17 +19,14 @@ export interface EudiTrustState {
   lotesStatus: AsyncStatus;
   /** Number of LoTEs requested by the last bootstrap */
   lotesTotal: number;
-  /** WRPAC of the EUDIW Dev Issuer metadata */
-  wrpac?: Record<string, unknown>;
-  wrpacStatus: AsyncStatus;
 }
 
 const initialState: EudiTrustState = {
+  isNegativeLotes: false,
   lotes: {},
   lotesFailures: [],
   lotesStatus: asyncStatusInitial,
   lotesTotal: 0,
-  wrpacStatus: asyncStatusInitial,
 };
 
 /**
@@ -45,7 +41,8 @@ const eudiTrustSlice = createSlice({
       state.lotesStatus = { ...asyncStatusInitial, isDone: true };
     });
 
-    builder.addCase(bootstrapLoTEsThunk.pending, (state) => {
+    builder.addCase(bootstrapLoTEsThunk.pending, (state, action) => {
+      state.isNegativeLotes = action.meta.arg;
       state.lotes = {};
       state.lotesFailures = [];
       state.lotesStatus = { ...asyncStatusInitial, isLoading: true };
@@ -57,32 +54,6 @@ const eudiTrustSlice = createSlice({
         hasError: { error: action.error, status: true },
       };
     });
-
-    builder.addCase(
-      validateCredentialIssuerMetadataWRPACThunk.fulfilled,
-      (state, action) => {
-        state.wrpac = action.payload;
-        state.wrpacStatus = { ...asyncStatusInitial, isDone: true };
-      },
-    );
-
-    builder.addCase(
-      validateCredentialIssuerMetadataWRPACThunk.pending,
-      (state) => {
-        state.wrpac = undefined;
-        state.wrpacStatus = { ...asyncStatusInitial, isLoading: true };
-      },
-    );
-
-    builder.addCase(
-      validateCredentialIssuerMetadataWRPACThunk.rejected,
-      (state, action) => {
-        state.wrpacStatus = {
-          ...asyncStatusInitial,
-          hasError: { error: action.error, status: true },
-        };
-      },
-    );
   },
   initialState,
   name: "eudiTrust",
@@ -99,7 +70,7 @@ export const { eudiTrustReset } = eudiTrustSlice.actions;
 const persistConfig: PersistConfig<EudiTrustState> = {
   key: "eudiTrust",
   storage: AsyncStorage,
-  whitelist: ["lotes", "lotesFailures", "lotesTotal"],
+  whitelist: ["isNegativeLotes", "lotes", "lotesFailures", "lotesTotal"],
 };
 
 export const eudiTrustReducer = persistReducer(
@@ -122,7 +93,5 @@ export const selectEudiLoteByProfile =
   (profile: Eudi.Trust.LoTEProfile) => (state: RootState) =>
     state.eudiTrust.lotes[profile];
 
-export const selectEudiWrpac = (state: RootState) => state.eudiTrust.wrpac;
-
-export const selectEudiWrpacStatus = (state: RootState) =>
-  state.eudiTrust.wrpacStatus;
+export const selectEudiIsNegativeLotes = (state: RootState) =>
+  state.eudiTrust.isNegativeLotes;
