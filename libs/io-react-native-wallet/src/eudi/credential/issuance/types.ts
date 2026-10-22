@@ -149,7 +149,7 @@ export type ParsedCredential = {
     algorithm?: string;
     certificate?: CredentialCertificate;
   };
-  /** Token Status List entry of the credential, to check its revocation (SD-JWT VC only) */
+  /** Token Status List entry of the credential, to check its revocation */
   status?: { idx: number; uri: string };
   /** Credential validity, from `iat`, `nbf` and `exp` (SD-JWT VC) or the MSO `validityInfo` (mdoc) */
   validity: { issuedAt?: Date; validFrom?: Date; validUntil?: Date };

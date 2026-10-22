@@ -4,12 +4,14 @@
  */
 import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialOffer from "./credential/offer";
+import * as CredentialStatus from "./credential/status";
 import * as RemotePresentation from "./presentation";
 import * as WalletAttestation from "./wallet-attestation";
 
 export {
   CredentialIssuance,
   CredentialOffer,
+  CredentialStatus,
   RemotePresentation,
   WalletAttestation,
 };
