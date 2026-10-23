@@ -38,7 +38,6 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   const tokenDPoP = await createTokenDPoP({
     callbacks: {
       ...partialCallbacks,
-      hash: partialCallbacks.hash,
       signJwt: createSignJwtFromCryptoContext(dPopCryptoContext),
     },
     jti: uuidv4(),

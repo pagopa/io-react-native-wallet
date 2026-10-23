@@ -13,7 +13,19 @@ export interface AuthorizeAccessApi {
    * @since 1.0.0
    *
    * @param issuerConf The issuer configuration returned by {@link evaluateIssuerTrust}
-   * @param accessTokenRequest The authorization-code or pre-authorized-code grant request. Include `tx_code` when the pre-authorized grant requires it.
+   * @param accessTokenRequest The authorization-code or pre-authorized-code grant request.
+   *
+   * * **authorization_code grant type parameters:**
+   * - `grant_type` - 'authorization_code'
+   * - `code_verifier` - The code verifier returned by {@link startUserAuthorization}
+   * - `redirect_uri` - The redirect URI which is the custom URL scheme that the Wallet Instance is registered to handle
+   * - `code` - The authorization code returned by {@link completeUserAuthorizationWithQueryMode} or {@link completeUserAuthorizationWithFormPost}.
+   *
+   * * **pre-authorized_code grant type parameters:**
+   * - `grant_type` - 'urn:ietf:params:oauth:grant-type:pre-authorized_code'
+   * - `pre-authorized_code`: Pre-authorized code received in the credential offer.
+   * - `tx_code`: The Transaction code required when the credential offer contains a `tx_code` object.
+   *
    * @param context.walletInstanceAttestation The Wallet Instance's attestation
    * @param context.wiaCryptoContext The Wallet Instance's crypto context
    * @param context.dPopCryptoContext The DPoP crypto context
