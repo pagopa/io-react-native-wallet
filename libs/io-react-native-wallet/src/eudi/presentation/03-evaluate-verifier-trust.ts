@@ -55,14 +55,25 @@ export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({
       });
     }
 
+    Logger.log(
+      LogLevel.DEBUG,
+      `Validating trust of WRPAC:\n${JSON.stringify(protectedHeader.x5c[0])}`,
+    );
+
     const { trustAnchor: wrpacTrustAnchor, wrpac } = await validateWRPAC({
       callbacks: trustCallbacks,
       wrpacChain: protectedHeader.x5c as [string, ...string[]],
       wrpacLote,
     });
 
-    Logger.log(LogLevel.DEBUG, `Validated WRPAC:\n${JSON.stringify(wrpac)}`);
-    Logger.log(LogLevel.DEBUG, `WRPAC Trust Anchor:\n${wrpacTrustAnchor}`);
+    Logger.log(
+      LogLevel.DEBUG,
+      `Validated and parsed WRPAC:\n${JSON.stringify(wrpac)}`,
+    );
+    Logger.log(
+      LogLevel.DEBUG,
+      `WRPAC validated by Trust Anchor:\n${wrpacTrustAnchor}`,
+    );
 
     // Ensure the Request Object JWT has been signed by a trusted WRPAC
     await verify(requestObjectJwt, wrpac.publicJwk);
@@ -80,14 +91,22 @@ export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({
       });
     }
 
+    Logger.log(
+      LogLevel.DEBUG,
+      `Validating trust of WRPRC:\n${JSON.stringify(registrationCertificate.data)}`,
+    );
+
     const { trustAnchor: wrprcTrustAnchor, wrprc } = await validateWRPRC({
       callbacks: trustCallbacks,
       wrprcJwt: registrationCertificate.data,
       wrprcLote,
     });
 
-    Logger.log(LogLevel.DEBUG, `Validated WRPRC:\n${JSON.stringify(wrprc)}`);
-    Logger.log(LogLevel.DEBUG, `WRPRC Trust Anchor:\n${wrprcTrustAnchor}`);
+    Logger.log(LogLevel.DEBUG, `Validated and parsed WRPRC:\n${wrprc}`);
+    Logger.log(
+      LogLevel.DEBUG,
+      `WRPRC validated by Trust Anchor:\n${wrprcTrustAnchor}`,
+    );
 
     verifyWRPAuthorization({
       entitlements: [WRP_ENTITLEMENTS.SERVICE_PROVIDER],

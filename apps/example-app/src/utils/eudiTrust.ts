@@ -25,8 +25,10 @@ export const EUDI_TRUSTED_CERTIFICATES: {
  * all the LoTEs for subsequent trust evaluations.
  */
 export const EUDI_LOTE_URLS = {
+  [LoTEProfile.EUEAAProvidersList]: "",
   [LoTEProfile.EUPIDProvidersList]:
     "https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json",
+  [LoTEProfile.EUPubEAAProvidersList]: "",
   [LoTEProfile.EUWalletProvidersList]:
     "https://development.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers.json",
   [LoTEProfile.EUWRPACProvidersList]:
@@ -41,8 +43,10 @@ export const EUDI_LOTE_URLS = {
  * LoTEs for negative tests.
  */
 export const EUDI_NEGATIVE_LOTE_URLS = {
+  [LoTEProfile.EUEAAProvidersList]: "",
   [LoTEProfile.EUPIDProvidersList]:
     "https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers_empty.json",
+  [LoTEProfile.EUPubEAAProvidersList]: "",
   [LoTEProfile.EUWalletProvidersList]:
     "https://development.trust.tech.ec.europa.eu/lists/eudiw/wallet-providers_empty.json",
   [LoTEProfile.EUWRPACProvidersList]:

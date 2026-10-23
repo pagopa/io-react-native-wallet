@@ -216,7 +216,7 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
                 type: "badge",
               }}
               label="Issuer WRPAC/WRPRC"
-              value={issuerTrust?.isTrusted ? "Valid" : "Validation failed"}
+              value={issuerTrust?.error?.message ?? "Valid"}
             />
             <ListItemSwitch
               description="Authenticate to the issuer with the Wallet Attestation. Turn off to authenticate as a public client."

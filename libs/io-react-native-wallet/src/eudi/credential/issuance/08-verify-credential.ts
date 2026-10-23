@@ -73,9 +73,15 @@ const verifyCredentialSdJwt = async (sdJwt: string, lotes: LoTEs) => {
     throw new IoWalletError(`No LoTE found that matches profile ${profile}`);
   }
 
+  Logger.log(
+    LogLevel.DEBUG,
+    `Validating trust of signing certificate:\n${protectedHeader.x5c[0]}`,
+  );
+
   const trustAnchor = await validateCertificateChainAgainstLoTE({
     callbacks: trustCallbacks,
     chain: protectedHeader.x5c as [string, ...string[]],
+    errorMessagePrefix: "Issuer signing certificate validation failed:",
     lote,
     profile,
     serviceTypeIdentifier,
@@ -86,11 +92,7 @@ const verifyCredentialSdJwt = async (sdJwt: string, lotes: LoTEs) => {
 
   Logger.log(
     LogLevel.DEBUG,
-    `Extracted Trust Anchor from LoTE ${lote.document.ListAndSchemeInformation.LoTEType}:\n${trustAnchor}`,
-  );
-  Logger.log(
-    LogLevel.DEBUG,
-    `Trusted signing certificate:\n${protectedHeader.x5c[0]}`,
+    `Signing certificate validated by Trust Anchor in "${lote.document.ListAndSchemeInformation.LoTEType}":\n${trustAnchor}`,
   );
 
   await verify(signedJwt, signingJwk);
@@ -124,9 +126,15 @@ const verifyCredentialMdoc = async (mdoc: string, lotes: LoTEs) => {
     throw new IoWalletError(`No LoTE found that matches profile ${profile}`);
   }
 
+  Logger.log(
+    LogLevel.DEBUG,
+    `Validating trust of signing certificate:\n${x5chain[0]}`,
+  );
+
   const trustAnchor = await validateCertificateChainAgainstLoTE({
     callbacks: trustCallbacks,
     chain: x5chain as [string, ...string[]],
+    errorMessagePrefix: "Issuer signing certificate validation failed:",
     lote,
     profile,
     serviceTypeIdentifier,
@@ -138,9 +146,8 @@ const verifyCredentialMdoc = async (mdoc: string, lotes: LoTEs) => {
 
   Logger.log(
     LogLevel.DEBUG,
-    `Extracted Trust Anchor from LoTE ${lote.document.ListAndSchemeInformation.LoTEType}:\n${trustAnchor}`,
+    `Signing certificate validated by Trust Anchor in "${lote.document.ListAndSchemeInformation.LoTEType}":\n${trustAnchor}`,
   );
-  Logger.log(LogLevel.DEBUG, `Trusted signing certificate:\n${x5chain[0]}`);
 
   // The chain has been validated, we can safely verify the signature with the leaf certificate
   await verifyMdocSignature(issuerAuth.rawValue, x5chain[0]);

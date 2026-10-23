@@ -186,9 +186,7 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
                 type: "badge",
               }}
               label="Verifier WRPAC/WRPRC"
-              value={
-                request.verifierTrust.isTrusted ? "Valid" : "Validation failed"
-              }
+              value={request.verifierTrust.error?.message ?? "Valid"}
             />
             <VSpacer size={24} />
             <H3>Requested credentials</H3>

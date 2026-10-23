@@ -1,32 +1,33 @@
 import type { Eudi } from "@io-app-it-wallet/io-react-native-wallet";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createSlice } from "@reduxjs/toolkit";
-import { PersistConfig, persistReducer } from "redux-persist";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
+import { createTransform, PersistConfig, persistReducer } from "redux-persist";
 
 import type { AsyncStatus, RootState } from "../../types";
 
-import { bootstrapLoTEsThunk } from "../../../thunks/eudi/trust";
+import { fetchLoTEThunk } from "../../../thunks/eudi/trust";
 import { asyncStatusInitial } from "../../utils";
 
-export interface EudiTrustState {
-  /** Whether the LoTEs of the last bootstrap are the ones for negative tests */
-  isNegativeLotes: boolean;
-  /** LoTEs successfully fetched and validated by the last bootstrap, by profile */
-  lotes: Eudi.Trust.LoTEs;
-  /** LoTEs that could not be fetched or validated by the last bootstrap */
-  lotesFailures: { message: string; profile: string }[];
-  lotesStatus: AsyncStatus;
-  /** Number of LoTEs requested by the last bootstrap */
-  lotesTotal: number;
+/** A LoTE with the status of its last fetch */
+export interface EudiLoTE {
+  /** Whether the LoTE is the one for negative tests */
+  isNegative?: boolean;
+  /** The LoTE, when successfully fetched and validated */
+  lote?: Eudi.Trust.ParsedLoTE;
+  /** Status of the last fetch, not persisted */
+  status?: AsyncStatus;
 }
 
+export interface EudiTrustState {
+  /** The LoTEs, by profile */
+  lotes: EudiLoTEs;
+}
+
+type EudiLoTEs = Partial<Record<Eudi.Trust.LoTEProfile, EudiLoTE>>;
+
 const initialState: EudiTrustState = {
-  isNegativeLotes: false,
   lotes: {},
-  lotesFailures: [],
-  lotesStatus: asyncStatusInitial,
-  lotesTotal: 0,
 };
 
 /**
@@ -34,24 +35,27 @@ const initialState: EudiTrustState = {
  */
 const eudiTrustSlice = createSlice({
   extraReducers: (builder) => {
-    builder.addCase(bootstrapLoTEsThunk.fulfilled, (state, action) => {
-      state.lotes = action.payload.lotes;
-      state.lotesFailures = action.payload.failures;
-      state.lotesTotal = action.payload.total;
-      state.lotesStatus = { ...asyncStatusInitial, isDone: true };
+    builder.addCase(fetchLoTEThunk.pending, (state, action) => {
+      state.lotes[action.meta.arg.profile] = {
+        status: { ...asyncStatusInitial, isLoading: true },
+      };
     });
 
-    builder.addCase(bootstrapLoTEsThunk.pending, (state, action) => {
-      state.isNegativeLotes = action.meta.arg;
-      state.lotes = {};
-      state.lotesFailures = [];
-      state.lotesStatus = { ...asyncStatusInitial, isLoading: true };
+    builder.addCase(fetchLoTEThunk.fulfilled, (state, action) => {
+      const { isNegative, profile } = action.meta.arg;
+      state.lotes[profile] = {
+        isNegative,
+        lote: action.payload,
+        status: { ...asyncStatusInitial, isDone: true },
+      };
     });
 
-    builder.addCase(bootstrapLoTEsThunk.rejected, (state, action) => {
-      state.lotesStatus = {
-        ...asyncStatusInitial,
-        hasError: { error: action.error, status: true },
+    builder.addCase(fetchLoTEThunk.rejected, (state, action) => {
+      state.lotes[action.meta.arg.profile] = {
+        status: {
+          ...asyncStatusInitial,
+          hasError: { error: action.error, status: true },
+        },
       };
     });
   },
@@ -64,13 +68,27 @@ const eudiTrustSlice = createSlice({
 
 export const { eudiTrustReset } = eudiTrustSlice.actions;
 
+/** The status of the fetches is not persisted, as an interrupted fetch would stay loading */
+const withoutStatus = createTransform<EudiLoTEs, EudiLoTEs>(
+  (lotes) =>
+    Object.fromEntries(
+      Object.entries(lotes).map(([profile, { isNegative, lote }]) => [
+        profile,
+        { isNegative, lote },
+      ]),
+    ),
+  (lotes) => lotes,
+  { whitelist: ["lotes"] },
+);
+
 /**
  * The List of Trusted Entities are persisted so they can be reused
  */
 const persistConfig: PersistConfig<EudiTrustState> = {
   key: "eudiTrust",
   storage: AsyncStorage,
-  whitelist: ["isNegativeLotes", "lotes", "lotesFailures", "lotesTotal"],
+  transforms: [withoutStatus],
+  whitelist: ["lotes"],
 };
 
 export const eudiTrustReducer = persistReducer(
@@ -78,20 +96,17 @@ export const eudiTrustReducer = persistReducer(
   eudiTrustSlice.reducer,
 );
 
-export const selectEudiLotesStatus = (state: RootState) =>
-  state.eudiTrust.lotesStatus;
+/** The LoTEs with the status of their last fetch, by profile */
+export const selectEudiLoTEsWithStatus = (state: RootState) =>
+  state.eudiTrust.lotes;
 
-export const selectEudiLotesFailures = (state: RootState) =>
-  state.eudiTrust.lotesFailures;
-
-export const selectEudiLotesTotal = (state: RootState) =>
-  state.eudiTrust.lotesTotal;
-
-export const selectEudiLotes = (state: RootState) => state.eudiTrust.lotes;
-
-export const selectEudiLoteByProfile =
-  (profile: Eudi.Trust.LoTEProfile) => (state: RootState) =>
-    state.eudiTrust.lotes[profile];
-
-export const selectEudiIsNegativeLotes = (state: RootState) =>
-  state.eudiTrust.isNegativeLotes;
+/** The successfully fetched and validated LoTEs, by profile */
+export const selectEudiLotes = createSelector(
+  selectEudiLoTEsWithStatus,
+  (lotes): Eudi.Trust.LoTEs =>
+    Object.fromEntries(
+      Object.entries(lotes).flatMap(([profile, { lote }]) =>
+        lote ? [[profile, lote]] : [],
+      ),
+    ),
+);
