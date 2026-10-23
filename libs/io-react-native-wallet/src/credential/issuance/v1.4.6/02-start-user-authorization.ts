@@ -1,4 +1,4 @@
-import type { JwtSignerJwk } from "@pagopa/io-wallet-oauth2";
+import type { JwtSignerJwk } from "@pagopa/io-wallet-utils";
 
 import {
   createClientAttestationPopJwt,
