@@ -44,6 +44,7 @@ type Props = NativeStackScreenProps<MainStackNavParamList, "EudiPresentation">;
  * The presentation starts from a request, either scanned from a QR code, pasted as URI or received
  * as deep link. The requested credentials are presented only with the consent of the user.
  */
+/* eslint-disable max-lines-per-function */
 export const EudiPresentationScreen = ({ navigation, route }: Props) => {
   const dispatch = useAppDispatch();
   const toast = useIOToast();
