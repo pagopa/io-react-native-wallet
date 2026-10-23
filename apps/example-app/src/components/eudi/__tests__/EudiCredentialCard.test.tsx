@@ -5,8 +5,8 @@ import { Image, StyleSheet, View } from "react-native";
 import { EudiCredentialCard } from "../EudiCredentialCard";
 
 jest.mock("@pagopa/io-app-design-system", () => ({
-  AnimatedIOText: jest.requireActual("react-native").Text,
   IOColors: {},
+  IOText: jest.requireActual("react-native").Text,
 }));
 
 jest.mock("../../../utils/eudi", () => ({
@@ -18,16 +18,8 @@ jest.mock("../../../utils/eudi", () => ({
   withOpacity: () => "rgba(59, 27, 40, 0.18)",
 }));
 
-jest.mock("react-native-reanimated", () => ({
-  __esModule: true,
-  default: {
-    Image: jest.requireActual("react-native").Image,
-    View: jest.requireActual("react-native").View,
-  },
-}));
-
 describe("EudiCredentialCard", () => {
-  it("draws decoration on the shared card surface without texture image layers", () => {
+  it("draws decoration on the card surface without texture image layers", () => {
     const { UNSAFE_getAllByType, UNSAFE_queryAllByType } = render(
       <EudiCredentialCard
         credential={{
@@ -35,13 +27,10 @@ describe("EudiCredentialCard", () => {
           format: "mso_mdoc",
           issuer: "Issuer",
         }}
-        sharedTransitionTag="card"
       />,
     );
 
-    const card = UNSAFE_getAllByType(View).find(
-      (view) => view.props.sharedTransitionTag === "card",
-    );
+    const [card] = UNSAFE_getAllByType(View);
     expect(card).toBeDefined();
     expect(StyleSheet.flatten(card?.props.style)).toEqual(
       expect.objectContaining({

@@ -7,13 +7,12 @@ import {
   H3,
   IOButton,
   IOVisualCostants,
-  ListItemHeader,
   ListItemInfo,
   useIOToast,
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import React, { useEffect, useState } from "react";
-import { Linking, ScrollView } from "react-native";
+import { Linking, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
@@ -21,6 +20,8 @@ import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { UriInput } from "../../components/eudi/UriInput";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
+import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
+import { useEudiParsedCredential } from "../../hooks/useEudiParsedCredential";
 import { selectEudiCredential } from "../../store/reducers/eudi/credentials";
 import {
   eudiPresentationReset,
@@ -31,7 +32,10 @@ import {
   completeEudiPresentationThunk,
   startEudiPresentationThunk,
 } from "../../thunks/eudi/presentation";
-import { EUDI_PRESENTATION_REQUEST_SCHEMES } from "../../utils/eudi";
+import {
+  EUDI_PRESENTATION_REQUEST_SCHEMES,
+  getCardStatus,
+} from "../../utils/eudi";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "EudiPresentation">;
 
@@ -47,6 +51,10 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
     useAppSelector(selectEudiPresentationState);
   const [requestUri, setRequestUri] = useState("");
   const [consent, setConsent] = useState<boolean>();
+  /** Key tag of the credential chosen for each requested credential, by DCQL Credential Query id */
+  const [selectedKeyTags, setSelectedKeyTags] = useState<
+    Record<string, string>
+  >({});
   const deepLinkRequestUri = route.params?.requestUri;
 
   useDebugInfo({
@@ -103,9 +111,27 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
     navigation.goBack();
   }, [completionStatus.isDone, consent, navigation, response, toast]);
 
-  const complete = (userConsent: boolean) => {
-    setConsent(userConsent);
-    dispatch(completeEudiPresentationThunk({ consent: userConsent }));
+  // The first candidate is chosen until the user chooses another one
+  const getSelectedKeyTag = ({
+    candidates,
+    id,
+  }: Eudi.RemotePresentation.EvaluatedCredentialQuery) =>
+    selectedKeyTags[id] ?? candidates[0]?.keyTag;
+
+  const share = () => {
+    if (!request) return;
+    setConsent(true);
+    const credentials = request.credentials.flatMap((credentialQuery) =>
+      credentialQuery.candidates.filter(
+        ({ keyTag }) => keyTag === getSelectedKeyTag(credentialQuery),
+      ),
+    );
+    dispatch(completeEudiPresentationThunk({ consent: true, credentials }));
+  };
+
+  const refuse = () => {
+    setConsent(false);
+    dispatch(completeEudiPresentationThunk({ consent: false }));
   };
 
   return (
@@ -178,10 +204,17 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
             />
             <VSpacer size={24} />
             <H3>Requested credentials</H3>
-            {request.credentials.map((credential) => (
+            {request.credentials.map((credentialQuery) => (
               <RequestedCredential
-                credential={credential}
-                key={credential.id}
+                credentialQuery={credentialQuery}
+                key={credentialQuery.id}
+                onSelect={(keyTag) =>
+                  setSelectedKeyTags((keyTags) => ({
+                    ...keyTags,
+                    [credentialQuery.id]: keyTag,
+                  }))
+                }
+                selectedKeyTag={getSelectedKeyTag(credentialQuery)}
               />
             ))}
             <VSpacer size={24} />
@@ -190,7 +223,7 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
               fullWidth
               label="Share"
               loading={completionStatus.isLoading && consent === true}
-              onPress={() => complete(true)}
+              onPress={share}
               variant="solid"
             />
             <VSpacer size={8} />
@@ -199,7 +232,7 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
               fullWidth
               label="Refuse"
               loading={completionStatus.isLoading && consent === false}
-              onPress={() => complete(false)}
+              onPress={refuse}
               variant="outline"
             />
           </>
@@ -209,59 +242,88 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
   );
 };
 
-/** Longest claim value shown in full, longer ones like pictures are truncated */
-const MAX_VALUE_LENGTH = 64;
-
-const formatClaimValue = (value: unknown) => {
-  const text = typeof value === "string" ? value : JSON.stringify(value);
-  return text.length > MAX_VALUE_LENGTH
-    ? `${text.slice(0, MAX_VALUE_LENGTH)}…`
-    : text;
-};
+/** Opacity of the candidate credentials not chosen, to highlight the chosen one */
+const UNSELECTED_OPACITY = 0.5;
 
 /**
- * A credential requested by the verifier, with the purposes of the request and the claims to disclose.
+ * A credential requested by the verifier, with the purposes of the request. When more wallet
+ * credentials satisfy the request, the user chooses the one to present.
  */
 const RequestedCredential = ({
-  credential,
+  credentialQuery,
+  onSelect,
+  selectedKeyTag,
 }: {
-  credential: Eudi.RemotePresentation.EvaluatedCredential;
+  credentialQuery: Eudi.RemotePresentation.EvaluatedCredentialQuery;
+  onSelect: (keyTag: string) => void;
+  selectedKeyTag?: string;
 }) => {
-  const storedCredential = useAppSelector(
-    selectEudiCredential(credential.keyTag),
-  );
-  const labels = new Map(
-    storedCredential?.display?.claims.map(({ label, path }) => [
-      path.join("/"),
-      label,
-    ]),
-  );
-  const purposes = credential.purposes
-    .map(({ description, required }) =>
-      [description, required ? "required" : "optional"]
-        .filter((part) => !!part)
-        .join(", "),
-    )
-    .join("\n");
-
+  const { candidates, purposes } = credentialQuery;
+  const descriptions = purposes
+    .map(({ description }) => description)
+    .filter((description) => !!description);
   return (
     <>
       <VSpacer />
-      {storedCredential && <EudiCredentialCard credential={storedCredential} />}
-      <VSpacer size={8} />
-      <ListItemInfo label="Purpose" value={purposes} />
-      <ListItemHeader label="Claims to disclose" />
-      {credential.requiredDisclosures.map(({ name, namespace, value }, i) => (
-        <React.Fragment key={`${namespace ?? ""}/${name}`}>
-          {i > 0 && <Divider />}
-          <ListItemInfo
-            label={
-              labels.get(namespace ? `${namespace}/${name}` : name) ?? name
-            }
-            value={formatClaimValue(value)}
+      {descriptions.length > 0 && (
+        <>
+          <Body>{descriptions.join("\n")}</Body>
+          <VSpacer size={8} />
+        </>
+      )}
+      {candidates.length > 1 && (
+        <>
+          <Body weight="Semibold">
+            {`${candidates.length} credentials match, choose the one to share`}
+          </Body>
+          <VSpacer size={8} />
+        </>
+      )}
+      {candidates.map(({ keyTag }, index) => (
+        <React.Fragment key={keyTag}>
+          {index > 0 && <VSpacer size={12} />}
+          <CandidateCredential
+            keyTag={keyTag}
+            onPress={candidates.length > 1 ? () => onSelect(keyTag) : undefined}
+            selected={keyTag === selectedKeyTag}
           />
         </React.Fragment>
       ))}
     </>
+  );
+};
+
+/** Card of a wallet credential that satisfies a request, with the holder picture and status list status */
+const CandidateCredential = ({
+  keyTag,
+  onPress,
+  selected,
+}: {
+  keyTag: string;
+  /** Chooses the credential, when there are other candidates */
+  onPress?: () => void;
+  selected: boolean;
+}) => {
+  const credential = useAppSelector(selectEudiCredential(keyTag));
+  const { parsed, portrait } = useEudiParsedCredential(credential);
+  const revocation = useEudiCredentialStatus(parsed?.status);
+  if (!credential) return null;
+  return (
+    <Pressable
+      accessibilityLabel={
+        credential.display?.name ?? credential.credentialConfigurationId
+      }
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      disabled={!onPress}
+      onPress={onPress}
+      style={{ opacity: selected ? 1 : UNSELECTED_OPACITY }}
+    >
+      <EudiCredentialCard
+        credential={credential}
+        portrait={portrait}
+        status={getCardStatus(revocation.status)}
+      />
+    </Pressable>
   );
 };

@@ -10,7 +10,7 @@ const PORTRAIT_CLAIMS = ["portrait", "picture"];
 
 /**
  * Parsed credentials by raw credential, so that a credential parsed by a screen is immediately
- * available to the next one, e.g. to show the same card during the shared element transition.
+ * available to the next one, e.g. to show the same card without waiting for the parsing.
  */
 const parsedCredentials = new Map<
   string,

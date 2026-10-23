@@ -68,7 +68,7 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
   const issuanceStatus = useAppSelector(selectEudiCredentialIssuanceStatus);
   const [offerUri, setOfferUri] = useState("");
   const [requestedCredential, setRequestedCredential] = useState<string>();
-  const [useWalletAttestation, setUseWalletAttestation] = useState(false);
+  const [useWalletAttestation, setUseWalletAttestation] = useState(true);
   const [isObtainingAll, setIsObtainingAll] = useState(false);
   const isUnmounted = useRef(false);
   const deepLinkOfferUri = route.params?.offerUri;
