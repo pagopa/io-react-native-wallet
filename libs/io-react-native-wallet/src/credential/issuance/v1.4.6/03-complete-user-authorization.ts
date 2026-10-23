@@ -1,4 +1,4 @@
-import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
+import type { FederationJwkSet } from "@pagopa/io-wallet-oid-federation";
 
 import { parseMrtdChallenge } from "@pagopa/io-wallet-oauth2";
 import { sendAuthorizationResponseAndExtractCode } from "@pagopa/io-wallet-oid4vci";
@@ -298,7 +298,7 @@ const processPidPresentationAndCreateAuthzResponse = async ({
     rpJwks: {
       encrypted_response_enc_values_supported:
         issuerConfig.encrypted_response_enc_values_supported,
-      jwks: { keys: issuerConfig.keys } as jsonWebKeySet,
+      jwks: { keys: issuerConfig.keys } as FederationJwkSet,
     },
     vp_token,
   });
