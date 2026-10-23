@@ -1,3 +1,5 @@
+import type { Eudi } from "@io-app-it-wallet/io-react-native-wallet";
+
 import { IOColors } from "@pagopa/io-app-design-system";
 
 /**
@@ -256,7 +258,7 @@ const EXPIRING_SOON_DAYS = 30;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Validity status of a credential from its expiry, with the badge variant that shows it */
+/** Expiry status of a credential, only when it is expired or expiring soon, with the badge variant that shows it */
 export const getExpiryStatus = (expiresAt: Date) => {
   const remaining = expiresAt.getTime() - Date.now();
   if (remaining <= 0) {
@@ -268,5 +270,25 @@ export const getExpiryStatus = (expiresAt: Date) => {
       variant: "warning",
     } as const;
   }
-  return { label: "Valid", variant: "success" } as const;
+  return undefined;
 };
+
+/** Revocation status of a credential from the Token Status List, with the badge variant that shows it */
+export const REVOCATION_STATUSES = {
+  INVALID: { label: "Revoked", variant: "error" },
+  SUSPENDED: { label: "Suspended", variant: "warning" },
+  UNKNOWN: { label: "Unknown", variant: "default" },
+  VALID: { label: "Valid", variant: "success" },
+} as const;
+
+/**
+ * Status of a credential shown on its card, only from the Token Status List:
+ * an unknown status is not shown.
+ * @param revocation - The credential status from the Token Status List, if checked
+ */
+export const getCardStatus = (
+  revocation?: Eudi.CredentialStatus.CredentialStatus,
+) =>
+  revocation && revocation.status !== "UNKNOWN"
+    ? REVOCATION_STATUSES[revocation.status]
+    : undefined;

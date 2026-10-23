@@ -6,8 +6,8 @@ import Animated from "react-native-reanimated";
 import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 
 import {
+  type getCardStatus,
   getCredentialColors,
-  getExpiryStatus,
   getFormatLabel,
   withOpacity,
 } from "../../utils/eudi";
@@ -38,12 +38,12 @@ type Props = {
       EudiCredential,
       "credentialConfigurationId" | "display" | "format" | "issuer"
     >;
-  /** Expiry of the credential, shown as a validity status */
-  expiresAt?: Date;
   /** Holder picture, shown as on the physical documents */
   portrait?: { label: string; uri: string };
   /** Tag of the shared element transition between the screens showing the same credential */
   sharedTransitionTag?: string;
+  /** Validity status of the credential, see {@link getCardStatus} */
+  status?: ReturnType<typeof getCardStatus>;
 };
 
 /**
@@ -58,9 +58,9 @@ type Props = {
  */
 export const EudiCredentialCard = ({
   credential,
-  expiresAt,
   portrait,
   sharedTransitionTag,
+  status,
 }: Props) => {
   const tag = (element?: string) =>
     sharedTransitionTag &&
@@ -85,7 +85,6 @@ export const EudiCredentialCard = ({
       borderColor: withOpacity(textColor, 0.18),
     },
   ];
-  const expiryStatus = expiresAt && getExpiryStatus(expiresAt);
 
   return (
     <Animated.View
@@ -162,7 +161,7 @@ export const EudiCredentialCard = ({
               {getFormatLabel(credential.format)}
             </AnimatedIOText>
           </Animated.View>
-          {expiryStatus && (
+          {status && (
             <Animated.View
               sharedTransitionTag={tag("status")}
               style={[pillStyle, styles.statusPill]}
@@ -171,7 +170,7 @@ export const EudiCredentialCard = ({
                 sharedTransitionTag={tag("statusDot")}
                 style={[
                   styles.statusDot,
-                  { backgroundColor: STATUS_COLORS[expiryStatus.variant] },
+                  { backgroundColor: STATUS_COLORS[status.variant] },
                 ]}
               />
               <AnimatedIOText
@@ -180,7 +179,7 @@ export const EudiCredentialCard = ({
                 style={textStyle}
                 weight="Semibold"
               >
-                {expiryStatus.label}
+                {status.label}
               </AnimatedIOText>
             </Animated.View>
           )}
