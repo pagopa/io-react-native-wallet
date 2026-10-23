@@ -17,7 +17,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { EudiSharedTransitionBoundary } from "../../components/eudi/EudiSharedTransitionBoundary";
-import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
+import {
+  useEudiCredentialStatus,
+  useEudiStatusListsRefresh,
+} from "../../hooks/useEudiCredentialStatus";
 import { useEudiParsedCredential } from "../../hooks/useEudiParsedCredential";
 import {
   type EudiCredential,
@@ -32,6 +35,7 @@ import { getCardStatus, getCredentialTransitionTag } from "../../utils/eudi";
 export const EudiCredentialsScreen = () => {
   const navigation = useNavigation();
   const credentials = useAppSelector(selectEudiCredentials);
+  const { onRefresh, refreshing } = useEudiStatusListsRefresh();
 
   return (
     <EudiSharedTransitionBoundary>
@@ -66,6 +70,8 @@ export const EudiCredentialsScreen = () => {
               </>
             ) : null
           }
+          onRefresh={onRefresh}
+          refreshing={refreshing}
           renderItem={({ item }) => (
             <CredentialItem
               credential={item}

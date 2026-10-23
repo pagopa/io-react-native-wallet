@@ -12,7 +12,12 @@ import {
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import React, { useEffect, useMemo } from "react";
-import { ActivityIndicator, Alert, ScrollView } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
@@ -21,7 +26,10 @@ import { EudiClaimItem } from "../../components/eudi/EudiClaimItem";
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { EudiSharedTransitionBoundary } from "../../components/eudi/EudiSharedTransitionBoundary";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
-import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
+import {
+  useEudiCredentialStatus,
+  useEudiStatusListsRefresh,
+} from "../../hooks/useEudiCredentialStatus";
 import {
   isPortraitClaim,
   useEudiParsedCredential,
@@ -58,6 +66,7 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   const { claims, error, expiresAt, parsed, portrait } =
     useEudiParsedCredential(credential);
   const revocation = useEudiCredentialStatus(parsed?.status);
+  const { onRefresh, refreshing } = useEudiStatusListsRefresh();
 
   useDebugInfo({ eudiCredential: credential, eudiParsedCredential: parsed });
 
@@ -119,6 +128,9 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
           contentContainerStyle={{
             padding: IOVisualCostants.appMarginDefault,
           }}
+          refreshControl={
+            <RefreshControl onRefresh={onRefresh} refreshing={refreshing} />
+          }
         >
           <EudiCredentialCard
             credential={credential}
