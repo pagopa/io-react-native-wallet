@@ -10,6 +10,7 @@ import {
   Trust,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
+import { CREDENTIAL_OFFER_GRANTS } from "@pagopa/io-wallet-oid4vci";
 import { v4 as uuidv4 } from "uuid";
 
 import type {
@@ -37,7 +38,7 @@ import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
  * @param issuerState - (optional) issuer state forwarded to the PAR, from a credential offer
  * @returns The obtained credential result
  */
-// eslint-disable-next-line max-lines-per-function
+
 export const getCredential = async ({
   batchSize = 1,
   credentialId,
@@ -126,9 +127,12 @@ export const getCredential = async ({
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
-    code,
-    redirectUri,
-    codeVerifier,
+    {
+      code,
+      code_verifier: codeVerifier,
+      grant_type: CREDENTIAL_OFFER_GRANTS.AUTHORIZATION_CODE,
+      redirect_uri: redirectUri,
+    },
     {
       appFetch,
       dPopCryptoContext,
