@@ -1,5 +1,5 @@
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
+import type { FederationJwkSet } from "@pagopa/io-wallet-oid-federation";
 import type { DcqlQuery as DcqlQueryLib } from "dcql";
 
 import * as z from "zod";
@@ -139,7 +139,7 @@ export type RequestObject = {
 type ClientMetadata = {
   client_name?: string;
   encrypted_response_enc_values_supported: string[];
-  jwks: jsonWebKeySet;
+  jwks: FederationJwkSet;
   logo_uri?: string;
   vp_formats_supported: Record<string, { "sd-jwt_alg_values"?: string[] }>;
 };
