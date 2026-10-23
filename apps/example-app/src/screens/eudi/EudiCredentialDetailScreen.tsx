@@ -12,16 +12,23 @@ import {
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import React, { useEffect, useMemo } from "react";
-import { ActivityIndicator, Alert, ScrollView } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
 import { EudiClaimItem } from "../../components/eudi/EudiClaimItem";
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
-import { EudiSharedTransitionBoundary } from "../../components/eudi/EudiSharedTransitionBoundary";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
-import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
+import {
+  useEudiCredentialStatus,
+  useEudiStatusListsRefresh,
+} from "../../hooks/useEudiCredentialStatus";
 import {
   isPortraitClaim,
   useEudiParsedCredential,
@@ -36,7 +43,6 @@ import { deleteEudiCredentialThunk } from "../../thunks/eudi/issuance";
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
 import {
   getCardStatus,
-  getCredentialTransitionTag,
   getExpiryStatus,
   getFormatLabel,
   REVOCATION_STATUSES,
@@ -58,6 +64,7 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   const { claims, error, expiresAt, parsed, portrait } =
     useEudiParsedCredential(credential);
   const revocation = useEudiCredentialStatus(parsed?.status);
+  const { onRefresh, refreshing } = useEudiStatusListsRefresh();
 
   useDebugInfo({ eudiCredential: credential, eudiParsedCredential: parsed });
 
@@ -113,88 +120,88 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   }
 
   return (
-    <EudiSharedTransitionBoundary>
-      <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={{
-            padding: IOVisualCostants.appMarginDefault,
-          }}
-        >
-          <EudiCredentialCard
-            credential={credential}
-            portrait={portrait}
-            sharedTransitionTag={getCredentialTransitionTag(credential.keyTag)}
-            status={getCardStatus(revocation.status)}
+    <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={{
+          padding: IOVisualCostants.appMarginDefault,
+        }}
+        refreshControl={
+          <RefreshControl onRefresh={onRefresh} refreshing={refreshing} />
+        }
+      >
+        <EudiCredentialCard
+          credential={credential}
+          portrait={portrait}
+          status={getCardStatus(revocation.status)}
+        />
+        <VSpacer />
+        {error && <Body>{error}</Body>}
+        {!error && !parsed && <ActivityIndicator />}
+        {[...groups].map(([title, items]) => (
+          <React.Fragment key={title}>
+            <ListItemHeader label={title} />
+            {items.map((claim, index) => (
+              <React.Fragment key={claim.path.join("/")}>
+                {index > 0 && <Divider />}
+                <EudiClaimItem
+                  label={
+                    labels.has(claim.path.join("/"))
+                      ? claim.label
+                      : humanize(claim.label)
+                  }
+                  labels={labels}
+                  path={claim.path}
+                  value={claim.value}
+                />
+              </React.Fragment>
+            ))}
+            <VSpacer />
+          </React.Fragment>
+        ))}
+        {parsed && (
+          <ValiditySection
+            expiresAt={expiresAt}
+            parsed={parsed}
+            revocation={revocation}
           />
-          <VSpacer />
-          {error && <Body>{error}</Body>}
-          {!error && !parsed && <ActivityIndicator />}
-          {[...groups].map(([title, items]) => (
-            <React.Fragment key={title}>
-              <ListItemHeader label={title} />
-              {items.map((claim, index) => (
-                <React.Fragment key={claim.path.join("/")}>
-                  {index > 0 && <Divider />}
-                  <EudiClaimItem
-                    label={
-                      labels.has(claim.path.join("/"))
-                        ? claim.label
-                        : humanize(claim.label)
-                    }
-                    labels={labels}
-                    path={claim.path}
-                    value={claim.value}
-                  />
-                </React.Fragment>
-              ))}
-              <VSpacer />
-            </React.Fragment>
-          ))}
-          {parsed && (
-            <ValiditySection
-              expiresAt={expiresAt}
-              parsed={parsed}
-              revocation={revocation}
-            />
-          )}
-          <VSpacer />
-          <AccordionItem
-            body={<TechnicalDetails credential={credential} parsed={parsed} />}
-            title="Technical details"
-          />
-          <VSpacer />
-          <ListItemAction
-            icon="trashcan"
-            label="Delete credential"
-            onPress={() =>
-              Alert.alert(
-                "Delete credential",
-                "The credential and its key will be removed from the device.",
-                [
-                  { style: "cancel", text: "Cancel" },
-                  {
-                    onPress: () =>
-                      dispatch(deleteEudiCredentialThunk(credential.keyTag))
-                        .unwrap()
-                        .then(() => navigation.goBack())
-                        .catch((e: unknown) =>
-                          Alert.alert(
-                            "Unable to delete the credential",
-                            String(e),
-                          ),
+        )}
+        <VSpacer />
+        <AccordionItem
+          body={<TechnicalDetails credential={credential} parsed={parsed} />}
+          title="Technical details"
+        />
+        <VSpacer />
+        <ListItemAction
+          icon="trashcan"
+          label="Delete credential"
+          onPress={() =>
+            Alert.alert(
+              "Delete credential",
+              "The credential and its key will be removed from the device.",
+              [
+                { style: "cancel", text: "Cancel" },
+                {
+                  onPress: () =>
+                    dispatch(deleteEudiCredentialThunk(credential.keyTag))
+                      .unwrap()
+                      .then(() => navigation.goBack())
+                      .catch((e: unknown) =>
+                        Alert.alert(
+                          "Unable to delete the credential",
+                          String(e),
                         ),
-                    style: "destructive",
-                    text: "Delete",
-                  },
-                ],
-              )
-            }
-            variant="danger"
-          />
-          <VSpacer size={32} />
-        </ScrollView>
-      </SafeAreaView>
-    </EudiSharedTransitionBoundary>
+                      ),
+                  style: "destructive",
+                  text: "Delete",
+                },
+              ],
+            )
+          }
+          variant="danger"
+        />
+        <VSpacer size={32} />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

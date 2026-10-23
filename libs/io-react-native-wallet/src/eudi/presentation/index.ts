@@ -13,6 +13,7 @@ export { evaluateVerifierTrust } from "./03-evaluate-verifier-trust";
 export {
   evaluateDcqlQuery,
   type EvaluatedCredential,
+  type EvaluatedCredentialQuery,
   type WalletCredential,
 } from "./04-evaluate-dcql-query";
 export {

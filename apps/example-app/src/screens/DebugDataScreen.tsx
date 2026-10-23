@@ -7,22 +7,44 @@ import {
   SearchInput,
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import React, {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { FlatList, Platform, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { DebugPrettyPrint } from "../components/debug/DebugPrettyPrint";
+import {
+  DebugJsonHeader,
+  DebugJsonLine,
+  type JsonLinePart,
+  toJsonLines,
+} from "../components/debug/DebugJson";
 import { debugDataSelector } from "../store/reducers/debug";
 import { useAppSelector } from "../store/utils";
 import { clipboardSetStringWithFeedback } from "../utils/clipboard";
 import { decodeDebugTokens, filterDebugData } from "../utils/debug";
 import { shareJson } from "../utils/share";
+
+/** Row of the debug data list: the header of an entry, or a chunk of its JSON content */
+type DebugRow =
+  | {
+      data: unknown;
+      expanded: boolean;
+      id: string;
+      title: string;
+      type: "header";
+    }
+  | {
+      id: string;
+      isFirst: boolean;
+      isLast: boolean;
+      part: JsonLinePart;
+      type: "line";
+    };
 
 type Entries = (readonly [string, unknown])[];
 
@@ -47,8 +69,9 @@ const ToggleChip = ({ label, onPress, value }: ToggleChipProps) => (
 );
 
 /**
- * Native sheet showing the debug data of the previous screen, opened from the header bug button.
+ * Modal showing the debug data of the previous screen, opened from the header bug button.
  * Tokens and mdocs can be decoded in place, long strings shown in full and the data searched.
+ * The JSON lines are rows of a virtualized list, so that large data renders only the visible lines.
  */
 export const DebugDataScreen = () => {
   const debugData = useAppSelector(debugDataSelector);
@@ -56,6 +79,11 @@ export const DebugDataScreen = () => {
   const [isDecodingTokens, setIsDecodingTokens] = useState(true);
   const [isShowingFullStrings, setIsShowingFullStrings] = useState(false);
   const [search, setSearch] = useState("");
+  /**
+   * Entries shown or hidden by the user, by search mode and key, otherwise expanded by default.
+   * Search results have their own choices, as they show other parts of the data.
+   */
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
   const [decoded, setDecoded] = useState<{
     entries: Entries;
     source: typeof debugData;
@@ -91,8 +119,10 @@ export const DebugDataScreen = () => {
       ? decoded.entries
       : rawEntries;
 
-  const query = search.trim().toLowerCase();
+  // Filtering large data is slow, so the search input stays responsive while typing
+  const query = useDeferredValue(search).trim().toLowerCase();
   const isSearching = query.length > 0;
+
   const visibleEntries = useMemo(
     () =>
       isSearching
@@ -104,11 +134,63 @@ export const DebugDataScreen = () => {
     [entries, isSearching, query],
   );
 
+  const isExpandedByDefault = isSearching || visibleEntries.length === 1;
+  const toggleKey = useCallback(
+    (key: string) => `${isSearching}:${key}`,
+    [isSearching],
+  );
+
+  const onToggle = useCallback(
+    (key: string) =>
+      setToggled((current) => ({
+        ...current,
+        [toggleKey(key)]: !(current[toggleKey(key)] ?? isExpandedByDefault),
+      })),
+    [isExpandedByDefault, toggleKey],
+  );
+
+  const rows = useMemo(
+    () =>
+      visibleEntries.flatMap(([key, value]): DebugRow[] => {
+        const expanded = toggled[toggleKey(key)] ?? isExpandedByDefault;
+        const header: DebugRow = {
+          data: value,
+          expanded,
+          id: key,
+          title: key,
+          type: "header",
+        };
+        if (!expanded) {
+          return [header];
+        }
+        const parts = toJsonLines(value, !isShowingFullStrings);
+        return [
+          header,
+          ...parts.map(
+            (part, index): DebugRow => ({
+              id: `${key}:${index}`,
+              isFirst: index === 0,
+              isLast: index === parts.length - 1,
+              part,
+              type: "line",
+            }),
+          ),
+        ];
+      }),
+    [
+      isExpandedByDefault,
+      isShowingFullStrings,
+      toggleKey,
+      toggled,
+      visibleEntries,
+    ],
+  );
+
   const asJson = () =>
     JSON.stringify(Object.fromEntries(visibleEntries), null, 2);
 
   return (
-    <SafeAreaView edges={["bottom"]} style={styles.container}>
+    <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
       <View style={styles.header}>
         <H6>Debug data</H6>
         <HStack space={16}>
@@ -154,27 +236,40 @@ export const DebugDataScreen = () => {
           value={isShowingFullStrings}
         />
       </HStack>
-      <ScrollView
+      <FlatList
         contentContainerStyle={styles.scrollContainer}
+        data={rows}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
-      >
-        {visibleEntries.length === 0 ? (
+        keyExtractor={(row) => row.id}
+        ListEmptyComponent={
           <BodySmall>
             {isSearching ? "No match." : "No debug data for this screen."}
           </BodySmall>
-        ) : (
-          visibleEntries.map(([key, value]) => (
-            <DebugPrettyPrint
-              data={value}
-              isExpanded={isSearching || visibleEntries.length === 1}
-              isTruncated={!isShowingFullStrings}
-              key={`debug_data_${key}_${isSearching}`}
-              title={key}
+        }
+        maxToRenderPerBatch={50}
+        removeClippedSubviews={Platform.OS === "android"}
+        renderItem={({ item }) =>
+          item.type === "header" ? (
+            <DebugJsonHeader
+              data={item.data}
+              expanded={item.expanded}
+              onToggle={onToggle}
+              title={item.title}
             />
-          ))
-        )}
-      </ScrollView>
+          ) : (
+            <View
+              style={[
+                styles.line,
+                item.isFirst && styles.firstLine,
+                item.isLast && styles.lastLine,
+              ]}
+            >
+              <DebugJsonLine part={item.part} />
+            </View>
+          )
+        }
+      />
     </SafeAreaView>
   );
 };
@@ -193,12 +288,24 @@ const styles = StyleSheet.create({
     backgroundColor: IOColors.white,
     flex: 1,
   },
+  firstLine: {
+    paddingTop: 8,
+  },
   header: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 24,
     paddingVertical: 16,
+  },
+  lastLine: {
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    paddingBottom: 8,
+  },
+  line: {
+    backgroundColor: IOColors["grey-50"],
+    paddingHorizontal: 8,
   },
   // Horizontal padding is on the content, not on the container, so that the scroll indicator stays at the screen edge
   padded: {
@@ -207,7 +314,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: 24,
     paddingHorizontal: 24,
-    paddingTop: 8,
   },
   toolbar: {
     paddingHorizontal: 24,

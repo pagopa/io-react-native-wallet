@@ -10,8 +10,8 @@ export interface StartEudiPresentationThunkInput {
 }
 
 export interface StartEudiPresentationThunkOutput {
-  /** The wallet credentials that satisfy the request, to show before asking the user's consent */
-  credentials: Eudi.RemotePresentation.EvaluatedCredential[];
+  /** The requested credentials, with the wallet ones that satisfy them, to choose before asking the user's consent */
+  credentials: Eudi.RemotePresentation.EvaluatedCredentialQuery[];
   requestObject: Eudi.RemotePresentation.RequestObject;
   uri: string;
   /** The outcome of the Verifier trust evaluation with its WRPAC and WRPRC */
@@ -60,10 +60,13 @@ export const startEudiPresentationThunk = createAppAsyncThunk<
   return { credentials, requestObject, uri, verifierTrust };
 });
 
-export interface CompleteEudiPresentationThunkInput {
-  /** Whether the user consented to present the requested credentials */
-  consent: boolean;
-}
+/** The credentials the user chose to present, one per requested credential, or the refusal of the user */
+export type CompleteEudiPresentationThunkInput =
+  | { consent: false }
+  | {
+      consent: true;
+      credentials: Eudi.RemotePresentation.EvaluatedCredential[];
+    };
 
 /**
  * Thunk to complete the EUDI Wallet remote presentation started with {@link startEudiPresentationThunk}:
@@ -73,17 +76,17 @@ export interface CompleteEudiPresentationThunkInput {
 export const completeEudiPresentationThunk = createAppAsyncThunk<
   Eudi.RemotePresentation.AuthorizationResponseResult,
   CompleteEudiPresentationThunkInput
->("eudi/presentationComplete", async ({ consent }, { getState }) => {
+>("eudi/presentationComplete", async (input, { getState }) => {
   const { RemotePresentation } = Eudi;
   const request = selectEudiPresentationRequest(getState());
   if (!request) {
     throw new Error("No presentation request to complete");
   }
 
-  return consent
+  return input.consent
     ? RemotePresentation.sendAuthorizationResponse(
         request.requestObject,
-        request.credentials,
+        input.credentials,
       )
     : RemotePresentation.sendAuthorizationErrorResponse(request.requestObject, {
         code: "access_denied",

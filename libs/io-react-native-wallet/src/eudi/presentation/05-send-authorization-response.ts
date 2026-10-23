@@ -24,7 +24,7 @@ import { getEncryptionJwk, postAuthorizationResponse } from "./utils";
  * With `direct_post.jwt`, the response is encrypted with a key of the Verifier (Section 8.3).
  *
  * @param requestObject - The verified Request Object
- * @param credentials - The credentials to present, as evaluated by {@link evaluateDcqlQuery}
+ * @param credentials - The credentials to present, chosen among the candidates evaluated by {@link evaluateDcqlQuery}
  * @param callbacks.fetch - (optional) The fetch implementation, defaults to the global one
  * @returns The Verifier response, with the `redirect_uri` to open, if any
  * @throws {IoWalletError} If a credential format is not supported or the response cannot be encrypted
@@ -75,8 +75,11 @@ export const sendAuthorizationResponse = async (
           // The vp_token carries the DeviceResponse base64url encoded
           return [item.id, removePadding(deviceResponse)] as const;
         }
-        default:
-          throw new IoWalletError(`${item.format} format is not supported`);
+        default: {
+          // Unreachable for evaluated credentials, guards credentials built by the caller
+          const { format } = item as { format: string };
+          throw new IoWalletError(`${format} format is not supported`);
+        }
       }
     }),
   );

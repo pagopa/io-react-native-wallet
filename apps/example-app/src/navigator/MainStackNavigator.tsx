@@ -302,13 +302,12 @@ export const MainStackNavigator = () => {
               />
             </Stack.Group>
             {renderEudiScreens(headerRight)}
+            {/* Closed only with its button: on Android a sheet is always draggable, so dragging conflicts with its scroll */}
             <Stack.Group
               screenOptions={{
+                gestureEnabled: false,
                 headerShown: false,
-                presentation: "formSheet",
-                sheetAllowedDetents: [0.5, 1],
-                sheetGrabberVisible: true,
-                sheetInitialDetentIndex: "last",
+                presentation: "modal",
               }}
             >
               <Stack.Screen component={DebugDataScreen} name="DebugData" />
