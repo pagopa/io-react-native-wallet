@@ -67,6 +67,7 @@
     "@pagopa/io-wallet-oid4vp": "1.5.8",
     "@pagopa/io-wallet-utils": "1.5.8",
     "@sd-jwt/core": "^0.22.0",
+    "@owf/cose": "^0.4.2",
     "@owf/crypto": "^0.4.2",
     "@owf/token-status-list": "^0.4.2",
     "dcql": "^4.0.0",

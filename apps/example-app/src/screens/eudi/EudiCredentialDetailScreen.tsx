@@ -21,6 +21,7 @@ import { EudiClaimItem } from "../../components/eudi/EudiClaimItem";
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { EudiSharedTransitionBoundary } from "../../components/eudi/EudiSharedTransitionBoundary";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
+import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
 import {
   isPortraitClaim,
   useEudiParsedCredential,
@@ -34,9 +35,11 @@ import { useAppDispatch, useAppSelector } from "../../store/utils";
 import { deleteEudiCredentialThunk } from "../../thunks/eudi/issuance";
 import { clipboardSetStringWithFeedback } from "../../utils/clipboard";
 import {
+  getCardStatus,
   getCredentialTransitionTag,
   getExpiryStatus,
   getFormatLabel,
+  REVOCATION_STATUSES,
 } from "../../utils/eudi";
 import { humanize } from "../../utils/eudiClaims";
 
@@ -54,6 +57,7 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   const credential = useAppSelector(selectEudiCredential(route.params.keyTag));
   const { claims, error, expiresAt, parsed, portrait } =
     useEudiParsedCredential(credential);
+  const revocation = useEudiCredentialStatus(parsed?.status);
 
   useDebugInfo({ eudiCredential: credential, eudiParsedCredential: parsed });
 
@@ -118,9 +122,9 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
         >
           <EudiCredentialCard
             credential={credential}
-            expiresAt={expiresAt}
             portrait={portrait}
             sharedTransitionTag={getCredentialTransitionTag(credential.keyTag)}
+            status={getCardStatus(revocation.status)}
           />
           <VSpacer />
           {error && <Body>{error}</Body>}
@@ -146,7 +150,13 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
               <VSpacer />
             </React.Fragment>
           ))}
-          {parsed && <ValiditySection expiresAt={expiresAt} parsed={parsed} />}
+          {parsed && (
+            <ValiditySection
+              expiresAt={expiresAt}
+              parsed={parsed}
+              revocation={revocation}
+            />
+          )}
           <VSpacer />
           <AccordionItem
             body={<TechnicalDetails credential={credential} parsed={parsed} />}
@@ -188,15 +198,19 @@ export const EudiCredentialDetailScreen = ({ navigation, route }: Props) => {
   );
 };
 
-/** Validity of the credential, with its status as shown on the card */
+/** Validity of the credential: its expiry and its revocation status from the Token Status List */
 const ValiditySection = ({
   expiresAt,
   parsed,
+  revocation,
 }: {
   expiresAt?: Date;
   parsed: Eudi.CredentialIssuance.ParsedCredential;
+  revocation: ReturnType<typeof useEudiCredentialStatus>;
 }) => {
   const expiryStatus = expiresAt && getExpiryStatus(expiresAt);
+  const revocationStatus =
+    revocation.status && REVOCATION_STATUSES[revocation.status.status];
   const { issuedAt, validFrom } = parsed.validity;
   return (
     <>
@@ -227,6 +241,28 @@ const ValiditySection = ({
         <>
           <Divider />
           <ListItemInfo label="Issued" value={issuedAt.toLocaleDateString()} />
+        </>
+      )}
+      {parsed.status && (
+        <>
+          <Divider />
+          <ListItemInfo
+            endElement={
+              revocationStatus && {
+                componentProps: {
+                  text: revocationStatus.label,
+                  variant: revocationStatus.variant,
+                },
+                type: "badge",
+              }
+            }
+            label="Revocation status"
+            value={
+              revocation.status
+                ? `Status list value ${revocation.status.rawStatus}`
+                : (revocation.error ?? "Checking...")
+            }
+          />
         </>
       )}
       <VSpacer />

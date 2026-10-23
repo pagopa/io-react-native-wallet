@@ -17,13 +17,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { EudiSharedTransitionBoundary } from "../../components/eudi/EudiSharedTransitionBoundary";
+import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
 import { useEudiParsedCredential } from "../../hooks/useEudiParsedCredential";
 import {
   type EudiCredential,
   selectEudiCredentials,
 } from "../../store/reducers/eudi/credentials";
 import { useAppSelector } from "../../store/utils";
-import { getCredentialTransitionTag } from "../../utils/eudi";
+import { getCardStatus, getCredentialTransitionTag } from "../../utils/eudi";
 
 /**
  * EUDI Wallet credentials screen, which lists every obtained credential to check its content.
@@ -84,7 +85,7 @@ export const EudiCredentialsScreen = () => {
 /** Scale of a pressed card, which sinks slightly under the finger */
 const PRESSED_SCALE = 0.97;
 
-/** Credential card of the list, with the holder picture and expiry when the credential has them */
+/** Credential card of the list, with the holder picture and status list status when the credential has them */
 const CredentialItem = ({
   credential,
   onPress,
@@ -92,7 +93,8 @@ const CredentialItem = ({
   credential: EudiCredential;
   onPress: () => void;
 }) => {
-  const { expiresAt, portrait } = useEudiParsedCredential(credential);
+  const { parsed, portrait } = useEudiParsedCredential(credential);
+  const revocation = useEudiCredentialStatus(parsed?.status);
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -114,9 +116,9 @@ const CredentialItem = ({
       <Animated.View style={pressStyle}>
         <EudiCredentialCard
           credential={credential}
-          expiresAt={expiresAt}
           portrait={portrait}
           sharedTransitionTag={getCredentialTransitionTag(credential.keyTag)}
+          status={getCardStatus(revocation.status)}
         />
       </Animated.View>
     </Pressable>
