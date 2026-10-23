@@ -83,6 +83,16 @@ const verifyCredentialSdJwt = async (sdJwt: string, lotes: LoTEs) => {
 
   // The chain has been validated, we can safely extract the public key from the signing certificate
   const signingJwk = await getJwkFromCertificateChain(protectedHeader.x5c);
+
+  Logger.log(
+    LogLevel.DEBUG,
+    `Extracted Trust Anchor from LoTE ${lote.document.ListAndSchemeInformation.LoTEType}:\n${trustAnchor}`,
+  );
+  Logger.log(
+    LogLevel.DEBUG,
+    `Trusted signing certificate:\n${protectedHeader.x5c[0]}`,
+  );
+
   await verify(signedJwt, signingJwk);
 
   return { trustAnchor };
@@ -126,6 +136,12 @@ const verifyCredentialMdoc = async (mdoc: string, lotes: LoTEs) => {
     throw new IoWalletError("Missing coseSign1");
   }
 
+  Logger.log(
+    LogLevel.DEBUG,
+    `Extracted Trust Anchor from LoTE ${lote.document.ListAndSchemeInformation.LoTEType}:\n${trustAnchor}`,
+  );
+  Logger.log(LogLevel.DEBUG, `Trusted signing certificate:\n${x5chain[0]}`);
+
   // The chain has been validated, we can safely verify the signature with the leaf certificate
   await verifyMdocSignature(issuerAuth.rawValue, x5chain[0]);
 
@@ -154,7 +170,7 @@ export const getCandidateLoTEIssuanceProfile = (credentialType: string) => {
   }
 
   return {
-    profile: LoTEProfile.EUPubEAAProvidersList,
+    profile: LoTEProfile.EUEAAProvidersList,
     serviceTypeIdentifier: "???",
   };
 };

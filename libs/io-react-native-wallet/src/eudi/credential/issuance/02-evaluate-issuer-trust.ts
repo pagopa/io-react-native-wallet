@@ -8,6 +8,7 @@ import {
 } from "@pagopa/io-wallet-eudi-trust";
 
 import { ValidationFailed } from "../../../utils/errors";
+import { Logger, LogLevel } from "../../../utils/logging";
 import { trustCallbacks } from "../../trust/callbacks";
 import { REGISTRATION_CERTIFICATE_FORMAT } from "../../trust/const";
 import { CredentialIssuerMetadata } from "./types";
@@ -40,6 +41,11 @@ export const evaluateIssuerTrust: EvaluateIssuerTrust = async ({
   wrpacLote,
   wrprcLote,
 }) => {
+  Logger.log(
+    LogLevel.DEBUG,
+    "Evaluating Issuer's access and registration certificates",
+  );
+
   try {
     const { payload, protectedHeader } = decode(issuerMetadataJwt);
 
@@ -49,11 +55,15 @@ export const evaluateIssuerTrust: EvaluateIssuerTrust = async ({
       });
     }
 
-    const { wrpac } = await validateWRPAC({
+    const { trustAnchor: wrpacTrustAnchor, wrpac } = await validateWRPAC({
       callbacks: trustCallbacks,
       wrpacChain: protectedHeader.x5c as [string, ...string[]],
       wrpacLote,
     });
+
+    Logger.log(LogLevel.DEBUG, `Validated WRPAC:\n${JSON.stringify(wrpac)}`);
+    Logger.log(LogLevel.DEBUG, `WRPAC Trust Anchor:\n${wrpacTrustAnchor}`);
+
     // Ensure the Issuer metadata JWT has been signed by a trusted WRPAC
     await verify(issuerMetadataJwt, wrpac.publicJwk);
 
@@ -70,11 +80,15 @@ export const evaluateIssuerTrust: EvaluateIssuerTrust = async ({
       });
     }
 
-    const { wrprc } = await validateWRPRC({
+    const { trustAnchor: wrprcTrustAnchor, wrprc } = await validateWRPRC({
       callbacks: trustCallbacks,
       wrprcJwt: registrationCertificate.data,
       wrprcLote,
     });
+
+    Logger.log(LogLevel.DEBUG, `Validated WRPRC:\n${JSON.stringify(wrprc)}`);
+    Logger.log(LogLevel.DEBUG, `WRPRC Trust Anchor:\n${wrprcTrustAnchor}`);
+
     verifyWRPAuthorization({
       entitlements: [
         WRP_ENTITLEMENTS.PID_PROVIDER,
