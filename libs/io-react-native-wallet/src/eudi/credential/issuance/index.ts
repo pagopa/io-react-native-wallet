@@ -1,18 +1,20 @@
 export { fetchMetadata } from "./01-fetch-metadata";
+export { evaluateIssuerTrust } from "./02-evaluate-issuer-trust";
 export {
   startUserAuthorization,
   type StartUserAuthorizationParams,
-} from "./02-start-user-authorization";
-export { completeUserAuthorization } from "./03-complete-user-authorization";
+} from "./03-start-user-authorization";
+export { completeUserAuthorization } from "./04-complete-user-authorization";
 export {
   authorizeAccess,
   type AuthorizeAccessParams,
-} from "./04-authorize-access";
+} from "./05-authorize-access";
 export {
   obtainCredential,
   type ObtainCredentialParams,
-} from "./05-obtain-credential";
-export { parseCredential } from "./06-parse-credential";
+} from "./06-obtain-credential";
+export { parseCredential } from "./07-parse-credential";
+export { verifyCredential } from "./08-verify-credential";
 export {
   type CredentialDisplay,
   type DisplayedClaim,

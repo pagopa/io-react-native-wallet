@@ -59,7 +59,7 @@ export const verify = async (
  * @param coseSign1 The COSE-Sign1 object encoded in base64 or base64url
  * @param cert The `x5chain`'s leaf certificate
  */
-const verifyMdocSignature = async (coseSign1: string, cert: string) => {
+export const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   const pemcert = convertBase64DerToPem(cert);
   const jwk = getSigninJwkFromCert(pemcert);
 

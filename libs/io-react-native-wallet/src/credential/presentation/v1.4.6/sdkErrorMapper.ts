@@ -1,8 +1,8 @@
-import { Oauth2JwtParseError as SdkOauth2JwtParseError } from "@pagopa/io-wallet-oauth2";
 import {
   CreateAuthorizationResponseError as SdkCreateAuthorizationResponseError,
   FetchAuthorizationResponseError as SdkFetchAuthorizationResponseError,
 } from "@pagopa/io-wallet-oid4vp";
+import { JwtParseError as SdkJwtParseError } from "@pagopa/io-wallet-utils";
 import {
   UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError,
   ValidationError as SdkValidationError,
@@ -54,7 +54,7 @@ export const mapSdkRequestObjectError = (err: unknown) => {
     );
   }
 
-  if (err instanceof SdkOauth2JwtParseError) {
+  if (err instanceof SdkJwtParseError) {
     throw new InvalidRequestObjectError(
       "The Request Object is not a valid JWT",
     );

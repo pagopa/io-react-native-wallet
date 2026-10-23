@@ -9,6 +9,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import type { AsyncStatus } from "../store/types";
 
 export type TestScenarioProp = {
+  /** Function to overrides the badge computed from the status */
+  getBadge?: () => Badge;
   icon: IOIcons;
   isPresent?: boolean;
   onPress: () => void;
@@ -17,6 +19,7 @@ export type TestScenarioProp = {
 } & AsyncStatus;
 
 export default function TestScenario({
+  getBadge: customGetBadge,
   hasError,
   icon,
   isLoading,
@@ -53,7 +56,7 @@ export default function TestScenario({
 
   return (
     <ModuleCredential
-      badge={getBadge()}
+      badge={customGetBadge?.() ?? getBadge()}
       icon={icon}
       isFetching={isLoading}
       label={title}

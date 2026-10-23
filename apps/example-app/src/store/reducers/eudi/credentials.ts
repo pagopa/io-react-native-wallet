@@ -19,6 +19,8 @@ export interface EudiCredential {
   /** How to display the credential, from the Credential Issuer Metadata. Missing for credentials obtained before it was stored */
   display?: Eudi.CredentialIssuance.CredentialDisplay;
   format: string;
+  /** Whether the credential's signature has been verified according to the EUDI trust model */
+  isSignatureVerified: boolean;
   issuer: string;
   /** Tag of the key the credential is bound to, also used as credential identifier */
   keyTag: string;

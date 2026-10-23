@@ -37,7 +37,7 @@ import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
  * @param issuerState - (optional) issuer state forwarded to the PAR, from a credential offer
  * @returns The obtained credential result
  */
-// eslint-disable-next-line max-lines-per-function
+
 export const getCredential = async ({
   batchSize = 1,
   credentialId,

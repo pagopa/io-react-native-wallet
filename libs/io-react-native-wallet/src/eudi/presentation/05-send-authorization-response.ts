@@ -2,7 +2,7 @@ import { ISO18013_7 } from "@pagopa/io-react-native-iso18013";
 import { removePadding, thumbprint } from "@pagopa/io-react-native-jwt";
 import { b64utob64 } from "jsrsasign";
 
-import type { EvaluatedCredential } from "./03-evaluate-dcql-query";
+import type { EvaluatedCredential } from "./04-evaluate-dcql-query";
 
 import { prepareVpToken } from "../../sd-jwt";
 import { createCryptoContextFor } from "../../utils/crypto";

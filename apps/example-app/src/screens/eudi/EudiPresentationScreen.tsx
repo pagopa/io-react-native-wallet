@@ -44,6 +44,7 @@ type Props = NativeStackScreenProps<MainStackNavParamList, "EudiPresentation">;
  * The presentation starts from a request, either scanned from a QR code, pasted as URI or received
  * as deep link. The requested credentials are presented only with the consent of the user.
  */
+/* eslint-disable max-lines-per-function */
 export const EudiPresentationScreen = ({ navigation, route }: Props) => {
   const dispatch = useAppDispatch();
   const toast = useIOToast();
@@ -62,6 +63,7 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
     eudiPresentationRequest: request,
     eudiPresentationResponse: response,
     eudiPresentationStartStatus: startStatus,
+    eudiVerifierTrust: request?.verifierTrust,
   });
 
   useEffect(
@@ -201,6 +203,17 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
             <ListItemInfo
               label="Response URI"
               value={request.requestObject.response_uri}
+            />
+            <Divider />
+            <ListItemInfo
+              endElement={{
+                componentProps: request.verifierTrust.isTrusted
+                  ? { text: "Trusted", variant: "success" }
+                  : { text: "Not trusted", variant: "error" },
+                type: "badge",
+              }}
+              label="Verifier WRPAC/WRPRC"
+              value={request.verifierTrust.error?.message ?? "Valid"}
             />
             <VSpacer size={24} />
             <H3>Requested credentials</H3>
