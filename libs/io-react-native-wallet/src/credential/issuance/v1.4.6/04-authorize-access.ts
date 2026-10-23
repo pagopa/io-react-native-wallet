@@ -3,6 +3,7 @@ import {
   createTokenDPoP,
   fetchTokenResponse,
 } from "@pagopa/io-wallet-oauth2";
+import { CREDENTIAL_OFFER_GRANTS } from "@pagopa/io-wallet-oid4vci";
 import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi, TokenResponse } from "../api";
@@ -16,11 +17,17 @@ import { IoWalletError } from "../../../utils/errors";
 
 export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   issuerConf,
-  code,
-  redirectUri,
-  codeVerifier,
+  accessTokenRequest,
   context,
 ) => {
+  if (
+    accessTokenRequest.grant_type !== CREDENTIAL_OFFER_GRANTS.AUTHORIZATION_CODE
+  ) {
+    throw new IoWalletError(
+      "Pre-authorized code flow is only supported for APTITUDE",
+    );
+  }
+
   const {
     appFetch = fetch,
     dPopCryptoContext,
@@ -31,6 +38,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   const tokenDPoP = await createTokenDPoP({
     callbacks: {
       ...partialCallbacks,
+      hash: partialCallbacks.hash,
       signJwt: createSignJwtFromCryptoContext(dPopCryptoContext),
     },
     jti: uuidv4(),
@@ -62,17 +70,13 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
 
   const tokenResponse = await fetchTokenResponse({
     accessTokenEndpoint: issuerConf.token_endpoint,
-    accessTokenRequest: {
-      code,
-      code_verifier: codeVerifier,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri,
-    },
+    accessTokenRequest,
     callbacks: {
       ...partialCallbacks,
       fetch: appFetch,
     },
     clientAttestationDPoP,
+    config: sdkConfigV1_4,
     dPoP: tokenDPoP.jwt,
     walletAttestation: walletInstanceAttestation,
   });

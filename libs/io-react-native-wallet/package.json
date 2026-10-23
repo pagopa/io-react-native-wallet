@@ -61,11 +61,11 @@
     "react-native-quick-crypto": "*"
   },
   "dependencies": {
-    "@pagopa/io-wallet-oauth2": "1.5.8",
-    "@pagopa/io-wallet-oid-federation": "1.5.8",
-    "@pagopa/io-wallet-oid4vci": "1.5.8",
-    "@pagopa/io-wallet-oid4vp": "1.5.8",
-    "@pagopa/io-wallet-utils": "1.5.8",
+    "@pagopa/io-wallet-oauth2": "catalog:",
+    "@pagopa/io-wallet-oid-federation": "catalog:",
+    "@pagopa/io-wallet-oid4vci": "catalog:",
+    "@pagopa/io-wallet-oid4vp": "catalog:",
+    "@pagopa/io-wallet-utils": "catalog:",
     "@sd-jwt/core": "^0.22.0",
     "@owf/crypto": "^0.4.2",
     "@owf/token-status-list": "^0.4.2",
