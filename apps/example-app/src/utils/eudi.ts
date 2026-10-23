@@ -239,10 +239,6 @@ export const getCredentialColors = ({
   };
 };
 
-/** Tag of the shared element transition of an obtained credential card, from the list to the detail */
-export const getCredentialTransitionTag = (keyTag: string) =>
-  `eudi-credential-${keyTag}`;
-
 /** Adds an opacity to a `#rrggbb` color, other color formats are returned transparent */
 export const withOpacity = (color: string, opacity: number) => {
   const hex = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(color);

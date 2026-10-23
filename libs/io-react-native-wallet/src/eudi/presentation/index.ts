@@ -12,6 +12,7 @@ export {
 export {
   evaluateDcqlQuery,
   type EvaluatedCredential,
+  type EvaluatedCredentialQuery,
   type WalletCredential,
 } from "./03-evaluate-dcql-query";
 export {

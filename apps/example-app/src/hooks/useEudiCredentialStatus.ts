@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 
 /**
  * Last checked status by Token Status List entry, so that the card of the next screen
- * immediately shows the same status, e.g. during the shared element transition.
+ * immediately shows the same status, e.g. the detail opened from the list.
  */
 const checkedStatuses = new Map<
   string,

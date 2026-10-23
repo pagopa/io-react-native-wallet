@@ -1,7 +1,6 @@
-import { AnimatedIOText, IOColors } from "@pagopa/io-app-design-system";
+import { IOColors, IOText } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
-import Animated from "react-native-reanimated";
+import { Image, StyleSheet, View } from "react-native";
 
 import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 
@@ -27,8 +26,8 @@ const CARD_BORDER_RADIUS = 16;
 type LogoStatus = "error" | "loaded";
 
 /**
- * Load results of the issuer logos, so that every card showing a logo, e.g. the moving one of the
- * transition between screens, has the same layout from its first frame.
+ * Load results of the issuer logos, so that every card showing a logo, e.g. the one of the next
+ * screen, has the same layout from its first frame.
  */
 const logoStatuses = new Map<string, LogoStatus>();
 
@@ -40,8 +39,6 @@ type Props = {
     >;
   /** Holder picture, shown as on the physical documents */
   portrait?: { label: string; uri: string };
-  /** Tag of the shared element transition between the screens showing the same credential */
-  sharedTransitionTag?: string;
   /** Validity status of the credential, see {@link getCardStatus} */
   status?: ReturnType<typeof getCardStatus>;
 };
@@ -50,21 +47,8 @@ type Props = {
  * Card showing an EUDI Wallet credential, obtained or offered, with the colors and logo defined by its issuer.
  * Its colors come from the credential type and format, see {@link getCredentialColors}.
  * A diagonal highlight and shade are drawn directly on the card surface.
- *
- * With `sharedTransitionTag`, the card moves between screens with a shared element transition.
- * Reanimated moves a copy of each tagged view without its children, so the background and every
- * content element are tagged on their own. The gradients belong to the card's native background
- * and are copied with it, avoiding separate image loads at the start of the transition.
  */
-export const EudiCredentialCard = ({
-  credential,
-  portrait,
-  sharedTransitionTag,
-  status,
-}: Props) => {
-  const tag = (element?: string) =>
-    sharedTransitionTag &&
-    (element ? `${sharedTransitionTag}:${element}` : sharedTransitionTag);
+export const EudiCredentialCard = ({ credential, portrait, status }: Props) => {
   const { credentialConfigurationId, display, issuer, obtainedAt } = credential;
   const name = display?.name ?? credentialConfigurationId;
   const logoUri = display?.logoUri;
@@ -87,8 +71,7 @@ export const EudiCredentialCard = ({
   ];
 
   return (
-    <Animated.View
-      sharedTransitionTag={tag()}
+    <View
       style={[
         styles.card,
         { backgroundColor, borderColor: withOpacity(textColor, 0.14) },
@@ -96,116 +79,82 @@ export const EudiCredentialCard = ({
     >
       <View style={styles.header}>
         {portrait && (
-          <Animated.Image
+          <Image
             accessibilityIgnoresInvertColors
             accessibilityLabel={portrait.label}
             resizeMode="cover"
-            sharedTransitionTag={tag("portrait")}
             source={{ uri: portrait.uri }}
             style={styles.portrait}
           />
         )}
         <View style={styles.title}>
-          <AnimatedIOText
-            numberOfLines={2}
-            sharedTransitionTag={tag("name")}
-            size={20}
-            style={textStyle}
-            weight="Bold"
-          >
+          <IOText numberOfLines={2} size={20} style={textStyle} weight="Bold">
             {name}
-          </AnimatedIOText>
-          <AnimatedIOText
+          </IOText>
+          <IOText
             numberOfLines={1}
-            sharedTransitionTag={tag("issuer")}
             size={14}
-            style={[textStyle, styles.issuer]}
+            style={{ ...textStyle, ...styles.issuer }}
             weight="Regular"
           >
             {display?.issuerName ?? issuer}
-          </AnimatedIOText>
+          </IOText>
         </View>
         {logoUri && logoStatus !== "error" && (
-          <Animated.View
-            sharedTransitionTag={tag("logoContainer")}
+          <View
             style={[
               styles.logoContainer,
               logoStatus === "loaded" && styles.logoLoaded,
             ]}
           >
-            <Animated.Image
+            <Image
               accessibilityIgnoresInvertColors
               onError={() => onLogoStatus("error")}
               onLoad={() => onLogoStatus("loaded")}
               resizeMode="contain"
-              sharedTransitionTag={tag("logo")}
               source={{ uri: logoUri }}
               style={styles.logo}
             />
-          </Animated.View>
+          </View>
         )}
       </View>
       <View style={styles.footer}>
         <View style={styles.pills}>
-          <Animated.View
-            sharedTransitionTag={tag("format")}
-            // A background color rather than a translucent layer, since the copy has no children
-            style={pillStyle}
-          >
-            <AnimatedIOText
-              sharedTransitionTag={tag("formatLabel")}
-              size={12}
-              style={textStyle}
-              weight="Semibold"
-            >
+          <View style={pillStyle}>
+            <IOText size={12} style={textStyle} weight="Semibold">
               {getFormatLabel(credential.format)}
-            </AnimatedIOText>
-          </Animated.View>
+            </IOText>
+          </View>
           {status && (
-            <Animated.View
-              sharedTransitionTag={tag("status")}
-              style={[pillStyle, styles.statusPill]}
-            >
-              <Animated.View
-                sharedTransitionTag={tag("statusDot")}
+            <View style={[pillStyle, styles.statusPill]}>
+              <View
                 style={[
                   styles.statusDot,
                   { backgroundColor: STATUS_COLORS[status.variant] },
                 ]}
               />
-              <AnimatedIOText
-                sharedTransitionTag={tag("statusLabel")}
-                size={12}
-                style={textStyle}
-                weight="Semibold"
-              >
+              <IOText size={12} style={textStyle} weight="Semibold">
                 {status.label}
-              </AnimatedIOText>
-            </Animated.View>
+              </IOText>
+            </View>
           )}
         </View>
         {obtainedAt && (
           <View style={styles.date}>
-            <AnimatedIOText
-              sharedTransitionTag={tag("obtainedAtLabel")}
+            <IOText
               size={10}
-              style={[textStyle, styles.dateLabel]}
+              style={{ ...textStyle, ...styles.dateLabel }}
               weight="Semibold"
             >
               ADDED TO WALLET
-            </AnimatedIOText>
-            <AnimatedIOText
-              sharedTransitionTag={tag("obtainedAt")}
-              size={12}
-              style={textStyle}
-              weight="Semibold"
-            >
+            </IOText>
+            <IOText size={12} style={textStyle} weight="Semibold">
               {new Date(obtainedAt).toLocaleDateString()}
-            </AnimatedIOText>
+            </IOText>
           </View>
         )}
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
