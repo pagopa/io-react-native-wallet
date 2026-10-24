@@ -6,6 +6,7 @@ import type { KeyAttestationSupportedApi } from "../api";
 
 import { getWalletProviderClient } from "../../client";
 import { IoWalletError } from "../../utils/errors";
+import { toIntegrityClaims } from "../../utils/integrity";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
 import { KeyAttestationResponse } from "./types";
@@ -99,7 +100,7 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
       ),
     };
 
-    const { authenticatorData, signature } =
+    const hardwareSignatureWithAuthData =
       await integrityContext.getHardwareSignatureWithAuthData(
         JSON.stringify(clientData),
       );
@@ -112,8 +113,8 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
           jwk: fixBase64EncodingOnKey(signatureKey.publicKey),
         },
         hardware_key_tag: hardwareKeyTag,
-        hardware_signature: signature,
-        integrity_assertion: authenticatorData,
+        hardware_signature: hardwareSignatureWithAuthData.signature,
+        ...toIntegrityClaims(hardwareSignatureWithAuthData),
         iss: hardwareKeyTag,
         keys_to_attest: keysToAttest.map((k) => k.keyAttestationRequestJwt),
         nonce,

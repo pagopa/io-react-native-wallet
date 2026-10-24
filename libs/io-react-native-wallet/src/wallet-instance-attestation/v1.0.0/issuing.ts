@@ -4,7 +4,6 @@ import {
   thumbprint,
 } from "@pagopa/io-react-native-jwt";
 
-import type { IntegrityContext } from "../../utils/integrity";
 import type { WalletInstanceAttestationApi } from "../api";
 
 import { getWalletProviderClient } from "../../client";
@@ -13,6 +12,10 @@ import {
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../../utils/errors";
+import {
+  type IntegrityContext,
+  toIntegrityClaims,
+} from "../../utils/integrity";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
 import { mapToWalletAttestations } from "./mappers";
@@ -44,7 +47,7 @@ async function getAttestationRequest(
   };
 
   const hardwareKeyTag = integrityContext.getHardwareKeyTag();
-  const { authenticatorData, signature } =
+  const hardwareSignatureWithAuthData =
     await integrityContext.getHardwareSignatureWithAuthData(
       JSON.stringify(clientData),
     );
@@ -56,8 +59,8 @@ async function getAttestationRequest(
         jwk: fixBase64EncodingOnKey(publicKey),
       },
       hardware_key_tag: hardwareKeyTag,
-      hardware_signature: signature,
-      integrity_assertion: authenticatorData,
+      hardware_signature: hardwareSignatureWithAuthData.signature,
+      ...toIntegrityClaims(hardwareSignatureWithAuthData),
       iss: keyThumbprint,
       nonce: challenge,
     })

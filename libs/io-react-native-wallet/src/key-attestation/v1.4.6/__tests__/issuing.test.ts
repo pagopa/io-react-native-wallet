@@ -115,6 +115,39 @@ describe("KeyAttestation | getAttestation", () => {
     );
   });
 
+  it("should send the fresh hardware key attestation and omit the missing Play Integrity token", async () => {
+    const appFetch = createMockFetch();
+    integrityContextMock.getHardwareSignatureWithAuthData.mockResolvedValueOnce(
+      {
+        hardwareKeyAttestation: "mock-hardware-key-attestation",
+        signature: "mock-sig-123",
+      },
+    );
+
+    await getAttestation(
+      {
+        walletProviderBaseUrl: "https://example.wp",
+        walletSolutionId: "walletSol",
+        walletSolutionVersion: "1.0.0",
+      },
+      {
+        appFetch,
+        integrityContext: integrityContextMock,
+        keysToAttest: [createMockKeyAttestationCryptoContext("key-1")],
+      },
+    );
+
+    const [, payload] = (appFetch.mock.lastCall[1].body as string).split(".");
+    const decodedPayload = JSON.parse(
+      Buffer.from(payload as string, "base64url").toString("utf-8"),
+    );
+    expect(decodedPayload).toMatchObject({
+      hardware_key_attestation: "mock-hardware-key-attestation",
+      hardware_signature: "mock-sig-123",
+    });
+    expect(decodedPayload).not.toHaveProperty("integrity_assertion");
+  });
+
   it("should throw on Android when the key is generated without a key attestation", async () => {
     jest.replaceProperty(Platform, "OS", "android");
 
