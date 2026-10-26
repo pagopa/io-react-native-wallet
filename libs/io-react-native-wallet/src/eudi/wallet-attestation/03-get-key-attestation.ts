@@ -21,8 +21,7 @@ const createKeyAttestationRequest = async (
   challenge: string,
   cryptoContext: KeyAttestationCryptoContext,
 ) => {
-  // Key Attestation is not required by the test Wallet Provider
-  /* const { attestation, success } =
+  const { attestation, success } =
     await cryptoContext.generateKeyWithAttestation(challenge);
 
   if (!success) {
@@ -35,7 +34,7 @@ const createKeyAttestationRequest = async (
     throw new IoWalletError(
       "Missing Android key attestation: the generated key pair must be hardware-backed",
     );
-  } */
+  }
 
   const publicKey = JWK.parse(await cryptoContext.getPublicKey());
 
@@ -46,6 +45,7 @@ const createKeyAttestationRequest = async (
       },
       wscd_key_attestation: {
         storage_type: "LOCAL_NATIVE",
+        // Key Attestation is not required by the test Wallet Provider
         // ...(attestation && { attestation }),
       },
     })
