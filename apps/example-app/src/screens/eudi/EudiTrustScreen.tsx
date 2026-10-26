@@ -1,16 +1,16 @@
 import type { Eudi } from "@io-app-it-wallet/io-react-native-wallet";
 
 import {
-  AnimatedRadio,
   Badge,
-  BodySmall,
-  H6,
+  Divider,
+  H4,
   IOVisualCostants,
   LoadingSpinner,
+  RadioGroup,
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import React from "react";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 
 import { useDebugInfo } from "../../hooks/useDebugInfo";
 import { selectEudiLoTEsWithStatus } from "../../store/reducers/eudi/trust";
@@ -23,6 +23,8 @@ import { EUDI_LOTE_URLS } from "../../utils/eudiTrust";
 const PROFILES = Object.entries(EUDI_LOTE_URLS)
   .filter(([, value]) => value.startsWith("http"))
   .map(([key]) => key) as Eudi.Trust.LoTEProfile[];
+
+type TestType = "negative" | "positive";
 
 /**
  * Screen to test the EUDI trust model: fetches and validates each List of Trusted Entities (LoTE),
@@ -45,10 +47,17 @@ export const EudiTrustScreen = () => {
   return (
     <FlatList
       contentContainerStyle={{
-        margin: IOVisualCostants.appMarginDefault,
+        paddingHorizontal: IOVisualCostants.appMarginDefault,
+        paddingVertical: 16,
       }}
       data={PROFILES}
-      ItemSeparatorComponent={<VSpacer size={16} />}
+      ItemSeparatorComponent={
+        <>
+          <VSpacer size={16} />
+          <Divider />
+          <VSpacer size={16} />
+        </>
+      }
       keyExtractor={(profile) => profile}
       renderItem={({ item }) => <LoTEItem profile={item} />}
     />
@@ -81,69 +90,43 @@ const LoTEItem = ({ profile }: { profile: Eudi.Trust.LoTEProfile }) => {
   return (
     <View>
       <View style={styles.header}>
-        <H6>{profile}</H6>
+        <H4>{profile}</H4>
         {getStatus()}
       </View>
-      <View style={styles.radios}>
-        <LoTERadio
-          checked={isNegative === false}
-          disabled={isLoading}
-          label="Positive tests"
-          onPress={() => fetchLoTE(false)}
-        />
-        <LoTERadio
-          checked={isNegative === true}
-          disabled={isLoading}
-          label="Negative tests"
-          onPress={() => fetchLoTE(true)}
-        />
-      </View>
+      <RadioGroup<TestType>
+        items={[
+          {
+            description: "Fetch and validate the list as expected",
+            disabled: isLoading,
+            id: "positive",
+            value: "Positive tests",
+          },
+          {
+            description: "Fetch the list variant that must fail validation",
+            disabled: isLoading,
+            id: "negative",
+            value: "Negative tests",
+          },
+        ]}
+        onPress={(type) => fetchLoTE(type === "negative")}
+        selectedItem={
+          isNegative === undefined
+            ? undefined
+            : isNegative
+              ? "negative"
+              : "positive"
+        }
+        type="radioListItem"
+      />
     </View>
   );
 };
-
-/** Radio button with a small, regular weight label */
-const LoTERadio = ({
-  checked,
-  disabled,
-  label,
-  onPress,
-}: {
-  checked: boolean;
-  disabled: boolean;
-  label: string;
-  onPress: () => void;
-}) => (
-  <Pressable
-    accessibilityRole="radio"
-    accessibilityState={{ checked, disabled }}
-    disabled={disabled}
-    onPress={onPress}
-    style={styles.radio}
-  >
-    <AnimatedRadio
-      checked={checked}
-      disabled={disabled}
-      onPress={onPress}
-      size={20}
-    />
-    <BodySmall weight="Regular">{label}</BodySmall>
-  </Pressable>
-);
 
 const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-  },
-  radio: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-  },
-  radios: {
-    gap: 8,
-    marginTop: 2,
+    paddingTop: 8,
   },
 });
