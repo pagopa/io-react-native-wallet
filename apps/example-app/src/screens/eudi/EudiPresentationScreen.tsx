@@ -8,16 +8,16 @@ import {
   IOButton,
   IOVisualCostants,
   ListItemInfo,
+  ListItemRadio,
   useIOToast,
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import React, { useEffect, useState } from "react";
-import { Linking, Pressable, ScrollView } from "react-native";
+import { Linking, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
-import { EudiCredentialCard } from "../../components/eudi/EudiCredentialCard";
 import { UriInput } from "../../components/eudi/UriInput";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
 import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
@@ -35,6 +35,7 @@ import {
 import {
   EUDI_PRESENTATION_REQUEST_SCHEMES,
   getCardStatus,
+  getFormatLabel,
 } from "../../utils/eudi";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "EudiPresentation">;
@@ -255,9 +256,6 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
   );
 };
 
-/** Opacity of the candidate credentials not chosen, to highlight the chosen one */
-const UNSELECTED_OPACITY = 0.5;
-
 /**
  * A credential requested by the verifier, with the purposes of the request. When more wallet
  * credentials satisfy the request, the user chooses the one to present.
@@ -294,10 +292,10 @@ const RequestedCredential = ({
       )}
       {candidates.map(({ keyTag }, index) => (
         <React.Fragment key={keyTag}>
-          {index > 0 && <VSpacer size={12} />}
+          {index > 0 && <Divider />}
           <CandidateCredential
             keyTag={keyTag}
-            onPress={candidates.length > 1 ? () => onSelect(keyTag) : undefined}
+            onPress={() => onSelect(keyTag)}
             selected={keyTag === selectedKeyTag}
           />
         </React.Fragment>
@@ -306,37 +304,33 @@ const RequestedCredential = ({
   );
 };
 
-/** Card of a wallet credential that satisfies a request, with the holder picture and status list status */
+/** Radio entry of a wallet credential that satisfies a request, with its format, issuer and status list status */
 const CandidateCredential = ({
   keyTag,
   onPress,
   selected,
 }: {
   keyTag: string;
-  /** Chooses the credential, when there are other candidates */
-  onPress?: () => void;
+  onPress: () => void;
   selected: boolean;
 }) => {
   const credential = useAppSelector(selectEudiCredential(keyTag));
-  const { parsed, portrait } = useEudiParsedCredential(credential);
+  const { parsed } = useEudiParsedCredential(credential);
   const revocation = useEudiCredentialStatus(parsed?.status);
   if (!credential) return null;
+  const status = getCardStatus(revocation.status);
   return (
-    <Pressable
-      accessibilityLabel={
-        credential.display?.name ?? credential.credentialConfigurationId
-      }
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      disabled={!onPress}
+    <ListItemRadio
+      description={[
+        getFormatLabel(credential.format),
+        credential.display?.issuerName ?? credential.issuer,
+        status?.label,
+      ]
+        .filter(Boolean)
+        .join(" · ")}
       onPress={onPress}
-      style={{ opacity: selected ? 1 : UNSELECTED_OPACITY }}
-    >
-      <EudiCredentialCard
-        credential={credential}
-        portrait={portrait}
-        status={getCardStatus(revocation.status)}
-      />
-    </Pressable>
+      selected={selected}
+      value={credential.display?.name ?? credential.credentialConfigurationId}
+    />
   );
 };
