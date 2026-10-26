@@ -9,16 +9,17 @@ export {
   verifyRequestObject,
   type VerifyRequestObjectParams,
 } from "./02-verify-request-object";
+export { evaluateVerifierTrust } from "./03-evaluate-verifier-trust";
 export {
   evaluateDcqlQuery,
   type EvaluatedCredential,
   type EvaluatedCredentialQuery,
   type WalletCredential,
-} from "./03-evaluate-dcql-query";
+} from "./04-evaluate-dcql-query";
 export {
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
-} from "./04-send-authorization-response";
+} from "./05-send-authorization-response";
 export type {
   AuthorizationErrorCode,
   AuthorizationResponseResult,

@@ -4,12 +4,16 @@ import { createSlice } from "@reduxjs/toolkit";
 
 import type { AsyncStatus, RootState } from "../../types";
 
-import { resolveEudiCredentialOfferThunk } from "../../../thunks/eudi/offer";
+import {
+  resolveEudiCredentialOfferThunk,
+  ResolveEudiCredentialOfferThunkOutput,
+} from "../../../thunks/eudi/offer";
 import { asyncStatusInitial } from "../../utils";
 
 export interface EudiCredentialOfferState {
   asyncStatus: AsyncStatus;
   issuerMetadata?: Eudi.CredentialIssuance.CredentialIssuerMetadata;
+  issuerTrust?: ResolveEudiCredentialOfferThunkOutput["issuerTrust"];
   offer?: Eudi.CredentialOffer.CredentialOffer;
   /** The URI the offer was resolved from */
   uri?: string;

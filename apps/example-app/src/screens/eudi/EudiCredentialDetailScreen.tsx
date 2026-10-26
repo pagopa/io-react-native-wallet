@@ -302,7 +302,7 @@ const TechnicalDetails = ({
       {algorithm && (
         <ListItemInfo
           label="Signature algorithm"
-          value={`${algorithm} (not verified)`}
+          value={`${algorithm} ${credential.isSignatureVerified ? "(verified)" : "(not verified)"}`}
         />
       )}
       {certificate && (

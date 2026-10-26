@@ -18,6 +18,7 @@ import { environmentReducer } from "./reducers/environment";
 import { eudiCredentialsReducer } from "./reducers/eudi/credentials";
 import { eudiCredentialOfferReducer } from "./reducers/eudi/offer";
 import { eudiPresentationReducer } from "./reducers/eudi/presentation";
+import { eudiTrustReducer } from "./reducers/eudi/trust";
 import { eudiWalletAttestationReducer } from "./reducers/eudi/walletAttestation";
 import { instanceReducer } from "./reducers/instance";
 import { mrtdReducer } from "./reducers/mrtd";
@@ -46,6 +47,7 @@ export const store = configureStore({
     eudiCredentials: eudiCredentialsReducer,
     eudiOffer: eudiCredentialOfferReducer,
     eudiPresentation: eudiPresentationReducer,
+    eudiTrust: eudiTrustReducer,
     eudiWalletAttestation: eudiWalletAttestationReducer,
     instance: instanceReducer,
     mrtd: mrtdReducer,

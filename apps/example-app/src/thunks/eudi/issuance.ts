@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { EudiCredential } from "../../store/reducers/eudi/credentials";
 import type { AppDispatch, RootState } from "../../store/types";
 
+import { selectEudiLotes } from "../../store/reducers/eudi/trust";
 import {
   selectEudiWalletAttestation,
   selectEudiWalletInstanceOrThrow,
@@ -53,6 +54,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     offer,
   } = args;
   const { CredentialIssuance, CredentialOffer } = Eudi;
+  const lotes = selectEudiLotes(getState());
 
   const { authorizationCodeGrant } = CredentialOffer.extractGrantDetails(offer);
   if (!authorizationCodeGrant) {
@@ -71,6 +73,13 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     await CredentialIssuance.fetchMetadata(offer.credential_issuer, {
       authorizationServer: authorizationCodeGrant.authorizationServer,
     });
+
+  // This is already enforced at the start of the credential offer flow
+  /*   await CredentialIssuance.evaluateIssuerTrust({
+    issuerMetadataJwt,
+    wrpacLote: lotes.EUWRPACProvidersList,
+    wrprcLote: lotes.EUWRPRCProvidersList
+  }); */
 
   const { authUrl, codeVerifier, state } =
     await CredentialIssuance.startUserAuthorization({
@@ -127,6 +136,12 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
     throw new Error(`Unknown format for ${credentialConfigurationId}`);
   }
 
+  await CredentialIssuance.verifyCredential({
+    credential,
+    format,
+    lotes,
+  });
+
   return {
     credential,
     credentialConfigurationId,
@@ -135,6 +150,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
       credentialConfigurationId,
     ),
     format,
+    isSignatureVerified: true, // verifyCredential throws, so here the signature is valid
     issuer: offer.credential_issuer,
     keyTag,
     obtainedAt: new Date().toISOString(),

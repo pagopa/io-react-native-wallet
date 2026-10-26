@@ -1,6 +1,8 @@
+import { decode } from "@pagopa/io-react-native-jwt";
+
 import { ValidationFailed } from "../../../utils/errors";
 import { AuthorizationServerMetadata, CredentialIssuerMetadata } from "./types";
-import { getJson, getWellKnownUrl, parseOrThrow } from "./utils";
+import { getJson, getJwt, getWellKnownUrl, parseOrThrow } from "./utils";
 
 /**
  * Fetches the Credential Issuer Metadata and the metadata of the Authorization Server
@@ -21,14 +23,19 @@ export const fetchMetadata = async (
   {
     authorizationServer,
     fetch: fetchFn = fetch,
-  }: { authorizationServer?: string; fetch?: typeof fetch } = {},
+  }: {
+    authorizationServer?: string;
+    fetch?: typeof fetch;
+  } = {},
 ) => {
+  const issuerMetadataJwt = await getJwt(
+    getWellKnownUrl(credentialIssuer, "openid-credential-issuer"),
+    fetchFn,
+  );
+
   const issuerMetadata = parseOrThrow(
     CredentialIssuerMetadata,
-    await getJson(
-      getWellKnownUrl(credentialIssuer, "openid-credential-issuer"),
-      fetchFn,
-    ),
+    decode(issuerMetadataJwt).payload,
     "Credential Issuer metadata",
   );
 
@@ -80,5 +87,9 @@ export const fetchMetadata = async (
     });
   }
 
-  return { authorizationServerMetadata, issuerMetadata };
+  return {
+    authorizationServerMetadata,
+    issuerMetadata,
+    issuerMetadataJwt, // Return the raw JWT for subsequent validation
+  };
 };
