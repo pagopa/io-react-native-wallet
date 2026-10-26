@@ -11,6 +11,7 @@ import { ValidationFailed } from "../../utils/errors";
 import { Logger, LogLevel } from "../../utils/logging";
 import { trustCallbacks } from "../trust/callbacks";
 import { REGISTRATION_CERTIFICATE_FORMAT } from "../trust/const";
+import { findUnregisteredRequests, type UnregisteredRequest } from "./scope";
 import { RequestObject } from "./types";
 
 type EvaluateVerifierTrust = (params: {
@@ -20,6 +21,8 @@ type EvaluateVerifierTrust = (params: {
 }) => Promise<{
   error?: { message: string; name: string };
   isTrusted: boolean;
+  /** The requested credentials and claims not registered in the WRPRC, when the Verifier is trusted */
+  unregisteredRequests?: UnregisteredRequest[];
 }>;
 
 /**
@@ -28,6 +31,8 @@ type EvaluateVerifierTrust = (params: {
  * - The Request Object's signature is verified with the validated WRPAC
  * - The WRPRC is validated against the provided WRPRC Providers LoTE
  * - The Verifier's entitlements are verified
+ * - The credentials and claims requested in the DCQL query are compared with the scope registered in the WRPRC:
+ *   the unregistered ones do not make the Verifier untrusted, since the user may still proceed
  *
  * **Note:** this function DOES NOT perform WRPAC and WRPRC providers LoTE validation.
  *
@@ -114,7 +119,19 @@ export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({
       wrprc,
     });
 
-    return { isTrusted: true };
+    const unregisteredRequests = findUnregisteredRequests(
+      decodedRequestObject.dcql_query,
+      wrprc,
+    );
+
+    if (unregisteredRequests.length > 0) {
+      Logger.log(
+        LogLevel.WARN,
+        `The Verifier requests credentials or claims outside its registered scope:\n${JSON.stringify(unregisteredRequests)}`,
+      );
+    }
+
+    return { isTrusted: true, unregisteredRequests };
   } catch (error) {
     return {
       error:

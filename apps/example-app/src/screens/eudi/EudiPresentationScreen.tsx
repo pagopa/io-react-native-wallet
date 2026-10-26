@@ -64,6 +64,8 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
     eudiPresentationResponse: response,
     eudiPresentationStartStatus: startStatus,
     eudiVerifierTrust: request?.verifierTrust,
+    eudiVerifierUnregisteredRequests:
+      request?.verifierTrust.unregisteredRequests,
   });
 
   useEffect(
@@ -215,6 +217,29 @@ export const EudiPresentationScreen = ({ navigation, route }: Props) => {
               label="Verifier WRPAC/WRPRC"
               value={request.verifierTrust.error?.message ?? "Valid"}
             />
+            {request.verifierTrust.unregisteredRequests && (
+              <>
+                <Divider />
+                <ListItemInfo
+                  endElement={{
+                    componentProps:
+                      request.verifierTrust.unregisteredRequests.length === 0
+                        ? { text: "Within scope", variant: "success" }
+                        : { text: "Overasking", variant: "warning" },
+                    type: "badge",
+                  }}
+                  label="Requested scope"
+                  value={
+                    request.verifierTrust.unregisteredRequests
+                      .map(
+                        ({ credentialQueryId, format, path, type }) =>
+                          `${credentialQueryId}: ${type ?? format}${path ? ` > ${path.join(".")}` : ""}`,
+                      )
+                      .join("\n") || "Registered in the WRPRC"
+                  }
+                />
+              </>
+            )}
             <VSpacer size={24} />
             <H3>Requested credentials</H3>
             {request.credentials.map((credentialQuery) => (
