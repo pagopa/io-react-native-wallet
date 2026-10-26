@@ -13,8 +13,8 @@ const ClaimPath = z.array(z.union([z.string(), z.number(), z.null()]));
 export type ClaimPath = z.infer<typeof ClaimPath>;
 
 /**
- * Display metadata of a credential (OpenID4VCI 1.0, Appendix A.1).
- * Malformed display metadata is ignored, since it must not prevent the issuance.
+ * Display and claims metadata of a credential (OpenID4VCI 1.0, Appendix A.1 and A.2).
+ * Malformed metadata is ignored, since it must not prevent the issuance.
  */
 const CredentialMetadata = z
   .looseObject({
@@ -29,6 +29,8 @@ const CredentialMetadata = z
               }),
             )
             .optional(),
+          /** Whether the Credential Issuer always includes the claim in the issued Credential */
+          mandatory: z.boolean().optional(),
           path: ClaimPath,
         }),
       )

@@ -77,7 +77,7 @@ export const getCredentialDisplay = (
  * Selects a value from the claims following a claims path (OpenID4VCI 1.0, Appendix C):
  * a string selects an object key, a number an array index, `null` all the array elements.
  */
-const selectClaim = (value: unknown, path: ClaimPath): unknown => {
+export const selectClaim = (value: unknown, path: ClaimPath): unknown => {
   if (path.length === 0 || value === undefined || value === null) {
     return value;
   }
