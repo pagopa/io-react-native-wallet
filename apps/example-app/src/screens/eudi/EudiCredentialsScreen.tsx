@@ -2,13 +2,14 @@ import {
   Body,
   H4,
   IOVisualCostants,
+  ListItemAction,
   ListItemSwitch,
   Pictogram,
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { Alert, FlatList, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   LinearTransition,
   useAnimatedStyle,
@@ -27,7 +28,8 @@ import {
   type EudiCredential,
   selectEudiCredentials,
 } from "../../store/reducers/eudi/credentials";
-import { useAppSelector } from "../../store/utils";
+import { useAppDispatch, useAppSelector } from "../../store/utils";
+import { deleteEudiCredentialThunk } from "../../thunks/eudi/issuance";
 import { getCardStatus } from "../../utils/eudi";
 
 /**
@@ -35,9 +37,31 @@ import { getCardStatus } from "../../utils/eudi";
  */
 export const EudiCredentialsScreen = () => {
   const navigation = useNavigation();
+  const dispatch = useAppDispatch();
   const credentials = useAppSelector(selectEudiCredentials);
   const { onRefresh, refreshing } = useEudiStatusListsRefresh();
   const [stacked, setStacked] = useState(false);
+
+  const deleteAllCredentials = () =>
+    Alert.alert(
+      "Delete all credentials",
+      "Every credential and its key will be removed from the device.",
+      [
+        { style: "cancel", text: "Cancel" },
+        {
+          onPress: () =>
+            Promise.all(
+              credentials.map(({ keyTag }) =>
+                dispatch(deleteEudiCredentialThunk(keyTag)).unwrap(),
+              ),
+            ).catch((e: unknown) =>
+              Alert.alert("Unable to delete the credentials", String(e)),
+            ),
+          style: "destructive",
+          text: "Delete all",
+        },
+      ],
+    );
 
   return (
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
@@ -58,7 +82,22 @@ export const EudiCredentialsScreen = () => {
             </Body>
           </View>
         }
-        ListFooterComponent={<VSpacer size={32} />}
+        ListFooterComponent={
+          <>
+            {credentials.length > 0 && (
+              <>
+                <VSpacer size={24} />
+                <ListItemAction
+                  icon="trashcan"
+                  label="Delete all credentials"
+                  onPress={deleteAllCredentials}
+                  variant="danger"
+                />
+              </>
+            )}
+            <VSpacer size={32} />
+          </>
+        }
         ListHeaderComponent={
           credentials.length > 0 ? (
             <>
