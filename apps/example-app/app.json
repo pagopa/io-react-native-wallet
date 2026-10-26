@@ -122,6 +122,12 @@
           ]
         }
       ],
+      [
+        "react-native-permissions",
+        {
+          "iosPermissions": ["Bluetooth"]
+        }
+      ],
       "./scripts/android-fix-bouncy-castle-dependency.js"
     ]
   }

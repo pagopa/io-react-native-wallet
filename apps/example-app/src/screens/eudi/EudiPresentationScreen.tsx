@@ -8,7 +8,6 @@ import {
   IOButton,
   IOVisualCostants,
   ListItemInfo,
-  ListItemRadio,
   useIOToast,
   VSpacer,
 } from "@pagopa/io-app-design-system";
@@ -18,11 +17,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { MainStackNavParamList } from "../../navigator/MainStackNavigator";
 
+import { EudiCandidateCredential } from "../../components/eudi/EudiCandidateCredential";
 import { UriInput } from "../../components/eudi/UriInput";
 import { useDebugInfo } from "../../hooks/useDebugInfo";
-import { useEudiCredentialStatus } from "../../hooks/useEudiCredentialStatus";
-import { useEudiParsedCredential } from "../../hooks/useEudiParsedCredential";
-import { selectEudiCredential } from "../../store/reducers/eudi/credentials";
 import {
   eudiPresentationReset,
   selectEudiPresentationState,
@@ -32,11 +29,7 @@ import {
   completeEudiPresentationThunk,
   startEudiPresentationThunk,
 } from "../../thunks/eudi/presentation";
-import {
-  EUDI_PRESENTATION_REQUEST_SCHEMES,
-  getCardStatus,
-  getFormatLabel,
-} from "../../utils/eudi";
+import { EUDI_PRESENTATION_REQUEST_SCHEMES } from "../../utils/eudi";
 
 type Props = NativeStackScreenProps<MainStackNavParamList, "EudiPresentation">;
 
@@ -318,7 +311,7 @@ const RequestedCredential = ({
       {candidates.map(({ keyTag }, index) => (
         <React.Fragment key={keyTag}>
           {index > 0 && <Divider />}
-          <CandidateCredential
+          <EudiCandidateCredential
             keyTag={keyTag}
             onPress={() => onSelect(keyTag)}
             selected={keyTag === selectedKeyTag}
@@ -326,36 +319,5 @@ const RequestedCredential = ({
         </React.Fragment>
       ))}
     </>
-  );
-};
-
-/** Radio entry of a wallet credential that satisfies a request, with its format, issuer and status list status */
-const CandidateCredential = ({
-  keyTag,
-  onPress,
-  selected,
-}: {
-  keyTag: string;
-  onPress: () => void;
-  selected: boolean;
-}) => {
-  const credential = useAppSelector(selectEudiCredential(keyTag));
-  const { parsed } = useEudiParsedCredential(credential);
-  const revocation = useEudiCredentialStatus(parsed?.status);
-  if (!credential) return null;
-  const status = getCardStatus(revocation.status);
-  return (
-    <ListItemRadio
-      description={[
-        getFormatLabel(credential.format),
-        credential.display?.issuerName ?? credential.issuer,
-        status?.label,
-      ]
-        .filter(Boolean)
-        .join(" · ")}
-      onPress={onPress}
-      selected={selected}
-      value={credential.display?.name ?? credential.credentialConfigurationId}
-    />
   );
 };
