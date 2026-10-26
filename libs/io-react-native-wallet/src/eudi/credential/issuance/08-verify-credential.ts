@@ -6,6 +6,8 @@ import {
 } from "@pagopa/io-wallet-eudi-trust";
 import { b64utob64 } from "jsrsasign";
 
+import type { CredentialIssuerMetadata } from "./types";
+
 import { verifyMdocSignature } from "../../../mdoc";
 import { MissingX509CertsError } from "../../../trust/common/errors";
 import { getJwkFromCertificateChain } from "../../../utils/crypto";
@@ -14,29 +16,72 @@ import { Logger, LogLevel } from "../../../utils/logging";
 import { LoTEs } from "../../trust";
 import { trustCallbacks } from "../../trust/callbacks";
 import { EUDI_MDL_DOCTYPE, EUDI_PID_DOCTYPE, EUDI_PID_VCT } from "../const";
+import { parseCredential } from "./07-parse-credential";
+import { selectClaim } from "./credential-display";
 
 type VerifyCredential = (params: {
   credential: string;
+  credentialConfigurationId: string;
   format: string;
+  issuerMetadata: CredentialIssuerMetadata;
   lotes: LoTEs;
 }) => Promise<{
   trustAnchor: string;
 }>;
 
 /**
- * Verifies the issuer signature of a credential and the trust of its certificate chain against the provided LoTEs.
+ * Verifies the issuer signature of a credential and the trust of its certificate chain against the provided LoTEs,
+ * then checks that the credential contains all the claims the Credential Issuer declares as `mandatory`.
  *
  * @param params.format - The credential format, `dc+sd-jwt`, `vc+sd-jwt` or `mso_mdoc`
  * @param params.credential - The issued credential
+ * @param params.credentialConfigurationId - The identifier of the credential configuration in the issuer metadata
+ * @param params.issuerMetadata - The Credential Issuer metadata, with the claims metadata of the credential
  * @param params.lotes - The List of Trusted Entities to validate the certificate chain against
  * @returns The LoTE validated trust anchor that verified the signature
  * @throws {IoWalletError} If the format is not supported or no matching LoTE is found
+ * @throws {ValidationFailed} If the credential is missing a mandatory claim
  */
 export const verifyCredential: VerifyCredential = async ({
   credential,
+  credentialConfigurationId,
   format,
+  issuerMetadata,
   lotes,
 }) => {
+  const { trustAnchor } = await verifyIssuerSignature(
+    credential,
+    format,
+    lotes,
+  );
+
+  const { claims } = await parseCredential(credential, format);
+  const missingClaims = (
+    issuerMetadata.credential_configurations_supported[
+      credentialConfigurationId
+    ]?.credential_metadata?.claims ?? []
+  )
+    .filter(({ mandatory }) => mandatory)
+    .map(({ path }) => path)
+    .filter((path) => selectClaim(claims, path) == null);
+
+  if (missingClaims.length > 0) {
+    const missing = missingClaims.map((path) => path.join(".")).join(", ");
+    throw new ValidationFailed({
+      claim: missing,
+      message: `Credential is missing mandatory claims: ${missing}`,
+      reason: "Mandatory claims missing",
+    });
+  }
+
+  return { trustAnchor };
+};
+
+const verifyIssuerSignature = async (
+  credential: string,
+  format: string,
+  lotes: LoTEs,
+) => {
   switch (format) {
     case "dc+sd-jwt":
     case "vc+sd-jwt":

@@ -138,7 +138,9 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
 
   await CredentialIssuance.verifyCredential({
     credential,
+    credentialConfigurationId,
     format,
+    issuerMetadata,
     lotes,
   });
 
