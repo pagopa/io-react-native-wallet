@@ -102,11 +102,12 @@ export const EudiCredentialRequestScreen = ({ navigation, route }: Props) => {
 
   useErrorToast(issuanceStatus, "Unable to obtain the credential");
 
-  // When obtaining all the credentials, waits for the last one
+  // When obtaining all the credentials, waits for the last one.
+  // The request screen is replaced, so that going back does not show the offer already used
   useEffect(() => {
     if (issuanceStatus.isDone && !isObtainingAll) {
       toast.success("Credential obtained");
-      navigation.navigate("EudiCredentials");
+      navigation.replace("EudiCredentials");
     }
   }, [isObtainingAll, issuanceStatus.isDone, navigation, toast]);
 
