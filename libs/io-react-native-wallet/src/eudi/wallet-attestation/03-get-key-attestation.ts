@@ -45,7 +45,8 @@ const createKeyAttestationRequest = async (
       },
       wscd_key_attestation: {
         storage_type: "LOCAL_NATIVE",
-        ...(attestation && { attestation }),
+        // Key Attestation is not required by the test Wallet Provider
+        // ...(attestation && { attestation }),
       },
     })
     .setProtectedHeader({

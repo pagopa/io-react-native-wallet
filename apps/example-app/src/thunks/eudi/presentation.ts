@@ -18,6 +18,8 @@ export interface StartEudiPresentationThunkOutput {
   verifierTrust: {
     error?: { message: string; name: string };
     isTrusted: boolean;
+    /** The requested credentials and claims not registered in the Verifier WRPRC */
+    unregisteredRequests?: Eudi.RemotePresentation.UnregisteredRequest[];
   };
 }
 
