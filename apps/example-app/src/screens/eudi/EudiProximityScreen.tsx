@@ -189,13 +189,11 @@ export const EudiProximityScreen = () => {
         addListener("onDeviceDisconnected", onDeviceDisconnected),
         addListener("onError", onError),
       ];
+      // BLE mdoc peripheral server mode, the default of the native module
       await ISO18013_5.startEngagement({
-        // Both BLE modes are offered, the reader chooses one (central client mode is Android only)
-        centralClientMode: true,
         // The reader is authenticated in JS with its WRPAC, not natively
         certificates: [],
         engagementModes: ["qrcode"],
-        peripheralMode: true,
         retrievalMethods: ["ble"],
       });
       setStatus("STARTED");
