@@ -58,14 +58,13 @@ export const mapToCredentialsCatalogue = createMapper<
         background_color: dataCapability?.background_color,
         contacts: dataCapability?.contacts,
         data_origin_l10n_id: dataCapability?.data_origin_l10n_id,
+        dataset_logo_uri: dataCapability?.logo_uri,
+        "dataset_logo_uri#integrity": dataCapability?.["logo_uri#integrity"],
         id,
         organization_code: ipa_code,
         organization_name_l10n_id,
         user_information_l10n_id: dataCapability?.user_information_l10n_id,
-         logo_uri: dataCapability?.logo_uri,
-        "logo_uri#integrity": dataCapability?.["logo_uri#integrity"],
         ...rest,
-
       };
     };
 

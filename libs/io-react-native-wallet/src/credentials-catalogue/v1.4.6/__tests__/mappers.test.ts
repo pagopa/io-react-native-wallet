@@ -413,7 +413,7 @@ describe("mapToCredentialsCatalogue", () => {
     { logo_uri: "https://source-org.example.com/dataset-2.png" },
     { "logo_uri#integrity": "sha-256-dataset-2" },
     {},
-  ])("uses only the matched source and dataset logo metadata: %j", (logo) => {
+  ])("keeps dataset and organization logo metadata separate: %j", (logo) => {
     const source = authSourceRegistry.authentic_sources[0];
     const capability = source.data_capabilities[0];
     const registry: AuthenticSourceRegistry = {
@@ -485,7 +485,13 @@ describe("mapToCredentialsCatalogue", () => {
         {
           ...expected.credentials[0],
           authentic_sources: [
-            { ...expectedSource, id: "source-2", ...logo },
+            {
+              ...expectedSource,
+              dataset_logo_uri: logo.logo_uri,
+              "dataset_logo_uri#integrity": logo["logo_uri#integrity"],
+              id: "source-2",
+              logo_uri: "https://source-org.example.com/organization.png",
+            },
             expectedSource,
           ],
         },
