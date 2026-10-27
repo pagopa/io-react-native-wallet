@@ -6,6 +6,7 @@ import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialOffer from "./credential/offer";
 import * as CredentialStatus from "./credential/status";
 import * as RemotePresentation from "./presentation";
+import * as ProximityPresentation from "./proximity";
 import * as Trust from "./trust";
 import * as WalletAttestation from "./wallet-attestation";
 
@@ -13,6 +14,7 @@ export {
   CredentialIssuance,
   CredentialOffer,
   CredentialStatus,
+  ProximityPresentation,
   RemotePresentation,
   Trust,
   WalletAttestation,
