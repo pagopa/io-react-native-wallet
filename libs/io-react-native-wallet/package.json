@@ -83,7 +83,7 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "@pagopa/io-react-native-iso18013": "0.9.0-launchpad",
+    "@pagopa/io-react-native-iso18013": "0.9.1-launchpad",
     "@types/jsrsasign": "^10.5.15",
     "auto-changelog": "2.6.1",
     "react-native-builder-bob": "^0.43.0",
