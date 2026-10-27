@@ -1,4 +1,3 @@
-import type { DigitalCredentialsCatalogue } from "../../api/DigitalCredentialsCatalogue";
 import type {
   AuthenticSourceRegistry,
   DigitalCredentialsCatalogueJwt,
@@ -7,6 +6,7 @@ import type {
   TaxonomyRegistry,
 } from "../types";
 
+import { DigitalCredentialsCatalogue } from "../../api/DigitalCredentialsCatalogue";
 import { mapToCredentialsCatalogue } from "../mappers";
 
 describe("mapToCredentialsCatalogue", () => {
@@ -403,5 +403,94 @@ describe("mapToCredentialsCatalogue", () => {
         taxonomyRegistry,
       ]),
     ).toEqual(expected);
+  });
+
+  it.each([
+    {
+      logo_uri: "https://source-org.example.com/dataset-2.png",
+      "logo_uri#integrity": "sha-256-dataset-2",
+    },
+    { logo_uri: "https://source-org.example.com/dataset-2.png" },
+    { "logo_uri#integrity": "sha-256-dataset-2" },
+    {},
+  ])("uses only the matched source and dataset logo metadata: %j", (logo) => {
+    const source = authSourceRegistry.authentic_sources[0];
+    const capability = source.data_capabilities[0];
+    const registry: AuthenticSourceRegistry = {
+      ...authSourceRegistry,
+      authentic_sources: [
+        {
+          ...source,
+          data_capabilities: [
+            {
+              ...capability,
+              dataset_id: "dataset-2",
+              logo_uri: "https://source-org.example.com/wrong-source.png",
+              "logo_uri#integrity": "sha-256-wrong-source",
+            },
+            capability,
+          ],
+        },
+        {
+          ...source,
+          data_capabilities: [
+            {
+              ...capability,
+              logo_uri: "https://source-org.example.com/wrong-dataset.png",
+              "logo_uri#integrity": "sha-256-wrong-dataset",
+            },
+            { ...capability, dataset_id: "dataset-2", ...logo },
+          ],
+          entity_id: "source-2",
+          organization_info: {
+            ...source.organization_info,
+            logo_uri: "https://source-org.example.com/organization.png",
+            "logo_uri#integrity": "sha-256-organization",
+          },
+        },
+      ],
+    };
+    const catalogue: DigitalCredentialsCatalogueJwt = {
+      ...credentialsCatalogueJwt,
+      payload: {
+        ...credentialsCatalogueJwt.payload,
+        credentials: credentialsCatalogueJwt.payload.credentials.map(
+          (credential, index) =>
+            index === 0
+              ? {
+                  ...credential,
+                  authentic_sources: [
+                    { dataset_id: "dataset-2", id: "source-2" },
+                    { dataset_id: "dataset-1", id: "source-1" },
+                  ],
+                }
+              : credential,
+        ),
+      },
+    };
+
+    const result = DigitalCredentialsCatalogue.parse(
+      mapToCredentialsCatalogue([
+        registryDiscovery,
+        catalogue,
+        registry,
+        schemaRegistry,
+        taxonomyRegistry,
+      ]),
+    );
+    const expectedSource = expected.credentials[0].authentic_sources[0];
+    expect(result).toEqual({
+      ...expected,
+      credentials: [
+        {
+          ...expected.credentials[0],
+          authentic_sources: [
+            { ...expectedSource, id: "source-2", ...logo },
+            expectedSource,
+          ],
+        },
+        expected.credentials[1],
+      ],
+    });
   });
 });

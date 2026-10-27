@@ -62,6 +62,7 @@ const AuthenticSource = z.object({
   homepage_uri: z.string().optional(),
   id: z.string(),
   logo_uri: z.string().optional(),
+  "logo_uri#integrity": z.string().optional(),
   organization_code: z.string().optional(),
   organization_country: z.string(),
   organization_name: z.string().optional(),
