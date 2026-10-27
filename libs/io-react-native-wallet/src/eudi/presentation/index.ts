@@ -20,7 +20,13 @@ export {
   sendAuthorizationErrorResponse,
   sendAuthorizationResponse,
 } from "./05-send-authorization-response";
-export { findUnregisteredRequests, type UnregisteredRequest } from "./scope";
+export {
+  type ClaimPath,
+  findUnregisteredCredentials,
+  findUnregisteredRequests,
+  type RequestedCredential,
+  type UnregisteredRequest,
+} from "./scope";
 export type {
   AuthorizationErrorCode,
   AuthorizationResponseResult,

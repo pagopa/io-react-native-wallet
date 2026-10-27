@@ -184,8 +184,8 @@ importers:
         specifier: ^0.3.2
         version: 0.3.2(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       '@pagopa/io-react-native-iso18013':
-        specifier: ^0.8.6
-        version: 0.8.6(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
+        specifier: 0.9.0-launchpad
+        version: 0.9.0-launchpad(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       '@pagopa/io-react-native-jwt':
         specifier: ^2.2.0
         version: 2.2.0(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
@@ -412,6 +412,9 @@ importers:
       jsrsasign:
         specifier: ^11.1.5
         version: 11.1.5
+      pako:
+        specifier: ^3.0.2
+        version: 3.0.2
       parse-url:
         specifier: ^11.1.0
         version: 11.1.0
@@ -438,14 +441,14 @@ importers:
         version: 4.3.6
     devDependencies:
       '@pagopa/io-react-native-iso18013':
-        specifier: ^0.8.6
-        version: 0.8.6(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
+        specifier: 0.9.0-launchpad
+        version: 0.9.0-launchpad(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       '@types/jsrsasign':
         specifier: ^10.5.15
         version: 10.5.15
       auto-changelog:
-        specifier: ^2.6.0
-        version: 2.6.0
+        specifier: 2.6.1
+        version: 2.6.1
       react-native-builder-bob:
         specifier: ^0.43.0
         version: 0.43.0(babel-plugin-macros@3.1.0)(supports-color@8.1.1)
@@ -2332,8 +2335,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@pagopa/io-react-native-iso18013@0.8.6':
-    resolution: {integrity: sha512-voMJl9Wu6GYBPeWZMX8ue2zwEGl5ESDf7LE2ncJmkVaJ0BEep1CQd55iZRcUZXX6v7OZnpUlkp8QaWX+JYHZ1g==}
+  '@pagopa/io-react-native-iso18013@0.9.0-launchpad':
+    resolution: {integrity: sha512-//f8SSHptJcd/5pfGNib6prrRezMKDazctnuAlPRtbQhE9UE9sKooXQbkdY7tDjLbpqC37eqG/dmDVuzW67bCw==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -3432,8 +3435,8 @@ packages:
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
-  auto-changelog@2.6.0:
-    resolution: {integrity: sha512-jJgUkuWXQ7fPLPXOMQk/XSSmy7KvzpzhjJa6w660dq1KTEez/GW2CPckBra3jMMMMpcwxp84bOslo29qRCewzA==}
+  auto-changelog@2.6.1:
+    resolution: {integrity: sha512-YQJgU1i/qWTk8W/IIE6oUk1DBYr/jiFbksP+LuGRHOzmhviIGhK1otjqSSMUf2aqUdeOW8SUYNSZjiD6Qcun7w==}
     engines: {node: '>= 10'}
     hasBin: true
 
@@ -12482,7 +12485,7 @@ snapshots:
 
   '@pagopa/io-app-design-system@8.1.0(b7b24116821382e3523597d7bcaa8cb9)':
     dependencies:
-      auto-changelog: 2.6.0
+      auto-changelog: 2.6.1
       markdown-it: 14.3.2
       react: 19.2.3
       react-native: 0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)
@@ -12516,7 +12519,7 @@ snapshots:
       react: 19.2.3
       react-native: 0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)
 
-  '@pagopa/io-react-native-iso18013@0.8.6(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)':
+  '@pagopa/io-react-native-iso18013@0.9.0-launchpad(react-native@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)':
     dependencies:
       react: 19.2.3
       react-native: 0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.85.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)
@@ -13951,7 +13954,7 @@ snapshots:
 
   asynckit@0.4.0: {}
 
-  auto-changelog@2.6.0:
+  auto-changelog@2.6.1:
     dependencies:
       commander: 7.2.0
       handlebars: 4.7.9
