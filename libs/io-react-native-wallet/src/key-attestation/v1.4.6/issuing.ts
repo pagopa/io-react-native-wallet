@@ -5,7 +5,12 @@ import type { KeyAttestationCryptoContext } from "../../utils/crypto";
 import type { KeyAttestationSupportedApi } from "../api";
 
 import { getWalletProviderClient } from "../../client";
-import { IoWalletError } from "../../utils/errors";
+import {
+  IoWalletError,
+  ResponseErrorBuilder,
+  WalletProviderResponseError,
+  WalletProviderResponseErrorCodes,
+} from "../../utils/errors";
 import { toIntegrityClaims } from "../../utils/integrity";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
@@ -142,7 +147,8 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
           "Content-Type": "text/plain",
         },
       })
-      .then(KeyAttestationResponse.parse);
+      .then(KeyAttestationResponse.parse)
+      .catch(handleKeyAttestationCreationError);
 
     Logger.log(
       LogLevel.DEBUG,
@@ -154,3 +160,26 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
       format: "jwt",
     };
   };
+
+const handleKeyAttestationCreationError = (e: unknown) => {
+  Logger.log(
+    LogLevel.ERROR,
+    `An error occurred while calling the Key Attestation endpoint: ${e}`,
+  );
+
+  if (!(e instanceof WalletProviderResponseError)) {
+    throw e;
+  }
+
+  throw new ResponseErrorBuilder(WalletProviderResponseError)
+    .handle(409, {
+      code: WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed,
+      message:
+        "Unable to get a key attestation for a Wallet Instance that failed the integrity check",
+    })
+    .handle("*", {
+      code: WalletProviderResponseErrorCodes.KeyAttestationIssuingFailed,
+      message: "Unable to obtain key attestation",
+    })
+    .buildFrom(e);
+};
