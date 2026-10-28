@@ -146,7 +146,8 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
           "Content-Type": "text/plain",
         },
       })
-      .then(KeyAttestationResponse.parse);
+      .then(KeyAttestationResponse.parse)
+      .catch(handleKeyAttestationCreationError);
 
     Logger.log(
       LogLevel.DEBUG,
@@ -159,7 +160,7 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
     };
   };
 
-export const handleKeyAttestationCreationError = (e: unknown) => {
+const handleKeyAttestationCreationError = (e: unknown) => {
   Logger.log(
     LogLevel.ERROR,
     `An error occurred while calling the Key Attestation endpoint: ${e}`,
