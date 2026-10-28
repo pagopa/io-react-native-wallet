@@ -3,7 +3,11 @@ import { Platform } from "react-native";
 import type { KeyAttestationCryptoContext } from "../../../utils/crypto";
 import type { IntegrityContext } from "../../../utils/integrity";
 
-import { IoWalletError } from "../../../utils/errors";
+import {
+  IoWalletError,
+  WalletProviderResponseError,
+  WalletProviderResponseErrorCodes,
+} from "../../../utils/errors";
 import { getAttestation } from "../issuing";
 
 const integrityContextMock: jest.Mocked<IntegrityContext> = {
@@ -45,7 +49,7 @@ const createMockFetch = () => {
   );
 
   appFetch.mockResolvedValueOnce(
-    new Response(JSON.stringify({ key_attestation: "wua" }), {
+    new Response(JSON.stringify({ key_attestation: "ka" }), {
       headers: { "content-type": "application/json" },
       status: 200,
     }),
@@ -60,7 +64,7 @@ describe("KeyAttestation | getAttestation", () => {
     jest.restoreAllMocks();
   });
 
-  it("should call the WUA endpoint with the correct WUA JWT request (with key attestation)", async () => {
+  it("should call the KA endpoint with the correct JWT request (with key attestation)", async () => {
     jest.useFakeTimers().setSystemTime(new Date("2026-03-16T00:00:00Z"));
 
     const appFetch = createMockFetch();
@@ -87,7 +91,7 @@ describe("KeyAttestation | getAttestation", () => {
     );
   });
 
-  it("should call the WUA endpoint with the correct WUA JWT request (no key attestation)", async () => {
+  it("should call the KA endpoint with the correct JWT request (no key attestation)", async () => {
     jest.useFakeTimers().setSystemTime(new Date("2026-03-16T00:00:00Z"));
 
     const appFetch = createMockFetch();
@@ -160,5 +164,40 @@ describe("KeyAttestation | getAttestation", () => {
         },
       ),
     ).rejects.toThrow(IoWalletError);
+  });
+
+  it("should throw WalletInstanceIntegrityFailed when the endpoint returns 409", async () => {
+    const appFetch = jest.fn();
+    appFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ nonce: "mock-nonce" }), {
+        headers: { "content-type": "application/json" },
+        status: 200,
+      }),
+    );
+    appFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({}), {
+        headers: { "content-type": "application/json" },
+        status: 409,
+      }),
+    );
+
+    const error = await getAttestation(
+      {
+        walletProviderBaseUrl: "https://example.wp",
+        walletSolutionId: "walletSol",
+        walletSolutionVersion: "1.0.0",
+      },
+      {
+        appFetch,
+        integrityContext: integrityContextMock,
+        keysToAttest: [createMockKeyAttestationCryptoContext("key-1")],
+      },
+    ).catch((e) => e);
+
+    expect(error).toBeInstanceOf(WalletProviderResponseError);
+    expect(error.statusCode).toBe(409);
+    expect(error.code).toBe(
+      WalletProviderResponseErrorCodes.WalletInstanceIntegrityFailed,
+    );
   });
 });
