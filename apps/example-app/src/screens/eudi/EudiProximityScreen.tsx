@@ -20,12 +20,21 @@ import { useDebugInfo } from "../../hooks/useDebugInfo";
 import { selectEudiCredentials } from "../../store/reducers/eudi/credentials";
 import { selectEudiLotes } from "../../store/reducers/eudi/trust";
 import { useAppSelector } from "../../store/utils";
+import { getFormatLabel } from "../../utils/eudi";
 import {
   type EventsPayload,
   requestBlePermissions,
 } from "../../utils/proximity";
 
 const { addListener, close, ErrorCode, sendErrorResponse } = ISO18013_5;
+
+/** A request of the verifier, with the trust of its reader and the session it is bound to */
+interface ProximityRequest {
+  documents: Eudi.ProximityPresentation.EvaluatedDocumentRequest[];
+  readerTrust: Eudi.ProximityPresentation.ReaderTrust;
+  /** The SessionTranscript the SD-JWT VC Key Binding JWT is bound to */
+  sessionTranscript?: string;
+}
 
 /**
  * Status of the proximity flow:
@@ -43,9 +52,10 @@ type ProximityStatus =
   | "STOPPED";
 
 /**
- * EUDI Wallet proximity presentation screen (ISO 18013-5 with QR code engagement and BLE retrieval),
- * separate from the IT-Wallet one. The verifier is authenticated with the Trust Anchors of the
- * WRPAC Providers LoTE, and the requested `mso_mdoc` credentials are presented only with the consent of the user.
+ * EUDI Wallet proximity presentation screen (ISO 18013-5 with QR code engagement and BLE
+ * retrieval), separate from the IT-Wallet one. The reader is authenticated with its WRPAC and
+ * WRPRC against the LoTEs, and the requested `mso_mdoc` and SD-JWT VC credentials are presented
+ * only with the consent of the user.
  */
 /* eslint-disable max-lines-per-function */
 export const EudiProximityScreen = () => {
@@ -54,20 +64,24 @@ export const EudiProximityScreen = () => {
   const lotes = useAppSelector(selectEudiLotes);
   const [status, setStatus] = useState<ProximityStatus>("STARTING");
   const [qrCode, setQrCode] = useState<string>();
-  const [request, setRequest] =
-    useState<Eudi.ProximityPresentation.EvaluatedDeviceRequest>();
+  const [request, setRequest] = useState<ProximityRequest>();
   const [sharing, setSharing] = useState(false);
   /** Key tag of the credential chosen for each requested document, by docType */
   const [selectedKeyTags, setSelectedKeyTags] = useState<
     Record<string, string>
   >({});
   const listenerSubscriptions = useRef<ReturnType<typeof addListener>[]>([]);
-  // The request listener reads the latest credentials without restarting the engagement
+  // The request listener reads the latest credentials and LoTEs without restarting the engagement
   const credentialsRef = useRef(credentials);
   credentialsRef.current = credentials;
-  const wrpacLote = lotes.EUWRPACProvidersList;
+  const lotesRef = useRef(lotes);
+  lotesRef.current = lotes;
 
-  useDebugInfo({ eudiProximityRequest: request, eudiProximityStatus: status });
+  useDebugInfo({
+    eudiProximityReaderTrust: request?.readerTrust,
+    eudiProximityRequest: request?.documents,
+    eudiProximityStatus: status,
+  });
 
   const closeFlow = useCallback(async () => {
     listenerSubscriptions.current.forEach((subscription) =>
@@ -103,12 +117,36 @@ export const EudiProximityScreen = () => {
         const { request: deviceRequest } = ISO18013_5.parseVerifierRequest(
           JSON.parse(payload.data),
         );
-        setRequest(
-          await Eudi.ProximityPresentation.evaluateDeviceRequest(
+        const {
+          EUWRPACProvidersList: wrpacLote,
+          EUWRPRCProvidersList: wrprcLote,
+        } = lotesRef.current;
+        const readerTrustPromise =
+          wrpacLote && wrprcLote
+            ? Eudi.ProximityPresentation.evaluateReaderTrust({
+                request: deviceRequest,
+                wrpacLote,
+                wrprcLote,
+              })
+            : Promise.resolve<Eudi.ProximityPresentation.ReaderTrust>({
+                error: {
+                  message: "Missing WRPAC and WRPRC providers lists",
+                  name: "MissingLoTE",
+                },
+                isTrusted: false,
+              });
+        const [documents, readerTrust] = await Promise.all([
+          Eudi.ProximityPresentation.evaluateDeviceRequest(
             deviceRequest,
             credentialsRef.current,
           ),
-        );
+          readerTrustPromise,
+        ]);
+        setRequest({
+          documents,
+          readerTrust,
+          sessionTranscript: payload.sessionTranscript,
+        });
         setStatus("PRESENTING");
       } catch (error) {
         console.error("Error handling the verifier request", error);
@@ -151,18 +189,17 @@ export const EudiProximityScreen = () => {
         addListener("onDeviceDisconnected", onDeviceDisconnected),
         addListener("onError", onError),
       ];
-      // Without the WRPAC Providers LoTE the verifier is not authenticated
+      // BLE mdoc peripheral server mode, the default of the native module
       await ISO18013_5.startEngagement({
-        certificates: wrpacLote
-          ? Eudi.ProximityPresentation.getReaderTrustAnchors(wrpacLote)
-          : [],
+        // The reader is authenticated in JS with its WRPAC, not natively
+        certificates: [],
         engagementModes: ["qrcode"],
         retrievalMethods: ["ble"],
       });
       setStatus("STARTED");
     } catch (error) {
       console.error("Error starting the proximity flow", error);
-      toast.error("Failed to start the QR code engagement");
+      toast.error("Failed to start the engagement");
       await closeFlow();
     }
   }, [
@@ -171,7 +208,6 @@ export const EudiProximityScreen = () => {
     onDocumentRequestReceived,
     onError,
     toast,
-    wrpacLote,
   ]);
 
   useEffect(() => {
@@ -198,6 +234,7 @@ export const EudiProximityScreen = () => {
             ({ keyTag }) => keyTag === getSelectedKeyTag(document),
           ),
         ),
+        request.sessionTranscript,
       );
       toast.success("Credentials presented");
       setStatus("SENT");
@@ -208,9 +245,6 @@ export const EudiProximityScreen = () => {
       setSharing(false);
     }
   };
-
-  const verifierName =
-    request?.verifier?.organization ?? request?.verifier?.commonName;
 
   return (
     <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
@@ -233,36 +267,7 @@ export const EudiProximityScreen = () => {
         )}
         {status === "PRESENTING" && request && (
           <>
-            <H3>Verifier</H3>
-            <VSpacer size={8} />
-            <ListItemInfo
-              label="Name"
-              value={verifierName ?? "Not specified"}
-            />
-            {request.verifier?.country && (
-              <>
-                <Divider />
-                <ListItemInfo
-                  label="Country"
-                  value={request.verifier.country}
-                />
-              </>
-            )}
-            <Divider />
-            <ListItemInfo
-              endElement={{
-                componentProps: request.isVerifierAuthenticated
-                  ? { text: "Trusted", variant: "success" }
-                  : { text: "Not trusted", variant: "error" },
-                type: "badge",
-              }}
-              label="Reader authentication"
-              value={
-                request.isVerifierAuthenticated
-                  ? "Signed with a WRPAC"
-                  : "Not signed with a trusted WRPAC"
-              }
-            />
+            <ReaderInfo readerTrust={request.readerTrust} />
             <VSpacer size={24} />
             <H3>Requested credentials</H3>
             {request.documents.map((document) => (
@@ -322,6 +327,72 @@ export const EudiProximityScreen = () => {
   );
 };
 
+/** The verifier, as stated by its reader certificate, with the outcome of its WRPAC and WRPRC validation */
+const ReaderInfo = ({
+  readerTrust,
+}: {
+  readerTrust: Eudi.ProximityPresentation.ReaderTrust;
+}) => {
+  const { reader, unregisteredRequests } = readerTrust;
+  return (
+    <>
+      <H3>Verifier</H3>
+      <VSpacer size={8} />
+      <ListItemInfo
+        label="Name"
+        value={
+          reader?.organizationName ?? reader?.commonName ?? "Not specified"
+        }
+      />
+      {reader?.country && (
+        <>
+          <Divider />
+          <ListItemInfo label="Country" value={reader.country} />
+        </>
+      )}
+      <Divider />
+      <ListItemInfo
+        endElement={{
+          componentProps: readerTrust.isTrusted
+            ? { text: "Trusted", variant: "success" }
+            : { text: "Not trusted", variant: "error" },
+          type: "badge",
+        }}
+        label="Reader WRPAC/WRPRC"
+        value={
+          readerTrust.error?.message ??
+          (readerTrust.registrationCertificate
+            ? "Valid"
+            : "Valid WRPAC, no WRPRC sent")
+        }
+      />
+      {unregisteredRequests && (
+        <>
+          <Divider />
+          <ListItemInfo
+            endElement={{
+              componentProps:
+                unregisteredRequests.length === 0
+                  ? { text: "Within scope", variant: "success" }
+                  : { text: "Overasking", variant: "warning" },
+              type: "badge",
+            }}
+            label="Requested scope"
+            value={
+              unregisteredRequests
+                .map(
+                  ({ credentialQueryId, format, path, type }) =>
+                    `${credentialQueryId}: ${type ?? format}${path ? ` > ${path.join(".")}` : ""}`,
+                )
+                .join("\n") || "Registered in the WRPRC"
+            }
+          />
+        </>
+      )}
+    </>
+  );
+};
+
 /**
  * A document requested by the verifier, with the requested data elements. When more wallet
  * credentials satisfy the request, the user chooses the one to present.
@@ -335,12 +406,12 @@ const RequestedDocument = ({
   onSelect: (keyTag: string) => void;
   selectedKeyTag?: string;
 }) => {
-  const { candidates, docType } = document;
+  const { candidates, docType, format } = document;
   const selected = candidates.find(({ keyTag }) => keyTag === selectedKeyTag);
   return (
     <>
       <VSpacer />
-      <Body weight="Semibold">{docType}</Body>
+      <Body weight="Semibold">{`${docType} · ${getFormatLabel(format)}`}</Body>
       <VSpacer size={8} />
       {candidates.length === 0 && (
         <Body>Not available in the wallet, it will not be shared</Body>
@@ -367,8 +438,8 @@ const RequestedDocument = ({
         <Body>
           {selected.requestedClaims
             .map(
-              ({ intentToRetain, name, value }) =>
-                `${name}${value === undefined ? " (missing)" : ""}${intentToRetain ? " (retained)" : ""}`,
+              ({ intentToRetain, name, path, value }) =>
+                `${path?.join(".") ?? name}${value === undefined ? " (missing)" : ""}${intentToRetain ? " (retained)" : ""}`,
             )
             .join("\n")}
         </Body>

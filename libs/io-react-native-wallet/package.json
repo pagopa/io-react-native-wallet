@@ -75,6 +75,7 @@
     "js-base64": "^3.9.4",
     "js-sha256": "^1.0.0",
     "jsrsasign": "^11.1.5",
+    "pako": "^3.0.2",
     "parse-url": "^11.1.0",
     "react-native-url-polyfill": "^4.0.0",
     "uuid": "^14.0.2",
@@ -82,9 +83,9 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "@pagopa/io-react-native-iso18013": "^0.8.6",
+    "@pagopa/io-react-native-iso18013": "0.9.1-launchpad",
     "@types/jsrsasign": "^10.5.15",
-    "auto-changelog": "^2.6.0",
+    "auto-changelog": "2.6.1",
     "react-native-builder-bob": "^0.43.0",
     "release-it": "^19.2.4",
     "typed-openapi": "^0.4.1"

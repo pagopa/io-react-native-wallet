@@ -48,7 +48,8 @@ export const EudiWalletScreen = () => {
         onPress: () => navigation.navigate("EudiPresentation"),
       },
       {
-        description: "Present an mdoc credential to a verifier in proximity",
+        description:
+          "Present an mdoc or SD-JWT VC credential to a verifier in proximity",
         icon: "chevronRight",
         label: "Proximity Presentation",
         onPress: () => navigation.navigate("EudiProximity"),
