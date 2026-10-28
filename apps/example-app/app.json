@@ -71,6 +71,9 @@
       [
         "expo-build-properties",
         {
+          "ios": {
+            "enableSceneSupport": true
+          },
           "android": {
             "minSdkVersion": 26,
             "usesCleartextTraffic": true
