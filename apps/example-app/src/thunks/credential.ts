@@ -6,6 +6,7 @@ import {
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { generate } from "@pagopa/io-react-native-crypto";
+import { CREDENTIAL_OFFER_GRANTS } from "@pagopa/io-wallet-oid4vci";
 
 import type { StatusSupportedTokens } from "../store/reducers/credential";
 import type {
@@ -147,10 +148,21 @@ export const getCredentialThunk = createAppAsyncThunk<
     ? credentialOffer.credential_issuer
     : WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion);
 
-  const authorizationCodeGrant = credentialOffer
+  const grantDetails = credentialOffer
     ? wallet.CredentialsOffer.extractGrantDetails(credentialOffer)
-        .authorizationCodeGrant
     : undefined;
+
+  if (
+    grantDetails &&
+    !(CREDENTIAL_OFFER_GRANTS.AUTHORIZATION_CODE in grantDetails)
+  ) {
+    throw new Error(
+      `The example app currently supports authorization-code credential offers only`,
+    );
+  }
+
+  const authorizationCodeGrant =
+    grantDetails?.[CREDENTIAL_OFFER_GRANTS.AUTHORIZATION_CODE];
 
   // Evaluate issuer trust, selecting the authorization server from the offer
   // when present.

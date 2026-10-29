@@ -8,10 +8,22 @@ allowBuilds:
   nx: true
   unrs-resolver: true
 
+catalog:
+  "@pagopa/io-wallet-oauth2": "2.0.2-apt"
+  "@pagopa/io-wallet-oid-federation": "2.0.2-apt"
+  "@pagopa/io-wallet-oid4vci": "2.0.2-apt"
+  "@pagopa/io-wallet-oid4vp": "2.0.2-apt"
+  "@pagopa/io-wallet-utils": "2.0.2-apt"
+
 minimumReleaseAgeExclude:
-  - '@pagopa/io-react-native-iso18013@0.8.5'
-  - '@owf/cose@0.4.2'
-  - '@owf/crypto@0.4.2'
-  - '@owf/identity-common@0.4.2'
-  - '@owf/token-status-list@0.4.2'
-  - '@sd-jwt/core@0.22.0'
+  - "@pagopa/io-react-native-iso18013@0.8.5"
+  - "@owf/cose@0.4.2"
+  - "@owf/crypto@0.4.2"
+  - "@owf/identity-common@0.4.2"
+  - "@owf/token-status-list@0.4.2"
+  - "@sd-jwt/core@0.22.0"
+  - '@pagopa/io-wallet-oauth2@2.0.2-apt'
+  - '@pagopa/io-wallet-oid-federation@2.0.2-apt'
+  - '@pagopa/io-wallet-oid4vci@2.0.2-apt'
+  - '@pagopa/io-wallet-oid4vp@2.0.2-apt'
+  - '@pagopa/io-wallet-utils@2.0.2-apt'
