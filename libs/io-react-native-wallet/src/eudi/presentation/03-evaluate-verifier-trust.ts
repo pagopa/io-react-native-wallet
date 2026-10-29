@@ -85,7 +85,9 @@ export const evaluateVerifierTrust: EvaluateVerifierTrust = async ({
 
     const decodedRequestObject = payload as RequestObject;
     const registrationCertificate = decodedRequestObject.verifier_info?.find(
-      ({ format }) => format === REGISTRATION_CERTIFICATE_FORMAT,
+      (info): info is typeof info & { data: string } =>
+        info.format === REGISTRATION_CERTIFICATE_FORMAT &&
+        typeof info.data === "string",
     );
 
     if (!registrationCertificate) {

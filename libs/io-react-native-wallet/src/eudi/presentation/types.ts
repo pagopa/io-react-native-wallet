@@ -33,9 +33,15 @@ export const RequestObject = z.looseObject({
   /**
    * Attestations about the Verifier, e.g. its
    * Registration Certificate (WRPRC) with format `registration_cert`.
+   * The attestation is a string or a JSON object, e.g. a `registrar_dataset`.
    */
   verifier_info: z
-    .array(z.looseObject({ data: z.string(), format: z.string() }))
+    .array(
+      z.looseObject({
+        data: z.union([z.string(), z.record(z.string(), z.unknown())]),
+        format: z.string(),
+      }),
+    )
     .optional(),
   wallet_nonce: z.string().optional(),
 });
