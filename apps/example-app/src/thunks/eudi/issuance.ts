@@ -56,10 +56,13 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
   const { CredentialIssuance, CredentialOffer } = Eudi;
   const lotes = selectEudiLotes(getState());
 
-  const { authorizationCodeGrant } = CredentialOffer.extractGrantDetails(offer);
-  if (!authorizationCodeGrant) {
+  const { authorizationCodeGrant, preAuthorizedCodeGrant } =
+    CredentialOffer.extractGrantDetails(offer);
+  // Without grants, the Authorization Code Flow is still possible if the Authorization Server supports it
+  // (OpenID4VCI 1.0, Section 4.1.1), which is checked when starting the user authorization
+  if (!authorizationCodeGrant && preAuthorizedCodeGrant) {
     throw new Error(
-      "The credential offer does not support the Authorization Code Flow",
+      "The Pre-Authorized Code Flow is not supported, the credential offer must have an authorization_code grant",
     );
   }
 
@@ -71,7 +74,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
 
   const { authorizationServerMetadata, issuerMetadata } =
     await CredentialIssuance.fetchMetadata(offer.credential_issuer, {
-      authorizationServer: authorizationCodeGrant.authorizationServer,
+      authorizationServer: authorizationCodeGrant?.authorizationServer,
     });
 
   // This is already enforced at the start of the credential offer flow
@@ -87,7 +90,7 @@ export const obtainEudiCredentialThunk = createAppAsyncThunk<
       clientAuthentication,
       credentialConfigurationId,
       issuerMetadata,
-      issuerState: authorizationCodeGrant.issuerState,
+      issuerState: authorizationCodeGrant?.issuerState,
       redirectUri: EUDI_REDIRECT_URI,
     });
 

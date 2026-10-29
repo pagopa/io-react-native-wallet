@@ -38,7 +38,8 @@ export interface StartUserAuthorizationParams {
  *
  * @returns The URL to open in the browser to let the user authenticate, with the
  *   `codeVerifier` and `state` needed to complete the flow
- * @throws {ValidationFailed} If the credential is not supported or PAR is required but not available
+ * @throws {ValidationFailed} If the Authorization Server does not support the Authorization Code Flow,
+ *   the credential is not supported or PAR is required but not available
  * @throws {IssuerResponseError} If the Pushed Authorization Request fails
  */
 export const startUserAuthorization = async ({
@@ -50,6 +51,18 @@ export const startUserAuthorization = async ({
   issuerState,
   redirectUri,
 }: StartUserAuthorizationParams) => {
+  const { grant_types_supported } = authorizationServerMetadata;
+  if (
+    grant_types_supported &&
+    !grant_types_supported.includes("authorization_code")
+  ) {
+    throw new ValidationFailed({
+      claim: "grant_types_supported",
+      message:
+        "The Authorization Server does not support the Authorization Code Flow",
+    });
+  }
+
   const credentialConfiguration =
     issuerMetadata.credential_configurations_supported[
       credentialConfigurationId

@@ -90,6 +90,8 @@ export type CredentialIssuerMetadata = z.infer<typeof CredentialIssuerMetadata>;
 export const AuthorizationServerMetadata = z.looseObject({
   authorization_endpoint: z.url(),
   authorization_response_iss_parameter_supported: z.boolean().optional(),
+  /** Defaults to `authorization_code` and `implicit` when omitted (RFC 8414, Section 2) */
+  grant_types_supported: z.array(z.string()).optional(),
   issuer: z.url(),
   pushed_authorization_request_endpoint: z.url().optional(),
   require_pushed_authorization_requests: z.boolean().optional(),
