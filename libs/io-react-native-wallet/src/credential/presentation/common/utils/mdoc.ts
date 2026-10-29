@@ -9,7 +9,7 @@ import type {
   PresentationFrame,
 } from "../../api";
 
-import { getValidDcqlClaims } from "./dcql";
+import { getDcqlAuthority, getValidDcqlClaims } from "./dcql";
 
 type CustomDcqlMdocCredential = DcqlMdocCredential & {
   original_credential: Credential4Dcql;
@@ -48,7 +48,12 @@ export const mapCredentialsToObj = async (
         {} as DcqlMdocCredential["namespaces"],
       );
 
+      const authority = getDcqlAuthority(
+        issuerSigned.issuerAuth.unprotectedHeader?.x5chain,
+      );
+
       return {
+        ...(authority && { authority }),
         credential_format: "mso_mdoc",
         cryptographic_holder_binding: true,
         doctype: issuerSigned.issuerAuth.payload.docType || "missing_doctype",

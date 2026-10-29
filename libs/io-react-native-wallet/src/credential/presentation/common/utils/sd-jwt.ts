@@ -8,6 +8,7 @@ import type { Credential4Dcql } from "../../api";
 import { LEGACY_SD_JWT } from "../../../../sd-jwt/types";
 import { fixLegacyCredentialSdJwt } from "../../../../utils/credentials";
 import { IoWalletError } from "../../../../utils/errors";
+import { getDcqlAuthority } from "./dcql";
 
 type CustomDcqlSdJwtVcCredential = DcqlSdJwtVcCredential & {
   original_credential: Credential4Dcql;
@@ -58,7 +59,11 @@ export const mapCredentialsToObj = async (
         fixLegacyCredentialSdJwt(credential[1]),
       );
       const claims = await getClaimsFromDecodedSdJwt(decodedRawSdJwt);
+      const authority = getDcqlAuthority(
+        decodedRawSdJwt.jwt?.header?.x5c as string[] | undefined,
+      );
       return {
+        ...(authority && { authority }),
         claims,
         credential_format:
           decodedRawSdJwt.jwt?.header?.typ === LEGACY_SD_JWT

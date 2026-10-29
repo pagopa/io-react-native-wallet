@@ -1,4 +1,10 @@
-import { DcqlClaimsQuery, DcqlQuery, DcqlQueryResult } from "dcql";
+import {
+  DcqlClaimsQuery,
+  type DcqlCredentialTrustedAuthority,
+  DcqlQuery,
+  DcqlQueryResult,
+} from "dcql";
+import { b64utohex, hextob64u, X509 } from "jsrsasign";
 
 import type { EvaluatedDisclosure, PresentationFrame } from "../../api/types";
 import type { NotFoundDetail } from "../errors";
@@ -16,6 +22,25 @@ type DcqlMatchSuccess = Extract<
   DcqlQueryResult.CredentialMatch,
   { success: true }
 >;
+
+/**
+ * Trusted authority of a credential, matched by the `dcql` library against the
+ * `trusted_authorities` of a Credential Query (OpenID4VP 1.0, Section 6.1.1):
+ * the Authority Key Identifiers of the issuer certificate chain, encoded as base64url.
+ * Without it, a credential never satisfies a Credential Query with `trusted_authorities`.
+ * @param certificates - The issuer certificate chain, as base64 or base64url DER
+ */
+export const getDcqlAuthority = (
+  certificates: string[] = [],
+): DcqlCredentialTrustedAuthority | undefined => {
+  const [first, ...rest] = certificates.flatMap((certificate) => {
+    const x509 = new X509();
+    x509.readCertHex(b64utohex(certificate));
+    const kid = x509.getExtAuthorityKeyIdentifier()?.kid?.hex;
+    return kid ? [hextob64u(kid)] : [];
+  });
+  return first ? { type: "aki", values: [first, ...rest] } : undefined;
+};
 
 /**
  * Extract only successful matches from the DCQL query result.
