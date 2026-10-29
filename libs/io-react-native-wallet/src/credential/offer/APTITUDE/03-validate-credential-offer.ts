@@ -21,11 +21,12 @@ import { InvalidCredentialOfferError } from "../common/errors";
  * are mapped to {@link InvalidCredentialOfferError}.
  */
 export const validateCredentialOffer: OfferApi["validateCredentialOffer"] =
-  async ({ credentialIssuerMetadata, offer }) => {
+  async ({ credentialIssuerMetadata, grantType, offer }) => {
     await sdkValidateCredentialOffer({
       config: sdkConfigAPTITUDE,
       credentialIssuerMetadata,
       credentialOffer: offer,
+      grantType,
     }).catch((e: unknown) => {
       if (e instanceof CredentialOfferError) {
         throw new InvalidCredentialOfferError(e.message);
