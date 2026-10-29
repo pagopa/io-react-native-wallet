@@ -31,7 +31,8 @@ export const EudiCandidateCredential = ({
       ]
         .filter(Boolean)
         .join(" · ")}
-      onPress={onPress}
+      // ListItemRadio ignores onPress and notifies the press only with onValueChange
+      onValueChange={onPress}
       selected={selected}
       value={credential.display?.name ?? credential.credentialConfigurationId}
     />
