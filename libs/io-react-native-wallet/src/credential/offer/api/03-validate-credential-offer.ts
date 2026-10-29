@@ -1,4 +1,7 @@
-import type { ValidateCredentialOfferOptions } from "@pagopa/io-wallet-oid4vci";
+import type {
+  CREDENTIAL_OFFER_GRANTS,
+  ValidateCredentialOfferOptions,
+} from "@pagopa/io-wallet-oid4vci";
 
 import type { CredentialOffer } from "./types";
 
@@ -10,11 +13,13 @@ export interface ValidateCredentialOfferApi {
    * @param options.credentialIssuerMetadata - The Credential Issuer metadata used
    *   to cross-check the offer (e.g. the `authorization_server` selected by the
    *   offer against the advertised `authorization_servers`).
+   * @param options.grantType - The grant type that must be used to validate the offer. Defaults to {@link CREDENTIAL_OFFER_GRANTS.AUTHORIZATION_CODE}.
    * @returns A promise that resolves when the Credential Offer is valid.
    * @throws {InvalidCredentialOfferError} If the Credential Offer fails validation.
    */
   validateCredentialOffer(options: {
     credentialIssuerMetadata: ValidateCredentialOfferOptions["credentialIssuerMetadata"];
+    grantType?: CREDENTIAL_OFFER_GRANTS;
     offer: CredentialOffer;
   }): Promise<void>;
 }
