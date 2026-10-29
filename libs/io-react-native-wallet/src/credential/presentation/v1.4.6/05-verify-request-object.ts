@@ -8,9 +8,13 @@ import {
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import type { RawRequestObject } from "./types";
 
-import { partialCallbacks } from "../../../utils/callbacks";
+import {
+  createVerifyJwtFromJwks,
+  partialCallbacks,
+} from "../../../utils/callbacks";
 import { sdkConfigV1_4 } from "../../../utils/config";
 import { IoWalletError } from "../../../utils/errors";
+import { JWKS } from "../../../utils/jwk";
 import { InvalidRequestObjectError } from "../common/errors";
 import { mapToRequestObject } from "./mappers";
 import { mapSdkRequestObjectError } from "./sdkErrorMapper";
@@ -19,7 +23,16 @@ export const verifyRequestObject: RemotePresentationApi["verifyRequestObject"] =
   async (requestObjectEncodedJwt, { clientId: fullClientId, rpConf }) => {
     const parsedRequestObject = await sdkParseAuthorizeRequest({
       callbacks: {
-        verifyJwt: partialCallbacks.verifyJwt,
+        verifyJwt: (signer, jwt) => {
+          if (signer.method === "federation" && !signer.trustChain && rpConf) {
+            return createVerifyJwtFromJwks(JWKS.parse(rpConf.jwks).keys)(
+              signer,
+              jwt,
+            );
+          }
+
+          return partialCallbacks.verifyJwt(signer, jwt);
+        },
       },
       config: sdkConfigV1_4,
       requestObjectJwt: requestObjectEncodedJwt,
