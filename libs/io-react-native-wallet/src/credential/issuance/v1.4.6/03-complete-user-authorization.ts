@@ -276,11 +276,7 @@ const processPidPresentationAndCreateAuthzResponse = async ({
   const remotePresentation =
     await RemotePresentationFlow.prepareRemotePresentations(
       evaluatedDcqlQuery,
-      {
-        clientId: requestObject.client_id,
-        nonce: requestObject.nonce,
-        responseUri: requestObject.response_uri,
-      },
+      requestObject,
     );
 
   const vp_token = remotePresentation.presentations.reduce(
