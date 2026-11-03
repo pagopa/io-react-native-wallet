@@ -10,18 +10,9 @@ jest.mock("@pagopa/io-wallet-oid4vp", () => ({
     ),
 }));
 
-jest.mock("@pagopa/io-wallet-oid4vp", () => ({
-  ...jest.requireActual("@pagopa/io-wallet-oid4vp"),
-  createX509HashClientId: jest
-    .fn()
-    .mockResolvedValue(
-      "x509_hash:3ALTHlBmrN6Wc9oE3TxFZp47fET6iFBQIiwMJiu3BLcqw",
-    ),
-}));
-
 jest.mock("../../../../utils/callbacks", () => ({
   partialCallbacks: {
-    verify: jest.fn().mockResolvedValue(true),
+    verifyJwt: jest.fn().mockResolvedValue({ verified: true }),
   },
 }));
 
