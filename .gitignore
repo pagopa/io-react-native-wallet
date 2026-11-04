@@ -64,3 +64,5 @@ test-output
 # example-app native folders (generated via expo prebuild)
 /apps/example-app/android/
 /apps/example-app/ios/
+# TypeScript incremental build info
+*.tsbuildinfo
