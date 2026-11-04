@@ -55,7 +55,7 @@
   "peerDependencies": {
     "@pagopa/io-react-native-jwt": "*",
     "react": "19.2.3",
-    "react-native": "0.85.3",
+    "react-native": "0.86.3",
     "react-native-quick-crypto": "*"
   },
   "dependencies": {
