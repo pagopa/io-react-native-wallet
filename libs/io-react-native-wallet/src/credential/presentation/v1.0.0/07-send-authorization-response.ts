@@ -89,12 +89,12 @@ export const buildDirectPostJwtBody = async (
 };
 
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, authRequestObject) => {
+  async (credentials, requestObject) => {
     const presentations = await Promise.all(
       credentials.map(async (item) => {
         const { vp_token } = await prepareVpToken(
-          authRequestObject.nonce,
-          authRequestObject.clientId,
+          requestObject.nonce,
+          requestObject.client_id,
           [
             item.credential,
             item.presentationFrame,
