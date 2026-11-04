@@ -12,7 +12,7 @@ A function that generates a signed JWT Trustmark to verify the authenticity of a
 ```typescript
 function getCredentialTrustmark({
   walletInstanceAttestation: string,
-  wiaCryptoContext: CryptoContext,
+  wiaSigner: Signer,
   credentialType: string,
   docNumber?: string,
   expirationTime?: number | string
@@ -26,7 +26,7 @@ function getCredentialTrustmark({
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | walletInstanceAttestation | string | Yes | A base64-encoded string containing the Wallet Instance Attestation (WIA). This attestation proves the authenticity of the wallet instance. |
-| wiaCryptoContext | CryptoContext | Yes | The cryptographic context associated with the wallet instance. Must contain the same key pair used to generate the WIA. |
+| wiaSigner | Signer | Yes | The signer associated with the wallet instance. Must use the same key pair used to generate the WIA. Remote signers are not supported. |
 | credentialType | string | Yes | Identifier for the type of credential (e.g., "MDL" for Mobile Driver's License). |
 | docNumber | string | No | The document number of the credential. If provided, it will be obfuscated in the Trustmark for privacy. |
 | expirationTime | number \| string | No | Specifies when the Trustmark expires. Can be either:<br>- A timestamp in seconds<br>- A time span string (e.g., "2m" for 2 minutes)<br>Default: "2m" |
@@ -50,12 +50,12 @@ const wallet = new IoWallet({ version: "1.0.0" });
 const walletInstanceAttestation = "base64AttestationString";
 const credentialType = "MDL"; // Credential type (e.g., Mobile Driver's License)
 const documentNumber = "AB123456"; // Optional document number
-const cryptoContext = createCryptoContextFor("wiaKeyTag"); // Sample crypto context
+const signer = createSignerFor("wiaKeyTag"); // Sample signer
 
 // Generate the TrustMark JWT
 const { jwt, expirationTime } = await wallet.Trustmark.getCredentialTrustmark({
   walletInstanceAttestation: "eyJ0eXAi...", // WIA JWT
-  wiaCryptoContext: cryptoContext,
+  wiaSigner: signer,
   credentialType: "IdentityCard",
   docNumber: "AB123456",
   expirationTime: "5m", // 5 minutes

@@ -4,7 +4,8 @@ import { decode } from "@pagopa/io-react-native-jwt";
 import type { IssuerConfig } from "../../api";
 
 import { startUserAuthorization } from "../02-start-user-authorization";
-import { createCryptoContextFor } from "../../../../utils/crypto";
+import { createSignerFor } from "../../../../utils/crypto";
+import { UnimplementedFeatureError } from "../../../../utils/errors";
 
 const mockIssuerConf = {
   credential_configurations_supported: {
@@ -36,10 +37,33 @@ const extractParPayloadFromMock = (mock: jest.Mock) => {
 };
 
 describe("startUserAuthorization", () => {
+  it("throws when the WIA signer is remote", async () => {
+    const mockFetch = createMockFetch();
+
+    await expect(
+      startUserAuthorization(
+        mockIssuerConf,
+        ["PersonIdentificationData"],
+        { proofType: "none" },
+        {
+          appFetch: mockFetch,
+          redirectUri: "https://redirect",
+          walletInstanceAttestation: mockWia,
+          wiaSigner: {
+            getPublicKey: jest.fn(),
+            kind: "REMOTE",
+            sign: jest.fn(),
+          },
+        },
+      ),
+    ).rejects.toThrow(UnimplementedFeatureError);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
   it("works with a single credential (PID)", async () => {
     const ephemeralKeytag = `ephemeral-${Math.random()}`;
     await generate(ephemeralKeytag);
-    const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
+    const ephemeralContext = createSignerFor(ephemeralKeytag);
 
     const mockFetch = createMockFetch();
 
@@ -51,7 +75,7 @@ describe("startUserAuthorization", () => {
         appFetch: mockFetch,
         redirectUri: "https://redirect",
         walletInstanceAttestation: mockWia,
-        wiaCryptoContext: ephemeralContext,
+        wiaSigner: ephemeralContext,
       },
     );
 
@@ -69,7 +93,7 @@ describe("startUserAuthorization", () => {
   it("works with multiple credentials (MDL, TS)", async () => {
     const ephemeralKeytag = `ephemeral-${Math.random()}`;
     await generate(ephemeralKeytag);
-    const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
+    const ephemeralContext = createSignerFor(ephemeralKeytag);
 
     const mockFetch = createMockFetch();
 
@@ -81,7 +105,7 @@ describe("startUserAuthorization", () => {
         appFetch: mockFetch,
         redirectUri: "https://redirect",
         walletInstanceAttestation: mockWia,
-        wiaCryptoContext: ephemeralContext,
+        wiaSigner: ephemeralContext,
       },
     );
 
@@ -105,7 +129,7 @@ describe("startUserAuthorization", () => {
   it("should throw when multiple credentials have incompatible response_mode", async () => {
     const ephemeralKeytag = `ephemeral-${Math.random()}`;
     await generate(ephemeralKeytag);
-    const ephemeralContext = createCryptoContextFor(ephemeralKeytag);
+    const ephemeralContext = createSignerFor(ephemeralKeytag);
 
     await expect(() =>
       startUserAuthorization(
@@ -116,7 +140,7 @@ describe("startUserAuthorization", () => {
           appFetch: createMockFetch(),
           redirectUri: "https://redirect",
           walletInstanceAttestation: mockWia,
-          wiaCryptoContext: ephemeralContext,
+          wiaSigner: ephemeralContext,
         },
       ),
     ).rejects.toThrow();

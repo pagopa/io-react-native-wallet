@@ -74,7 +74,7 @@ const res = await wallet.CredentialStatus.statusAssertion.get(
   issuerConf,
   credential,
   format,
-  { credentialCryptoContext, wiaCryptoContext }
+  { credentialSigner, wiaSigner }
 );
 
 // Verify and parse the status assertion

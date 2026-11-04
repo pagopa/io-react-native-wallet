@@ -1,13 +1,11 @@
 import type { Verifier } from "@sd-jwt/core";
 
 import { hasher } from "@owf/crypto";
-import {
-  type CryptoContext,
-  verify as verifyJwt,
-} from "@pagopa/io-react-native-jwt";
+import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 import { type SDJwt, SDJwtInstance, type VerifierOptions } from "@sd-jwt/core";
 
 import type { SdJwt4VCBase } from "../../../sd-jwt/types";
+import type { Signer } from "../../../utils/crypto";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 
 import { MissingX509CertsError } from "../../../trust/common/errors";
@@ -199,7 +197,7 @@ const sdJwtInstanceVerifier: SdJwtInstanceVerifier = async (
  * @param rawCredential The received credential
  * @param issuerKeys The set of public keys of the issuer,
  * which will be used to verify the signature
- * @param holderBindingContext The access to the holder's key
+ * @param holderBindingSigner The access to the holder's key
  *
  * @throws If the signature verification fails
  * @throws If the credential is not in the SdJwt4VC format
@@ -209,7 +207,7 @@ const sdJwtInstanceVerifier: SdJwtInstanceVerifier = async (
 async function verifyCredentialSdJwt(
   rawCredential: string,
   issuerKeys: JWK[],
-  holderBindingContext: CryptoContext,
+  holderBindingSigner: Signer,
 ): Promise<SDJwt> {
   const sdJwtInstance = new SDJwtInstance({
     hasher,
@@ -218,7 +216,7 @@ async function verifyCredentialSdJwt(
 
   const [verifiedCredential, holderBindingKey] = await Promise.all([
     sdJwtInstance.verify(rawCredential, { issuerKeys, skewSeconds: 30 }),
-    holderBindingContext.getPublicKey(),
+    holderBindingSigner.getPublicKey(),
   ]);
 
   const { cnf } = verifiedCredential.payload as SdJwt4VCBase["payload"];
@@ -237,7 +235,7 @@ export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredentia
     credential,
     credentialConfigurationId,
     {
-      credentialCryptoContext,
+      credentialSigner,
       ignoreMissingAttributes,
       includeUndefinedAttributes,
       validateCertificateChain,
@@ -247,7 +245,7 @@ export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredentia
     const decoded = await verifyCredentialSdJwt(
       credential,
       issuerConf.keys,
-      credentialCryptoContext,
+      credentialSigner,
     );
 
     Logger.log(

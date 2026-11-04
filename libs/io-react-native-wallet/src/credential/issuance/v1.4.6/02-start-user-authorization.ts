@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { IssuanceApi } from "../api";
 
 import {
-  createSignJwtFromCryptoContext,
+  createSignJwtFromSigner,
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { sdkConfigV1_4 } from "../../../utils/config";
@@ -26,10 +26,10 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       redirectUri,
       scope,
       walletInstanceAttestation,
-      wiaCryptoContext,
+      wiaSigner,
     } = ctx;
 
-    const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
+    const clientId = await wiaSigner.getPublicKey().then((_) => _.kid);
 
     if (!clientId) {
       Logger.log(
@@ -58,13 +58,13 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       });
     }
 
-    const wiaSigner: JwtSignerJwk = {
+    const wiaJwtSigner: JwtSignerJwk = {
       alg: "ES256",
       method: "jwk",
-      publicJwk: await wiaCryptoContext.getPublicKey(),
+      publicJwk: await wiaSigner.getPublicKey(),
     };
 
-    const signJwt = createSignJwtFromCryptoContext(wiaCryptoContext);
+    const signJwt = createSignJwtFromSigner(wiaSigner);
 
     const parRequest = await createPushedAuthorizationRequest({
       audience: issuerConf.credential_issuer,
@@ -80,7 +80,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       codeChallengeMethodsSupported: ["S256"],
       config: sdkConfigV1_4,
       dpop: {
-        signer: wiaSigner,
+        signer: wiaJwtSigner,
       },
       issuerState,
       jti: uuidv4(),
@@ -100,7 +100,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       clientAttestation: walletInstanceAttestation,
       config: sdkConfigV1_4,
       jti: uuidv4(),
-      signer: wiaSigner,
+      signer: wiaJwtSigner,
     });
 
     const { request_uri } = await fetchPushedAuthorizationResponse({

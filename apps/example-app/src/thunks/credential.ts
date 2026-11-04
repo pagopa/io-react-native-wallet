@@ -1,5 +1,5 @@
 import {
-  createCryptoContextFor,
+  createSignerFor,
   CredentialIssuance,
   CredentialOffer,
   CredentialStatus,
@@ -107,7 +107,7 @@ export const getCredentialThunk = createAppAsyncThunk<
     throw new Error("Wallet Instance Attestation not found");
   }
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
@@ -187,7 +187,7 @@ export const getCredentialThunk = createAppAsyncThunk<
     scope: authorizationCodeGrant?.scope,
     trustAnchorUrl: WALLET_TA_BASE_URL,
     walletInstanceAttestation,
-    wiaCryptoContext,
+    wiaSigner,
   });
 });
 
@@ -202,9 +202,9 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
 >("credential/statusAssertionGet", async (args, { getState }) => {
   const { credential, credentialType, format, keyTag } = args;
 
-  // Create credential crypto context
-  const credentialCryptoContext = createCryptoContextFor(keyTag);
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  // Create credential signer
+  const credentialSigner = createSignerFor(keyTag);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   const env = getEnv(selectEnv(getState()));
   const itwVersion = selectItwVersion(getState());
@@ -219,8 +219,8 @@ export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
     issuerUrl.value(itwVersion),
     credential,
     format,
-    credentialCryptoContext,
-    wiaCryptoContext,
+    credentialSigner,
+    wiaSigner,
     credentialType,
   );
 

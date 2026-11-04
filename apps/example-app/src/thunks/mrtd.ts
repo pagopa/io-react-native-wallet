@@ -1,5 +1,5 @@
 import {
-  createCryptoContextFor,
+  createSignerFor,
   CredentialIssuance,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
@@ -46,7 +46,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   const { authRedirectUrl } = args;
   const { issuerConf, walletInstanceAttestation } = pidFlowParams;
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   const { challenge_info } =
     await wallet.CredentialIssuance.continueUserAuthorizationWithMRTDPoPChallenge(
@@ -60,7 +60,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
   } = await wallet.CredentialIssuance.MRTDPoP.verifyAndParseChallengeInfo(
     issuerConf,
     challenge_info,
-    { wiaCryptoContext },
+    { wiaSigner },
   );
 
   const { challenge, mrtd_pop_nonce, pop_verify_endpoint } =
@@ -72,7 +72,7 @@ export const initPidMrtdChallengeThunk = createAppAsyncThunk<
       {
         appFetch,
         walletInstanceAttestation,
-        wiaCryptoContext,
+        wiaSigner,
       },
     );
 
@@ -106,7 +106,7 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
   const { issuerConf, walletInstanceAttestation } = pidFlowParams;
   const { mrtd_auth_session, mrtd_pop_nonce, validationUrl } = mrtdFlowParams;
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   const { mrtd_val_pop_nonce, redirect_uri } =
     await wallet.CredentialIssuance.MRTDPoP.validateChallenge(
@@ -119,7 +119,7 @@ export const validatePidMrtdChallengeThunk = createAppAsyncThunk<
       {
         appFetch,
         walletInstanceAttestation,
-        wiaCryptoContext,
+        wiaSigner,
       },
     );
 

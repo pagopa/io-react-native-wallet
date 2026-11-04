@@ -1,5 +1,6 @@
 import type { IssuanceApi } from "../api";
 
+import { assertLocalSigners } from "../../../utils/crypto";
 import { IoWalletError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { generateRandomAlphaNumericString } from "../../../utils/misc";
@@ -15,10 +16,11 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
       appFetch = fetch,
       redirectUri,
       walletInstanceAttestation,
-      wiaCryptoContext,
+      wiaSigner,
     } = ctx;
+    assertLocalSigners("1.0.0", wiaSigner);
 
-    const clientId = await wiaCryptoContext.getPublicKey().then((_) => _.kid);
+    const clientId = await wiaSigner.getPublicKey().then((_) => _.kid);
 
     if (!clientId) {
       Logger.log(
@@ -31,7 +33,7 @@ export const startUserAuthorization: IssuanceApi["startUserAuthorization"] =
     const parEndpoint = issuerConf.pushed_authorization_request_endpoint;
     const aud = issuerConf.credential_issuer;
     const responseMode = selectResponseMode(issuerConf, credentialIds);
-    const getPar = makeParRequest({ appFetch, wiaCryptoContext });
+    const getPar = makeParRequest({ appFetch, wiaSigner });
 
     const credentialDefinition = credentialIds.map((c) =>
       selectCredentialDefinition(issuerConf, c),

@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { Signer } from "../../../utils/crypto";
 import type { AuthorizationDetail } from "../../../utils/par";
 import type { IssuerConfig } from "./IssuerConfig";
 
@@ -24,7 +23,7 @@ export interface StartUserAuthorizationApi {
    * @param issuerConf The issuer configuration
    * @param credentialIds The credential configuration IDs to be requested
    * @param proof The configuration for the proof to be used in the request: "none" for standard flows, "document" for L2+ with MRTD verification.
-   * @param context.wiaCryptoContext The Wallet Instance's cryptographic context
+   * @param context.wiaSigner The Wallet Instance's cryptographic context
    * @param context.walletInstanceAttestation: the Wallet Instance's attestation
    * @param context.redirectUri: the redirect URI
    * @param context.appFetch: (optional) the fetch implementation
@@ -44,7 +43,7 @@ export interface StartUserAuthorizationApi {
       redirectUri: string;
       scope?: string;
       walletInstanceAttestation: string;
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<{
     clientId: string;
