@@ -1,4 +1,5 @@
 import type { CredentialFormat } from "../../../credential/issuance/api";
+import type { CborDecoder } from "../../../mdoc/types";
 import type { JWK } from "../../../utils/jwk";
 import type { StatusList } from "./types";
 
@@ -19,13 +20,15 @@ export interface StatusListApi {
    * @param credential The credential to get the status list for
    * @param format The credential format
    * @param context.appFetch Optional fetch function to use for the network request
+   * @param context.cborDecoder The CBOR decoder provided by the consumer.
    * @returns The encoded status list token with its credential reference metadata
    */
   get(
     credential: string,
     format: CredentialFormat,
-    context?: {
+    context: {
       appFetch?: typeof fetch;
+      cborDecoder: CborDecoder;
     },
   ): Promise<{
     format: "jwt";
@@ -70,11 +73,13 @@ export interface StatusListApi {
    * @since 1.3.3
    * @param credential The raw credential
    * @param format The credential format
+   * @param context.cborDecoder The CBOR decoder provided by the consumer.
    * @returns The status list entry extracted from the credential
    */
   getStatusListEntry(
     credential: string,
     format: CredentialFormat,
+    context: { cborDecoder: CborDecoder },
   ): Promise<{ idx: number; uri: string }>;
 
   isSupported: true;

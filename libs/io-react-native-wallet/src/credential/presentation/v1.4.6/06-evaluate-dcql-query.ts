@@ -15,11 +15,18 @@ import * as mdocUtils from "../common/utils/mdoc";
 import * as sdJwtUtils from "../common/utils/sd-jwt";
 
 export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
-  async (query, credentialsSdJwt, credentialsMdoc = []) => {
+  async (query, { credentialsMdoc, credentialsSdJwt = [] }) => {
+    // Convert SD-JWT and mdoc credentials into the object shape expected by the `dcql` library,
+    // in parallel, then merge them into a single list. mdoc credentials are skipped when not provided.
     const credentials = (
       await Promise.all([
         sdJwtUtils.mapCredentialsToObj(credentialsSdJwt),
-        mdocUtils.mapCredentialsToObj(credentialsMdoc),
+        credentialsMdoc
+          ? mdocUtils.mapCredentialsToObj(
+              credentialsMdoc.credentials,
+              credentialsMdoc.cborDecoder,
+            )
+          : [],
       ])
     ).flat();
 
@@ -63,7 +70,7 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
               `Credential with vct ${vct} not found in the provided credentials.`,
             );
           }
-          const [keyTag, credential] = sdjwtCredential;
+          const [credential, signer] = sdjwtCredential;
 
           const requiredDisclosures = getClaimsFromDcqlMatch(match);
           const presentationFrame = getPresentationFrameFromDcqlMatch(
@@ -75,12 +82,12 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
             credential,
             format: matchOutput.credential_format,
             id,
-            keyTag,
             presentationFrame,
             // When it is a match but no credential_sets are found, the credential is required by default
             // See https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-6.4.2
             purposes: purposes ?? [{ required: true }],
             requiredDisclosures,
+            signer,
             vct,
           };
         }
@@ -93,7 +100,7 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
               `Credential with doctype ${doctype} not found in the provided credentials.`,
             );
           }
-          const [keyTag, credential] = mdocCredential;
+          const [credential, signer] = mdocCredential;
 
           const requiredDisclosures = mdocUtils.getClaimsFromDcqlMatch(match);
           const presentationFrame = mdocUtils.getPresentationFrameFromClaims(
@@ -106,10 +113,10 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
             doctype,
             format: matchOutput.credential_format,
             id,
-            keyTag,
             presentationFrame,
             purposes: purposes ?? [{ required: true }],
             requiredDisclosures,
+            signer,
           };
         }
 

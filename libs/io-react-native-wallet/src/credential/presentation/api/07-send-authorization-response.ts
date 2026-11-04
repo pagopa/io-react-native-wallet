@@ -4,6 +4,7 @@ import type { RelyingPartyConfig } from "./RelyingPartyConfig";
 import type {
   AuthorizationResponse,
   ErrorResponse,
+  MdocDeviceResponseGenerator,
   RemotePresentation,
   RequestObject,
 } from "./types";
@@ -18,6 +19,7 @@ export interface SendAuthorizationResponseApi {
    *
    * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
    * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
+   * @param context.mdocDeviceResponseGenerator Callback that generates (and signs) the mdoc DeviceResponse. Required when an mdoc credential is presented.
    * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
    */
   prepareRemotePresentations(
@@ -27,6 +29,7 @@ export interface SendAuthorizationResponseApi {
       nonce: string;
       responseUri: string;
     },
+    context?: { mdocDeviceResponseGenerator?: MdocDeviceResponseGenerator },
   ): Promise<RemotePresentation>;
 
   /**

@@ -1,3 +1,6 @@
+// helper to assert type
+import { createMockCertificateChainVerifier } from "../../../utils/__fixtures__/x509";
+import { X509ValidationError } from "../../common/errors";
 import * as mockEC from "../__fixtures__/entity-configurations";
 import {
   intermediateEntityStatement,
@@ -21,8 +24,15 @@ import {
   TrustAnchorEntityConfiguration,
   WalletProviderEntityConfiguration,
 } from "../types";
-// helper to assert type
-import { verifyTrustChain } from "../verify-chain";
+import { verifyTrustChain as verifyTrustChainWithContext } from "../verify-chain";
+
+const verifyTrustChain = (
+  trustAnchor: Parameters<typeof verifyTrustChainWithContext>[0],
+  chain: string[],
+) =>
+  verifyTrustChainWithContext(trustAnchor, chain, undefined, {
+    certificateChainVerifier: createMockCertificateChainVerifier(),
+  });
 
 const testType = <T>(_: T) => true;
 
@@ -31,6 +41,33 @@ const mappedTrustAnchorEntityConfiguration = mapToTrustAnchorConfig(
 );
 
 describe("verifyTrustChain", () => {
+  it("should throw X509ValidationError when the certificate chain verifier fails", async () => {
+    const certificateChainVerifier = createMockCertificateChainVerifier();
+    certificateChainVerifier.mockResolvedValue({
+      errorMessage: "revoked",
+      isValid: false,
+      validationStatus: "CERTIFICATE_REVOKED",
+    });
+
+    await expect(
+      verifyTrustChainWithContext(
+        mappedTrustAnchorEntityConfiguration,
+        [
+          await signed(leafEntityConfiguration),
+          await signed(leafEntityStatement),
+          await signed(intermediateEntityStatement),
+        ],
+        undefined,
+        { certificateChainVerifier, renewOnFail: false },
+      ),
+    ).rejects.toBeInstanceOf(X509ValidationError);
+    expect(certificateChainVerifier).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.any(String),
+      expect.anything(),
+    );
+  });
+
   it("should throw on empty trust chain", async () => {
     await expect(
       verifyTrustChain(mappedTrustAnchorEntityConfiguration, []),

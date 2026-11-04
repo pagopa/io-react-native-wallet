@@ -7,6 +7,7 @@ import type { RequestObject } from "../../../presentation";
 import type { EvaluatedDcqlQuery, IssuerConfig } from "../../api";
 
 import { completeEaaUserAuthorizationWithQueryMode } from "../03-complete-user-authorization";
+import { createMockSigner } from "../../../../utils/__fixtures__/signer";
 import { RemotePresentation } from "../../../presentation/v1.4.6";
 import { AuthorizationError } from "../../common/errors";
 
@@ -25,17 +26,17 @@ jest.mock("../../../presentation/v1.4.6", () => ({
 }));
 
 const CLIENT_REDIRECT_URI = "https://wallet.example.com/callback";
-const mockPid: [string, string] = ["pid-key-tag", "mock-pid-credential"];
+const mockPid = "mock-pid-credential";
 const finalRedirectUri = `${CLIENT_REDIRECT_URI}?code=auth-code-123&state=mock-state&iss=https%3A%2F%2Fissuer.example.com`;
 const mockEvaluatedDcqlQuery = [
   {
-    credential: mockPid[1],
+    credential: mockPid,
     format: "dc+sd-jwt",
     id: "pid",
-    keyTag: mockPid[0],
     presentationFrame: {},
     purposes: [],
     requiredDisclosures: [],
+    signer: createMockSigner(),
     vct: "",
   },
 ] satisfies EvaluatedDcqlQuery;

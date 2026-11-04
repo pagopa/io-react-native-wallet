@@ -1,5 +1,4 @@
 import {
-  createSignerFor,
   CredentialIssuance,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
@@ -14,9 +13,16 @@ import { credentialReset } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/selectors/pid";
 import { type PidAuthMethods, type PidResult } from "../store/types";
-import { DPOP_KEYTAG, regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
+import { cborDecoder, cborVerifier } from "../utils/cbor";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
+import {
+  createLocalSignerFor,
+  DPOP_KEYTAG,
+  localCertificateChainVerifier,
+  regenerateLocalCryptoKey,
+  WIA_KEYTAG,
+} from "../utils/localCrypto";
 import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
@@ -95,7 +101,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   dispatch(credentialReset());
   const { authMethod, ciePin, idpHint, withMRTDPoP } = args;
 
-  const wiaSigner = createSignerFor(WIA_KEYTAG);
+  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   // Get env
   const env = selectEnv(getState());
@@ -188,11 +194,11 @@ export const continuePidFlowThunk = createAppAsyncThunk<
    * Create wia signer, we are using the same keytag used in {@link prepareCieL3FlowParamsThunk},
    * hoping it has not been deleted in the meanwhile. This can be improved later.
    */
-  const wiaSigner = createSignerFor(WIA_KEYTAG);
+  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   // Create DPoP context for the whole issuance flow
-  await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopSigner = createSignerFor(DPOP_KEYTAG);
+  await regenerateLocalCryptoKey(DPOP_KEYTAG);
+  const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
@@ -239,7 +245,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     await generate(credentialKeyTag);
   }
 
-  const credentialSigner = createSignerFor(credentialKeyTag);
+  const credentialSigner = createLocalSignerFor(credentialKeyTag);
 
   // Get the credential identifier that was authorized
   const { credential, format } =
@@ -264,7 +270,13 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       issuerConf,
       credential,
       credential_configuration_id,
-      { credentialSigner, ignoreMissingAttributes: true },
+      {
+        cborDecoder,
+        cborVerifier,
+        certificateChainVerifier: localCertificateChainVerifier,
+        credentialSigner,
+        ignoreMissingAttributes: true,
+      },
       X509_CERT_ROOT,
     );
 

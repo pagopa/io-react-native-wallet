@@ -55,7 +55,7 @@ export const mapCredentialsToObj = async (
   return Promise.all(
     credentials.map(async (credential) => {
       const decodedRawSdJwt = await sdJwt.decode(
-        fixLegacyCredentialSdJwt(credential[1]),
+        fixLegacyCredentialSdJwt(credential[0]),
       );
       const claims = await getClaimsFromDecodedSdJwt(decodedRawSdJwt);
       return {

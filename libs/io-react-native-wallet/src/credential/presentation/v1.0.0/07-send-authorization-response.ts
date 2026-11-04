@@ -5,7 +5,6 @@ import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import type { RequestObject } from "../api/types";
 
 import { prepareVpToken } from "../../../sd-jwt";
-import { createSignerFor } from "../../../utils/crypto";
 import {
   IoWalletError,
   RelyingPartyResponseError,
@@ -95,11 +94,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
         const { vp_token } = await prepareVpToken(
           authRequestObject.nonce,
           authRequestObject.clientId,
-          [
-            item.credential,
-            item.presentationFrame,
-            createSignerFor(item.keyTag),
-          ],
+          [item.credential, item.presentationFrame, item.signer],
         );
 
         return {

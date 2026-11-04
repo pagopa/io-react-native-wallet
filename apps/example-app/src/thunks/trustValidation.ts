@@ -2,6 +2,7 @@ import { IoWallet, type Trust } from "@io-app-it-wallet/io-react-native-wallet";
 
 import { selectItwVersion } from "../store/reducers/environment";
 import appFetch from "../utils/fetch";
+import { localCertificateChainVerifier } from "../utils/localCrypto";
 import { createAppAsyncThunk } from "./utils";
 
 export interface ValidateTrustChainThunkInput {
@@ -47,6 +48,7 @@ export const validateTrustChainThunk = createAppAsyncThunk<
       readTimeout: 10000,
       requireCrl: true,
     },
+    { certificateChainVerifier: localCertificateChainVerifier },
   );
 
   console.log("✅ Chain verified successfully");

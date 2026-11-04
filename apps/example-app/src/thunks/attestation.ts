@@ -1,5 +1,4 @@
 import {
-  createSignerFor,
   IoWallet,
   type KeyAttestation as Ka,
   type WalletInstanceAttestation as Wia,
@@ -10,7 +9,6 @@ import { Platform } from "react-native";
 
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
-import { regenerateCryptoKey, WIA_KEYTAG } from "../utils/crypto";
 import { isAndroid } from "../utils/device";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -18,6 +16,11 @@ import {
   ensureIntegrityServiceIsReady,
   getIntegrityContext,
 } from "../utils/integrity";
+import {
+  createLocalSignerFor,
+  regenerateLocalCryptoKey,
+  WIA_KEYTAG,
+} from "../utils/localCrypto";
 import { createAppAsyncThunk } from "./utils";
 
 export type GetAttestationThunkOutput = Awaited<
@@ -42,8 +45,8 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
 
   // generate Key for Wallet Instance Attestation
   // ensure the key esists befor starting the issuing process
-  await regenerateCryptoKey(WIA_KEYTAG);
-  const wiaSigner = createSignerFor(WIA_KEYTAG);
+  await regenerateLocalCryptoKey(WIA_KEYTAG);
+  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   // Get env URLs
   const env = selectEnv(getState());
@@ -139,7 +142,7 @@ const generateKeyToAttest = (
     android: async () => ({
       // The key attestation is bound to the challenge
       attestation: await getAttestation(challenge, keyTag),
-      signer: createSignerFor(keyTag),
+      signer: createLocalSignerFor(keyTag),
     }),
     default: () => {
       throw new Error("Unsupported platform");
@@ -147,6 +150,6 @@ const generateKeyToAttest = (
     // No key attestation on iOS, only key pair creation
     ios: async () => {
       await generate(keyTag);
-      return { signer: createSignerFor(keyTag) };
+      return { signer: createLocalSignerFor(keyTag) };
     },
   })();

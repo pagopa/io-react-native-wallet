@@ -20,10 +20,10 @@ graph TD;
   2 -->|ExtractGrantDetailsResult| Issuance
 ```
 
-| Step | Function | What it does |
-|------|----------|--------------|
-| 1 | `resolveCredentialOffer` | Parses the URI, fetches the offer if by-reference, validates structure |
-| 2 | `extractGrantDetails` | Extracts the `authorization_code` grant details from the resolved offer |
+| Step | Function                 | What it does                                                            |
+| ---- | ------------------------ | ----------------------------------------------------------------------- |
+| 1    | `resolveCredentialOffer` | Parses the URI, fetches the offer if by-reference, validates structure  |
+| 2    | `extractGrantDetails`    | Extracts the `authorization_code` grant details from the resolved offer |
 
 ## Credential Offer transmission
 
@@ -89,22 +89,23 @@ IT-Wallet v1.3 only supports the `authorization_code` grant type.
 
 Reference: IT-Wallet spec, Section 12.1.2, Credential Offer parameters table.
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `credential_issuer` | REQUIRED | HTTPS URL that uniquely identifies the Credential Issuer. Used to discover its metadata. |
-| `credential_configuration_ids` | REQUIRED | Array of credential type identifiers. Each must match an entry in the Issuer's `credential_configurations_supported`. |
-| `grants.authorization_code.scope` | REQUIRED | Maps to a specific credential type. The Wallet MUST use this value in the Authorization Request. |
-| `grants.authorization_code.issuer_state` | OPTIONAL | Opaque string from the Issuer. When present the Wallet MUST include it in the Authorization Request. |
+| Field                                            | Required    | Description                                                                                                                              |
+| ------------------------------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `credential_issuer`                              | REQUIRED    | HTTPS URL that uniquely identifies the Credential Issuer. Used to discover its metadata.                                                 |
+| `credential_configuration_ids`                   | REQUIRED    | Array of credential type identifiers. Each must match an entry in the Issuer's `credential_configurations_supported`.                    |
+| `grants.authorization_code.scope`                | REQUIRED    | Maps to a specific credential type. The Wallet MUST use this value in the Authorization Request.                                         |
+| `grants.authorization_code.issuer_state`         | OPTIONAL    | Opaque string from the Issuer. When present the Wallet MUST include it in the Authorization Request.                                     |
 | `grants.authorization_code.authorization_server` | CONDITIONAL | REQUIRED when the Issuer uses more than one Authorization Server. Must match one entry in the Issuer's `authorization_servers` metadata. |
 
 ## Error mapping
 
-| Error | Code | When |
-|-------|------|------|
-| `InvalidQRCodeError` | `ERR_INVALID_QR_CODE` | URI parsing fails (unsupported scheme, missing params, invalid or malformed query) |
+| Error                         | Code                           | When                                                                                                   |
+| ----------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `InvalidQRCodeError`          | `ERR_INVALID_QR_CODE`          | URI parsing fails (unsupported scheme, missing params, invalid or malformed query)                     |
 | `InvalidCredentialOfferError` | `ERR_INVALID_CREDENTIAL_OFFER` | Structural validation fails (missing grant, missing scope, non-HTTPS issuer) or grant extraction fails |
 
 > Note: Network or other unexpected errors thrown while fetching an offer by reference in `resolveCredentialOffer` are propagated as-is and are not mapped to `InvalidQRCodeError` or `InvalidCredentialOfferError`.
+
 ## Boundary with the Issuance Flow
 
 The Credential Offer flow ends once `extractGrantDetails` returns. The Issuance Flow then begins with:
@@ -123,8 +124,7 @@ import { ioWallet } from "@pagopa/io-react-native-wallet";
 
 const wallet = new IoWallet({ version: "1.4.6" });
 
-const uri =
-  "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
+const uri = "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
 
 // 1) Resolve — fetches the offer from the URI and validates it
 const offer = await wallet.CredentialsOffer.resolveCredentialOffer(uri, {
@@ -149,8 +149,7 @@ import { ioWallet } from "@pagopa/io-react-native-wallet";
 
 const wallet = new IoWallet({ version: "1.4.6" });
 
-const uri =
-  "openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example.com%22%2C%22credential_configuration_ids%22%3A%5B%22UniversityDegree%22%5D%2C%22grants%22%3A%7B%22authorization_code%22%3A%7B%22scope%22%3A%22UniversityDegree%22%7D%7D%7D";
+const uri = "openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example.com%22%2C%22credential_configuration_ids%22%3A%5B%22UniversityDegree%22%5D%2C%22grants%22%3A%7B%22authorization_code%22%3A%7B%22scope%22%3A%22UniversityDegree%22%7D%7D%7D";
 
 // 1) Resolve — decodes the inline offer and validates it
 const offer = await wallet.CredentialsOffer.resolveCredentialOffer(uri);

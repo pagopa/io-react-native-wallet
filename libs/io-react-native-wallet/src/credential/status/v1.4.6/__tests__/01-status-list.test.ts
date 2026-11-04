@@ -1,4 +1,9 @@
-import { getStatusList, getStatusListByUri } from "../01-status-list";
+import {
+  getStatusList,
+  getStatusListByUri,
+  getStatusListEntry,
+} from "../01-status-list";
+import { createMockCborDecoder } from "../../../../utils/__fixtures__/cbor";
 
 describe("getStatusList", () => {
   const statusListJwt = makeJwt({
@@ -27,6 +32,7 @@ describe("getStatusList", () => {
 
     const result = await getStatusList(credential, "dc+sd-jwt", {
       appFetch: appFetchMock,
+      cborDecoder: createMockCborDecoder(),
     });
 
     expect(result).toEqual({
@@ -71,3 +77,36 @@ function response(body: string) {
     status: 200,
   });
 }
+
+describe("getStatusListEntry - mdoc", () => {
+  it("reads the status list entry through the injected decoder", async () => {
+    const cborDecoder = createMockCborDecoder();
+    cborDecoder.decode.mockResolvedValue({
+      issuerAuth: {
+        payload: { status: { status_list: { idx: 3, uri: "https://sl" } } },
+      },
+    });
+
+    await expect(
+      getStatusListEntry("mdoc-token", "mso_mdoc", { cborDecoder }),
+    ).resolves.toEqual({ idx: 3, uri: "https://sl" });
+    expect(cborDecoder.decode).toHaveBeenCalledWith("mdoc-token");
+  });
+
+  it("throws when the decoded mdoc has no status list reference", async () => {
+    const cborDecoder = createMockCborDecoder();
+
+    await expect(
+      getStatusListEntry("mdoc-token", "mso_mdoc", { cborDecoder }),
+    ).rejects.toThrow("Status list reference not found in credential");
+  });
+
+  it("propagates decoder failures", async () => {
+    const cborDecoder = createMockCborDecoder();
+    cborDecoder.decode.mockRejectedValue(new Error("decode failed"));
+
+    await expect(
+      getStatusListEntry("mdoc-token", "mso_mdoc", { cborDecoder }),
+    ).rejects.toThrow("decode failed");
+  });
+});

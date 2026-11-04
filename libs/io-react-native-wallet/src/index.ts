@@ -1,8 +1,15 @@
+import type { CborDecoder, CborVerifier, IssuerSigned } from "./mdoc/types";
 import type { AuthorizationContext } from "./utils/auth";
-import type { IntegrityContext } from "./utils/integrity";
 // polyfill due to known bugs on URL implementation for react native
 // https://github.com/facebook/react-native/issues/24428
 import "react-native-url-polyfill/auto";
+
+import type { IntegrityContext } from "./utils/integrity";
+import type {
+  CertificateChainVerifier,
+  CertificateValidationResult,
+  X509CertificateOptions,
+} from "./utils/x509";
 
 import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialOffer from "./credential/offer";
@@ -15,8 +22,8 @@ import * as Mdoc from "./mdoc";
 import * as SdJwt from "./sd-jwt";
 import * as Trust from "./trust";
 import {
-  createSignerFor,
   getJwkFromCertificateChain,
+  type PublicKey,
   type Signer,
   type SignerKind,
 } from "./utils/crypto";
@@ -30,7 +37,6 @@ import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 export {
   AuthorizationDetail,
   AuthorizationDetails,
-  createSignerFor,
   CredentialIssuance,
   CredentialOffer,
   CredentialsCatalogue,
@@ -49,7 +55,19 @@ export {
   WalletInstanceAttestation,
 };
 
-export type { AuthorizationContext, IntegrityContext, Signer, SignerKind };
+export type {
+  AuthorizationContext,
+  CborDecoder,
+  CborVerifier,
+  CertificateChainVerifier,
+  CertificateValidationResult,
+  IntegrityContext,
+  IssuerSigned,
+  PublicKey,
+  Signer,
+  SignerKind,
+  X509CertificateOptions,
+};
 
 export type * from "./api";
 

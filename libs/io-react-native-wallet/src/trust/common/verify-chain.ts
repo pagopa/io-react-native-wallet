@@ -1,10 +1,9 @@
-import {
-  type CertificateValidationResult,
-  verifyCertificateChain,
-  type X509CertificateOptions,
-} from "@pagopa/io-react-native-crypto";
 import * as z from "zod";
 
+import type {
+  CertificateChainVerifier,
+  X509CertificateOptions,
+} from "../../utils/x509";
 import type { TrustApi } from "../api";
 import type { TrustAnchorConfig } from "../api/TrustAnchorConfig";
 
@@ -64,17 +63,27 @@ export function createVerifyTrustChain(
       readTimeout: 10000,
       requireCrl: true,
     },
-    { appFetch = fetch, renewOnFail = true } = {},
+    { appFetch = fetch, certificateChainVerifier, renewOnFail = true },
   ) {
     const validateTrustChain = createValidateTrustChain(config);
     const renewTrustChain = createRenewTrustChain(config);
 
     try {
-      return await validateTrustChain(trustAnchorEntity, chain, x509Options);
+      return await validateTrustChain(
+        trustAnchorEntity,
+        chain,
+        x509Options,
+        certificateChainVerifier,
+      );
     } catch (error) {
       if (renewOnFail) {
         const renewedChain = await renewTrustChain(chain, appFetch);
-        return validateTrustChain(trustAnchorEntity, renewedChain, x509Options);
+        return validateTrustChain(
+          trustAnchorEntity,
+          renewedChain,
+          x509Options,
+          certificateChainVerifier,
+        );
       } else {
         throw error;
       }
@@ -170,6 +179,7 @@ function createValidateTrustChain({
    * @param trustAnchorEntity The entity configuration of the known trust anchor (for JWT validation).
    * @param chain The chain of statements to be validated.
    * @param x509Options Options for X.509 certificate validation.
+   * @param certificateChainVerifier The X.509 certificate chain validator, provided by the consumer.
    * @returns The list of parsed tokens representing the chain.
    * @throws {FederationError} If the chain is not valid (JWT or X.509). Specific errors like TrustChainEmptyError, X509ValidationError may be thrown.
    */
@@ -177,6 +187,7 @@ function createValidateTrustChain({
     trustAnchorEntity: TrustAnchorConfig,
     chain: string[],
     x509Options: X509CertificateOptions,
+    certificateChainVerifier: CertificateChainVerifier,
   ): Promise<ParsedToken[]> {
     // If the chain is empty, fail
     if (chain.length === 0) {
@@ -269,12 +280,11 @@ function createValidateTrustChain({
           ? jwkUsedForVerification.x5c.slice(0, -1)
           : jwkUsedForVerification.x5c;
 
-      const x509ValidationResult: CertificateValidationResult =
-        await verifyCertificateChain(
-          certChainBase64,
-          x509TrustAnchorCertBase64,
-          x509Options,
-        );
+      const x509ValidationResult = await certificateChainVerifier(
+        certChainBase64,
+        x509TrustAnchorCertBase64,
+        x509Options,
+      );
 
       if (!x509ValidationResult.isValid) {
         throw new X509ValidationError(
