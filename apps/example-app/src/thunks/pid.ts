@@ -1,10 +1,10 @@
 import {
   createCryptoContextFor,
+  CREDENTIAL_OFFER_GRANTS,
   CredentialIssuance,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { generate } from "@pagopa/io-react-native-crypto";
-import { CREDENTIAL_OFFER_GRANTS } from "@pagopa/io-wallet-oid4vci";
 import { v4 as uuidv4 } from "uuid";
 
 import {

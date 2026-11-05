@@ -2,6 +2,7 @@ import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 import {
   createCryptoContextFor,
+  CREDENTIAL_OFFER_GRANTS,
   type CredentialIssuance,
   type CredentialStatus,
   IoWallet,
@@ -10,7 +11,6 @@ import {
   Trust,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { CREDENTIAL_OFFER_GRANTS } from "@pagopa/io-wallet-oid4vci";
 import { v4 as uuidv4 } from "uuid";
 
 import type {
