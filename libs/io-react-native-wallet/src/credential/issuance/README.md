@@ -221,9 +221,12 @@ const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
 const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
-  code,
-  REDIRECT_URI,
-  codeVerifier,
+  {
+    code,
+    code_verifier: codeVerifier,
+    grant_type: "authorization_code",
+    redirect_uri: REDIRECT_URI,
+  },
   {
     walletInstanceAttestation,
     wiaCryptoContext,
@@ -375,9 +378,12 @@ const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
 
 const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
   issuerConf,
-  code,
-  redirectUri,
-  codeVerifier,
+  {
+    code,
+    code_verifier: codeVerifier,
+    grant_type: "authorization_code",
+    redirect_uri: redirectUri,
+  },
   {
     walletInstanceAttestation,
     wiaCryptoContext,
@@ -437,6 +443,32 @@ return {
 The result of this flow is a raw credential and a parsed credential which must be stored securely in the wallet along with its crypto key.
 
 </details>
+
+## APTITUDE pre-authorized code flow
+
+For APTITUDE credential offers, resolve and extract the grant with an `IoWallet`
+configured for `APTITUDE`, then pass the pre-authorized token request to
+`authorizeAccess`. If the offer includes a `tx_code` object, provide its value
+as `tx_code` in this request.
+
+```ts
+const wallet = new IoWallet({ version: "APTITUDE" });
+
+const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
+  issuerConf,
+  {
+    grant_type: "urn:ietf:params:oauth:grant-type:pre-authorized_code",
+    "pre-authorized_code": preAuthorizedCode,
+    tx_code: transactionCode,
+  },
+  {
+    walletInstanceAttestation,
+    wiaCryptoContext,
+    dPopCryptoContext,
+    appFetch,
+  },
+);
+```
 
 <details>
   <summary>eID issuance flow with MRTD PoP validation</summary>

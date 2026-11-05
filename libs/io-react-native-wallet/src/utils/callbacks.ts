@@ -6,7 +6,7 @@ import {
   SignJWT,
 } from "@pagopa/io-react-native-jwt";
 import { verify } from "@pagopa/io-react-native-jwt";
-import { type CallbackContext, type JwtSigner } from "@pagopa/io-wallet-oauth2";
+import { type CallbackContext, type JwtSigner } from "@pagopa/io-wallet-utils";
 import { X509 } from "jsrsasign";
 
 import type { JWK } from "./jwk";

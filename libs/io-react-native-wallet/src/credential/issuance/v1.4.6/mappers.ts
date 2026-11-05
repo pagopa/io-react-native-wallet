@@ -67,6 +67,21 @@ export const mapToIssuerConfig = createMapper<
       "openid_credential_issuer is required in Issuer metadata",
     );
 
+    // Federation claims can contain metadata from other spec versions. These
+    // fields remain required by the v1.4 authorization code flow.
+    assert(
+      oauthAuthorizationServer.authorization_endpoint,
+      "authorization_endpoint is required in v1.4 Authorization Server metadata",
+    );
+    assert(
+      oauthAuthorizationServer.pushed_authorization_request_endpoint,
+      "pushed_authorization_request_endpoint is required in v1.4 Authorization Server metadata",
+    );
+    assert(
+      oauthAuthorizationServer.jwks,
+      "jwks is required in v1.4 Authorization Server metadata",
+    );
+
     return {
       authorization_endpoint: oauthAuthorizationServer.authorization_endpoint,
       authorization_servers: openid_credential_issuer.authorization_servers,

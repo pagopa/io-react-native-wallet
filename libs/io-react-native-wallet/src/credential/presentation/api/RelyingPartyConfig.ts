@@ -1,4 +1,4 @@
-import { jsonWebKeySchema } from "@pagopa/io-wallet-oid-federation";
+import { zFederationJwk } from "@pagopa/io-wallet-oid-federation";
 import * as z from "zod";
 
 import { FederationEntityMetadata } from "../../../trust/common/types";
@@ -20,7 +20,7 @@ export const RelyingPartyConfig = z.object({
   // UI (from federation_entity)
   federation_entity: FederationEntityMetadata,
   jwks: z.object({
-    keys: z.array(jsonWebKeySchema),
+    keys: z.array(zFederationJwk),
   }),
   subject: z.string().optional(),
 });

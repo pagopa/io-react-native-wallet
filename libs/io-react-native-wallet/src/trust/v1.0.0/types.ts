@@ -1,4 +1,4 @@
-import { jsonWebKeySchema } from "@pagopa/io-wallet-oid-federation";
+import { zFederationJwk } from "@pagopa/io-wallet-oid-federation";
 import * as z from "zod";
 
 import { JWK } from "../../utils/jwk";
@@ -13,7 +13,7 @@ const RelyingPartyMetadata = z.object({
   client_name: z.string().optional(),
   contacts: z.array(z.string()).optional(),
   jwks: z.object({
-    keys: z.array(jsonWebKeySchema),
+    keys: z.array(zFederationJwk),
   }),
   request_uris: z.array(z.string()).optional(),
 });
