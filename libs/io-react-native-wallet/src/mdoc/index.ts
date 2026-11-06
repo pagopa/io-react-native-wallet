@@ -77,9 +77,13 @@ const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   if (!signatureCorrect) throw new Error("Invalid mDoc signature");
 };
 
+/**
+ * @param jwkThumbprint - base64url SHA-256 thumbprint (RFC 7638) of the key used to encrypt the authorization response,
+ * or null for an unencrypted response. It is part of the OpenID4VP session transcript.
+ */
 export const prepareVpTokenMdoc = async (
   requestNonce: string,
-  generatedNonce: string,
+  jwkThumbprint: null | string,
   clientId: string,
   responseUri: string,
   docType: string,
@@ -103,7 +107,7 @@ export const prepareVpTokenMdoc = async (
     clientId,
     responseUri,
     requestNonce,
-    generatedNonce,
+    jwkThumbprint,
     documents,
     presentationFrame as ISO18013_7.AcceptedFields,
   );

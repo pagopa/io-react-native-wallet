@@ -14,19 +14,17 @@ export interface SendAuthorizationResponseApi {
    * For each credential, this function:
    * - Validates the credential format (currently supports 'mso_mdoc' or 'dc+sd-jwt').
    * - Generates a verifiable presentation token (vpToken) using the appropriate method.
-   * - For ISO 18013-7, generates a special nonce with minimum entropy of 16.
+   * - For ISO 18013-7, binds the DeviceResponse to the thumbprint of the key used to encrypt the authorization response.
    *
    * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
-   * @param authRequestObject - The authentication request object containing nonce, clientId, and responseUri.
-   * @returns A promise that resolves to an object containing an array of presentations and the generated nonce.
+   * @param requestObject - The Request Object of the presentation.
+   * @param rpConf - Optional Relying Party configuration (OpenID Federation clients only). Pass the same value given to `sendAuthorizationResponse`.
+   * @returns A promise that resolves to an object containing an array of presentations.
    */
   prepareRemotePresentations(
     credentials: Out<EvaluateDcqlQueryApi["evaluateDcqlQuery"]>,
-    authRequestObject: {
-      clientId: string;
-      nonce: string;
-      responseUri: string;
-    },
+    requestObject: RequestObject,
+    rpConf?: RelyingPartyConfig,
   ): Promise<RemotePresentation>;
 
   /**
