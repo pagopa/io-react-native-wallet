@@ -16,9 +16,10 @@ export const WalletInstanceAttestationRequestJwt = z.object({
     Jwt.shape.payload,
     z.object({
       aud: z.string(),
+      hardware_key_attestation: z.string().optional(),
       hardware_key_tag: z.string(),
       hardware_signature: z.string(),
-      integrity_assertion: z.string(),
+      integrity_assertion: z.string().optional(),
       nonce: z.string(),
     }),
   ),
