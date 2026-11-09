@@ -129,6 +129,18 @@ export interface IntegrityContext {
 
 Usually this is achieved by using [Google Play Integrity API](https://developer.android.com/google/play/integrity/overview) and [Key Attestation](https://developer.android.com/privacy-and-security/security-key-attestation) on Android, [DCAppAttestService](https://developer.apple.com/documentation/devicecheck/establishing-your-app-s-integrity) on iOS.
 
+```ts
+export interface HardwareSignatureWithAuthData {
+  // The iOS assertion or the Android Play Integrity token, which can be missing on Android
+  authenticatorData?: string;
+  // ANDROID ONLY: a fresh key attestation generated with the SHA-256 hex digest of the client data as challenge
+  hardwareKeyAttestation?: string;
+  signature: string;
+}
+```
+
+On Android both proofs should be provided when available: the Wallet Provider verifies the Play Integrity token and, as fallback when it is missing or not valid, the fresh key attestation (`hardware_key_attestation` claim). This allows devices running [GrapheneOS](https://grapheneos.org/articles/attestation-compatibility-guide) with a locked bootloader, for which the Play Integrity verdict is not available, to be verified.
+
 The suggested library to manage integrity is [io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity).
 
 </details>
