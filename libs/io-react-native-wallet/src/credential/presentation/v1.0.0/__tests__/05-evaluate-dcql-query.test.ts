@@ -28,9 +28,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    await expect(() =>
-      evaluateDcqlQuery(query, { credentialsSdJwt: credentials }),
-    ).rejects.toThrow(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError,
+    );
   });
 
   it("should throw error when the DCQL is invalid", async () => {
@@ -45,9 +45,9 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    await expect(() =>
-      evaluateDcqlQuery(query, { credentialsSdJwt: credentials }),
-    ).rejects.toThrow(DcqlError);
+    await expect(() => evaluateDcqlQuery(query, credentials)).rejects.toThrow(
+      DcqlError,
+    );
   });
 
   test.each([
@@ -140,9 +140,7 @@ describe("evaluateDcqlQuery", () => {
   ] as [DcqlQuery.Input, NotFoundDetail[]][])(
     "should throw error when no credential satisfies the DCQL query /%#",
     async (dcqlQuery, expected) => {
-      const promise = evaluateDcqlQuery(dcqlQuery, {
-        credentialsSdJwt: credentials,
-      });
+      const promise = evaluateDcqlQuery(dcqlQuery, credentials);
 
       await expect(promise).rejects.toBeInstanceOf(CredentialsNotFoundError);
       await expect(promise).rejects.toMatchObject({ details: expected });
@@ -169,9 +167,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, {
-      credentialsSdJwt: credentials,
-    });
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         credential: pid,
@@ -224,9 +220,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, {
-      credentialsSdJwt: credentials,
-    });
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         credential: pid,
@@ -289,9 +283,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, {
-      credentialsSdJwt: credentials,
-    });
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         credential: pid,
@@ -339,9 +331,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, {
-      credentialsSdJwt: credentials,
-    });
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         credential: pid,
@@ -427,9 +417,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, {
-      credentialsSdJwt: credentials,
-    });
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         credential: pid,
@@ -514,9 +502,7 @@ describe("evaluateDcqlQuery", () => {
       ],
     };
 
-    const result = await evaluateDcqlQuery(query, {
-      credentialsSdJwt: credentials,
-    });
+    const result = await evaluateDcqlQuery(query, credentials);
     const expected = [
       {
         credential: pid,
@@ -594,9 +580,7 @@ describe("evaluateDcqlQuery", () => {
     const legacyCredentials = [
       [legacyPid, createMockSigner()],
     ] satisfies Credential4Dcql[];
-    const result = await evaluateDcqlQuery(query, {
-      credentialsSdJwt: legacyCredentials,
-    });
+    const result = await evaluateDcqlQuery(query, legacyCredentials);
 
     const expected = [
       {

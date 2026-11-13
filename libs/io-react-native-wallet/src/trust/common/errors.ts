@@ -1,3 +1,5 @@
+import type { CertificateValidationStatus } from "@pagopa/io-react-native-crypto"; // Ensure this path is correct
+
 import { IoWalletError, serializeAttrs } from "../../utils/errors";
 
 /**
@@ -136,7 +138,7 @@ export class X509ValidationError extends FederationError {
       kid?: string;
       tokenIndex?: number;
       x509ErrorMessage?: string;
-      x509ValidationStatus?: string;
+      x509ValidationStatus?: CertificateValidationStatus;
     },
   ) {
     super(message, details);

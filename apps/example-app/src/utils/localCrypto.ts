@@ -89,8 +89,6 @@ export const withLocalEphemeralKey = async <R>(
   return fn(ephemeralSigner).finally(() => deleteKey(keytag));
 };
 
-export { verifyCertificateChain as localCertificateChainVerifier } from "@pagopa/io-react-native-crypto";
-
 /**
  * Generates the mdoc DeviceResponse through the native ISO 18013-7 module, which signs by key alias.
  * It only supports signers created with {@link createLocalSignerFor}.

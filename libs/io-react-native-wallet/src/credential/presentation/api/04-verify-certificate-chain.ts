@@ -1,7 +1,4 @@
-import type {
-  CertificateChainVerifier,
-  CertificateValidationResult,
-} from "../../../utils/x509";
+import type { CertificateValidationResult } from "@pagopa/io-react-native-crypto";
 
 export interface VerifyAuthRequestCertificateChainApi {
   /**
@@ -17,7 +14,6 @@ export interface VerifyAuthRequestCertificateChainApi {
    *
    * @param requestObjectJwt The Request Object in JWT format
    * @param params.caRootCert The CA root certificate used to validate the chain
-   * @param params.certificateChainVerifier The X.509 certificate chain validator, provided by the consumer
    * @returns The certificate validation result
    * @throws {MissingX509CertsError} if the Request Object does not contain x5c
    * @throws {X509ValidationError} if the certificate chain validation fails
@@ -26,7 +22,6 @@ export interface VerifyAuthRequestCertificateChainApi {
     requestObjectJwt: string,
     params: {
       caRootCert: string;
-      certificateChainVerifier: CertificateChainVerifier;
     },
   ): Promise<CertificateValidationResult>;
 }

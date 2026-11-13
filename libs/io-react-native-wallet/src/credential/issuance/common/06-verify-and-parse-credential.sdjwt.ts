@@ -235,7 +235,6 @@ export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredentia
     credential,
     credentialConfigurationId,
     {
-      certificateChainVerifier,
       credentialSigner,
       ignoreMissingAttributes,
       includeUndefinedAttributes,
@@ -258,14 +257,11 @@ export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredentia
       if (!x509CertRoot) {
         throw new IoWalletError("Missing x509CertRoot");
       }
-      if (!certificateChainVerifier) {
-        throw new IoWalletError("Missing certificateChainVerifier");
-      }
       const x5c = decoded.jwt?.header?.x5c as string[] | undefined;
       if (!x5c || !Array.isArray(x5c) || x5c.length === 0) {
         throw new MissingX509CertsError("Missing x509 certificates");
       }
-      await verifyX509Chain(x5c, x509CertRoot, certificateChainVerifier);
+      await verifyX509Chain(x5c, x509CertRoot);
     }
 
     const credentialConfig =

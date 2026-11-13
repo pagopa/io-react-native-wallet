@@ -144,15 +144,16 @@ const result = await wallet.Trust.verifyTrustChain(trustAnchorEntityConfiguratio
 
 ## Mocking in Tests
 
-The library has no native dependency: pass a mocked `certificateChainVerifier` callback to `verifyTrustChain`:
+If you're testing in Node (not in React Native), you need to mock X.509 and crypto-native dependencies:
 
 ```ts
-const certificateChainVerifier = jest.fn().mockResolvedValue({
-  isValid: true,
-  validationStatus: "VALID",
-  errorMessage: undefined,
-});
-await wallet.Trust.verifyTrustChain(anchor, chain, undefined, { certificateChainVerifier });
+jest.mock("@pagopa/io-react-native-crypto", () => ({
+    verifyCertificateChain: jest.fn().mockResolvedValue({
+        isValid: true,
+        validationStatus: "VALID",
+        errorMessage: undefined,
+    }),
+}));
 ```
 
 Ensure mocked `JWK`s contain an `x5c` array to trigger certificate validation logic during tests.

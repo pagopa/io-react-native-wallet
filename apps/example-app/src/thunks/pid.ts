@@ -13,13 +13,11 @@ import { credentialReset } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/selectors/pid";
 import { type PidAuthMethods, type PidResult } from "../store/types";
-import { cborDecoder, cborVerifier } from "../utils/cbor";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import {
   createLocalSignerFor,
   DPOP_KEYTAG,
-  localCertificateChainVerifier,
   regenerateLocalCryptoKey,
   WIA_KEYTAG,
 } from "../utils/localCrypto";
@@ -271,9 +269,6 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       credential,
       credential_configuration_id,
       {
-        cborDecoder,
-        cborVerifier,
-        certificateChainVerifier: localCertificateChainVerifier,
         credentialSigner,
         ignoreMissingAttributes: true,
       },

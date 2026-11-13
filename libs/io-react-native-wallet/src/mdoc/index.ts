@@ -1,33 +1,19 @@
+import { type PublicKey as CryptoPublicKey } from "@pagopa/io-react-native-crypto";
+import { CBOR, COSE } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
 
-import type { CborDecoder, CborVerifier, IssuerSigned } from "./types";
-
 import { MissingX509CertsError } from "../trust/common/errors";
-import {
-  convertBase64DerToPem,
-  getSigninJwkFromCert,
-  type PublicKey,
-} from "../utils/crypto";
+import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
 import { IoWalletError } from "../utils/errors";
-import { type CertificateChainVerifier, verifyX509Chain } from "../utils/x509";
-export * from "./types";
+import { verifyX509Chain } from "../utils/x509";
 export * from "./utils";
 
 export const verify = async (
   token: string,
   x509CertRoot: string,
-  {
-    cborDecoder,
-    cborVerifier,
-    certificateChainVerifier,
-  }: {
-    cborDecoder: CborDecoder;
-    cborVerifier: CborVerifier;
-    certificateChainVerifier: CertificateChainVerifier;
-  },
-): Promise<{ issuerSigned: IssuerSigned }> => {
+): Promise<{ issuerSigned: CBOR.IssuerSigned }> => {
   // get decoded data
-  const issuerSigned = await cborDecoder.decodeIssuerSigned(token);
+  const issuerSigned = await CBOR.decodeIssuerSigned(token);
 
   if (!issuerSigned) {
     throw new IoWalletError("Invalid mDoc");
@@ -43,7 +29,7 @@ export const verify = async (
   const x5chain =
     issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
   // Verify the x5chain
-  await verifyX509Chain(x5chain, x509CertRoot, certificateChainVerifier);
+  await verifyX509Chain(x5chain, x509CertRoot);
 
   const coseSign1 = issuerSigned.issuerAuth.rawValue;
 
@@ -58,7 +44,7 @@ export const verify = async (
   }
 
   // Once the x5chain is verified, the signatures verification can be performed
-  await verifyMdocSignature(coseSign1, firstCert, cborVerifier);
+  await verifyMdocSignature(coseSign1, firstCert);
 
   return { issuerSigned };
 };
@@ -69,13 +55,8 @@ export const verify = async (
  *
  * @param coseSign1 The COSE-Sign1 object encoded in base64 or base64url
  * @param cert The `x5chain`'s leaf certificate
- * @param cborVerifier The COSE-Sign1 verifier provided by the consumer
  */
-const verifyMdocSignature = async (
-  coseSign1: string,
-  cert: string,
-  cborVerifier: CborVerifier,
-) => {
+const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   const pemcert = convertBase64DerToPem(cert);
   const jwk = getSigninJwkFromCert(pemcert);
 
@@ -88,7 +69,7 @@ const verifyMdocSignature = async (
   jwk.x = b64utob64(jwk.x);
   jwk.y = b64utob64(jwk.y);
 
-  const signatureCorrect = await cborVerifier(coseSign1, jwk as PublicKey);
+  const signatureCorrect = await COSE.verify(coseSign1, jwk as CryptoPublicKey);
 
   if (!signatureCorrect) throw new Error("Invalid mDoc signature");
 };

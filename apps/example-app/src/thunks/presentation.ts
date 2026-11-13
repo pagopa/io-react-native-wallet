@@ -107,7 +107,7 @@ const processPresentation = async (
 ) => {
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    { credentialsSdJwt },
+    credentialsSdJwt,
   );
 
   const remotePresentations =

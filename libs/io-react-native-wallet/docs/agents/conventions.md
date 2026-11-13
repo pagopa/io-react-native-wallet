@@ -38,7 +38,7 @@ new ResponseErrorBuilder(IssuerResponseError)
 
 ## Signers
 
-Key operations go through the `Signer` interface (`src/utils/crypto.ts`), provided by the consumer app, which owns the whole key lifecycle. A signer exposes `getPublicKey()`, `sign(value)` and `kind` (`LOCAL` device key vs `REMOTE` HSM key). The library must not import native crypto (`@pagopa/io-react-native-crypto`): signer creation (e.g. `createLocalSignerFor`, `withLocalEphemeralKey`) and X.509 validation (`certificateChainVerifier` callback) are implemented by the consumer app, see `apps/example-app/src/utils/localCrypto.ts`.
+Key operations go through the `Signer` interface (`src/utils/crypto.ts`), provided by the consumer app, which owns the whole key lifecycle. A signer exposes `getPublicKey()`, `sign(value)` and `kind` (`LOCAL` device key vs `REMOTE` HSM key). Signer creation (e.g. `createLocalSignerFor`, `withLocalEphemeralKey`) is implemented by the consumer app, see `apps/example-app/src/utils/localCrypto.ts`.
 
 Build and sign JWTs with `SignJWT` from `@pagopa/io-react-native-jwt`, adapting the signer with `toCryptoContext(signer)`: `new SignJWT(toCryptoContext(signer)).setProtectedHeader(header).setPayload(payload).sign()`. The `alg` header is inferred from the public key. Add time claims with the `SignJWT` fluent setters (`setIssuedAt()`, `setExpirationTime("1h")`) only where the flow requires them; do not add a `jti` unless the payload already has one. Flows that don't support remote keys must call `assertLocalSigners(version, ...signers)`.
 

@@ -1,4 +1,3 @@
-import { createMockCertificateChainVerifier } from "../../../utils/__fixtures__/x509";
 import {
   intermediateEntityConfiguration,
   intermediateEntityStatement,
@@ -9,15 +8,7 @@ import {
 } from "../__fixtures__/entity-statements";
 import { buildTrustChain } from "../build-chain";
 import { mapToTrustAnchorConfig } from "../mappers";
-import { verifyTrustChain as verifyTrustChainWithContext } from "../verify-chain";
-
-const verifyTrustChain = (
-  trustAnchor: Parameters<typeof verifyTrustChainWithContext>[0],
-  chain: string[],
-) =>
-  verifyTrustChainWithContext(trustAnchor, chain, undefined, {
-    certificateChainVerifier: createMockCertificateChainVerifier(),
-  });
+import { verifyTrustChain } from "../verify-chain";
 
 // Dummy base URLs aligned with our non‑regulatory examples
 const leafBaseUrl = "https://leaf.example";
