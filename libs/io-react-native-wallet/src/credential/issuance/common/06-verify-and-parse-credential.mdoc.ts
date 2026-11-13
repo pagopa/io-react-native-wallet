@@ -1,7 +1,6 @@
-import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
 
-import type { Signer } from "../../../utils/crypto";
+import type { PublicKey, Signer } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 

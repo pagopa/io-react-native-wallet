@@ -1,19 +1,18 @@
-import { thumbprint } from "@pagopa/io-react-native-jwt";
+import { removePadding, thumbprint } from "@pagopa/io-react-native-jwt";
 import {
   extractEncryptionJwkFromJwks,
   createAuthorizationResponse as sdkCreateAuthorizationResponse,
   fetchAuthorizationResponse as sdkFetchAuthorizationResponse,
 } from "@pagopa/io-wallet-oid4vp";
+import { b64utob64 } from "jsrsasign";
 
 import type { JWK } from "../../../utils/jwk";
 import type { RelyingPartyConfig, RemotePresentationApi } from "../api";
 import type { RequestObject } from "../api/types";
 
-import { prepareVpTokenMdoc } from "../../../mdoc";
 import { prepareVpToken } from "../../../sd-jwt";
 import { partialCallbacks } from "../../../utils/callbacks";
 import { sdkConfigV1_4 } from "../../../utils/config";
-import { createSignerFor } from "../../../utils/crypto";
 import {
   IoWalletError,
   RelyingPartyResponseError,
@@ -49,7 +48,7 @@ const getResponseEncryptionJwks = (
  * authorization response. It binds the ISO 18013-7 mdoc DeviceResponse to the encrypted response
  * through the OpenID4VP session transcript.
  */
-const getResponseEncryptionJwkThumbprint = (
+const getResponseEncryptionJwkThumbprint = async (
   requestObject: RequestObject,
   rpConf?: RelyingPartyConfig,
 ) => {
@@ -74,11 +73,12 @@ const getResponseEncryptionJwkThumbprint = (
  * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
  * @param requestObject - The Request Object of the presentation.
  * @param rpConf - Optional Relying Party configuration (OpenID Federation clients only).
+ * @param context.mdocDeviceResponseGenerator - Consumer-provided callback that generates and signs the mdoc DeviceResponse. Required for mdoc credentials.
  * @returns A promise that resolves to an object containing an array of presentations.
  * @throws {CredentialNotFoundError} When the credential format is unsupported.
  */
 export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePresentations"] =
-  async (credentials, requestObject, rpConf) => {
+  async (credentials, requestObject, rpConf, context = {}) => {
     const presentations = await Promise.all(
       credentials.map(async (item) => {
         const { format } = item;
@@ -87,11 +87,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
           const { vp_token } = await prepareVpToken(
             requestObject.nonce,
             requestObject.client_id,
-            [
-              item.credential,
-              item.presentationFrame,
-              createSignerFor(item.keyTag),
-            ],
+            [item.credential, item.presentationFrame, item.signer],
           );
 
           return {
@@ -103,25 +99,29 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
         }
 
         if (format === "mso_mdoc") {
-          const { vp_token } = await prepareVpTokenMdoc(
-            requestObject.nonce,
-            await getResponseEncryptionJwkThumbprint(requestObject, rpConf),
-            requestObject.client_id,
-            requestObject.response_uri,
-            item.doctype,
-            item.keyTag,
-            [
-              item.credential,
-              item.presentationFrame,
-              createSignerFor(item.keyTag),
-            ],
-          );
+          if (!context.mdocDeviceResponseGenerator) {
+            throw new IoWalletError("Missing mdocDeviceResponseGenerator");
+          }
+
+          const deviceResponse = await context.mdocDeviceResponseGenerator({
+            clientId: requestObject.client_id,
+            docType: item.doctype,
+            issuerSignedContent: b64utob64(item.credential),
+            jwkThumbprint: await getResponseEncryptionJwkThumbprint(
+              requestObject,
+              rpConf,
+            ),
+            presentationFrame: item.presentationFrame,
+            requestNonce: requestObject.nonce,
+            responseUri: requestObject.response_uri,
+            signer: item.signer,
+          });
 
           return {
             credentialId: item.id,
             format: "mso_mdoc",
             requestedClaims: item.requiredDisclosures.map(({ name }) => name),
-            vpToken: vp_token,
+            vpToken: removePadding(deviceResponse),
           };
         }
 

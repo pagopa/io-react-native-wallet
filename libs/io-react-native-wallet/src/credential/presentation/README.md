@@ -76,15 +76,16 @@ const { requestObject } = await wallet.RemotePresentation.verifyRequestObject(
   { clientId: client_id, rpConf }
 );
 
-// All the credentials that might be requested by the Relying Party
+// All the credentials that might be requested by the Relying Party, each with the Signer bound to its key
 const credentialsSdJwt = [
-  ["credential1_keytag", "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2"],
-  ["credential2_keytag", "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KIC"]
+  [credential1Signer, "eyJraWQiOiItRl82VWdhOG4zVmVnalkyVTdZVUhLMXpMb2FELU5QVGM2M1JNSVNuTGF3IiwidHlwIjoidmMrc2Qtand0IiwiYWxnIjoiRVMyNTYifQ.eyJfc2"],
+  [credential2Signer, "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiIsImtpZCI6Ii1GXzZVZ2E4bjNWZWdqWTJVN1lVSEsxekxvYUQtTlBUYzYzUk1JU25MYXcifQ.ew0KIC"]
 ];
 
-const result = wallet.RemotePresentation.evaluateDcqlQuery(
-  credentialsSdJwt,
-  requestObject.dcql_query as DcqlQuery
+// Optionally, mdoc credentials can be passed as third argument in the same format
+const result = await wallet.RemotePresentation.evaluateDcqlQuery(
+  requestObject.dcql_query as DcqlQuery,
+  credentialsSdJwt
 );
 
 const credentialsToPresent = result.map(
@@ -98,7 +99,9 @@ const remotePresentations =
   await wallet.RemotePresentation.prepareRemotePresentations(
     credentialsToPresent,
     requestObject,
-    rpConf
+    rpConf,
+    // Required only for mdoc credentials: builds and signs the ISO 18013-7 DeviceResponse
+    { mdocDeviceResponseGenerator }
   );
 
 const authResponse = await wallet.RemotePresentation.sendAuthorizationResponse(

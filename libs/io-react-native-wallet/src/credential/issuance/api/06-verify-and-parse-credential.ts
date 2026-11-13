@@ -13,6 +13,7 @@ export interface VerifyAndParseCredentialApi {
    * @param context.credentialSigner The signer used to obtain the credential in {@link obtainCredential}
    * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
    * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
+   * @param context.validateCertificateChain Validate the certificate chain of the credential against the provided `x509CertRoot`. Always performed for mdoc credentials
    * @returns A parsed credential with attributes in plain value, the expiration and issuance date of the credential
    * @throws {IoWalletError} If the credential signature is not verified with the Issuer key set
    * @throws {IoWalletError} If the credential is not bound to the provided user key

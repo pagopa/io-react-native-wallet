@@ -1,13 +1,10 @@
-import {
-  createSignerFor,
-  IoWallet,
-} from "@io-app-it-wallet/io-react-native-wallet";
+import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
 
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 
 import { selectWalletInstanceAttestationAsJwt } from "../store/reducers/attestation";
 import { selectItwVersion } from "../store/reducers/environment";
-import { WIA_KEYTAG } from "../utils/crypto";
+import { createLocalSignerFor, WIA_KEYTAG } from "../utils/localCrypto";
 import { createAppAsyncThunk } from "./utils";
 
 export interface GetTrustmarkThunkOutput {
@@ -41,7 +38,7 @@ export const getTrustmarkThunk = createAppAsyncThunk<
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
-  const wiaSigner = createSignerFor(WIA_KEYTAG);
+  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   // Generate a trustmark for the credential
   const { expirationTime, jwt } = await wallet.Trustmark.getCredentialTrustmark(

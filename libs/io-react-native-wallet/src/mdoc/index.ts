@@ -1,9 +1,6 @@
-import { type PublicKey } from "@pagopa/io-react-native-crypto";
-import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
-import { removePadding } from "@pagopa/io-react-native-jwt";
+import { type PublicKey as CryptoPublicKey } from "@pagopa/io-react-native-crypto";
+import { CBOR, COSE } from "@pagopa/io-react-native-iso18013";
 import { b64utob64 } from "jsrsasign";
-
-import type { Presentation } from "../credential/presentation";
 
 import { MissingX509CertsError } from "../trust/common/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
@@ -72,47 +69,7 @@ const verifyMdocSignature = async (coseSign1: string, cert: string) => {
   jwk.x = b64utob64(jwk.x);
   jwk.y = b64utob64(jwk.y);
 
-  const signatureCorrect = await COSE.verify(coseSign1, jwk as PublicKey);
+  const signatureCorrect = await COSE.verify(coseSign1, jwk as CryptoPublicKey);
 
   if (!signatureCorrect) throw new Error("Invalid mDoc signature");
-};
-
-/**
- * @param jwkThumbprint - base64url SHA-256 thumbprint (RFC 7638) of the key used to encrypt the authorization response,
- * or null for an unencrypted response. It is part of the OpenID4VP session transcript.
- */
-export const prepareVpTokenMdoc = async (
-  requestNonce: string,
-  jwkThumbprint: null | string,
-  clientId: string,
-  responseUri: string,
-  docType: string,
-  keyTag: string,
-  [verifiableCredential, presentationFrame]: Presentation,
-): Promise<{
-  vp_token: string;
-}> => {
-  /* verifiableCredential is a IssuerSigned structure */
-  const documents = [
-    {
-      alias: keyTag,
-      docType,
-      issuerSignedContent: b64utob64(verifiableCredential),
-    },
-  ];
-
-  /* clientId,responseUri,requestNonce are retrieved by Auth Request Object */
-  /* create DeviceResponse as { documents: { docType, issuerSigned, deviceSigned }, version, status } */
-  const vp_token = await ISO18013_7.generateOID4VPDeviceResponse(
-    clientId,
-    responseUri,
-    requestNonce,
-    jwkThumbprint,
-    documents,
-    presentationFrame as ISO18013_7.AcceptedFields,
-  );
-
-  return {
-    vp_token: removePadding(vp_token),
-  };
 };

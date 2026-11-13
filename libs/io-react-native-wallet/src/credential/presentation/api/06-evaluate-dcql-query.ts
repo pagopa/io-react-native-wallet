@@ -1,3 +1,4 @@
+import type { Signer } from "../../../utils/crypto";
 import type {
   Credential4Dcql,
   CredentialFormat,
@@ -39,10 +40,10 @@ export interface EvaluateDcqlQueryApi {
     (CredentialFormat & {
       credential: string;
       id: string;
-      keyTag: string;
       presentationFrame: PresentationFrame;
       purposes: CredentialPurpose[];
       requiredDisclosures: EvaluatedDisclosure[];
+      signer: Signer;
     })[]
   >;
 }

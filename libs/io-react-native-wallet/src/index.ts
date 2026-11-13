@@ -15,8 +15,10 @@ import * as Mdoc from "./mdoc";
 import * as SdJwt from "./sd-jwt";
 import * as Trust from "./trust";
 import {
-  createSignerFor,
   getJwkFromCertificateChain,
+  isLocalKeySigner,
+  type LocalKeySigner,
+  type PublicKey,
   type Signer,
   type SignerKind,
 } from "./utils/crypto";
@@ -30,7 +32,6 @@ import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 export {
   AuthorizationDetail,
   AuthorizationDetails,
-  createSignerFor,
   CredentialIssuance,
   CredentialOffer,
   CredentialsCatalogue,
@@ -38,6 +39,7 @@ export {
   Errors,
   fixBase64EncodingOnKey,
   getJwkFromCertificateChain,
+  isLocalKeySigner,
   KeyAttestation,
   Logging,
   Mdoc,
@@ -49,7 +51,14 @@ export {
   WalletInstanceAttestation,
 };
 
-export type { AuthorizationContext, IntegrityContext, Signer, SignerKind };
+export type {
+  AuthorizationContext,
+  IntegrityContext,
+  LocalKeySigner,
+  PublicKey,
+  Signer,
+  SignerKind,
+};
 
 export type * from "./api";
 

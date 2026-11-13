@@ -105,7 +105,7 @@ export const makeParRequest =
         }),
         ...(scope && { scope }),
       })
-      .setIssuedAt()
+      .setIssuedAt() // iat is set to now
       .setExpirationTime("5min")
       .sign();
 
