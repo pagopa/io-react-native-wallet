@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api";
 
 import { verifyAndParseCredential } from "../06-verify-and-parse-credential";
@@ -25,9 +24,10 @@ jest.mock("@pagopa/io-react-native-jwt", () => ({
 }));
 
 describe("verifyAndParseCredential", () => {
-  const credentialCryptoContext: CryptoContext = {
+  const credentialSigner: Signer = {
     getPublicKey: async () => credentialCnfJwk,
-    getSignature: async () => "",
+    kind: "LOCAL",
+    sign: async () => "",
   };
 
   const mockIssuerConf: IssuerConfig = {
@@ -83,7 +83,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConf,
       pid,
       "mock_valid_sd_jwt_cred",
-      { credentialCryptoContext },
+      { credentialSigner },
     );
 
     expect(result).toEqual({
@@ -113,13 +113,13 @@ describe("verifyAndParseCredential", () => {
   it("throws in case of unsupported format", async () => {
     await expect(() =>
       verifyAndParseCredential(mockIssuerConf, pid, "mock_invalid_cred", {
-        credentialCryptoContext,
+        credentialSigner,
       }),
     ).rejects.toThrow("Unsupported credential format: unknown");
   });
 
   it("throws in case of different holder binding", async () => {
-    const altCredentialCryptoContext: CryptoContext = {
+    const altCredentialSigner: Signer = {
       getPublicKey: async () => ({
         alg: "ES256",
         crv: "P-256",
@@ -129,12 +129,13 @@ describe("verifyAndParseCredential", () => {
         x: "vjlLSDAhin4DA9MccvMGLwcgoSqlSYe7J5uKU2FIRIU",
         y: "mxYLuZa8J4Jj5vYfjAJ18oKg_r4axFVMcPmhMdm1Kic",
       }),
-      getSignature: async () => "",
+      kind: "LOCAL",
+      sign: async () => "",
     };
 
     await expect(() =>
       verifyAndParseCredential(mockIssuerConf, pid, "mock_valid_sd_jwt_cred", {
-        credentialCryptoContext: altCredentialCryptoContext,
+        credentialSigner: altCredentialSigner,
       }),
     ).rejects.toThrow(
       "Failed to verify holder binding, expected kid: ee5dece9-d4fc-4107-a854-1b7488dd9295, got: eede745a-4f47-44e7-8551-50c6a1fc0bd6",
@@ -242,7 +243,7 @@ describe("verifyAndParseCredential", () => {
       education_degree,
       "dc_sd_jwt_education_degree",
       {
-        credentialCryptoContext,
+        credentialSigner,
       },
     );
 
@@ -477,7 +478,7 @@ describe("verifyAndParseCredential", () => {
       education_degree_with_missing_keys,
       "dc_sd_jwt_education_degree",
       {
-        credentialCryptoContext,
+        credentialSigner,
       },
     );
 
@@ -653,7 +654,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithDeepNested,
       mdl,
       "dc_sd_jwt_mDL",
-      { credentialCryptoContext },
+      { credentialSigner },
     );
 
     expect(result.parsedCredential).toEqual({
@@ -820,7 +821,7 @@ describe("verifyAndParseCredential", () => {
       residency,
       "dc_sd_jwt_residency",
       {
-        credentialCryptoContext,
+        credentialSigner,
       },
     );
 
@@ -1000,7 +1001,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_diploma,
       "dc_sd_jwt_education_diploma",
-      { credentialCryptoContext },
+      { credentialSigner },
     );
 
     expect(result.parsedCredential).toEqual({
@@ -1173,7 +1174,7 @@ describe("verifyAndParseCredential", () => {
       mockIssuerConfWithNested,
       education_attendance,
       "dc_sd_jwt_education_attendance",
-      { credentialCryptoContext },
+      { credentialSigner },
     );
 
     expect(result.parsedCredential).toEqual({

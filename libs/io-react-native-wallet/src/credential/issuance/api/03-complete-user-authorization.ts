@@ -1,11 +1,10 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
 import type { RequestObject } from "../../../credential/presentation/api";
 import type { EvaluateDcqlQueryApi } from "../../../credential/presentation/api/06-evaluate-dcql-query";
 import type {
   AuthorizationChallengeResult,
   AuthorizationResult,
 } from "../../../utils/auth";
+import type { Signer } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
 import type { IssuerConfig } from "./IssuerConfig";
 
@@ -88,7 +87,7 @@ export interface CompleteUserAuthorizationApi {
     evaluatedDcqlQuery: EvaluatedDcqlQuery,
     context: {
       appFetch?: typeof fetch;
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<AuthorizationResult>;
 

@@ -1,7 +1,7 @@
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
+import type { Signer } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 
@@ -32,7 +32,7 @@ type DisplayableClaim = Omit<ClaimConfig, "display"> & {
  *
  * @param rawCredential The received credential
  * @param x509CertRoot The root certificate of the issuer, which will be used to verify the signature
- * @param holderBindingContext The access to the holder's key
+ * @param holderBindingSigner The access to the holder's key
  *
  * @throws If the signature verification fails
  * @throws If the credential is not in the SdJwt4VC format
@@ -42,13 +42,13 @@ type DisplayableClaim = Omit<ClaimConfig, "display"> & {
 async function verifyCredentialMDoc(
   rawCredential: string,
   x509CertRoot: string,
-  holderBindingContext: CryptoContext,
+  holderBindingSigner: Signer,
 ): Promise<DecodedMDocCredential> {
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
       verifyMdoc(rawCredential, x509CertRoot),
-      holderBindingContext.getPublicKey(),
+      holderBindingSigner.getPublicKey(),
     ]);
 
   if (!decodedCredential) {
@@ -197,11 +197,7 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     issuerConf,
     credential,
     credentialConfigurationId,
-    {
-      credentialCryptoContext,
-      ignoreMissingAttributes,
-      includeUndefinedAttributes,
-    },
+    { credentialSigner, ignoreMissingAttributes, includeUndefinedAttributes },
     x509CertRoot,
   ) => {
     if (!x509CertRoot) {
@@ -211,7 +207,7 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     const decoded = await verifyCredentialMDoc(
       credential,
       x509CertRoot,
-      credentialCryptoContext,
+      credentialSigner,
     );
 
     const credentialConfig =
