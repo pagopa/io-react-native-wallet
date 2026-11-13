@@ -104,8 +104,8 @@ export const localMdocDeviceResponseGenerator: RemotePresentation.MdocDeviceResp
   async ({
     clientId,
     docType,
-    generatedNonce,
     issuerSignedContent,
+    jwkThumbprint,
     presentationFrame,
     requestNonce,
     responseUri,
@@ -118,7 +118,7 @@ export const localMdocDeviceResponseGenerator: RemotePresentation.MdocDeviceResp
       clientId,
       responseUri,
       requestNonce,
-      generatedNonce,
+      jwkThumbprint,
       [
         {
           alias: (signer as LocalKeySigner).keyTag,

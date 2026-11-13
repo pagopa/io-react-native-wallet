@@ -83,8 +83,14 @@ const credentialsToPresent = result.map(({ requiredDisclosures, ...rest }) => ({
   requestedClaims: requiredDisclosures.map(([, claimName]) => claimName),
 }));
 
-const remotePresentations = await wallet.RemotePresentation.prepareRemotePresentations(
-  credentialsToPresent,
+const remotePresentations =
+  await wallet.RemotePresentation.prepareRemotePresentations(
+    credentialsToPresent,
+    requestObject,
+    rpConf
+  );
+
+const authResponse = await wallet.RemotePresentation.sendAuthorizationResponse(
   requestObject,
   // Required only for mdoc credentials: generates and signs the ISO 18013-7 DeviceResponse
   { mdocDeviceResponseGenerator },

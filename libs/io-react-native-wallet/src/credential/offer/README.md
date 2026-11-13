@@ -114,6 +114,18 @@ The Credential Offer flow ends once `extractGrantDetails` returns. The Issuance 
 2. Cross-validation of the offer against metadata
 3. PAR Request, Authorization, Token exchange, Credential Request
 
+## Feature support
+
+Credential Offer is not available in every IT-Wallet version (e.g. it is not supported in `1.0.0`). Before invoking `CredentialsOffer`'s functions, check whether the feature is supported by the current `IoWallet` instance, instead of comparing the specifications version:
+
+```ts
+const wallet = new IoWallet({ version: "1.4.6" });
+
+if (wallet.CredentialsOffer.isSupported) {
+  // Resolve the credential offer
+}
+```
+
 ## Examples
 
 <details>
@@ -123,6 +135,10 @@ The Credential Offer flow ends once `extractGrantDetails` returns. The Issuance 
 import { ioWallet } from "@pagopa/io-react-native-wallet";
 
 const wallet = new IoWallet({ version: "1.4.6" });
+
+if (!wallet.CredentialsOffer.isSupported) {
+  throw new Error("Credential offer is not supported");
+}
 
 const uri = "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example.com%2Foffer";
 
@@ -148,6 +164,10 @@ const grant = wallet.CredentialsOffer.extractGrantDetails(offer);
 import { ioWallet } from "@pagopa/io-react-native-wallet";
 
 const wallet = new IoWallet({ version: "1.4.6" });
+
+if (!wallet.CredentialsOffer.isSupported) {
+  throw new Error("Credential offer is not supported");
+}
 
 const uri = "openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.example.com%22%2C%22credential_configuration_ids%22%3A%5B%22UniversityDegree%22%5D%2C%22grants%22%3A%7B%22authorization_code%22%3A%7B%22scope%22%3A%22UniversityDegree%22%7D%7D%7D";
 

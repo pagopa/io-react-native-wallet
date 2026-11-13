@@ -110,16 +110,11 @@ const processPresentation = async (
     { credentialsSdJwt },
   );
 
-  const authRequestObject = {
-    clientId: requestObject.client_id,
-    nonce: requestObject.nonce,
-    responseUri: requestObject.response_uri,
-  };
-
   const remotePresentations =
     await wallet.RemotePresentation.prepareRemotePresentations(
       evaluatedDcqlQuery,
-      authRequestObject,
+      requestObject,
+      rpConf,
       { mdocDeviceResponseGenerator: localMdocDeviceResponseGenerator },
     );
 
