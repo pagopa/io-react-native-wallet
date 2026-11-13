@@ -1,11 +1,21 @@
 import { prepareRemotePresentations } from "../07-send-authorization-response";
 import { createMockSigner } from "../../../../utils/__fixtures__/signer";
 
+jest.mock("@pagopa/io-react-native-jwt", () => ({
+  ...jest.requireActual("@pagopa/io-react-native-jwt"),
+  thumbprint: jest.fn(async () => "thumbprint"),
+}));
+jest.mock("@pagopa/io-wallet-oid4vp", () => ({
+  ...jest.requireActual("@pagopa/io-wallet-oid4vp"),
+  extractEncryptionJwkFromJwks: jest.fn(() => ({ kid: "enc-key" })),
+}));
+
 const authRequestObject = {
-  clientId: "client",
+  client_id: "client",
+  client_metadata: { jwks: { keys: [] } },
   nonce: "nonce",
-  responseUri: "https://rp.example/response",
-};
+  response_uri: "https://rp.example/response",
+} as unknown as Parameters<typeof prepareRemotePresentations>[1];
 
 const mdocItem = {
   credential: "ab_cd-",
@@ -31,6 +41,7 @@ describe("prepareRemotePresentations - mdoc", () => {
     const { presentations } = await prepareRemotePresentations(
       [mdocItem],
       authRequestObject,
+      undefined,
       { mdocDeviceResponseGenerator: generator },
     );
 
@@ -39,6 +50,7 @@ describe("prepareRemotePresentations - mdoc", () => {
         clientId: "client",
         docType: "org.iso.18013.5.1.mDL",
         issuerSignedContent: "ab/cd+==",
+        jwkThumbprint: "thumbprint",
         requestNonce: "nonce",
         responseUri: "https://rp.example/response",
         signer: mdocItem.signer,
@@ -57,7 +69,7 @@ describe("prepareRemotePresentations - mdoc", () => {
     const generator = jest.fn().mockRejectedValue(new Error("sign failed"));
 
     await expect(
-      prepareRemotePresentations([mdocItem], authRequestObject, {
+      prepareRemotePresentations([mdocItem], authRequestObject, undefined, {
         mdocDeviceResponseGenerator: generator,
       }),
     ).rejects.toThrow("sign failed");

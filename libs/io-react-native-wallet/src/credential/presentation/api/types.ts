@@ -92,10 +92,10 @@ export interface EvaluatedDisclosure {
 export type MdocDeviceResponseGenerator = (params: {
   clientId: string;
   docType: string;
-  /** base64url SHA-256 thumbprint (RFC 7638) of the response encryption key, or null for an unencrypted response */
-  jwkThumbprint: string | null;
   /** The mdoc credential (IssuerSigned) in base64 or base64url */
   issuerSignedContent: string;
+  /** base64url SHA-256 thumbprint (RFC 7638) of the response encryption key, or null for an unencrypted response */
+  jwkThumbprint: null | string;
   presentationFrame: PresentationFrame;
   requestNonce: string;
   responseUri: string;

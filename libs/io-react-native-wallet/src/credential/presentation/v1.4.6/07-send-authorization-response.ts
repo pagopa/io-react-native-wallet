@@ -48,7 +48,7 @@ const getResponseEncryptionJwks = (
  * authorization response. It binds the ISO 18013-7 mdoc DeviceResponse to the encrypted response
  * through the OpenID4VP session transcript.
  */
-const getResponseEncryptionJwkThumbprint = (
+const getResponseEncryptionJwkThumbprint = async (
   requestObject: RequestObject,
   rpConf?: RelyingPartyConfig,
 ) => {
@@ -107,7 +107,7 @@ export const prepareRemotePresentations: RemotePresentationApi["prepareRemotePre
             clientId: requestObject.client_id,
             docType: item.doctype,
             issuerSignedContent: b64utob64(item.credential),
-            jwkThumbprint: getResponseEncryptionJwkThumbprint(
+            jwkThumbprint: await getResponseEncryptionJwkThumbprint(
               requestObject,
               rpConf,
             ),
