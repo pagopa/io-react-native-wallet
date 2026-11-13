@@ -17,6 +17,11 @@ export interface ECPublicKey {
 }
 
 /**
+ * A local {@link Signer} that also exposes the alias of its key, needed by native implementations that sign by alias.
+ */
+export type LocalKeySigner = Signer & { keyTag: string };
+
+/**
  * The public key type. It could be either an EC or an RSA key.
  */
 export type PublicKey = ECPublicKey | RSAPublicKey;
@@ -71,6 +76,9 @@ export interface Signer {
  * Where the key of a {@link Signer} lives.
  */
 export type SignerKind = "LOCAL" | "REMOTE";
+
+export const isLocalKeySigner = (s: Signer): s is LocalKeySigner =>
+  s.kind === "LOCAL" && "keyTag" in s;
 
 /**
  * Adapt a {@link Signer} to the {@link CryptoContext} expected by `SignJWT`.

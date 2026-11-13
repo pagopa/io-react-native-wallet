@@ -23,6 +23,8 @@ import * as SdJwt from "./sd-jwt";
 import * as Trust from "./trust";
 import {
   getJwkFromCertificateChain,
+  isLocalKeySigner,
+  type LocalKeySigner,
   type PublicKey,
   type Signer,
   type SignerKind,
@@ -44,6 +46,7 @@ export {
   Errors,
   fixBase64EncodingOnKey,
   getJwkFromCertificateChain,
+  isLocalKeySigner,
   KeyAttestation,
   Logging,
   Mdoc,
@@ -63,6 +66,7 @@ export type {
   CertificateValidationResult,
   IntegrityContext,
   IssuerSigned,
+  LocalKeySigner,
   PublicKey,
   Signer,
   SignerKind,

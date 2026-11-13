@@ -1,8 +1,9 @@
-import type {
-  RemotePresentation,
-  Signer,
+import {
+  isLocalKeySigner,
+  type LocalKeySigner,
+  type RemotePresentation,
+  type Signer,
 } from "@io-app-it-wallet/io-react-native-wallet";
-
 import {
   type CryptoError,
   deleteKey,
@@ -56,14 +57,6 @@ export const deleteLocalKeyIfExists = async (keyTag: string) => {
  * @param keytag The keytag of the key pair
  * @returns the signer
  */
-/**
- * A local {@link Signer} that also exposes the alias of its key, needed by native implementations that sign by alias.
- */
-export type LocalKeySigner = Signer & { keyTag: string };
-
-const isLocalKeySigner = (s: Signer): s is LocalKeySigner =>
-  s.kind === "LOCAL" && "keyTag" in s;
-
 export const createLocalSignerFor = (keytag: string): LocalKeySigner => ({
   async getPublicKey() {
     return getPublicKeyFixed(keytag).then(async (jwk) => ({
