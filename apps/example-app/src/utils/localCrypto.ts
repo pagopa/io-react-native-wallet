@@ -61,6 +61,9 @@ export const deleteLocalKeyIfExists = async (keyTag: string) => {
  */
 export type LocalKeySigner = Signer & { keyTag: string };
 
+const isLocalKeySigner = (s: Signer): s is LocalKeySigner =>
+  s.kind === "LOCAL" && "keyTag" in s;
+
 export const createLocalSignerFor = (keytag: string): LocalKeySigner => ({
   async getPublicKey() {
     return getPublicKeyFixed(keytag).then(async (jwk) => ({
@@ -111,7 +114,7 @@ export const localMdocDeviceResponseGenerator: RemotePresentation.MdocDeviceResp
     responseUri,
     signer,
   }) => {
-    if (signer.kind !== "LOCAL" || !("keyTag" in signer)) {
+    if (!isLocalKeySigner(signer)) {
       throw new Error("mdoc presentation is supported only with local signers");
     }
     return ISO18013_7.generateOID4VPDeviceResponse(
@@ -121,7 +124,7 @@ export const localMdocDeviceResponseGenerator: RemotePresentation.MdocDeviceResp
       jwkThumbprint,
       [
         {
-          alias: (signer as LocalKeySigner).keyTag,
+          alias: signer.keyTag,
           docType,
           issuerSignedContent,
         },
