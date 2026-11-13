@@ -86,9 +86,9 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
     ...Object.values(credentials)
       .filter(isDefined)
       .filter((c) => c.format === "dc+sd-jwt"),
-  ].map((c): [string, Signer] => [
-    c.credential,
+  ].map((c): [Signer, string] => [
     createLocalSignerFor(c.keyTag),
+    c.credential,
   ]);
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
@@ -103,7 +103,7 @@ const processPresentation = async (
   wallet: IoWallet,
   requestObject: RequestObject,
   rpConf: RemotePresentation.RelyingPartyConfig | undefined,
-  credentialsSdJwt: [string, Signer][],
+  credentialsSdJwt: [Signer, string][],
 ) => {
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,

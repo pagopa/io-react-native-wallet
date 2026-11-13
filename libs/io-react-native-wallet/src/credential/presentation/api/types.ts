@@ -63,11 +63,11 @@ export interface AuthorizationResponse {
 }
 
 /**
- * A tuple that associates a credential with the signer bound to its key, used in DCQL queries
+ * A tuple that associates the signer bound to a key with its credential, used in DCQL queries
  */
 export type Credential4Dcql = [
-  string /* credential */,
   Signer /* signer bound to the credential key */,
+  string /* credential */,
 ];
 
 export type CredentialFormat =

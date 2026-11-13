@@ -36,17 +36,17 @@ export interface EvaluateDcqlQueryApi {
     query: DcqlQuery,
     credentialsSdJwt: Credential4Dcql[],
     credentialsMdoc?: Credential4Dcql[],
-  ): Promise<EvaluatedCredential[]>;
+  ): Promise<
+    (CredentialFormat & {
+      credential: string;
+      id: string;
+      presentationFrame: PresentationFrame;
+      purposes: CredentialPurpose[];
+      requiredDisclosures: EvaluatedDisclosure[];
+      signer: Signer;
+    })[]
+  >;
 }
-
-export type EvaluatedCredential = CredentialFormat & {
-  credential: string;
-  id: string;
-  presentationFrame: PresentationFrame;
-  purposes: CredentialPurpose[];
-  requiredDisclosures: EvaluatedDisclosure[];
-  signer: Signer;
-};
 
 export interface EvaluatedDisclosure {
   name: string;

@@ -66,7 +66,7 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
             );
           }
 
-          const [credential, signer] = cred;
+          const [signer, credential] = cred;
 
           const requiredDisclosures = getClaimsFromDcqlMatch(match);
           const presentationFrame = getPresentationFrameFromDcqlMatch(

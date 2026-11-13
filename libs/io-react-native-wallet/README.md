@@ -20,6 +20,8 @@ The following table highlights the relationship between `io-react-native-wallet`
 
 ```sh
 # Install the required dependencies specified in the peerDependencies of the package.json
+# (CBOR/COSE and X.509 chain validation are used directly by the library)
+yarn install @pagopa/io-react-native-crypto@^1.2.5 @pagopa/io-react-native-iso18013@^0.9.0 @pagopa/io-react-native-jwt@^2.2.5
 
 # Library
 yarn install @pagopa/io-react-native-wallet

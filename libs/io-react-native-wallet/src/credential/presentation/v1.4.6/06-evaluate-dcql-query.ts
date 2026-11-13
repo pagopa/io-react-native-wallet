@@ -63,7 +63,7 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
               `Credential with vct ${vct} not found in the provided credentials.`,
             );
           }
-          const [credential, signer] = sdjwtCredential;
+          const [signer, credential] = sdjwtCredential;
 
           const requiredDisclosures = getClaimsFromDcqlMatch(match);
           const presentationFrame = getPresentationFrameFromDcqlMatch(
@@ -93,7 +93,7 @@ export const evaluateDcqlQuery: RemotePresentationApi["evaluateDcqlQuery"] =
               `Credential with doctype ${doctype} not found in the provided credentials.`,
             );
           }
-          const [credential, signer] = mdocCredential;
+          const [signer, credential] = mdocCredential;
 
           const requiredDisclosures = mdocUtils.getClaimsFromDcqlMatch(match);
           const presentationFrame = mdocUtils.getPresentationFrameFromClaims(

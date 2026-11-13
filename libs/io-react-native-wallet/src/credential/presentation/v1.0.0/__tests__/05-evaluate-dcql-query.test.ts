@@ -11,8 +11,8 @@ import {
 } from "../../common/errors";
 
 const credentials = [
-  [pid, createMockSigner()],
-  [mdl, createMockSigner()],
+  [createMockSigner(), pid],
+  [createMockSigner(), mdl],
 ] satisfies Credential4Dcql[];
 
 describe("evaluateDcqlQuery", () => {
@@ -578,7 +578,7 @@ describe("evaluateDcqlQuery", () => {
     };
 
     const legacyCredentials = [
-      [legacyPid, createMockSigner()],
+      [createMockSigner(), legacyPid],
     ] satisfies Credential4Dcql[];
     const result = await evaluateDcqlQuery(query, legacyCredentials);
 
