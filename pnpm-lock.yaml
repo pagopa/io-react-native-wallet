@@ -7,20 +7,20 @@ settings:
 catalogs:
   default:
     '@pagopa/io-wallet-oauth2':
-      specifier: v2.1.0-apt
-      version: 2.1.0-apt
+      specifier: v2.1.1-apt
+      version: 2.1.1-apt
     '@pagopa/io-wallet-oid-federation':
-      specifier: v2.1.0-apt
-      version: 2.1.0-apt
+      specifier: v2.1.1-apt
+      version: 2.1.1-apt
     '@pagopa/io-wallet-oid4vci':
-      specifier: v2.1.0-apt
-      version: 2.1.0-apt
+      specifier: v2.1.1-apt
+      version: 2.1.1-apt
     '@pagopa/io-wallet-oid4vp':
-      specifier: v2.1.0-apt
-      version: 2.1.0-apt
+      specifier: v2.1.1-apt
+      version: 2.1.1-apt
     '@pagopa/io-wallet-utils':
-      specifier: v2.1.0-apt
-      version: 2.1.0-apt
+      specifier: v2.1.1-apt
+      version: 2.1.1-apt
 
 importers:
 
@@ -215,7 +215,7 @@ importers:
         version: 0.2.1(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       '@pagopa/io-wallet-oid4vp':
         specifier: 'catalog:'
-        version: 2.1.0-apt
+        version: 2.1.1-apt
       '@react-native-async-storage/async-storage':
         specifier: 2.2.0
         version: 2.2.0(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))
@@ -396,19 +396,19 @@ importers:
         version: 2.2.0(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       '@pagopa/io-wallet-oauth2':
         specifier: 'catalog:'
-        version: 2.1.0-apt
+        version: 2.1.1-apt
       '@pagopa/io-wallet-oid-federation':
         specifier: 'catalog:'
-        version: 2.1.0-apt
+        version: 2.1.1-apt
       '@pagopa/io-wallet-oid4vci':
         specifier: 'catalog:'
-        version: 2.1.0-apt
+        version: 2.1.1-apt
       '@pagopa/io-wallet-oid4vp':
         specifier: 'catalog:'
-        version: 2.1.0-apt
+        version: 2.1.1-apt
       '@pagopa/io-wallet-utils':
         specifier: 'catalog:'
-        version: 2.1.0-apt
+        version: 2.1.1-apt
       '@sd-jwt/core':
         specifier: ^0.22.0
         version: 0.22.0
@@ -2362,20 +2362,20 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@pagopa/io-wallet-oauth2@2.1.0-apt':
-    resolution: {integrity: sha512-+f3Am/6RRfOFEP+UUWkTDeJ+bqHtLCSOELi2vxHkosvDsuJQ/K++DeMNW5HWASNc9O2OUhT4ueixMpbprFpALA==}
+  '@pagopa/io-wallet-oauth2@2.1.1-apt':
+    resolution: {integrity: sha512-TjAjr2CuYSLZItjgVCs3gUgmjhFF6q42x8mHGzd+miFf5gXE+PE+U40lMHA77YPql2eriIEvfbVt6B5XGT9TiA==}
 
-  '@pagopa/io-wallet-oid-federation@2.1.0-apt':
-    resolution: {integrity: sha512-kYBBXTXoKRzUxHlx1kyR3qf7SnBT0wPl0XIxiILMkXNnP0ZEdLUSGvuLG8ZCUjAoD3iWERsOyUVr9CpYwLpRZg==}
+  '@pagopa/io-wallet-oid-federation@2.1.1-apt':
+    resolution: {integrity: sha512-KzzKwitKJQY70D8s5dv/ty71sGoPO08hUiw//EFCs4VpgYA9Jf0WczAo8vO2ShdC+t+3GF4s7TEwtiyaRHGufw==}
 
-  '@pagopa/io-wallet-oid4vci@2.1.0-apt':
-    resolution: {integrity: sha512-T5slIOMD2dbD3ijkW154aFdO+EVllYnjJeU9yp9p10tHVc44mc6M1CZp/AIsRemef3bFGvYy2onAZX2kOnEoBw==}
+  '@pagopa/io-wallet-oid4vci@2.1.1-apt':
+    resolution: {integrity: sha512-5lupr71HWOu/W60nq6BDTSHdvMJ4DVlhDIX8chtKgHypiPnzbdslTxa7dRjIAx0kWBa8X3Z7WJd+oTmAEpGRMQ==}
 
-  '@pagopa/io-wallet-oid4vp@2.1.0-apt':
-    resolution: {integrity: sha512-pTN5WjKbBZTknkBGKivavQsTauX9aJYoVOuSgJVqOE6Iwnu9belIk7dRs79mcK9g4VQuGijJfehFtDR6b4BjSw==}
+  '@pagopa/io-wallet-oid4vp@2.1.1-apt':
+    resolution: {integrity: sha512-BniLdQO7TTDR39fCxYt9fu2bKeVnPOWFfcKaR8vuSwdzPsc7oc5dQomN5iJ0xVydCzRN+6h7D5Vx1fan7jiXAg==}
 
-  '@pagopa/io-wallet-utils@2.1.0-apt':
-    resolution: {integrity: sha512-kZZAcLMQUIfaSG/UGhIjO6mzDqndqoCRuoXVfXQv+EUALQrXSmQ46w79Zpxr2liG09w+Qbs+FdbW+FxumqeI7g==}
+  '@pagopa/io-wallet-utils@2.1.1-apt':
+    resolution: {integrity: sha512-+Ti4+IJ0zmheTBnCRmc7X2RCGHFg7QRRKYivykbqyBa+U/kqN0IhhJ2+am720yJHFgithjZcT/Pax0+z7wtX/w==}
 
   '@phenomnomnominal/tsquery@6.2.0':
     resolution: {integrity: sha512-Vo9nkhfZxDB/sBiqIY3pjDC4mOSyure+AFlEW5hcy/tRE82MqCXjRN4InnVNMldinRt0dLYqg4HAU2XPq5e1LA==}
@@ -12518,34 +12518,34 @@ snapshots:
       react: 19.2.3
       react-native: 0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)
 
-  '@pagopa/io-wallet-oauth2@2.1.0-apt':
+  '@pagopa/io-wallet-oauth2@2.1.1-apt':
     dependencies:
-      '@pagopa/io-wallet-utils': 2.1.0-apt
+      '@pagopa/io-wallet-utils': 2.1.1-apt
       js-base64: 3.9.4
       zod: 4.3.6
 
-  '@pagopa/io-wallet-oid-federation@2.1.0-apt':
+  '@pagopa/io-wallet-oid-federation@2.1.1-apt':
     dependencies:
-      '@pagopa/io-wallet-utils': 2.1.0-apt
+      '@pagopa/io-wallet-utils': 2.1.1-apt
       buffer: 6.0.3
       zod: 4.3.6
 
-  '@pagopa/io-wallet-oid4vci@2.1.0-apt':
+  '@pagopa/io-wallet-oid4vci@2.1.1-apt':
     dependencies:
-      '@pagopa/io-wallet-oauth2': 2.1.0-apt
-      '@pagopa/io-wallet-oid-federation': 2.1.0-apt
-      '@pagopa/io-wallet-oid4vp': 2.1.0-apt
-      '@pagopa/io-wallet-utils': 2.1.0-apt
+      '@pagopa/io-wallet-oauth2': 2.1.1-apt
+      '@pagopa/io-wallet-oid-federation': 2.1.1-apt
+      '@pagopa/io-wallet-oid4vp': 2.1.1-apt
+      '@pagopa/io-wallet-utils': 2.1.1-apt
       zod: 4.3.6
 
-  '@pagopa/io-wallet-oid4vp@2.1.0-apt':
+  '@pagopa/io-wallet-oid4vp@2.1.1-apt':
     dependencies:
-      '@pagopa/io-wallet-oauth2': 2.1.0-apt
-      '@pagopa/io-wallet-oid-federation': 2.1.0-apt
-      '@pagopa/io-wallet-utils': 2.1.0-apt
+      '@pagopa/io-wallet-oauth2': 2.1.1-apt
+      '@pagopa/io-wallet-oid-federation': 2.1.1-apt
+      '@pagopa/io-wallet-utils': 2.1.1-apt
       zod: 4.3.6
 
-  '@pagopa/io-wallet-utils@2.1.0-apt':
+  '@pagopa/io-wallet-utils@2.1.1-apt':
     dependencies:
       zod: 4.3.6
 
