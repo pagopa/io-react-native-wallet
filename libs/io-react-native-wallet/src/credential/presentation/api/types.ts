@@ -87,7 +87,8 @@ export interface EvaluatedDisclosure {
  * Callback provided by the consumer that generates the ISO 18013-7 DeviceResponse of an mdoc.
  * The consumer owns the signing of the device authentication, which can be local or remote depending on the signer.
  *
- * @returns The base64-encoded DeviceResponse
+ * @returns The DeviceResponse encoded in base64 or base64url, with or without padding.
+ * The library normalizes it to unpadded base64url when building the `vp_token`.
  */
 export type MdocDeviceResponseGenerator = (params: {
   clientId: string;
