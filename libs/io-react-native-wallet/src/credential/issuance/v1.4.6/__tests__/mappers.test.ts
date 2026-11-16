@@ -1,4 +1,4 @@
-import type { MetadataResponseV1_3 } from "@pagopa/io-wallet-oid4vci";
+import type { MetadataResponseV1_4 } from "@pagopa/io-wallet-oid4vci";
 import type { ParsedAuthorizeRequestResult } from "@pagopa/io-wallet-oid4vp";
 
 import { mapToIssuerConfig, mapToRequestObject } from "../mappers";
@@ -69,7 +69,7 @@ describe("mapToIssuerConfig", () => {
         status_attestation_endpoint: "https://issuer.example/status",
       },
     },
-  } as unknown as MetadataResponseV1_3;
+  } as unknown as MetadataResponseV1_4;
 
   it("maps Issuer metadata to IssuerConfig and normalizes credential claims", () => {
     expect(mapToIssuerConfig(issuerMetadataMock)).toEqual({
@@ -132,7 +132,7 @@ describe("mapToIssuerConfig", () => {
         ...issuerMetadataMock.metadata,
         oauth_authorization_server: undefined,
       },
-    } as unknown as MetadataResponseV1_3;
+    } as unknown as MetadataResponseV1_4;
 
     expect(() => mapToIssuerConfig(input)).toThrow(
       "oauth_authorization_server is required in Issuer metadata",
@@ -145,10 +145,61 @@ describe("mapToIssuerConfig", () => {
         ...issuerMetadataMock.metadata,
         openid_credential_issuer: undefined,
       },
-    } as unknown as MetadataResponseV1_3;
+    } as unknown as MetadataResponseV1_4;
 
     expect(() => mapToIssuerConfig(input)).toThrow(
       "openid_credential_issuer is required in Issuer metadata",
+    );
+  });
+
+  it("uses the selected external Authorization Server's endpoints and keys", () => {
+    const input = {
+      ...issuerMetadataMock,
+      authorization_server_federation_claims: {
+        metadata: {
+          oauth_authorization_server: {
+            authorization_endpoint: "https://as.example/authorize",
+            jwks: {
+              keys: [{ kid: "external-as-key", kty: "EC", use: "sig" }],
+            },
+            pushed_authorization_request_endpoint: "https://as.example/par",
+            token_endpoint: "https://as.example/token",
+          },
+        },
+      },
+    } as unknown as MetadataResponseV1_4;
+
+    expect(mapToIssuerConfig(input)).toMatchObject({
+      authorization_endpoint: "https://as.example/authorize",
+      credential_issuer: "https://issuer.example",
+      keys: [
+        { kid: "sig-kid-2", kty: "EC", use: "sig" },
+        { kid: "external-as-key", kty: "EC", use: "sig" },
+      ],
+      pushed_authorization_request_endpoint: "https://as.example/par",
+      token_endpoint: "https://as.example/token",
+    });
+  });
+
+  it.each([
+    "authorization_endpoint",
+    "pushed_authorization_request_endpoint",
+    "jwks",
+  ])("rejects a selected Authorization Server missing %s", (field) => {
+    const input = {
+      ...issuerMetadataMock,
+      authorization_server_federation_claims: {
+        metadata: {
+          oauth_authorization_server: {
+            ...issuerMetadataMock.metadata.oauth_authorization_server,
+            [field]: undefined,
+          },
+        },
+      },
+    } as unknown as MetadataResponseV1_4;
+
+    expect(() => mapToIssuerConfig(input)).toThrow(
+      `${field} is required in v1.4 Authorization Server metadata`,
     );
   });
 });

@@ -1,4 +1,4 @@
-import { HashAlgorithm } from "@pagopa/io-wallet-oauth2";
+import { HashAlgorithm } from "@pagopa/io-wallet-utils";
 
 import { partialCallbacks } from "../callbacks";
 

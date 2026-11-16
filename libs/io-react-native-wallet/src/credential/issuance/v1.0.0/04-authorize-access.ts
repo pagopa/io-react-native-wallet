@@ -1,9 +1,14 @@
+import { CREDENTIAL_OFFER_GRANTS } from "@pagopa/io-wallet-oid4vci";
 import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi } from "../api";
 
 import { createDPopToken } from "../../../utils/dpop";
-import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
+import {
+  IoWalletError,
+  IssuerResponseError,
+  ValidationFailed,
+} from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { createPopToken } from "../../../utils/pop";
@@ -12,11 +17,17 @@ import { TokenResponse } from "./types";
 
 export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
   issuerConf,
-  code,
-  redirectUri,
-  codeVerifier,
+  accessTokenRequest,
   context,
 ) => {
+  if (
+    accessTokenRequest.grant_type !== CREDENTIAL_OFFER_GRANTS.AUTHORIZATION_CODE
+  ) {
+    throw new IoWalletError(
+      "Pre-authorized code flow is only supported for APTITUDE",
+    );
+  }
+
   const {
     appFetch = fetch,
     dPopCryptoContext,
@@ -51,14 +62,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
 
   Logger.log(LogLevel.DEBUG, `WIA DPoP token: ${signedWiaPoP}`);
 
-  const requestBody = {
-    code,
-    code_verifier: codeVerifier,
-    grant_type: "authorization_code",
-    redirect_uri: redirectUri,
-  };
-
-  const authorizationRequestFormBody = new URLSearchParams(requestBody);
+  const authorizationRequestFormBody = new URLSearchParams(accessTokenRequest);
 
   Logger.log(
     LogLevel.DEBUG,

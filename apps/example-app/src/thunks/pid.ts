@@ -1,5 +1,6 @@
 import {
   createCryptoContextFor,
+  CREDENTIAL_OFFER_GRANTS,
   CredentialIssuance,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
@@ -196,9 +197,12 @@ export const continuePidFlowThunk = createAppAsyncThunk<
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
-    code,
-    redirectUri,
-    codeVerifier,
+    {
+      code,
+      code_verifier: codeVerifier,
+      grant_type: CREDENTIAL_OFFER_GRANTS.AUTHORIZATION_CODE,
+      redirect_uri: redirectUri,
+    },
     {
       appFetch,
       dPopCryptoContext,

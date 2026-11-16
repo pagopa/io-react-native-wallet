@@ -1,14 +1,14 @@
 import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
-import {
-  type CallbackContext,
-  createTokenDPoP,
-  type JwtSignerJwk,
-} from "@pagopa/io-wallet-oauth2";
+import { createTokenDPoP } from "@pagopa/io-wallet-oauth2";
 import {
   createCredentialRequest,
   fetchCredentialResponse,
 } from "@pagopa/io-wallet-oid4vci";
-import { UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError } from "@pagopa/io-wallet-utils";
+import {
+  type CallbackContext,
+  type JwtSignerJwk,
+  UnexpectedStatusCodeError as SdkUnexpectedStatusCodeError,
+} from "@pagopa/io-wallet-utils";
 import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi, IssuerConfig } from "../api";

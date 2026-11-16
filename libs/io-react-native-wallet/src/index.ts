@@ -58,3 +58,5 @@ export type * from "./api";
 
 // Export SDK entrypoint
 export { IoWallet } from "./IoWallet";
+
+export { CREDENTIAL_OFFER_GRANTS } from "@pagopa/io-wallet-oid4vci";
