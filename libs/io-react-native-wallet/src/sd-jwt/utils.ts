@@ -1,6 +1,6 @@
+import { hasher } from "@owf/crypto";
 import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-import { digest } from "@sd-jwt/crypto-nodejs";
-import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/decode";
+import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/core";
 
 import { fixLegacyCredentialSdJwt } from "../utils/credentials";
 import {
@@ -70,13 +70,13 @@ export const getVerification = (
 ): undefined | Verification => {
   const decoded = decodeSdJwtSync(
     fixLegacyCredentialSdJwt(credentialSdJwt),
-    digest,
+    hasher,
   );
 
   const claims = getClaimsSync<Record<string, unknown>>(
     decoded.jwt.payload,
     decoded.disclosures,
-    digest,
+    hasher,
   );
 
   return claims.verification

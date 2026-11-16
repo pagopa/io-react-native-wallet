@@ -6,6 +6,7 @@ import { validateCredentialOffer } from "./03-validate-credential-offer";
 
 export const Offer: OfferApi = {
   extractGrantDetails,
+  isSupported: true,
   resolveCredentialOffer,
   validateCredentialOffer,
 };

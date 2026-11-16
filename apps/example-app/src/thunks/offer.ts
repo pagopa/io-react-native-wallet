@@ -23,6 +23,12 @@ export const getCredentialOfferThunk = createAppAsyncThunk<
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
 
+  if (!wallet.CredentialsOffer.isSupported) {
+    throw new Error(
+      `Credential offer is not supported by IT-Wallet version ${itwVersion}`,
+    );
+  }
+
   // Resolve the credential offer (by value or by reference)
   const credentialOffer = await wallet.CredentialsOffer.resolveCredentialOffer(
     args.qrcode,

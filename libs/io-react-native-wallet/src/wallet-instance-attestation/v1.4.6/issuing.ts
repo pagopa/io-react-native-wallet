@@ -12,6 +12,7 @@ import type { WalletAttestationRequestParams } from "../api/types";
 import { getWalletProviderClient } from "../../client";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
+import { handleAttestationCreationError } from "../common/errors";
 import { WalletInstanceAttestationResponse } from "./types";
 
 async function getAttestationRequest(
@@ -97,7 +98,8 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
           "Content-Type": "text/plain",
         },
       })
-      .then(WalletInstanceAttestationResponse.parse);
+      .then(WalletInstanceAttestationResponse.parse)
+      .catch(handleAttestationCreationError);
 
     Logger.log(
       LogLevel.DEBUG,

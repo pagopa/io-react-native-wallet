@@ -71,6 +71,9 @@
       [
         "expo-build-properties",
         {
+          "ios": {
+            "enableSceneSupport": true
+          },
           "android": {
             "minSdkVersion": 26,
             "usesCleartextTraffic": true
@@ -113,7 +116,8 @@
           ]
         }
       ],
-      "./scripts/android-fix-bouncy-castle-dependency.js"
+      "./scripts/android-fix-bouncy-castle-dependency.js",
+      "./scripts/android-fix-kotlinx-datetime-dependency.js"
     ]
   }
 }

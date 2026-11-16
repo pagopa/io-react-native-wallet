@@ -24,7 +24,11 @@ export const IssuerResponseErrorCodes = {
 
 export const WalletProviderResponseErrorCodes = {
   /**
-   * An error code thrown when validation fail
+   * An error code thrown when an error occurs during the key attestation issuance.
+   */
+  KeyAttestationIssuingFailed: "ERR_IO_KEY_ATTESTATION_ISSUING_FAILED",
+  /**
+   * An error code thrown when an error occurs during the wallet attestation issuance.
    */
   WalletInstanceAttestationIssuingFailed:
     "ERR_IO_WALLET_INSTANCE_ATTESTATION_ISSUING_FAILED",

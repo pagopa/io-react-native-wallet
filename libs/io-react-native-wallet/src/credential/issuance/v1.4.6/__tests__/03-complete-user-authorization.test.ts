@@ -107,11 +107,7 @@ describe("completeEaaUserAuthorizationWithQueryMode", () => {
     expect(RemotePresentation.evaluateDcqlQuery).not.toHaveBeenCalled();
     expect(RemotePresentation.prepareRemotePresentations).toHaveBeenCalledWith(
       mockEvaluatedDcqlQuery,
-      {
-        clientId: mockRequestObject.client_id,
-        nonce: mockRequestObject.nonce,
-        responseUri: mockRequestObject.response_uri,
-      },
+      mockRequestObject,
     );
   });
 

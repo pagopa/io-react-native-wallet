@@ -119,6 +119,13 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   const { batchSize, credentialOffer, credentialType } = args;
 
+  const offerApi = wallet.CredentialsOffer;
+  if (credentialOffer && !offerApi.isSupported) {
+    throw new Error(
+      `Credential offer is not supported by IT-Wallet version ${itwVersion}`,
+    );
+  }
+
   // Get the PID from the store
   const pid = selectPid(getState());
   if (!pid) {
@@ -147,10 +154,10 @@ export const getCredentialThunk = createAppAsyncThunk<
     ? credentialOffer.credential_issuer
     : WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion);
 
-  const authorizationCodeGrant = credentialOffer
-    ? wallet.CredentialsOffer.extractGrantDetails(credentialOffer)
-        .authorizationCodeGrant
-    : undefined;
+  const authorizationCodeGrant =
+    credentialOffer && offerApi.isSupported
+      ? offerApi.extractGrantDetails(credentialOffer).authorizationCodeGrant
+      : undefined;
 
   // Evaluate issuer trust, selecting the authorization server from the offer
   // when present.
@@ -164,8 +171,8 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   // Validate the credential offer against the resolved Issuer metadata. Only
   // performed when the issuance was started from a credential offer.
-  if (credentialOffer) {
-    await wallet.CredentialsOffer.validateCredentialOffer({
+  if (credentialOffer && offerApi.isSupported) {
+    await offerApi.validateCredentialOffer({
       credentialIssuerMetadata: issuerConf.authorization_servers
         ? { authorization_servers: issuerConf.authorization_servers }
         : {},

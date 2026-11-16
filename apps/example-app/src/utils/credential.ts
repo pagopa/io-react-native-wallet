@@ -10,8 +10,6 @@ import {
   Trust,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
-import { getRedirects } from "@pagopa/io-react-native-login-utils";
-import last from "lodash/last";
 import { v4 as uuidv4 } from "uuid";
 
 import type {
@@ -118,12 +116,7 @@ export const getCredential = async ({
         issuerConf,
         evaluatedDcqlQuery,
         redirectUri,
-        {
-          appFetch,
-          // Temporary workaround for a known bug affecting React Native 0.82-0.83. See https://github.com/facebook/react-native/issues/55248
-          fetchFinalRedirectUri: (url) =>
-            getRedirects(url, {}, "code").then((result) => last(result)),
-        },
+        { appFetch },
       ));
   }
 

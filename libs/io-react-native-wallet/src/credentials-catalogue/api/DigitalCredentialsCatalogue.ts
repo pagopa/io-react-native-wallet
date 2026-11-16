@@ -54,10 +54,13 @@ const CredentialIssuer = z.object({
 });
 
 const AuthenticSource = z.object({
+  background_color: z.string().optional(),
   contacts: z
     .array(z.object({ type: z.string(), value: z.string() }))
     .optional(),
   data_origin_l10n_id: z.string().optional(),
+  dataset_logo_uri: z.string().optional(),
+  "dataset_logo_uri#integrity": z.string().optional(),
   homepage_uri: z.string().optional(),
   id: z.string(),
   logo_uri: z.string().optional(),

@@ -2,7 +2,6 @@ import type { IntegrityContext } from "@io-app-it-wallet/io-react-native-wallet"
 
 import { sign } from "@pagopa/io-react-native-crypto";
 import {
-  decodeAssertion,
   generateHardwareKey,
   generateHardwareSignatureWithAssertion,
   getAttestation as getAttestationIntegrity,
@@ -11,10 +10,12 @@ import {
   prepareIntegrityToken,
   requestIntegrityToken,
 } from "@pagopa/io-react-native-integrity";
+import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { addPadding, removePadding } from "@pagopa/io-react-native-jwt";
 import { sha256 } from "js-sha256";
 import { Platform } from "react-native";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 /**
  * Type returned by the getHardwareSignatureWithAuthData function of {@link IntegrityContext}.
@@ -24,6 +25,25 @@ export interface HardwareSignatureWithAuthData {
   authenticatorData: string;
   signature: string;
 }
+
+// CBOR.decode returns CBOR byte strings as base64url, the backend expects base64
+const Base64UrlToBase64 = z.string().transform(addPadding);
+
+/**
+ * iOS App Attest assertion: a CBOR map with the `signature` and `authenticatorData` byte strings.
+ */
+const DecodedAssertion = z.object({
+  authenticatorData: Base64UrlToBase64,
+  signature: Base64UrlToBase64,
+});
+
+/**
+ * Decodes a base64 CBOR iOS assertion into base64 encoded `signature` and `authenticatorData`.
+ */
+const decodeAssertion = async (
+  assertion: string,
+): Promise<HardwareSignatureWithAuthData> =>
+  DecodedAssertion.parseAsync(await CBOR.decode(assertion));
 
 /**
  * Generates the hardware signature with the authentication data. The implementation differs between iOS and Android.

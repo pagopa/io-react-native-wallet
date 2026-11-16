@@ -1,6 +1,6 @@
+import { hasher } from "@owf/crypto";
 import { thumbprint } from "@pagopa/io-react-native-jwt";
-import { digest } from "@sd-jwt/crypto-nodejs";
-import { decodeSdJwtSync } from "@sd-jwt/decode";
+import { decodeSdJwtSync } from "@sd-jwt/core";
 
 import type { CredentialFormat } from "../credential/issuance";
 import type { JWK } from "./jwk";
@@ -28,7 +28,7 @@ export const extractJwkFromCredential = async (
     // 1. SD-JWT case
     const decoded = decodeSdJwtSync(
       fixLegacyCredentialSdJwt(credential),
-      digest,
+      hasher,
     );
     const { cnf } = decoded.jwt.payload as SdJwt4VCBase["payload"];
     if (cnf.jwk) {

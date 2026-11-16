@@ -93,10 +93,10 @@ export const getClaimsFromDcqlMatch = (
   );
 
 /**
- * Recursively convert a claim path to a {@link PresentationFrame} for `@sd-jwt/present`
+ * Recursively convert a claim path to a {@link PresentationFrame} for `@sd-jwt/core`
  * @param path The claim path array
  * @param claim The decoded claim
- * @returns A presentation frame compatible with `@sd-jwt/present`
+ * @returns A presentation frame compatible with `@sd-jwt/core`
  */
 export const pathToPresentationFrame = (
   path: (null | number | string)[],
@@ -132,7 +132,7 @@ export const pathToPresentationFrame = (
  * Build a presentation frame from the `dcql` result to use for disclosing the requested claims.
  * @param match The DCQL query match
  * @param originalQuery The original DCQL query
- * @returns A presentation frame compatible with `@sd-jwt/present`
+ * @returns A presentation frame compatible with `@sd-jwt/core`
  */
 export const getPresentationFrameFromDcqlMatch = (
   match: DcqlQueryResult.CredentialMatch,

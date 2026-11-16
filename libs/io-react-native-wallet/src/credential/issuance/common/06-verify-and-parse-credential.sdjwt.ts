@@ -1,11 +1,11 @@
-import type { Verifier } from "@sd-jwt/types";
+import type { Verifier } from "@sd-jwt/core";
 
+import { hasher } from "@owf/crypto";
 import {
   type CryptoContext,
   verify as verifyJwt,
 } from "@pagopa/io-react-native-jwt";
 import { type SDJwt, SDJwtInstance, type VerifierOptions } from "@sd-jwt/core";
-import { digest } from "@sd-jwt/crypto-nodejs";
 
 import type { SdJwt4VCBase } from "../../../sd-jwt/types";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
@@ -212,7 +212,7 @@ async function verifyCredentialSdJwt(
   holderBindingContext: CryptoContext,
 ): Promise<SDJwt> {
   const sdJwtInstance = new SDJwtInstance({
-    hasher: digest,
+    hasher,
     verifier: sdJwtInstanceVerifier,
   });
 
@@ -277,7 +277,7 @@ export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredentia
       throw new IoWalletError("Credential type not supported by the issuer");
     }
 
-    const parsedCredentialRaw = (await decoded.getClaims(digest)) as Record<
+    const parsedCredentialRaw = (await decoded.getClaims(hasher)) as Record<
       string,
       unknown
     >;

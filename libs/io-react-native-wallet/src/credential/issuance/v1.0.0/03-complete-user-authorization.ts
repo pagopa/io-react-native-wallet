@@ -150,16 +150,10 @@ export const completeUserAuthorizationWithFormPostJwtMode: IssuanceApi["complete
       `The requeste credential is not a PersonIdentificationData, completing the user authorization with form_post.jwt mode`,
     );
 
-    const authRequestObject = {
-      clientId: requestObject.client_id,
-      nonce: requestObject.nonce,
-      responseUri: requestObject.response_uri,
-    };
-
     const remotePresentation =
       await RemotePresentationFlow.prepareRemotePresentations(
         evaluatedDcqlQuery,
-        authRequestObject,
+        requestObject,
       );
 
     const authzResponsePayload = await createAuthzResponsePayload({
