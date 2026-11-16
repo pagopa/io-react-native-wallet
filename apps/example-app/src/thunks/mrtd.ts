@@ -6,8 +6,8 @@ import {
 import { selectItwVersion } from "../store/reducers/environment";
 import { selectMrtdFlowParams } from "../store/selectors/mrtd";
 import { selectPidFlowParams } from "../store/selectors/pid";
+import { createLocalSignerFor, WIA_KEYTAG } from "../utils/crypto";
 import appFetch from "../utils/fetch";
-import { createLocalSignerFor, WIA_KEYTAG } from "../utils/localCrypto";
 import { createAppAsyncThunk } from "./utils";
 
 export interface InitPidMrtdChallengeOutput {

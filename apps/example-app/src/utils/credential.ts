@@ -22,8 +22,8 @@ import appFetch from "../utils/fetch";
 import {
   createLocalSignerFor,
   DPOP_KEYTAG,
-  regenerateLocalCryptoKey,
-} from "./localCrypto";
+  regenerateCryptoKey,
+} from "./crypto";
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -124,7 +124,7 @@ export const getCredential = async ({
   }
 
   // Generate the DPoP context which will be used for the whole issuance flow
-  await regenerateLocalCryptoKey(DPOP_KEYTAG);
+  await regenerateCryptoKey(DPOP_KEYTAG);
   const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(

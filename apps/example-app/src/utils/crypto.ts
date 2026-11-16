@@ -17,13 +17,13 @@ import { v4 as uuidv4 } from "uuid";
 
 /**
  * Key which is used to generate a wallet instance attestation signer.
- * This key is used in combination with {@link regenerateLocalCryptoKey} and {@link createLocalSignerFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
+ * This key is used in combination with {@link regenerateCryptoKey} and {@link createLocalSignerFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
  */
 export const WIA_KEYTAG = "WIA_KEYTAG";
 
 /**
  * Key which is used to generate a DPoP signer.
- * This key is used in combination with {@link regenerateLocalCryptoKey} and {@link createLocalSignerFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
+ * This key is used in combination with {@link regenerateCryptoKey} and {@link createLocalSignerFor} to generate a new crypto key and its context and make sure to delete the existing one if it exists.
  */
 export const DPOP_KEYTAG = "DPOP_KEYTAG";
 
@@ -32,9 +32,9 @@ export const DPOP_KEYTAG = "DPOP_KEYTAG";
  * This function simply tries to delete it without checking if it exists first, ignoring the specific exception thrown in this case and then generates a new one.
  * @param keyTag - The key tag to be associated with the crypto key
  */
-export const regenerateLocalCryptoKey = async (keyTag: string) => {
+export const regenerateCryptoKey = async (keyTag: string) => {
   // Delete the key if it exists, otherwise ignore the error
-  await deleteLocalKeyIfExists(keyTag);
+  await deleteKeyIfExists(keyTag);
   await generate(keyTag);
 };
 
@@ -43,7 +43,7 @@ export const regenerateLocalCryptoKey = async (keyTag: string) => {
  * It shadows the error thrown when the key is not found.
  * @param keyTag - The key tag to be associated with the crypto key
  */
-export const deleteLocalKeyIfExists = async (keyTag: string) => {
+export const deleteKeyIfExists = async (keyTag: string) => {
   await deleteKey(keyTag).catch((e) => {
     const { message } = e as CryptoError;
     if (message !== "PUBLIC_KEY_NOT_FOUND") throw e;

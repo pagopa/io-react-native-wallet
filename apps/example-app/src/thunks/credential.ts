@@ -24,9 +24,9 @@ import {
   getCredentialStatusAssertion,
   getCredentialStatusFromStatusList,
 } from "../utils/credential";
+import { createLocalSignerFor, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
-import { createLocalSignerFor, WIA_KEYTAG } from "../utils/localCrypto";
 import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,

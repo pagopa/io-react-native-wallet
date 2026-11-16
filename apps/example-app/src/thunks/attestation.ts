@@ -9,6 +9,11 @@ import { Platform } from "react-native";
 
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
+import {
+  createLocalSignerFor,
+  regenerateCryptoKey,
+  WIA_KEYTAG,
+} from "../utils/crypto";
 import { isAndroid } from "../utils/device";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
@@ -16,11 +21,6 @@ import {
   ensureIntegrityServiceIsReady,
   getIntegrityContext,
 } from "../utils/integrity";
-import {
-  createLocalSignerFor,
-  regenerateLocalCryptoKey,
-  WIA_KEYTAG,
-} from "../utils/localCrypto";
 import { createAppAsyncThunk } from "./utils";
 
 export type GetAttestationThunkOutput = Awaited<
@@ -45,7 +45,7 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
 
   // generate Key for Wallet Instance Attestation
   // ensure the key esists befor starting the issuing process
-  await regenerateLocalCryptoKey(WIA_KEYTAG);
+  await regenerateCryptoKey(WIA_KEYTAG);
   const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   // Get env URLs

@@ -18,9 +18,9 @@ import appFetch from "../utils/fetch";
 import {
   createLocalSignerFor,
   DPOP_KEYTAG,
-  regenerateLocalCryptoKey,
+  regenerateCryptoKey,
   WIA_KEYTAG,
-} from "../utils/localCrypto";
+} from "../utils/crypto";
 import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
@@ -195,7 +195,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
   const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   // Create DPoP context for the whole issuance flow
-  await regenerateLocalCryptoKey(DPOP_KEYTAG);
+  await regenerateCryptoKey(DPOP_KEYTAG);
   const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(

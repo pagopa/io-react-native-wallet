@@ -16,7 +16,7 @@ import { selectPid } from "../store/selectors/pid";
 import {
   createLocalSignerFor,
   localMdocDeviceResponseGenerator,
-} from "../utils/localCrypto";
+} from "../utils/crypto";
 import { isDefined } from "../utils/misc";
 import { createAppAsyncThunk } from "./utils";
 

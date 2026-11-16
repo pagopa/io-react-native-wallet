@@ -4,7 +4,7 @@ import type { SupportedCredentialsWithoutPid } from "../store/types";
 
 import { selectWalletInstanceAttestationAsJwt } from "../store/reducers/attestation";
 import { selectItwVersion } from "../store/reducers/environment";
-import { createLocalSignerFor, WIA_KEYTAG } from "../utils/localCrypto";
+import { createLocalSignerFor, WIA_KEYTAG } from "../utils/crypto";
 import { createAppAsyncThunk } from "./utils";
 
 export interface GetTrustmarkThunkOutput {
