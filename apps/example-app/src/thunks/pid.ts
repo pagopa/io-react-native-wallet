@@ -13,14 +13,14 @@ import { credentialReset } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectPidFlowParams } from "../store/selectors/pid";
 import { type PidAuthMethods, type PidResult } from "../store/types";
-import { getEnv } from "../utils/environment";
-import appFetch from "../utils/fetch";
 import {
   createLocalSignerFor,
   DPOP_KEYTAG,
   regenerateCryptoKey,
   WIA_KEYTAG,
 } from "../utils/crypto";
+import { getEnv } from "../utils/environment";
+import appFetch from "../utils/fetch";
 import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
