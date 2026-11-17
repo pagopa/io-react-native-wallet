@@ -1,530 +1,1019 @@
-openapi: 3.0.1
+openapi: 3.0.3
 info:
-  title: IT-Wallet User - IO App v1
-  description: REST APIs consumed by IO App
-  version: v1
+  title: IO Wallet - Provider API (experimentation)
+  description: |
+    Wallet Provider API for the EUDIW experimentation environment (version 1.4.6).
+
+    Device-integrity checks are intentionally bypassed, as described in the
+    original design doc "013 - Bypass sistema di integrità wallet provider di
+    sperimentazione 1.3.3". Status lists are not implemented in this environment.
+    Wallet Instance Attestations intentionally have a one-year lifetime.
+
+    The IO session token used in production is replaced by an `x-user-id`
+    header carrying a UUIDv4 that identifies the wallet instance owner.
+  version: 1.4.6
 servers:
-  - url: https://api-app.io.pagopa.it/api/wallet/v1
+  - url: https://{host}
+    variables:
+      host:
+        default: example.invalid
+        description: Wallet Provider Function App host
 paths:
-  "/nonce":
+  /health:
     get:
-      summary: GetNonce
-      description: Returns a randomly generated nonce
-      operationId: getNonce
+      operationId: healthCheck
+      summary: Liveness probe
       responses:
-        "200":
+        '200':
+          description: The function is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+
+  /nonce:
+    get:
+      operationId: getNonce
+      summary: Returns a randomly generated nonce
+      security:
+        - FunctionsKey: []
+      responses:
+        '200':
           description: Nonce successfully generated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NonceDetailView"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-  "/wallet-instances":
+                $ref: '#/components/schemas/NonceDetailView'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /wallet-instances:
     post:
-      summary: CreateWalletInstance
-      description: Create a wallet instance
       operationId: createWalletInstance
+      summary: Create a wallet instance
+      security:
+        - FunctionsKey: []
+      parameters:
+        - $ref: '#/components/parameters/XUserId'
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateWalletInstanceBody"
-            example:
-              challenge: string
-              key_attestation: string
-              hardware_key_tag: string
-              is_renewal: true
+              $ref: '#/components/schemas/CreateWalletInstanceBody'
       responses:
-        "204":
+        '204':
           description: Wallet instance successfully created
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "422":
-          $ref: "#/components/responses/UnprocessableContent"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-  "/wallet-attestations":
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /wallet-instance-attestations:
     post:
-      summary: CreateWalletAttestation
-      description: Create and return a Wallet Attestation
-      operationId: createWalletAttestation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateWalletAttestationBody"
-      responses:
-        "200":
-          description: List of generated Wallet Attestations
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WalletAttestationsView"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "422":
-          $ref: "#/components/responses/UnprocessableContent"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-  "/wallet-instances/current/status":
-    get:
-      summary: GetCurrentWalletInstanceStatus
-      description: Retrieve the current Wallet Instance status
-      operationId: getCurrentWalletInstanceStatus
-      responses:
-        "200":
-          description: Wallet Instance status successfully retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WalletInstanceData"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-  "/wallet-instances/{id}/status":
-    get:
-      summary: GetWalletInstanceStatus
-      description: Retrieve a Wallet Instance status
-      operationId: getWalletInstanceStatus
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Wallet Instance status successfully retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WalletInstanceData"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-    put:
-      summary: SetWalletInstanceStatus
-      description: |
-        Revoke the Wallet Instance associated with the authenticated user.
-        If the Wallet Instance is already revoked, the operation will succeed.
-      operationId: setWalletInstanceStatus
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SetWalletInstanceStatusData"
-      responses:
-        "204":
-          description: Wallet Instance status successfully set
-        "422":
-          $ref: "#/components/responses/UnprocessableContent"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-  "/info":
-    get:
-      summary: HealthCheck
-      description: Used to check if the function is healthy
-      operationId: healthCheck
-      responses:
-        "200":
-          description: The function is health
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-              example:
-                message: string
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-  "/whitelisted-fiscal-code":
-    get:
-      summary: IsFiscalCodeWhitelisted
-      description: Used to check if the fiscal code is in the whitelist
-      operationId: isFiscalCodeWhitelisted
-      responses:
-        "200":
-          description:
-            Returned when no issues were found in either case (fiscal code
-            whitelisted, or not)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WhitelistedFiscalCodeData"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-  "/wallet-instance-attestations":
-    post:
-      summary: CreateWalletInstanceAttestation
-      description: Create and return a Wallet Instance Attestation (WIA)
       operationId: createWalletInstanceAttestation
+      summary: Create and return a Wallet Instance Attestation (WIA)
+      description: |
+        The request body is a signed JWT with header `typ: "wia-request+jwt"`.
+        The integrity-related claims (`hardware_signature`, `integrity_assertion`,
+        `hardware_key_tag`) follow the experimentation bypass rules: the
+        signature is computed locally with the hardware-tagged key over
+        `{ challenge, jwk_thumbprint }`, and `integrity_assertion` is the
+        constant string `NOT_IMPLEMENTED`. A `hardware_signature` that does
+        not verify against the Wallet Instance hardware key is answered with
+        409 (`detail` `Invalid hardware signature`), after the nonce is
+        consumed.
+      security:
+        - FunctionsKey: []
       parameters:
-      - name: Content-Type
-        in: header
-        schema:
-          type: string
+        - $ref: '#/components/parameters/XUserId'
       requestBody:
+        required: true
         content:
-          text/plain:
+          application/json:
             schema:
-              $ref: "#/components/schemas/CreateWalletInstanceAttestationBody"
+              $ref: '#/components/schemas/AttestationRequestJwt'
       responses:
-        "200":
+        '200':
           description: Wallet Instance Attestation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WalletInstanceAttestation"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "422":
-          $ref: "#/components/responses/UnprocessableContent"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
-  "/wallet-unit-attestations":
-    post:
-      summary: CreateWalletUnitAttestation
-      description: Create and return a Wallet Unit Attestation (WUA)
-      operationId: createWalletUnitAttestation
-      parameters:
-      - name: Content-Type
-        in: header
-        schema:
-          type: string
-      requestBody:
-        content:
-          text/plain:
-            schema:
-              $ref: "#/components/schemas/CreateWalletUnitAttestationBody"
-      responses:
-        "200":
-          description: Wallet Unit Attestation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WalletUnitAttestation"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "422":
-          $ref: "#/components/responses/UnprocessableContent"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
+                $ref: '#/components/schemas/WalletInstanceAttestation'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
 
-  "/key-attestations":
+  /key-attestations:
     post:
-      summary: CreateKeyAttestation
-      description: Create and return a Key Attestation
       operationId: createKeyAttestation
+      summary: Create and return a Key Attestation
+      description: |
+        The request body is a signed JWT with header `typ: "wua-request+jwt"`.
+        The integrity-related claims follow the experimentation bypass rules:
+        `hardware_signature` is computed locally over
+        `{ challenge, jwk_thumbprints }` and `integrity_assertion` is the
+        constant string `NOT_IMPLEMENTED`. A `hardware_signature` that does
+        not verify against the Wallet Instance hardware key is answered with
+        409 (`detail` `Invalid hardware signature`), after the nonce is
+        consumed, for `LOCAL_NATIVE` and `REMOTE` requests alike.
+
+        Each `keys_to_attest` entry is a `key-attestation-request+jwt`
+        signed by its own `cnf.jwk`, and `cnf.jwk` of the request equals that
+        of `keys_to_attest[0]`. `wscd_key_attestation.storage_type` is either
+        `LOCAL_NATIVE` (no `attestation`) or `REMOTE`; one request never mixes
+        the two. A `REMOTE` key carries exactly `storage_type` and
+        `attestation`, the KEC returned by `POST /remote-wscd/keys`
+        (canonical standard base64 DER, at most 4096 bytes), and its JWK is an
+        EC P-256 public key; at most 10 `REMOTE` keys are accepted. Requests
+        violating these rules are rejected with 422.
+
+        In a `REMOTE` request every JWS is the Proof of Possession of a
+        REMOTE key, produced through NSSAM `hashsign`: the request is signed
+        by the key of `keys_to_attest[0]` and each `keys_to_attest` entry by
+        its own key. Each must use `alg: "ES256"` with a 64-byte `r || s`
+        signature, carry `exp` and `iat`, and verify with its payload
+        `cnf.jwk` (header `kid` is never used to pick the key). A key may be
+        requested only once. Each KEC must be issued by the Wallet Provider
+        KEC issuer, be currently valid, certify its key and be enrolled for
+        the Wallet Instance of `hardware_key_tag`. A failed PoP or KEC check
+        is answered with a 422 whose `detail` is
+        `Invalid key attestation request`, without naming the failed check.
+        A Wallet Instance locked on the Remote WSCD (PIN limit reached) is
+        answered with 403 and `code` `KEY_LOCKED`: NSSAM locks every key of
+        the Wallet Instance, so it is recovered only with a new Wallet
+        Instance. These checks run before the nonce is consumed.
+
+        REMOTE keys are attested as LOCAL ones (`key_storage` and
+        `user_authentication` `iso_18045_moderate`), in a Key Attestation
+        signed with the Wallet Provider key shared with the WIA.
+      security:
+        - FunctionsKey: []
       parameters:
-      - name: Content-Type
-        in: header
-        schema:
-          type: string
+        - $ref: '#/components/parameters/XUserId'
       requestBody:
+        required: true
         content:
-          text/plain:
+          application/json:
             schema:
-              $ref: "#/components/schemas/CreateKeyAttestationBody"
+              $ref: '#/components/schemas/AttestationRequestJwt'
       responses:
-        "200":
+        '200':
           description: Key Attestation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/KeyAttestation"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "422":
-          $ref: "#/components/responses/UnprocessableContent"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-        "503":
-          $ref: "#/components/responses/ServiceUnavailable"
+                $ref: '#/components/schemas/KeyAttestation'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /auth/token-exchanges:
+    post:
+      operationId: createAuthTokenExchange
+      summary: Exchange the Wallet session for a short-lived NSSAM access token
+      description: |
+        Mini-IdP endpoint. Returns an RS256 JWT access token for NSSAM whose
+        `nameid` is the caller's only active (non-revoked) Wallet Instance,
+        resolved server-side from `x-user-id`. If more than one active Wallet
+        Instance exists for the user, 409 is returned. No request body is
+        read: client-provided identifiers never influence the token.
+      security:
+        - FunctionsKey: []
+      parameters:
+        - $ref: '#/components/parameters/XUserId'
+      responses:
+        '200':
+          description: NSSAM access token
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+            Pragma:
+              schema:
+                type: string
+                example: no-cache
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NssamAccessTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /remote-wscd/sessions:
+    post:
+      operationId: createRemoteWscdSession
+      summary: Open an NSSAM session
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/startsession`.
+        The Backend neither decrypts `encryptionKey` nor verifies `signature`:
+        the App does.
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend.
+        Each NSSAM session serves exactly one operation.
+      security:
+        - FunctionsKey: []
+      parameters:
+        - $ref: '#/components/parameters/XUserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteWscdStartSessionRequest'
+      responses:
+        '200':
+          description: NSSAM session opened
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoteWscdStartSessionResponse'
+        '400':
+          $ref: '#/components/responses/RemoteWscdError'
+        '401':
+          $ref: '#/components/responses/RemoteWscdError'
+        '403':
+          $ref: '#/components/responses/RemoteWscdError'
+        '409':
+          $ref: '#/components/responses/RemoteWscdError'
+        '422':
+          $ref: '#/components/responses/RemoteWscdError'
+        '423':
+          $ref: '#/components/responses/RemoteWscdError'
+        '429':
+          $ref: '#/components/responses/RemoteWscdError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/RemoteWscdError'
+        '503':
+          $ref: '#/components/responses/RemoteWscdError'
+        '504':
+          $ref: '#/components/responses/RemoteWscdError'
+
+  /remote-wscd/session-cancellations:
+    post:
+      operationId: createRemoteWscdSessionCancellation
+      summary: Cancel an unused NSSAM session
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/cancelsession`.
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend.
+        Each NSSAM session serves exactly one operation.
+      security:
+        - FunctionsKey: []
+      parameters:
+        - $ref: '#/components/parameters/XUserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteWscdCancelSessionRequest'
+      responses:
+        '204':
+          description: NSSAM session cancelled
+        '400':
+          $ref: '#/components/responses/RemoteWscdError'
+        '401':
+          $ref: '#/components/responses/RemoteWscdError'
+        '403':
+          $ref: '#/components/responses/RemoteWscdError'
+        '409':
+          $ref: '#/components/responses/RemoteWscdError'
+        '422':
+          $ref: '#/components/responses/RemoteWscdError'
+        '423':
+          $ref: '#/components/responses/RemoteWscdError'
+        '429':
+          $ref: '#/components/responses/RemoteWscdError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/RemoteWscdError'
+        '503':
+          $ref: '#/components/responses/RemoteWscdError'
+        '504':
+          $ref: '#/components/responses/RemoteWscdError'
+
+  /remote-wscd/keys:
+    post:
+      operationId: createRemoteWscdKey
+      summary: Enroll a new key in the Remote WSCD
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/enroll` and adds the Key
+        Enrollment Certificate (KEC).
+        The Backend resolves the caller's active Wallet Instance from
+        `x-user-id` and rejects (403 `WALLET_INSTANCE_MISMATCH`) a `jwtToken`
+        whose `nameid` differs, without calling NSSAM. It then calls
+        `/api/v1/enroll` exactly once and issues the KEC over the returned
+        public key. Enrollment, KEC issuance and delivery of the response are
+        not atomic, and the Backend never retries nor repeats an enrollment:
+
+        - KEC failure after a successful enroll: the new KeyBlob is discarded
+          and not returned (503 `KEC_UNAVAILABLE` or 500); the active keys of
+          the Wallet Instance are left untouched.
+        - Uncertain outcome: on 504 `NSSAM_TIMEOUT`, 503 `NSSAM_UNAVAILABLE`
+          or 502 `NSSAM_INVALID_RESPONSE`, NSSAM may or may not have generated
+          the key; the Backend only attempts a best-effort cancellation of the
+          session. The same applies when the App does not receive this
+          response (e.g. connection lost).
+        - NSSAM answered the enroll with an error (e.g. `PIN_INCORRECT`,
+          `WEAK_PIN`, 409 `KEY_ALREADY_EXISTS` when a key of this Wallet
+          Instance is locked): the session is consumed and no cancellation is
+          sent.
+
+        In every such case no KeyBlob reaches the App, so any key NSSAM may
+        have generated is unusable. The App must not reuse the `sessionId` and
+        must repeat the whole flow (token exchange, new session, enrollment)
+        if it wants a key; `retryable` tells whether doing so may succeed
+        without user action.
+
+        A Wallet Instance may hold many keys: each enroll adds one, and
+        previous keys stay active. The 3 PIN attempts are shared by all keys
+        of the Wallet Instance and are not reset by an enroll.
+
+        NSSAM accepts more keys per Signer (the Wallet Instance), but once any
+        key of the Signer is locked it rejects every key of the Signer and
+        every further enroll (409 `KEY_ALREADY_EXISTS`). The PIN limit is
+        enforced per HSM, so the Backend rejects the enroll of a locked
+        Wallet Instance before calling the Driver (423 `KEY_LOCKED`, the
+        session is cancelled), whatever HSM the session runs on. A new key
+        never unlocks a Wallet Instance: the only recovery is a new Wallet
+        Instance, enrolled from scratch.
+
+        Any `data` and KeyBlob are forwarded verbatim to the NSSAM
+        Driver and are never decrypted, persisted or logged by the Backend;
+        the KEC is never persisted either.
+        Each NSSAM session serves exactly one operation.
+      security:
+        - FunctionsKey: []
+      parameters:
+        - $ref: '#/components/parameters/XUserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteWscdEnrollRequest'
+      responses:
+        '200':
+          description: Enrolled key
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoteWscdEnrollResponse'
+        '400':
+          $ref: '#/components/responses/RemoteWscdError'
+        '401':
+          $ref: '#/components/responses/RemoteWscdError'
+        '403':
+          $ref: '#/components/responses/RemoteWscdError'
+        '409':
+          $ref: '#/components/responses/RemoteWscdError'
+        '422':
+          $ref: '#/components/responses/RemoteWscdError'
+        '423':
+          $ref: '#/components/responses/RemoteWscdError'
+        '429':
+          $ref: '#/components/responses/RemoteWscdError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/RemoteWscdError'
+        '503':
+          $ref: '#/components/responses/RemoteWscdError'
+        '504':
+          $ref: '#/components/responses/RemoteWscdError'
+
+  /remote-wscd/pin-changes:
+    post:
+      operationId: createRemoteWscdPinChange
+      summary: Change the PIN of a Remote WSCD key
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/changepin` and returns the new
+        KeyBlob unchanged in `encryptedKey`.
+        The Backend resolves the caller's active Wallet Instance from
+        `x-user-id` and rejects (403 `WALLET_INSTANCE_MISMATCH`) a `jwtToken`
+        whose `nameid` differs. It then atomically reserves one PIN attempt on
+        the KeyBlob; every rejection below happens before NSSAM is called and
+        the unused session is cancelled:
+
+        - 423 `KEY_LOCKED`: the Wallet Instance is locked or has used its 3
+          PIN attempts; all its keys are unusable.
+        - 422 `KEY_INVALID`: `encryptedKey` is not one of the active KeyBlobs
+          of the Wallet Instance.
+        - 503 `WALLET_SESSION_UNAVAILABLE`: the Wallet session or PIN state
+          store is unavailable.
+
+        `/api/v1/changepin` is then called exactly once, never retried:
+
+        - 403 `PIN_INCORRECT` with `remainingAttempts` (1 or 2): the attempt
+          stays counted. Attempts are counted per Wallet Instance, across all
+          its keys, and a correct PIN resets them (3 consecutive wrong PINs
+          lock).
+        - 422 `WEAK_PIN`: the new PIN is rejected by NSSAM. The attempt is
+          given back and the wrong PIN counter is not reset.
+        - 423 `KEY_LOCKED`: the third consecutive wrong PIN, the HSM PIN
+          limit or an inactive key on the HSM locks the Wallet Instance.
+        - Uncertain outcome (504 `NSSAM_TIMEOUT`, 503 `NSSAM_UNAVAILABLE`,
+          502 `NSSAM_INVALID_RESPONSE`): no KeyBlob is returned, the old
+          KeyBlob stays the active key, the attempt stays counted and the
+          session is cancelled best effort.
+        - NSSAM changed the PIN but the Backend could not register the new
+          KeyBlob (503 `WALLET_SESSION_UNAVAILABLE`, 422 `KEY_INVALID` or 423
+          `KEY_LOCKED`): no KeyBlob is returned. The old KeyBlob is no longer
+          accepted by NSSAM, so a retry gets 422 `KEY_INVALID` and the key has
+          to be enrolled again.
+        - Success: the hash of the new KeyBlob replaces the old one at the
+          same position among the active keys of the Wallet Instance, and the
+          PIN failure counter of the Wallet Instance is set to 0. The other
+          keys are not touched.
+
+        One request changes the PIN of one key; the App repeats the flow for
+        each key of the Wallet Instance. There is no atomic batch: if a later
+        key fails, the keys already changed keep the new PIN.
+        `retryable` of each error tells whether repeating may succeed without
+        user action.
+
+        `data` (old and new encrypted PIN) and the KeyBlob are forwarded
+        verbatim to the NSSAM Driver and are never decrypted, logged or
+        persisted by the Backend (only the hash of the KeyBlob is stored).
+        Each NSSAM session serves exactly one operation.
+      security:
+        - FunctionsKey: []
+      parameters:
+        - $ref: '#/components/parameters/XUserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteWscdKeyOperationRequest'
+      responses:
+        '200':
+          description: New KeyBlob
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoteWscdChangePinResponse'
+        '400':
+          $ref: '#/components/responses/RemoteWscdError'
+        '401':
+          $ref: '#/components/responses/RemoteWscdError'
+        '403':
+          $ref: '#/components/responses/RemoteWscdError'
+        '409':
+          $ref: '#/components/responses/RemoteWscdError'
+        '422':
+          $ref: '#/components/responses/RemoteWscdError'
+        '423':
+          $ref: '#/components/responses/RemoteWscdError'
+        '429':
+          $ref: '#/components/responses/RemoteWscdError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/RemoteWscdError'
+        '503':
+          $ref: '#/components/responses/RemoteWscdError'
+        '504':
+          $ref: '#/components/responses/RemoteWscdError'
+
+  /remote-wscd/signatures:
+    post:
+      operationId: createRemoteWscdSignature
+      summary: Sign a hash with a Remote WSCD key
+      description: |
+        Proxies NSSAM Driver `POST /api/v1/hashsign` and returns the NSSAM
+        `signatureValue` unchanged in `signature`; no JWT, JWS or other
+        artifact is assembled.
+        The Backend resolves the caller's active Wallet Instance from
+        `x-user-id` and rejects (403 `WALLET_INSTANCE_MISMATCH`) a `jwtToken`
+        whose `nameid` differs. It then atomically reserves one PIN attempt on
+        the KeyBlob; every rejection below happens before NSSAM is called and
+        the unused session is cancelled:
+
+        - 423 `KEY_LOCKED`: the Wallet Instance is locked or its 3 PIN
+          attempts, shared by all keys of the Wallet Instance, are exhausted
+          (also for access tokens issued earlier).
+        - 422 `KEY_INVALID`: `encryptedKey` is not one of the active KeyBlobs
+          of the Wallet Instance.
+        - 503 `WALLET_SESSION_UNAVAILABLE`: the Wallet session or PIN state
+          store is unavailable.
+
+        `/api/v1/hashsign` is then called exactly once, never retried:
+
+        - Success resets the PIN failure counter.
+        - 403 `PIN_INCORRECT` with `remainingAttempts` (1 or 2): the attempt
+          stays counted; the attempts are shared by all keys of the Wallet
+          Instance.
+        - 423 `KEY_LOCKED`: the third wrong PIN on any key of the Wallet
+          Instance, the HSM PIN limit or an inactive key on the HSM locks the
+          Wallet Instance permanently. An HSM lock answer locks the whole
+          Wallet Instance, whatever the Backend count (NSSAM counts per HSM,
+          without synchronization). Recovery needs a new Wallet Instance and
+          a new enrollment on it (a new enroll on the locked one answers 423
+          `KEY_LOCKED`).
+        - Uncertain outcome (504 `NSSAM_TIMEOUT`, 503 `NSSAM_UNAVAILABLE`,
+          502 `NSSAM_INVALID_RESPONSE`): the attempt stays counted and the
+          session is cancelled best effort.
+
+        `data` (encrypted PIN and DigestInfo) and the KeyBlob are forwarded
+        verbatim to the NSSAM Driver and are never decrypted, persisted or
+        logged by the Backend. Each NSSAM session serves exactly one operation.
+      security:
+        - FunctionsKey: []
+      parameters:
+        - $ref: '#/components/parameters/XUserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteWscdKeyOperationRequest'
+      responses:
+        '200':
+          description: Signature
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoteWscdHashSignResponse'
+        '400':
+          $ref: '#/components/responses/RemoteWscdError'
+        '401':
+          $ref: '#/components/responses/RemoteWscdError'
+        '403':
+          $ref: '#/components/responses/RemoteWscdError'
+        '409':
+          $ref: '#/components/responses/RemoteWscdError'
+        '422':
+          $ref: '#/components/responses/RemoteWscdError'
+        '423':
+          $ref: '#/components/responses/RemoteWscdError'
+        '429':
+          $ref: '#/components/responses/RemoteWscdError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/RemoteWscdError'
+        '503':
+          $ref: '#/components/responses/RemoteWscdError'
+        '504':
+          $ref: '#/components/responses/RemoteWscdError'
+
 components:
+  securitySchemes:
+    FunctionsKey:
+      type: apiKey
+      name: X-Functions-Key
+      in: header
+
+  parameters:
+    XUserId:
+      in: header
+      name: x-user-id
+      required: true
+      description: |
+        UUIDv4 identifying the wallet instance owner. Replaces the IO session
+        token used in production.
+      schema:
+        type: string
+        format: uuid
+        example: 1f3d6f6e-1d2a-4f29-9b66-9b3a4e2c8f10
+
+  responses:
+    Unauthorized:
+      description: The request is not bound to an authenticated Wallet session
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    Forbidden:
+      description: The server understands the request but refuses to authorize it
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    BadRequest:
+      description: Validation error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    Conflict:
+      description: There has been a conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    UnprocessableContent:
+      description: Unprocessable Content
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    ServiceUnavailable:
+      description: Service Unavailable
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemJson'
+
+    RemoteWscdError:
+      description: NSSAM proxy failure; see code
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/RemoteWscdProblem'
+
   schemas:
-    SetWalletInstanceStatusData:
-      required:
-        - status
-      type: object
-      properties:
-        status:
-          enum:
-            - REVOKED
-          type: string
-      example:
-        status: REVOKED
-    WalletInstanceData:
-      required:
-        - id
-        - is_revoked
-      type: object
-      properties:
-        id:
-          type: string
-        is_revoked:
-          type: boolean
-        revocation_reason:
-          $ref: "#/components/schemas/RevocationReason"
-      description: Describes the status of the wallet.
-      example:
-        id: string
-        is_revoked: true
-        revocation_reason: CERTIFICATE_REVOKED_BY_ISSUER
     NonceDetailView:
-      required:
-        - nonce
       type: object
       properties:
         nonce:
           type: string
-    WalletAttestationsView:
       required:
-        - wallet_attestations
-      type: object
-      properties:
-        wallet_attestations:
-          maxItems: 2
-          minItems: 2
-          type: array
-          items:
-            required:
-              - format
-              - wallet_attestation
-            type: object
-            properties:
-              format:
-                enum:
-                  - jwt
-                  - dc+sd-jwt
-                type: string
-              wallet_attestation:
-                type: string
-    WalletInstanceAttestation:
-      required:
-        - wallet_instance_attestation
-      type: object
-      properties:
-        wallet_instance_attestation:
-          type: string
-      example:
-        wallet_instance_attestation: string
-    WalletUnitAttestation:
-      required:
-        - wallet_unit_attestation
-      type: object
-      properties:
-        wallet_unit_attestation:
-          type: string
-      example:
-        wallet_unit_attestation: string
+        - nonce
+
     CreateWalletInstanceBody:
+      type: object
+      description: |
+        Body of `POST /wallet-instances`. In the experimentation environment
+        `key_attestation` is **not** an integrity-service attestation: it is
+        the base64url-encoded JSON of the JWK of a hardware-backed but
+        non-attested public key. The Wallet Provider does not validate any
+        attestation chain over it.
+      properties:
+        challenge:
+          type: string
+          minLength: 1
+          description: |
+            Nonce previously obtained from `GET /nonce`. Single-use and
+            short-lived: an unknown, expired or already used nonce is
+            rejected with 422.
+        key_attestation:
+          type: string
+          minLength: 1
+          description: |
+            base64url(JSON.stringify(jwk)) of the public hardware key.
+        hardware_key_tag:
+          type: string
+          minLength: 1
+          description: |
+            Tag identifying the hardware key. Used as the wallet instance id.
+        is_renewal:
+          type: boolean
+          default: false
       required:
         - challenge
         - key_attestation
         - hardware_key_tag
+
+    AttestationRequestJwt:
+      type: string
+      format: jwt
+      description: |
+        Compact-serialized signed JWT carrying the attestation request.
+        See the endpoint description for the expected `typ` header and the
+        bypass rules applied to integrity-related claims.
+      example: eyJhbGciOiJFUzI1NiIsImtpZCI6Ii4uLiIsInR5cCI6IndpYS1yZXF1ZXN0K2p3dCJ9.eyJpc3MiOiIuLi4ifQ.signature
+
+    WalletInstanceAttestation:
       type: object
-      properties:
-        challenge:
-          minLength: 1
-          type: string
-          format: binary
-        key_attestation:
-          minLength: 1
-          type: string
-          format: binary
-        hardware_key_tag:
-          minLength: 1
-          type: string
-        is_renewal:
-          type: boolean
-          default: false
-      example:
-        challenge: string
-        key_attestation: string
-        hardware_key_tag: string
-    CreateWalletAttestationBody:
       required:
-      - assertion
-      type: object
+        - wallet_instance_attestation
       properties:
-        assertion:
-          minLength: 1
+        wallet_instance_attestation:
           type: string
-          format: binary
-          example: eyJhbGciOiJFUzI1NiIsImtpZCI6InZiZVhKa3NNNDV4cGh0QU5uQ2lHNm1DeXVVNGpmR056b3BHdUt2b2dnOWMiLCJ0eXAiOiJ3YXIrand0In0.eyJpc3MiOiJodHRwczovL3dhbGxldC1wcm92aWRlci5leGFtcGxlLm9yZy9pbnN0YW5jZS92YmVYSmtzTTQ1eHBodEFObkNpRzZtQ3l1VTRqZkdOem9wR3VLdm9nZzljIiwic3ViIjoiaHR0cHM6Ly93YWxsZXQtcHJvdmlkZXIuZXhhbXBsZS5vcmcvIiwiY2hhbGxlbmdlIjoiNmVjNjkzMjQtNjBhOC00ZTViLWE2OTctYTc2NmQ4NTc5MGVhIiwiaGFyZHdhcmVfc2lnbmF0dXJlIjoiS29aSWh2Y05BUWNDb0lBd2dBSUIuLi5yZWRhY3RlZCIsImludGVncml0eV9hc3NlcnRpb24iOiJvMk5tYlhSdllYQndiR1V0WVhCd1lYLi4ucmVkYWN0ZWQiLCJoYXJkd2FyZV9rZXlfdGFnIjoiV1FoeUR5bUZLc1A5NWlGcXB6ZEVEV1c0bDdhVm5hMkZuNEpDZVdIWXRiVT0iLCJjbmYiOnsiandrIjp7ImNydiI6IlAtMjU2Iiwia3R5IjoiRUMiLCJ4IjoiNEhOcHRJLXhyMnBqeVJKS0dNbno0V21kblFEX3VKU3E0Ujk1Tmo5OGI0NCIsInkiOiJMSVpuU0IzOXZGSmhZZ1MzazdqWEU0cjMtQ29HRlF3WnRQQklScXBObHJnIiwia2lkIjoidmJlWEprc000NXhwaHRBTm5DaUc2bUN5dVU0amZHTnpvcEd1S3ZvZ2c5YyJ9fSwidnBfZm9ybWF0c19zdXBwb3J0ZWQiOnsiand0X3ZjX2pzb24iOnsiYWxnX3ZhbHVlc19zdXBwb3J0ZWQiOlsiRVMyNTZLIiwiRVMzODQiXX0sImp3dF92cF9qc29uIjp7ImFsZ192YWx1ZXNfc3VwcG9ydGVkIjpbIkVTMjU2SyIsIkVkRFNBIl19fSwiaWF0IjoxNjg2NjQ1MTE1LCJleHAiOjE2ODY2NTIzMTV9.F32bisVth4eDdGxDjB9ByENT-oZLtSY_89uwTSePo2GMEKaeEedpXZE_9mrX7t0_Fmc5m6LNVvIIBqotqsYJYQ
-      example:
-        assertion: eyJhbGciOiJFUzI1NiIsImtpZCI6InZiZVhKa3NNNDV4cGh0QU5uQ2lHNm1DeXVVNGpmR056b3BHdUt2b2dnOWMiLCJ0eXAiOiJ3YXIrand0In0.eyJpc3MiOiJodHRwczovL3dhbGxldC1wcm92aWRlci5leGFtcGxlLm9yZy9pbnN0YW5jZS92YmVYSmtzTTQ1eHBodEFObkNpRzZtQ3l1VTRqZkdOem9wR3VLdm9nZzljIiwic3ViIjoiaHR0cHM6Ly93YWxsZXQtcHJvdmlkZXIuZXhhbXBsZS5vcmcvIiwiY2hhbGxlbmdlIjoiNmVjNjkzMjQtNjBhOC00ZTViLWE2OTctYTc2NmQ4NTc5MGVhIiwiaGFyZHdhcmVfc2lnbmF0dXJlIjoiS29aSWh2Y05BUWNDb0lBd2dBSUIuLi5yZWRhY3RlZCIsImludGVncml0eV9hc3NlcnRpb24iOiJvMk5tYlhSdllYQndiR1V0WVhCd1lYLi4ucmVkYWN0ZWQiLCJoYXJkd2FyZV9rZXlfdGFnIjoiV1FoeUR5bUZLc1A5NWlGcXB6ZEVEV1c0bDdhVm5hMkZuNEpDZVdIWXRiVT0iLCJjbmYiOnsiandrIjp7ImNydiI6IlAtMjU2Iiwia3R5IjoiRUMiLCJ4IjoiNEhOcHRJLXhyMnBqeVJKS0dNbno0V21kblFEX3VKU3E0Ujk1Tmo5OGI0NCIsInkiOiJMSVpuU0IzOXZGSmhZZ1MzazdqWEU0cjMtQ29HRlF3WnRQQklScXBObHJnIiwia2lkIjoidmJlWEprc000NXhwaHRBTm5DaUc2bUN5dVU0amZHTnpvcEd1S3ZvZ2c5YyJ9fSwidnBfZm9ybWF0c19zdXBwb3J0ZWQiOnsiand0X3ZjX2pzb24iOnsiYWxnX3ZhbHVlc19zdXBwb3J0ZWQiOlsiRVMyNTZLIiwiRVMzODQiXX0sImp3dF92cF9qc29uIjp7ImFsZ192YWx1ZXNfc3VwcG9ydGVkIjpbIkVTMjU2SyIsIkVkRFNBIl19fSwiaWF0IjoxNjg2NjQ1MTE1LCJleHAiOjE2ODY2NTIzMTV9.F32bisVth4eDdGxDjB9ByENT-oZLtSY_89uwTSePo2GMEKaeEedpXZE_9mrX7t0_Fmc5m6LNVvIIBqotqsYJYQ
-    CreateWalletInstanceAttestationBody:
-      type: string
-      minLength: 1
-      example: eyJhbGciOiJFUzI1NiIsImtpZCI6InZiZVhKa3NNNDV4cGh0QU5uQ2lHNm1DeXVVNGpmR056b3BHdUt2b2dnOWMiLCJ0eXAiOiJ3YXIrand0In0.eyJpc3MiOiJodHRwczovL3dhbGxldC1wcm92aWRlci5leGFtcGxlLm9yZy9pbnN0YW5jZS92YmVYSmtzTTQ1eHBodEFObkNpRzZtQ3l1VTRqZkdOem9wR3VLdm9nZzljIiwic3ViIjoiaHR0cHM6Ly93YWxsZXQtcHJvdmlkZXIuZXhhbXBsZS5vcmcvIiwiY2hhbGxlbmdlIjoiNmVjNjkzMjQtNjBhOC00ZTViLWE2OTctYTc2NmQ4NTc5MGVhIiwiaGFyZHdhcmVfc2lnbmF0dXJlIjoiS29aSWh2Y05BUWNDb0lBd2dBSUIuLi5yZWRhY3RlZCIsImludGVncml0eV9hc3NlcnRpb24iOiJvMk5tYlhSdllYQndiR1V0WVhCd1lYLi4ucmVkYWN0ZWQiLCJoYXJkd2FyZV9rZXlfdGFnIjoiV1FoeUR5bUZLc1A5NWlGcXB6ZEVEV1c0bDdhVm5hMkZuNEpDZVdIWXRiVT0iLCJjbmYiOnsiandrIjp7ImNydiI6IlAtMjU2Iiwia3R5IjoiRUMiLCJ4IjoiNEhOcHRJLXhyMnBqeVJKS0dNbno0V21kblFEX3VKU3E0Ujk1Tmo5OGI0NCIsInkiOiJMSVpuU0IzOXZGSmhZZ1MzazdqWEU0cjMtQ29HRlF3WnRQQklScXBObHJnIiwia2lkIjoidmJlWEprc000NXhwaHRBTm5DaUc2bUN5dVU0amZHTnpvcEd1S3ZvZ2c5YyJ9fSwidnBfZm9ybWF0c19zdXBwb3J0ZWQiOnsiand0X3ZjX2pzb24iOnsiYWxnX3ZhbHVlc19zdXBwb3J0ZWQiOlsiRVMyNTZLIiwiRVMzODQiXX0sImp3dF92cF9qc29uIjp7ImFsZ192YWx1ZXNfc3VwcG9ydGVkIjpbIkVTMjU2SyIsIkVkRFNBIl19fSwiaWF0IjoxNjg2NjQ1MTE1LCJleHAiOjE2ODY2NTIzMTV9.F32bisVth4eDdGxDjB9ByENT-oZLtSY_89uwTSePo2GMEKaeEedpXZE_9mrX7t0_Fmc5m6LNVvIIBqotqsYJYQ
-    CreateWalletUnitAttestationBody:
-      type: string
-      minLength: 1
-    CreateKeyAttestationBody:
-      type: string
-      minLength: 1
+
     KeyAttestation:
-      required:
-      - key_attestation
       type: object
+      required:
+        - key_attestation
       properties:
         key_attestation:
           type: string
-      example:
-        key_attestation: string
-    RevocationReason:
-      enum:
-        - CERTIFICATE_REVOKED_BY_ISSUER
-        - NEW_WALLET_INSTANCE_CREATED
-        - WALLET_INSTANCE_RENEWAL
-        - REVOKED_BY_USER
-      type: string
+
+    NssamAccessTokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      properties:
+        access_token:
+          type: string
+          format: jwt
+          description: |
+            RS256 JWT with claims `iss`, `iat`, `nbf`, `exp` and `nameid`
+            (Wallet Instance identifier).
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          description: Lifetime in seconds (`exp` - `iat`).
+
+    RemoteWscdRsaPublicKey:
+      type: object
+      description: |
+        Ephemeral RSA 3072 public key of the App. Each component is either
+        standard padded base64 (RFC 4648 §4) or unpadded base64url
+        (RFC 4648 §5), both accepted by the NSSAM Driver; the value is
+        forwarded verbatim.
+      required: [modulus, exponent]
+      properties:
+        modulus:
+          type: string
+          minLength: 1
+          description: Big-endian modulus of a 3072-bit RSA key.
+        exponent:
+          type: string
+          minLength: 1
+          description: Big-endian odd public exponent, at most 8 bytes.
+
+    RemoteWscdStartSessionRequest:
+      type: object
+      description: Body of `POST /remote-wscd/sessions`.
+      required: [clientPubKey, jwtToken]
+      properties:
+        clientPubKey:
+          $ref: '#/components/schemas/RemoteWscdRsaPublicKey'
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+
+    RemoteWscdStartSessionResponse:
+      type: object
+      description: Opened NSSAM session.
+      required: [sessionId, encryptionKey, signature]
+      properties:
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+        encryptionKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: Session key encrypted for `clientPubKey`; decrypted by the App only.
+        signature:
+          type: string
+          format: byte
+          minLength: 1
+          description: NSSAM signature over the session data; verified by the App only.
+
+    RemoteWscdCancelSessionRequest:
+      type: object
+      description: Body of `POST /remote-wscd/session-cancellations`.
+      required: [jwtToken, sessionId]
+      properties:
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+
+    RemoteWscdEnrollRequest:
+      type: object
+      description: Body of `POST /remote-wscd/keys`.
+      required: [jwtToken, sessionId, data]
+      properties:
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+        data:
+          type: string
+          format: byte
+          minLength: 1
+          description: Encrypted enrollment payload, forwarded verbatim.
+
+    RemoteWscdEnrollResponse:
+      type: object
+      description: Enrolled key.
+      required: [encryptedKey, publicKey, kec]
+      properties:
+        encryptedKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: KeyBlob of the new key, to be stored by the App.
+        publicKey:
+          type: object
+          description: |
+            Public key of the enrolled key. For EC keys `modulus` carries the X
+            coordinate and `exponent` the Y coordinate.
+          required: [keyType, modulus, exponent]
+          properties:
+            keyType:
+              type: string
+              enum: [RSA, EC]
+            modulus:
+              type: string
+              format: byte
+              minLength: 1
+            exponent:
+              type: string
+              format: byte
+              minLength: 1
+        kec:
+          type: string
+          format: byte
+          minLength: 1
+          description: |
+            Key Enrollment Certificate: base64 DER X.509 certificate issued by
+            the Wallet Provider over `publicKey` (evidence of the enrollment
+            event, not an HSM key attestation).
+
+    RemoteWscdKeyOperationRequest:
+      type: object
+      description: Body of `POST /remote-wscd/pin-changes` and `POST /remote-wscd/signatures`.
+      required: [jwtToken, sessionId, encryptedKey, data]
+      properties:
+        jwtToken:
+          type: string
+          format: jwt
+          description: RS256 NSSAM access token issued by `/auth/token-exchanges`.
+        sessionId:
+          type: string
+          pattern: '^\S+$'
+          description: Opaque NSSAM session identifier returned by `POST /remote-wscd/sessions`.
+        encryptedKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: KeyBlob of the key, forwarded verbatim.
+        data:
+          type: string
+          format: byte
+          minLength: 1
+          description: Encrypted operation payload, forwarded verbatim.
+
+    RemoteWscdHashSignResponse:
+      type: object
+      description: Hash signature.
+      required: [signature]
+      properties:
+        signature:
+          type: string
+          format: byte
+          minLength: 1
+          description: Signature computed by NSSAM.
+
+    RemoteWscdChangePinResponse:
+      type: object
+      description: Result of a PIN change.
+      required: [encryptedKey]
+      properties:
+        encryptedKey:
+          type: string
+          format: byte
+          minLength: 1
+          description: New KeyBlob that replaces the old one.
+
+    RemoteWscdProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemJson'
+        - type: object
+          required: [code, retryable]
+          properties:
+            code:
+              type: string
+              enum:
+                - INVALID_REQUEST
+                - INVALID_TOKEN
+                - KEC_UNAVAILABLE
+                - KEY_ALREADY_EXISTS
+                - KEY_INVALID
+                - KEY_LOCKED
+                - NSSAM_INVALID_RESPONSE
+                - NSSAM_REJECTED
+                - NSSAM_TIMEOUT
+                - NSSAM_UNAVAILABLE
+                - PIN_INCORRECT
+                - SESSION_INVALID
+                - TOO_MANY_SESSIONS
+                - UNAUTHENTICATED
+                - WALLET_INSTANCE_INVALID
+                - WALLET_INSTANCE_MISMATCH
+                - WALLET_SESSION_UNAVAILABLE
+                - WEAK_PIN
+            remainingAttempts:
+              type: integer
+              minimum: 1
+              maximum: 2
+              description: |
+                PIN attempts left before the Wallet Instance is locked. Present only
+                when `code` is `PIN_INCORRECT` on `POST /remote-wscd/signatures`.
+            retryable:
+              type: boolean
+              description: |
+                Repeating the whole flow with a fresh token and session may
+                succeed without user action. The Backend never retries.
+
     ProblemJson:
       type: object
       properties:
         type:
           type: string
-          description: |-
-            An absolute URI that identifies the problem type. When dereferenced,
-            it SHOULD provide human-readable documentation for the problem type
-            (e.g., using HTML).
           format: uri
           default: about:blank
-          example: https://example.com/problem/constraint-violation
         title:
           type: string
-          description: "A short, summary of the problem type. Written in english and readable for engineers (usually not suited for non technical stakeholders and not localized); example: Service Unavailable"
         status:
+          type: integer
+          format: int32
+          minimum: 100
           maximum: 600
           exclusiveMaximum: true
-          minimum: 100
-          type: integer
-          description:
-            The HTTP status code generated by the origin server for this
-            occurrence of the problem.
-          format: int32
           example: 500
         detail:
           type: string
-          description: |-
-            A human readable explanation specific to this occurrence of the
-            problem.
-          example: There was an error processing the request
         instance:
           type: string
-          description:
-            An absolute URI that identifies the specific occurrence of
-            the problem. It may or may not yield further information if dereferenced.
           format: uri
-    WhitelistedFiscalCodeData:
-      required:
-        - whitelisted
-        - fiscalCode
-      type: object
-      properties:
-        whitelisted:
-          type: boolean
-          description:
-            Boolean value that specifies whether the tax code is whitelisted
-            or not.
-        whitelistedAt:
-          type: string
-          description: |-
-            Date, expressed in ISO 8601 format, when the fiscal code was added to the whitelist.
-            Only present if the fiscal code is whitelisted.
-        fiscalCode:
-          type: string
-          description: The fiscal code, the same one passed in input.
-      example:
-        whitelisted: true
-        whitelistedAt: string
-        fiscalCode: string
-  responses:
-    Forbidden:
-      description: The server understands the request but refuses to authorize it
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProblemJson"
-    BadRequest:
-      description: Validation error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProblemJson"
-    NotFound:
-      description: The specified resource was not found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProblemJson"
-    Conflict:
-      description: There has been a conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProblemJson"
-    UnprocessableContent:
-      description: Unprocessable Content
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProblemJson"
-    InternalServerError:
-      description: Internal Server Error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProblemJson"
-    ServiceUnavailable:
-      description: Service Unavailable
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProblemJson"
