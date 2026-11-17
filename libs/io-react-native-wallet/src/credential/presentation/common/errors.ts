@@ -95,19 +95,3 @@ export class MissingDataError extends IoWalletError {
     super(message);
   }
 }
-
-/**
- * When selecting a public key from an entity configuration, and no one meets the requirements for the scenario
- *
- */
-export class NoSuitableKeysFoundInEntityConfiguration extends IoWalletError {
-  override code = "ERR_NO_SUITABLE_KEYS_NOT_FOUND";
-
-  /**
-   * @param scenario describe the scenario in which the error arise
-   */
-  constructor(scenario: string) {
-    const message = `Entity configuration do not provide any suitable keys (${scenario}).`;
-    super(message);
-  }
-}

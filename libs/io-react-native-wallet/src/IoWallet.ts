@@ -16,7 +16,7 @@ interface DigitalWalletConfig {
  * After initialization, each feature can be accessed under the corresponding namespace.
  *
  * @example
- * const wallet = new IoWallet({ version: "1.0.0" })
+ * const wallet = new IoWallet({ version: "1.4.6" })
  * wallet.Credential.Issuance.exampleMethod()
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging

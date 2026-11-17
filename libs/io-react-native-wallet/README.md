@@ -5,7 +5,6 @@ Library which provides a high level abstraction to interact with the IT-Wallet e
 It is designed to **support multiple versions of IT-Wallet specifications** via a unified API interface that keeps consumers unaware of specific versions nuances.
 
 Follows the [eudi-wallet-it-docs](https://github.com/italia/eudi-wallet-it-docs) specifications:
-- Version [1.0.0](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.0.0)
 - Version [1.3.3](https://github.com/italia/eudi-wallet-it-docs/releases/tag/1.3.3)
 
 The following table highlights the relationship between `io-react-native-wallet` and IT-Wallet specifications.
@@ -34,7 +33,7 @@ To get started, create an instance of `IoWallet` specifying the desired IT-Walle
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet"
 
-const wallet = new IoWallet({ version: "1.0.0" })
+const wallet = new IoWallet({ version: "1.4.6" })
 ```
 
 After instantiation, the Wallet features are available under namespaces and are bound to the specified IT-Wallet version.
@@ -105,7 +104,7 @@ export interface Signer {
 }
 ```
 
-Remote signers are not supported by the flows of version `1.0.0` and by the Key Attestation flow: passing one throws an `UnimplementedFeatureError`.
+Remote signers are not supported by the Key Attestation flow: passing one throws an `UnimplementedFeatureError`.
 
 The suggested library to manage local cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto). The consumer app implements the `Signer` (see `createLocalSignerFor` in the [example app](../../apps/example-app/src/utils/localCrypto.ts)), e.g. a local `Signer` bound to a given key tag:
 
@@ -209,7 +208,6 @@ Different flows are provided to perform common operations. Each flow is a set of
   - [Offer](./src/credential/offer/README.md)
   - [Presentation](./src/credential/presentation/README.md)
   - [Status](./src/credential/status/README.md)
-  - [Trustmark](./src/credential/trustmark/README.md)
 
 ### Example
 

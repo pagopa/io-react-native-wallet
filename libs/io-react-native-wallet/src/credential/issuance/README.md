@@ -10,7 +10,7 @@ The supported credentials are defined in the entity configuration of the issuer 
 
 The IT-Wallet specifications require that the cryptographic keys associated with each credential be stored in a WSCD and attested through a **Key Attestation**, which must be provided to the Issuer when requesting a credential.
 
-Every key used by the flow is provided as a `Signer` (see the [library README](../../../README.md)). In version `1.0.0` only local signers (`kind: "LOCAL"`) are supported and passing a remote signer throws an `UnimplementedFeatureError`.
+Every key used by the flow is provided as a `Signer` (see the [library README](../../../README.md)).
 
 ## Sequence Diagram
 
@@ -114,7 +114,7 @@ To obtain a batch of credentials the Issuance module exposes a dedicated methodâ
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the key tag used to create the wallet instance
@@ -147,14 +147,9 @@ const walletInstanceAttestation =
   );
 
 const credentialKeyTag = uuidv4().toString();
-let keyAttestation: string | undefined;
 
-// Obtains a Key Attestation if supported
-if (wallet.KeyAttestation.isSupported) {
-  keyAttestation = await wallet.KeyAttestation.getAttestation(); // See the Key Attestation README for more details
-} else {
-  await generate(credentialKeyTag); // Let's assume this function generates a new hardware-backed key pair
-}
+// Obtains a Key Attestation for the credential key
+const keyAttestation = await wallet.KeyAttestation.getAttestation(); // See the Key Attestation README for more details
 
 const pid = {
   credential: "example",
@@ -298,7 +293,7 @@ return {
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the key tag used to create the wallet instance
@@ -446,7 +441,7 @@ The result of this flow is a raw credential and a parsed credential which must b
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 /**
  *

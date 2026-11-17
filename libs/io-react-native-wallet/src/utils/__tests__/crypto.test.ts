@@ -74,13 +74,13 @@ describe("assertLocalSigners", () => {
 
   it("does not throw when all signers are local", () => {
     expect(() =>
-      assertLocalSigners("1.0.0", signer("LOCAL"), signer("LOCAL")),
+      assertLocalSigners("1.4.6", signer("LOCAL"), signer("LOCAL")),
     ).not.toThrow();
   });
 
   it("throws when any signer is remote", () => {
     expect(() =>
-      assertLocalSigners("1.0.0", signer("LOCAL"), signer("REMOTE")),
+      assertLocalSigners("1.4.6", signer("LOCAL"), signer("REMOTE")),
     ).toThrow(UnimplementedFeatureError);
   });
 });

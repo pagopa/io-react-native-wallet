@@ -77,8 +77,6 @@ export interface StatusListApi {
     format: CredentialFormat,
   ): Promise<{ idx: number; uri: string }>;
 
-  isSupported: true;
-
   /**
    * Verifies the signature of a status list token and parses its payload.
    * @since 1.3.3

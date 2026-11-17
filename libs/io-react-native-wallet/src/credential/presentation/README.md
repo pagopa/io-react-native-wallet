@@ -50,7 +50,7 @@ The following HTTP errors are mapped to a `RelyingPartyResponseError` with speci
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet"
 
-const wallet = new IoWallet({ version: "1.0.0" })
+const wallet = new IoWallet({ version: "1.4.6" })
 
 // Retrieve and scan the qr-code, decode it and get its parameters
 const qrCodeParams = decodeQrCode(qrCode)

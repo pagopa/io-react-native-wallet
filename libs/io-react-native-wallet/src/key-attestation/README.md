@@ -7,16 +7,6 @@ This flow is used to obtain a [**Key Attestation**](https://italia.github.io/eid
    - `keysToAttest` one or more `KeyToAttest` objects, each made of the `Signer` bound to the generated key and its `attestation` (required on Android). Remote signers (`kind: "REMOTE"`) are not supported yet and cause an `UnimplementedFeatureError`;
    - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance.
 
-#### Note
-Before invoking `KeyAttestation`'s functions, it is necessary to check whether the feature is supported by the current IoWallet instance.
-```ts
-const wallet = new IoWallet({ version: "1.4.6" });
-
-if (wallet.KeyAttestation.isSupported) {
-  // Get the WUA
-}
-```
-
 ### Example usage
 
 ```ts

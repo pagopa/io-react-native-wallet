@@ -2,22 +2,6 @@ import { z } from "zod";
 
 import { UnixTime } from "../../../utils/zod";
 
-/**
- * Common type for a parsed Status Assertion
- */
-export interface ParsedStatusAssertion {
-  credential_hash: string;
-  credential_hash_alg: string;
-  credential_status_detail?: {
-    description: string;
-    state: string;
-  };
-  credential_status_type: string;
-  exp: number;
-  iat: number;
-  iss: string;
-}
-
 const StatusListBits = z.union([
   z.literal(1),
   z.literal(2),

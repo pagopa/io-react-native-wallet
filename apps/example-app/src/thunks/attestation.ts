@@ -27,7 +27,7 @@ export type GetAttestationThunkOutput = Awaited<
   ReturnType<Wia.WalletInstanceAttestationApi["getAttestation"]>
 >;
 export type GetKeyAttestationThunkOutput = Awaited<
-  ReturnType<Ka.KeyAttestationSupportedApi["getAttestation"]>
+  ReturnType<Ka.KeyAttestationApi["getAttestation"]>
 >;
 /**
  * Thunk to obtain a new Wallet Instance Attestation.
@@ -87,10 +87,6 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
 >("walletinstance/keyattestation", async ({ keyTags }, { getState }) => {
   const itwVersion = selectItwVersion(getState());
   const wallet = new IoWallet({ version: itwVersion });
-
-  if (!wallet.KeyAttestation.isSupported) {
-    throw new Error(`Key Attestation is not supported in v${itwVersion}`);
-  }
 
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());

@@ -76,6 +76,5 @@ export const IssuerConfig = z.object({
    * @deprecated
    */
   response_modes_supported: z.array(z.string()).optional(),
-  status_assertion_endpoint: z.string().optional(),
   token_endpoint: z.string(),
 });

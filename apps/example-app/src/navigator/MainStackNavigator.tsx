@@ -7,8 +7,6 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
 
-import type { SupportedCredentialsWithoutPid } from "../store/types";
-
 import { HeaderTitle } from "../components/HeaderTitle";
 import { useIoSessionCheck } from "../hooks/useIoSessionCheck";
 import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
@@ -33,10 +31,6 @@ import {
   type QrScannerScreenParams,
 } from "../screens/QrScannerScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import {
-  TrustmarkQrCodeScreen,
-  TrustmarkScreen,
-} from "../screens/TrustmarkScreen";
 import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
@@ -44,7 +38,6 @@ import { selectLoggingAddress } from "../store/reducers/environment";
 import { selectHasSessionAccess } from "../store/reducers/session";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
-import { labelByCredentialType } from "../utils/ui";
 
 /**
  * MainStackNav parameters list for each defined screen.
@@ -78,8 +71,6 @@ export type MainStackNavParamList = {
   QrScanner: QrScannerScreenParams;
   Settings: undefined;
   Trust: undefined;
-  Trustmark: undefined;
-  TrustmarkQrCode: { credentialType: SupportedCredentialsWithoutPid };
   WalletInstance: undefined;
 };
 
@@ -201,20 +192,6 @@ export const MainStackNavigator = () => {
               component={ProximityScreen}
               name="Proximity"
               options={{ title: "Proximity" }}
-            />
-            <Stack.Screen
-              component={TrustmarkScreen}
-              name="Trustmark"
-              options={{ title: "Credentials trustmark" }}
-            />
-            <Stack.Screen
-              component={TrustmarkQrCodeScreen}
-              name="TrustmarkQrCode"
-              options={({ route }) => ({
-                title: `${
-                  labelByCredentialType[route.params.credentialType]
-                } trustmark`,
-              })}
             />
             <Stack.Screen
               component={OfferScreen}

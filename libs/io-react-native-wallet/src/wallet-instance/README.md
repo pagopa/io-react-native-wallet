@@ -14,7 +14,7 @@ Examples are provided as follows:
 ### Wallet instance creation
 
 ```ts
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 // Get env
 const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object containing the environment variables
 
@@ -42,7 +42,7 @@ The returned `integrityKeyTag` is supposed to be stored and used to verify the i
 Revoke a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
 
 ```ts
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 const { WALLET_PROVIDER_BASE_URL } = env;
 
 await wallet.WalletInstance.revokeWalletInstance({
@@ -57,7 +57,7 @@ await wallet.WalletInstance.revokeWalletInstance({
 Get the status of a Wallet Instance by ID. The ID matches the hardware/integrity key tag used for creation.
 
 ```ts
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 const { WALLET_PROVIDER_BASE_URL } = env;
 
 const status = await wallet.WalletInstance.getWalletInstanceStatus({

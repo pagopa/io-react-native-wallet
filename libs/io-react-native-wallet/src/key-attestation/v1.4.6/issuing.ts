@@ -1,7 +1,7 @@
 import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { Platform } from "react-native";
 
-import type { KeyAttestationSupportedApi, KeyToAttest } from "../api";
+import type { KeyAttestationApi, KeyToAttest } from "../api";
 
 import { getWalletProviderClient } from "../../client";
 import { assertLocalSigners, toCryptoContext } from "../../utils/crypto";
@@ -53,7 +53,7 @@ const createKeyAttestationRequest = async ({
   return { keyAttestationRequestJwt: requestJwt, publicKey, signer };
 };
 
-export const getChallenge: KeyAttestationSupportedApi["getChallenge"] = async (
+export const getChallenge: KeyAttestationApi["getChallenge"] = async (
   { walletProviderBaseUrl },
   { appFetch = fetch } = {},
 ) => {
@@ -66,101 +66,93 @@ export const getChallenge: KeyAttestationSupportedApi["getChallenge"] = async (
   return nonce;
 };
 
-export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
-  async (
-    { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
-    {
-      appFetch = fetch,
-      challenge: nonce,
-      integrityContext,
-      keysToAttest: keys,
-    },
-  ) => {
-    if (keys.length === 0) {
-      throw new IoWalletError("At least one key to attest must be provided");
-    }
+export const getAttestation: KeyAttestationApi["getAttestation"] = async (
+  { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
+  { appFetch = fetch, challenge: nonce, integrityContext, keysToAttest: keys },
+) => {
+  if (keys.length === 0) {
+    throw new IoWalletError("At least one key to attest must be provided");
+  }
 
-    assertLocalSigners("1.4.6", ...keys.map((k) => k.signer));
+  assertLocalSigners("1.4.6", ...keys.map((k) => k.signer));
 
-    const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
+  const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
 
-    const keysToAttest = await Promise.all(
-      keys.map(createKeyAttestationRequest),
+  const keysToAttest = await Promise.all(keys.map(createKeyAttestationRequest));
+
+  // Use the first key to attest to sign the WUA Request JWT
+  const signatureKey = keysToAttest.at(0);
+
+  if (!signatureKey) {
+    throw new IoWalletError(
+      "No signature key available for signing the WUA request",
     );
+  }
 
-    // Use the first key to attest to sign the WUA Request JWT
-    const signatureKey = keysToAttest.at(0);
+  const hardwareKeyTag = integrityContext.getHardwareKeyTag();
 
-    if (!signatureKey) {
-      throw new IoWalletError(
-        "No signature key available for signing the WUA request",
-      );
-    }
-
-    const hardwareKeyTag = integrityContext.getHardwareKeyTag();
-
-    const clientData = {
-      challenge: nonce,
-      jwk_thumbprints: await Promise.all(
-        keysToAttest.map((k) => thumbprint(k.publicKey)),
-      ),
-    };
-
-    const { authenticatorData, signature } =
-      await integrityContext.getHardwareSignatureWithAuthData(
-        JSON.stringify(clientData),
-      );
-
-    const signedAttestationRequest = await new SignJWT(
-      toCryptoContext(signatureKey.signer),
-    )
-      .setProtectedHeader({
-        kid: signatureKey.publicKey.kid,
-        typ: "wua-request+jwt",
-      })
-      .setPayload({
-        cnf: {
-          jwk: fixBase64EncodingOnKey(signatureKey.publicKey),
-        },
-        hardware_key_tag: hardwareKeyTag,
-        hardware_signature: signature,
-        integrity_assertion: authenticatorData,
-        iss: hardwareKeyTag,
-        keys_to_attest: keysToAttest.map((k) => k.keyAttestationRequestJwt),
-        nonce,
-        platform: Platform.OS,
-        wallet_solution_id: walletSolutionId,
-        wallet_solution_version: walletSolutionVersion,
-      })
-      .setIssuedAt()
-      .setExpirationTime("1h")
-      .sign();
-
-    Logger.log(
-      LogLevel.DEBUG,
-      `Signed attestation request: ${signedAttestationRequest}`,
-    );
-
-    const response = await api
-      .post("/key-attestations", {
-        body: signedAttestationRequest,
-        header: {
-          "Content-Type": "text/plain",
-        },
-      })
-      .then(KeyAttestationResponse.parse)
-      .catch(handleKeyAttestationCreationError);
-
-    Logger.log(
-      LogLevel.DEBUG,
-      `Obtained Key Attestation: ${response.key_attestation}`,
-    );
-
-    return {
-      attestation: response.key_attestation,
-      format: "jwt",
-    };
+  const clientData = {
+    challenge: nonce,
+    jwk_thumbprints: await Promise.all(
+      keysToAttest.map((k) => thumbprint(k.publicKey)),
+    ),
   };
+
+  const { authenticatorData, signature } =
+    await integrityContext.getHardwareSignatureWithAuthData(
+      JSON.stringify(clientData),
+    );
+
+  const signedAttestationRequest = await new SignJWT(
+    toCryptoContext(signatureKey.signer),
+  )
+    .setProtectedHeader({
+      kid: signatureKey.publicKey.kid,
+      typ: "wua-request+jwt",
+    })
+    .setPayload({
+      cnf: {
+        jwk: fixBase64EncodingOnKey(signatureKey.publicKey),
+      },
+      hardware_key_tag: hardwareKeyTag,
+      hardware_signature: signature,
+      integrity_assertion: authenticatorData,
+      iss: hardwareKeyTag,
+      keys_to_attest: keysToAttest.map((k) => k.keyAttestationRequestJwt),
+      nonce,
+      platform: Platform.OS,
+      wallet_solution_id: walletSolutionId,
+      wallet_solution_version: walletSolutionVersion,
+    })
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign();
+
+  Logger.log(
+    LogLevel.DEBUG,
+    `Signed attestation request: ${signedAttestationRequest}`,
+  );
+
+  const response = await api
+    .post("/key-attestations", {
+      body: signedAttestationRequest,
+      header: {
+        "Content-Type": "text/plain",
+      },
+    })
+    .then(KeyAttestationResponse.parse)
+    .catch(handleKeyAttestationCreationError);
+
+  Logger.log(
+    LogLevel.DEBUG,
+    `Obtained Key Attestation: ${response.key_attestation}`,
+  );
+
+  return {
+    attestation: response.key_attestation,
+    format: "jwt",
+  };
+};
 
 const handleKeyAttestationCreationError = (e: unknown) => {
   Logger.log(

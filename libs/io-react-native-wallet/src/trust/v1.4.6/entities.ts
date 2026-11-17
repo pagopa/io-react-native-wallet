@@ -6,7 +6,11 @@ import {
   type FetchOptions,
   getSignedEntityConfiguration,
 } from "../common/utils";
-import { EntityConfiguration, RelyingPartyEntityConfiguration } from "./types";
+import {
+  EntityConfiguration,
+  RelyingPartyEntityConfiguration,
+  TrustAnchorEntityConfiguration,
+} from "./types";
 
 /**
  * Fetch and parse the entity configuration document for a given federation entity.
@@ -49,5 +53,15 @@ export const getRelyingPartyEntityConfiguration = (
   fetchAndParseEntityConfiguration(
     entityBaseUrl,
     RelyingPartyEntityConfiguration,
+    options,
+  );
+
+export const getTrustAnchorEntityConfiguration = (
+  entityBaseUrl: string,
+  options?: FetchOptions,
+) =>
+  fetchAndParseEntityConfiguration(
+    entityBaseUrl,
+    TrustAnchorEntityConfiguration,
     options,
   );

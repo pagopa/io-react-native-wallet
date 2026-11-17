@@ -2,7 +2,7 @@ import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api/IssuerConfig";
 
 import { createInitChallenge } from "../02-init-challenge";
-import { sdkConfigV1_0 } from "../../../../utils/config";
+import { sdkConfigV1_4 } from "../../../../utils/config";
 import { IssuerResponseError } from "../../../../utils/errors";
 
 // Provide a deterministic uuid
@@ -50,7 +50,7 @@ const wiaSigner = {
   sign: jest.fn(),
 } as Signer;
 
-const initChallenge = createInitChallenge({ sdkConfig: sdkConfigV1_0 });
+const initChallenge = createInitChallenge({ sdkConfig: sdkConfigV1_4 });
 
 describe("initChallenge", () => {
   const mrtd_auth_session = "auth-session-id";

@@ -7,22 +7,21 @@ This is a **React Native library** (not an app). The public API is exported from
 The main entrypoint is the `IoWallet` class in `src/IoWallet.ts`, which is instantiated with a specific IT-Wallet spec version and exposes all feature namespaces.
 
 ```ts
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 wallet.CredentialIssuance.evaluateIssuerTrust(...)
 wallet.WalletInstance.createWalletInstance(...)
 ```
 
 ## Versioning
 
-The library supports multiple IT-Wallet specification versions (`1.0.0`, `1.4.6`). Each feature module provides per-version implementations:
+The library is designed to support multiple IT-Wallet specification versions (currently `1.4.6`). Each feature module provides per-version implementations:
 
 ```
 src/<feature>/
 ├── api/            # Shared API types and contracts
 ├── common/         # Shared logic across versions
-├── v1.0.0/         # v1.0.0 implementation
 ├── v1.4.6/         # v1.4.6 implementation
-└── index.ts        # Exports V1_0_0 and V1_4_6 named implementations
+└── index.ts        # Exports the V1_4_6 named implementation
 ```
 
 Version dispatch happens in `src/api/index.ts` via `ioWalletApiByVersion`.
@@ -36,9 +35,8 @@ Version dispatch happens in `src/api/index.ts` via `ioWalletApiByVersion`.
 | `trust` | `Trust` | Evaluate trust chains and entity configurations |
 | `credential/issuance` | `CredentialIssuance` | Full OID4VCI credential issuance flow |
 | `credential/offer` | `CredentialsOffer` | Resolve and parse credential offers |
-| `credential/status` | `CredentialStatus` | Check credential validity via status assertions |
+| `credential/status` | `CredentialStatus` | Check credential validity via Token Status List |
 | `credential/presentation` | `RemotePresentation` | OID4VP remote presentation flow |
-| `credential/trustmark` | `Trustmark` | Get credential trustmarks |
 | `credentials-catalogue` | `CredentialsCatalogue` | Fetch supported credentials catalogue |
 
 ## Credential Issuance Flow

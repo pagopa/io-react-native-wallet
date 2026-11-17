@@ -5,24 +5,12 @@ import type { ValidateCredentialOfferApi } from "./03-validate-credential-offer"
 /**
  * Credential Offer API.
  *
- * **Important:** before using it, ensure it is supported by the selected IT-Wallet version.
- *
  * @example
- * if (wallet.CredentialsOffer.isSupported) {
- *   const offer = await wallet.CredentialsOffer.resolveCredentialOffer(uri);
- * }
+ * const offer = await wallet.CredentialsOffer.resolveCredentialOffer(uri);
  */
-export type OfferApi = OfferSupportedApi | UnsupportedApi;
-
-export interface OfferSupportedApi
+export interface OfferApi
   extends ExtractGrantDetailsApi,
     ResolveCredentialOfferApi,
-    ValidateCredentialOfferApi {
-  isSupported: true;
-}
-
-interface UnsupportedApi {
-  isSupported: false;
-}
+    ValidateCredentialOfferApi {}
 
 export * from "./types";

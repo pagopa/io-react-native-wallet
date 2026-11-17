@@ -2,7 +2,6 @@ import {
   CredentialIssuance,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
-import { generate } from "@pagopa/io-react-native-crypto";
 import { v4 as uuidv4 } from "uuid";
 
 import {
@@ -230,18 +229,11 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     throw new Error("No credential configuration ID found for PID");
   }
 
-  // Create credential signer and get the WUA if supported
+  // Create credential signer and get the WUA
   const credentialKeyTag = uuidv4().toString();
-  let keyAttestation: string | undefined;
-
-  if (wallet.KeyAttestation.isSupported) {
-    const ka = await dispatch(
-      getKeyAttestationThunk({ keyTags: [credentialKeyTag] }),
-    ).unwrap();
-    keyAttestation = ka.attestation;
-  } else {
-    await generate(credentialKeyTag);
-  }
+  const { attestation: keyAttestation } = await dispatch(
+    getKeyAttestationThunk({ keyTags: [credentialKeyTag] }),
+  ).unwrap();
 
   const credentialSigner = createLocalSignerFor(credentialKeyTag);
 

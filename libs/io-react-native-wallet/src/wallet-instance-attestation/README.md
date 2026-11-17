@@ -7,7 +7,7 @@ This flow consists of a single step and is used to obtain a Wallet Instance Atte
 
 The wallet provider must implement its endpoints based on the OpenAPI specification provided in the [wallet-instance.yaml](../../openapi/wallet-provider.yaml) file. In order to require a status attestation the consumer application must provide:
 
-- `wiaSigner` object that is used to sign the attestation request. The key must be generated before creating the signer. Remote signers (`kind: "REMOTE"`) are not supported in version `1.0.0`;
+- `wiaSigner` object that is used to sign the attestation request. The key must be generated before creating the signer;
 - `integrityContext` object that is used to verify the integrity of the device where the app is running. The key tag must be the same used when creating the Wallet Instance;
 
 ```ts
@@ -29,7 +29,7 @@ const { WALLET_PROVIDER_BASE_URL } = env; // Let's assume env is an object conta
  * Obtains a new Wallet Instance Attestation.
  * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
  */
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 const issuedAttestation = await wallet.WalletInstanceAttestation.getAttestation(
   {
     walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,

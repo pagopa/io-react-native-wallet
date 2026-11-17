@@ -2,7 +2,6 @@ import * as CredentialIssuance from "../credential/issuance";
 import * as CredentialsOffer from "../credential/offer";
 import * as RemotePresentation from "../credential/presentation";
 import * as CredentialStatus from "../credential/status";
-import * as Trustmark from "../credential/trustmark";
 import * as CredentialsCatalogue from "../credentials-catalogue";
 import * as KA from "../key-attestation";
 import * as Trust from "../trust";
@@ -20,29 +19,16 @@ export interface IoWalletApi {
   KeyAttestation: KA.KeyAttestationApi;
   RemotePresentation: RemotePresentation.RemotePresentationApi;
   Trust: Trust.TrustApi;
-  Trustmark: Trustmark.TrustmarkApi;
   WalletInstance: WalletInstance.WalletInstanceApi;
   WalletInstanceAttestation: WIA.WalletInstanceAttestationApi;
 }
 
-export type ItwVersion = "1.0.0" | "1.4.6";
+export type ItwVersion = "1.4.6";
 
 /**
  * The Wallet API implementations grouped by IT-Wallet specifications version.
  */
 export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
-  "1.0.0": {
-    CredentialIssuance: CredentialIssuance.V1_0_0,
-    CredentialsCatalogue: CredentialsCatalogue.V1_0_0,
-    CredentialsOffer: CredentialsOffer.V1_0_0,
-    CredentialStatus: CredentialStatus.V1_0_0,
-    KeyAttestation: KA.V1_0_0,
-    RemotePresentation: RemotePresentation.V1_0_0,
-    Trust: Trust.V1_0_0,
-    Trustmark: Trustmark.V1_0_0,
-    WalletInstance: WalletInstance.V1_0_0,
-    WalletInstanceAttestation: WIA.V1_0_0,
-  },
   "1.4.6": {
     CredentialIssuance: CredentialIssuance.V1_4_6,
     CredentialsCatalogue: CredentialsCatalogue.V1_4_6,
@@ -50,8 +36,7 @@ export const ioWalletApiByVersion: Record<ItwVersion, IoWalletApi> = {
     CredentialStatus: CredentialStatus.V1_4_6,
     KeyAttestation: KA.V1_4_6,
     RemotePresentation: RemotePresentation.V1_4_6,
-    Trust: Trust.V1_0_0,
-    Trustmark: Trustmark.V1_4_6,
+    Trust: Trust.V1_4_6,
     WalletInstance: WalletInstance.V1_4_6,
     WalletInstanceAttestation: WIA.V1_4_6,
   },

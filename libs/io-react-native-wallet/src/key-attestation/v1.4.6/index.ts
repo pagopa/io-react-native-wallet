@@ -9,5 +9,4 @@ export const KeyAttestation: KeyAttestationApi = {
   decode: withMapper(mapToDecodedKeyAttestation, decode),
   getAttestation,
   getChallenge,
-  isSupported: true,
 };

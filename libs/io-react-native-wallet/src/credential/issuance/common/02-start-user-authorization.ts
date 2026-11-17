@@ -4,8 +4,6 @@ import { IoWalletError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { AuthorizationDetail } from "../../../utils/par";
 
-type ResponseMode = "form_post.jwt" | "query";
-
 /**
  * Ensures that the credential type requested is supported by the issuer and contained in the
  * issuer configuration.
@@ -35,61 +33,4 @@ export const selectCredentialDefinition = (
     throw new IoWalletError(`No credential support the type '${credentialId}'`);
   }
   return result;
-};
-
-/**
- * Ensures that the response mode requested is supported by the issuer and contained in the issuer configuration.
- * When multiple credentials are provided, all of them must support the same response_mode.
- * @param issuerConf The issuer configuration
- * @param credentialIds The credential configuration IDs to be requested
- * @returns The response mode to be used in the request, "query" for PersonIdentificationData and "form_post.jwt" for all other types.
- */
-export const selectResponseMode = (
-  issuerConf: IssuerConfig,
-  credentialIds: string[],
-): ResponseMode => {
-  const responseModeSet = new Set<ResponseMode>();
-
-  for (const credentialId of credentialIds) {
-    responseModeSet.add(
-      credentialId.match(/PersonIdentificationData/i)
-        ? "query"
-        : "form_post.jwt",
-    );
-  }
-
-  if (responseModeSet.size !== 1) {
-    Logger.log(
-      LogLevel.ERROR,
-      `${credentialIds} have incompatible response_mode: ${[...responseModeSet.values()]}`,
-    );
-    throw new IoWalletError(
-      "Requested credentials have incompatible response_mode and cannot be requested with the same PAR request",
-    );
-  }
-
-  const [responseMode] = responseModeSet.values();
-  if (!responseMode) {
-    throw new IoWalletError(
-      `No response mode found for requested credential IDs '${credentialIds}'`,
-    );
-  }
-
-  Logger.log(
-    LogLevel.DEBUG,
-    `Selected response mode ${responseMode} for credential IDs ${credentialIds}`,
-  );
-
-  const responseModeSupported = issuerConf.response_modes_supported;
-  if (responseModeSupported && !responseModeSupported.includes(responseMode)) {
-    Logger.log(
-      LogLevel.ERROR,
-      `Requested response mode ${responseMode} is not supported by the issuer according to its configuration ${JSON.stringify(responseModeSupported)}`,
-    );
-    throw new IoWalletError(
-      `No response mode support for IDs '${credentialIds}'`,
-    );
-  }
-
-  return responseMode;
 };

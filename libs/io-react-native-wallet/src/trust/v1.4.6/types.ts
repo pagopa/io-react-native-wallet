@@ -9,6 +9,12 @@ import * as z from "zod";
 import { JWK } from "../../utils/jwk";
 import { BaseEntityConfiguration } from "../common/types";
 
+// Entity configuration for a Trust Anchor (it has no specific metadata section)
+export type TrustAnchorEntityConfiguration = z.infer<
+  typeof TrustAnchorEntityConfiguration
+>;
+export const TrustAnchorEntityConfiguration = BaseEntityConfiguration;
+
 // Entity configuration for a Credential Issuer
 export type CredentialIssuerEntityConfiguration = z.infer<
   typeof CredentialIssuerEntityConfiguration
@@ -61,6 +67,7 @@ export const EntityConfiguration = z
   .union([
     WalletProviderEntityConfiguration,
     CredentialIssuerEntityConfiguration,
+    TrustAnchorEntityConfiguration,
     RelyingPartyEntityConfiguration,
   ])
   .describe("Any kind of Entity Configuration allowed in the ecosystem");

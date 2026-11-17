@@ -3,7 +3,7 @@ import {
   resolveCredentialOffer as sdkResolveCredentialOffer,
 } from "@pagopa/io-wallet-oid4vci";
 
-import type { OfferSupportedApi } from "../api";
+import type { OfferApi } from "../api";
 
 import { sdkConfigV1_4 } from "../../../utils/config";
 import { InvalidQRCodeError } from "../common/errors";
@@ -24,7 +24,7 @@ import { InvalidQRCodeError } from "../common/errors";
  * Resolution errors (bad scheme, missing params, network failure) are mapped
  * to {@link InvalidQRCodeError}.
  */
-export const resolveCredentialOffer: OfferSupportedApi["resolveCredentialOffer"] =
+export const resolveCredentialOffer: OfferApi["resolveCredentialOffer"] =
   async (credentialOffer, callbacks = {}) => {
     const { fetch: fetchFn = fetch } = callbacks;
 

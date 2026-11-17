@@ -3,7 +3,7 @@ import {
   extractGrantDetails as sdkExtractGrantDetails,
 } from "@pagopa/io-wallet-oid4vci";
 
-import type { OfferSupportedApi } from "../api";
+import type { OfferApi } from "../api";
 
 import { sdkConfigV1_4 } from "../../../utils/config";
 import { withMappedErrors } from "../../../utils/errors";
@@ -22,9 +22,7 @@ import { InvalidCredentialOfferError } from "../common/errors";
  * Delegates directly to the SDK's {@link sdkExtractGrantDetails} — no local
  * mapping is needed because the SDK already returns `ExtractGrantDetailsResult`.
  */
-export const extractGrantDetails: OfferSupportedApi["extractGrantDetails"] = (
-  offer,
-) =>
+export const extractGrantDetails: OfferApi["extractGrantDetails"] = (offer) =>
   withMappedErrors(
     () =>
       sdkExtractGrantDetails({

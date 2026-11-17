@@ -4,12 +4,10 @@ import {
   CredentialStatus,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
-import { generate } from "@pagopa/io-react-native-crypto";
 
 import type { StatusSupportedTokens } from "../store/reducers/credential";
 import type {
   CredentialResult,
-  SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 
@@ -21,7 +19,6 @@ import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectPid } from "../store/selectors/pid";
 import {
   getCredential,
-  getCredentialStatusAssertion,
   getCredentialStatusFromStatusList,
 } from "../utils/credential";
 import { createLocalSignerFor, WIA_KEYTAG } from "../utils/crypto";
@@ -34,33 +31,14 @@ import {
 import { createAppAsyncThunk } from "./utils";
 
 /**
- * Discriminated union representing the unified credential status result,
- * covering both status assertion and status list flows.
+ * Credential status result obtained from the Token Status List.
  */
-export type CredentialStatusResult =
-  | {
-      credentialType: StatusSupportedTokens;
-      rawStatus: string;
-      status: string;
-      statusList: CredentialStatus.StatusList;
-      type: "status_list";
-    }
-  | {
-      credentialType: SupportedCredentials;
-      parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
-      status: string;
-      statusAssertion: string;
-      type: "status_assertion";
-    };
-
-/**
- * Type definition for the input of the {@link getCredentialStatusAssertionThunk}.
- */
-interface GetCredentialStatusAssertionThunkInput {
-  credential: string;
-  credentialType: SupportedCredentials;
-  format: CredentialIssuance.CredentialFormat;
-  keyTag: string;
+export interface CredentialStatusResult {
+  credentialType: StatusSupportedTokens;
+  rawStatus: string;
+  status: string;
+  statusList: CredentialStatus.StatusList;
+  type: "status_list";
 }
 
 /**
@@ -119,11 +97,6 @@ export const getCredentialThunk = createAppAsyncThunk<
   const { batchSize, credentialOffer, credentialType } = args;
 
   const offerApi = wallet.CredentialsOffer;
-  if (credentialOffer && !offerApi.isSupported) {
-    throw new Error(
-      `Credential offer is not supported by IT-Wallet version ${itwVersion}`,
-    );
-  }
 
   // Get the PID from the store
   const pid = selectPid(getState());
@@ -134,14 +107,10 @@ export const getCredentialThunk = createAppAsyncThunk<
   const generateKeysWithAttestation = async (
     credentialKeyTags: string[],
   ): Promise<string | undefined> => {
-    if (wallet.KeyAttestation.isSupported) {
-      const ka = await dispatch(
-        getKeyAttestationThunk({ keyTags: credentialKeyTags }),
-      ).unwrap();
-      return ka.attestation;
-    }
-    await Promise.all(credentialKeyTags.map(generate));
-    return undefined;
+    const ka = await dispatch(
+      getKeyAttestationThunk({ keyTags: credentialKeyTags }),
+    ).unwrap();
+    return ka.attestation;
   };
 
   // When the issuance originates from a credential offer, the issuer URL comes
@@ -153,10 +122,9 @@ export const getCredentialThunk = createAppAsyncThunk<
     ? credentialOffer.credential_issuer
     : WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion);
 
-  const authorizationCodeGrant =
-    credentialOffer && offerApi.isSupported
-      ? offerApi.extractGrantDetails(credentialOffer).authorizationCodeGrant
-      : undefined;
+  const authorizationCodeGrant = credentialOffer
+    ? offerApi.extractGrantDetails(credentialOffer).authorizationCodeGrant
+    : undefined;
 
   // Evaluate issuer trust, selecting the authorization server from the offer
   // when present.
@@ -170,7 +138,7 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   // Validate the credential offer against the resolved Issuer metadata. Only
   // performed when the issuance was started from a credential offer.
-  if (credentialOffer && offerApi.isSupported) {
+  if (credentialOffer) {
     await offerApi.validateCredentialOffer({
       credentialIssuerMetadata: issuerConf.authorization_servers
         ? { authorization_servers: issuerConf.authorization_servers }
@@ -195,48 +163,6 @@ export const getCredentialThunk = createAppAsyncThunk<
     walletInstanceAttestation,
     wiaSigner,
   });
-});
-
-/**
- * Thunk to obtain a credential status assertion.
- * @param args.credentialType - TThe type of credential for which you want to obtain the status assertion.
- * @returns The obtained credential result
- */
-export const getCredentialStatusAssertionThunk = createAppAsyncThunk<
-  CredentialStatusResult,
-  GetCredentialStatusAssertionThunkInput
->("credential/statusAssertionGet", async (args, { getState }) => {
-  const { credential, credentialType, format, keyTag } = args;
-
-  // Create credential signer
-  const credentialSigner = createLocalSignerFor(keyTag);
-  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
-
-  const env = getEnv(selectEnv(getState()));
-  const itwVersion = selectItwVersion(getState());
-
-  const issuerUrl =
-    credentialType === "PersonIdentificationData"
-      ? env.WALLET_PID_PROVIDER_BASE_URL
-      : env.WALLET_EAA_PROVIDER_BASE_URL;
-
-  const result = await getCredentialStatusAssertion(
-    itwVersion,
-    issuerUrl.value(itwVersion),
-    credential,
-    format,
-    credentialSigner,
-    wiaSigner,
-    credentialType,
-  );
-
-  return {
-    credentialType: result.credentialType,
-    parsedStatusAssertion: result.parsedStatusAssertion,
-    status: result.parsedStatusAssertion.credential_status_type,
-    statusAssertion: result.statusAssertion,
-    type: "status_assertion",
-  };
 });
 
 /**

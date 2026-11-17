@@ -15,7 +15,7 @@ export interface EnvironmentState {
 // Initial state for the environment slice
 const initialState: EnvironmentState = {
   env: "prod",
-  itwVersion: "1.0.0",
+  itwVersion: "1.4.6",
   loggingAddress: undefined,
 };
 

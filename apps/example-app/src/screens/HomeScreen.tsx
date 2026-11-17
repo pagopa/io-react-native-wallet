@@ -12,7 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectKeyAttestation } from "../store/reducers/attestation";
-import { selectCredentials } from "../store/reducers/credential";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
 import { selectIoAuthToken } from "../store/reducers/session";
 import { selectPid } from "../store/selectors/pid";
@@ -30,16 +29,10 @@ const HomeScreen = () => {
   const pid = useAppSelector(selectPid);
   const ka = useAppSelector(selectKeyAttestation);
   const session = useAppSelector(selectIoAuthToken);
-  const credentials = useAppSelector(selectCredentials);
 
   useDebugInfo({
     session,
   });
-
-  const hasSomeCredential = React.useMemo(
-    () => Object.values(credentials).filter((_) => !!_).length > 0,
-    [credentials],
-  );
 
   const sections: ModuleSummaryProps[] = useMemo(
     () => [
@@ -83,23 +76,13 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Trust"),
       },
       {
-        description:
-          "Obtain the status of a credential (Status Assertion/Status List)",
+        description: "Obtain the status of a credential (Status List)",
         icon: "chevronRight",
         label: "Credential Status",
         onPress: () =>
           ka || pid
             ? navigation.navigate("CredentialStatus")
             : Alert.alert("Obtain a KA or a PID first"),
-      },
-      {
-        description: "Obtain the trustmark of a credential",
-        icon: "chevronRight",
-        label: "Trustmark",
-        onPress: () =>
-          hasSomeCredential
-            ? navigation.navigate("Trustmark")
-            : Alert.alert("Obtain a credential first"),
       },
       {
         description: "Obtain a credential offer from QR code",
@@ -123,7 +106,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("Settings"),
       },
     ],
-    [hasIntegrityKeyTag, navigation, pid, ka, hasSomeCredential],
+    [hasIntegrityKeyTag, navigation, pid, ka],
   );
 
   return (

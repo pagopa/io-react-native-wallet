@@ -1,7 +1,6 @@
-import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
 import { IOVisualCostants, VSpacer } from "@pagopa/io-app-design-system";
 import compact from "lodash/compact";
-import React, { useMemo } from "react";
+import React from "react";
 import { Alert, FlatList } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 
@@ -16,7 +15,6 @@ import {
   selectWalletInstanceAttestationAsSdJwt,
   selectWalletInstanceAttestationAsyncStatus,
 } from "../store/reducers/attestation";
-import { selectItwVersion } from "../store/reducers/environment";
 import {
   instanceReset,
   selectHasInstanceKeyTag,
@@ -52,23 +50,16 @@ export const WalletInstanceScreen = () => {
   const wiaJwt = useAppSelector(selectWalletInstanceAttestationAsJwt);
   const wiaSdJwt = useAppSelector(selectWalletInstanceAttestationAsSdJwt);
   const kaJwt = useAppSelector(selectKeyAttestation);
-  const itwVersion = useAppSelector(selectItwVersion);
-
-  const ioWallet = useMemo(
-    () => new IoWallet({ version: itwVersion }),
-    [itwVersion],
-  );
-
-  const isKaSupported = ioWallet.KeyAttestation.isSupported;
 
   useDebugInfo({
     instanceKeyTag,
+    instanceRevocationState,
     instanceState,
+    kaJwt,
+    kaState,
     wiaJwt,
     wiaSdJwt,
     wiaState,
-    ...(isKaSupported && { kaJwt, kaState }),
-    instanceRevocationState,
   });
 
   const scenarios: TestScenarioProp[] = compact<TestScenarioProp>([
@@ -113,7 +104,7 @@ export const WalletInstanceScreen = () => {
       onPress: () => dispatch(getWalletInstanceAttestationThunk()),
       title: "Get Wallet Instance Attestation",
     },
-    isKaSupported && {
+    {
       hasError: kaState.hasError,
       icon: "bonus",
       isDone: kaState.isDone,

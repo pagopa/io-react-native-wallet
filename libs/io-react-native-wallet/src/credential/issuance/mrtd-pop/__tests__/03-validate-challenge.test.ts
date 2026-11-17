@@ -8,7 +8,7 @@ import {
   buildChallengeCallbackUrl,
   createValidateChallenge,
 } from "../03-validate-challenge";
-import { sdkConfigV1_0 } from "../../../../utils/config";
+import { sdkConfigV1_4 } from "../../../../utils/config";
 import { IssuerResponseError } from "../../../../utils/errors";
 
 const mockJwtSign = jest.fn();
@@ -69,7 +69,7 @@ const wiaSigner = {
   sign: jest.fn(),
 } as Signer;
 
-const validateChallenge = createValidateChallenge({ sdkConfig: sdkConfigV1_0 });
+const validateChallenge = createValidateChallenge({ sdkConfig: sdkConfigV1_4 });
 
 describe("validateChallenge", () => {
   const verifyUrl = "https://issuer.example/mrtd/verify";

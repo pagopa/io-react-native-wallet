@@ -1,6 +1,5 @@
 import {
   type CredentialIssuance,
-  type CredentialStatus,
   IoWallet,
   type ItwVersion,
   type RemotePresentation,
@@ -13,7 +12,6 @@ import { v4 as uuidv4 } from "uuid";
 import type {
   CredentialResult,
   PidResult,
-  SupportedCredentials,
   SupportedCredentialsWithoutPid,
 } from "../store/types";
 import type { Env } from "./environment";
@@ -205,10 +203,10 @@ export const getCredential = async ({
   }
   const { credential, format } = firstCredentialResult;
 
-  const x509CertRoot =
-    format === "mso_mdoc" || itwVersion !== "1.0.0"
-      ? await getTrustAnchorX509Certificate(itwVersion, trustAnchorUrl)
-      : undefined;
+  const x509CertRoot = await getTrustAnchorX509Certificate(
+    itwVersion,
+    trustAnchorUrl,
+  );
 
   const credentialKeyTag = keyTags[0];
   if (!credentialKeyTag) {
@@ -279,64 +277,6 @@ export const getTrustAnchorX509Certificate = async (
 };
 
 /**
- * Implements a flow to obtain a credential status assertion.
- * @param credentialIssuerUrl - The credential issuer URL
- * @param credential - The credential to obtain the status assertion for
- * @param format - The format of the credential, e.g. "sd-jwt"
- * @param credentialSigner - The credential signer associated with the credential
- * @param credentialType - The type of the credential
- * @returns The credential status assertion
- */
-export interface CredentialStatusAssertionResult {
-  credentialType: SupportedCredentials;
-  parsedStatusAssertion: CredentialStatus.ParsedStatusAssertion;
-  statusAssertion: string;
-}
-
-export const getCredentialStatusAssertion = async (
-  itwVersion: ItwVersion,
-  credentialIssuerUrl: string,
-  credential: string,
-  format: CredentialIssuance.CredentialFormat,
-  credentialSigner: Signer,
-  wiaSigner: Signer,
-  credentialType: SupportedCredentials,
-): Promise<CredentialStatusAssertionResult> => {
-  const wallet = new IoWallet({ version: itwVersion });
-
-  if (!wallet.CredentialStatus.statusAssertion.isSupported) {
-    throw new Error(
-      `Status assertion is not supported in version ${itwVersion}`,
-    );
-  }
-
-  // Evaluate issuer trust
-  const { issuerConf } =
-    await wallet.CredentialIssuance.evaluateIssuerTrust(credentialIssuerUrl);
-
-  const statusAssertion = await wallet.CredentialStatus.statusAssertion.get(
-    issuerConf,
-    credential,
-    format,
-    { credentialSigner, wiaSigner },
-  );
-
-  const parsedStatusAssertion =
-    await wallet.CredentialStatus.statusAssertion.verifyAndParse(
-      issuerConf,
-      statusAssertion,
-      credential,
-      format,
-    );
-
-  return {
-    ...statusAssertion,
-    ...parsedStatusAssertion,
-    credentialType,
-  };
-};
-
-/**
  * Get the status of a credential via the Token Status List.
  * @param itwVersion IT-Wallet specifications version
  * @param env The environment variables
@@ -353,10 +293,6 @@ export const getCredentialStatusFromStatusList = async (
   format: CredentialIssuance.CredentialFormat,
 ) => {
   const wallet = new IoWallet({ version: itwVersion });
-
-  if (!wallet.CredentialStatus.statusList.isSupported) {
-    throw new Error(`Status list is not supported in version ${itwVersion}`);
-  }
 
   const keys = await getKeysForStatusListVerification(
     itwVersion,

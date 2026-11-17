@@ -9,7 +9,6 @@ import * as CredentialIssuance from "./credential/issuance";
 import * as CredentialOffer from "./credential/offer";
 import * as RemotePresentation from "./credential/presentation";
 import * as CredentialStatus from "./credential/status";
-import * as Trustmark from "./credential/trustmark";
 import * as CredentialsCatalogue from "./credentials-catalogue";
 import * as KeyAttestation from "./key-attestation";
 import * as Mdoc from "./mdoc";
@@ -48,7 +47,6 @@ export {
   RemotePresentation,
   SdJwt,
   Trust,
-  Trustmark,
   WalletInstance,
   WalletInstanceAttestation,
 };

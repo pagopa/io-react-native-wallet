@@ -42,7 +42,7 @@ import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { trustAnchorEntityConfiguration } from "./your-data";
 import { chain } from "./your-data"; // array of JWTs, starting from leaf
 
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 const result = await wallet.Trust.verifyTrustChain(
   trustAnchorEntityConfiguration, 
@@ -80,7 +80,7 @@ This will fetch updated JWTs from each authority in the chain.
 ```ts
 import { IoWallet } from "@pagopa/io-react-native-wallet";
 
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 const chain = await wallet.Trust.buildTrustChain({
   leaf: "https://example-leaf",
@@ -107,7 +107,7 @@ const chain = await wallet.Trust.buildTrustChain({
 import { IoWallet } from "@pagopa/io-react-native-wallet";
 import { trustAnchorEntityConfiguration } from "./your-data";
 
-const wallet = new IoWallet({ version: "1.0.0" });
+const wallet = new IoWallet({ version: "1.4.6" });
 
 const chain = await wallet.Trust.buildTrustChain({
   leaf: "https://example-leaf",
