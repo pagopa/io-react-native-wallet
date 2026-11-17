@@ -76,6 +76,81 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /wallet-instances/current/status:
+    get:
+      operationId: getCurrentWalletInstanceStatus
+      summary: Retrieve the current Wallet Instance status
+      security:
+        - FunctionsKey: []
+      responses:
+        '200':
+          description: Wallet Instance status successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletInstanceData'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /wallet-instances/{id}/status:
+    get:
+      operationId: getWalletInstanceStatus
+      summary: Retrieve a Wallet Instance status
+      security:
+        - FunctionsKey: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Wallet Instance status successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletInstanceData'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    put:
+      operationId: setWalletInstanceStatus
+      summary: Revoke a Wallet Instance
+      description: |
+        Revoke the Wallet Instance associated with the authenticated user.
+        If the Wallet Instance is already revoked, the operation will succeed.
+      security:
+        - FunctionsKey: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetWalletInstanceStatusData'
+      responses:
+        '204':
+          description: Wallet Instance status successfully set
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
   /wallet-instance-attestations:
     post:
       operationId: createWalletInstanceAttestation
@@ -744,6 +819,38 @@ components:
         - challenge
         - key_attestation
         - hardware_key_tag
+
+    WalletInstanceData:
+      type: object
+      description: Describes the status of the wallet.
+      properties:
+        id:
+          type: string
+        is_revoked:
+          type: boolean
+        revocation_reason:
+          $ref: '#/components/schemas/RevocationReason'
+      required:
+        - id
+        - is_revoked
+
+    RevocationReason:
+      type: string
+      enum:
+        - CERTIFICATE_REVOKED_BY_ISSUER
+        - NEW_WALLET_INSTANCE_CREATED
+        - WALLET_INSTANCE_RENEWAL
+        - REVOKED_BY_USER
+
+    SetWalletInstanceStatusData:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - REVOKED
+      required:
+        - status
 
     AttestationRequestJwt:
       type: string
