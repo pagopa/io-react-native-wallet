@@ -4,6 +4,7 @@ import type { RelyingPartyConfig } from "./RelyingPartyConfig";
 import type {
   AuthorizationResponse,
   ErrorResponse,
+  MdocDeviceResponseGenerator,
   RemotePresentation,
   RequestObject,
 } from "./types";
@@ -19,12 +20,14 @@ export interface SendAuthorizationResponseApi {
    * @param credentials - An array of credential items containing format, credential data, requested claims, and key information.
    * @param requestObject - The Request Object of the presentation.
    * @param rpConf - Optional Relying Party configuration (OpenID Federation clients only). Pass the same value given to `sendAuthorizationResponse`.
+   * @param context.mdocDeviceResponseGenerator Callback that generates (and signs) the mdoc DeviceResponse. Required when an mdoc credential is presented.
    * @returns A promise that resolves to an object containing an array of presentations.
    */
   prepareRemotePresentations(
     credentials: Out<EvaluateDcqlQueryApi["evaluateDcqlQuery"]>,
     requestObject: RequestObject,
     rpConf?: RelyingPartyConfig,
+    context?: { mdocDeviceResponseGenerator?: MdocDeviceResponseGenerator },
   ): Promise<RemotePresentation>;
 
   /**

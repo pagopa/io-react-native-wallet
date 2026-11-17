@@ -20,11 +20,7 @@ if (wallet.KeyAttestation.isSupported) {
 ### Example usage
 
 ```ts
-import {
-  IoWallet,
-  createSignerFor,
-  type KeyAttestation,
-} from "@pagopa/io-react-native-wallet";
+import { IoWallet, type KeyAttestation } from "@pagopa/io-react-native-wallet";
 
 // Retrieve the integrity key tag from the store and create its context
 const integrityKeyTag = "example"; // Let's assume this is the same key used when creating the Wallet Instance
@@ -38,15 +34,14 @@ const wallet = new IoWallet({ version: "1.4.6" });
 // 1. Obtain the challenge to generate the keys to attest
 const challenge = await wallet.KeyAttestation.getChallenge(
   { walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL },
-  { appFetch },
+  { appFetch }
 );
 
 // 2. Generate each key in a trustworthy WSCD using the challenge.
 // On Android the generation must also return a key attestation.
-const keyTag = "example-keytag";
-const attestation = await generateKeyWithAttestation(keyTag, challenge); // Implemented by the consumer
+const attestation = await generateKeyWithAttestation("example-keytag", challenge); // Implemented by the consumer
 const keysToAttest: KeyAttestation.KeyToAttest[] = [
-  { signer: createSignerFor(keyTag), attestation },
+  { signer: signer /* consumer-provided Signer */, attestation },
 ];
 
 /**

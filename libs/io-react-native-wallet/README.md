@@ -20,6 +20,8 @@ The following table highlights the relationship between `io-react-native-wallet`
 
 ```sh
 # Install the required dependencies specified in the peerDependencies of the package.json
+# (CBOR/COSE and X.509 chain validation are used directly by the library)
+yarn install @pagopa/io-react-native-crypto@^1.2.5 @pagopa/io-react-native-iso18013@^0.9.0 @pagopa/io-react-native-jwt@^2.2.5
 
 # Library
 yarn install @pagopa/io-react-native-wallet
@@ -105,15 +107,19 @@ export interface Signer {
 
 Remote signers are not supported by the flows of version `1.0.0` and by the Key Attestation flow: passing one throws an `UnimplementedFeatureError`.
 
-The suggested library to manage local cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto). This package provides an helper to build a local `Signer` object bound to a given key tag:
+The suggested library to manage local cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto). The consumer app implements the `Signer` (see `createLocalSignerFor` in the [example app](../../apps/example-app/src/utils/localCrypto.ts)), e.g. a local `Signer` bound to a given key tag:
 
 ```ts
-import { createSignerFor } from "@pagopa/io-react-native-wallet";
-
-const signer = createSignerFor("my-tag");
+const signer: Signer = {
+  kind: "LOCAL",
+  getPublicKey: async () => ({ ...(await getPublicKeyFixed("my-tag")), kid }),
+  sign: (value) => sign(value, "my-tag"),
+};
 ```
 
 **Be sure the key for `my-tag` already exists.**
+
+X.509 chain validation uses `verifyCertificateChain` from `@pagopa/io-react-native-crypto`, and mdoc CBOR/COSE handling uses `@pagopa/io-react-native-iso18013`, both peer dependencies of this library. Only the `mdocDeviceResponseGenerator` callback of `prepareRemotePresentations` (builds and signs the ISO 18013-7 DeviceResponse) is provided by the consumer, see [`localCrypto.ts`](../../apps/example-app/src/utils/localCrypto.ts).
 
 </details>
 
@@ -214,7 +220,7 @@ An example app is provided in the [example-app](../../apps/example-app) folder w
 `io-react-native-wallet` is designed to be used in [io-app](https://github.com/pagopa/io-app) and its ecosystem. There are a few libraries that can be used to implement the context required to implement the flows defined by this package.
 Below there's a list of the libraries and a schema of how they interact with each other:
 
-- [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Used to manage cryptographic keys and signatures
+- [@pagopa/io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto) - Used to manage and validate X.509 certificate chains, and to manage cryptographic keys and signatures
 - [@pagopa/io-react-native-integrity](https://github.com/pagopa/io-react-native-integrity) - Used to manage and verify the integrity of the device
 - [@pagopa/io-react-native-secure-storage](https://github.com/pagopa/io-react-native-secure-storage) - Used to store data securely on the device
 

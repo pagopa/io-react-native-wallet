@@ -1,5 +1,4 @@
 import {
-  createSignerFor,
   type CredentialIssuance,
   type CredentialStatus,
   IoWallet,
@@ -20,7 +19,11 @@ import type {
 import type { Env } from "./environment";
 
 import appFetch from "../utils/fetch";
-import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
+import {
+  createLocalSignerFor,
+  DPOP_KEYTAG,
+  regenerateCryptoKey,
+} from "./crypto";
 
 /**
  * Implements a flow to obtain a generic credential.
@@ -94,7 +97,7 @@ export const getCredential = async ({
 
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    [[pid.keyTag, pid.credential]],
+    [[createLocalSignerFor(pid.keyTag), pid.credential]],
   );
 
   let code: string;
@@ -121,7 +124,7 @@ export const getCredential = async ({
 
   // Generate the DPoP context which will be used for the whole issuance flow
   await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopSigner = createSignerFor(DPOP_KEYTAG);
+  const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
@@ -147,7 +150,7 @@ export const getCredential = async ({
   // Create as many key tags as the batch size
   const keyTags = Array.from({ length: batchSize }, () => uuidv4().toString());
   const keyAttestation = await generateKeysWithAttestation(keyTags);
-  const credentialSigners = keyTags.map(createSignerFor);
+  const credentialSigners = keyTags.map(createLocalSignerFor);
 
   const [firstCredentialSigner] = credentialSigners;
   if (!firstCredentialSigner) {
@@ -219,7 +222,10 @@ export const getCredential = async ({
       issuerConf,
       credential,
       credential_configuration_id,
-      { credentialSigner, ignoreMissingAttributes: true },
+      {
+        credentialSigner,
+        ignoreMissingAttributes: true,
+      },
       x509CertRoot,
     );
 
