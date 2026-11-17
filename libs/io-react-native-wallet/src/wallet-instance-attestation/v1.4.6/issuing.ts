@@ -89,9 +89,7 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
     const response = await api
       .post("/wallet-instance-attestations", {
         body: signedAttestationRequest,
-        header: {
-          "Content-Type": "text/plain",
-        },
+        header: { "x-user-id": requestParams.xUserId },
       })
       .then(WalletInstanceAttestationResponse.parse)
       .catch(handleAttestationCreationError);

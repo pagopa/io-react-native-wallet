@@ -43,6 +43,7 @@ const issuedAttestation = await wallet.KeyAttestation.getAttestation(
     walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
     walletSolutionId: "exampleId",
     walletSolutionVersion: "1.2.3",
+    xUserId, // The same used when creating the Wallet Instance
   },
   {
     challenge,

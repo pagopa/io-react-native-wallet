@@ -51,4 +51,6 @@ export interface WalletAttestationRequestParams {
   walletProviderBaseUrl: string;
   walletSolutionId: string;
   walletSolutionVersion: string;
+  /** The UUIDv4 identifying the Wallet Instance owner, sent as the `x-user-id` header */
+  xUserId: string;
 }

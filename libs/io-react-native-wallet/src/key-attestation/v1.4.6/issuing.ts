@@ -67,7 +67,7 @@ export const getChallenge: KeyAttestationApi["getChallenge"] = async (
 };
 
 export const getAttestation: KeyAttestationApi["getAttestation"] = async (
-  { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion },
+  { walletProviderBaseUrl, walletSolutionId, walletSolutionVersion, xUserId },
   { appFetch = fetch, challenge: nonce, integrityContext, keysToAttest: keys },
 ) => {
   if (keys.length === 0) {
@@ -136,9 +136,7 @@ export const getAttestation: KeyAttestationApi["getAttestation"] = async (
   const response = await api
     .post("/key-attestations", {
       body: signedAttestationRequest,
-      header: {
-        "Content-Type": "text/plain",
-      },
+      header: { "x-user-id": xUserId },
     })
     .then(KeyAttestationResponse.parse)
     .catch(handleKeyAttestationCreationError);

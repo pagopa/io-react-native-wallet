@@ -10,7 +10,7 @@ import { Logger, LogLevel } from "../../utils/logging";
 
 export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
   async (context) => {
-    const { integrityContext, isRenewal } = context;
+    const { integrityContext, isRenewal, xUserId } = context;
     const api = getWalletProviderClient(context);
 
     //1. Obtain nonce
@@ -41,6 +41,7 @@ export const createWalletInstance: WalletInstanceApi["createWalletInstance"] =
           is_renewal: isRenewal,
           key_attestation: keyAttestation,
         },
+        header: { "x-user-id": xUserId },
       })
       .catch(handleCreateWalletInstanceError);
 

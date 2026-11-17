@@ -29,13 +29,14 @@ const integrityContext = getIntegrityContext(integrityKeyTag); // This function 
 await wallet.WalletInstance.createWalletInstance({
   integrityContext,
   walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+  xUserId, // UUIDv4 identifying the Wallet Instance owner, sent as the `x-user-id` header
   appFetch,
 });
 
 return integrityKeyTag;
 ```
 
-The returned `integrityKeyTag` is supposed to be stored and used to verify the integrity of the device in the future when using an `IntegrityContext` object. It must be regenerated if another wallet instance is created.
+The returned `integrityKeyTag` is supposed to be stored and used to verify the integrity of the device in the future when using an `IntegrityContext` object. It must be regenerated if another wallet instance is created. The same `xUserId` must be used for every subsequent Wallet Provider call for this wallet instance.
 
 ### Wallet Instance revocation
 

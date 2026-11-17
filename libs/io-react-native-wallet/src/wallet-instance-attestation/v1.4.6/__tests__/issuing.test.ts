@@ -46,6 +46,7 @@ describe("WalletInstanceAttestation v1.4.6 | getAttestation", () => {
         walletProviderBaseUrl: "https://example.wp",
         walletSolutionId: "walletSol",
         walletSolutionVersion: "1.0.0",
+        xUserId: "mock-user-id",
       },
       { appFetch, integrityContext: integrityContextMock, wiaSigner },
     ).catch((e) => e);

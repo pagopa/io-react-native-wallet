@@ -3,12 +3,14 @@ import type { IntegrityContext } from "../../utils/integrity";
 export interface WalletInstanceApi {
   /**
    * Create a new Wallet Instance.
+   * @param context.xUserId The UUIDv4 identifying the Wallet Instance owner, sent as the `x-user-id` header
    */
   createWalletInstance(context: {
     appFetch?: typeof fetch;
     integrityContext: IntegrityContext;
     isRenewal?: boolean;
     walletProviderBaseUrl: string;
+    xUserId: string;
   }): Promise<string>;
 
   /**

@@ -42,7 +42,11 @@ export const getWalletProviderClient = (context: {
       appFetch(interpolateUrl(url, params), {
         body: params?.body ? processBody(params.body) : undefined,
         headers: {
-          "Content-Type": "application/json",
+          // String bodies are raw JWTs (e.g. attestation requests)
+          "Content-Type":
+            typeof params?.body === "string"
+              ? "text/plain"
+              : "application/json",
           ...params?.header,
         },
         method,
