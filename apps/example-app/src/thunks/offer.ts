@@ -5,7 +5,7 @@ import {
 
 import type { SupportedCredentialsWithoutPid } from "../store/types";
 
-import { selectItwVersion } from "../store/reducers/environment";
+import { ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import { getCredentialThunk } from "./credential";
 import { createAppAsyncThunk } from "./utils";
@@ -19,9 +19,8 @@ export type GetCredentialOfferThunkOutput = CredentialOffer.CredentialOffer;
 export const getCredentialOfferThunk = createAppAsyncThunk<
   GetCredentialOfferThunkOutput,
   GetCredentialOfferThunkInput
->("credential/offerGet", async (args, { dispatch, getState }) => {
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
+>("credential/offerGet", async (args, { dispatch }) => {
+  const wallet = new IoWallet({ version: ITW_VERSION });
 
   // Resolve the credential offer (by value or by reference)
   const credentialOffer = await wallet.CredentialsOffer.resolveCredentialOffer(

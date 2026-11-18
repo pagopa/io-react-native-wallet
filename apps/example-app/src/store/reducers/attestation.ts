@@ -11,9 +11,9 @@ import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
 } from "../../thunks/attestation";
+import { ITW_VERSION } from "../../utils/environment";
 import { createSecureStorage } from "../storage";
 import { asyncStatusInitial } from "../utils";
-import { selectItwVersion } from "./environment";
 import { instanceReset } from "./instance";
 
 // State type definition for the attestion slice
@@ -173,12 +173,11 @@ export const selectKeyAttestation = (state: RootState) =>
  */
 export const shouldRequestWalletInstanceAttestationSelector = createSelector(
   selectWalletInstanceAttestationAsJwt,
-  selectItwVersion,
-  (attestation, itwVersion) => {
+  (attestation) => {
     if (!attestation) {
       return true;
     }
-    const wallet = new IoWallet({ version: itwVersion });
+    const wallet = new IoWallet({ version: ITW_VERSION });
     const payload = wallet.WalletInstanceAttestation.decode(attestation);
     const expiryDate = new Date(payload.exp * 1000);
     const now = new Date();

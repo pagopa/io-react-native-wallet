@@ -11,14 +11,12 @@ import {
 
 import { attestationReducer } from "./reducers/attestation";
 import { credentialReducer } from "./reducers/credential";
-import { credentialsCatalogueSlice } from "./reducers/credentialsCatalogue";
 import { debugSlice } from "./reducers/debug";
 import { environmentReducer } from "./reducers/environment";
 import { instanceReducer } from "./reducers/instance";
 import { credentialOfferReducer } from "./reducers/offer";
 import { pidReducer } from "./reducers/pid";
 import { presentationReducer } from "./reducers/presentation";
-import { trustValidationReducer } from "./reducers/trustValidation";
 import { userReducer } from "./reducers/user";
 
 /**
@@ -34,14 +32,12 @@ export const store = configureStore({
   reducer: {
     attestation: attestationReducer,
     credential: credentialReducer,
-    credentialsCatalogue: credentialsCatalogueSlice.reducer,
     debug: debugSlice.reducer,
     environment: environmentReducer,
     instance: instanceReducer,
     offer: credentialOfferReducer,
     pid: pidReducer,
     presentation: presentationReducer,
-    trustValidation: trustValidationReducer,
     user: userReducer,
   },
 });

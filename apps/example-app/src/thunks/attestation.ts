@@ -4,10 +4,7 @@ import {
   type WalletInstanceAttestation as Wia,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { generate } from "@pagopa/io-react-native-crypto";
-import { getAttestation } from "@pagopa/io-react-native-integrity";
-import { Platform } from "react-native";
 
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
 import { selectXUserId } from "../store/reducers/user";
 import {
@@ -15,13 +12,9 @@ import {
   regenerateCryptoKey,
   WIA_KEYTAG,
 } from "../utils/crypto";
-import { isAndroid } from "../utils/device";
-import { getEnv } from "../utils/environment";
+import { getEnv, ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
-import {
-  ensureIntegrityServiceIsReady,
-  getIntegrityContext,
-} from "../utils/integrity";
+import { getIntegrityContext } from "../utils/integrity";
 import { createAppAsyncThunk } from "./utils";
 
 export type GetAttestationThunkOutput = Awaited<
@@ -50,15 +43,9 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
   const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
   // Get env URLs
-  const env = selectEnv(getState());
-  const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } = getEnv(env);
-  const googleCloudProjectNumber = isAndroid
-    ? GOOGLE_CLOUD_PROJECT_NUMBER
-    : undefined;
-  await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
+  const { WALLET_PROVIDER_BASE_URL } = getEnv();
 
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
+  const wallet = new IoWallet({ version: ITW_VERSION });
   /**
    * Obtains a new Wallet Instance Attestation.
    * WARNING: The integrity context must be the same used when creating the Wallet Instance with the same keytag.
@@ -87,8 +74,7 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
   GetKeyAttestationThunkOutput,
   GetKeyAttestationThunkInput
 >("walletinstance/keyattestation", async ({ keyTags }, { getState }) => {
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
+  const wallet = new IoWallet({ version: ITW_VERSION });
 
   // Retrieve the integrity key tag from the store and create its context
   const integrityKeyTag = selectInstanceKeyTag(getState());
@@ -98,12 +84,7 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
   const integrityContext = getIntegrityContext(integrityKeyTag);
 
   // Get env URLs
-  const env = selectEnv(getState());
-  const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } = getEnv(env);
-  const googleCloudProjectNumber = isAndroid
-    ? GOOGLE_CLOUD_PROJECT_NUMBER
-    : undefined;
-  await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
+  const { WALLET_PROVIDER_BASE_URL } = getEnv();
 
   // 1. Obtain the challenge to generate the keys to attest
   const challenge = await wallet.KeyAttestation.getChallenge(
@@ -113,7 +94,7 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
 
   // 2. Generate each key using the challenge
   const keysToAttest = await Promise.all(
-    keyTags.map((keyTag) => generateKeyToAttest(keyTag, challenge)),
+    keyTags.map((keyTag) => generateKeyToAttest(keyTag)),
   );
 
   // 3. Request the Key Attestation
@@ -133,22 +114,8 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
   );
 });
 
-const generateKeyToAttest = (
-  keyTag: string,
-  challenge: string,
-): Promise<Ka.KeyToAttest> =>
-  Platform.select({
-    android: async () => ({
-      // The key attestation is bound to the challenge
-      attestation: await getAttestation(challenge, keyTag),
-      signer: createLocalSignerFor(keyTag),
-    }),
-    default: () => {
-      throw new Error("Unsupported platform");
-    },
-    // No key attestation on iOS, only key pair creation
-    ios: async () => {
-      await generate(keyTag);
-      return { signer: createLocalSignerFor(keyTag) };
-    },
-  })();
+// The key is generated without a key attestation, since app integrity checks are not implemented
+const generateKeyToAttest = async (keyTag: string): Promise<Ka.KeyToAttest> => {
+  await generate(keyTag);
+  return { signer: createLocalSignerFor(keyTag) };
+};

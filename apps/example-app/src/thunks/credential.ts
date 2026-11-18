@@ -15,14 +15,13 @@ import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../store/reducers/attestation";
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectPid } from "../store/selectors/pid";
 import {
   getCredential,
   getCredentialStatusFromStatusList,
 } from "../utils/credential";
 import { createLocalSignerFor, WIA_KEYTAG } from "../utils/crypto";
-import { getEnv } from "../utils/environment";
+import { getEnv, ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import {
   getKeyAttestationThunk,
@@ -86,13 +85,10 @@ export const getCredentialThunk = createAppAsyncThunk<
 
   const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
+  const wallet = new IoWallet({ version: ITW_VERSION });
 
   // Get env URLs
-  const env = selectEnv(getState());
-  const { REDIRECT_URI, WALLET_EAA_PROVIDER_BASE_URL, WALLET_TA_BASE_URL } =
-    getEnv(env);
+  const { REDIRECT_URI, WALLET_EAA_PROVIDER_BASE_URL } = getEnv();
 
   const { batchSize, credentialOffer, credentialType } = args;
 
@@ -120,7 +116,7 @@ export const getCredentialThunk = createAppAsyncThunk<
   // forwarded to the PAR.
   const issuerUrl = credentialOffer
     ? credentialOffer.credential_issuer
-    : WALLET_EAA_PROVIDER_BASE_URL.value(itwVersion);
+    : WALLET_EAA_PROVIDER_BASE_URL;
 
   const authorizationCodeGrant = credentialOffer
     ? offerApi.extractGrantDetails(credentialOffer).authorizationCodeGrant
@@ -155,11 +151,9 @@ export const getCredentialThunk = createAppAsyncThunk<
     generateKeysWithAttestation,
     issuerConf,
     issuerState: authorizationCodeGrant?.issuerState,
-    itwVersion,
     pid: pid,
     redirectUri: REDIRECT_URI,
     scope: authorizationCodeGrant?.scope,
-    trustAnchorUrl: WALLET_TA_BASE_URL,
     walletInstanceAttestation,
     wiaSigner,
   });
@@ -171,12 +165,9 @@ export const getCredentialThunk = createAppAsyncThunk<
 export const getCredentialStatusListThunk = createAppAsyncThunk<
   CredentialStatusResult,
   GetCredentialStatusListThunkInput
->("credential/statusListGet", async (args, { getState }) => {
-  const itwVersion = selectItwVersion(getState());
-
+>("credential/statusListGet", async (args) => {
   const result = await getCredentialStatusFromStatusList(
-    itwVersion,
-    getEnv(selectEnv(getState())),
+    getEnv(),
     args.credential,
     args.credentialType,
     args.format,

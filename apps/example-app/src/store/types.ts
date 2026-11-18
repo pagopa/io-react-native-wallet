@@ -34,7 +34,6 @@ export type CredentialResult = CredentialResultBase & {
 /**
  * Possible environments in the store.
  */
-export type EnvType = "pre" | "prod";
 
 /**
  * Type definition to represent a PID result to be used in the store.
@@ -53,16 +52,9 @@ export type RootState = ReturnType<typeof store.getState>;
  * This simplifies the type definition of the `credential` store.
  */
 export type SupportedCredentials =
-  | "dc_sd_jwt_education_attendance"
-  | "dc_sd_jwt_education_degree"
-  | "dc_sd_jwt_education_diploma"
-  | "dc_sd_jwt_education_enrollment"
   | "dc_sd_jwt_EuropeanDisabilityCard"
-  | "dc_sd_jwt_EuropeanHealthInsuranceCard"
-  | "dc_sd_jwt_mDL"
-  | "dc_sd_jwt_residency"
-  | "mso_mdoc_mDL"
-  | "mso_mdoc_proof_of_age"
+  | "dc_sd_jwt_PariBonus"
+  | "org.iso.18013.5.1.mDL"
   | "PersonIdentificationData";
 
 /**

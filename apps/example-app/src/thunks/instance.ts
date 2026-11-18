@@ -1,14 +1,11 @@
 import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
 
 import { instanceReset } from "../store/instance";
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectXUserId } from "../store/reducers/user";
 import { selectInstanceKeyTag } from "../store/selectors/instance";
-import { isAndroid } from "../utils/device";
-import { getEnv } from "../utils/environment";
+import { getEnv, ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import {
-  ensureIntegrityServiceIsReady,
   generateIntegrityHardwareKeyTag,
   getIntegrityContext,
 } from "../utils/integrity";
@@ -20,19 +17,11 @@ import { createAppAsyncThunk } from "./utils";
 export const createWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/create",
   async (_, { getState }) => {
-    const itwVersion = selectItwVersion(getState());
-    const wallet = new IoWallet({ version: itwVersion });
+    const wallet = new IoWallet({ version: ITW_VERSION });
 
     // Get env
-    const env = selectEnv(getState());
-    const { GOOGLE_CLOUD_PROJECT_NUMBER, WALLET_PROVIDER_BASE_URL } =
-      getEnv(env);
+    const { WALLET_PROVIDER_BASE_URL } = getEnv();
 
-    const googleCloudProjectNumber = isAndroid
-      ? GOOGLE_CLOUD_PROJECT_NUMBER
-      : undefined;
-
-    await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
     const integrityKeyTag = await generateIntegrityHardwareKeyTag();
     const integrityContext = getIntegrityContext(integrityKeyTag);
 
@@ -50,16 +39,13 @@ export const createWalletInstanceThunk = createAppAsyncThunk(
 export const revokeWalletInstanceThunk = createAppAsyncThunk(
   "walletinstance/revoke",
   async (_, { dispatch, getState }) => {
-    const env = selectEnv(getState());
-    const { WALLET_PROVIDER_BASE_URL } = getEnv(env);
+    const { WALLET_PROVIDER_BASE_URL } = getEnv();
     const integrityKeyTag = selectInstanceKeyTag(getState());
-    const itwVersion = selectItwVersion(getState());
-
     if (!integrityKeyTag) {
       throw new Error("Integrity key not found");
     }
 
-    const wallet = new IoWallet({ version: itwVersion });
+    const wallet = new IoWallet({ version: ITW_VERSION });
     await wallet.WalletInstance.revokeWalletInstance({
       appFetch,
       id: integrityKeyTag,

@@ -10,7 +10,6 @@ import {
   shouldRequestWalletInstanceAttestationSelector,
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { type PidResult } from "../store/types";
 import {
   createLocalSignerFor,
@@ -19,7 +18,7 @@ import {
   WIA_KEYTAG,
 } from "../utils/crypto";
 import { isAndroid } from "../utils/device";
-import { getEnv } from "../utils/environment";
+import { getEnv, ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import {
   getKeyAttestationThunk,
@@ -36,8 +35,7 @@ import { createAppAsyncThunk } from "./utils";
 export const getPidThunk = createAppAsyncThunk<PidResult, undefined>(
   "pid/get",
   async (_, { dispatch, getState }) => {
-    const itwVersion = selectItwVersion(getState());
-    const wallet = new IoWallet({ version: itwVersion });
+    const wallet = new IoWallet({ version: ITW_VERSION });
 
     // Checks if the wallet instance attestation needs to be reuqested
     if (shouldRequestWalletInstanceAttestationSelector(getState())) {
@@ -57,16 +55,12 @@ export const getPidThunk = createAppAsyncThunk<PidResult, undefined>(
     const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
     // Get env
-    const env = selectEnv(getState());
-    const {
-      REDIRECT_URI: redirectUri,
-      WALLET_PID_PROVIDER_BASE_URL,
-      X509_CERT_ROOT,
-    } = getEnv(env);
+    const { REDIRECT_URI: redirectUri, WALLET_PID_PROVIDER_BASE_URL } =
+      getEnv();
 
     // Evaluate issuer trust
     const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
-      WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
+      WALLET_PID_PROVIDER_BASE_URL,
       { appFetch },
     );
 
@@ -189,7 +183,6 @@ export const getPidThunk = createAppAsyncThunk<PidResult, undefined>(
           credentialSigner,
           ignoreMissingAttributes: true,
         },
-        X509_CERT_ROOT,
       );
 
     return {

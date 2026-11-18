@@ -27,18 +27,17 @@ export const CredentialStatusScreen = () => {
   const ka = useAppSelector(selectKeyAttestation);
 
   const pid = useAppSelector(selectPid);
-  const mDL = useAppSelector(selectCredential("dc_sd_jwt_mDL"));
   const dc = useAppSelector(
     selectCredential("dc_sd_jwt_EuropeanDisabilityCard"),
   );
+
+  const pari = useAppSelector(selectCredential("dc_sd_jwt_PariBonus"));
 
   useDebugInfo({
     dcStatus: status.dc_sd_jwt_EuropeanDisabilityCard,
     dcStatusState: asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
     kaStatus: status.keyAttestation,
     kaStatusState: asyncStatus.keyAttestation,
-    mdlStatus: status.dc_sd_jwt_mDL,
-    mdlStatusState: asyncStatus.dc_sd_jwt_mDL,
     pidStatus: status.PersonIdentificationData,
     pidStatusState: asyncStatus.PersonIdentificationData,
   });
@@ -72,20 +71,6 @@ export const CredentialStatusScreen = () => {
       icon: "fiscalCodeIndividual",
       isPresent: !!status.PersonIdentificationData,
     },
-    mDL && {
-      onPress: () =>
-        dispatch(
-          getCredentialStatusListThunk({
-            credential: mDL.credential,
-            credentialType: "dc_sd_jwt_mDL",
-            format: mDL.format,
-          }),
-        ),
-      title: "Get Status List (MDL)",
-      ...asyncStatus.dc_sd_jwt_mDL,
-      icon: "car",
-      isPresent: !!status.dc_sd_jwt_mDL,
-    },
     dc && {
       onPress: () =>
         dispatch(
@@ -99,6 +84,20 @@ export const CredentialStatusScreen = () => {
       ...asyncStatus.dc_sd_jwt_EuropeanDisabilityCard,
       icon: "accessibility",
       isPresent: !!status.dc_sd_jwt_EuropeanDisabilityCard,
+    },
+    pari && {
+      onPress: () =>
+        dispatch(
+          getCredentialStatusListThunk({
+            credential: pari.credential,
+            credentialType: "dc_sd_jwt_PariBonus",
+            format: pari.format,
+          }),
+        ),
+      title: "Get Status List (Pari Bonus)",
+      ...asyncStatus.dc_sd_jwt_PariBonus,
+      icon: "bonus",
+      isPresent: !!status.dc_sd_jwt_PariBonus,
     },
   ]);
 

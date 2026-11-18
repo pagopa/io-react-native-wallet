@@ -21,7 +21,7 @@ export const PresentationScreen = () => {
   const { asyncStatus: refusalPresentationState } = useAppSelector(
     selectPresentationRefusalState,
   );
-  const mdoc_mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
+  const mdoc_mDL = useAppSelector(selectCredential("org.iso.18013.5.1.mDL"));
 
   useDebugInfo({
     acceptancePresentationState,

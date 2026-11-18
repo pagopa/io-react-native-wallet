@@ -1,10 +1,8 @@
 import {
   type CredentialIssuance,
   IoWallet,
-  type ItwVersion,
   type RemotePresentation,
   type Signer,
-  Trust,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
@@ -22,10 +20,10 @@ import {
   DPOP_KEYTAG,
   regenerateCryptoKey,
 } from "./crypto";
+import { ITW_VERSION } from "./environment";
 
 /**
  * Implements a flow to obtain a generic credential.
- * @param itwVersion IT-Wallet specifications version
  * @param issuerConf - The resolved Issuer configuration (issuer trust already evaluated)
  * @param redirectUri - The redirect URI for the authorization flow
  * @param credentialId - The id of the credential to obtain
@@ -44,11 +42,9 @@ export const getCredential = async ({
   generateKeysWithAttestation,
   issuerConf,
   issuerState,
-  itwVersion,
   pid,
   redirectUri,
   scope,
-  trustAnchorUrl,
   walletInstanceAttestation,
   wiaSigner,
 }: {
@@ -59,18 +55,16 @@ export const getCredential = async ({
   ) => Promise<string | undefined>;
   issuerConf: CredentialIssuance.IssuerConfig;
   issuerState?: string;
-  itwVersion: ItwVersion;
   pid: PidResult;
   redirectUri: string;
   scope?: string;
-  trustAnchorUrl: string;
   walletInstanceAttestation: string;
   wiaSigner: Signer;
 }): Promise<CredentialResult> => {
-  const wallet = new IoWallet({ version: itwVersion });
+  const wallet = new IoWallet({ version: ITW_VERSION });
 
   // Start user authorization
-  const { clientId, codeVerifier, issuerRequestUri, responseMode } =
+  const { clientId, codeVerifier, issuerRequestUri } =
     await wallet.CredentialIssuance.startUserAuthorization(
       issuerConf,
       [credentialId],
@@ -98,27 +92,14 @@ export const getCredential = async ({
     [[createLocalSignerFor(pid.keyTag), pid.credential]],
   );
 
-  let code: string;
-  if (responseMode === "form_post.jwt") {
-    // Complete the user authorization via form_post.jwt mode
-    ({ code } =
-      await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
-        requestObject,
-        issuerConf,
-        evaluatedDcqlQuery,
-        { appFetch, wiaSigner },
-      ));
-  } else {
-    // Complete the user authorization via query mode
-    ({ code } =
-      await wallet.CredentialIssuance.completeEaaUserAuthorizationWithQueryMode(
-        requestObject,
-        issuerConf,
-        evaluatedDcqlQuery,
-        redirectUri,
-        { appFetch },
-      ));
-  }
+  // Complete the user authorization via form_post.jwt mode
+  const { code } =
+    await wallet.CredentialIssuance.completeUserAuthorizationWithFormPostJwtMode(
+      requestObject,
+      issuerConf,
+      evaluatedDcqlQuery,
+      { appFetch, wiaSigner },
+    );
 
   // Generate the DPoP context which will be used for the whole issuance flow
   await regenerateCryptoKey(DPOP_KEYTAG);
@@ -203,11 +184,6 @@ export const getCredential = async ({
   }
   const { credential, format } = firstCredentialResult;
 
-  const x509CertRoot = await getTrustAnchorX509Certificate(
-    itwVersion,
-    trustAnchorUrl,
-  );
-
   const credentialKeyTag = keyTags[0];
   if (!credentialKeyTag) {
     throw new Error("No key tag generated for the credential batch");
@@ -224,7 +200,6 @@ export const getCredential = async ({
         credentialSigner,
         ignoreMissingAttributes: true,
       },
-      x509CertRoot,
     );
 
   return {
@@ -239,46 +214,7 @@ export const getCredential = async ({
 };
 
 /**
- * This function is for development use only and should not be used in production
- *
- * @param itwVersion IT-Wallet specifictions version
- * @param trustAnchorUrl The TA url
- * @returns The base64 encoded Trust Anchor's CA
- */
-export const getTrustAnchorX509Certificate = async (
-  itwVersion: ItwVersion,
-  trustAnchorUrl: string,
-) => {
-  const wallet = new IoWallet({ version: itwVersion });
-  const trustAnchorEntityConfig =
-    await wallet.Trust.getTrustAnchorEntityConfiguration(trustAnchorUrl, {
-      appFetch,
-    });
-  const taHeaderKid = trustAnchorEntityConfig.jwt.header.kid;
-  const taSigningJwk = trustAnchorEntityConfig.keys.find(
-    (key) => key.kid === taHeaderKid,
-  );
-
-  if (!taSigningJwk) {
-    throw new Trust.Errors.FederationError(
-      `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' not found in Trust Anchor's JWKS.`,
-      { reason: "JWK not found for header kid", trustAnchorKid: taHeaderKid },
-    );
-  }
-
-  if (taSigningJwk.x5c && taSigningJwk.x5c.length > 0 && taSigningJwk.x5c[0]) {
-    return taSigningJwk.x5c[0];
-  }
-
-  throw new Trust.Errors.FederationError(
-    `Cannot derive X.509 Trust Anchor certificate: JWK with kid '${taHeaderKid}' does not contain a valid 'x5c' certificate array.`,
-    { reason: "Missing or empty x5c in JWK", trustAnchorKid: taHeaderKid },
-  );
-};
-
-/**
  * Get the status of a credential via the Token Status List.
- * @param itwVersion IT-Wallet specifications version
  * @param env The environment variables
  * @param credentialType The type of the credential
  * @param credential The raw credential to obtain the status for
@@ -286,16 +222,14 @@ export const getTrustAnchorX509Certificate = async (
  * @returns The credential status
  */
 export const getCredentialStatusFromStatusList = async (
-  itwVersion: ItwVersion,
   env: Env,
   credential: string,
   credentialType: string,
   format: CredentialIssuance.CredentialFormat,
 ) => {
-  const wallet = new IoWallet({ version: itwVersion });
+  const wallet = new IoWallet({ version: ITW_VERSION });
 
   const keys = await getKeysForStatusListVerification(
-    itwVersion,
     env,
     credential,
     credentialType,
@@ -322,7 +256,6 @@ export const getCredentialStatusFromStatusList = async (
 };
 
 const getKeysForStatusListVerification = async (
-  itwVersion: ItwVersion,
   env: Env,
   credential: string,
   credentialType: string,
@@ -349,14 +282,13 @@ const getKeysForStatusListVerification = async (
     return walletProviderJwt.metadata.wallet_solution.jwks.keys;
   }
 
-  const wallet = new IoWallet({ version: itwVersion });
+  const wallet = new IoWallet({ version: ITW_VERSION });
   const issuerUrl =
     credentialType === "PersonIdentificationData"
       ? env.WALLET_PID_PROVIDER_BASE_URL
       : env.WALLET_EAA_PROVIDER_BASE_URL;
 
-  const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
-    issuerUrl.value(itwVersion),
-  );
+  const { issuerConf } =
+    await wallet.CredentialIssuance.evaluateIssuerTrust(issuerUrl);
   return issuerConf.keys;
 };

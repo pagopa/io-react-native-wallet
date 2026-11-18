@@ -8,7 +8,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
 
 import { HeaderTitle } from "../components/HeaderTitle";
-import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -21,7 +20,6 @@ import {
   type QrScannerScreenParams,
 } from "../screens/QrScannerScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
@@ -34,7 +32,6 @@ import { initLogging } from "../utils/logging";
 export type MainStackNavParamList = {
   CredentialOffer: undefined;
   Credentials: undefined;
-  CredentialsCatalogue: undefined;
   CredentialStatus: undefined;
   Home: undefined;
   Pid: undefined;
@@ -42,7 +39,6 @@ export type MainStackNavParamList = {
   Proximity: undefined;
   QrScanner: QrScannerScreenParams;
   Settings: undefined;
-  Trust: undefined;
   WalletInstance: undefined;
 };
 
@@ -119,11 +115,6 @@ export const MainStackNavigator = () => {
             options={{ title: "Presentation" }}
           />
           <Stack.Screen
-            component={TrustScreen}
-            name="Trust"
-            options={{ title: "Trust" }}
-          />
-          <Stack.Screen
             component={QrScannerScreen}
             name="QrScanner"
             options={{ title: "Scan QR" }}
@@ -137,11 +128,6 @@ export const MainStackNavigator = () => {
             component={OfferScreen}
             name="CredentialOffer"
             options={{ title: "Credential Offer" }}
-          />
-          <Stack.Screen
-            component={CredentialsCatalogueScreen}
-            name="CredentialsCatalogue"
-            options={{ title: "Credentials Catalogue" }}
           />
           <Stack.Screen
             component={SettingsScreen}

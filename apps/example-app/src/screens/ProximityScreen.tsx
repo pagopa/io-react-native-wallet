@@ -6,17 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import type { CredentialResult, EnvType } from "../store/types";
+import type { CredentialResult } from "../store/types";
 
 import { QrCodeImage } from "../components/QrCodeImage";
 import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectWalletInstanceAttestationAsMdoc } from "../store/reducers/attestation";
 import { selectCredential } from "../store/reducers/credential";
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { useAppSelector } from "../store/utils";
-import { getTrustAnchorX509Certificate } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
-import { getEnv } from "../utils/environment";
 import {
   type EventsPayload,
   generateAcceptedFields,
@@ -54,30 +51,22 @@ export const ProximityScreen = () => {
   const walletAttestationMdoc = useAppSelector(
     selectWalletInstanceAttestationAsMdoc,
   );
-  const mDL = useAppSelector(selectCredential("mso_mdoc_mDL"));
-  const env = useAppSelector(selectEnv);
+  const mDL = useAppSelector(selectCredential("org.iso.18013.5.1.mDL"));
 
   if (!walletAttestationMdoc || !mDL) {
     return <></>;
   }
 
-  return (
-    <ContentView
-      attestation={walletAttestationMdoc}
-      credential={mDL}
-      env={env}
-    />
-  );
+  return <ContentView attestation={walletAttestationMdoc} credential={mDL} />;
 };
 
 interface ContentViewProps {
   attestation: string;
   credential: CredentialResult;
-  env: EnvType;
 }
 
 // eslint-disable-next-line max-lines-per-function
-const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
+const ContentView = ({ attestation, credential }: ContentViewProps) => {
   const [status, setStatus] = useState<PROXIMITY_STATUS>(
     PROXIMITY_STATUS.STARTING,
   );
@@ -86,8 +75,6 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
     null,
   );
   const [rpIsTrusted, setRpIsTrusted] = useState<boolean | null>(null);
-  const { WALLET_TA_BASE_URL } = getEnv(env);
-  const itwVersion = useAppSelector(selectItwVersion);
   // Use a ref to keep track of the active listener subscriptions
   const listenerSubscriptions = useRef<ReturnType<typeof addListener>[]>([]);
 
@@ -269,10 +256,6 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
    * Start utility function to start the proximity flow.
    */
   const startFlow = useCallback(async () => {
-    const x5c = [
-      await getTrustAnchorX509Certificate(itwVersion, WALLET_TA_BASE_URL),
-    ];
-
     setStatus(PROXIMITY_STATUS.STARTING);
     const hasPermission = await requestBlePermissions();
     if (!hasPermission) {
@@ -286,7 +269,8 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
     try {
       // QR code engagement only (BLE retrieval)
       await ISO18013_5.startEngagement({
-        certificates: [x5c],
+        // Verifier certificates are not provided: the verifier trust is not checked
+        certificates: [],
         engagementModes: ["qrcode"],
         retrievalMethods: ["ble"],
       });
@@ -318,13 +302,7 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
       Alert.alert("Failed to initialize QR engagement");
       setStatus(PROXIMITY_STATUS.STOPPED);
     }
-  }, [
-    WALLET_TA_BASE_URL,
-    onDeviceDisconnected,
-    onDocumentRequestReceived,
-    onError,
-    itwVersion,
-  ]);
+  }, [onDeviceDisconnected, onDocumentRequestReceived, onError]);
 
   /**
    * Starts the proximity flow and stops it on unmount.

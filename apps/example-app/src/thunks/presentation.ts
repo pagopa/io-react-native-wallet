@@ -11,12 +11,12 @@ import {
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 
 import { selectCredentials } from "../store/reducers/credential";
-import { selectItwVersion } from "../store/reducers/environment";
 import { selectPid } from "../store/selectors/pid";
 import {
   createLocalSignerFor,
   localMdocDeviceResponseGenerator,
 } from "../utils/crypto";
+import { ITW_VERSION } from "../utils/environment";
 import { isDefined } from "../utils/misc";
 import { createAppAsyncThunk } from "./utils";
 
@@ -40,8 +40,7 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
   RemoteCrossDevicePresentationThunkOutput,
   RemoteCrossDevicePresentationThunkInput
 >("presentation/remote", async (args, { getState }) => {
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
+  const wallet = new IoWallet({ version: ITW_VERSION });
 
   const url = new URL(args.qrcode);
 

@@ -62,12 +62,6 @@ const HomeScreen = () => {
             : Alert.alert("Obtain a PID first"),
       },
       {
-        description: "Verify the trust of an entity",
-        icon: "chevronRight",
-        label: "Trust Federation",
-        onPress: () => navigation.navigate("Trust"),
-      },
-      {
         description: "Obtain the status of a credential (Status List)",
         icon: "chevronRight",
         label: "Credential Status",
@@ -84,12 +78,6 @@ const HomeScreen = () => {
           pid
             ? navigation.navigate("CredentialOffer")
             : Alert.alert("Obtain a PID first"),
-      },
-      {
-        description: "Fetch the Credentials Catalogue",
-        icon: "chevronRight",
-        label: "Credentials Catalogue",
-        onPress: () => navigation.navigate("CredentialsCatalogue"),
       },
       {
         description: "Change the environment and logout",

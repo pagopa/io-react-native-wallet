@@ -2,8 +2,7 @@ import { Badge, IOText } from "@pagopa/io-app-design-system";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 
-import { selectEnv, selectItwVersion } from "../store/reducers/environment";
-import { useAppSelector } from "../store/utils";
+import { ITW_VERSION } from "../utils/environment";
 
 interface Props {
   children: string;
@@ -11,12 +10,9 @@ interface Props {
 }
 
 /**
- * Custom navigation header that shows, under the screen title, the active IT-Wallet version,
- * and the selected environment.
+ * Custom navigation header that shows, under the screen title, the active IT-Wallet version.
  */
 export function HeaderTitle({ children }: Props) {
-  const itwVersion = useAppSelector(selectItwVersion);
-  const env = useAppSelector(selectEnv);
   return (
     <View style={styles.wrapper}>
       <IOText
@@ -29,11 +25,7 @@ export function HeaderTitle({ children }: Props) {
         {children}
       </IOText>
       <View style={styles.badges}>
-        <Badge text={itwVersion} variant="default" />
-        <Badge
-          text={env.toUpperCase()}
-          variant={env === "prod" ? "error" : "highlight"}
-        />
+        <Badge text={ITW_VERSION} variant="default" />
       </View>
     </View>
   );

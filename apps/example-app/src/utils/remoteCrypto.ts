@@ -11,6 +11,17 @@ import appFetch from "./fetch";
 /** DER prefix of a SHA-256 DigestInfo, which NSSAM `hashsign` expects before the digest. */
 const SHA256_DIGEST_INFO_PREFIX = "3031300d060960864801650304020105000420";
 
+/** The NSSAM Master RSA public key (3072 bit, e = 65537) which signs the session keys. */
+const NSSAM_MASTER_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8wwBN03bIlfiB6TzCP+e
+iWt1c6mGaNuHP8XI3aNmeJocZvJyscyi5sbXAoRSOvTWcfosHIeVR+S7Gte1AR28
+ukitkr6KyjAd9Lgidtz+hSkA5mvyw5lrQ7nEwNB/ctqiYBdQjfOXDRYi0iQO8GEo
+VHjeDtQfvriqd6/2rvKsPHD3L2yljab2IZcaW4O+c2wa5Ymx0gt7h0whH+O5GjXg
+84j3yYfyakYLeOaqGxTVZpgxtxfXmgRURGcC9oSkZS6JQ0rEFBRZZabMoyarKkr7
+5N7+AVBRgbCUAN2ttHVQNk6aZh+hNOZG1JHDXrsUtIBVvxBdQ/XGjpXRCjvrHApZ
+owIDAQAB
+-----END PUBLIC KEY-----`;
+
 export interface RemoteKey {
   /** The KeyBlob of the private key, encrypted by the HSM: it must be sent with every signature. */
   encryptedKey: string;
@@ -20,10 +31,7 @@ export interface RemoteKey {
 }
 
 export interface RemoteWscdContext {
-  /**
-   * The NSSAM Master RSA public key (PEM) which signs the session keys, pinned in the App.
-   * When omitted the Master signature is NOT verified: only acceptable for testing.
-   */
+  /** Overrides the pinned NSSAM Master RSA public key (PEM). */
   masterPublicKey?: string;
   walletProviderBaseUrl: string;
   /** The user identifier sent as `x-user-id` to the Wallet Provider. */
@@ -105,7 +113,11 @@ export const createRemoteSignerFor = (
  * and decrypting the session key are up to the App.
  */
 const openSession = async (
-  { masterPublicKey, walletProviderBaseUrl, xUserId }: RemoteWscdContext,
+  {
+    masterPublicKey = NSSAM_MASTER_PUBLIC_KEY,
+    walletProviderBaseUrl,
+    xUserId,
+  }: RemoteWscdContext,
   request: (accessToken: string) => object,
 ) => {
   const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
@@ -155,21 +167,19 @@ const openSession = async (
 
   // NSSAM signs the first n bytes of the base64 `encryptionKey`, where n is the length of the decoded key
   const encryptedSessionKey = Buffer.from(encryptionKey, "base64");
-  if (masterPublicKey) {
-    const isSignedByMaster = QuickCrypto.createVerify("SHA256")
-      .update(
-        Buffer.from(encryptionKey, "utf8").subarray(
-          0,
-          encryptedSessionKey.length,
-        ),
-      )
-      .verify(
-        { format: "pem", key: masterPublicKey },
-        Buffer.from(signature, "base64"),
-      );
-    if (!isSignedByMaster) {
-      throw new Error("The session key is not signed by the NSSAM Master key");
-    }
+  const isSignedByMaster = QuickCrypto.createVerify("SHA256")
+    .update(
+      Buffer.from(encryptionKey, "utf8").subarray(
+        0,
+        encryptedSessionKey.length,
+      ),
+    )
+    .verify(
+      { format: "pem", key: masterPublicKey },
+      Buffer.from(signature, "base64"),
+    );
+  if (!isSignedByMaster) {
+    throw new Error("The session key is not signed by the NSSAM Master key");
   }
 
   const rawSessionKey = await subtle.decrypt(

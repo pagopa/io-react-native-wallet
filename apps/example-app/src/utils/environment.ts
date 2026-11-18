@@ -1,79 +1,37 @@
 import { type ItwVersion } from "@io-app-it-wallet/io-react-native-wallet";
 import * as z from "zod";
 
-import type { EnvType } from "../store/types";
-
 import { getEnv as getValidatedEnv } from "../env";
 
 /**
- * Environment type definition for both the pre and prod environments.
+ * Environment type definition.
  */
 export interface Env {
-  GOOGLE_CLOUD_PROJECT_NUMBER: string;
   REDIRECT_URI: string;
-  WALLET_EAA_PROVIDER_BASE_URL: ItwSpecsEnvVar;
-  WALLET_PID_PROVIDER_BASE_URL: ItwSpecsEnvVar;
+  WALLET_EAA_PROVIDER_BASE_URL: string;
+  WALLET_PID_PROVIDER_BASE_URL: string;
   WALLET_PROVIDER_BASE_URL: string;
-  WALLET_TA_BASE_URL: string;
-  X509_CERT_ROOT: string;
 }
 
 /**
- * Wrapper for an env variable that has different values for each IT-Wallet specs version.
- *
- * Call `.value()` to get the value for the specified version.
- *
- * @example
- * myVar.value("1.3.3")
+ * IT-Wallet technical specifications version used by the app.
  */
-class ItwSpecsEnvVar {
-  constructor(private values: Record<ItwVersion, string>) {}
-
-  value(version: ItwVersion) {
-    return this.values[version];
-  }
-}
+export const ITW_VERSION: ItwVersion = "1.4.6";
 
 /**
- * Utility functions which returns the environment variables based on the selected environment.
- * @param env - The selected environment
- * @returns the environment variables for the selected environment
+ * Returns the environment variables.
  */
-export const getEnv = (selectedEnv: EnvType): Env => {
+export const getEnv = (): Env => {
   const env = getValidatedEnv();
 
-  switch (selectedEnv) {
-    case "pre":
-      return {
-        GOOGLE_CLOUD_PROJECT_NUMBER:
-          env.EXPO_PUBLIC_PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
-        REDIRECT_URI: env.EXPO_PUBLIC_PRE_REDIRECT_URI,
-        WALLET_EAA_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
-          "1.4.6": env.EXPO_PUBLIC_PRE_WALLET_EAA_PROVIDER_BASE_URL_V1_4,
-        }),
-        WALLET_PID_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
-          "1.4.6": env.EXPO_PUBLIC_PRE_WALLET_PID_PROVIDER_BASE_URL_V1_4,
-        }),
-        WALLET_PROVIDER_BASE_URL: env.EXPO_PUBLIC_PRE_WALLET_PROVIDER_BASE_URL,
-        WALLET_TA_BASE_URL: env.EXPO_PUBLIC_PRE_WALLET_TA_BASE_URL,
-        X509_CERT_ROOT: env.EXPO_PUBLIC_PRE_X509_CERT_ROOT,
-      };
-    case "prod":
-      return {
-        GOOGLE_CLOUD_PROJECT_NUMBER:
-          env.EXPO_PUBLIC_PROD_GOOGLE_CLOUD_PROJECT_NUMBER,
-        REDIRECT_URI: env.EXPO_PUBLIC_PROD_REDIRECT_URI,
-        WALLET_EAA_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
-          "1.4.6": env.EXPO_PUBLIC_PROD_WALLET_EAA_PROVIDER_BASE_URL_V1_4,
-        }),
-        WALLET_PID_PROVIDER_BASE_URL: new ItwSpecsEnvVar({
-          "1.4.6": env.EXPO_PUBLIC_PROD_WALLET_PID_PROVIDER_BASE_URL_V1_4,
-        }),
-        WALLET_PROVIDER_BASE_URL: env.EXPO_PUBLIC_PROD_WALLET_PROVIDER_BASE_URL,
-        WALLET_TA_BASE_URL: env.EXPO_PUBLIC_PROD_WALLET_TA_BASE_URL,
-        X509_CERT_ROOT: env.EXPO_PUBLIC_PROD_X509_CERT_ROOT,
-      };
-  }
+  return {
+    REDIRECT_URI: env.EXPO_PUBLIC_REDIRECT_URI,
+    WALLET_EAA_PROVIDER_BASE_URL:
+      env.EXPO_PUBLIC_WALLET_EAA_PROVIDER_BASE_URL_V1_4,
+    WALLET_PID_PROVIDER_BASE_URL:
+      env.EXPO_PUBLIC_WALLET_PID_PROVIDER_BASE_URL_V1_4,
+    WALLET_PROVIDER_BASE_URL: env.EXPO_PUBLIC_WALLET_PROVIDER_BASE_URL,
+  };
 };
 
 /**
