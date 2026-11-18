@@ -33,6 +33,16 @@ export const PidScreen = () => {
         onPress={() => dispatch(getPidThunk())}
         title="Get PID"
       />
+      <VSpacer />
+      <TestScenario
+        hasError={pidState.hasError}
+        icon="fiscalCodeIndividual"
+        isDone={pidState.isDone}
+        isLoading={pidState.isLoading}
+        isPresent={!!pid?.remoteKey}
+        onPress={() => dispatch(getPidThunk({ remote: true }))}
+        title="Get PID (Remote HSM)"
+      />
     </ContentWrapper>
   );
 };

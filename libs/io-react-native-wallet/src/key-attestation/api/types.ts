@@ -34,8 +34,9 @@ export const DecodedKeyAttestation = z.object({
  */
 export interface KeyToAttest {
   /**
-   * The Android key attestation (certificate chain) generated with the challenge,
+   * For local keys, the Android key attestation (certificate chain) generated with the challenge,
    * proving the key pair is hardware-backed. Required on Android, ignored elsewhere.
+   * For remote keys, the Key Enrollment Certificate (KEC) returned by the Wallet Provider at enrollment.
    */
   attestation?: string;
   /** The signer bound to the key to attest. */

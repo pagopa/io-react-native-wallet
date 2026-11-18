@@ -67,13 +67,17 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
   return issuingAttestation;
 });
 
-interface GetKeyAttestationThunkInput {
-  keyTags: string[];
-}
+/**
+ * The keys to attest are either local keys, identified by their key tags and generated here,
+ * or keys already prepared by the caller, such as the ones enrolled on the Remote WSCD.
+ */
+type GetKeyAttestationThunkInput =
+  | { keysToAttest: Ka.KeyToAttest[] }
+  | { keyTags: string[] };
 export const getKeyAttestationThunk = createAppAsyncThunk<
   GetKeyAttestationThunkOutput,
   GetKeyAttestationThunkInput
->("walletinstance/keyattestation", async ({ keyTags }, { getState }) => {
+>("walletinstance/keyattestation", async (input, { getState }) => {
   const wallet = new IoWallet({ version: ITW_VERSION });
 
   // Retrieve the integrity key tag from the store and create its context
@@ -93,9 +97,12 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
   );
 
   // 2. Generate each key using the challenge
-  const keysToAttest = await Promise.all(
-    keyTags.map((keyTag) => generateKeyToAttest(keyTag)),
-  );
+  const keysToAttest =
+    "keysToAttest" in input
+      ? input.keysToAttest
+      : await Promise.all(
+          input.keyTags.map((keyTag) => generateKeyToAttest(keyTag)),
+        );
 
   // 3. Request the Key Attestation
   return await wallet.KeyAttestation.getAttestation(

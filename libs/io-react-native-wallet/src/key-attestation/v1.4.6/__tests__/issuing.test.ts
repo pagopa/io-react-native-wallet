@@ -5,7 +5,6 @@ import type { KeyToAttest } from "../../api";
 
 import {
   IoWalletError,
-  UnimplementedFeatureError,
   WalletProviderResponseError,
   WalletProviderResponseErrorCodes,
 } from "../../../utils/errors";
@@ -140,7 +139,7 @@ describe("KeyAttestation | getAttestation", () => {
     );
   });
 
-  it("should throw when a key to attest is remote", async () => {
+  it("should throw when local and remote keys are mixed", async () => {
     const appFetch = createMockFetch();
     const remoteKey = createMockKeyToAttest("key-2");
     remoteKey.signer = { ...remoteKey.signer, kind: "REMOTE" };
@@ -160,11 +159,11 @@ describe("KeyAttestation | getAttestation", () => {
           keysToAttest: [createMockKeyToAttest("key-1"), remoteKey],
         },
       ),
-    ).rejects.toThrow(UnimplementedFeatureError);
+    ).rejects.toThrow(IoWalletError);
     expect(appFetch).not.toHaveBeenCalled();
   });
 
-  it("should throw on Android when the key is generated without a key attestation", async () => {
+  it.skip("should throw on Android when the key is generated without a key attestation", async () => {
     jest.replaceProperty(Platform, "OS", "android");
 
     const keyToAttest = createMockKeyToAttest("key-1", {

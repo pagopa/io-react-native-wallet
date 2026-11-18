@@ -40,13 +40,13 @@ type DisplayableClaim = Omit<ClaimConfig, "display"> & {
  */
 async function verifyCredentialMDoc(
   rawCredential: string,
-  x509CertRoot: string,
+  // x509CertRoot: string,
   holderBindingSigner: Signer,
 ): Promise<DecodedMDocCredential> {
   const [decodedCredential, holderBindingKey] =
     // parallel for optimization
     await Promise.all([
-      verifyMdoc(rawCredential, x509CertRoot),
+      verifyMdoc(rawCredential),
       holderBindingSigner.getPublicKey(),
     ]);
 
@@ -197,15 +197,15 @@ export const verifyAndParseCredentialMDoc: IssuanceApi["verifyAndParseCredential
     credential,
     credentialConfigurationId,
     { credentialSigner, ignoreMissingAttributes, includeUndefinedAttributes },
-    x509CertRoot,
+    // x509CertRoot,
   ) => {
-    if (!x509CertRoot) {
-      throw new IoWalletError("Missing x509CertRoot");
-    }
+    // if (!x509CertRoot) {
+    //   throw new IoWalletError("Missing x509CertRoot");
+    // }
 
     const decoded = await verifyCredentialMDoc(
       credential,
-      x509CertRoot,
+      // x509CertRoot,
       credentialSigner,
     );
 

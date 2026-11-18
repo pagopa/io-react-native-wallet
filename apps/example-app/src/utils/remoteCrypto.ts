@@ -212,7 +212,13 @@ const openSession = async (
     Buffer.from(encryptedRequest),
   ]).toString("base64");
 
-  return { api, header, session: { data, jwtToken, sessionId } };
+  // NSSAM pads the session identifier with NUL characters, which the Wallet Provider rejects
+  return {
+    api,
+    header,
+    // eslint-disable-next-line no-control-regex
+    session: { data, jwtToken, sessionId: sessionId.replace(/\u0000+$/, "") },
+  };
 };
 
 /* eslint-disable perfectionist/sort-objects -- NSSAM rejects requests whose fields are not in this order */

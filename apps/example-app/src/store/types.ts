@@ -1,6 +1,7 @@
 import type { CredentialIssuance } from "@io-app-it-wallet/io-react-native-wallet";
 import type { SerializedError } from "@reduxjs/toolkit";
 
+import type { RemoteKey } from "../utils/remoteCrypto";
 import type { store } from "./store";
 
 /**
@@ -40,6 +41,8 @@ export type CredentialResult = CredentialResultBase & {
  */
 export type PidResult = CredentialResultBase & {
   credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
+  /** Present when the credential key lives on the Remote WSCD instead of the device. */
+  remoteKey?: RemoteKey;
 };
 
 /**

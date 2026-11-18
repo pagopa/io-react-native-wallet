@@ -31,6 +31,7 @@ describe("requestCredentials", () => {
 
   const mockIssuerConf = {
     credential_endpoint: "https://issuer-example/credential",
+    credential_issuer: "https://issuer-example/credential",
     nonce_endpoint: "https://issuer-example/nonce",
   } as IssuerConfig;
 

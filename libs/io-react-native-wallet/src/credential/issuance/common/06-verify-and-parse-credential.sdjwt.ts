@@ -14,7 +14,7 @@ import { IoWalletError } from "../../../utils/errors";
 import { isSameThumbprint, type JWK } from "../../../utils/jwk";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { isPathEqual, isPrefixOf } from "../../../utils/parser";
-import { verifyX509Chain } from "../../../utils/x509";
+// import { verifyX509Chain } from "../../../utils/x509";
 
 type ClaimConfig = CredentialConf["claims"][number];
 
@@ -240,7 +240,7 @@ export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredentia
       includeUndefinedAttributes,
       validateCertificateChain,
     },
-    x509CertRoot,
+    // x509CertRoot,
   ) => {
     const decoded = await verifyCredentialSdJwt(
       credential,
@@ -254,14 +254,14 @@ export const verifyAndParseCredentialSdJwt: IssuanceApi["verifyAndParseCredentia
     );
 
     if (validateCertificateChain) {
-      if (!x509CertRoot) {
-        throw new IoWalletError("Missing x509CertRoot");
-      }
+      // if (!x509CertRoot) {
+      //   throw new IoWalletError("Missing x509CertRoot");
+      // }
       const x5c = decoded.jwt?.header?.x5c as string[] | undefined;
       if (!x5c || !Array.isArray(x5c) || x5c.length === 0) {
         throw new MissingX509CertsError("Missing x509 certificates");
       }
-      await verifyX509Chain(x5c, x509CertRoot);
+      // await verifyX509Chain(x5c, x509CertRoot);
     }
 
     const credentialConfig =

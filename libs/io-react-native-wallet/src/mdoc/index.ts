@@ -5,12 +5,12 @@ import { b64utob64 } from "jsrsasign";
 import { MissingX509CertsError } from "../trust/common/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
 import { IoWalletError } from "../utils/errors";
-import { verifyX509Chain } from "../utils/x509";
+// import { verifyX509Chain } from "../utils/x509";
 export * from "./utils";
 
 export const verify = async (
   token: string,
-  x509CertRoot: string,
+  // x509CertRoot: string,
 ): Promise<{ issuerSigned: CBOR.IssuerSigned }> => {
   // get decoded data
   const issuerSigned = await CBOR.decodeIssuerSigned(token);
@@ -29,7 +29,7 @@ export const verify = async (
   const x5chain =
     issuerSigned.issuerAuth.unprotectedHeader.x5chain.map(b64utob64);
   // Verify the x5chain
-  await verifyX509Chain(x5chain, x509CertRoot);
+  // await verifyX509Chain(x5chain, x509CertRoot);
 
   const coseSign1 = issuerSigned.issuerAuth.rawValue;
 

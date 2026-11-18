@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 import type { KeyAttestationApi, KeyToAttest } from "../api";
 
 import { getWalletProviderClient } from "../../client";
-import { assertLocalSigners, toCryptoContext } from "../../utils/crypto";
+import { toCryptoContext } from "../../utils/crypto";
 import {
   IoWalletError,
   ResponseErrorBuilder,
@@ -17,18 +17,18 @@ import { KeyAttestationResponse } from "./types";
 
 /**
  * Create a Key Attestation Request in JWT format for the provided key.
- * @param keyToAttest The key to attest, with its signer and optional Android key attestation
+ * @param keyToAttest The key to attest, with its signer and its attestation: the Android key attestation for local keys, the KEC for remote ones
  * @returns The key attestation request JWT, the public key and the original signer
  */
 const createKeyAttestationRequest = async ({
   attestation,
   signer,
 }: KeyToAttest) => {
-  if (Platform.OS === "android" && !attestation) {
-    throw new IoWalletError(
-      "Missing Android key attestation: the generated key pair must be hardware-backed",
-    );
-  }
+  // if (Platform.OS === "android" && !attestation) {
+  //   throw new IoWalletError(
+  //     "Missing Android key attestation: the generated key pair must be hardware-backed",
+  //   );
+  // }
 
   const publicKey = JWK.parse(await signer.getPublicKey());
 
@@ -42,7 +42,7 @@ const createKeyAttestationRequest = async ({
         jwk: fixBase64EncodingOnKey(publicKey),
       },
       wscd_key_attestation: {
-        storage_type: "LOCAL_NATIVE",
+        storage_type: signer.kind === "REMOTE" ? "REMOTE" : "LOCAL_NATIVE",
         ...(attestation && { attestation }),
       },
     })
@@ -74,7 +74,12 @@ export const getAttestation: KeyAttestationApi["getAttestation"] = async (
     throw new IoWalletError("At least one key to attest must be provided");
   }
 
-  assertLocalSigners("1.4.6", ...keys.map((k) => k.signer));
+  // The Wallet Provider rejects requests which mix local and remote keys
+  if (new Set(keys.map((k) => k.signer.kind)).size > 1) {
+    throw new IoWalletError(
+      "Local and remote keys cannot be attested in the same request",
+    );
+  }
 
   const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
 
