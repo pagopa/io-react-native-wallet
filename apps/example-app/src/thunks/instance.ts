@@ -2,6 +2,7 @@ import { IoWallet } from "@io-app-it-wallet/io-react-native-wallet";
 
 import { instanceReset } from "../store/instance";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
+import { selectXUserId } from "../store/reducers/user";
 import { selectInstanceKeyTag } from "../store/selectors/instance";
 import { isAndroid } from "../utils/device";
 import { getEnv } from "../utils/environment";
@@ -39,6 +40,7 @@ export const createWalletInstanceThunk = createAppAsyncThunk(
       appFetch,
       integrityContext,
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
+      xUserId: selectXUserId(getState()),
     });
 
     return integrityKeyTag;

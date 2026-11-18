@@ -22,6 +22,7 @@ import { pidReducer } from "./reducers/pid";
 import { presentationReducer } from "./reducers/presentation";
 import { sessionReducer } from "./reducers/session";
 import { trustValidationReducer } from "./reducers/trustValidation";
+import { userReducer } from "./reducers/user";
 
 /**
  * Redux store configuration.
@@ -46,6 +47,7 @@ export const store = configureStore({
     presentation: presentationReducer,
     session: sessionReducer,
     trustValidation: trustValidationReducer,
+    user: userReducer,
   },
 });
 

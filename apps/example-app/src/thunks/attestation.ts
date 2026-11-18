@@ -9,6 +9,7 @@ import { Platform } from "react-native";
 
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { selectInstanceKeyTag } from "../store/reducers/instance";
+import { selectXUserId } from "../store/reducers/user";
 import {
   createLocalSignerFor,
   regenerateCryptoKey,
@@ -68,6 +69,7 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
         walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
         walletSolutionId: "appio",
         walletSolutionVersion: "3.26.0",
+        xUserId: selectXUserId(getState()),
       },
       {
         appFetch,
@@ -120,6 +122,7 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
       walletSolutionId: "appio",
       walletSolutionVersion: "3.26.0",
+      xUserId: selectXUserId(getState()),
     },
     {
       appFetch,

@@ -20,11 +20,14 @@ export interface RemoteKey {
 }
 
 export interface RemoteWscdContext {
-  /** The NSSAM Master RSA public key (PEM) which signs the session keys, pinned in the App. */
-  masterPublicKey: string;
-  /** The user identifier sent as `x-user-id` to the Wallet Provider. */
-  userId: string;
+  /**
+   * The NSSAM Master RSA public key (PEM) which signs the session keys, pinned in the App.
+   * When omitted the Master signature is NOT verified: only acceptable for testing.
+   */
+  masterPublicKey?: string;
   walletProviderBaseUrl: string;
+  /** The user identifier sent as `x-user-id` to the Wallet Provider. */
+  xUserId: string;
 }
 
 /**
@@ -102,11 +105,11 @@ export const createRemoteSignerFor = (
  * and decrypting the session key are up to the App.
  */
 const openSession = async (
-  { masterPublicKey, userId, walletProviderBaseUrl }: RemoteWscdContext,
+  { masterPublicKey, walletProviderBaseUrl, xUserId }: RemoteWscdContext,
   request: (accessToken: string) => object,
 ) => {
   const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
-  const header = { "x-user-id": userId };
+  const header = { "x-user-id": xUserId };
 
   const { access_token: jwtToken } = await api.post("/auth/token-exchanges", {
     header,
@@ -152,19 +155,21 @@ const openSession = async (
 
   // NSSAM signs the first n bytes of the base64 `encryptionKey`, where n is the length of the decoded key
   const encryptedSessionKey = Buffer.from(encryptionKey, "base64");
-  const isSignedByMaster = QuickCrypto.createVerify("SHA256")
-    .update(
-      Buffer.from(encryptionKey, "utf8").subarray(
-        0,
-        encryptedSessionKey.length,
-      ),
-    )
-    .verify(
-      { format: "pem", key: masterPublicKey },
-      Buffer.from(signature, "base64"),
-    );
-  if (!isSignedByMaster) {
-    throw new Error("The session key is not signed by the NSSAM Master key");
+  if (masterPublicKey) {
+    const isSignedByMaster = QuickCrypto.createVerify("SHA256")
+      .update(
+        Buffer.from(encryptionKey, "utf8").subarray(
+          0,
+          encryptedSessionKey.length,
+        ),
+      )
+      .verify(
+        { format: "pem", key: masterPublicKey },
+        Buffer.from(signature, "base64"),
+      );
+    if (!isSignedByMaster) {
+      throw new Error("The session key is not signed by the NSSAM Master key");
+    }
   }
 
   const rawSessionKey = await subtle.decrypt(
