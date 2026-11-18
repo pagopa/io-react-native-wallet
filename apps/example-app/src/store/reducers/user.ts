@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import type { RootState } from "../types";
 
 import { instanceReset } from "../instance";
-import { sessionReset } from "./session";
 
 /**
  * State type definition for the user slice
@@ -28,7 +27,6 @@ const getInitialState = (): UserState => ({ xUserId: uuidv4() });
 const userSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(instanceReset, getInitialState);
-    builder.addCase(sessionReset, getInitialState);
   },
   initialState: getInitialState,
   name: "user",

@@ -73,7 +73,7 @@ export const WalletInstanceScreen = () => {
         if (hasIntegrityKeyTag) {
           Alert.alert(
             "Wallet instance already exits",
-            "This will reset the whole app state except the session",
+            "This will reset the whole app state",
             [
               {
                 onPress: () => {

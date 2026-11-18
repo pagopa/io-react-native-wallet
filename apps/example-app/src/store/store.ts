@@ -9,18 +9,15 @@ import {
   REHYDRATE,
 } from "redux-persist";
 
-import { initAppFetch } from "../utils/fetch";
 import { attestationReducer } from "./reducers/attestation";
 import { credentialReducer } from "./reducers/credential";
 import { credentialsCatalogueSlice } from "./reducers/credentialsCatalogue";
 import { debugSlice } from "./reducers/debug";
 import { environmentReducer } from "./reducers/environment";
 import { instanceReducer } from "./reducers/instance";
-import { mrtdReducer } from "./reducers/mrtd";
 import { credentialOfferReducer } from "./reducers/offer";
 import { pidReducer } from "./reducers/pid";
 import { presentationReducer } from "./reducers/presentation";
-import { sessionReducer } from "./reducers/session";
 import { trustValidationReducer } from "./reducers/trustValidation";
 import { userReducer } from "./reducers/user";
 
@@ -41,17 +38,13 @@ export const store = configureStore({
     debug: debugSlice.reducer,
     environment: environmentReducer,
     instance: instanceReducer,
-    mrtd: mrtdReducer,
     offer: credentialOfferReducer,
     pid: pidReducer,
     presentation: presentationReducer,
-    session: sessionReducer,
     trustValidation: trustValidationReducer,
     user: userReducer,
   },
 });
-
-initAppFetch(store);
 
 /**
  * Redux persistor configuration used in the root component with {@link PersistGate}.

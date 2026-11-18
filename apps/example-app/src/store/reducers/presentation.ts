@@ -8,8 +8,8 @@ import {
   remoteCrossDevicePresentationThunk as remoteCrossDevicePresentationThunk,
   type RequestObject,
 } from "../../thunks/presentation";
+import { instanceReset } from "../instance";
 import { asyncStatusInitial } from "../utils";
-import { sessionReset } from "./session";
 
 /**
  * State type definition for the presentation slice
@@ -104,8 +104,8 @@ const presentationSlice = createSlice({
       },
     );
 
-    // Reset the attestation state when the session is reset.
-    builder.addCase(sessionReset, () => initialState);
+    // Reset the state when the wallet is reset.
+    builder.addCase(instanceReset, () => initialState);
   },
   initialState,
   name: "presentation",

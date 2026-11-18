@@ -3,7 +3,6 @@ import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
-import { selectLoginMethod } from "../store/reducers/session";
 import { useAppSelector } from "../store/utils";
 
 interface Props {
@@ -13,12 +12,11 @@ interface Props {
 
 /**
  * Custom navigation header that shows, under the screen title, the active IT-Wallet version,
- * the selected environment and the IO login status.
+ * and the selected environment.
  */
 export function HeaderTitle({ children }: Props) {
   const itwVersion = useAppSelector(selectItwVersion);
   const env = useAppSelector(selectEnv);
-  const loginMethod = useAppSelector(selectLoginMethod);
   return (
     <View style={styles.wrapper}>
       <IOText
@@ -36,11 +34,6 @@ export function HeaderTitle({ children }: Props) {
           text={env.toUpperCase()}
           variant={env === "prod" ? "error" : "highlight"}
         />
-        {loginMethod ? (
-          <Badge text={loginMethod.toUpperCase()} variant="success" />
-        ) : (
-          <Badge outline text="NO LOGIN" variant="default" />
-        )}
       </View>
     </View>
   );

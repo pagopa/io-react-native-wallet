@@ -5,8 +5,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { AsyncStatus, RootState } from "../types";
 
 import { validateTrustChainThunk } from "../../thunks/trustValidation";
+import { instanceReset } from "../instance";
 import { asyncStatusInitial } from "../utils";
-import { sessionReset } from "./session";
 
 export interface TrustValidationState {
   asyncStatus: AsyncStatus;
@@ -54,7 +54,7 @@ const trustValidationSlice = createSlice({
         state.validationError =
           action.error.message || "Unknown validation error";
       })
-      .addCase(sessionReset, () => initialState);
+      .addCase(instanceReset, () => initialState);
   },
   initialState,
   name: "trustValidation",

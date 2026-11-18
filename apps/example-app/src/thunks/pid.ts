@@ -2,6 +2,7 @@ import {
   CredentialIssuance,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
+import * as WebBrowser from "expo-web-browser";
 import { v4 as uuidv4 } from "uuid";
 
 import {
@@ -10,14 +11,14 @@ import {
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
-import { selectPidFlowParams } from "../store/selectors/pid";
-import { type PidAuthMethods, type PidResult } from "../store/types";
+import { type PidResult } from "../store/types";
 import {
   createLocalSignerFor,
   DPOP_KEYTAG,
   regenerateCryptoKey,
   WIA_KEYTAG,
 } from "../utils/crypto";
+import { isAndroid } from "../utils/device";
 import { getEnv } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import {
@@ -26,256 +27,181 @@ import {
 } from "./attestation";
 import { createAppAsyncThunk } from "./utils";
 
-// This can be any URL, as long as it has http or https as its protocol, otherwise it cannot be managed by the webview.
-// PUT ME IN UTILS OR ENV
-export const CIE_L3_REDIRECT_URI = "https://cie.callback";
-
 /**
- * Type definition for the output of the {@link preparePidFlowParamsThunk}.
+ * Thunk to obtain the PID.
+ * It drives the whole issuance flow: the user authorization is performed in an authentication session of the system browser,
+ * which redirects back to the app with the authorization code used to obtain and parse the credential.
+ * @returns The PID result.
  */
-export interface PreparePidFlowParamsThunkOutput {
-  authMethod: PidAuthMethods;
-  authUrl: string;
-  ciePin?: string;
-  clientId: string;
-  codeVerifier: string;
-  credentialDefinition: Awaited<
-    ReturnType<CredentialIssuance.IssuanceApi["startUserAuthorization"]>
-  >["credentialDefinition"];
-  issuerConf: CredentialIssuance.IssuerConfig;
-  redirectUri: string;
-  walletInstanceAttestation: string;
-}
+export const getPidThunk = createAppAsyncThunk<PidResult, undefined>(
+  "pid/get",
+  async (_, { dispatch, getState }) => {
+    const itwVersion = selectItwVersion(getState());
+    const wallet = new IoWallet({ version: itwVersion });
 
-/**
- * Type definition for the input of the {@link ContinuePidFlowThunkInput}.
- */
-interface ContinuePidFlowThunkInput {
-  authRedirectUrl: string;
-}
+    // Checks if the wallet instance attestation needs to be reuqested
+    if (shouldRequestWalletInstanceAttestationSelector(getState())) {
+      await dispatch(getWalletInstanceAttestationThunk());
+    }
 
-/**
- * Type definition for the input of the {@link preparePidFlowParamsThunk}.
- */
-interface PreparePidFlowParamsThunkInput {
-  authMethod: PidAuthMethods;
-  ciePin?: string;
-  idpHint: string;
-  withMRTDPoP?: boolean;
-}
+    // Gets the Wallet Instance Attestation from the persisted store
+    const walletInstanceAttestation =
+      selectWalletInstanceAttestationAsJwt(getState());
+    if (!walletInstanceAttestation) {
+      throw new Error("Wallet Instance Attestation not found");
+    }
 
-/**
- * Thunk to prepare the parameters for the PID issuance flow.
- * It performs a partial issuance flow, starting from the issuance request to the user authorization.
- * This is needed to obtain the needed parameters to continue the flow in the webview in {@link TestCieL3Scenario} or in {@link PidSpidLoginScreen}.
- * The flow can be managed using either SPID or CIE L3 as the authentication method.
- * @param args.idpHint The identity provider hint to use in the issuance flow.
- * @param args.authMethod The authentication method to use, either SPID or CIE L3.
- * @param args.ciePin The CIE PIN to use in the issuance flow (optional, only for CIE L3).
- * @param args.withMRTDPoP Whether MRTD PoP is required (optional, only for L2+).
- * @returns The needed parameters to continue the issuance flow.
- */
-export const preparePidFlowParamsThunk = createAppAsyncThunk<
-  PreparePidFlowParamsThunkOutput,
-  PreparePidFlowParamsThunkInput
->("pid/flowParamsPrepare", async (args, { dispatch, getState }) => {
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
+    // Reset the credential state before obtaining a new PID
+    dispatch(credentialReset());
 
-  // Checks if the wallet instance attestation needs to be reuqested
-  if (shouldRequestWalletInstanceAttestationSelector(getState())) {
-    await dispatch(getWalletInstanceAttestationThunk());
-  }
+    const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
-  // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation =
-    selectWalletInstanceAttestationAsJwt(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
+    // Get env
+    const env = selectEnv(getState());
+    const {
+      REDIRECT_URI: redirectUri,
+      WALLET_PID_PROVIDER_BASE_URL,
+      X509_CERT_ROOT,
+    } = getEnv(env);
 
-  // Reset the credential state before obtaining a new PID
-  dispatch(credentialReset());
-  const { authMethod, ciePin, idpHint, withMRTDPoP } = args;
+    // Evaluate issuer trust
+    const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
+      WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
+      { appFetch },
+    );
 
-  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
+    // Start user authorization
+    const { clientId, codeVerifier, credentialDefinition, issuerRequestUri } =
+      await wallet.CredentialIssuance.startUserAuthorization(
+        issuerConf,
+        [getPidSdJwtConfigurationId(issuerConf)],
+        { proofType: "none" },
+        {
+          appFetch,
+          redirectUri,
+          walletInstanceAttestation,
+          wiaSigner,
+        },
+      );
 
-  // Get env
-  const env = selectEnv(getState());
-  const { REDIRECT_URI, WALLET_PID_PROVIDER_BASE_URL } = getEnv(env);
-
-  const redirectUri =
-    args.authMethod === "cieL3" ? CIE_L3_REDIRECT_URI : REDIRECT_URI;
-
-  // Evaluate issuer trust
-  const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
-    WALLET_PID_PROVIDER_BASE_URL.value(itwVersion),
-    { appFetch },
-  );
-
-  // Start user authorization
-  const { clientId, codeVerifier, credentialDefinition, issuerRequestUri } =
-    await wallet.CredentialIssuance.startUserAuthorization(
+    // Obtain the Authorization URL
+    const { authUrl } = await wallet.CredentialIssuance.buildAuthorizationUrl(
+      issuerRequestUri,
+      clientId,
       issuerConf,
-      [getPidSdJwtConfigurationId(issuerConf)],
-      withMRTDPoP
-        ? { idpHinting: idpHint, proofType: "mrtd-pop" }
-        : { proofType: "none" },
+    );
+
+    // On Android check that there is a browser to open the authentication session and warm it up
+    if (isAndroid) {
+      const { browserPackages } =
+        await WebBrowser.getCustomTabsSupportingBrowsersAsync();
+      if (browserPackages.length === 0) {
+        throw new Error("No browser found to open the authentication session");
+      }
+      await WebBrowser.warmUpAsync();
+    }
+
+    // Perform the user authorization in the browser, which returns when it redirects to the redirect URI scheme
+    const baseRedirectUri = `${new URL(redirectUri).protocol}//`;
+    const authResult = await WebBrowser.openAuthSessionAsync(
+      authUrl,
+      baseRedirectUri,
+      { createTask: false, preferEphemeralSession: true },
+    );
+    if (authResult.type !== "success" || !authResult.url) {
+      throw new Error("Authorization flow was not completed successfully.");
+    }
+    const authRedirectUrl = authResult.url;
+
+    const { code } =
+      await wallet.CredentialIssuance.completePidUserAuthorizationWithQueryMode(
+        authRedirectUrl,
+      );
+
+    // Create DPoP context for the whole issuance flow
+    await regenerateCryptoKey(DPOP_KEYTAG);
+    const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
+
+    const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
+      issuerConf,
+      code,
+      redirectUri,
+      codeVerifier,
       {
         appFetch,
-        redirectUri: redirectUri,
+        dPopSigner,
         walletInstanceAttestation,
         wiaSigner,
       },
     );
 
-  // Obtain the Authorization URL
-  const { authUrl } = await wallet.CredentialIssuance.buildAuthorizationUrl(
-    issuerRequestUri,
-    clientId,
-    issuerConf,
-    idpHint,
-  );
+    const [pidCredentialDefinition] = credentialDefinition;
+    // Get the credential configuration ID for PID
+    const pidCredentialConfigId =
+      pidCredentialDefinition?.type === "openid_credential" &&
+      pidCredentialDefinition?.credential_configuration_id;
 
-  return {
-    authMethod,
-    authUrl,
-    ciePin,
-    clientId,
-    codeVerifier,
-    credentialDefinition,
-    issuerConf,
-    redirectUri,
-    walletInstanceAttestation,
-  };
-});
+    const { credential_configuration_id, credential_identifiers } =
+      accessToken.authorization_details.find(
+        (authDetails) =>
+          authDetails.credential_configuration_id === pidCredentialConfigId,
+      ) ?? {};
 
-/**
- * Thunk to continue the CIE L3 issuance flow. Follows {@link preparePidFlowParamsThunk}.
- * It performs the last steps of the issuance flow, obtaining the credential and parsing it.
- * @param args.authRedirectUrl The URL of the webview after the user authorization which contains the authorization code.
- * @return The credetial result.
- */
-export const continuePidFlowThunk = createAppAsyncThunk<
-  PidResult,
-  ContinuePidFlowThunkInput
->("pid/flowContinue", async (args, { dispatch, getState }) => {
-  const { authRedirectUrl } = args;
+    // Get the first credential_identifier from the access token's authorization details
+    const [credential_identifier] = credential_identifiers ?? [];
 
-  const env = selectEnv(getState());
-  const { X509_CERT_ROOT } = getEnv(env);
-  const itwVersion = selectItwVersion(getState());
-  const wallet = new IoWallet({ version: itwVersion });
+    if (!credential_configuration_id) {
+      throw new Error("No credential configuration ID found for PID");
+    }
 
-  const flowParams = selectPidFlowParams(getState());
+    // Create credential signer and get the WUA
+    const credentialKeyTag = uuidv4().toString();
+    const { attestation: keyAttestation } = await dispatch(
+      getKeyAttestationThunk({ keyTags: [credentialKeyTag] }),
+    ).unwrap();
 
-  if (!flowParams) {
-    throw new Error("Flow params not found");
-  }
+    const credentialSigner = createLocalSignerFor(credentialKeyTag);
 
-  const {
-    clientId,
-    codeVerifier,
-    credentialDefinition,
-    issuerConf,
-    redirectUri,
-    walletInstanceAttestation,
-  } = flowParams;
+    // Get the credential identifier that was authorized
+    const { credential, format } =
+      await wallet.CredentialIssuance.obtainCredential(
+        issuerConf,
+        accessToken,
+        clientId,
+        {
+          credential_configuration_id,
+          credential_identifier,
+        },
+        {
+          appFetch,
+          credentialSigner,
+          dPopSigner,
+          keyAttestation,
+        },
+      );
 
-  const { code } =
-    await wallet.CredentialIssuance.completePidUserAuthorizationWithQueryMode(
-      authRedirectUrl,
-    );
-
-  /*
-   * Create wia signer, we are using the same keytag used in {@link prepareCieL3FlowParamsThunk},
-   * hoping it has not been deleted in the meanwhile. This can be improved later.
-   */
-  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
-
-  // Create DPoP context for the whole issuance flow
-  await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
-
-  const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
-    issuerConf,
-    code,
-    redirectUri,
-    codeVerifier,
-    {
-      appFetch,
-      dPopSigner,
-      walletInstanceAttestation,
-      wiaSigner,
-    },
-  );
-
-  const [pidCredentialDefinition] = credentialDefinition;
-  // Get the credential configuration ID for PID
-  const pidCredentialConfigId =
-    pidCredentialDefinition?.type === "openid_credential" &&
-    pidCredentialDefinition?.credential_configuration_id;
-
-  const { credential_configuration_id, credential_identifiers } =
-    accessToken.authorization_details.find(
-      (authDetails) =>
-        authDetails.credential_configuration_id === pidCredentialConfigId,
-    ) ?? {};
-
-  // Get the first credential_identifier from the access token's authorization details
-  const [credential_identifier] = credential_identifiers ?? [];
-
-  if (!credential_configuration_id) {
-    throw new Error("No credential configuration ID found for PID");
-  }
-
-  // Create credential signer and get the WUA
-  const credentialKeyTag = uuidv4().toString();
-  const { attestation: keyAttestation } = await dispatch(
-    getKeyAttestationThunk({ keyTags: [credentialKeyTag] }),
-  ).unwrap();
-
-  const credentialSigner = createLocalSignerFor(credentialKeyTag);
-
-  // Get the credential identifier that was authorized
-  const { credential, format } =
-    await wallet.CredentialIssuance.obtainCredential(
-      issuerConf,
-      accessToken,
-      clientId,
-      {
+    const { parsedCredential } =
+      await wallet.CredentialIssuance.verifyAndParseCredential(
+        issuerConf,
+        credential,
         credential_configuration_id,
-        credential_identifier,
-      },
-      {
-        appFetch,
-        credentialSigner,
-        dPopSigner,
-        keyAttestation,
-      },
-    );
+        {
+          credentialSigner,
+          ignoreMissingAttributes: true,
+        },
+        X509_CERT_ROOT,
+      );
 
-  const { parsedCredential } =
-    await wallet.CredentialIssuance.verifyAndParseCredential(
-      issuerConf,
+    return {
       credential,
-      credential_configuration_id,
-      {
-        credentialSigner,
-        ignoreMissingAttributes: true,
-      },
-      X509_CERT_ROOT,
-    );
-
-  return {
-    credential,
-    credentialConfigurationId: credential_configuration_id,
-    credentialType: "PersonIdentificationData",
-    format,
-    keyTag: credentialKeyTag,
-    parsedCredential,
-  };
-});
+      credentialConfigurationId: credential_configuration_id,
+      credentialType: "PersonIdentificationData",
+      format,
+      keyTag: credentialKeyTag,
+      parsedCredential,
+    };
+  },
+);
 
 /**
  * Get the credential configuration ID for the PID in sd-jwt format.

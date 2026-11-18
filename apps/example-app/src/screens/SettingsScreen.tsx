@@ -5,7 +5,6 @@ import {
   H1,
   IOButton,
   IOVisualCostants,
-  ListItemAction,
   RadioButtonLabel,
   RadioGroup,
   type RadioItem,
@@ -29,7 +28,6 @@ import {
   selectLoggingAddress,
   setItwVersion,
 } from "../store/reducers/environment";
-import { selectIoAuthToken, sessionReset } from "../store/reducers/session";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
@@ -37,12 +35,11 @@ import { initLogging } from "../utils/logging";
 const itwVersions: ItwVersion[] = ["1.4.6"];
 
 /**
- * Settings screen component which allows to change the environment and manage the session.
+ * Settings screen component which allows to change the environment.
  */
 const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const env = useAppSelector(selectEnv);
-  const session = useAppSelector(selectIoAuthToken);
   const currentDebugAddress = useAppSelector(selectLoggingAddress);
   const itwVersion = useAppSelector(selectItwVersion);
   const [selectedEnv, setSelectedEnv] = useState<EnvType>(env);
@@ -52,7 +49,7 @@ const HomeScreen = () => {
   const toast = useIOToast();
 
   const toggleEnvionment = (selected: EnvType) => {
-    dispatch(instanceReset()); // This resets the whole instance state beside the session
+    dispatch(instanceReset()); // This resets the whole wallet state
     dispatch(envSet(selected));
     setSelectedEnv(selected);
   };
@@ -71,13 +68,13 @@ const HomeScreen = () => {
   const envRadioItems = (): readonly RadioItem<EnvType>[] => [
     {
       description:
-        "Use the PRE environment for testing. A Proxy might be needed to access the services. This action will reset the app state beside the session.",
+        "Use the PRE environment for testing. A Proxy might be needed to access the services. This action will reset the app state.",
       id: "pre",
       value: "Set PRE environment",
     },
     {
       description:
-        "Use the PROD environment for testing. This action will reset the app state beside the session.",
+        "Use the PROD environment for testing. This action will reset the app state.",
       id: "prod",
       value: "Set PROD environment",
     },
@@ -85,7 +82,6 @@ const HomeScreen = () => {
 
   useDebugInfo({
     env,
-    session,
   });
 
   return (
@@ -129,14 +125,6 @@ const HomeScreen = () => {
           label="Set Logging Server"
           onPress={() => setLoggingServer()}
           variant="solid"
-        />
-        <VSpacer />
-        <H1>Session</H1>
-        <ListItemAction
-          icon="logout"
-          label={"Logout from IO Backend"}
-          onPress={() => dispatch(sessionReset())}
-          variant="danger"
         />
       </ScrollView>
     </SafeAreaView>

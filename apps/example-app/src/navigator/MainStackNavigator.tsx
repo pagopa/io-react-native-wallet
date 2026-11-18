@@ -8,20 +8,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect } from "react";
 
 import { HeaderTitle } from "../components/HeaderTitle";
-import { useIoSessionCheck } from "../hooks/useIoSessionCheck";
-import { CieAuthenticationScreen } from "../screens/cie/CieAuthenticationScreen";
-import { CieIdAuthenticationScreen } from "../screens/cie/CieIdAuthenticationScreen";
-import { CieInternalAuthenticationScreen } from "../screens/cie/CieInternalAuthenticationScreen";
 import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
 import HomeScreen from "../screens/HomeScreen";
-import { CieLoginScreen } from "../screens/login/CieLoginScreen";
-import IdpLoginScreen from "../screens/login/IdpLoginScreen";
-import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
-import LoginScreen from "../screens/login/LoginScreen";
-import PidSpidLoginScreen from "../screens/login/PidLoginScreen";
-import PidSpidIdpSelectionScreen from "../screens/login/PidSpidIdpSelectionScreen";
 import { OfferScreen } from "../screens/OfferScreen";
 import { PidScreen } from "../screens/PidScreen";
 import { PresentationScreen } from "../screens/PresentationScreen";
@@ -35,7 +25,6 @@ import { TrustScreen } from "../screens/TrustScreen";
 import { WalletInstanceScreen } from "../screens/WalletInstanceScreen";
 import { setDebugVisibility } from "../store/reducers/debug";
 import { selectLoggingAddress } from "../store/reducers/environment";
-import { selectHasSessionAccess } from "../store/reducers/session";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { initLogging } from "../utils/logging";
 
@@ -43,29 +32,12 @@ import { initLogging } from "../utils/logging";
  * MainStackNav parameters list for each defined screen.
  */
 export type MainStackNavParamList = {
-  CieAuthentication: undefined;
-  CieIdAuthentication: {
-    authUrl: string;
-    redirectUri: string;
-    withDocumentProof?: boolean;
-  };
-  CieInternalAuthentication: { challenge: string; redirectUri: string };
-  CieLogin: undefined;
   CredentialOffer: undefined;
   Credentials: undefined;
   CredentialsCatalogue: undefined;
   CredentialStatus: undefined;
   Home: undefined;
-  IdpLogin: { idp: string };
-  IdpSelection: undefined;
-  Login: undefined;
   Pid: undefined;
-  PidSpidIdpSelection: { withDocumentProof?: boolean };
-  PidSpidLogin: {
-    authUrl: string;
-    redirectUri: string;
-    withDocumentProof?: boolean;
-  };
   Presentations: undefined;
   Proximity: undefined;
   QrScanner: QrScannerScreenParams;
@@ -86,11 +58,8 @@ const lightTheme: Theme = {
 };
 
 export const MainStackNavigator = () => {
-  const hasSessionAccess = useAppSelector(selectHasSessionAccess);
   const loggingServerAddr = useAppSelector(selectLoggingAddress);
   const dispatch = useAppDispatch();
-
-  useIoSessionCheck();
 
   /**
    * Sets the logging environment when the selected environment changes.
@@ -113,126 +82,73 @@ export const MainStackNavigator = () => {
   return (
     <NavigationContainer theme={lightTheme}>
       <Stack.Navigator>
-        {hasSessionAccess ? (
-          /*
-           * Protected routes, accessible after login or when the login is skipped
-           */
-          <Stack.Group
-            screenOptions={{
-              headerRight: headerRight,
-              headerTitle: HeaderTitle,
-            }}
-          >
-            <Stack.Screen
-              component={HomeScreen}
-              name="Home"
-              options={{ title: "ITW Test" }}
-            />
-            <Stack.Screen
-              component={WalletInstanceScreen}
-              name="WalletInstance"
-              options={{ title: "Wallet Instance" }}
-            />
-            <Stack.Screen
-              component={PidScreen}
-              name="Pid"
-              options={{ title: "PID issuance" }}
-            />
-            <Stack.Screen
-              component={PidSpidIdpSelectionScreen}
-              name="PidSpidIdpSelection"
-              options={{ title: "PID issuance" }}
-            />
-            <Stack.Screen
-              component={CieAuthenticationScreen}
-              name="CieAuthentication"
-              options={{ title: "CIE Authentication" }}
-            />
-            <Stack.Screen
-              component={CieIdAuthenticationScreen}
-              name="CieIdAuthentication"
-              options={{ title: "CieID Authentication" }}
-            />
-            <Stack.Screen
-              component={CieInternalAuthenticationScreen}
-              name="CieInternalAuthentication"
-              options={{ title: "CIE Internal Authentication" }}
-            />
-            <Stack.Screen
-              component={PidSpidLoginScreen}
-              name="PidSpidLogin"
-              options={{ title: "PID SPID Login" }}
-            />
-            <Stack.Screen
-              component={CredentialScreen}
-              name="Credentials"
-              options={{ title: "Credentials issuance" }}
-            />
-            <Stack.Screen
-              component={CredentialStatusScreen}
-              name="CredentialStatus"
-              options={{ title: "Credential status" }}
-            />
-            <Stack.Screen
-              component={PresentationScreen}
-              name="Presentations"
-              options={{ title: "Presentation" }}
-            />
-            <Stack.Screen
-              component={TrustScreen}
-              name="Trust"
-              options={{ title: "Trust" }}
-            />
-            <Stack.Screen
-              component={QrScannerScreen}
-              name="QrScanner"
-              options={{ title: "Scan QR" }}
-            />
-            <Stack.Screen
-              component={ProximityScreen}
-              name="Proximity"
-              options={{ title: "Proximity" }}
-            />
-            <Stack.Screen
-              component={OfferScreen}
-              name="CredentialOffer"
-              options={{ title: "Credential Offer" }}
-            />
-            <Stack.Screen
-              component={CredentialsCatalogueScreen}
-              name="CredentialsCatalogue"
-              options={{ title: "Credentials Catalogue" }}
-            />
-            <Stack.Screen
-              component={SettingsScreen}
-              name="Settings"
-              options={{ title: "Settings" }}
-            />
-          </Stack.Group>
-        ) : (
-          <Stack.Group>
-            <Stack.Screen
-              component={LoginScreen}
-              name="Login"
-              options={{ title: "IO Login" }}
-            />
-            <Stack.Screen
-              component={IdpSelectionScreen}
-              name="IdpSelection"
-              options={{ title: "IO Login" }}
-            />
-            <Stack.Screen
-              component={IdpLoginScreen}
-              name="IdpLogin"
-              options={{ title: "IO Login" }}
-            />
-            <Stack.Screen
-              component={CieLoginScreen}
-              name="CieLogin"
-              options={{ title: "IO Login (CIE)" }}
-            />
-          </Stack.Group>
-        )}
+        <Stack.Group
+          screenOptions={{
+            headerRight: headerRight,
+            headerTitle: HeaderTitle,
+          }}
+        >
+          <Stack.Screen
+            component={HomeScreen}
+            name="Home"
+            options={{ title: "ITW Test" }}
+          />
+          <Stack.Screen
+            component={WalletInstanceScreen}
+            name="WalletInstance"
+            options={{ title: "Wallet Instance" }}
+          />
+          <Stack.Screen
+            component={PidScreen}
+            name="Pid"
+            options={{ title: "PID issuance" }}
+          />
+          <Stack.Screen
+            component={CredentialScreen}
+            name="Credentials"
+            options={{ title: "Credentials issuance" }}
+          />
+          <Stack.Screen
+            component={CredentialStatusScreen}
+            name="CredentialStatus"
+            options={{ title: "Credential status" }}
+          />
+          <Stack.Screen
+            component={PresentationScreen}
+            name="Presentations"
+            options={{ title: "Presentation" }}
+          />
+          <Stack.Screen
+            component={TrustScreen}
+            name="Trust"
+            options={{ title: "Trust" }}
+          />
+          <Stack.Screen
+            component={QrScannerScreen}
+            name="QrScanner"
+            options={{ title: "Scan QR" }}
+          />
+          <Stack.Screen
+            component={ProximityScreen}
+            name="Proximity"
+            options={{ title: "Proximity" }}
+          />
+          <Stack.Screen
+            component={OfferScreen}
+            name="CredentialOffer"
+            options={{ title: "Credential Offer" }}
+          />
+          <Stack.Screen
+            component={CredentialsCatalogueScreen}
+            name="CredentialsCatalogue"
+            options={{ title: "Credentials Catalogue" }}
+          />
+          <Stack.Screen
+            component={SettingsScreen}
+            name="Settings"
+            options={{ title: "Settings" }}
+          />
+        </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>
   );

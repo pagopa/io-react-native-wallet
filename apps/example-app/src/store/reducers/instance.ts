@@ -10,7 +10,6 @@ import {
 } from "../../thunks/instance";
 import { instanceReset } from "../instance";
 import { asyncStatusInitial } from "../utils";
-import { sessionReset } from "./session";
 
 export { instanceReset } from "../instance";
 export {
@@ -91,9 +90,6 @@ const instanceSlice = createSlice({
     });
 
     builder.addCase(instanceReset, () => initialState);
-
-    // Reset the attestation state when the session is reset.
-    builder.addCase(sessionReset, () => initialState);
   },
   initialState,
   name: "instance",

@@ -5,21 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": ["iowalletexample", "iowallelogincie"],
+    "scheme": ["iowalletexample"],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "it.pagopa.app.io.poc.itwallet",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["http", "https", "CIEID"],
-        "NFCReaderUsageDescription": "Read CIE",
-        "com.apple.developer.nfc.readersession.iso7816.select-identifiers": [
-          "A0000002471001",
-          "A0000000308000000009816001",
-          "A00000000039",
-          "A0000002472001",
-          "00000000000000"
-        ],
+        "LSApplicationQueriesSchemes": ["http", "https"],
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false,
           "NSAllowsLocalNetworking": true
@@ -31,9 +23,6 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "$(PRODUCT_NAME) needs access your location.",
         "NSLocationWhenInUseUsageDescription": ""
       },
-      "entitlements": {
-        "com.apple.developer.nfc.readersession.formats": ["TAG"]
-      },
       "appleTeamId": "M2X5YQ4BJ7"
     },
     "android": {
@@ -44,7 +33,6 @@
       "allowBackup": false,
       "package": "it.pagopa.app.io.poc.itwallet",
       "permissions": [
-        "android.permission.NFC",
         "android.permission.CAMERA",
         "android.permission.BLUETOOTH_SCAN",
         "android.permission.BLUETOOTH_CONNECT",

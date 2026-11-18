@@ -37,11 +37,6 @@ export type CredentialResult = CredentialResultBase & {
 export type EnvType = "pre" | "prod";
 
 /**
- * Authentication methods for the PID authentication flow.
- */
-export type PidAuthMethods = "cieL2" | "cieL3" | "spid";
-
-/**
  * Type definition to represent a PID result to be used in the store.
  */
 export type PidResult = CredentialResultBase & {

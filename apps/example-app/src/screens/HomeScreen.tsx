@@ -10,10 +10,8 @@ import React, { useMemo } from "react";
 import { Alert, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useDebugInfo } from "../hooks/useDebugInfo";
 import { selectKeyAttestation } from "../store/reducers/attestation";
 import { selectHasInstanceKeyTag } from "../store/reducers/instance";
-import { selectIoAuthToken } from "../store/reducers/session";
 import { selectPid } from "../store/selectors/pid";
 import { useAppSelector } from "../store/utils";
 
@@ -28,12 +26,6 @@ const HomeScreen = () => {
   const hasIntegrityKeyTag = useAppSelector(selectHasInstanceKeyTag);
   const pid = useAppSelector(selectPid);
   const ka = useAppSelector(selectKeyAttestation);
-  const session = useAppSelector(selectIoAuthToken);
-
-  useDebugInfo({
-    session,
-  });
-
   const sections: ModuleSummaryProps[] = useMemo(
     () => [
       {
@@ -43,7 +35,7 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("WalletInstance"),
       },
       {
-        description: "Obtain a PID with SPID or CIE",
+        description: "Obtain a PID",
         icon: "chevronRight",
         label: "PID",
         onPress: () =>

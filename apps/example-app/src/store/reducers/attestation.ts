@@ -15,7 +15,6 @@ import { createSecureStorage } from "../storage";
 import { asyncStatusInitial } from "../utils";
 import { selectItwVersion } from "./environment";
 import { instanceReset } from "./instance";
-import { sessionReset } from "./session";
 
 // State type definition for the attestion slice
 export interface AttestationState {
@@ -106,9 +105,6 @@ const attestationSlice = createSlice({
 
     // Reset the attestation state when the instance is reset.
     builder.addCase(instanceReset, () => initialState);
-
-    // Reset the attestation state when the session is reset.
-    builder.addCase(sessionReset, () => initialState);
   },
   initialState,
   name: "attestation",

@@ -17,7 +17,6 @@ import {
 import { createSecureStorage } from "../storage";
 import { asyncStatusInitial } from "../utils";
 import { instanceReset } from "./instance";
-import { sessionReset } from "./session";
 
 /**
  * State type definition for the credential slice.
@@ -191,9 +190,6 @@ const credentialSlice = createSlice({
 
     // Reset the credential state when the instance is reset.
     builder.addCase(instanceReset, () => initialState);
-
-    // Reset the credential state when the session is reset.
-    builder.addCase(sessionReset, () => initialState);
   },
   initialState,
   name: "credential",

@@ -1,19 +1,14 @@
 import { type ItwVersion } from "@io-app-it-wallet/io-react-native-wallet";
-import { Platform } from "react-native";
 import * as z from "zod";
 
 import type { EnvType } from "../store/types";
 
 import { getEnv as getValidatedEnv } from "../env";
 
-const CIE_UAT_BASE_URL =
-  "https://collaudo.idserver.servizicie.interno.gov.it/idp/";
-
 /**
  * Environment type definition for both the pre and prod environments.
  */
 export interface Env {
-  CIE_CUSTOM_IDP_URL: string | undefined;
   GOOGLE_CLOUD_PROJECT_NUMBER: string;
   REDIRECT_URI: string;
   WALLET_EAA_PROVIDER_BASE_URL: ItwSpecsEnvVar;
@@ -50,10 +45,6 @@ export const getEnv = (selectedEnv: EnvType): Env => {
   switch (selectedEnv) {
     case "pre":
       return {
-        CIE_CUSTOM_IDP_URL: Platform.select({
-          default: CIE_UAT_BASE_URL,
-          ios: `${CIE_UAT_BASE_URL}Authn/SSL/Login2?`,
-        }),
         GOOGLE_CLOUD_PROJECT_NUMBER:
           env.EXPO_PUBLIC_PRE_GOOGLE_CLOUD_PROJECT_NUMBER,
         REDIRECT_URI: env.EXPO_PUBLIC_PRE_REDIRECT_URI,
@@ -69,7 +60,6 @@ export const getEnv = (selectedEnv: EnvType): Env => {
       };
     case "prod":
       return {
-        CIE_CUSTOM_IDP_URL: undefined, // No override in prod,
         GOOGLE_CLOUD_PROJECT_NUMBER:
           env.EXPO_PUBLIC_PROD_GOOGLE_CLOUD_PROJECT_NUMBER,
         REDIRECT_URI: env.EXPO_PUBLIC_PROD_REDIRECT_URI,
@@ -85,31 +75,6 @@ export const getEnv = (selectedEnv: EnvType): Env => {
       };
   }
 };
-
-/**
- * IDPHINT for CIE when using the PROD environment of the identity provider.
- */
-export const CIE_PROD_IDPHINT =
-  "https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
-/**
- * IDPHINT for CIE when using the UAT environment of the identity provider.
- */
-export const CIE_UAT_IDPHINT =
-  "https://collaudo.idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO";
-
-/**
- * IDPHINT for SPID when using the PRE environment of the identity provider.
- */
-export const SPID_DEMO_IDPHINT = "https://demo.spid.gov.it";
-
-/**
- * Utility function which returns the IDPHINT for CIE based on the selected environment.
- * @param env - The selected environment
- * @returns the IDPHINT for CIE based on the selected environment
- */
-export const getCieIdpHint = (env: EnvType) =>
-  env === "pre" ? CIE_UAT_IDPHINT : CIE_PROD_IDPHINT;
 
 /**
  * Validates a logging server address.

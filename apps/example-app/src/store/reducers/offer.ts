@@ -5,8 +5,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { AsyncStatus, RootState } from "../types";
 
 import { getCredentialOfferThunk } from "../../thunks/offer";
+import { instanceReset } from "../instance";
 import { asyncStatusInitial } from "../utils";
-import { sessionReset } from "./session";
 
 export interface CredentialOfferState {
   asyncStatus: AsyncStatus;
@@ -45,8 +45,8 @@ const credentialOfferSlice = createSlice({
       state.asyncStatus.hasError = { error: action.error, status: true };
     });
 
-    // Reset the attestation state when the session is reset.
-    builder.addCase(sessionReset, () => initialState);
+    // Reset the state when the wallet is reset.
+    builder.addCase(instanceReset, () => initialState);
   },
   initialState,
   name: "offer",
