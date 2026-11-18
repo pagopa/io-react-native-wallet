@@ -29,6 +29,7 @@ import { ITW_VERSION } from "./environment";
  * @param credentialId - The id of the credential to obtain
  * @param credentialKeyTag - The key tag of the crypto key to bind to the credential
  * @param pid - The PID credential
+ * @param pidSigner - The signer of the PID key
  * @param walletInstanceAttestation - The Wallet Instance Attestation
  * @param wiaSigner - The Wallet Instance Attestation signer
  * @param scope - (optional) OAuth 2.0 scope forwarded to the PAR, from a credential offer
@@ -43,6 +44,7 @@ export const getCredential = async ({
   issuerConf,
   issuerState,
   pid,
+  pidSigner,
   redirectUri,
   scope,
   walletInstanceAttestation,
@@ -56,6 +58,7 @@ export const getCredential = async ({
   issuerConf: CredentialIssuance.IssuerConfig;
   issuerState?: string;
   pid: PidResult;
+  pidSigner: Signer;
   redirectUri: string;
   scope?: string;
   walletInstanceAttestation: string;
@@ -89,7 +92,7 @@ export const getCredential = async ({
 
   const evaluatedDcqlQuery = await wallet.RemotePresentation.evaluateDcqlQuery(
     requestObject.dcql_query as RemotePresentation.DcqlQuery,
-    [[createLocalSignerFor(pid.keyTag), pid.credential]],
+    [[pidSigner, pid.credential]],
   );
 
   // Complete the user authorization via form_post.jwt mode

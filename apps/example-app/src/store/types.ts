@@ -39,10 +39,10 @@ export type CredentialResult = CredentialResultBase & {
 /**
  * Type definition to represent a PID result to be used in the store.
  */
-export type PidResult = CredentialResultBase & {
+export type PidResult = Omit<CredentialResultBase, "keyTag"> & {
   credentialType: Extract<SupportedCredentials, "PersonIdentificationData">;
-  /** Present when the credential key lives on the Remote WSCD instead of the device. */
-  remoteKey?: RemoteKey;
+  /** The credential key, which lives on the Remote WSCD. */
+  remoteKey: RemoteKey;
 };
 
 /**

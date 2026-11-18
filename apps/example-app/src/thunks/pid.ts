@@ -3,14 +3,13 @@ import {
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import * as WebBrowser from "expo-web-browser";
-import { v4 as uuidv4 } from "uuid";
 
 import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../store/reducers/attestation";
 import { credentialReset } from "../store/reducers/credential";
-import { selectRemotePin, selectXUserId } from "../store/reducers/user";
+import { selectXUserId } from "../store/reducers/user";
 import {
   type AppDispatch,
   type PidResult,
@@ -25,6 +24,7 @@ import {
 import { isAndroid } from "../utils/device";
 import { getEnv, ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
+import { requestRemotePin } from "../utils/pinPrompt";
 import { createRemoteSignerFor, enrollRemoteKey } from "../utils/remoteCrypto";
 import {
   getKeyAttestationThunk,
@@ -36,187 +36,170 @@ import { createAppAsyncThunk } from "./utils";
  * Thunk to obtain the PID.
  * It drives the whole issuance flow: the user authorization is performed in an authentication session of the system browser,
  * which redirects back to the app with the authorization code used to obtain and parse the credential.
- * When `remote` is set, using the Remote WSCD PIN from the store, the credential key is enrolled on the remote HSM through the Wallet Provider instead of being generated on the device.
+ * The credential key is enrolled on the Remote WSCD through the Wallet Provider, using the PIN set in the Settings.
  * @returns The PID result.
  */
-export const getPidThunk = createAppAsyncThunk<
-  PidResult,
-  undefined | { remote: true }
->("pid/get", async (input, { dispatch, getState }) => {
-  const wallet = new IoWallet({ version: ITW_VERSION });
+export const getPidThunk = createAppAsyncThunk<PidResult, undefined>(
+  "pid/get",
+  async (_, { dispatch, getState }) => {
+    // Asked before opening the browser, as a modal can't be presented right after it is dismissed
+    const remotePin = await requestRemotePin();
+    const wallet = new IoWallet({ version: ITW_VERSION });
 
-  // Checks if the wallet instance attestation needs to be reuqested
-  if (shouldRequestWalletInstanceAttestationSelector(getState())) {
-    await dispatch(getWalletInstanceAttestationThunk());
-  }
+    // Checks if the wallet instance attestation needs to be reuqested
+    if (shouldRequestWalletInstanceAttestationSelector(getState())) {
+      await dispatch(getWalletInstanceAttestationThunk());
+    }
 
-  // Gets the Wallet Instance Attestation from the persisted store
-  const walletInstanceAttestation =
-    selectWalletInstanceAttestationAsJwt(getState());
-  if (!walletInstanceAttestation) {
-    throw new Error("Wallet Instance Attestation not found");
-  }
+    // Gets the Wallet Instance Attestation from the persisted store
+    const walletInstanceAttestation =
+      selectWalletInstanceAttestationAsJwt(getState());
+    if (!walletInstanceAttestation) {
+      throw new Error("Wallet Instance Attestation not found");
+    }
 
-  // Reset the credential state before obtaining a new PID
-  dispatch(credentialReset());
+    // Reset the credential state before obtaining a new PID
+    dispatch(credentialReset());
 
-  const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
+    const wiaSigner = createLocalSignerFor(WIA_KEYTAG);
 
-  // Get env
-  const { REDIRECT_URI: redirectUri, WALLET_PID_PROVIDER_BASE_URL } = getEnv();
+    // Get env
+    const { REDIRECT_URI: redirectUri, WALLET_PID_PROVIDER_BASE_URL } =
+      getEnv();
 
-  // Evaluate issuer trust
-  const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
-    WALLET_PID_PROVIDER_BASE_URL,
-    { appFetch },
-  );
+    // Evaluate issuer trust
+    const { issuerConf } = await wallet.CredentialIssuance.evaluateIssuerTrust(
+      WALLET_PID_PROVIDER_BASE_URL,
+      { appFetch },
+    );
 
-  // Start user authorization
-  const { clientId, codeVerifier, credentialDefinition, issuerRequestUri } =
-    await wallet.CredentialIssuance.startUserAuthorization(
+    // Start user authorization
+    const { clientId, codeVerifier, credentialDefinition, issuerRequestUri } =
+      await wallet.CredentialIssuance.startUserAuthorization(
+        issuerConf,
+        [getPidSdJwtConfigurationId(issuerConf)],
+        { proofType: "none" },
+        {
+          appFetch,
+          redirectUri,
+          walletInstanceAttestation,
+          wiaSigner,
+        },
+      );
+
+    // Obtain the Authorization URL
+    const { authUrl } = await wallet.CredentialIssuance.buildAuthorizationUrl(
+      issuerRequestUri,
+      clientId,
       issuerConf,
-      [getPidSdJwtConfigurationId(issuerConf)],
-      { proofType: "none" },
+    );
+
+    // On Android check that there is a browser to open the authentication session and warm it up
+    if (isAndroid) {
+      const { browserPackages } =
+        await WebBrowser.getCustomTabsSupportingBrowsersAsync();
+      if (browserPackages.length === 0) {
+        throw new Error("No browser found to open the authentication session");
+      }
+      await WebBrowser.warmUpAsync();
+    }
+
+    // Perform the user authorization in the browser, which returns when it redirects to the redirect URI scheme
+    const baseRedirectUri = `${new URL(redirectUri).protocol}//`;
+    const authResult = await WebBrowser.openAuthSessionAsync(
+      authUrl,
+      baseRedirectUri,
+      { createTask: false, preferEphemeralSession: true },
+    );
+    if (authResult.type !== "success" || !authResult.url) {
+      throw new Error("Authorization flow was not completed successfully.");
+    }
+    const authRedirectUrl = authResult.url;
+
+    const { code } =
+      await wallet.CredentialIssuance.completePidUserAuthorizationWithQueryMode(
+        authRedirectUrl,
+      );
+
+    // Create DPoP context for the whole issuance flow
+    await regenerateCryptoKey(DPOP_KEYTAG);
+    const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
+
+    const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
+      issuerConf,
+      code,
+      redirectUri,
+      codeVerifier,
       {
         appFetch,
-        redirectUri,
+        dPopSigner,
         walletInstanceAttestation,
         wiaSigner,
       },
     );
 
-  // Obtain the Authorization URL
-  const { authUrl } = await wallet.CredentialIssuance.buildAuthorizationUrl(
-    issuerRequestUri,
-    clientId,
-    issuerConf,
-  );
+    const [pidCredentialDefinition] = credentialDefinition;
+    // Get the credential configuration ID for PID
+    const pidCredentialConfigId =
+      pidCredentialDefinition?.type === "openid_credential" &&
+      pidCredentialDefinition?.credential_configuration_id;
 
-  // On Android check that there is a browser to open the authentication session and warm it up
-  if (isAndroid) {
-    const { browserPackages } =
-      await WebBrowser.getCustomTabsSupportingBrowsersAsync();
-    if (browserPackages.length === 0) {
-      throw new Error("No browser found to open the authentication session");
+    const { credential_configuration_id, credential_identifiers } =
+      accessToken.authorization_details.find(
+        (authDetails) =>
+          authDetails.credential_configuration_id === pidCredentialConfigId,
+      ) ?? {};
+
+    // Get the first credential_identifier from the access token's authorization details
+    const [credential_identifier] = credential_identifiers ?? [];
+
+    if (!credential_configuration_id) {
+      throw new Error("No credential configuration ID found for PID");
     }
-    await WebBrowser.warmUpAsync();
-  }
 
-  // Perform the user authorization in the browser, which returns when it redirects to the redirect URI scheme
-  const baseRedirectUri = `${new URL(redirectUri).protocol}//`;
-  const authResult = await WebBrowser.openAuthSessionAsync(
-    authUrl,
-    baseRedirectUri,
-    { createTask: false, preferEphemeralSession: true },
-  );
-  if (authResult.type !== "success" || !authResult.url) {
-    throw new Error("Authorization flow was not completed successfully.");
-  }
-  const authRedirectUrl = authResult.url;
+    // Create credential signer and get the WUA
+    const { credentialSigner, keyAttestation, remoteKey } =
+      await prepareRemoteCredentialKey(dispatch, getState(), remotePin);
 
-  const { code } =
-    await wallet.CredentialIssuance.completePidUserAuthorizationWithQueryMode(
-      authRedirectUrl,
-    );
+    // Get the credential identifier that was authorized
+    const { credential, format } =
+      await wallet.CredentialIssuance.obtainCredential(
+        issuerConf,
+        accessToken,
+        clientId,
+        {
+          credential_configuration_id,
+          credential_identifier,
+        },
+        {
+          appFetch,
+          credentialSigner,
+          dPopSigner,
+          keyAttestation,
+        },
+      );
 
-  // Create DPoP context for the whole issuance flow
-  await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopSigner = createLocalSignerFor(DPOP_KEYTAG);
-
-  const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
-    issuerConf,
-    code,
-    redirectUri,
-    codeVerifier,
-    {
-      appFetch,
-      dPopSigner,
-      walletInstanceAttestation,
-      wiaSigner,
-    },
-  );
-
-  const [pidCredentialDefinition] = credentialDefinition;
-  // Get the credential configuration ID for PID
-  const pidCredentialConfigId =
-    pidCredentialDefinition?.type === "openid_credential" &&
-    pidCredentialDefinition?.credential_configuration_id;
-
-  const { credential_configuration_id, credential_identifiers } =
-    accessToken.authorization_details.find(
-      (authDetails) =>
-        authDetails.credential_configuration_id === pidCredentialConfigId,
-    ) ?? {};
-
-  // Get the first credential_identifier from the access token's authorization details
-  const [credential_identifier] = credential_identifiers ?? [];
-
-  if (!credential_configuration_id) {
-    throw new Error("No credential configuration ID found for PID");
-  }
-
-  // Create credential signer and get the WUA
-  const credentialKeyTag = uuidv4().toString();
-  const { credentialSigner, keyAttestation, remoteKey } = input
-    ? await prepareRemoteCredentialKey(dispatch, getState())
-    : await prepareLocalCredentialKey(dispatch, credentialKeyTag);
-
-  // Get the credential identifier that was authorized
-  const { credential, format } =
-    await wallet.CredentialIssuance.obtainCredential(
-      issuerConf,
-      accessToken,
-      clientId,
-      {
+    const { parsedCredential } =
+      await wallet.CredentialIssuance.verifyAndParseCredential(
+        issuerConf,
+        credential,
         credential_configuration_id,
-        credential_identifier,
-      },
-      {
-        appFetch,
-        credentialSigner,
-        dPopSigner,
-        keyAttestation,
-      },
-    );
+        {
+          credentialSigner,
+          ignoreMissingAttributes: true,
+        },
+      );
 
-  const { parsedCredential } =
-    await wallet.CredentialIssuance.verifyAndParseCredential(
-      issuerConf,
+    return {
       credential,
-      credential_configuration_id,
-      {
-        credentialSigner,
-        ignoreMissingAttributes: true,
-      },
-    );
-
-  return {
-    credential,
-    credentialConfigurationId: credential_configuration_id,
-    credentialType: "PersonIdentificationData",
-    format,
-    keyTag: credentialKeyTag,
-    parsedCredential,
-    remoteKey,
-  };
-});
-
-/**
- * Generate the credential key on the device and obtain its Key Attestation.
- */
-const prepareLocalCredentialKey = async (
-  dispatch: AppDispatch,
-  keyTag: string,
-) => {
-  const { attestation: keyAttestation } = await dispatch(
-    getKeyAttestationThunk({ keyTags: [keyTag] }),
-  ).unwrap();
-  return {
-    credentialSigner: createLocalSignerFor(keyTag),
-    keyAttestation,
-    remoteKey: undefined,
-  };
-};
+      credentialConfigurationId: credential_configuration_id,
+      credentialType: "PersonIdentificationData",
+      format,
+      parsedCredential,
+      remoteKey,
+    };
+  },
+);
 
 /**
  * Enroll the credential key on the Remote WSCD and obtain its Key Attestation, using the KEC as evidence.
@@ -225,11 +208,8 @@ const prepareLocalCredentialKey = async (
 const prepareRemoteCredentialKey = async (
   dispatch: AppDispatch,
   state: RootState,
+  remotePin: string,
 ) => {
-  const remotePin = selectRemotePin(state);
-  if (!remotePin) {
-    throw new Error("Set the Remote WSCD PIN in the Settings first");
-  }
   const context = {
     walletProviderBaseUrl: getEnv().WALLET_PROVIDER_BASE_URL,
     xUserId: selectXUserId(state),

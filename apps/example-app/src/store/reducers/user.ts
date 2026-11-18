@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { type PersistConfig, persistReducer } from "redux-persist";
 import { v4 as uuidv4 } from "uuid";
 
@@ -11,15 +11,13 @@ import { instanceReset } from "../instance";
  * State type definition for the user slice
  * the state contains:
  * - xUserId: the UUIDv4 which identifies the user and is sent as `x-user-id` to the Wallet Provider
- * - remotePin: the Remote WSCD PIN of the user, empty when not set
  */
 export interface UserState {
-  remotePin: string;
   xUserId: string;
 }
 
 // Lazily generates a new x-user-id so that every reset yields a fresh one
-const getInitialState = (): UserState => ({ remotePin: "", xUserId: uuidv4() });
+const getInitialState = (): UserState => ({ xUserId: uuidv4() });
 
 /**
  * Redux slice for the user state.
@@ -32,14 +30,8 @@ const userSlice = createSlice({
   },
   initialState: getInitialState,
   name: "user",
-  reducers: {
-    remotePinSet: (state, action: PayloadAction<string>) => {
-      state.remotePin = action.payload;
-    },
-  },
+  reducers: {},
 });
-
-export const { remotePinSet } = userSlice.actions;
 
 /**
  * Redux persist configuration for the user slice.
@@ -60,10 +52,3 @@ export const userReducer = persistReducer(persistConfig, userSlice.reducer);
  * @returns The x-user-id
  */
 export const selectXUserId = (state: RootState) => state.user.xUserId;
-
-/**
- * Selects the Remote WSCD PIN of the user.
- * @param state - The root state of the Redux store
- * @returns The Remote WSCD PIN, empty when not set
- */
-export const selectRemotePin = (state: RootState) => state.user.remotePin ?? ""; // Missing in states persisted before it was added

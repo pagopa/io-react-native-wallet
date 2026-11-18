@@ -31,8 +31,6 @@ export interface RemoteKey {
 }
 
 export interface RemoteWscdContext {
-  /** Overrides the pinned NSSAM Master RSA public key (PEM). */
-  masterPublicKey?: string;
   walletProviderBaseUrl: string;
   /** The user identifier sent as `x-user-id` to the Wallet Provider. */
   xUserId: string;
@@ -109,15 +107,9 @@ export const createRemoteSignerFor = (
 
 /**
  * Open an NSSAM session through the Wallet Provider and encrypt the operation request with its session key.
- * As per DR 006, the Wallet Provider only forwards the encrypted `data`: verifying the Master signature
- * and decrypting the session key are up to the App.
  */
 const openSession = async (
-  {
-    masterPublicKey = NSSAM_MASTER_PUBLIC_KEY,
-    walletProviderBaseUrl,
-    xUserId,
-  }: RemoteWscdContext,
+  { walletProviderBaseUrl, xUserId }: RemoteWscdContext,
   request: (accessToken: string) => object,
 ) => {
   const api = getWalletProviderClient({ appFetch, walletProviderBaseUrl });
@@ -175,7 +167,7 @@ const openSession = async (
       ),
     )
     .verify(
-      { format: "pem", key: masterPublicKey },
+      { format: "pem", key: NSSAM_MASTER_PUBLIC_KEY },
       Buffer.from(signature, "base64"),
     );
   if (!isSignedByMaster) {
@@ -187,7 +179,7 @@ const openSession = async (
     keyPair.privateKey,
     encryptedSessionKey,
   );
-  // DR 006 requires AES-256-GCM: a shorter key would silently downgrade to AES-128/192
+  // AES-256-GCM is required a shorter key would silently downgrade to AES-128/192
   if (rawSessionKey.byteLength !== 32) {
     throw new Error("The session key is not an AES-256 key");
   }
@@ -212,13 +204,7 @@ const openSession = async (
     Buffer.from(encryptedRequest),
   ]).toString("base64");
 
-  // NSSAM pads the session identifier with NUL characters, which the Wallet Provider rejects
-  return {
-    api,
-    header,
-    // eslint-disable-next-line no-control-regex
-    session: { data, jwtToken, sessionId: sessionId.replace(/\u0000+$/, "") },
-  };
+  return { api, header, session: { data, jwtToken, sessionId } };
 };
 
 /* eslint-disable perfectionist/sort-objects -- NSSAM rejects requests whose fields are not in this order */

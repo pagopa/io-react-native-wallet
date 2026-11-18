@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": ["iowalletexample"],
+    "scheme": ["iowalletexample", "openid4vp"],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,

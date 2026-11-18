@@ -11,13 +11,16 @@ import {
 import type { PresentationStateKeys } from "../store/reducers/presentation";
 
 import { selectCredentials } from "../store/reducers/credential";
+import { selectXUserId } from "../store/reducers/user";
 import { selectPid } from "../store/selectors/pid";
 import {
   createLocalSignerFor,
   localMdocDeviceResponseGenerator,
 } from "../utils/crypto";
-import { ITW_VERSION } from "../utils/environment";
+import { getEnv, ITW_VERSION } from "../utils/environment";
 import { isDefined } from "../utils/misc";
+import { requestRemotePin } from "../utils/pinPrompt";
+import { createRemoteSignerFor } from "../utils/remoteCrypto";
 import { createAppAsyncThunk } from "./utils";
 
 export interface RemoteCrossDevicePresentationThunkInput {
@@ -80,15 +83,25 @@ export const remoteCrossDevicePresentationThunk = createAppAsyncThunk<
 
   const credentials = selectCredentials(getState());
 
+  // The PID key lives on the Remote WSCD, the keys of the other credentials on the device
+  const pidSigner = createRemoteSignerFor(
+    pid.remoteKey,
+    await requestRemotePin(),
+    {
+      walletProviderBaseUrl: getEnv().WALLET_PROVIDER_BASE_URL,
+      xUserId: selectXUserId(getState()),
+    },
+  );
   const credentialsSdJwt = [
-    pid,
+    [pidSigner, pid.credential] as [Signer, string],
     ...Object.values(credentials)
       .filter(isDefined)
-      .filter((c) => c.format === "dc+sd-jwt"),
-  ].map((c): [Signer, string] => [
-    createLocalSignerFor(c.keyTag),
-    c.credential,
-  ]);
+      .filter((c) => c.format === "dc+sd-jwt")
+      .map((c): [Signer, string] => [
+        createLocalSignerFor(c.keyTag),
+        c.credential,
+      ]),
+  ];
 
   if (requestObject.dcql_query && args.allowed === "refusalState") {
     return processRefusedPresentation(wallet, requestObject);

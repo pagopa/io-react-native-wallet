@@ -15,6 +15,7 @@ import {
   selectWalletInstanceAttestationAsJwt,
   shouldRequestWalletInstanceAttestationSelector,
 } from "../store/reducers/attestation";
+import { selectXUserId } from "../store/reducers/user";
 import { selectPid } from "../store/selectors/pid";
 import {
   getCredential,
@@ -23,6 +24,8 @@ import {
 import { createLocalSignerFor, WIA_KEYTAG } from "../utils/crypto";
 import { getEnv, ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
+import { requestRemotePin } from "../utils/pinPrompt";
+import { createRemoteSignerFor } from "../utils/remoteCrypto";
 import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
@@ -152,6 +155,10 @@ export const getCredentialThunk = createAppAsyncThunk<
     issuerConf,
     issuerState: authorizationCodeGrant?.issuerState,
     pid: pid,
+    pidSigner: createRemoteSignerFor(pid.remoteKey, await requestRemotePin(), {
+      walletProviderBaseUrl: getEnv().WALLET_PROVIDER_BASE_URL,
+      xUserId: selectXUserId(getState()),
+    }),
     redirectUri: REDIRECT_URI,
     scope: authorizationCodeGrant?.scope,
     walletInstanceAttestation,

@@ -54,8 +54,12 @@ const pidSlice = createSlice({
   },
   initialState,
   name: "pid",
-  reducers: {},
+  reducers: {
+    pidReset: () => initialState,
+  },
 });
+
+export const { pidReset } = pidSlice.actions;
 
 /**
  * Persist configuration for the pid slice.

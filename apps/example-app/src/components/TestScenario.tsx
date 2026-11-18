@@ -5,10 +5,12 @@ import {
   useIOToast,
 } from "@pagopa/io-app-design-system";
 import React, { useCallback, useEffect, useState } from "react";
+import { View } from "react-native";
 
 import type { AsyncStatus } from "../store/types";
 
 export type TestScenarioProp = {
+  disabled?: boolean;
   icon: IOIcons;
   isPresent?: boolean;
   onPress: () => void;
@@ -17,6 +19,7 @@ export type TestScenarioProp = {
 } & AsyncStatus;
 
 export default function TestScenario({
+  disabled = false,
   hasError,
   icon,
   isLoading,
@@ -52,12 +55,17 @@ export default function TestScenario({
   }, [hasError, isPresent, successMessage]);
 
   return (
-    <ModuleCredential
-      badge={getBadge()}
-      icon={icon}
-      isFetching={isLoading}
-      label={title}
-      onPress={onPress}
-    />
+    <View
+      pointerEvents={disabled ? "none" : "auto"}
+      style={{ opacity: disabled ? 0.4 : 1 }}
+    >
+      <ModuleCredential
+        badge={getBadge()}
+        icon={icon}
+        isFetching={isLoading}
+        label={title}
+        onPress={onPress}
+      />
+    </View>
   );
 }

@@ -1,5 +1,6 @@
 import { IconButton, IOThemeLight } from "@pagopa/io-app-design-system";
 import {
+  createNavigationContainerRef,
   DefaultTheme,
   NavigationContainer,
   type Theme,
@@ -44,6 +45,15 @@ export type MainStackNavParamList = {
 
 const Stack = createNativeStackNavigator<MainStackNavParamList>();
 
+export const navigationRef =
+  createNavigationContainerRef<MainStackNavParamList>();
+
+const readiness = {} as { resolve: () => void };
+/** Resolves once the navigation container is mounted and can navigate */
+export const navigationReady = new Promise<void>((resolve) => {
+  readiness.resolve = resolve;
+});
+
 const lightTheme: Theme = {
   ...DefaultTheme,
   colors: {
@@ -76,7 +86,11 @@ export const MainStackNavigator = () => {
   );
 
   return (
-    <NavigationContainer theme={lightTheme}>
+    <NavigationContainer
+      onReady={readiness.resolve}
+      ref={navigationRef}
+      theme={lightTheme}
+    >
       <Stack.Navigator>
         <Stack.Group
           screenOptions={{

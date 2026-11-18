@@ -8,14 +8,16 @@ import {
   VSpacer,
 } from "@pagopa/io-app-design-system";
 import React, { useState } from "react";
-import { TextInput as RNTextInput, ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { credentialReset } from "../store/reducers/credential";
 import {
   loggingAddressSet,
   selectLoggingAddress,
 } from "../store/reducers/environment";
-import { remotePinSet, selectRemotePin } from "../store/reducers/user";
+import { pidReset } from "../store/reducers/pid";
+import { selectPid } from "../store/selectors/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
@@ -29,19 +31,13 @@ const HomeScreen = () => {
   const [debugAddress, setDebugAddress] = useState<string>(
     currentDebugAddress || "",
   );
-  const remotePin = useAppSelector(selectRemotePin);
-  const [pin, setPin] = useState("");
+  const pid = useAppSelector(selectPid);
   const toast = useIOToast();
-
-  const setRemotePin = () => {
-    dispatch(remotePinSet(pin));
-    setPin("");
-    toast.success("Remote WSCD PIN set correctly");
-  };
-
   const clearRemotePin = () => {
-    dispatch(remotePinSet(""));
-    toast.success("Remote WSCD PIN cleared");
+    // The PID key is bound to the PIN, so the PID and the credentials issued with it are discarded too
+    dispatch(pidReset());
+    dispatch(credentialReset());
+    toast.success("PIN cleared");
   };
 
   const setLoggingServer = () => {
@@ -75,28 +71,8 @@ const HomeScreen = () => {
         <VSpacer size={24} />
         <H1>Remote WSCD PIN</H1>
         <VSpacer size={8} />
-        <Body>
-          {remotePin ? "A PIN is currently set." : "No PIN is currently set."}
-        </Body>
-        <VSpacer size={8} />
-        <RNTextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={setPin}
-          placeholder="Enter the Remote WSCD PIN"
-          style={styles.pinInput}
-          value={pin}
-        />
-        <VSpacer size={8} />
         <IOButton
-          disabled={!pin}
-          label="Set PIN"
-          onPress={setRemotePin}
-          variant="solid"
-        />
-        <VSpacer size={8} />
-        <IOButton
-          disabled={!remotePin}
+          disabled={!pid}
           label="Clear PIN"
           onPress={clearRemotePin}
           variant="outline"
@@ -110,14 +86,6 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  pinInput: {
-    borderColor: "#0E0F13",
-    borderRadius: 8,
-    borderWidth: 2,
-    fontSize: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
   safeArea: {
     flex: 1,
   },
