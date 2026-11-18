@@ -10,11 +10,11 @@ import { IoWalletError } from "../../../utils/errors";
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.6/en/credential-revocation.html#token-status-lists
  */
 const CredentialStatusMap = {
-  0x00: "VALID",
-  0x01: "INVALID",
-  0x02: "SUSPENDED",
-  0x03: "UPDATE",
-  0x0f: "ATTRIBUTE_UPDATE",
+  0x00: "valid",
+  0x01: "invalid",
+  0x02: "suspended",
+  0x03: "update",
+  0x0f: "attribute_update",
 } as const;
 
 type CredentialStatusBit = keyof typeof CredentialStatusMap;

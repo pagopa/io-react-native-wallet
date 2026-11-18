@@ -60,7 +60,7 @@ export interface StatusListApi {
     idx: number,
   ): {
     rawStatus: string;
-    status: string;
+    status: "attribute_update" | "invalid" | "suspended" | "update" | "valid";
   };
 
   /**

@@ -27,27 +27,27 @@ describe("getStatus", () => {
 
   it.each([
     {
-      expectedStatus: "VALID",
+      expectedStatus: "valid",
       expectedStatusBit: "0x00",
       idx: 0,
     },
     {
-      expectedStatus: "INVALID",
+      expectedStatus: "invalid",
       expectedStatusBit: "0x01",
       idx: 1,
     },
     {
-      expectedStatus: "SUSPENDED",
+      expectedStatus: "suspended",
       expectedStatusBit: "0x02",
       idx: 3,
     },
     {
-      expectedStatus: "UPDATE",
+      expectedStatus: "update",
       expectedStatusBit: "0x03",
       idx: 5,
     },
     {
-      expectedStatus: "ATTRIBUTE_UPDATE",
+      expectedStatus: "attribute_update",
       expectedStatusBit: "0x0F",
       idx: 7,
     },
