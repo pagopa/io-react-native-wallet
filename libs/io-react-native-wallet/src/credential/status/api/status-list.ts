@@ -2,6 +2,13 @@ import type { CredentialFormat } from "../../../credential/issuance/api";
 import type { JWK } from "../../../utils/jwk";
 import type { StatusList } from "./types";
 
+export type CredentialStatus =
+  | "attribute_update"
+  | "invalid"
+  | "suspended"
+  | "update"
+  | "valid";
+
 export interface StatusListApi {
   /**
    * Get the status list token referenced by a credential. This function fetches the list
@@ -60,7 +67,7 @@ export interface StatusListApi {
     idx: number,
   ): {
     rawStatus: string;
-    status: string;
+    status: CredentialStatus;
   };
 
   /**
