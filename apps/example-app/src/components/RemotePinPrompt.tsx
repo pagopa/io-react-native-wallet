@@ -29,7 +29,7 @@ export const RemotePinPrompt = () => {
     <Modal animationType="fade" transparent visible={!!request}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
-          <H3>Remote WSCD PIN</H3>
+          <H3>{request?.title}</H3>
           <VSpacer size={8} />
           <RNTextInput
             autoCapitalize="none"

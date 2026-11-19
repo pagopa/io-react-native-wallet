@@ -25,7 +25,12 @@ import { isAndroid } from "../utils/device";
 import { getEnv, ITW_VERSION } from "../utils/environment";
 import appFetch from "../utils/fetch";
 import { requestRemotePin } from "../utils/pinPrompt";
-import { createRemoteSignerFor, enrollRemoteKey } from "../utils/remoteCrypto";
+import {
+  changeRemoteKeyPin,
+  createRemoteSignerFor,
+  enrollRemoteKey,
+  type RemoteKey,
+} from "../utils/remoteCrypto";
 import {
   getKeyAttestationThunk,
   getWalletInstanceAttestationThunk,
@@ -198,6 +203,23 @@ export const getPidThunk = createAppAsyncThunk<PidResult, undefined>(
       parsedCredential,
       remoteKey,
     };
+  },
+);
+
+/**
+ * Thunk to change the Remote WSCD PIN of the PID key.
+ * The PINs are asked to the user and never stored.
+ * @returns The PID key with the new KeyBlob, which replaces the stored one.
+ */
+export const changePinThunk = createAppAsyncThunk<RemoteKey, RemoteKey>(
+  "pid/changePin",
+  async (remoteKey, { getState }) => {
+    const pin = await requestRemotePin("Current PIN");
+    const newPin = await requestRemotePin("New PIN");
+    return changeRemoteKeyPin(remoteKey, pin, newPin, {
+      walletProviderBaseUrl: getEnv().WALLET_PROVIDER_BASE_URL,
+      xUserId: selectXUserId(getState()),
+    });
   },
 );
 

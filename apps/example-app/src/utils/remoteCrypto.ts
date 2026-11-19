@@ -70,6 +70,41 @@ export const enrollRemoteKey = async (
 };
 
 /**
+ * Change the PIN of a key enrolled on the Remote WSCD through the Wallet Provider.
+ * The returned key replaces the given one, whose KeyBlob is no longer accepted.
+ *
+ * @param remoteKey The enrolled key
+ * @param pin The current Remote WSCD PIN
+ * @param newPin The new Remote WSCD PIN
+ * @param context The Remote WSCD context
+ * @returns the key with the new KeyBlob
+ */
+export const changeRemoteKeyPin = async (
+  remoteKey: RemoteKey,
+  pin: string,
+  newPin: string,
+  context: RemoteWscdContext,
+): Promise<RemoteKey> => {
+  /* eslint-disable perfectionist/sort-objects -- NSSAM rejects requests whose fields are not in this order */
+  const { api, header, session } = await openSession(
+    context,
+    (accessToken) => ({
+      cmd: 194,
+      access_token: accessToken,
+      pin,
+      new_pin: newPin,
+    }),
+  );
+  /* eslint-enable perfectionist/sort-objects */
+  const { encryptedKey } = await api.post("/remote-wscd/pin-changes", {
+    body: { ...session, encryptedKey: remoteKey.encryptedKey },
+    header,
+  });
+
+  return { ...remoteKey, encryptedKey };
+};
+
+/**
  * Create a {@link Signer} bound to a key enrolled on the Remote WSCD with {@link enrollRemoteKey}.
  *
  * @param remoteKey The enrolled key

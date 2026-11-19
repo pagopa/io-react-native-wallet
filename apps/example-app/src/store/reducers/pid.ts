@@ -3,7 +3,7 @@ import { type PersistConfig, persistReducer } from "redux-persist";
 
 import type { AsyncStatus, PidResult } from "../types";
 
-import { getPidThunk } from "../../thunks/pid";
+import { changePinThunk, getPidThunk } from "../../thunks/pid";
 import { instanceReset } from "../instance";
 import { createSecureStorage } from "../storage";
 import { asyncStatusInitial } from "../utils";
@@ -47,6 +47,13 @@ const pidSlice = createSlice({
         ...asyncStatusInitial,
         hasError: { error: action.error, status: true },
       };
+    });
+
+    // Dispatched when the PIN is changed. Replaces the KeyBlob of the PID key.
+    builder.addCase(changePinThunk.fulfilled, (state, action) => {
+      if (state.pid) {
+        state.pid.remoteKey = action.payload;
+      }
     });
 
     // Reset the pid state when the instance is reset.

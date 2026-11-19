@@ -18,6 +18,7 @@ import {
 import { pidReset } from "../store/reducers/pid";
 import { selectPid } from "../store/selectors/pid";
 import { useAppDispatch, useAppSelector } from "../store/utils";
+import { changePinThunk } from "../thunks/pid";
 import { validateLoggingAddress } from "../utils/environment";
 import { initLogging } from "../utils/logging";
 
@@ -37,6 +38,19 @@ const HomeScreen = () => {
     dispatch(pidReset());
     dispatch(credentialReset());
     toast.success("PIN cleared");
+  };
+
+  const [isChangingPin, setIsChangingPin] = useState(false);
+  const changeRemotePin = () => {
+    if (!pid) {
+      return;
+    }
+    setIsChangingPin(true);
+    dispatch(changePinThunk(pid.remoteKey))
+      .unwrap()
+      .then(() => toast.success("PIN changed"))
+      .catch((e: Error) => toast.error(e.message))
+      .finally(() => setIsChangingPin(false));
   };
 
   const setLoggingServer = () => {
@@ -69,6 +83,14 @@ const HomeScreen = () => {
         />
         <VSpacer size={24} />
         <H1>Remote WSCD PIN</H1>
+        <VSpacer size={8} />
+        <IOButton
+          disabled={!pid || isChangingPin}
+          label="Change PIN"
+          loading={isChangingPin}
+          onPress={changeRemotePin}
+          variant="solid"
+        />
         <VSpacer size={8} />
         <IOButton
           disabled={!pid}
