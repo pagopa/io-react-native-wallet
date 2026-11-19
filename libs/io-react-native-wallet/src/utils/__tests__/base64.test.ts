@@ -1,4 +1,4 @@
-import { base64ToBase64Url, base64UrlToBase64 } from "../jwt";
+import { base64ToBase64Url, base64UrlToBase64 } from "../base64";
 
 describe("base64ToBase64Url", () => {
   it.each([

@@ -3,7 +3,6 @@ import {
   base64UrlToBase64,
   type IntegrityContext,
 } from "@io-app-it-wallet/io-react-native-wallet";
-
 import { sign } from "@pagopa/io-react-native-crypto";
 import {
   generateHardwareKey,

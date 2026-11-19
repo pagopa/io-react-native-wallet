@@ -63,7 +63,7 @@ export const prepareVpToken = async (
   );
 
   // <Issuer-signed JWT>~<Disclosure 1>~<Disclosure N>~
-  const sd_hash = await sha256ToBase64Url(vp);
+  const sd_hash = sha256ToBase64Url(vp);
 
   const kbJwt = await new JWT(signer)
     .setProtectedHeader({ typ: "kb+jwt" })

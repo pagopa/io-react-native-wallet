@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 
+import { base64ToBase64Url } from "../base64";
 import { sha256ToBase64Url } from "../hash";
-import { base64ToBase64Url } from "../jwt";
 
 describe("sha256ToBase64Url", () => {
   it.each([
@@ -9,8 +9,8 @@ describe("sha256ToBase64Url", () => {
     ["", "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU"],
     // Non-ASCII input is hashed as UTF-8
     ["é", "SplVfkAzw1Od4utlRyAXytX5VX96BiWgnxw_biumnEw"],
-  ])("returns the base64url SHA-256 digest of %p", async (input, expected) => {
-    await expect(sha256ToBase64Url(input)).resolves.toBe(expected);
+  ])("returns the base64url SHA-256 digest of %p", (input, expected) => {
+    expect(sha256ToBase64Url(input)).toBe(expected);
   });
 
   const nativeEquivalent = (input: string) =>
@@ -28,18 +28,14 @@ describe("sha256ToBase64Url", () => {
     "WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiTWFyaW8iXQ",
     JSON.stringify({ crv: "P-256", kty: "EC", x: "abc", y: "def" }),
     "x".repeat(10_000),
-  ])("matches the v2 native implementation for %p", async (input) => {
-    await expect(sha256ToBase64Url(input)).resolves.toBe(
-      nativeEquivalent(input),
-    );
+  ])("matches the v2 native implementation for %p", (input) => {
+    expect(sha256ToBase64Url(input)).toBe(nativeEquivalent(input));
   });
 
-  it("matches the v2 native implementation for every single byte value", async () => {
+  it("matches the v2 native implementation for every Latin-1 character", () => {
     for (let code = 0; code < 256; code++) {
       const input = String.fromCharCode(code);
-      await expect(sha256ToBase64Url(input)).resolves.toBe(
-        nativeEquivalent(input),
-      );
+      expect(sha256ToBase64Url(input)).toBe(nativeEquivalent(input));
     }
   });
 });

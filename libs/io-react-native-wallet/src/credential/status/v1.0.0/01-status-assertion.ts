@@ -12,11 +12,9 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../../utils/errors";
+import { getCredentialHashWithoutDisclosures } from "../../../utils/hash";
 import { Logger, LogLevel } from "../../../utils/logging";
-import {
-  getCredentialHashWithouDiscloures,
-  hasStatusOrThrow,
-} from "../../../utils/misc";
+import { hasStatusOrThrow } from "../../../utils/misc";
 import { StatusAssertionResponse } from "./types";
 
 export const getStatusAssertion: StatusAssertionApi["get"] = async (
@@ -30,7 +28,7 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
 
   const jwk = await extractJwkFromCredential(credential, format);
   const issuerJwk = await wiaSigner.getPublicKey();
-  const credentialHash = await getCredentialHashWithouDiscloures(credential);
+  const credentialHash = getCredentialHashWithoutDisclosures(credential);
   const statusAttUrl = issuerConf.status_assertion_endpoint;
 
   if (!statusAttUrl) {

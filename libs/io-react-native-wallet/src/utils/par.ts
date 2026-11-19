@@ -79,7 +79,7 @@ export const makeParRequest =
         to the subsequent authorization code request
         @see https://datatracker.ietf.org/doc/html/rfc9126#name-request */
     const codeChallengeMethod = "S256";
-    const codeChallenge = await sha256ToBase64Url(codeVerifier);
+    const codeChallenge = sha256ToBase64Url(codeVerifier);
 
     /** The PAR request token is signed used the Wallet Instance Attestation key.
         The signature can be verified by reading the public key from the key set shippet

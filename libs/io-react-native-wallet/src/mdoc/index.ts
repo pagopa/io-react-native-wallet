@@ -5,9 +5,9 @@ import { b64utob64 } from "jsrsasign";
 import type { Presentation } from "../credential/presentation";
 
 import { MissingX509CertsError } from "../trust/common/errors";
+import { base64ToBase64Url } from "../utils/base64";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
 import { IoWalletError } from "../utils/errors";
-import { base64ToBase64Url } from "../utils/jwt";
 import { verifyX509Chain } from "../utils/x509";
 export * from "./utils";
 

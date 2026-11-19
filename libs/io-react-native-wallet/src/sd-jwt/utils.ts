@@ -48,7 +48,7 @@ export const fetchTypeMetadata = async (
   }
 
   // TODO: [SIW-2264] check if the hash is correctly calculated
-  const metadataHash = await sha256ToBase64Url(JSON.stringify(metadata));
+  const metadataHash = sha256ToBase64Url(JSON.stringify(metadata));
 
   if (metadataHash !== hash) {
     throw new ValidationFailed({

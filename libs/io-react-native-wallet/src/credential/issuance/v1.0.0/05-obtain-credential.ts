@@ -121,7 +121,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
   const tokenRequestSignedDPop = await createDPopToken(
     {
-      ath: await sha256ToBase64Url(accessToken.access_token),
+      ath: sha256ToBase64Url(accessToken.access_token),
       htm: "POST",
       htu: credentialUrl,
       jti: `${uuidv4()}`,

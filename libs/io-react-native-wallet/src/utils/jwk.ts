@@ -1,7 +1,7 @@
 import { decode, thumbprint } from "@pagopa/io-react-native-jwt";
 import { z } from "zod";
 
-import { base64ToBase64Url } from "./jwt";
+import { base64ToBase64Url } from "./base64";
 
 export type JWK = z.infer<typeof JWK>;
 export const JWK = z.object({
