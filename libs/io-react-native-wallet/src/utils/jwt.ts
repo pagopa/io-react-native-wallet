@@ -1,6 +1,3 @@
-import { Base64 } from "js-base64";
-import { sha256 } from "js-sha256";
-
 import { IoWalletError } from "./errors";
 
 /**
@@ -23,11 +20,3 @@ export const base64UrlToBase64 = (encoded: string): string => {
   }
   return pad ? base64 + "=".repeat(4 - pad) : base64;
 };
-
-/**
- * Return the base64url (unpadded) encoded SHA256 hash of the input string.
- */
-export const sha256ToBase64Url = async (toHash: string): Promise<string> =>
-  base64ToBase64Url(
-    Base64.fromUint8Array(new Uint8Array(sha256.arrayBuffer(toHash))),
-  );

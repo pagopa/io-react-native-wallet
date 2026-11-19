@@ -4,7 +4,7 @@ import * as z from "zod";
 
 import { type Signer } from "./crypto";
 import { IssuerResponseError } from "./errors";
-import { sha256ToBase64Url } from "./jwt";
+import { sha256ToBase64Url } from "./hash";
 import { Logger, LogLevel } from "./logging";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";

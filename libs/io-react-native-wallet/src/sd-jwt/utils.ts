@@ -7,7 +7,7 @@ import {
   IssuerResponseError,
   ValidationFailed,
 } from "../utils/errors";
-import { sha256ToBase64Url } from "../utils/jwt";
+import { sha256ToBase64Url } from "../utils/hash";
 import { hasStatusOrThrow } from "../utils/misc";
 import { TypeMetadata, Verification } from "./types";
 

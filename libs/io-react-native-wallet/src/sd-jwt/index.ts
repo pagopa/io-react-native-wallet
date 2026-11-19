@@ -5,7 +5,7 @@ import { decodeSdJwtSync, present } from "@sd-jwt/core";
 import type { Presentation } from "../credential/presentation";
 
 import { fixLegacyCredentialSdJwt } from "../utils/credentials";
-import { sha256ToBase64Url } from "../utils/jwt";
+import { sha256ToBase64Url } from "../utils/hash";
 import { SdJwt4VCBase } from "./types";
 
 export * from "./utils";

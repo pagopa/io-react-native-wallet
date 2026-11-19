@@ -14,7 +14,7 @@ import {
   UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
-import { sha256ToBase64Url } from "../../../utils/jwt";
+import { sha256ToBase64Url } from "../../../utils/hash";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { CredentialResponse, NonceResponse } from "./types";
