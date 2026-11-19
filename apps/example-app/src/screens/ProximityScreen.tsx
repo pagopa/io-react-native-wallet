@@ -1,4 +1,3 @@
-import { base64UrlToBase64 } from "@io-app-it-wallet/io-react-native-wallet";
 import { ModuleSummary } from "@pagopa/io-app-design-system";
 import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
 import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
@@ -14,6 +13,7 @@ import { selectWalletInstanceAttestationAsMdoc } from "../store/reducers/attesta
 import { selectCredential } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { useAppSelector } from "../store/utils";
+import { base64UrlToBase64 } from "../utils/base64";
 import { getTrustAnchorX509Certificate } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";

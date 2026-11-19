@@ -1,8 +1,5 @@
-import {
-  base64ToBase64Url,
-  base64UrlToBase64,
-  type IntegrityContext,
-} from "@io-app-it-wallet/io-react-native-wallet";
+import type { IntegrityContext } from "@io-app-it-wallet/io-react-native-wallet";
+
 import { sign } from "@pagopa/io-react-native-crypto";
 import {
   generateHardwareKey,
@@ -18,6 +15,8 @@ import { sha256 } from "js-sha256";
 import { Platform } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+
+import { base64ToBase64Url, base64UrlToBase64 } from "./base64";
 
 /**
  * Type returned by the getHardwareSignatureWithAuthData function of {@link IntegrityContext}.

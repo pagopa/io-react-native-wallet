@@ -14,7 +14,6 @@ import * as KeyAttestation from "./key-attestation";
 import * as Mdoc from "./mdoc";
 import * as SdJwt from "./sd-jwt";
 import * as Trust from "./trust";
-import { base64ToBase64Url, base64UrlToBase64 } from "./utils/base64";
 import {
   createSignerFor,
   getJwkFromCertificateChain,
@@ -31,8 +30,6 @@ import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 export {
   AuthorizationDetail,
   AuthorizationDetails,
-  base64ToBase64Url,
-  base64UrlToBase64,
   createSignerFor,
   CredentialIssuance,
   CredentialOffer,
