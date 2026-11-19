@@ -17,7 +17,7 @@ const CredentialStatusMap = {
   0x0f: "attribute_update",
 } as const;
 
-type CredentialStatusBit = keyof typeof CredentialStatusMap;
+type CredentialStatusValue = keyof typeof CredentialStatusMap;
 
 const formatStatusBit = (statusBit: number) =>
   `0x${statusBit.toString(16).padStart(2, "0").toUpperCase()}`;
@@ -28,7 +28,7 @@ export const getStatus: StatusListApi["getStatus"] = (statusList, idx) => {
     statusList.bits,
     statusList.aggregation_uri,
   );
-  const statusBit = decodedStatusList.getStatus(idx) as CredentialStatusBit;
+  const statusBit = decodedStatusList.getStatus(idx) as CredentialStatusValue;
   const status = CredentialStatusMap[statusBit];
 
   if (!status) {

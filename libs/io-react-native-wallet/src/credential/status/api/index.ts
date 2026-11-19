@@ -22,4 +22,5 @@ interface UnsupportedApi {
   isSupported: false;
 }
 
+export type { CredentialStatus } from "./status-list";
 export * from "./types";
