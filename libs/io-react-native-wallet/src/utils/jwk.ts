@@ -1,5 +1,7 @@
-import { decode, removePadding, thumbprint } from "@pagopa/io-react-native-jwt";
+import { decode, thumbprint } from "@pagopa/io-react-native-jwt";
 import { z } from "zod";
+
+import { base64ToBase64Url } from "./base64";
 
 export type JWK = z.infer<typeof JWK>;
 export const JWK = z.object({
@@ -54,10 +56,10 @@ export function fixBase64EncodingOnKey(key: JWK): JWK {
 
   return {
     ...pk,
-    ...(x ? { x: removePadding(x) } : {}),
-    ...(y ? { y: removePadding(y) } : {}),
-    ...(e ? { e: removePadding(e) } : {}),
-    ...(n ? { n: removePadding(n) } : {}),
+    ...(x ? { x: base64ToBase64Url(x) } : {}),
+    ...(y ? { y: base64ToBase64Url(y) } : {}),
+    ...(e ? { e: base64ToBase64Url(e) } : {}),
+    ...(n ? { n: base64ToBase64Url(n) } : {}),
   };
 }
 export const JWKS = z.object({

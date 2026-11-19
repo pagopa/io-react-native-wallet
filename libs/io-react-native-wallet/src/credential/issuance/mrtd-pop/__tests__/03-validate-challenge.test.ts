@@ -1,4 +1,4 @@
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 
 import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api/IssuerConfig";
@@ -18,7 +18,7 @@ const mockSetIssuedAt = jest.fn();
 const mockSetExpirationTime = jest.fn();
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
-  SignJWT: jest.fn().mockImplementation(() => {
+  JWT: jest.fn().mockImplementation(() => {
     const builder = {
       setExpirationTime: (...args: unknown[]) => {
         mockSetExpirationTime(...args);
@@ -165,10 +165,7 @@ describe("validateChallenge", () => {
     );
 
     // Verify the MRTD validation JWT was signed with correct parameters
-    expect(SignJWT).toHaveBeenCalledWith({
-      getPublicKey: expect.any(Function),
-      getSignature: expect.any(Function),
-    });
+    expect(JWT).toHaveBeenCalledWith(wiaSigner);
     expect(mockSetProtectedHeader).toHaveBeenCalledWith({
       kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
       typ: "mrtd-ias+jwt",

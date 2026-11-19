@@ -55,7 +55,7 @@
   "peerDependencies": {
     "@pagopa/io-react-native-crypto": "*",
     "@pagopa/io-react-native-iso18013": "*",
-    "@pagopa/io-react-native-jwt": "*",
+    "@pagopa/io-react-native-jwt": "^3.0.0",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-quick-crypto": "*"
@@ -81,6 +81,7 @@
   },
   "devDependencies": {
     "@pagopa/io-react-native-iso18013": "^0.9.0",
+    "@pagopa/io-react-native-jwt": "^3.0.0",
     "@types/jsrsasign": "^10.5.15",
     "auto-changelog": "^2.6.0",
     "react-native-builder-bob": "^0.43.0",

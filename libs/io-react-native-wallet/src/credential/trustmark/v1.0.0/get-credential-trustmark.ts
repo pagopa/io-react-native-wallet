@@ -1,7 +1,7 @@
 import { decode as decodeJwt, thumbprint } from "@pagopa/io-react-native-jwt";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 
-import { assertLocalSigners, toCryptoContext } from "../../../utils/crypto";
+import { assertLocalSigners } from "../../../utils/crypto";
 import { IoWalletError } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { obfuscateString } from "../../../utils/string";
@@ -65,7 +65,7 @@ export const getCredentialTrustmark: Api["getCredentialTrustmark"] = async ({
   /**
    * Generate Trustmark signed JWT
    */
-  const signedTrustmarkJwt = await new SignJWT(toCryptoContext(wiaSigner))
+  const signedTrustmarkJwt = await new JWT(wiaSigner)
     .setPayload({
       iss: walletInstanceAttestation,
       /**

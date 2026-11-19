@@ -1,7 +1,6 @@
 import { ModuleSummary } from "@pagopa/io-app-design-system";
 import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
 import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
-import { addPadding } from "@pagopa/io-react-native-jwt";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +13,7 @@ import { selectWalletInstanceAttestationAsMdoc } from "../store/reducers/attesta
 import { selectCredential } from "../store/reducers/credential";
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";
 import { useAppSelector } from "../store/utils";
+import { base64UrlToBase64 } from "../utils/base64";
 import { getTrustAnchorX509Certificate } from "../utils/credential";
 import { WIA_KEYTAG } from "../utils/crypto";
 import { getEnv } from "../utils/environment";
@@ -121,12 +121,12 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
       {
         alias: WIA_KEYTAG,
         docType: WELL_KNOWN_CREDENTIALS.wia,
-        issuerSignedContent: addPadding(attestation),
+        issuerSignedContent: base64UrlToBase64(attestation),
       },
       {
         alias: credential.keyTag,
         docType: WELL_KNOWN_CREDENTIALS.mdl,
-        issuerSignedContent: addPadding(credential.credential),
+        issuerSignedContent: base64UrlToBase64(credential.credential),
       },
     ];
 

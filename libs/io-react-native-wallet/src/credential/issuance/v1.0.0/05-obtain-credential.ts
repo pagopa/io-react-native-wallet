@@ -1,14 +1,9 @@
-import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi } from "../api";
 
-import {
-  assertLocalSigners,
-  type Signer,
-  toCryptoContext,
-} from "../../../utils/crypto";
+import { assertLocalSigners, type Signer } from "../../../utils/crypto";
 import { createDPopToken } from "../../../utils/dpop";
 import {
   IoWalletError,
@@ -19,6 +14,7 @@ import {
   UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
+import { sha256ToBase64Url } from "../../../utils/hash";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { CredentialResponse, NonceResponse } from "./types";
@@ -29,7 +25,7 @@ export const createNonceProof = async (
   audience: string,
   signer: Signer,
 ): Promise<string> =>
-  new SignJWT(toCryptoContext(signer))
+  new JWT(signer)
     .setProtectedHeader({
       jwk: await signer.getPublicKey(),
       typ: "openid4vci-proof+jwt",
@@ -125,7 +121,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
   const tokenRequestSignedDPop = await createDPopToken(
     {
-      ath: await sha256ToBase64(accessToken.access_token),
+      ath: sha256ToBase64Url(accessToken.access_token),
       htm: "POST",
       htu: credentialUrl,
       jti: `${uuidv4()}`,

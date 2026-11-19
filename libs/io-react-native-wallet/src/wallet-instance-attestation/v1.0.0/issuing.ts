@@ -1,15 +1,11 @@
 import { thumbprint } from "@pagopa/io-react-native-jwt";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 
 import type { IntegrityContext } from "../../utils/integrity";
 import type { WalletInstanceAttestationApi } from "../api";
 
 import { getWalletProviderClient } from "../../client";
-import {
-  assertLocalSigners,
-  Signer,
-  toCryptoContext,
-} from "../../utils/crypto";
+import { assertLocalSigners, Signer } from "../../utils/crypto";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
 import { Logger, LogLevel } from "../../utils/logging";
 import { handleAttestationCreationError } from "../common/errors";
@@ -47,7 +43,7 @@ async function getAttestationRequest(
       JSON.stringify(clientData),
     );
 
-  return new SignJWT(toCryptoContext(wiaSigner))
+  return new JWT(wiaSigner)
     .setProtectedHeader({
       kid: publicKey.kid,
       typ: "wp-war+jwt",

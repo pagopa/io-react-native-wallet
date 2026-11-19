@@ -20,7 +20,6 @@ jest.mock("@pagopa/io-react-native-jwt", () => {
     EncryptJwe: jest.fn().mockImplementation(() => ({
       encrypt: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
     })),
-    sha256ToBase64: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
   };
 });
 

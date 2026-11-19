@@ -1,12 +1,10 @@
 import { generate } from "@pagopa/io-react-native-crypto";
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 
-import { createSignerFor, toCryptoContext } from "../../../utils/crypto";
+import { createSignerFor } from "../../../utils/crypto";
 
-type JwtHeader = Parameters<
-  InstanceType<typeof SignJWT>["setProtectedHeader"]
->[0];
-type JwtPayload = Parameters<InstanceType<typeof SignJWT>["setPayload"]>[0];
+type JwtHeader = Parameters<JWT["setProtectedHeader"]>[0];
+type JwtPayload = Parameters<JWT["setPayload"]>[0];
 
 const timestamp = (future = 0) =>
   Math.round((Date.now() + future * 1000) / 1000);
@@ -193,7 +191,7 @@ export const signed = async (jwt: {
 }) => {
   const keytag = `${Math.random()}`;
   await generate(keytag);
-  return new SignJWT(toCryptoContext(createSignerFor(keytag)))
+  return new JWT(createSignerFor(keytag))
     .setPayload(jwt.payload)
     .setProtectedHeader(jwt.header)
     .sign();

@@ -1,10 +1,10 @@
-import { SignJWT, thumbprint } from "@pagopa/io-react-native-jwt";
+import { JWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { Platform } from "react-native";
 
 import type { KeyAttestationSupportedApi, KeyToAttest } from "../api";
 
 import { getWalletProviderClient } from "../../client";
-import { assertLocalSigners, toCryptoContext } from "../../utils/crypto";
+import { assertLocalSigners } from "../../utils/crypto";
 import {
   IoWalletError,
   ResponseErrorBuilder,
@@ -32,7 +32,7 @@ const createKeyAttestationRequest = async ({
 
   const publicKey = JWK.parse(await signer.getPublicKey());
 
-  const requestJwt = await new SignJWT(toCryptoContext(signer))
+  const requestJwt = await new JWT(signer)
     .setProtectedHeader({
       kid: publicKey.kid,
       typ: "key-attestation-request+jwt",
@@ -111,9 +111,7 @@ export const getAttestation: KeyAttestationSupportedApi["getAttestation"] =
         JSON.stringify(clientData),
       );
 
-    const signedAttestationRequest = await new SignJWT(
-      toCryptoContext(signatureKey.signer),
-    )
+    const signedAttestationRequest = await new JWT(signatureKey.signer)
       .setProtectedHeader({
         kid: signatureKey.publicKey.kid,
         typ: "wua-request+jwt",

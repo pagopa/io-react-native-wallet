@@ -1,9 +1,10 @@
-import { sha256ToBase64, SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import * as z from "zod";
 
-import { type Signer, toCryptoContext } from "./crypto";
+import { type Signer } from "./crypto";
 import { IssuerResponseError } from "./errors";
+import { sha256ToBase64Url } from "./hash";
 import { Logger, LogLevel } from "./logging";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
@@ -78,13 +79,13 @@ export const makeParRequest =
         to the subsequent authorization code request
         @see https://datatracker.ietf.org/doc/html/rfc9126#name-request */
     const codeChallengeMethod = "S256";
-    const codeChallenge = await sha256ToBase64(codeVerifier);
+    const codeChallenge = sha256ToBase64Url(codeVerifier);
 
     /** The PAR request token is signed used the Wallet Instance Attestation key.
         The signature can be verified by reading the public key from the key set shippet
         with the it will ship the Wallet Instance Attestation.
         The key is matched by its kid */
-    const signedJwtForPar = await new SignJWT(toCryptoContext(wiaSigner))
+    const signedJwtForPar = await new JWT(wiaSigner)
       .setProtectedHeader({
         kid: wiaPublicKey.kid,
         typ: "jwt",

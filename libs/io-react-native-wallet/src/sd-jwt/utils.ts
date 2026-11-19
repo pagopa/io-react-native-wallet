@@ -1,5 +1,4 @@
 import { hasher } from "@owf/crypto";
-import { sha256ToBase64 } from "@pagopa/io-react-native-jwt";
 import { decodeSdJwtSync, getClaimsSync } from "@sd-jwt/core";
 
 import { fixLegacyCredentialSdJwt } from "../utils/credentials";
@@ -8,6 +7,7 @@ import {
   IssuerResponseError,
   ValidationFailed,
 } from "../utils/errors";
+import { sha256ToBase64Url } from "../utils/hash";
 import { hasStatusOrThrow } from "../utils/misc";
 import { TypeMetadata, Verification } from "./types";
 
@@ -48,7 +48,7 @@ export const fetchTypeMetadata = async (
   }
 
   // TODO: [SIW-2264] check if the hash is correctly calculated
-  const metadataHash = await sha256ToBase64(JSON.stringify(metadata));
+  const metadataHash = sha256ToBase64Url(JSON.stringify(metadata));
 
   if (metadataHash !== hash) {
     throw new ValidationFailed({

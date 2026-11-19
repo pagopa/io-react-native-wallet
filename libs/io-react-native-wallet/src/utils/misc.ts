@@ -1,5 +1,3 @@
-import { sha256 } from "js-sha256";
-
 import { IoWalletError, UnexpectedStatusCodeError } from "./errors";
 import { Logger, LogLevel } from "./logging";
 
@@ -65,22 +63,6 @@ export const generateRandomAlphaNumericString = (size: number) =>
  */
 export const generateRandomBytes = (size: number) =>
   Uint8Array.from({ length: size }, () => Math.floor(Math.random() * 256));
-
-/**
- * Get the hash of a credential without discloures.
- * A credential is a string like `header.body.sign~sd1~sd2....` where `~` is the separator between the credential and the discloures.
- * @param credential - The credential to hash
- * @returns The hash of the credential without discloures
- */
-export const getCredentialHashWithouDiscloures = async (
-  credential: string,
-): Promise<string> => {
-  const tildeIndex = credential.indexOf("~");
-  if (tildeIndex === -1) {
-    throw new IoWalletError("Invalid credential format");
-  }
-  return sha256(credential.slice(0, tildeIndex));
-};
 
 export const safeJsonParse = <T>(text: string, withDefault?: T): null | T => {
   try {
