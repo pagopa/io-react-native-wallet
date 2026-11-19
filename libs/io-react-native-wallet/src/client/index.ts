@@ -4,6 +4,7 @@ import {
   createApiClient as createWalletProviderApiClient,
   type EndpointParameters,
   ProblemJson,
+  RemoteWscdProblem,
   ApiClient as WalletProviderApiClient,
 } from "./generated/wallet-provider";
 
@@ -11,20 +12,33 @@ export type WalletProviderClient = WalletProviderApiClient;
 
 type RawHttpResponse = Awaited<ReturnType<typeof parseRawHttpResponse>>;
 
+const parseProblem = async (response: Response) => {
+  try {
+    const body = await response.json();
+    // Zod tells Remote WSCD (HSM) problems apart: only they have a `code`, `retryable`, ...
+    const remote = RemoteWscdProblem.safeParse(body);
+    return remote.success
+      ? {
+          code: remote.data.code,
+          problem: remote.data,
+        }
+      : { code: undefined, problem: ProblemJson.parse(body) };
+  } catch {
+    return {
+      code: undefined,
+      problem: { title: "Invalid response from Wallet Provider" },
+    };
+  }
+};
+
 const validateResponse = async (response: Response) => {
   if (!response.ok) {
-    let problemDetail: ProblemJson = {};
-    try {
-      problemDetail = ProblemJson.parse(await response.json());
-    } catch {
-      problemDetail = {
-        title: "Invalid response from Wallet Provider",
-      };
-    }
+    const { code, problem } = await parseProblem(response);
 
     throw new WalletProviderResponseError({
-      message: problemDetail.title ?? "Invalid response from Wallet Provider",
-      reason: problemDetail,
+      code,
+      message: problem.title ?? "Invalid response from Wallet Provider",
+      reason: problem,
       statusCode: response.status,
     });
   }

@@ -1,3 +1,5 @@
+import type { RemoteWscdProblem } from "../client/generated/wallet-provider";
+
 export const IssuerResponseErrorCodes = {
   /**
    * Error code thrown when a credential status is invalid during issuance.
@@ -61,5 +63,10 @@ export type IssuerResponseErrorCode =
 export type RelyingPartyResponseErrorCode =
   (typeof RelyingPartyResponseErrorCodes)[keyof typeof RelyingPartyResponseErrorCodes];
 
+/**
+ * Error codes of a Wallet Provider failure.
+ * Remote WSCD (HSM) failures use the `code` of the Wallet Provider problem as it is (e.g. `PIN_INCORRECT`, `KEY_LOCKED`).
+ */
 export type WalletProviderResponseErrorCode =
-  (typeof WalletProviderResponseErrorCodes)[keyof typeof WalletProviderResponseErrorCodes];
+  | (typeof WalletProviderResponseErrorCodes)[keyof typeof WalletProviderResponseErrorCodes]
+  | RemoteWscdProblem["code"];
