@@ -1,64 +1,10 @@
-import { JWT } from "@pagopa/io-react-native-jwt";
 import { createHash } from "crypto";
-
-import type { JWK } from "../jwk";
 
 import {
   base64ToBase64Url,
   base64UrlToBase64,
-  cryptoToJwtSigner,
   sha256ToBase64Url,
 } from "../jwt";
-
-const publicKey: JWK = {
-  crv: "P-256",
-  kty: "EC",
-  x: "x-value",
-  y: "y-value",
-};
-
-const decodeSegment = (segment: string) =>
-  JSON.parse(Buffer.from(segment, "base64url").toString());
-
-describe("cryptoToJwtSigner", () => {
-  it("maps getSignature to sign and delegates getPublicKey", async () => {
-    const getPublicKey = jest.fn().mockResolvedValue(publicKey);
-    const getSignature = jest.fn().mockResolvedValue("signature");
-    const signer = cryptoToJwtSigner({ getPublicKey, getSignature });
-
-    await expect(signer.getPublicKey()).resolves.toEqual(publicKey);
-    await expect(signer.sign("value")).resolves.toBe("signature");
-    expect(getSignature).toHaveBeenCalledWith("value");
-  });
-
-  it("propagates signing failures", async () => {
-    const signer = cryptoToJwtSigner({
-      getPublicKey: jest.fn().mockResolvedValue(publicKey),
-      getSignature: jest.fn().mockRejectedValue(new Error("sign failed")),
-    });
-
-    await expect(signer.sign("value")).rejects.toThrow("sign failed");
-  });
-
-  it("lets JWT sign the header and payload with the crypto context", async () => {
-    const getSignature = jest.fn().mockResolvedValue("c2ln");
-
-    const jwt = await new JWT(
-      cryptoToJwtSigner({
-        getPublicKey: jest.fn().mockResolvedValue(publicKey),
-        getSignature,
-      }),
-    )
-      .setProtectedHeader({ typ: "test+jwt" })
-      .setPayload({ foo: "bar" })
-      .sign();
-
-    const [header = "", payload = ""] = jwt.split(".");
-    expect(decodeSegment(header)).toEqual({ alg: "ES256", typ: "test+jwt" });
-    expect(decodeSegment(payload)).toEqual({ foo: "bar" });
-    expect(getSignature).toHaveBeenCalledWith(`${header}.${payload}`);
-  });
-});
 
 describe("base64ToBase64Url", () => {
   it.each([

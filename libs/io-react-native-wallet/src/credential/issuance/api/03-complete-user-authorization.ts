@@ -4,7 +4,7 @@ import type {
   AuthorizationChallengeResult,
   AuthorizationResult,
 } from "../../../utils/auth";
-import type { CryptoContext } from "../../../utils/jwt";
+import type { Signer } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
 import type { IssuerConfig } from "./IssuerConfig";
 
@@ -87,7 +87,7 @@ export interface CompleteUserAuthorizationApi {
     evaluatedDcqlQuery: EvaluatedDcqlQuery,
     context: {
       appFetch?: typeof fetch;
-      wiaCryptoContext: CryptoContext;
+      wiaSigner: Signer;
     },
   ): Promise<AuthorizationResult>;
 

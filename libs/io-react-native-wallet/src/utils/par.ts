@@ -2,12 +2,9 @@ import { JWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 import * as z from "zod";
 
+import { type Signer } from "./crypto";
 import { IssuerResponseError } from "./errors";
-import {
-  type CryptoContext,
-  cryptoToJwtSigner,
-  sha256ToBase64Url,
-} from "./jwt";
+import { sha256ToBase64Url } from "./jwt";
 import { Logger, LogLevel } from "./logging";
 import { generateRandomAlphaNumericString, hasStatusOrThrow } from "./misc";
 import { createPopToken } from "./pop";
@@ -51,13 +48,7 @@ type ParRequestPayload = AuthDetailsOrScope & {
  * Make a PAR request to the issuer and return the response url
  */
 export const makeParRequest =
-  ({
-    appFetch,
-    wiaCryptoContext,
-  }: {
-    appFetch: typeof fetch;
-    wiaCryptoContext: CryptoContext;
-  }) =>
+  ({ appFetch, wiaSigner }: { appFetch: typeof fetch; wiaSigner: Signer }) =>
   async (
     parEndpoint: string,
     walletInstanceAttestation: string,
@@ -71,7 +62,7 @@ export const makeParRequest =
       scope,
     }: ParRequestPayload,
   ): Promise<string> => {
-    const wiaPublicKey = await wiaCryptoContext.getPublicKey();
+    const wiaPublicKey = await wiaSigner.getPublicKey();
 
     // const iss = WalletInstanceAttestation.decode(walletInstanceAttestation).payload.cnf.jwk.kid;
 
@@ -81,7 +72,7 @@ export const makeParRequest =
         iss: clientId,
         jti: `${uuidv4()}`,
       },
-      wiaCryptoContext,
+      wiaSigner,
     );
 
     /** A code challenge is provided so that the PAR is bound
@@ -94,7 +85,7 @@ export const makeParRequest =
         The signature can be verified by reading the public key from the key set shippet
         with the it will ship the Wallet Instance Attestation.
         The key is matched by its kid */
-    const signedJwtForPar = await new JWT(cryptoToJwtSigner(wiaCryptoContext))
+    const signedJwtForPar = await new JWT(wiaSigner)
       .setProtectedHeader({
         kid: wiaPublicKey.kid,
         typ: "jwt",
@@ -115,7 +106,7 @@ export const makeParRequest =
         }),
         ...(scope && { scope }),
       })
-      .setIssuedAt() // iat is set to now
+      .setIssuedAt()
       .setExpirationTime("5min")
       .sign();
 

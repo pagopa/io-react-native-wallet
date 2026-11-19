@@ -1,11 +1,11 @@
 import {
-  createCryptoContextFor,
+  createSignerFor,
   type CredentialIssuance,
   type CredentialStatus,
-  type CryptoContext,
   IoWallet,
   type ItwVersion,
   type RemotePresentation,
+  type Signer,
   Trust,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
@@ -31,12 +31,12 @@ import { DPOP_KEYTAG, regenerateCryptoKey } from "./crypto";
  * @param credentialKeyTag - The key tag of the crypto key to bind to the credential
  * @param pid - The PID credential
  * @param walletInstanceAttestation - The Wallet Instance Attestation
- * @param wiaCryptoContext - The Wallet Instance Attestation crypto context
+ * @param wiaSigner - The Wallet Instance Attestation signer
  * @param scope - (optional) OAuth 2.0 scope forwarded to the PAR, from a credential offer
  * @param issuerState - (optional) issuer state forwarded to the PAR, from a credential offer
  * @returns The obtained credential result
  */
-// eslint-disable-next-line max-lines-per-function
+
 export const getCredential = async ({
   batchSize = 1,
   credentialId,
@@ -49,7 +49,7 @@ export const getCredential = async ({
   scope,
   trustAnchorUrl,
   walletInstanceAttestation,
-  wiaCryptoContext,
+  wiaSigner,
 }: {
   batchSize?: number;
   credentialId: SupportedCredentialsWithoutPid;
@@ -64,7 +64,7 @@ export const getCredential = async ({
   scope?: string;
   trustAnchorUrl: string;
   walletInstanceAttestation: string;
-  wiaCryptoContext: CryptoContext;
+  wiaSigner: Signer;
 }): Promise<CredentialResult> => {
   const wallet = new IoWallet({ version: itwVersion });
 
@@ -80,7 +80,7 @@ export const getCredential = async ({
         redirectUri,
         scope,
         walletInstanceAttestation,
-        wiaCryptoContext,
+        wiaSigner,
       },
     );
 
@@ -105,7 +105,7 @@ export const getCredential = async ({
         requestObject,
         issuerConf,
         evaluatedDcqlQuery,
-        { appFetch, wiaCryptoContext },
+        { appFetch, wiaSigner },
       ));
   } else {
     // Complete the user authorization via query mode
@@ -121,7 +121,7 @@ export const getCredential = async ({
 
   // Generate the DPoP context which will be used for the whole issuance flow
   await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+  const dPopSigner = createSignerFor(DPOP_KEYTAG);
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
@@ -130,9 +130,9 @@ export const getCredential = async ({
     codeVerifier,
     {
       appFetch,
-      dPopCryptoContext,
+      dPopSigner,
       walletInstanceAttestation,
-      wiaCryptoContext,
+      wiaSigner,
     },
   );
 
@@ -147,11 +147,11 @@ export const getCredential = async ({
   // Create as many key tags as the batch size
   const keyTags = Array.from({ length: batchSize }, () => uuidv4().toString());
   const keyAttestation = await generateKeysWithAttestation(keyTags);
-  const credentialCryptoContexts = keyTags.map(createCryptoContextFor);
+  const credentialSigners = keyTags.map(createSignerFor);
 
-  const [firstCredentialCryptoContext] = credentialCryptoContexts;
-  if (!firstCredentialCryptoContext) {
-    throw new Error("No crypto context generated for the credential batch");
+  const [firstCredentialSigner] = credentialSigners;
+  if (!firstCredentialSigner) {
+    throw new Error("No signer generated for the credential batch");
   }
 
   const [firstCredentialIdentifier] = credential_identifiers;
@@ -173,8 +173,8 @@ export const getCredential = async ({
           credentialDefinition,
           {
             appFetch,
-            credentialCryptoContexts,
-            dPopCryptoContext,
+            credentialSigners,
+            dPopSigner,
             keyAttestation,
           },
         )
@@ -185,8 +185,8 @@ export const getCredential = async ({
           credentialDefinition,
           {
             appFetch,
-            credentialCryptoContext: firstCredentialCryptoContext,
-            dPopCryptoContext,
+            credentialSigner: firstCredentialSigner,
+            dPopSigner,
             keyAttestation,
           },
         );
@@ -211,7 +211,7 @@ export const getCredential = async ({
   if (!credentialKeyTag) {
     throw new Error("No key tag generated for the credential batch");
   }
-  const credentialCryptoContext = firstCredentialCryptoContext;
+  const credentialSigner = firstCredentialSigner;
 
   // Parse and verify the credential. The ignoreMissingAttributes flag must be set to false or omitted in production.
   const { parsedCredential } =
@@ -219,7 +219,7 @@ export const getCredential = async ({
       issuerConf,
       credential,
       credential_configuration_id,
-      { credentialCryptoContext, ignoreMissingAttributes: true },
+      { credentialSigner, ignoreMissingAttributes: true },
       x509CertRoot,
     );
 
@@ -277,7 +277,7 @@ export const getTrustAnchorX509Certificate = async (
  * @param credentialIssuerUrl - The credential issuer URL
  * @param credential - The credential to obtain the status assertion for
  * @param format - The format of the credential, e.g. "sd-jwt"
- * @param credentialCryptoContext - The credential crypto context associated with the credential
+ * @param credentialSigner - The credential signer associated with the credential
  * @param credentialType - The type of the credential
  * @returns The credential status assertion
  */
@@ -292,8 +292,8 @@ export const getCredentialStatusAssertion = async (
   credentialIssuerUrl: string,
   credential: string,
   format: CredentialIssuance.CredentialFormat,
-  credentialCryptoContext: CryptoContext,
-  wiaCryptoContext: CryptoContext,
+  credentialSigner: Signer,
+  wiaSigner: Signer,
   credentialType: SupportedCredentials,
 ): Promise<CredentialStatusAssertionResult> => {
   const wallet = new IoWallet({ version: itwVersion });
@@ -312,7 +312,7 @@ export const getCredentialStatusAssertion = async (
     issuerConf,
     credential,
     format,
-    { credentialCryptoContext, wiaCryptoContext },
+    { credentialSigner, wiaSigner },
   );
 
   const parsedStatusAssertion =

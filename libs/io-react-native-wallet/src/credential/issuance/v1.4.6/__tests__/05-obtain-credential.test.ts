@@ -1,6 +1,6 @@
 import { fetchCredentialResponse } from "@pagopa/io-wallet-oid4vci";
 
-import type { CryptoContext } from "../../../../utils/jwt";
+import type { Signer } from "../../../../utils/crypto";
 import type { IssuerConfig } from "../../api";
 
 import { requestCredentials } from "../05-obtain-credential";
@@ -10,20 +10,18 @@ jest.mock("@pagopa/io-wallet-oid4vci", () => ({
   fetchCredentialResponse: jest.fn().mockResolvedValue(Promise.resolve()),
 }));
 
-const createMockCryptoContext = (
-  keyTag: string,
-  y: string,
-): jest.Mocked<CryptoContext> => ({
+const createMockSigner = (keyTag: string, y: string): jest.Mocked<Signer> => ({
   getPublicKey: jest.fn(async () => ({
     alg: "ES256",
     crv: "P-256",
     kid: keyTag,
-    kty: "EC",
+    kty: "EC" as const,
     use: "sig",
     x: "1",
     y,
   })),
-  getSignature: jest.fn(async (_) => `mock-signature-${keyTag}`),
+  kind: "LOCAL",
+  sign: jest.fn(async (_) => `mock-signature-${keyTag}`),
 });
 
 describe("requestCredentials", () => {
@@ -54,12 +52,12 @@ describe("requestCredentials", () => {
       >[0]["accessToken"],
       appFetch,
       clientId: "client123",
-      credentialCryptoContexts: [
-        createMockCryptoContext("key-1", "1"),
-        createMockCryptoContext("key-2", "2"),
-      ],
       credentialIdentifier: "credid-123",
-      dPopCryptoContext: createMockCryptoContext("key-3", "3"),
+      credentialSigners: [
+        createMockSigner("key-1", "1"),
+        createMockSigner("key-2", "2"),
+      ],
+      dPopSigner: createMockSigner("key-3", "3"),
       issuerConf: mockIssuerConf,
       keyAttestationJwt: "mock-key-attestation",
     });

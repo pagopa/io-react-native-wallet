@@ -6,9 +6,12 @@ import { X509 } from "jsrsasign";
 
 import type { JWK } from "./jwk";
 
-import { getJwkFromCertificateChain, getJwkFromTrustChain } from "./crypto";
+import {
+  getJwkFromCertificateChain,
+  getJwkFromTrustChain,
+  type Signer,
+} from "./crypto";
 import { IoWalletError } from "./errors";
-import { type CryptoContext, cryptoToJwtSigner } from "./jwt";
 import { assert, generateRandomBytes } from "./misc";
 
 // Fix incompatibility between ArrayBuffer types: the hasher accepts Uint8Array
@@ -114,22 +117,23 @@ export const createVerifyJwtFromJwks = (
   };
 
 /**
- * Create a signJwt implementation that signs a JWT using the provided CryptoContext.
- * @param cryptoContext The CryptoContext to use for signing the JWT
+ * Create a signJwt implementation that signs a JWT using the provided {@link Signer}.
+ * The header and payload are signed as provided by the SDK, except for `alg` which is inferred from the signer's key.
+ * @param signer The signer to use for signing the JWT
  * @returns Function that implements `signJwt` callback
  */
-export const createSignJwtFromCryptoContext = (
-  cryptoContext: CryptoContext,
+export const createSignJwtFromSigner = (
+  signer: Signer,
 ): CallbackContext["signJwt"] =>
   async function signJwt(jwtSigner, { header, payload }) {
     return {
-      jwt: await new JWT(cryptoToJwtSigner(cryptoContext))
+      jwt: await new JWT(signer)
         .setProtectedHeader(header)
         .setPayload(payload)
         .sign(),
       signerJwk:
         jwtSigner.method === "jwk"
           ? jwtSigner.publicJwk
-          : await cryptoContext.getPublicKey(),
+          : await signer.getPublicKey(),
     };
   };

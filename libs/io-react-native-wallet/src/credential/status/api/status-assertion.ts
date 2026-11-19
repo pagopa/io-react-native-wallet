@@ -1,5 +1,5 @@
 import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
-import type { CryptoContext } from "../../../utils/jwt";
+import type { Signer } from "../../../utils/crypto";
 import type { Out } from "../../../utils/misc";
 import type { CredentialFormat, IssuerConfig } from "../../issuance/api";
 import type { ParsedStatusAssertion } from "./types";
@@ -13,8 +13,8 @@ export interface StatusAssertionApi {
    * @param issuerConf - The issuer's configuration
    * @param credential - The credential to be verified
    * @param format - The format of the credential, e.g. "sd-jwt"
-   * @param context.credentialCryptoContext - The credential's crypto context
-   * @param context.wiaCryptoContext - The Wallet Attestation's crypto context
+   * @param context.credentialSigner - The credential's signer
+   * @param context.wiaSigner - The Wallet Attestation's signer
    * @param context.appFetch (optional) fetch api implementation. Default: built-in fetch
    * @returns The credential status assertion
    * @throws {IssuerResponseError} with a specific code for more context
@@ -25,8 +25,8 @@ export interface StatusAssertionApi {
     format: CredentialFormat | SupportedSdJwtLegacyFormat,
     context: {
       appFetch?: typeof fetch;
-      credentialCryptoContext: CryptoContext;
-      wiaCryptoContext: CryptoContext;
+      credentialSigner: Signer;
+      wiaSigner: Signer;
     },
   ): Promise<{ statusAssertion: string }>;
 

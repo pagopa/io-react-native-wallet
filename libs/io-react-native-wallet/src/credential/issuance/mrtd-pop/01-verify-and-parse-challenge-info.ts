@@ -6,8 +6,8 @@ import { createVerifyJwtFromJwks } from "../../../utils/callbacks";
 import { IoWalletError } from "../../../utils/errors";
 
 export const verifyAndParseChallengeInfo: MRTDPoPApi["verifyAndParseChallengeInfo"] =
-  async (issuerConf, challengeInfoJwt, { wiaCryptoContext }) => {
-    const clientId = await wiaCryptoContext.getPublicKey().then((x) => x.kid);
+  async (issuerConf, challengeInfoJwt, { wiaSigner }) => {
+    const clientId = await wiaSigner.getPublicKey().then((x) => x.kid);
 
     if (!clientId) {
       throw new IoWalletError(

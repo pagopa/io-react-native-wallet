@@ -1,4 +1,5 @@
-import { JWT, thumbprint } from "@pagopa/io-react-native-jwt";
+import { thumbprint } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import { Platform } from "react-native";
 
 import type { IntegrityContext } from "../../utils/integrity";
@@ -6,8 +7,8 @@ import type { WalletInstanceAttestationApi } from "../api";
 import type { WalletAttestationRequestParams } from "../api/types";
 
 import { getWalletProviderClient } from "../../client";
+import { type Signer } from "../../utils/crypto";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
-import { type CryptoContext, cryptoToJwtSigner } from "../../utils/jwt";
 import { Logger, LogLevel } from "../../utils/logging";
 import { handleAttestationCreationError } from "../common/errors";
 import { WalletInstanceAttestationResponse } from "./types";
@@ -18,10 +19,10 @@ async function getAttestationRequest(
     walletSolutionId,
     walletSolutionVersion,
   }: WalletAttestationRequestParams & { challenge: string },
-  wiaCryptoContext: CryptoContext,
+  wiaSigner: Signer,
   integrityContext: IntegrityContext,
 ): Promise<string> {
-  const jwk = await wiaCryptoContext.getPublicKey();
+  const jwk = await wiaSigner.getPublicKey();
   const parsedJwk = JWK.parse(jwk);
   const keyThumbprint = await thumbprint(parsedJwk);
   const publicKey = { ...parsedJwk, kid: keyThumbprint };
@@ -37,7 +38,11 @@ async function getAttestationRequest(
       JSON.stringify(clientData),
     );
 
-  return new JWT(cryptoToJwtSigner(wiaCryptoContext))
+  return new JWT(wiaSigner)
+    .setProtectedHeader({
+      kid: publicKey.kid,
+      typ: "wia-request+jwt",
+    })
     .setPayload({
       cnf: {
         jwk: fixBase64EncodingOnKey(publicKey),
@@ -51,20 +56,13 @@ async function getAttestationRequest(
       wallet_solution_id: walletSolutionId,
       wallet_solution_version: walletSolutionVersion,
     })
-    .setProtectedHeader({
-      kid: publicKey.kid,
-      typ: "wia-request+jwt",
-    })
     .setIssuedAt()
     .setExpirationTime("1h")
     .sign();
 }
 
 export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
-  async (
-    requestParams,
-    { appFetch = fetch, integrityContext, wiaCryptoContext },
-  ) => {
+  async (requestParams, { appFetch = fetch, integrityContext, wiaSigner }) => {
     const api = getWalletProviderClient({
       appFetch,
       walletProviderBaseUrl: requestParams.walletProviderBaseUrl,
@@ -80,7 +78,7 @@ export const getAttestation: WalletInstanceAttestationApi["getAttestation"] =
 
     const signedAttestationRequest = await getAttestationRequest(
       { challenge, ...requestParams },
-      wiaCryptoContext,
+      wiaSigner,
       integrityContext,
     );
     Logger.log(

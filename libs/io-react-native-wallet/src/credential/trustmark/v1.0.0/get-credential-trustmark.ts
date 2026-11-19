@@ -1,11 +1,8 @@
-import {
-  decode as decodeJwt,
-  JWT,
-  thumbprint,
-} from "@pagopa/io-react-native-jwt";
+import { decode as decodeJwt, thumbprint } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 
+import { assertLocalSigners } from "../../../utils/crypto";
 import { IoWalletError } from "../../../utils/errors";
-import { cryptoToJwtSigner } from "../../../utils/jwt";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { obfuscateString } from "../../../utils/string";
 import * as WalletInstanceAttestation from "../../../wallet-instance-attestation/v1.0.0/utils";
@@ -16,12 +13,14 @@ export const getCredentialTrustmark: Api["getCredentialTrustmark"] = async ({
   docNumber,
   expirationTime = "2m",
   walletInstanceAttestation,
-  wiaCryptoContext,
+  wiaSigner,
 }) => {
+  assertLocalSigners("1.0.0", wiaSigner);
+
   /**
    * Check that the public key used to sign the trustmark is the one used for the WIA
    */
-  const holderBindingKey = await wiaCryptoContext.getPublicKey();
+  const holderBindingKey = await wiaSigner.getPublicKey();
   const decodedWia = WalletInstanceAttestation.decode(
     walletInstanceAttestation,
   );
@@ -43,33 +42,30 @@ export const getCredentialTrustmark: Api["getCredentialTrustmark"] = async ({
   }
 
   /**
-   * Verify holder binding by comparing thumbprints of the WIA and the CryptoContext key
+   * Verify holder binding by comparing thumbprints of the WIA and the signer key
    */
   const wiaThumbprint = await thumbprint(decodedWia.payload.cnf.jwk);
-  const cryptoContextThumbprint = await thumbprint(holderBindingKey);
+  const signerThumbprint = await thumbprint(holderBindingKey);
 
-  if (wiaThumbprint !== cryptoContextThumbprint) {
+  if (wiaThumbprint !== signerThumbprint) {
     Logger.log(
       LogLevel.ERROR,
-      `Failed to verify holder binding for status attestation, expected thumbprint: ${cryptoContextThumbprint}, got: ${wiaThumbprint}`,
+      `Failed to verify holder binding for status attestation, expected thumbprint: ${signerThumbprint}, got: ${wiaThumbprint}`,
     );
     throw new IoWalletError(
-      `Failed to verify holder binding for status attestation, expected thumbprint: ${cryptoContextThumbprint}, got: ${wiaThumbprint}`,
+      `Failed to verify holder binding for status attestation, expected thumbprint: ${signerThumbprint}, got: ${wiaThumbprint}`,
     );
   }
 
   Logger.log(
     LogLevel.DEBUG,
-    `Wia thumbprint: ${wiaThumbprint} CryptoContext thumbprint: ${cryptoContextThumbprint}`,
+    `Wia thumbprint: ${wiaThumbprint} Signer thumbprint: ${signerThumbprint}`,
   );
 
   /**
    * Generate Trustmark signed JWT
    */
-  const signedTrustmarkJwt = await new JWT(cryptoToJwtSigner(wiaCryptoContext))
-    .setProtectedHeader({
-      alg: "ES256",
-    })
+  const signedTrustmarkJwt = await new JWT(wiaSigner)
     .setPayload({
       iss: walletInstanceAttestation,
       /**

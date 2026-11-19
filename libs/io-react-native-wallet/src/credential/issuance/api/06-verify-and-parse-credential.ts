@@ -1,4 +1,4 @@
-import type { CryptoContext } from "../../../utils/jwt";
+import type { Signer } from "../../../utils/crypto";
 import type { IssuerConfig } from "./IssuerConfig";
 import type { ParsedCredential } from "./types";
 
@@ -10,7 +10,7 @@ export interface VerifyAndParseCredentialApi {
    * @param issuerConf The Issuer configuration returned by {@link evaluateIssuerTrust}
    * @param credential The encoded credential returned by {@link obtainCredential}
    * @param credentialConfigurationId The credential configuration ID that defines the provided credential
-   * @param context.credentialCryptoContext The crypto context used to obtain the credential in {@link obtainCredential}
+   * @param context.credentialSigner The signer used to obtain the credential in {@link obtainCredential}
    * @param context.ignoreMissingAttributes Skip error when attributes declared in the issuer configuration are not found within disclosures
    * @param context.includeUndefinedAttributes Include attributes not explicitly declared in the issuer configuration
    * @returns A parsed credential with attributes in plain value, the expiration and issuance date of the credential
@@ -23,7 +23,7 @@ export interface VerifyAndParseCredentialApi {
     credential: string,
     credentialConfigurationId: string,
     context: {
-      credentialCryptoContext: CryptoContext;
+      credentialSigner: Signer;
       /**
        * Do not throw an error when an attribute is not found within disclosures.
        */

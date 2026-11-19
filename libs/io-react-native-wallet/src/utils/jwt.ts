@@ -1,29 +1,7 @@
-import type { JWTSigner } from "@pagopa/io-react-native-jwt";
-
 import { Base64 } from "js-base64";
 import { sha256 } from "js-sha256";
 
-import type { JWK } from "./jwk";
-
 import { IoWalletError } from "./errors";
-
-/**
- * A key pair abstraction: it exposes the public key and the ability to sign a value with the private one.
- */
-export interface CryptoContext {
-  /** Get the public key of the key pair. */
-  getPublicKey: () => Promise<JWK>;
-  /** Get the signature of the provided value. */
-  getSignature: (value: string) => Promise<string>;
-}
-
-/**
- * Adapt a {@link CryptoContext} to the signer interface required by `JWT`.
- */
-export const cryptoToJwtSigner = (cryptoContext: CryptoContext): JWTSigner => ({
-  getPublicKey: () => cryptoContext.getPublicKey(),
-  sign: (value: string) => cryptoContext.getSignature(value),
-});
 
 /**
  * Convert a base64 string to base64url, removing the padding.

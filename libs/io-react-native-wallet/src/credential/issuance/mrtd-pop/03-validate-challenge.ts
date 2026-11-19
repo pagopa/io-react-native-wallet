@@ -9,11 +9,10 @@ import {
 import type { MRTDPoPApi } from "../api/mrtd-pop";
 
 import {
-  createSignJwtFromCryptoContext,
+  createSignJwtFromSigner,
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
-import { cryptoToJwtSigner } from "../../../utils/jwt";
 
 interface Config {
   sdkConfig: IoWalletSdkConfig;
@@ -37,21 +36,17 @@ export function createValidateChallenge(
     ias,
     context,
   ) {
-    const {
-      appFetch = fetch,
-      walletInstanceAttestation,
-      wiaCryptoContext,
-    } = context;
+    const { appFetch = fetch, walletInstanceAttestation, wiaSigner } = context;
 
     const aud = issuerConf.credential_issuer;
 
-    const wiaPublicJwk = await wiaCryptoContext.getPublicKey();
+    const wiaPublicJwk = await wiaSigner.getPublicKey();
 
     const clientAttestationDPoP = await createClientAttestationPopJwt({
       authorizationServer: aud,
       callbacks: {
         generateRandom: partialCallbacks.generateRandom,
-        signJwt: createSignJwtFromCryptoContext(wiaCryptoContext),
+        signJwt: createSignJwtFromSigner(wiaSigner),
       },
       clientAttestation: walletInstanceAttestation,
       config: config.sdkConfig,
@@ -62,7 +57,7 @@ export function createValidateChallenge(
       },
     });
 
-    const mrtdValidationJwt = await new JWT(cryptoToJwtSigner(wiaCryptoContext))
+    const mrtdValidationJwt = await new JWT(wiaSigner)
       .setProtectedHeader({
         kid: wiaPublicJwk.kid,
         typ: "mrtd-ias+jwt",

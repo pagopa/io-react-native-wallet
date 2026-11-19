@@ -4,7 +4,7 @@ import type { DcqlQuery as DcqlQueryLib } from "dcql";
 import * as z from "zod";
 
 import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
-import type { CryptoContext } from "../../../utils/jwt";
+import type { Signer } from "../../../utils/crypto";
 
 export type PresentationParams = z.infer<typeof PresentationParams>;
 export const PresentationParams = z.object({
@@ -86,7 +86,7 @@ export interface EvaluatedDisclosure {
 export type Presentation = [
   /* verified credential token */ string,
   /* claims */ PresentationFrame,
-  /* the context for the key associated to the credential */ CryptoContext,
+  /* the context for the key associated to the credential */ Signer,
 ];
 
 /**

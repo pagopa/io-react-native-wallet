@@ -1,5 +1,5 @@
 import {
-  createCryptoContextFor,
+  createSignerFor,
   CredentialIssuance,
   IoWallet,
 } from "@io-app-it-wallet/io-react-native-wallet";
@@ -95,7 +95,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
   dispatch(credentialReset());
   const { authMethod, ciePin, idpHint, withMRTDPoP } = args;
 
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   // Get env
   const env = selectEnv(getState());
@@ -122,7 +122,7 @@ export const preparePidFlowParamsThunk = createAppAsyncThunk<
         appFetch,
         redirectUri: redirectUri,
         walletInstanceAttestation,
-        wiaCryptoContext,
+        wiaSigner,
       },
     );
 
@@ -185,14 +185,14 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     );
 
   /*
-   * Create wia crypto context, we are using the same keytag used in {@link prepareCieL3FlowParamsThunk},
+   * Create wia signer, we are using the same keytag used in {@link prepareCieL3FlowParamsThunk},
    * hoping it has not been deleted in the meanwhile. This can be improved later.
    */
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   // Create DPoP context for the whole issuance flow
   await regenerateCryptoKey(DPOP_KEYTAG);
-  const dPopCryptoContext = createCryptoContextFor(DPOP_KEYTAG);
+  const dPopSigner = createSignerFor(DPOP_KEYTAG);
 
   const { accessToken } = await wallet.CredentialIssuance.authorizeAccess(
     issuerConf,
@@ -201,9 +201,9 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     codeVerifier,
     {
       appFetch,
-      dPopCryptoContext,
+      dPopSigner,
       walletInstanceAttestation,
-      wiaCryptoContext,
+      wiaSigner,
     },
   );
 
@@ -226,7 +226,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     throw new Error("No credential configuration ID found for PID");
   }
 
-  // Create credential crypto context and get the WUA if supported
+  // Create credential signer and get the WUA if supported
   const credentialKeyTag = uuidv4().toString();
   let keyAttestation: string | undefined;
 
@@ -239,7 +239,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
     await generate(credentialKeyTag);
   }
 
-  const credentialCryptoContext = createCryptoContextFor(credentialKeyTag);
+  const credentialSigner = createSignerFor(credentialKeyTag);
 
   // Get the credential identifier that was authorized
   const { credential, format } =
@@ -253,8 +253,8 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       },
       {
         appFetch,
-        credentialCryptoContext,
-        dPopCryptoContext,
+        credentialSigner,
+        dPopSigner,
         keyAttestation,
       },
     );
@@ -264,7 +264,7 @@ export const continuePidFlowThunk = createAppAsyncThunk<
       issuerConf,
       credential,
       credential_configuration_id,
-      { credentialCryptoContext, ignoreMissingAttributes: true },
+      { credentialSigner, ignoreMissingAttributes: true },
       X509_CERT_ROOT,
     );
 

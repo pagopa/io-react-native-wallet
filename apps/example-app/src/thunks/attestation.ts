@@ -1,8 +1,7 @@
 import {
-  createCryptoContextFor,
+  createSignerFor,
   IoWallet,
   type KeyAttestation as Ka,
-  type KeyAttestationCryptoContext,
   type WalletInstanceAttestation as Wia,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { generate } from "@pagopa/io-react-native-crypto";
@@ -44,7 +43,7 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
   // generate Key for Wallet Instance Attestation
   // ensure the key esists befor starting the issuing process
   await regenerateCryptoKey(WIA_KEYTAG);
-  const wiaCryptoContext = createCryptoContextFor(WIA_KEYTAG);
+  const wiaSigner = createSignerFor(WIA_KEYTAG);
 
   // Get env URLs
   const env = selectEnv(getState());
@@ -70,7 +69,7 @@ export const getWalletInstanceAttestationThunk = createAppAsyncThunk<
       {
         appFetch,
         integrityContext,
-        wiaCryptoContext,
+        wiaSigner,
       },
     );
   return issuingAttestation;
@@ -105,6 +104,18 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
     : undefined;
   await ensureIntegrityServiceIsReady(googleCloudProjectNumber);
 
+  // 1. Obtain the challenge to generate the keys to attest
+  const challenge = await wallet.KeyAttestation.getChallenge(
+    { walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL },
+    { appFetch },
+  );
+
+  // 2. Generate each key using the challenge
+  const keysToAttest = await Promise.all(
+    keyTags.map((keyTag) => generateKeyToAttest(keyTag, challenge)),
+  );
+
+  // 3. Request the Key Attestation
   return await wallet.KeyAttestation.getAttestation(
     {
       walletProviderBaseUrl: WALLET_PROVIDER_BASE_URL,
@@ -113,30 +124,29 @@ export const getKeyAttestationThunk = createAppAsyncThunk<
     },
     {
       appFetch,
+      challenge,
       integrityContext,
-      keysToAttest: keyTags.map(createKeyAttestationCryptoContextFor),
+      keysToAttest,
     },
   );
 });
 
-const createKeyAttestationCryptoContextFor = (
+const generateKeyToAttest = (
   keyTag: string,
-): KeyAttestationCryptoContext => ({
-  ...createCryptoContextFor(keyTag),
-  generateKeyWithAttestation(challenge) {
-    return Platform.select({
-      android: async () => {
-        const attestation = await getAttestation(challenge, keyTag);
-        return { attestation, success: true };
-      },
-      default: () => {
-        throw new Error("Unsupported platform");
-      },
-      // No key attestation on iOS, only key pair creation
-      ios: async () => {
-        await generate(keyTag);
-        return { success: true };
-      },
-    })();
-  },
-});
+  challenge: string,
+): Promise<Ka.KeyToAttest> =>
+  Platform.select({
+    android: async () => ({
+      // The key attestation is bound to the challenge
+      attestation: await getAttestation(challenge, keyTag),
+      signer: createSignerFor(keyTag),
+    }),
+    default: () => {
+      throw new Error("Unsupported platform");
+    },
+    // No key attestation on iOS, only key pair creation
+    ios: async () => {
+      await generate(keyTag);
+      return { signer: createSignerFor(keyTag) };
+    },
+  })();

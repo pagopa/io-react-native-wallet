@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi } from "../api";
 
+import { assertLocalSigners } from "../../../utils/crypto";
 import { createDPopToken } from "../../../utils/dpop";
 import { IssuerResponseError, ValidationFailed } from "../../../utils/errors";
 import { Logger, LogLevel } from "../../../utils/logging";
@@ -19,10 +20,12 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
 ) => {
   const {
     appFetch = fetch,
-    dPopCryptoContext,
+    dPopSigner,
     walletInstanceAttestation,
-    wiaCryptoContext,
+    wiaSigner,
   } = context;
+  assertLocalSigners("1.0.0", dPopSigner, wiaSigner);
+
   const aud = issuerConf.credential_issuer;
   const iss = WalletInstanceAttestation.decode(walletInstanceAttestation)
     .payload.cnf.jwk.kid;
@@ -35,7 +38,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
       htu: tokenUrl,
       jti: `${uuidv4()}`,
     },
-    dPopCryptoContext,
+    dPopSigner,
   );
 
   Logger.log(LogLevel.DEBUG, `Token request DPoP: ${tokenRequestSignedDPop}`);
@@ -46,7 +49,7 @@ export const authorizeAccess: IssuanceApi["authorizeAccess"] = async (
       iss,
       jti: `${uuidv4()}`,
     },
-    wiaCryptoContext,
+    wiaSigner,
   );
 
   Logger.log(LogLevel.DEBUG, `WIA DPoP token: ${signedWiaPoP}`);

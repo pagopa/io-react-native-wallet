@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi } from "../api";
 
+import { assertLocalSigners, type Signer } from "../../../utils/crypto";
 import { createDPopToken } from "../../../utils/dpop";
 import {
   IoWalletError,
@@ -13,11 +14,7 @@ import {
   UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
-import {
-  type CryptoContext,
-  cryptoToJwtSigner,
-  sha256ToBase64Url,
-} from "../../../utils/jwt";
+import { sha256ToBase64Url } from "../../../utils/jwt";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { CredentialResponse, NonceResponse } from "./types";
@@ -26,23 +23,21 @@ export const createNonceProof = async (
   nonce: string,
   issuer: string,
   audience: string,
-  ctx: CryptoContext,
-): Promise<string> => {
-  const jwk = await ctx.getPublicKey();
-  return new JWT(cryptoToJwtSigner(ctx))
-    .setPayload({
-      nonce,
-    })
+  signer: Signer,
+): Promise<string> =>
+  new JWT(signer)
     .setProtectedHeader({
-      jwk,
+      jwk: await signer.getPublicKey(),
       typ: "openid4vci-proof+jwt",
     })
-    .setAudience(audience)
-    .setIssuer(issuer)
+    .setPayload({
+      aud: audience,
+      iss: issuer,
+      nonce,
+    })
     .setIssuedAt()
     .setExpirationTime("5min")
     .sign();
-};
 
 export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   issuerConf,
@@ -51,11 +46,8 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
   credentialDefinition,
   context,
 ) => {
-  const {
-    appFetch = fetch,
-    credentialCryptoContext,
-    dPopCryptoContext,
-  } = context;
+  const { appFetch = fetch, credentialSigner, dPopSigner } = context;
+  assertLocalSigners("1.0.0", credentialSigner, dPopSigner);
   const { credential_configuration_id, credential_identifier } =
     credentialDefinition;
 
@@ -81,7 +73,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
     c_nonce,
     clientId,
     issuerUrl,
-    credentialCryptoContext,
+    credentialSigner,
   );
 
   Logger.log(LogLevel.DEBUG, `Signed nonce proof: ${signedNonceProof}`);
@@ -134,7 +126,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
       htu: credentialUrl,
       jti: `${uuidv4()}`,
     },
-    dPopCryptoContext,
+    dPopSigner,
   );
 
   Logger.log(LogLevel.DEBUG, `Token request DPoP: ${tokenRequestSignedDPop}`);

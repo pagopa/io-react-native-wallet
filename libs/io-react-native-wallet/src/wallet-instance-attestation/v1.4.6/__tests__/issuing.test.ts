@@ -1,3 +1,4 @@
+import type { Signer } from "../../../utils/crypto";
 import type { IntegrityContext } from "../../../utils/integrity";
 
 import {
@@ -15,15 +16,16 @@ const integrityContextMock: jest.Mocked<IntegrityContext> = {
   })),
 };
 
-const wiaCryptoContext = {
+const wiaSigner: Signer = {
   getPublicKey: jest.fn(async () => ({
     crv: "P-256",
     kid: "key-1",
-    kty: "EC",
+    kty: "EC" as const,
     x: "1",
     y: "2",
   })),
-  getSignature: jest.fn(async (_: string) => "mock-signature"),
+  kind: "LOCAL",
+  sign: jest.fn(async (_) => "mock-signature"),
 };
 
 const jsonResponse = (body: object, status: number) =>
@@ -45,7 +47,7 @@ describe("WalletInstanceAttestation v1.4.6 | getAttestation", () => {
         walletSolutionId: "walletSol",
         walletSolutionVersion: "1.0.0",
       },
-      { appFetch, integrityContext: integrityContextMock, wiaCryptoContext },
+      { appFetch, integrityContext: integrityContextMock, wiaSigner },
     ).catch((e) => e);
 
     expect(error).toBeInstanceOf(WalletProviderResponseError);

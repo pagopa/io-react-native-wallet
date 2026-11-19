@@ -39,7 +39,7 @@ const {
 } = await Credential.Issuance.MRTDPoP.verifyAndParseChallengeInfo(
   issuerConf,
   challenge_info,
-  { wiaCryptoContext }
+  { wiaSigner }
 );
 
 // Initialize challenge and obtain the challenge text to sign the CIE PACE protocol and validation url
@@ -54,7 +54,7 @@ const {
   mrtd_pop_jwt_nonce,
   {
     walletInstanceAttestation,
-    wiaCryptoContext,
+    wiaSigner,
     appFetch,
   }
 );
@@ -73,7 +73,7 @@ const { mrtd_val_pop_nonce, redirect_uri } =
     ias,
     {
       walletInstanceAttestation,
-      wiaCryptoContext,
+      wiaSigner,
       appFetch,
     }
   );
