@@ -38,7 +38,7 @@ new ResponseErrorBuilder(IssuerResponseError)
 
 ## Crypto Contexts
 
-Hardware-backed key operations go through `CryptoContext` from `@pagopa/io-react-native-jwt`. Create one from a keytag:
+Hardware-backed key operations go through `CryptoContext` (exported by this package). Create one from a keytag:
 
 ```ts
 import { createCryptoContextFor } from "@pagopa/io-react-native-wallet";

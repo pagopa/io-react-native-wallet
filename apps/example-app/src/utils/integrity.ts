@@ -1,4 +1,8 @@
-import type { IntegrityContext } from "@io-app-it-wallet/io-react-native-wallet";
+import {
+  base64ToBase64Url,
+  base64UrlToBase64,
+  type IntegrityContext,
+} from "@io-app-it-wallet/io-react-native-wallet";
 
 import { sign } from "@pagopa/io-react-native-crypto";
 import {
@@ -11,7 +15,6 @@ import {
   requestIntegrityToken,
 } from "@pagopa/io-react-native-integrity";
 import { CBOR } from "@pagopa/io-react-native-iso18013";
-import { addPadding, removePadding } from "@pagopa/io-react-native-jwt";
 import { sha256 } from "js-sha256";
 import { Platform } from "react-native";
 import { v4 as uuidv4 } from "uuid";
@@ -27,7 +30,7 @@ export interface HardwareSignatureWithAuthData {
 }
 
 // CBOR.decode returns CBOR byte strings as base64url, the backend expects base64
-const Base64UrlToBase64 = z.string().transform(addPadding);
+const Base64UrlToBase64 = z.string().transform(base64UrlToBase64);
 
 /**
  * iOS App Attest assertion: a CBOR map with the `signature` and `authenticatorData` byte strings.
@@ -65,7 +68,7 @@ const getHardwareSignatureWithAuthData = (
     },
     default: async () => Promise.reject(new Error("Unsupported platform")),
     ios: async () => {
-      const base64KeyTag = addPadding(hardwareKeyTag);
+      const base64KeyTag = base64UrlToBase64(hardwareKeyTag);
       const assertion = await generateHardwareSignatureWithAssertion(
         clientData,
         base64KeyTag,
@@ -86,7 +89,7 @@ const generateIntegrityHardwareKeyTag = () =>
     default: () => Promise.reject(new Error("Unsupported platform")),
     ios: async () => {
       const key = await generateHardwareKey();
-      return removePadding(key);
+      return base64ToBase64Url(key);
     },
   })();
 
@@ -119,7 +122,8 @@ const getAttestation = (challenge: string, hardwareKeyTag: string) =>
   Platform.select({
     android: () => getAttestationIntegrity(challenge, hardwareKeyTag),
     default: () => Promise.reject(new Error("Unsupported platform")),
-    ios: () => getAttestationIntegrity(challenge, addPadding(hardwareKeyTag)),
+    ios: () =>
+      getAttestationIntegrity(challenge, base64UrlToBase64(hardwareKeyTag)),
   })();
 
 const getIntegrityContext = (hardwareKeyTag: string): IntegrityContext => ({

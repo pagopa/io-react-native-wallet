@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { CryptoContext } from "../../../utils/jwt";
 import type { Out } from "../../../utils/misc";
 import type { AuthorizeAccessApi } from "./04-authorize-access";
 import type { IssuerConfig } from "./IssuerConfig";

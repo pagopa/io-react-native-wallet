@@ -1,8 +1,4 @@
-import {
-  type CryptoContext,
-  decode,
-  SignJWT,
-} from "@pagopa/io-react-native-jwt";
+import { decode, JWT } from "@pagopa/io-react-native-jwt";
 import parseUrl from "parse-url";
 
 import type { RemotePresentation } from "../../presentation";
@@ -20,6 +16,7 @@ import {
   UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
+import { type CryptoContext, cryptoToJwtSigner } from "../../../utils/jwt";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { RemotePresentation as RemotePresentationFlow } from "../../presentation/v1.0.0";
@@ -260,7 +257,7 @@ const createAuthzResponsePayload = async ({
 }): Promise<string> => {
   const { kid } = await wiaCryptoContext.getPublicKey();
 
-  return new SignJWT(wiaCryptoContext)
+  return new JWT(cryptoToJwtSigner(wiaCryptoContext))
     .setProtectedHeader({
       kid,
       typ: "jwt",

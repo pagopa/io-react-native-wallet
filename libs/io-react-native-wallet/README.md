@@ -67,7 +67,7 @@ User flows implementions make use of tokens signed using asymmetric key pairs. S
 - The application knows who to generate/store/delete keys;
 - The package knows when and where to use them.
 
-The interface is `CryptoContext` inherited from the `@pagopa/io-react-native-jwt` package:
+The interface is `CryptoContext`, exported by this package:
 
 The suggested library to manage cryptographic assets is [io-react-native-crypto](https://github.com/pagopa/io-react-native-crypto).
 

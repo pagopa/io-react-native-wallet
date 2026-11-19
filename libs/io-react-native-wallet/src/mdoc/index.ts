@@ -1,6 +1,5 @@
 import { type PublicKey } from "@pagopa/io-react-native-crypto";
 import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
-import { removePadding } from "@pagopa/io-react-native-jwt";
 import { b64utob64 } from "jsrsasign";
 
 import type { Presentation } from "../credential/presentation";
@@ -8,6 +7,7 @@ import type { Presentation } from "../credential/presentation";
 import { MissingX509CertsError } from "../trust/common/errors";
 import { convertBase64DerToPem, getSigninJwkFromCert } from "../utils/crypto";
 import { IoWalletError } from "../utils/errors";
+import { base64ToBase64Url } from "../utils/jwt";
 import { verifyX509Chain } from "../utils/x509";
 export * from "./utils";
 
@@ -113,6 +113,6 @@ export const prepareVpTokenMdoc = async (
   );
 
   return {
-    vp_token: removePadding(vp_token),
+    vp_token: base64ToBase64Url(vp_token),
   };
 };

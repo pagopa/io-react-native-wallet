@@ -1,7 +1,7 @@
 import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import type { CBOR } from "@pagopa/io-react-native-iso18013";
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
+import type { CryptoContext } from "../../../utils/jwt";
 import type { Out } from "../../../utils/misc";
 import type { IssuanceApi, IssuerConfig, ParsedCredential } from "../api";
 

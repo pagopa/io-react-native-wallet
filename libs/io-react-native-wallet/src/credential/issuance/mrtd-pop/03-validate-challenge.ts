@@ -1,6 +1,6 @@
 import type { IoWalletSdkConfig } from "@pagopa/io-wallet-utils";
 
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import {
   createClientAttestationPopJwt,
   fetchMrtdPopVerify,
@@ -13,6 +13,7 @@ import {
   partialCallbacks,
 } from "../../../utils/callbacks";
 import { sdkUnexpectedStatusCodeToIssuerError } from "../../../utils/errors";
+import { cryptoToJwtSigner } from "../../../utils/jwt";
 
 interface Config {
   sdkConfig: IoWalletSdkConfig;
@@ -61,7 +62,7 @@ export function createValidateChallenge(
       },
     });
 
-    const mrtdValidationJwt = await new SignJWT(wiaCryptoContext)
+    const mrtdValidationJwt = await new JWT(cryptoToJwtSigner(wiaCryptoContext))
       .setProtectedHeader({
         kid: wiaPublicJwk.kid,
         typ: "mrtd-ias+jwt",

@@ -1,6 +1,5 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
 import type { IntegrityContext } from "../../utils/integrity";
+import type { CryptoContext } from "../../utils/jwt";
 import type {
   DecodedWalletInstanceAttestation,
   WalletAttestation,

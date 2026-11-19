@@ -3,10 +3,10 @@ import type { JWK } from "src/utils/jwk";
 import { Base64 as mockBase64 } from "js-base64";
 import { sha256 as mockSha256 } from "js-sha256";
 
-export { SignJWT } from "@pagopa/io-react-native-jwt";
+export { JWT } from "@pagopa/io-react-native-jwt";
 
-export const sha256ToBase64 = async (toHash: string) =>
-  Promise.resolve(removePadding(mockHexToBase64(mockSha256(toHash))));
+const sha256ToBase64Url = async (toHash: string) =>
+  Promise.resolve(base64ToBase64Url(mockHexToBase64(mockSha256(toHash))));
 
 function mockHexToBase64(hexstring: string) {
   const x = hexstring.match(/\w{2}/g) || [];
@@ -26,10 +26,10 @@ export const thumbprint = (jwk: JWK) => {
     y: jwk.y,
   };
   const canonicalJson = JSON.stringify(canonical);
-  return sha256ToBase64(canonicalJson);
+  return sha256ToBase64Url(canonicalJson);
 };
 
-export function removePadding(encoded: string): string {
+function base64ToBase64Url(encoded: string): string {
   return encoded.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 

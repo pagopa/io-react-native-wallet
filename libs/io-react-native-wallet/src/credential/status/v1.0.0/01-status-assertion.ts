@@ -1,4 +1,4 @@
-import { SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 
 import type { StatusAssertionApi } from "../api/status-assertion";
@@ -11,6 +11,7 @@ import {
   ResponseErrorBuilder,
   UnexpectedStatusCodeError,
 } from "../../../utils/errors";
+import { cryptoToJwtSigner } from "../../../utils/jwt";
 import { Logger, LogLevel } from "../../../utils/logging";
 import {
   getCredentialHashWithouDiscloures,
@@ -37,7 +38,9 @@ export const getStatusAssertion: StatusAssertionApi["get"] = async (
     );
   }
 
-  const credentialPop = await new SignJWT(credentialCryptoContext)
+  const credentialPop = await new JWT(
+    cryptoToJwtSigner(credentialCryptoContext),
+  )
     .setPayload({
       aud: statusAttUrl,
       credential_hash: credentialHash,

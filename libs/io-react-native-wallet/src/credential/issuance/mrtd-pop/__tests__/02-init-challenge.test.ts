@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { CryptoContext } from "../../../../utils/jwt";
 import type { IssuerConfig } from "../../api/IssuerConfig";
 
 import { createInitChallenge } from "../02-init-challenge";
@@ -29,7 +28,7 @@ const mockChallengeJwt =
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
   getJwkFromHeader: jest.fn(),
-  SignJWT: jest.fn().mockImplementation(() => ({
+  JWT: jest.fn().mockImplementation(() => ({
     setPayload: jest.fn().mockReturnThis(),
     setProtectedHeader: jest.fn().mockReturnThis(),
     sign: jest.fn().mockResolvedValue("signed-wia-pop-token"),

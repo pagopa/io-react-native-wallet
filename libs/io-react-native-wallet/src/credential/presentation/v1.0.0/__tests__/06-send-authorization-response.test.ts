@@ -20,8 +20,7 @@ jest.mock("@pagopa/io-react-native-jwt", () => {
     EncryptJwe: jest.fn().mockImplementation(() => ({
       encrypt: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
     })),
-    sha256ToBase64: jest.fn().mockResolvedValue("mock_encrypted_jwe"),
-    SignJWT: jest.fn().mockImplementation(() => ({
+    JWT: jest.fn().mockImplementation(() => ({
       setAudience: jest.fn().mockReturnThis(),
       setExpirationTime: jest.fn().mockReturnThis(),
       setIssuedAt: jest.fn().mockReturnThis(),

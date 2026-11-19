@@ -1,8 +1,4 @@
-import {
-  type CryptoContext,
-  SignJWT,
-  thumbprint,
-} from "@pagopa/io-react-native-jwt";
+import { JWT, thumbprint } from "@pagopa/io-react-native-jwt";
 import { Platform } from "react-native";
 
 import type { IntegrityContext } from "../../utils/integrity";
@@ -11,6 +7,7 @@ import type { WalletAttestationRequestParams } from "../api/types";
 
 import { getWalletProviderClient } from "../../client";
 import { fixBase64EncodingOnKey, JWK } from "../../utils/jwk";
+import { type CryptoContext, cryptoToJwtSigner } from "../../utils/jwt";
 import { Logger, LogLevel } from "../../utils/logging";
 import { handleAttestationCreationError } from "../common/errors";
 import { WalletInstanceAttestationResponse } from "./types";
@@ -40,7 +37,7 @@ async function getAttestationRequest(
       JSON.stringify(clientData),
     );
 
-  return new SignJWT(wiaCryptoContext)
+  return new JWT(cryptoToJwtSigner(wiaCryptoContext))
     .setPayload({
       cnf: {
         jwk: fixBase64EncodingOnKey(publicKey),

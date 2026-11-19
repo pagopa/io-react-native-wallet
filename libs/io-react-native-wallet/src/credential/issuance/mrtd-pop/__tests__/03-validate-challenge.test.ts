@@ -1,5 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
+import type { CryptoContext } from "../../../../utils/jwt";
 import type { IssuerConfig } from "../../api/IssuerConfig";
 import type { IasPayload, MrtdPayload } from "../../api/mrtd-pop";
 
@@ -10,7 +9,7 @@ import {
 import { sdkConfigV1_0 } from "../../../../utils/config";
 import { IssuerResponseError } from "../../../../utils/errors";
 
-// Mock SignJWT from @pagopa/io-react-native-jwt
+// Mock JWT from @pagopa/io-react-native-jwt
 const mockSign = jest.fn();
 const mockSetExpirationTime = jest.fn().mockReturnValue({ sign: mockSign });
 const mockSetIssuedAt = jest
@@ -24,7 +23,7 @@ const mockSetProtectedHeader = jest
   .mockReturnValue({ setPayload: mockSetPayload });
 
 jest.mock("@pagopa/io-react-native-jwt", () => ({
-  SignJWT: jest.fn().mockImplementation(() => ({
+  JWT: jest.fn().mockImplementation(() => ({
     setProtectedHeader: mockSetProtectedHeader,
   })),
 }));
@@ -147,7 +146,7 @@ describe("validateChallenge", () => {
       { appFetch, walletInstanceAttestation, wiaCryptoContext },
     );
 
-    // Verify SignJWT was called with correct parameters
+    // Verify JWT was called with correct parameters
     expect(mockSetProtectedHeader).toHaveBeenCalledWith({
       kid: "Zvp6EBCMcTKGOCeEhb3BfSMPJh__bGgg5meBO03lfVo",
       typ: "mrtd-ias+jwt",

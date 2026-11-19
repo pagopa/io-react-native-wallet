@@ -1,5 +1,7 @@
-import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import * as z from "zod";
+
+import { type CryptoContext, cryptoToJwtSigner } from "./jwt";
 
 /**
  * Create a signed DPoP token
@@ -14,7 +16,7 @@ export const createDPopToken = async (
   crypto: CryptoContext,
 ): Promise<string> => {
   const jwk = await crypto.getPublicKey();
-  return new SignJWT(crypto)
+  return new JWT(cryptoToJwtSigner(crypto))
     .setPayload(payload)
     .setProtectedHeader({
       jwk,

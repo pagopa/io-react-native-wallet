@@ -21,6 +21,11 @@ import {
 } from "./utils/crypto";
 import * as Errors from "./utils/errors";
 import { fixBase64EncodingOnKey } from "./utils/jwk";
+import {
+  base64ToBase64Url,
+  base64UrlToBase64,
+  type CryptoContext,
+} from "./utils/jwt";
 import * as Logging from "./utils/logging";
 import { AuthorizationDetail, AuthorizationDetails } from "./utils/par";
 import * as WalletInstance from "./wallet-instance";
@@ -29,6 +34,8 @@ import * as WalletInstanceAttestation from "./wallet-instance-attestation";
 export {
   AuthorizationDetail,
   AuthorizationDetails,
+  base64ToBase64Url,
+  base64UrlToBase64,
   createCryptoContextFor,
   CredentialIssuance,
   CredentialOffer,
@@ -50,6 +57,7 @@ export {
 
 export type {
   AuthorizationContext,
+  CryptoContext,
   IntegrityContext,
   KeyAttestationCryptoContext,
 };

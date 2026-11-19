@@ -1,4 +1,4 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
+import type { CryptoContext } from "../../../utils/jwt";
 
 export type GetCredentialTrustmarkJwt = (params: {
   /**

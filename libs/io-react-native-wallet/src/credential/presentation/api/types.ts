@@ -1,10 +1,10 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 import type { jsonWebKeySet } from "@pagopa/io-wallet-oid-federation";
 import type { DcqlQuery as DcqlQueryLib } from "dcql";
 
 import * as z from "zod";
 
 import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
+import type { CryptoContext } from "../../../utils/jwt";
 
 export type PresentationParams = z.infer<typeof PresentationParams>;
 export const PresentationParams = z.object({

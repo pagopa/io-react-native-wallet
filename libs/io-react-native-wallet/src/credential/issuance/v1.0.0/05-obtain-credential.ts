@@ -1,8 +1,4 @@
-import {
-  type CryptoContext,
-  sha256ToBase64,
-  SignJWT,
-} from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import { v4 as uuidv4 } from "uuid";
 
 import type { IssuanceApi } from "../api";
@@ -17,6 +13,11 @@ import {
   UnimplementedFeatureError,
   ValidationFailed,
 } from "../../../utils/errors";
+import {
+  type CryptoContext,
+  cryptoToJwtSigner,
+  sha256ToBase64Url,
+} from "../../../utils/jwt";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow } from "../../../utils/misc";
 import { CredentialResponse, NonceResponse } from "./types";
@@ -28,7 +29,7 @@ export const createNonceProof = async (
   ctx: CryptoContext,
 ): Promise<string> => {
   const jwk = await ctx.getPublicKey();
-  return new SignJWT(ctx)
+  return new JWT(cryptoToJwtSigner(ctx))
     .setPayload({
       nonce,
     })
@@ -128,7 +129,7 @@ export const obtainCredential: IssuanceApi["obtainCredential"] = async (
 
   const tokenRequestSignedDPop = await createDPopToken(
     {
-      ath: await sha256ToBase64(accessToken.access_token),
+      ath: await sha256ToBase64Url(accessToken.access_token),
       htm: "POST",
       htu: credentialUrl,
       jti: `${uuidv4()}`,

@@ -1,10 +1,5 @@
 import { hasher } from "@owf/crypto";
-import {
-  type CryptoContext,
-  EncryptJwe,
-  getJwkFromHeader,
-  SignJWT,
-} from "@pagopa/io-react-native-jwt";
+import { EncryptJwe, getJwkFromHeader, JWT } from "@pagopa/io-react-native-jwt";
 import { verify } from "@pagopa/io-react-native-jwt";
 import { type CallbackContext, type JwtSigner } from "@pagopa/io-wallet-oauth2";
 import { X509 } from "jsrsasign";
@@ -13,6 +8,7 @@ import type { JWK } from "./jwk";
 
 import { getJwkFromCertificateChain, getJwkFromTrustChain } from "./crypto";
 import { IoWalletError } from "./errors";
+import { type CryptoContext, cryptoToJwtSigner } from "./jwt";
 import { assert, generateRandomBytes } from "./misc";
 
 // Fix incompatibility between ArrayBuffer types: the hasher accepts Uint8Array
@@ -127,7 +123,7 @@ export const createSignJwtFromCryptoContext = (
 ): CallbackContext["signJwt"] =>
   async function signJwt(jwtSigner, { header, payload }) {
     return {
-      jwt: await new SignJWT(cryptoContext)
+      jwt: await new JWT(cryptoToJwtSigner(cryptoContext))
         .setProtectedHeader(header)
         .setPayload(payload)
         .sign(),

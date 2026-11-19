@@ -1,4 +1,4 @@
-import { type CryptoContext, SignJWT } from "@pagopa/io-react-native-jwt";
+import { JWT } from "@pagopa/io-react-native-jwt";
 import {
   type CallbackContext,
   createTokenDPoP,
@@ -26,6 +26,7 @@ import {
   ResponseErrorBuilder,
   ValidationFailed,
 } from "../../../utils/errors";
+import { type CryptoContext, cryptoToJwtSigner } from "../../../utils/jwt";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { hasStatusOrThrow, type Out } from "../../../utils/misc";
 import { NonceResponse } from "./types";
@@ -92,7 +93,7 @@ export const requestCredentials = async ({
     }
 
     return {
-      jwt: await new SignJWT(cryptoContext)
+      jwt: await new JWT(cryptoToJwtSigner(cryptoContext))
         .setProtectedHeader(header)
         .setPayload(payload)
         .sign(),

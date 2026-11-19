@@ -1,9 +1,8 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
 import {
   createCryptoContextFor,
   type CredentialIssuance,
   type CredentialStatus,
+  type CryptoContext,
   IoWallet,
   type ItwVersion,
   type RemotePresentation,

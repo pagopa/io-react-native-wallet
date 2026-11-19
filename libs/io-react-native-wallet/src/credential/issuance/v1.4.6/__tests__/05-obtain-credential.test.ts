@@ -1,7 +1,6 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
 import { fetchCredentialResponse } from "@pagopa/io-wallet-oid4vci";
 
+import type { CryptoContext } from "../../../../utils/jwt";
 import type { IssuerConfig } from "../../api";
 
 import { requestCredentials } from "../05-obtain-credential";

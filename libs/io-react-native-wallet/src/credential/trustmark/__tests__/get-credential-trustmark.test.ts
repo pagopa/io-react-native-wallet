@@ -1,8 +1,9 @@
 import { deleteKey, generate } from "@pagopa/io-react-native-crypto";
-import { type CryptoContext, decode } from "@pagopa/io-react-native-jwt";
+import { decode } from "@pagopa/io-react-native-jwt";
 
 import { IoWallet } from "../../../IoWallet";
 import { UnimplementedFeatureError } from "../../../utils/errors";
+import { type CryptoContext } from "../../../utils/jwt";
 
 // Wallet Instance Attestation
 const walletInstanceAttestation =

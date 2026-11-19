@@ -1,6 +1,5 @@
-import type { CryptoContext } from "@pagopa/io-react-native-jwt";
-
 import type { SupportedSdJwtLegacyFormat } from "../../../sd-jwt/types";
+import type { CryptoContext } from "../../../utils/jwt";
 import type { Out } from "../../../utils/misc";
 import type { CredentialFormat, IssuerConfig } from "../../issuance/api";
 import type { ParsedStatusAssertion } from "./types";

@@ -1,10 +1,7 @@
 import type { Verifier } from "@sd-jwt/core";
 
 import { hasher } from "@owf/crypto";
-import {
-  type CryptoContext,
-  verify as verifyJwt,
-} from "@pagopa/io-react-native-jwt";
+import { verify as verifyJwt } from "@pagopa/io-react-native-jwt";
 import { type SDJwt, SDJwtInstance, type VerifierOptions } from "@sd-jwt/core";
 
 import type { SdJwt4VCBase } from "../../../sd-jwt/types";
@@ -14,6 +11,7 @@ import { MissingX509CertsError } from "../../../trust/common/errors";
 import { fixLegacyCredentialSdJwt } from "../../../utils/credentials";
 import { IoWalletError } from "../../../utils/errors";
 import { isSameThumbprint, type JWK } from "../../../utils/jwk";
+import { type CryptoContext } from "../../../utils/jwt";
 import { Logger, LogLevel } from "../../../utils/logging";
 import { isPathEqual, isPrefixOf } from "../../../utils/parser";
 import { verifyX509Chain } from "../../../utils/x509";

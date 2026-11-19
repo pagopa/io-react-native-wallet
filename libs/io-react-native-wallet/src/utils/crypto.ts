@@ -4,11 +4,7 @@ import {
   getPublicKeyFixed,
   sign,
 } from "@pagopa/io-react-native-crypto";
-import {
-  type CryptoContext,
-  decode,
-  thumbprint,
-} from "@pagopa/io-react-native-jwt";
+import { decode, thumbprint } from "@pagopa/io-react-native-jwt";
 import { KEYUTIL, KJUR, RSAKey, X509 } from "jsrsasign";
 import { v4 as uuidv4 } from "uuid";
 
@@ -16,6 +12,7 @@ import type { BaseEntityConfiguration } from "../trust/common/types";
 
 import { IoWalletError } from "./errors";
 import { JWK, JWKS } from "./jwk";
+import { type CryptoContext } from "./jwt";
 
 /**
  * Extension of the {@link CryptoContext} that adds key generation with optional key attestation.
