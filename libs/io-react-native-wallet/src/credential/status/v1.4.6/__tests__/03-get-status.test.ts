@@ -27,36 +27,36 @@ describe("getStatus", () => {
 
   it.each([
     {
-      expectedStatus: "VALID",
-      expectedStatusBit: "0x00",
+      expectedStatus: "valid",
+      expectedStatusValue: "0x00",
       idx: 0,
     },
     {
-      expectedStatus: "INVALID",
-      expectedStatusBit: "0x01",
+      expectedStatus: "invalid",
+      expectedStatusValue: "0x01",
       idx: 1,
     },
     {
-      expectedStatus: "SUSPENDED",
-      expectedStatusBit: "0x02",
+      expectedStatus: "suspended",
+      expectedStatusValue: "0x02",
       idx: 3,
     },
     {
-      expectedStatus: "UPDATE",
-      expectedStatusBit: "0x03",
+      expectedStatus: "update",
+      expectedStatusValue: "0x03",
       idx: 5,
     },
     {
-      expectedStatus: "ATTRIBUTE_UPDATE",
-      expectedStatusBit: "0x0F",
+      expectedStatus: "attribute_update",
+      expectedStatusValue: "0x0F",
       idx: 7,
     },
   ])(
-    "should extract the correct status and status bit for index $idx -> $expectedStatus",
-    ({ expectedStatus, expectedStatusBit, idx }) => {
+    "should extract the correct status and status value for index $idx -> $expectedStatus",
+    ({ expectedStatus, expectedStatusValue, idx }) => {
       const { rawStatus, status } = getStatus(statusList.status_list, idx);
       expect(status).toBe(expectedStatus);
-      expect(rawStatus).toBe(expectedStatusBit);
+      expect(rawStatus).toBe(expectedStatusValue);
     },
   );
 });
