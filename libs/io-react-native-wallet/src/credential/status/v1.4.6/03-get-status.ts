@@ -6,7 +6,7 @@ import type { StatusListApi } from "../api/status-list";
 import { IoWalletError } from "../../../utils/errors";
 
 /**
- * Mapping of status bits to their corresponding meaning as defined in the specification.
+ * Mapping of status values to their corresponding meaning as defined in the specification.
  * @see https://italia.github.io/eid-wallet-it-docs/releases/1.4.6/en/credential-revocation.html#token-status-lists
  */
 const CredentialStatusMap = {
@@ -19,8 +19,8 @@ const CredentialStatusMap = {
 
 type CredentialStatusValue = keyof typeof CredentialStatusMap;
 
-const formatStatusBit = (statusBit: number) =>
-  `0x${statusBit.toString(16).padStart(2, "0").toUpperCase()}`;
+const formatStatusValue = (statusValue: number) =>
+  `0x${statusValue.toString(16).padStart(2, "0").toUpperCase()}`;
 
 export const getStatus: StatusListApi["getStatus"] = (statusList, idx) => {
   const decodedStatusList = JwtStatusList.decompressStatusListFromBytes(
@@ -28,17 +28,17 @@ export const getStatus: StatusListApi["getStatus"] = (statusList, idx) => {
     statusList.bits,
     statusList.aggregation_uri,
   );
-  const statusBit = decodedStatusList.getStatus(idx) as CredentialStatusValue;
-  const status = CredentialStatusMap[statusBit];
+  const statusValue = decodedStatusList.getStatus(idx) as CredentialStatusValue;
+  const status = CredentialStatusMap[statusValue];
 
   if (!status) {
     throw new IoWalletError(
-      `Unsupported credential status bit: ${formatStatusBit(statusBit)}`,
+      `Unsupported credential status value: ${formatStatusValue(statusValue)}`,
     );
   }
 
   return {
-    rawStatus: formatStatusBit(statusBit),
+    rawStatus: formatStatusValue(statusValue),
     status,
   };
 };
