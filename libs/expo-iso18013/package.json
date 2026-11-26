@@ -1,0 +1,43 @@
+{
+  "name": "@io-app-it-wallet/expo-iso18013",
+  "version": "0.9.0",
+  "description": "Expo module for ISO 18013, CBOR and COSE",
+  "license": "MIT",
+  "main": "./lib/commonjs/index.js",
+  "module": "./lib/module/index.js",
+  "types": "./lib/typescript/commonjs/index.d.ts",
+  "react-native": "./src/index.tsx",
+  "source": "./src/index.tsx",
+  "files": ["src", "lib", "android", "ios", "*.podspec", "expo-module.config.json", "!android/build", "!ios/build"],
+  "scripts": { "prepack": "bob build" },
+  "exports": {
+    ".": {
+      "@io-app-it-wallet/source": "./src/index.tsx",
+      "source": "./src/index.tsx",
+      "react-native": "./src/index.tsx",
+      "import": { "types": "./lib/typescript/module/index.d.ts", "default": "./lib/module/index.js" },
+      "require": { "types": "./lib/typescript/commonjs/index.d.ts", "default": "./lib/commonjs/index.js" }
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@pagopa/io-react-native-crypto": "*",
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  },
+  "dependencies": { "zod": "4.3.6" },
+  "devDependencies": {
+    "@pagopa/io-react-native-crypto": "^1.2.5",
+    "react-native-builder-bob": "^0.43.0"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      ["commonjs", { "esm": true }],
+      ["module", { "esm": true }],
+      ["typescript", { "project": "tsconfig.build.json" }]
+    ]
+  }
+}

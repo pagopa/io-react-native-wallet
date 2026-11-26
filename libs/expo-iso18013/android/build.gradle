@@ -1,0 +1,124 @@
+buildscript {
+  ext.getExtOrDefault = {name ->
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['IoReactNativeIso18013_' + name]
+  }
+
+  repositories {
+    google()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath "com.android.tools.build:gradle:8.7.2"
+    // noinspection DifferentKotlinGradleVersion
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}"
+    classpath "org.jetbrains.kotlin:kotlin-serialization:${getExtOrDefault('kotlinVersion')}"
+  }
+}
+
+
+apply plugin: "com.android.library"
+apply plugin: "expo-module-gradle-plugin"
+apply plugin: "kotlin-android"
+apply plugin: "kotlinx-serialization"
+apply plugin: "kotlin-parcelize"
+
+group = "com.ioreactnativeiso18013"
+version = "0.9.0"
+
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["IoReactNativeIso18013_" + name]).toInteger()
+}
+
+def supportsNamespace() {
+  def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+  def major = parsed[0].toInteger()
+  def minor = parsed[1].toInteger()
+
+  // Namespace support was added in 7.3.0
+  return (major == 7 && minor >= 3) || major >= 8
+}
+
+android {
+  if (supportsNamespace()) {
+    namespace "com.ioreactnativeiso18013"
+
+    sourceSets {
+      main {
+        manifest.srcFile "src/main/AndroidManifestNew.xml"
+      }
+    }
+  }
+
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+
+  defaultConfig {
+    versionCode 1
+    versionName "0.9.0"
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+
+  lintOptions {
+    disable "GradleCompatible"
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+   testOptions {
+      unitTests.all {
+          useJUnit()
+      }
+    }
+}
+
+repositories {
+  mavenCentral()
+  google()
+}
+
+def kotlin_version = getExtOrDefault("kotlinVersion")
+
+dependencies {
+  implementation "com.facebook.react:react-android"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+
+  // Required for CBOR and Proximity libraries
+  implementation "androidx.core:core-ktx:1.15.0"
+  implementation "androidx.appcompat:appcompat:1.7.0"
+  implementation "com.google.android.material:material:1.12.0"
+  implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"
+  implementation "com.upokecenter:cbor:4.5.6"
+  implementation "com.augustcellars.cose:cose-java:1.1.0"
+  implementation "org.jetbrains.kotlinx:kotlinx-io-core:0.4.0"
+  implementation "org.jetbrains.kotlinx:kotlinx-io-bytestring:0.4.0"
+  implementation "androidx.biometric:biometric-ktx:1.2.0-alpha05"
+  implementation("com.android.identity:identity:202411.1") {
+    exclude group: "org.bouncycastle"
+  }
+  implementation("com.android.identity:identity-android:202411.1") {
+    exclude group: "org.bouncycastle"
+  }
+  implementation("com.android.identity:identity-mdoc:202411.1") {
+    exclude group: "org.bouncycastle"
+  }
+  implementation "org.bouncycastle:bcpkix-jdk18on:1.79"
+  implementation "org.bouncycastle:bcprov-jdk18on:1.79"
+  implementation "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat"
+
+  testImplementation('junit:junit:4.13.2')
+  testImplementation "org.json:json:20220924"
+  testImplementation "io.mockk:mockk:1.13.12"
+  testImplementation "org.mockito:mockito-core:5.12.0"
+  testImplementation "org.mockito.kotlin:mockito-kotlin:4.1.0"
+}
