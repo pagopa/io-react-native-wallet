@@ -1,4 +1,4 @@
-import { CBOR } from "@pagopa/io-react-native-iso18013";
+import { CBOR } from "@io-app-it-wallet/expo-iso18013";
 
 import type { IssuanceApi } from "../credential/issuance";
 import type { Out } from "../utils/misc";

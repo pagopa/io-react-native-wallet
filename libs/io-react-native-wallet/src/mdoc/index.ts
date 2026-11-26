@@ -1,5 +1,5 @@
+import { CBOR, COSE, ISO18013_7 } from "@io-app-it-wallet/expo-iso18013";
 import { type PublicKey } from "@pagopa/io-react-native-crypto";
-import { CBOR, COSE, ISO18013_7 } from "@pagopa/io-react-native-iso18013";
 import { removePadding } from "@pagopa/io-react-native-jwt";
 import { b64utob64 } from "jsrsasign";
 

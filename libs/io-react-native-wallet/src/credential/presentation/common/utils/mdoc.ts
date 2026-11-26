@@ -1,6 +1,6 @@
 import type { DcqlMdocCredential, DcqlQueryResult } from "dcql";
 
-import { CBOR } from "@pagopa/io-react-native-iso18013";
+import { CBOR } from "@io-app-it-wallet/expo-iso18013";
 import { b64utob64 } from "jsrsasign";
 
 import type {

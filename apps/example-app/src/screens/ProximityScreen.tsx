@@ -1,6 +1,6 @@
+import { ISO18013_5 } from "@io-app-it-wallet/expo-iso18013";
 import { ModuleSummary } from "@pagopa/io-app-design-system";
 import { Body, Alert as IOAlert, VStack } from "@pagopa/io-app-design-system";
-import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
 import { addPadding } from "@pagopa/io-react-native-jwt";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet } from "react-native";
@@ -284,19 +284,14 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
       return;
     }
     try {
-      // QR code engagement only (BLE retrieval)
-      await ISO18013_5.startEngagement({
-        certificates: [x5c],
-        engagementModes: ["qrcode"],
-        retrievalMethods: ["ble"],
-      });
-
       // Register listeners
-      ISO18013_5.addListener(
-        "onQrCodeString",
-        (payload: ISO18013_5.EventsPayload["onQrCodeString"]) => {
-          setQrCode(payload.data);
-        },
+      listenerSubscriptions.current.push(
+        ISO18013_5.addListener(
+          "onQrCodeString",
+          (payload: ISO18013_5.EventsPayload["onQrCodeString"]) => {
+            setQrCode(payload.data);
+          },
+        ),
       );
 
       listenerSubscriptions.current.push(
@@ -312,8 +307,18 @@ const ContentView = ({ attestation, credential, env }: ContentViewProps) => {
         addListener("onDeviceDisconnected", onDeviceDisconnected),
       );
       listenerSubscriptions.current.push(addListener("onError", onError));
+      // QR code engagement only (BLE retrieval)
+      await ISO18013_5.startEngagement({
+        certificates: [x5c],
+        engagementModes: ["qrcode"],
+        retrievalMethods: ["ble"],
+      });
       setStatus(PROXIMITY_STATUS.STARTED);
     } catch (error) {
+      listenerSubscriptions.current.forEach((subscription) =>
+        subscription.remove(),
+      );
+      listenerSubscriptions.current = [];
       console.log("Error starting the proximity flow", error);
       Alert.alert("Failed to initialize QR engagement");
       setStatus(PROXIMITY_STATUS.STOPPED);

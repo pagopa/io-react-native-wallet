@@ -37,7 +37,7 @@ jest.mock("uuid", () => ({
   v4: jest.fn(() => "mocked-uuid"),
 }));
 
-jest.mock("@pagopa/io-react-native-iso18013", () => ({
+jest.mock("@io-app-it-wallet/expo-iso18013", () => ({
   CBOR: {
     decodeIssuerSigned: jest.fn(() => Promise.resolve("test")),
   },

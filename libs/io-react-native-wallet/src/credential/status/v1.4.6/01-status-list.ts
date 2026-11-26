@@ -1,8 +1,8 @@
+import { CBOR } from "@io-app-it-wallet/expo-iso18013";
 import {
   getStatusListFromJWT,
   type StatusListEntry,
 } from "@owf/token-status-list";
-import { CBOR } from "@pagopa/io-react-native-iso18013";
 import { decode as decodeJwt } from "@pagopa/io-react-native-jwt";
 
 import type { StatusListApi } from "../api/status-list";

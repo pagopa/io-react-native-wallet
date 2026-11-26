@@ -50,6 +50,12 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("WalletInstance"),
       },
       {
+        description: "Test ISO 18013, CBOR and COSE",
+        icon: "chevronRight",
+        label: "Expo ISO 18013",
+        onPress: () => navigation.navigate("Iso18013"),
+      },
+      {
         description: "Obtain a PID with SPID or CIE",
         icon: "chevronRight",
         label: "PID",
