@@ -1,0 +1,55 @@
+{
+  "name": "@io-app-it-wallet/expo-integrity",
+  "version": "1.0.0",
+  "description": "Expo module for Android Play Integrity and iOS App Attest",
+  "license": "MIT",
+  "main": "./lib/commonjs/index.js",
+  "module": "./lib/module/index.js",
+  "types": "./lib/typescript/commonjs/index.d.ts",
+  "react-native": "./src/index.ts",
+  "source": "./src/index.ts",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "expo-module.config.json",
+    "!android/build",
+    "!ios/build"
+  ],
+  "scripts": {
+    "prepack": "bob build"
+  },
+  "exports": {
+    ".": {
+      "@io-app-it-wallet/source": "./src/index.ts",
+      "source": "./src/index.ts",
+      "react-native": "./src/index.ts",
+      "import": {
+        "types": "./lib/typescript/module/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "require": {
+        "types": "./lib/typescript/commonjs/index.d.ts",
+        "default": "./lib/commonjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "expo": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "react-native-builder-bob": "^0.43.0"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      ["commonjs", { "esm": true }],
+      ["module", { "esm": true }],
+      ["typescript", { "project": "tsconfig.build.json" }]
+    ]
+  }
+}
