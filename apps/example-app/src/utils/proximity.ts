@@ -1,4 +1,4 @@
-import { ISO18013_5 } from "@pagopa/io-react-native-iso18013";
+import { ISO18013_5 } from "@io-app-it-wallet/expo-iso18013";
 import { Platform } from "react-native";
 import {
   checkMultiple,

@@ -10,7 +10,7 @@ import {
   prepareIntegrityToken,
   requestIntegrityToken,
 } from "@pagopa/io-react-native-integrity";
-import { CBOR } from "@pagopa/io-react-native-iso18013";
+import { CBOR } from "@io-app-it-wallet/expo-iso18013";
 import { addPadding, removePadding } from "@pagopa/io-react-native-jwt";
 import { sha256 } from "js-sha256";
 import { Platform } from "react-native";
