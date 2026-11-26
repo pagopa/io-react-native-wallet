@@ -2,6 +2,7 @@ import {
   IODSExperimentalContextProvider,
   ToastProvider,
 } from "@pagopa/io-app-design-system";
+import { NavigationContainer } from "@react-navigation/native";
 import "react-native-url-polyfill/auto";
 import React from "react";
 import { StyleSheet } from "react-native";
@@ -23,7 +24,9 @@ export default function App() {
             <SafeAreaProvider>
               <ToastProvider>
                 <DebugDataOverlay />
-                <MainStackNavigator />
+                <NavigationContainer>
+                  <MainStackNavigator />
+                </NavigationContainer>
               </ToastProvider>
             </SafeAreaProvider>
           </IODSExperimentalContextProvider>

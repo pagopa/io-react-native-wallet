@@ -50,6 +50,12 @@ const HomeScreen = () => {
         onPress: () => navigation.navigate("WalletInstance"),
       },
       {
+        description: "Test device integrity and attestation",
+        icon: "chevronRight",
+        label: "Expo Integrity",
+        onPress: () => navigation.navigate("Integrity"),
+      },
+      {
         description: "Obtain a PID with SPID or CIE",
         icon: "chevronRight",
         label: "PID",
