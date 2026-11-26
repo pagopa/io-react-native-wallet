@@ -3,6 +3,15 @@
 The example app is an Expo React Native application used to develop and test
 the libraries contained in this monorepo.
 
+Select **Expo Integrity** from the wallet home screen to invoke each platform's
+native operations and inspect their results. You can log in or use **Skip
+login** to reach the home screen.
+Use a physical device, a fresh backend-provided challenge, and a development
+build rather than Expo Go. On Android, configure Play Integrity in Google Play
+and enter the Google Cloud project number. On iOS, provision the app with App
+Attest enabled; the example uses the development entitlement. Results must be
+verified on a backend; this screen does not perform verification.
+
 ## Prerequisites
 Follow the [React Native environment setup guide for your OS](https://reactnative.dev/docs/environment-setup?guide=native) before proceeding. Run the following commands from the monorepo root through Nx.
 
