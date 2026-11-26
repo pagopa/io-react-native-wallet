@@ -3,19 +3,6 @@
  */
 
 /**
- * Documents type to be used in the {@link generateResponse} for ISO18013-5 and {@link generateOID4VPDeviceResponse} for ISO18013-7.
- * It contains:
- * - issuerSignedContent which is a base64 or base64url encoded string representing the credential;
- * - alias which is the alias of the key used to sign the credential;
- * - docType which is the document type.
- */
-export type RequestedDocument = {
-  issuerSignedContent: string;
-  alias: string;
-  docType: string;
-};
-
-/**
  * This is the type definition for the accepted fields that will be presented to the verifier app.
  * It contains of a nested object structure, where the outermost key represents the credential doctype.
  * The inner dictionary contains namespaces, and for each namespace, there is another dictionary mapping requested claims to a boolean value,
@@ -33,8 +20,20 @@ export type RequestedDocument = {
  *    {...}
  *  }`
  **/
-export type AcceptedFields = {
-  [credential: string]: {
-    [namespace: string]: { [field: string]: boolean };
-  };
+export type AcceptedFields = Record<
+  string,
+  Record<string, Record<string, boolean>>
+>;
+
+/**
+ * Documents type to be used in the {@link generateResponse} for ISO18013-5 and {@link generateOID4VPDeviceResponse} for ISO18013-7.
+ * It contains:
+ * - issuerSignedContent which is a base64 or base64url encoded string representing the credential;
+ * - alias which is the alias of the key used to sign the credential;
+ * - docType which is the document type.
+ */
+export type RequestedDocument = {
+  alias: string;
+  docType: string;
+  issuerSignedContent: string;
 };

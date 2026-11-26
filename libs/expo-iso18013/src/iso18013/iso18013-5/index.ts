@@ -1,26 +1,26 @@
-export { type VerifierRequest, parseVerifierRequest } from './request';
+export { type AcceptedFields, type RequestedDocument } from "../types";
 
 export {
+  type ModuleError,
+  type ModuleErrorCodes,
+  ModuleErrorSchema,
   type OnErrorPayload,
   OnErrorPayloadSchema,
-  ModuleErrorSchema,
-  type ModuleErrorCodes,
-  type ModuleError,
-} from './error';
+} from "./error";
 
 export {
+  addListener,
+  close,
+  type EngagementMode,
   ErrorCode,
   type Events,
   type EventsPayload,
-  type EngagementMode,
-  type RetrievalMethod,
-  addListener,
-  startEngagement,
-  close,
   generateResponse,
+  type RetrievalMethod,
   sendErrorResponse,
   sendResponse,
   setHceModalMessage,
-} from './proximity';
+  startEngagement,
+} from "./proximity";
 
-export { type RequestedDocument, type AcceptedFields } from '../types';
+export { parseVerifierRequest, type VerifierRequest } from "./request";

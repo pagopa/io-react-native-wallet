@@ -1,13 +1,13 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Schema for parsing a nativeStackAndroid object of a rejected promise error in an Android native module.
  */
 const StackTraceElementSchema = z.object({
-  lineNumber: z.number(),
-  file: z.string().nullable(),
-  methodName: z.string(),
   class: z.string(),
+  file: z.string().nullable(),
+  lineNumber: z.number(),
+  methodName: z.string(),
 });
 
 /**
@@ -33,7 +33,7 @@ const ModuleErrorIosSchema = z.object({
  * @returns A schema for the common parameters of a rejected promise error in a native module.
  */
 export const GenericModuleErrorSchema = <CodeType extends z.ZodType<string>>(
-  codeSchema: CodeType
+  codeSchema: CodeType,
 ) =>
   z
     .object({

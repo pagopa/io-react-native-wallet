@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * If the value is a string, parse it as JSON.
@@ -6,7 +6,7 @@ import { z } from 'zod';
  * Useful for unescaping stringified JSON content
  */
 export const coerceToJSON = z.any().transform((any) => {
-  if (typeof any === 'object') {
+  if (typeof any === "object") {
     return any;
   }
   return JSON.parse(any);

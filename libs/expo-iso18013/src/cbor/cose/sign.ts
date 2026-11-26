@@ -1,5 +1,6 @@
-import type { PublicKey } from '@pagopa/io-react-native-crypto';
-import { IoReactNativeCbor } from '..';
+import type { PublicKey } from "@pagopa/io-react-native-crypto";
+
+import { IoReactNativeCbor } from "..";
 
 /**
  * Sign base64 encoded data with COSE and return the COSE-Sign1 object in base64 encoding
@@ -22,5 +23,5 @@ export const sign = async (data: string, keyTag: string): Promise<string> =>
  */
 export const verify = async (
   data: string,
-  publicKey: PublicKey
+  publicKey: PublicKey,
 ): Promise<boolean> => await IoReactNativeCbor.verify(data, publicKey);

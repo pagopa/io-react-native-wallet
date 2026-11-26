@@ -1,5 +1,6 @@
-import type { PublicKey } from '@pagopa/io-react-native-crypto';
-import { requireNativeModule } from 'expo';
+import type { PublicKey } from "@pagopa/io-react-native-crypto";
+
+import { requireNativeModule } from "expo";
 
 type NativeCbor = {
   decode(data: string): Promise<string>;
@@ -9,4 +10,5 @@ type NativeCbor = {
   verify(data: string, publicKey: PublicKey): Promise<boolean>;
 };
 
-export const IoReactNativeCbor = requireNativeModule<NativeCbor>('ExpoIso18013Cbor');
+export const IoReactNativeCbor =
+  requireNativeModule<NativeCbor>("ExpoIso18013Cbor");

@@ -1,6 +1,7 @@
-import { IoReactNativeIso18013 } from '..';
-import type { AcceptedFields } from '../iso18013-5';
-import type { RequestedDocument } from '../types';
+import type { AcceptedFields } from "../iso18013-5";
+import type { RequestedDocument } from "../types";
+
+import { IoReactNativeIso18013 } from "..";
 
 /**
  * Generates a CBOR device response for ISO 18013-7 mDL remote presentation using OID4VP.
@@ -17,16 +18,15 @@ export const generateOID4VPDeviceResponse = async (
   clientId: string,
   responseUri: string,
   authorizationRequestNonce: string,
-  jwkThumbprint: string | null,
-  documents: Array<RequestedDocument>,
-  acceptedFields: AcceptedFields
-): Promise<string> => {
-  return await IoReactNativeIso18013.generateOID4VPDeviceResponse(
+  jwkThumbprint: null | string,
+  documents: RequestedDocument[],
+  acceptedFields: AcceptedFields,
+): Promise<string> =>
+  await IoReactNativeIso18013.generateOID4VPDeviceResponse(
     clientId,
     responseUri,
     authorizationRequestNonce,
     jwkThumbprint,
     documents,
-    acceptedFields
+    acceptedFields,
   );
-};

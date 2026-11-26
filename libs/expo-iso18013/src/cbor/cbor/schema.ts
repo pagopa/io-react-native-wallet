@@ -1,9 +1,10 @@
-import { z } from 'zod';
-import { coerceToJSON } from './schema.utils';
+import { z } from "zod";
+
+import { coerceToJSON } from "./schema.utils";
 
 export enum DocumentTypeEnum {
-  MDL = 'org.iso.18013.5.1.mDL',
-  EU_PID = 'eu.europa.ec.eudi.pid.1',
+  EU_PID = "eu.europa.ec.eudi.pid.1",
+  MDL = "org.iso.18013.5.1.mDL",
 }
 
 export const DocumentType = z.nativeEnum(DocumentTypeEnum);
@@ -14,9 +15,9 @@ export type DocumentType = z.infer<typeof DocumentType>;
  */
 export const DocumentValue = z.object({
   digestID: z.coerce.number().optional(),
-  random: z.string().optional(),
   elementIdentifier: z.string(),
   elementValue: z.any(),
+  random: z.string().optional(),
 });
 
 export type DocumentValue = z.infer<typeof DocumentValue>;
@@ -38,10 +39,10 @@ export type IssuerAuthUnprotectedHeader = z.infer<
  * Issuer Auth Payload Validity Info
  */
 export const IssuerAuthPayloadValidityInfo = z.object({
-  signed: z.coerce.date(),
-  validUntil: z.coerce.date(),
-  validFrom: z.coerce.date(),
   expectedUpdate: z.coerce.date().optional(),
+  signed: z.coerce.date(),
+  validFrom: z.coerce.date(),
+  validUntil: z.coerce.date(),
 });
 
 export type IssuerAuthPayloadValidityInfo = z.infer<
@@ -52,8 +53,8 @@ export type IssuerAuthPayloadValidityInfo = z.infer<
  * EC KEY
  */
 const ECKey = z.object({
-  kty: z.enum(['EC']),
-  crv: z.enum(['P-256', 'P-384', 'P-521']),
+  crv: z.enum(["P-256", "P-384", "P-521"]),
+  kty: z.enum(["EC"]),
   x: z.string(),
   y: z.string(),
 });
@@ -62,9 +63,9 @@ const ECKey = z.object({
  * RSA KEY
  */
 const RSAKEY = z.object({
-  kty: z.enum(['RSA']),
   alg: z.string(),
   e: z.string(),
+  kty: z.enum(["RSA"]),
   n: z.string(),
 });
 
@@ -85,12 +86,12 @@ export type IssuerAuthPayloadDeviceKeyInfo = z.infer<
  * Issuer Auth Payload Object
  */
 export const IssuerAuthPayload = z.object({
-  docType: z.string().optional(),
-  version: z.string().optional(),
-  validityInfo: IssuerAuthPayloadValidityInfo,
-  digestAlgorithm: z.string().optional(),
   deviceKeyInfo: IssuerAuthPayloadDeviceKeyInfo,
+  digestAlgorithm: z.string().optional(),
+  docType: z.string().optional(),
+  validityInfo: IssuerAuthPayloadValidityInfo,
   valueDigests: z.record(z.string(), z.any()),
+  version: z.string().optional(),
 });
 
 export type IssuerAuthPayload = z.infer<typeof IssuerAuthPayload>;
@@ -99,11 +100,11 @@ export type IssuerAuthPayload = z.infer<typeof IssuerAuthPayload>;
  * Issuer Auth Object
  */
 export const IssuerAuth = z.object({
-  rawValue: z.string().optional(),
-  protectedHeader: z.string().optional(),
-  unprotectedHeader: IssuerAuthUnprotectedHeader,
   payload: IssuerAuthPayload,
+  protectedHeader: z.string().optional(),
+  rawValue: z.string().optional(),
   signature: z.string().optional(),
+  unprotectedHeader: IssuerAuthUnprotectedHeader,
 });
 
 export type IssuerAuth = z.infer<typeof IssuerAuth>;
@@ -112,8 +113,8 @@ export type IssuerAuth = z.infer<typeof IssuerAuth>;
  * Issuer signed object
  */
 export const IssuerSigned = z.object({
-  nameSpaces: z.record(z.string(), coerceToJSON.pipe(z.array(DocumentValue))),
   issuerAuth: IssuerAuth,
+  nameSpaces: z.record(z.string(), coerceToJSON.pipe(z.array(DocumentValue))),
 });
 
 export type IssuerSigned = z.infer<typeof IssuerSigned>;
@@ -132,9 +133,9 @@ export type MDOC = z.infer<typeof MDOC>;
  * CBOR decoded data containing the status, version and the list of documents
  */
 export const Documents = z.object({
+  documents: coerceToJSON.pipe(z.array(MDOC)),
   status: z.number().optional(),
   version: z.string().optional(),
-  documents: coerceToJSON.pipe(z.array(MDOC)),
 });
 
 /**

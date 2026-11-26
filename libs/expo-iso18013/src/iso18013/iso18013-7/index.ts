@@ -1,8 +1,8 @@
-export { generateOID4VPDeviceResponse } from './remote';
+export { type AcceptedFields, type RequestedDocument } from "../types";
 export {
-  ModuleErrorSchema,
   type ModuleError,
   type ModuleErrorCodes,
-} from './error';
+  ModuleErrorSchema,
+} from "./error";
 
-export { type RequestedDocument, type AcceptedFields } from '../types';
+export { generateOID4VPDeviceResponse } from "./remote";

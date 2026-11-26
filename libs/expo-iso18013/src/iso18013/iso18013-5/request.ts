@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Inner data: a record of booleans with the attributes and the intent to retain flag
 const booleanFieldGroup = z.record(z.string(), z.boolean());
@@ -8,21 +8,21 @@ const booleanFieldGroup = z.record(z.string(), z.boolean());
 const certificateDataSchema = z
   .object({
     C: z.string().optional(),
+    CN: z.string().optional(),
     O: z.string().optional(),
     SERIALNUMBER: z.string().optional(),
-    CN: z.string().optional(),
   })
   .transform((certificate) => ({
+    commonName: certificate.CN,
     country: certificate.C,
     organization: certificate.O,
     serialNumber: certificate.SERIALNUMBER,
-    commonName: certificate.CN,
   }));
 
 const credentialEntrySchema = z
   .object({
-    isAuthenticated: z.boolean(),
     certificateData: certificateDataSchema.optional(),
+    isAuthenticated: z.boolean(),
   })
   .catchall(booleanFieldGroup);
 
@@ -63,6 +63,5 @@ export type VerifierRequest = z.infer<typeof VerifierRequest>;
  * @param input - The input to be parsed
  * @returns The parsed VerifierRequest object
  */
-export const parseVerifierRequest = (input: unknown): VerifierRequest => {
-  return VerifierRequest.parse(input);
-};
+export const parseVerifierRequest = (input: unknown): VerifierRequest =>
+  VerifierRequest.parse(input);

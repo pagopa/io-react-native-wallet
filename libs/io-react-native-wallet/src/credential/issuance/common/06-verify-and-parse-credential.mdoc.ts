@@ -1,5 +1,5 @@
-import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import type { CBOR } from "@io-app-it-wallet/expo-iso18013";
+import type { PublicKey } from "@pagopa/io-react-native-crypto";
 import type { CryptoContext } from "@pagopa/io-react-native-jwt";
 
 import type { Out } from "../../../utils/misc";

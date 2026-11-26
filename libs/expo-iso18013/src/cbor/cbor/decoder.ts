@@ -1,11 +1,11 @@
-import { IoReactNativeCbor } from '..';
+import { IoReactNativeCbor } from "..";
 import {
   Documents,
   DocumentsFromString,
   IssuerSigned,
   IssuerSignedFromString,
-} from './schema';
-import { coerceToJSON } from './schema.utils';
+} from "./schema";
+import { coerceToJSON } from "./schema.utils";
 
 /**
  * Decode base64 or base64url encoded CBOR data to JSON object.
@@ -15,6 +15,8 @@ import { coerceToJSON } from './schema.utils';
  * @throws {ModuleError} in case of failure which can be parsed with {@link ModuleErrorSchema}
  * @returns The decoded data as JSON object
  */
+// Preserve the existing public API for arbitrary decoded CBOR values.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const decode = async (data: string): Promise<any> => {
   const jsonString = await IoReactNativeCbor.decode(data);
   return await coerceToJSON.parseAsync(jsonString);
@@ -38,7 +40,7 @@ export const decodeDocuments = async (data: string): Promise<Documents> => {
  * @returns The decoded {@link IssuerSigned}
  */
 export const decodeIssuerSigned = async (
-  data: string
+  data: string,
 ): Promise<IssuerSigned> => {
   const decodedIssuerSignedString =
     await IoReactNativeCbor.decodeIssuerSigned(data);
