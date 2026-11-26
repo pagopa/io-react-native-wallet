@@ -1,3 +1,4 @@
+import { getAttestation } from "@io-app-it-wallet/expo-integrity";
 import {
   createCryptoContextFor,
   IoWallet,
@@ -6,7 +7,6 @@ import {
   type WalletInstanceAttestation as Wia,
 } from "@io-app-it-wallet/io-react-native-wallet";
 import { generate } from "@pagopa/io-react-native-crypto";
-import { getAttestation } from "@pagopa/io-react-native-integrity";
 import { Platform } from "react-native";
 
 import { selectEnv, selectItwVersion } from "../store/reducers/environment";

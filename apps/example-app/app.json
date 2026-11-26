@@ -32,7 +32,8 @@
         "NSLocationWhenInUseUsageDescription": ""
       },
       "entitlements": {
-        "com.apple.developer.nfc.readersession.formats": ["TAG"]
+        "com.apple.developer.nfc.readersession.formats": ["TAG"],
+        "com.apple.developer.devicecheck.appattest-environment": "development"
       },
       "appleTeamId": "M2X5YQ4BJ7"
     },
