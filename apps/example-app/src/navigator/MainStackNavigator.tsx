@@ -18,6 +18,7 @@ import { CredentialsCatalogueScreen } from "../screens/CredentialsCatalogue";
 import { CredentialScreen } from "../screens/CredentialScreen";
 import { CredentialStatusScreen } from "../screens/CredentialStatusScreen";
 import HomeScreen from "../screens/HomeScreen";
+import { Iso18013Screen } from "../screens/Iso18013Screen";
 import { CieLoginScreen } from "../screens/login/CieLoginScreen";
 import IdpLoginScreen from "../screens/login/IdpLoginScreen";
 import IdpSelectionScreen from "../screens/login/IdpSelectionScreen";
@@ -65,6 +66,7 @@ export type MainStackNavParamList = {
   Home: undefined;
   IdpLogin: { idp: string };
   IdpSelection: undefined;
+  Iso18013: undefined;
   Login: undefined;
   Pid: undefined;
   PidSpidIdpSelection: { withDocumentProof?: boolean };
@@ -136,6 +138,11 @@ export const MainStackNavigator = () => {
               component={HomeScreen}
               name="Home"
               options={{ title: "ITW Test" }}
+            />
+            <Stack.Screen
+              component={Iso18013Screen}
+              name="Iso18013"
+              options={{ title: "Expo ISO 18013" }}
             />
             <Stack.Screen
               component={WalletInstanceScreen}
